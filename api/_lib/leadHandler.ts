@@ -1,5 +1,5 @@
-import { normalizeLeadPayload, RequestValidationError, type LeadKind } from './contracts';
-import { persistLead, SiteDatabaseError } from './siteDatabase';
+import { normalizeLeadPayload, RequestValidationError, type LeadKind } from './contracts.js';
+import { persistLead, SiteDatabaseError } from './siteDatabase.js';
 
 export interface ApiRequest {
   method?: string;

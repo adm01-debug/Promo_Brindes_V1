@@ -1,5 +1,5 @@
 import { createHash, createHmac } from 'node:crypto';
-import type { LeadKind, NormalizedLeadPayload } from './contracts';
+import type { LeadKind, NormalizedLeadPayload } from './contracts.js';
 
 const CANONICAL_CATALOG_PROJECT = 'doufsxqlfjyuvxuezpln';
 const REQUEST_TIMEOUT_MS = 10_000;

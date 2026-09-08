@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import contactHandler from './contact-requests';
-import quoteHandler from './quote-requests';
-import type { ApiRequest, ApiResponse } from './_lib/leadHandler';
+import contactHandler from '../../api/contact-requests.js';
+import quoteHandler from '../../api/quote-requests.js';
+import type { ApiRequest, ApiResponse } from '../../api/_lib/leadHandler.js';
 
 function responseDouble() {
   const result = { headers: new Map<string, string>(), statusCode: 0, body: undefined as unknown };

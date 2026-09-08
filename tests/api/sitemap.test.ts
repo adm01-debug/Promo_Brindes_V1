@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import handler from './sitemap';
+import handler from '../../api/sitemap.js';
 
 function responseDouble() {
   const result = { headers: new Map<string, string>(), statusCode: 0, body: '' };
