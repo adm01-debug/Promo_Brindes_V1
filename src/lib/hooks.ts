@@ -1,0 +1,80 @@
+import { useEffect, useState } from 'react';
+import { fetchAllCategories, fetchCatalog, fetchCategories, fetchProduct, type CatalogQuery, type CatalogResult } from './catalog';
+import type { CatalogProduct, Category } from '../types';
+
+interface AsyncState<T> {
+  data: T;
+  loading: boolean;
+  error: string | null;
+}
+
+function errorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  return 'Não foi possível concluir esta consulta.';
+}
+
+export function useCatalog(query: CatalogQuery, refreshKey = 0): AsyncState<CatalogResult> {
+  const [state, setState] = useState<AsyncState<CatalogResult>>({
+    data: { products: [], total: 0, page: query.page ?? 1, pageSize: query.pageSize ?? 24 },
+    loading: true,
+    error: null,
+  });
+  const queryKey = JSON.stringify(query);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setState((current) => ({ ...current, loading: true, error: null }));
+    void fetchCatalog(query, controller.signal)
+      .then((data) => setState({ data, loading: false, error: null }))
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) return;
+        setState((current) => ({ ...current, loading: false, error: errorMessage(error) }));
+      });
+    return () => controller.abort();
+  }, [queryKey, refreshKey]);
+
+  return state;
+}
+
+export function useCategories(refreshKey = 0): AsyncState<Category[]> {
+  const [state, setState] = useState<AsyncState<Category[]>>({ data: [], loading: true, error: null });
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetchCategories(controller.signal)
+      .then((data) => setState({ data, loading: false, error: null }))
+      .catch((error: unknown) => {
+        if (!controller.signal.aborted) setState({ data: [], loading: false, error: errorMessage(error) });
+      });
+    return () => controller.abort();
+  }, [refreshKey]);
+  return state;
+}
+
+export function useAllCategories(refreshKey = 0): AsyncState<Category[]> {
+  const [state, setState] = useState<AsyncState<Category[]>>({ data: [], loading: true, error: null });
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetchAllCategories(controller.signal)
+      .then((data) => setState({ data, loading: false, error: null }))
+      .catch((error: unknown) => {
+        if (!controller.signal.aborted) setState({ data: [], loading: false, error: errorMessage(error) });
+      });
+    return () => controller.abort();
+  }, [refreshKey]);
+  return state;
+}
+
+export function useProduct(identifier: string, refreshKey = 0): AsyncState<CatalogProduct | null> {
+  const [state, setState] = useState<AsyncState<CatalogProduct | null>>({ data: null, loading: true, error: null });
+  useEffect(() => {
+    const controller = new AbortController();
+    setState({ data: null, loading: true, error: null });
+    void fetchProduct(identifier, controller.signal)
+      .then((data) => setState({ data, loading: false, error: null }))
+      .catch((error: unknown) => {
+        if (!controller.signal.aborted) setState({ data: null, loading: false, error: errorMessage(error) });
+      });
+    return () => controller.abort();
+  }, [identifier, refreshKey]);
+  return state;
+}

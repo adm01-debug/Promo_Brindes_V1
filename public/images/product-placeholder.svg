@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-labelledby="title">
+  <title id="title">Imagem do produto indisponível</title>
+  <rect width="800" height="800" fill="#edeae2"/>
+  <path d="M270 310h260v230H270zM240 250h320v80H240zM390 250v290M410 250v290" fill="none" stroke="#a7a79f" stroke-width="18" stroke-linejoin="round"/>
+  <path d="M400 250c-68-4-98-34-84-72 12-33 65-14 84 72Zm0 0c68-4 98-34 84-72-12-33-65-14-84 72Z" fill="none" stroke="#a7a79f" stroke-width="18" stroke-linejoin="round"/>
+</svg>
