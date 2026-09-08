@@ -1,0 +1,17 @@
+.env*
+!.env.example
+.git/
+.github/
+.vercel/
+graphify-out/
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+tests/
+e2e/
+site-supabase/supabase/.temp/
+site-supabase/supabase/.branches/
+*.log
+*.tsbuildinfo
