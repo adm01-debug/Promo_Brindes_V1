@@ -73,6 +73,21 @@ describe('catálogo público', () => {
     expect(result.products).toHaveLength(1);
   });
 
+  it('repete uma vez uma leitura transitória sem exigir nova ação do cliente', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ message: 'Falha transitória' }), { status: 500 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify([row]), {
+        status: 200,
+        headers: { 'content-range': '0-0/1' },
+      }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await fetchCatalog({ search: 'kit onboarding' });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(result.products).toHaveLength(1);
+  });
+
   it('recupera uma página fora do intervalo sem deixar a tela em retry infinito', async () => {
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(new Response(JSON.stringify({ message: 'Requested range not satisfiable' }), {

@@ -320,7 +320,7 @@ test('falha temporária no detalhe oferece retry e recupera o produto', async ({
   let attempts = 0;
   await page.route(/\/rest\/v1\/v_(?:site_)?products_public\?/, async (route) => {
     attempts += 1;
-    if (attempts === 1) {
+    if (attempts <= 2) {
       await route.fulfill({ status: 503, contentType: 'application/json', body: '{"message":"Serviço temporariamente indisponível"}' });
       return;
     }

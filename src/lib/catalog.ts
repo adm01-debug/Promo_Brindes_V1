@@ -242,8 +242,24 @@ export function parseContentRange(value: string | null, fallback: number): numbe
   return Number.isFinite(total) ? total : fallback;
 }
 
-async function rest<T>(resource: string, params: URLSearchParams, signal?: AbortSignal): Promise<{ data: T; total: number }> {
-  const response = await fetch(`${API_URL}/${resource}?${params.toString()}`, {
+const RETRYABLE_HTTP_STATUS = new Set([429, 500, 502, 503, 504]);
+
+function waitForRetry(signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const onAbort = () => {
+      globalThis.clearTimeout(timeout);
+      reject(signal?.reason ?? new DOMException('Consulta interrompida.', 'AbortError'));
+    };
+    const timeout = globalThis.setTimeout(() => {
+      signal?.removeEventListener('abort', onAbort);
+      resolve();
+    }, 180);
+    signal?.addEventListener('abort', onAbort, { once: true });
+  });
+}
+
+async function fetchRestResponse(url: string, signal?: AbortSignal): Promise<Response> {
+  const options: RequestInit = {
     signal,
     headers: {
       apikey: API_KEY,
@@ -251,7 +267,23 @@ async function rest<T>(resource: string, params: URLSearchParams, signal?: Abort
       Accept: 'application/json',
       Prefer: 'count=exact',
     },
-  });
+  };
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const response = await fetch(url, options);
+      if (response.ok || !RETRYABLE_HTTP_STATUS.has(response.status) || attempt === 1) return response;
+      void response.body?.cancel();
+    } catch (error) {
+      if (signal?.aborted || attempt === 1) throw error;
+    }
+    await waitForRetry(signal);
+  }
+  throw new Error('Não foi possível consultar o catálogo.');
+}
+
+async function rest<T>(resource: string, params: URLSearchParams, signal?: AbortSignal): Promise<{ data: T; total: number }> {
+  const response = await fetchRestResponse(`${API_URL}/${resource}?${params.toString()}`, signal);
   if (!response.ok) {
     const detail = await response.json().catch(() => null) as { message?: string } | null;
     const error = new Error(detail?.message || `Não foi possível carregar o catálogo (${response.status}).`);
