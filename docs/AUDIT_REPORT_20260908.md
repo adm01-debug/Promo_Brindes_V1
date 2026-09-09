@@ -10,7 +10,7 @@ Foram combinados testes unitários, build de produção, Playwright em Chromium 
 
 - TypeScript: aprovado.
 - Vitest: 58/58 testes aprovados em 10 arquivos.
-- Playwright sobre build + preview: 18 testes aprovados, 2 skips condicionais esperados e 0 falhas.
+- Playwright sobre build + preview: 20 testes aprovados, 2 skips condicionais esperados e 0 falhas.
 - Axe: 0 violações automáticas WCAG A/AA nas rotas principais auditadas.
 - Dependências: 0 vulnerabilidades conhecidas em 128 pacotes auditados (`npm audit`).
 - Build: sem sourcemaps de produção; entrada principal com a home crítica incluída em aproximadamente 106 kB gzip e demais rotas sob demanda.

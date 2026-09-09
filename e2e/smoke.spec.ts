@@ -99,6 +99,20 @@ test('headline principal usa Fold Text sem perder acessibilidade', async ({ page
   expect(glitchAnimation).toBe('none');
 });
 
+test('manifesto transforma as frases da marca em uma narrativa com próximo passo', async ({ page }) => {
+  await page.goto('/');
+
+  const manifesto = page.locator('.brand-manifesto');
+  await expect(manifesto.getByRole('heading', { name: 'Entender para atender' })).toBeVisible();
+  await expect(manifesto.getByRole('heading', { name: 'Conectando Marcas e Pessoas' })).toBeVisible();
+  await expect(manifesto.getByRole('heading', { name: 'Excelência em cada detalhe' })).toBeVisible();
+  await expect(manifesto.getByRole('heading', { name: 'Encantar pessoas, somos bons nisso!' })).toBeVisible();
+
+  await manifesto.getByRole('link', { name: 'Criar algo memorável' }).click();
+  await expect(page).toHaveURL(/#conversa$/);
+  await expect(page.locator('#conversa')).toBeInViewport();
+});
+
 test('mostra produto sem estoque confiável e leva o cliente ao briefing sem checkout', async ({ page }) => {
   await page.goto('/catalogo');
   await expect(page.getByRole('heading', { name: 'Seu moodboard começa aqui.' })).toBeVisible();

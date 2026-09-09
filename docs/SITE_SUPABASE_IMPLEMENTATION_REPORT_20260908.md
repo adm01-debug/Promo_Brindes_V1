@@ -41,7 +41,7 @@ O catálogo permanece no banco canônico em modo público de leitura. O domínio
 | Item inválido | transação integralmente revertida |
 | Rate limit de contato | nona solicitação bloqueada |
 | Build Vite | aprovado |
-| Playwright desktop/mobile | 18 aprovados, 2 skips deliberados por projeto |
+| Playwright desktop/mobile | 20 aprovados, 2 skips deliberados por projeto |
 | Axe WCAG A/AA | zero violações automáticas nos templates cobertos |
 | `npm audit` | zero vulnerabilidades |
 | Sourcemaps de produção | nenhum arquivo `.map` |
