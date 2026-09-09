@@ -21,10 +21,18 @@ function header(request: ApiRequest, name: string): string {
 
 function bodySize(body: unknown): number {
   if (typeof body === 'string') return Buffer.byteLength(body);
-  return Buffer.byteLength(JSON.stringify(body ?? null));
+  if (Buffer.isBuffer(body)) return body.byteLength;
+  try {
+    const serialized = JSON.stringify(body ?? null);
+    if (typeof serialized !== 'string') throw new Error('unserializable_body');
+    return Buffer.byteLength(serialized);
+  } catch {
+    throw new RequestValidationError('O corpo da solicitação não contém JSON válido.');
+  }
 }
 
 function parseBody(body: unknown): unknown {
+  if (Buffer.isBuffer(body)) return parseBody(body.toString('utf8'));
   if (typeof body !== 'string') return body;
   try {
     return JSON.parse(body);

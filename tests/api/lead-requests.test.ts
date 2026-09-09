@@ -164,4 +164,25 @@ describe('APIs de leads isoladas', () => {
     await contactHandler(request(contactPayload, { headers: { 'content-type': 'application/x-www-form-urlencoded' } }), formResponse.response);
     expect(formResponse.result.statusCode).toBe(415);
   });
+
+  it('rejeita JSON malformado em texto, buffer ou corpo não serializável', async () => {
+    configureSiteDatabase();
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    for (const body of ['{', Buffer.from('{')]) {
+      const malformedResponse = responseDouble();
+      await contactHandler(request(body), malformedResponse.response);
+      expect(malformedResponse.result.statusCode).toBe(400);
+      expect(malformedResponse.result.body).toMatchObject({ error: 'invalid_request' });
+    }
+
+    const circular: Record<string, unknown> = {};
+    circular.self = circular;
+    const circularResponse = responseDouble();
+    await contactHandler(request(circular), circularResponse.response);
+    expect(circularResponse.result.statusCode).toBe(400);
+    expect(circularResponse.result.body).toMatchObject({ error: 'invalid_request' });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 });

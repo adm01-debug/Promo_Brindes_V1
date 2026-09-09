@@ -9,10 +9,10 @@ Foram combinados testes unitários, build de produção, Playwright em Chromium 
 ## Evidência final local
 
 - TypeScript: aprovado.
-- Vitest: 56/56 testes aprovados em 10 arquivos.
+- Vitest: 57/57 testes aprovados em 10 arquivos.
 - Playwright sobre build + preview: 18 testes aprovados, 2 skips condicionais esperados e 0 falhas.
 - Axe: 0 violações automáticas WCAG A/AA nas rotas principais auditadas.
-- Dependências: 0 vulnerabilidades conhecidas em 153 dependências (`npm audit`).
+- Dependências: 0 vulnerabilidades conhecidas em 128 pacotes auditados (`npm audit`).
 - Build: sem sourcemaps de produção; entrada principal com a home crítica incluída em aproximadamente 106 kB gzip e demais rotas sob demanda.
 - Dados: 7.519/7.519 produtos ativos únicos; 0 IDs/slugs duplicados, registros sem nome/SKU, JSON malformado ou swatches com chaves proibidas.
 - Categorias: 413 registros retornados, sem IDs duplicados nem pais órfãos. Há 20 produtos ativos associados a categoria inativa, um problema de qualidade da origem a acompanhar.
@@ -28,7 +28,8 @@ Foram combinados testes unitários, build de produção, Playwright em Chromium 
 - Estados de recuperação: páginas fora do total recuam para a última página válida; limpar a busca também limpa a URL; produto, categorias e destaques permitem retry após falha transitória.
 - Carrinho: desserialização estrita, deduplicação, limite de 50 itens, clamps de quantidade, sincronização entre abas e limpeza real do `localStorage`.
 - Formulários: bloqueio síncrono de envio duplo, timeout de 15 s, mensagens amigáveis, endpoint HTTPS válido, limites de tamanho e consentimento versionado com instante de aceite.
-- Idempotência: cada solicitação leva `clientRequestId` estável durante retries e o header `Idempotency-Key`; o receptor ainda precisa aplicar a garantia no servidor.
+- Borda HTTP: corpos JSON malformados, binários ou não serializáveis são normalizados para erro 400 e nunca chegam ao banco.
+- Idempotência: cada solicitação leva `clientRequestId` estável durante retries e o header `Idempotency-Key`; o receptor aplica a garantia transacional no servidor.
 - Datas: mínimo calculado no calendário local e prazo passado rejeitado pela validação própria.
 - Acessibilidade: Escape/foco no menu, foco após navegação SPA, foco do drawer vazio, associação de erros ao consentimento e cinco contrastes corrigidos.
 - SEO/rotas: erros de produto recebem `noindex`; rewrites locais foram restritos às rotas conhecidas; robots permite rastrear a rota marcada como `noindex`.
