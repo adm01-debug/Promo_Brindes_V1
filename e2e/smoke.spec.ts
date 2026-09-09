@@ -139,6 +139,54 @@ test('ache pelo briefing transforma intenção em filtros explicáveis e compart
   await expect(page.getByRole('button', { name: /Momento: Onboarding/ })).toBeVisible();
 });
 
+test('briefing tech espera a taxonomia antes de consultar produtos', async ({ page }) => {
+  await page.unroute('**/rest/v1/categories?**');
+  let releaseCategories!: () => void;
+  const categoriesGate = new Promise<void>((resolve) => { releaseCategories = resolve; });
+  await page.route('**/rest/v1/categories?**', async (route) => {
+    await categoriesGate;
+    await route.fulfill({
+      contentType: 'application/json',
+      headers: { 'content-range': '0-1/2' },
+      body: JSON.stringify([
+        { id: rootCategoryId, name: 'Tecnologia', parent_id: null },
+        { id: childCategoryId, name: 'Áudio', parent_id: rootCategoryId },
+      ]),
+    });
+  });
+
+  const productRequests: string[] = [];
+  page.on('request', (request) => {
+    if (request.url().includes('products_public')) productRequests.push(request.url());
+  });
+
+  await page.goto('/catalogo?clima=tech');
+  await expect(page.getByText('Buscando produtos…')).toBeVisible();
+  expect(productRequests).toHaveLength(0);
+
+  releaseCategories();
+  await expect(page.getByText('1 produto encontrado')).toBeVisible();
+  expect(productRequests).toHaveLength(1);
+  expect(new URL(productRequests[0]).searchParams.get('and')).toContain(rootCategoryId);
+});
+
+test('briefing tech falha fechado quando a taxonomia está indisponível', async ({ page }) => {
+  await page.unroute('**/rest/v1/categories?**');
+  await page.route('**/rest/v1/categories?**', (route) => route.fulfill({
+    status: 503,
+    contentType: 'application/json',
+    body: JSON.stringify({ message: 'Taxonomia temporariamente indisponível' }),
+  }));
+  const productRequests: string[] = [];
+  page.on('request', (request) => {
+    if (request.url().includes('products_public')) productRequests.push(request.url());
+  });
+
+  await page.goto('/catalogo?clima=tech');
+  await expect(page.locator('.catalog-message[role="alert"]')).toContainText('Taxonomia temporariamente indisponível');
+  expect(productRequests).toHaveLength(0);
+});
+
 test('busca sugere linguagem do comprador e aceita teclado', async ({ page }) => {
   await page.goto('/');
   const search = page.locator('#hero-search');

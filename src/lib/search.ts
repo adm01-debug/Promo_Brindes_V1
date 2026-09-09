@@ -1,8 +1,11 @@
 import type { Category } from '../types';
 
 const CONTEXT_WORDS = new Set([
-  'acao', 'acoes', 'brinde', 'brindes', 'campanha', 'corporativo', 'corporativos',
-  'empresa', 'evento', 'eventos', 'para', 'personalizado', 'personalizados',
+  'a', 'acao', 'acoes', 'as', 'ate', 'brinde', 'brindes', 'campanha', 'cliente', 'clientes',
+  'colaborador', 'colaboradores', 'com', 'corporativo', 'corporativos', 'da', 'das', 'de',
+  'do', 'dos', 'e', 'empresa', 'empresas', 'equipe', 'equipes', 'evento', 'eventos',
+  'lideranca', 'o', 'os', 'para', 'parceiro', 'parceiros', 'pessoa', 'pessoas',
+  'personalizado', 'personalizados', 'publico', 'time', 'times', 'un', 'unidade', 'unidades',
 ]);
 
 const PRICE_WORDS = new Set(['barato', 'barata', 'baratos', 'baratas', 'preco', 'precos', 'valor', 'valores']);
@@ -55,6 +58,18 @@ function synonymsFor(term: string): string[] {
   return [...new Set((group ?? [term]).map(normalizeSearchText).filter(Boolean))].slice(0, 5);
 }
 
+function groupKey(group: string[]): string {
+  return [...group].sort().join('\u0000');
+}
+
+function addUniqueGroup(groups: string[][], seen: Set<string>, group: string[]) {
+  const normalizedGroup = [...new Set(group.map(normalizeSearchText).filter(Boolean))].slice(0, 5);
+  const key = groupKey(normalizedGroup);
+  if (!normalizedGroup.length || seen.has(key)) return;
+  seen.add(key);
+  groups.push(normalizedGroup);
+}
+
 /**
  * Devolve dimensões AND, cada uma com alternativas OR. Palavras de preço são
  * descartadas porque o catálogo não publica preço; contexto genérico só é usado
@@ -67,11 +82,28 @@ export function buildCatalogSearchGroups(input: string): string[][] {
   const exactGroup = SYNONYM_GROUPS.find((values) => values.some((value) => normalizeSearchText(value) === normalized));
   if (exactGroup) return [[...new Set(exactGroup.map(normalizeSearchText))].slice(0, 5)];
 
-  const tokens = normalized.split(' ').filter(Boolean);
+  const groups: string[][] = [];
+  const seen = new Set<string>();
+  let remainder = ` ${normalized} `;
+
+  // Reconhece expressões compostas dentro de frases completas. Sem isto,
+  // "power bank para evento" viraria duas exigências independentes.
+  SYNONYM_GROUPS.forEach((group) => {
+    const phrases = group.map(normalizeSearchText).filter((value) => value.includes(' ') || value.includes('-'));
+    const matches = phrases.filter((phrase) => remainder.includes(` ${phrase} `));
+    if (!matches.length) return;
+    addUniqueGroup(groups, seen, group);
+    matches.forEach((phrase) => { remainder = remainder.replaceAll(` ${phrase} `, ' '); });
+  });
+
+  const tokens = remainder.trim().split(' ').filter(Boolean);
   const withoutPrice = tokens.filter((token) => !PRICE_WORDS.has(token));
   const objectTokens = withoutPrice.filter((token) => !CONTEXT_WORDS.has(token));
-  const meaningful = (objectTokens.length ? objectTokens : withoutPrice).filter((token) => token.length >= 2).slice(0, 6);
-  return meaningful.map(synonymsFor);
+  const candidates = (objectTokens.length || groups.length ? objectTokens : withoutPrice).filter((token) => token.length >= 2);
+  const nonNumeric = candidates.filter((token) => !/^\d+$/.test(token));
+  const meaningful = (nonNumeric.length ? nonNumeric : candidates).slice(0, 6);
+  meaningful.forEach((token) => addUniqueGroup(groups, seen, synonymsFor(token)));
+  return groups;
 }
 
 export function buildSearchSuggestions(input: string, categories: Category[], limit = 6): SearchSuggestion[] {

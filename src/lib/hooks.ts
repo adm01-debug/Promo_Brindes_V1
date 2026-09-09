@@ -13,7 +13,7 @@ function errorMessage(error: unknown): string {
   return 'Não foi possível concluir esta consulta.';
 }
 
-export function useCatalog(query: CatalogQuery, refreshKey = 0): AsyncState<CatalogResult> {
+export function useCatalog(query: CatalogQuery, refreshKey = 0, enabled = true): AsyncState<CatalogResult> {
   const [state, setState] = useState<AsyncState<CatalogResult>>({
     data: { products: [], total: 0, page: query.page ?? 1, pageSize: query.pageSize ?? 24 },
     loading: true,
@@ -22,6 +22,14 @@ export function useCatalog(query: CatalogQuery, refreshKey = 0): AsyncState<Cata
   const queryKey = JSON.stringify(query);
 
   useEffect(() => {
+    if (!enabled) {
+      setState({
+        data: { products: [], total: 0, page: query.page ?? 1, pageSize: query.pageSize ?? 24 },
+        loading: false,
+        error: null,
+      });
+      return;
+    }
     const controller = new AbortController();
     setState((current) => ({ ...current, loading: true, error: null }));
     void fetchCatalog(query, controller.signal)
@@ -31,7 +39,7 @@ export function useCatalog(query: CatalogQuery, refreshKey = 0): AsyncState<Cata
         setState((current) => ({ ...current, loading: false, error: errorMessage(error) }));
       });
     return () => controller.abort();
-  }, [queryKey, refreshKey]);
+  }, [enabled, queryKey, refreshKey]);
 
   return state;
 }

@@ -72,6 +72,9 @@ export default function CatalogPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [campaignKey, categories.data],
   );
+  const campaignNeedsCategories = campaignSelection.mood === 'tech' && selectedCategoryIds.length === 0;
+  const campaignCategoryMissing = campaignNeedsCategories && !categories.loading && !categories.error && campaignFilters.categoryIds.length === 0;
+  const catalogEnabled = !campaignNeedsCategories || (!categories.loading && !categories.error && !campaignCategoryMissing);
   const effectiveCategoryIds = selectedCategoryIds.length ? selectedCategoryIds : campaignFilters.categoryIds;
   const catalogCategoryIds = useMemo(
     () => categoryQueryIds(categories.data, effectiveCategoryIds),
@@ -104,7 +107,12 @@ export default function CatalogPage() {
       sort: sort === 'recentes' ? 'newest' : sort === 'nome' ? 'name' : 'curated',
     },
     retryKey,
+    catalogEnabled,
   );
+  const catalogError = campaignNeedsCategories
+    ? categories.error || (campaignCategoryMissing ? 'Não foi possível localizar a categoria de tecnologia neste momento.' : catalog.error)
+    : catalog.error;
+  const catalogLoading = !catalogError && ((campaignNeedsCategories && categories.loading) || catalog.loading);
   const categoryNameById = useMemo(() => new Map(categories.data.map((item) => [item.id, item.name])), [categories.data]);
   const selectedCategoryName = selectedCategoryIds.length === 1
     ? categoryNameById.get(selectedCategoryIds[0]) || categoryNameParam
@@ -128,15 +136,15 @@ export default function CatalogPage() {
   }, [params, query, rawQuery, setParams]);
 
   useEffect(() => {
-    if (catalog.loading || catalog.error || page <= totalPages) return;
+    if (catalogLoading || catalogError || page <= totalPages) return;
     const next = new URLSearchParams(params);
     if (totalPages > 1) next.set('pagina', String(totalPages));
     else next.delete('pagina');
     setParams(next, { replace: true });
-  }, [catalog.error, catalog.loading, page, params, setParams, totalPages]);
+  }, [catalogError, catalogLoading, page, params, setParams, totalPages]);
 
   useEffect(() => {
-    if (catalog.loading || catalog.error) return;
+    if (catalogLoading || catalogError) return;
     const viewKey = `${paramsKey}|${catalog.data.total}`;
     if (trackedCatalogViewsRef.current.has(viewKey)) return;
     trackedCatalogViewsRef.current.add(viewKey);
@@ -146,7 +154,7 @@ export default function CatalogPage() {
       active_filters: activeFilterCount,
       campaign: campaignCount > 0,
     });
-  }, [activeFilterCount, campaignCount, catalog.data.page, catalog.data.total, catalog.error, catalog.loading, paramsKey]);
+  }, [activeFilterCount, campaignCount, catalog.data.page, catalog.data.total, catalogError, catalogLoading, paramsKey]);
 
   useEffect(() => {
     if (!mobileFiltersOpen) return;
@@ -311,7 +319,7 @@ export default function CatalogPage() {
                 <footer className="filter-drawer__footer">
                   {activeFilterCount > 0 && <button className="filter-drawer__clear" type="button" onClick={clearAll}>Limpar tudo</button>}
                   <button className="filter-drawer__apply" type="button" onClick={() => setMobileFiltersOpen(false)}>
-                    {catalog.loading ? 'Atualizando produtos…' : `Ver ${catalog.data.total.toLocaleString('pt-BR')} ${catalog.data.total === 1 ? 'produto' : 'produtos'}`}
+                    {catalogLoading ? 'Atualizando produtos…' : `Ver ${catalog.data.total.toLocaleString('pt-BR')} ${catalog.data.total === 1 ? 'produto' : 'produtos'}`}
                   </button>
                 </footer>
               </div>
@@ -321,7 +329,7 @@ export default function CatalogPage() {
           <div className="catalog-toolbar">
             <div>
               <h2 id="catalog-results-title">{query ? `Matchs para “${query}”` : campaignCount > 0 ? 'Curadoria para o seu briefing' : selectedCategoryIds.length > 1 ? 'Seu recorte de campanha' : selectedCategoryName || (filterPanelProfile === 'kits' ? 'Kits & combos' : filterPanelProfile === 'novos' ? 'Novos drops' : filterPanelProfile === 'destaques' ? 'Destaques da curadoria' : 'Radar completo')}</h2>
-              <p aria-live="polite" aria-atomic="true">{catalog.loading ? 'Buscando produtos…' : `${catalog.data.total.toLocaleString('pt-BR')} ${catalog.data.total === 1 ? 'produto encontrado' : 'produtos encontrados'}`}</p>
+              <p aria-live="polite" aria-atomic="true">{catalogLoading ? 'Buscando produtos…' : catalogError ? 'Não foi possível concluir a busca.' : `${catalog.data.total.toLocaleString('pt-BR')} ${catalog.data.total === 1 ? 'produto encontrado' : 'produtos encontrados'}`}</p>
             </div>
             <label className="sort-control">Ordenar por
               <select value={sort} onChange={(event) => updateParams({ ordem: event.target.value === 'curadoria' ? null : event.target.value }, true)}>
@@ -347,10 +355,10 @@ export default function CatalogPage() {
             </div>
           )}
 
-          {catalog.loading && <ProductGridSkeleton count={12} />}
-          {catalog.error && <CatalogError message={catalog.error} onRetry={() => setRetryKey((key) => key + 1)} />}
-          {!catalog.loading && !catalog.error && catalog.data.products.length === 0 && <CatalogEmpty onClear={clearAll} />}
-          {!catalog.loading && !catalog.error && catalog.data.products.length > 0 && (
+          {catalogLoading && <ProductGridSkeleton count={12} />}
+          {catalogError && <CatalogError message={catalogError} onRetry={() => setRetryKey((key) => key + 1)} />}
+          {!catalogLoading && !catalogError && catalog.data.products.length === 0 && <CatalogEmpty onClear={clearAll} />}
+          {!catalogLoading && !catalogError && catalog.data.products.length > 0 && (
             <>
               <div className="product-grid">
                 {catalog.data.products.map((product, index) => (

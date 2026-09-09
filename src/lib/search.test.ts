@@ -15,6 +15,23 @@ describe('busca assistida', () => {
     expect(buildCatalogSearchGroups('copo barato para evento')).toEqual([['copo']]);
   });
 
+  it('entende briefing em linguagem natural sem exigir público, conectivos ou quantidade no produto', () => {
+    const groups = buildCatalogSearchGroups('kit de onboarding para 100 colaboradores');
+    expect(groups).toHaveLength(1);
+    expect(groups[0]).toEqual(expect.arrayContaining(['onboarding', 'boas vindas', 'kit']));
+  });
+
+  it('preserva expressões compostas dentro de uma frase e elimina dimensões repetidas', () => {
+    expect(buildCatalogSearchGroups('power bank para evento')).toEqual([
+      expect.arrayContaining(['powerbank', 'power bank', 'carregador portatil']),
+    ]);
+    expect(buildCatalogSearchGroups('kit onboarding')).toHaveLength(1);
+  });
+
+  it('mantém pesquisa puramente numérica para códigos de produto', () => {
+    expect(buildCatalogSearchGroups('02040')).toEqual([['02040']]);
+  });
+
   it('ainda encontra uma intenção quando ela é o único termo informado', () => {
     expect(buildCatalogSearchGroups('onboarding')[0]).toEqual(expect.arrayContaining(['onboarding', 'boas vindas', 'kit']));
   });
