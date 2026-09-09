@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(14);
+select plan(16);
 
 select is(
   (select count(*) from pg_catalog.pg_tables where schemaname = 'site_private'),
@@ -71,6 +71,18 @@ select is(
 select ok(
   not pg_catalog.has_table_privilege('anon', 'site_private.quote_requests', 'select,insert,update,delete'),
   'anon não possui privilégios na tabela de orçamentos'
+);
+
+select ok(
+  to_regprocedure('public.rls_auto_enable()') is null
+    or not pg_catalog.has_function_privilege('anon', 'public.rls_auto_enable()', 'execute'),
+  'anon não executa o helper automático de RLS'
+);
+
+select ok(
+  to_regprocedure('public.rls_auto_enable()') is null
+    or not pg_catalog.has_function_privilege('authenticated', 'public.rls_auto_enable()', 'execute'),
+  'authenticated não executa o helper automático de RLS'
 );
 
 select * from finish();
