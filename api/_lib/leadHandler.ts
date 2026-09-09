@@ -88,12 +88,6 @@ export async function handleLeadRequest(kind: LeadKind, request: ApiRequest, res
       response.status(error.status).json({ error: error.code, message: error.message });
       return;
     }
-    console.error('lead_handler_unexpected', {
-      kind,
-      errorName: error instanceof Error ? error.name : typeof error,
-      errorMessage: error instanceof Error ? error.message.slice(0, 160) : 'non_error_thrown',
-      bodyType: Object.prototype.toString.call(request.body),
-    });
     response.status(500).json({ error: 'internal_error', message: 'Não conseguimos processar sua solicitação.' });
   }
 }
