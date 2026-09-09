@@ -66,7 +66,7 @@ export function ConversationForm() {
         window.location.href = result.href;
       } else {
         requestIdentityRef.current = null;
-        setSuccess(result.requestId ? `Mensagem recebida. Protocolo ${result.requestId}.` : 'Mensagem recebida. Nossa equipe vai falar com você.');
+        setSuccess(result.requestId ? `Mensagem recebida. Protocolo ${result.requestId}.` : 'Mensagem recebida. Nosso time de especialistas vai falar com você.');
         setLead(initialLead);
       }
     } catch (error) {

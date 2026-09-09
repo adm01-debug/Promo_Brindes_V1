@@ -29,7 +29,7 @@ export function buildEmailHref(payload: QuoteRequestPayload, email = DEFAULT_CON
       `${index + 1}. ${item.name} — cód. ${item.sku} — ${item.quantity.toLocaleString('pt-BR')} un.${item.colorName ? ` — cor: ${item.colorName}` : ''}`,
   );
   const body = [
-    'Olá, equipe Promo Brindes!',
+    'Olá, time de especialistas da Promo Brindes!',
     '',
     'Gostaria de receber uma proposta para esta seleção:',
     ...itemLines,

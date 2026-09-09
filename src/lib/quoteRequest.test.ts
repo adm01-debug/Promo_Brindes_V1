@@ -46,6 +46,7 @@ describe('solicitação de orçamento', () => {
   it('gera um e-mail com produtos, quantidade, cor e contato', () => {
     const href = buildEmailHref(buildQuotePayload(contact, items), 'comercial@promo.test');
     expect(decodeURIComponent(href)).toContain('mailto:comercial@promo.test');
+    expect(decodeURIComponent(href)).toContain('Olá, time de especialistas da Promo Brindes!');
     expect(decodeURIComponent(href)).toContain('Mochila Executiva — cód. MO-42 — 250 un. — cor: Verde');
     expect(decodeURIComponent(href)).toContain('Empresa: Empresa Exemplo');
   });

@@ -256,9 +256,11 @@ test('FAQ contextual esclarece limites sem inventar preço ou estoque', async ({
   await page.goto('/catalogo');
   await page.getByText('Por que os produtos não mostram preço?').click();
   await expect(page.getByText(/quantidade, técnica de personalização/i)).toBeVisible();
+  await page.getByText('Tudo o que aparece pode entrar no orçamento?').click();
+  await expect(page.getByText(/confirmados pelo nosso time de especialistas/i)).toBeVisible();
   await page.getByRole('link', { name: /Mochila Executiva Sustentável/i }).first().click();
   await page.getByText('Como descubro se minha logo funciona neste produto?').click();
-  await expect(page.getByText(/área disponível, quantidade de cores/i)).toBeVisible();
+  await expect(page.getByText(/nosso time de especialistas cruza material, área disponível/i)).toBeVisible();
 });
 
 test('menu e busca permanecem utilizáveis em tela móvel', async ({ page }, testInfo) => {
@@ -277,6 +279,7 @@ test('menu e busca permanecem utilizáveis em tela móvel', async ({ page }, tes
 
 test('convite editorial de contato valida o essencial sem esconder labels', async ({ page }) => {
   await page.goto('/contato');
+  await expect(page.getByText('Para conversar diretamente com nosso time de especialistas.')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Quer impressionar seu público? Vamos conversar.' })).toBeVisible();
   await page.getByRole('button', { name: 'Falar com a Promo' }).click();
   const name = page.getByLabel('Seu nome *');

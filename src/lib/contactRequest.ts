@@ -22,7 +22,7 @@ export function buildContactPayload(
 
 export function buildContactEmailHref(payload: ContactRequestPayload, email = DEFAULT_CONTACT_EMAIL): string {
   const body = [
-    'Olá, equipe Promo Brindes!',
+    'Olá, time de especialistas da Promo Brindes!',
     '',
     'Quero conversar sobre uma ação de brindes.',
     '',

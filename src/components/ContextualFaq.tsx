@@ -6,18 +6,18 @@ type FaqScope = 'catalog' | 'product' | 'quote';
 const FAQS: Record<FaqScope, Array<{ id: string; question: string; answer: string }>> = {
   catalog: [
     { id: 'price', question: 'Por que os produtos não mostram preço?', answer: 'O valor muda conforme quantidade, técnica de personalização, acabamento, embalagem, frete e prazo. Você salva as referências e recebe uma proposta feita para o seu cenário, sem checkout e sem compromisso.' },
-    { id: 'availability', question: 'Tudo o que aparece pode entrar no orçamento?', answer: 'Todos os produtos ativos podem ser consultados. Como estoques de fornecedores mudam e não são publicados como promessa, disponibilidade, cor e prazo são confirmados pela equipe durante a proposta.' },
+    { id: 'availability', question: 'Tudo o que aparece pode entrar no orçamento?', answer: 'Todos os produtos ativos podem ser consultados. Como estoques de fornecedores mudam e não são publicados como promessa, disponibilidade, cor e prazo são confirmados pelo nosso time de especialistas durante a proposta.' },
     { id: 'selection', question: 'Posso misturar categorias e ideias?', answer: 'Sim. Seu moodboard pode reunir produtos diferentes. Depois você ajusta quantidade e contexto em um único briefing para a curadoria entender o conceito completo.' },
   ],
   product: [
-    { id: 'logo', question: 'Como descubro se minha logo funciona neste produto?', answer: 'Salve o item e conte no briefing como imagina a aplicação. A equipe cruza material, área disponível, quantidade de cores e técnica indicada antes de fechar a proposta.' },
+    { id: 'logo', question: 'Como descubro se minha logo funciona neste produto?', answer: 'Salve o item e conte no briefing como imagina a aplicação. Nosso time de especialistas cruza material, área disponível, quantidade de cores e técnica indicada antes de fechar a proposta.' },
     { id: 'proof', question: 'A personalização é aprovada antes da produção?', answer: 'O fluxo e as etapas de aprovação são alinhados na proposta. Quando aplicável, a arte e a prova digital são validadas antes da produção.' },
-    { id: 'sample', question: 'Posso consultar amostra, outras cores ou embalagem?', answer: 'Sim. Informe essa necessidade no briefing. Amostra, variantes, apresentação individual e prazo dependem do produto e são confirmados pela equipe.' },
+    { id: 'sample', question: 'Posso consultar amostra, outras cores ou embalagem?', answer: 'Sim. Informe essa necessidade no briefing. Amostra, variantes, apresentação individual e prazo dependem do produto e são confirmados pelo nosso time de especialistas.' },
   ],
   quote: [
-    { id: 'next', question: 'O que acontece depois que eu enviar?', answer: 'A solicitação recebe um protocolo e a equipe analisa produtos, quantidades, personalização e prazo. O contato continua pelo e-mail ou WhatsApp informado no briefing.' },
+    { id: 'next', question: 'O que acontece depois que eu enviar?', answer: 'A solicitação recebe um protocolo e nosso time de especialistas analisa produtos, quantidades, personalização e prazo. O contato continua pelo e-mail ou WhatsApp informado no briefing.' },
     { id: 'commitment', question: 'Enviar o briefing cria algum compromisso?', answer: 'Não. Esta etapa não tem pagamento nem fecha pedido. Ela organiza sua seleção para que a Promo Brindes prepare uma proposta adequada.' },
-    { id: 'changes', question: 'Posso mudar produtos e quantidades depois?', answer: 'Sim. A seleção é um ponto de partida. Alternativas, quantidades, cores e acabamentos podem ser ajustados com a equipe durante a curadoria.' },
+    { id: 'changes', question: 'Posso mudar produtos e quantidades depois?', answer: 'Sim. A seleção é um ponto de partida. Alternativas, quantidades, cores e acabamentos podem ser ajustados com nosso time de especialistas durante a curadoria.' },
   ],
 };
 
