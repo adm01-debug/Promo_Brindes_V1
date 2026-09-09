@@ -3,8 +3,8 @@ import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { QuoteCartProvider } from './context/QuoteCartContext';
+import HomePage from './pages/HomePage';
 
-const HomePage = lazy(() => import('./pages/HomePage'));
 const CatalogPage = lazy(() => import('./pages/CatalogPage'));
 const ProductPage = lazy(() => import('./pages/ProductPage'));
 const QuotePage = lazy(() => import('./pages/QuotePage'));

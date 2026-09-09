@@ -47,7 +47,9 @@ A arquitetura aprovada separa responsabilidades:
 
 As rotas `/api/quote-requests` e `/api/contact-requests` validam origem, conteúdo, tamanho e idempotência, aplicam rate limit usando hash HMAC do IP e chamam RPCs transacionais. A API contém uma guarda explícita que bloqueia qualquer tentativa de usar o projeto canônico como destino de gravação.
 
-Até o projeto novo ser criado e configurado, mantenha `VITE_QUOTE_REQUEST_ENDPOINT` e `VITE_CONTACT_REQUEST_ENDPOINT` vazias; os formulários continuam usando o fallback por e-mail. O procedimento completo está em [docs/SITE_SUPABASE_SETUP.md](docs/SITE_SUPABASE_SETUP.md).
+O projeto isolado `xlzmclcjdncjfdrjxclt` está provisionado e as rotas de produção estão ativas. Os formulários persistem contatos e briefings no Supabase exclusivo do site, com protocolo e idempotência; não gravam no banco canônico do Promo Gifts. O runbook e os controles de recuperação estão em [docs/SITE_SUPABASE_SETUP.md](docs/SITE_SUPABASE_SETUP.md).
+
+Confirmações automáticas por e-mail e WhatsApp ainda não estão habilitadas. A estrutura de auditoria está pronta, mas a ativação depende da escolha dos provedores, credenciais server-side, templates aprovados e opt-in específico para WhatsApp.
 
 ## Deploy
 
@@ -58,7 +60,9 @@ O projeto inclui configuração para Vercel:
 - cache longo para imagens;
 - `/sitemap.xml` gerado dinamicamente com produtos públicos.
 
-Antes de publicar em `www.promobrindes.com.br`, confirme DNS/domínio, destinatário comercial, texto jurídico de privacidade, analytics consentido e o endpoint definitivo de orçamento.
+Produção atual: <https://promo-brindes-v1.vercel.app>. O domínio próprio ainda exige configuração de DNS, associação na Vercel e redirecionamento canônico. Ao trocar o domínio, atualize `VITE_PUBLIC_URL`, `SITE_PUBLIC_ORIGIN`, `index.html` e `public/robots.txt` no mesmo deploy.
+
+Antes da divulgação ampla, confirme destinatário comercial, texto jurídico de privacidade e, caso analytics seja habilitado, o mecanismo de consentimento adequado.
 
 O estado detalhado da auditoria e das simulações está em [docs/AUDIT_REPORT_20260908.md](docs/AUDIT_REPORT_20260908.md). A implementação do banco isolado e suas evidências estão em [docs/SITE_SUPABASE_IMPLEMENTATION_REPORT_20260908.md](docs/SITE_SUPABASE_IMPLEMENTATION_REPORT_20260908.md).
 

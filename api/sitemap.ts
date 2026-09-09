@@ -1,6 +1,6 @@
 const CANONICAL_PROJECT_ID = 'doufsxqlfjyuvxuezpln';
 const SUPABASE_URL = `https://${CANONICAL_PROJECT_ID}.supabase.co`;
-const FALLBACK_SITE_URL = 'https://www.promobrindes.com.br';
+const FALLBACK_SITE_URL = 'https://promo-brindes-v1.vercel.app';
 
 interface VercelRequest {
   method?: string;

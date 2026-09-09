@@ -32,7 +32,7 @@ export function Seo({
   jsonLd,
 }: SeoProps) {
   useEffect(() => {
-    const baseUrl = import.meta.env.VITE_PUBLIC_URL?.replace(/\/$/, '') || 'https://www.promobrindes.com.br';
+    const baseUrl = import.meta.env.VITE_PUBLIC_URL?.replace(/\/$/, '') || 'https://promo-brindes-v1.vercel.app';
     const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} | Brindes corporativos personalizados`;
     const canonicalUrl = `${baseUrl}${path.startsWith('/') ? path : `/${path}`}`;
     const imageUrl = image.startsWith('http') ? image : `${baseUrl}${image}`;

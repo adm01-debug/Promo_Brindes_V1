@@ -23,7 +23,6 @@
     "db:site:stop": "SUPABASE_WORKDIR=site-supabase supabase stop"
   },
   "dependencies": {
-    "@fontsource/inter": "^5.2.8",
     "@fontsource/space-grotesk": "^5.3.0",
     "gsap": "^3.15.0",
     "lucide-react": "1.23.0",

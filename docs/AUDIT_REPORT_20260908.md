@@ -1,4 +1,4 @@
-# Auditoria técnica consolidada — 08/09/2026
+# Auditoria técnica consolidada — 08–09/09/2026
 
 ## Escopo e método
 
@@ -9,11 +9,11 @@ Foram combinados testes unitários, build de produção, Playwright em Chromium 
 ## Evidência final local
 
 - TypeScript: aprovado.
-- Vitest: 45/45 testes aprovados em 9 arquivos.
+- Vitest: 56/56 testes aprovados em 10 arquivos.
 - Playwright sobre build + preview: 18 testes aprovados, 2 skips condicionais esperados e 0 falhas.
 - Axe: 0 violações automáticas WCAG A/AA nas rotas principais auditadas.
 - Dependências: 0 vulnerabilidades conhecidas em 153 dependências (`npm audit`).
-- Build: sem sourcemaps de produção; chunk principal próximo de 80 kB gzip.
+- Build: sem sourcemaps de produção; entrada principal com a home crítica incluída em aproximadamente 106 kB gzip e demais rotas sob demanda.
 - Dados: 7.519/7.519 produtos ativos únicos; 0 IDs/slugs duplicados, registros sem nome/SKU, JSON malformado ou swatches com chaves proibidas.
 - Categorias: 413 registros retornados, sem IDs duplicados nem pais órfãos. Há 20 produtos ativos associados a categoria inativa, um problema de qualidade da origem a acompanhar.
 
@@ -33,8 +33,12 @@ Foram combinados testes unitários, build de produção, Playwright em Chromium 
 - Acessibilidade: Escape/foco no menu, foco após navegação SPA, foco do drawer vazio, associação de erros ao consentimento e cinco contrastes corrigidos.
 - SEO/rotas: erros de produto recebem `noindex`; rewrites locais foram restritos às rotas conhecidas; robots permite rastrear a rota marcada como `noindex`.
 - Sitemap: limite total de 50 mil URLs, deduplicação, ordem estável, fallback apenas em 404, falha fechada 503, timeout por consulta e HEAD sem varrer o catálogo.
-- Produção: sourcemaps desativados por padrão, preload global removido, HSTS adicionado, cache de imagens estáveis tornado revalidável e Error Boundary global criado.
+- Produção: sourcemaps desativados por padrão, preload global removido, HSTS adicionado, cache imutável para imagens versionadas e Error Boundary global criado.
 - Governança: engine Node corrigida, `.nvmrc` criado e quality gate de CI adicionado para quando o diretório for versionado.
+- Banco isolado: o projeto `xlzmclcjdncjfdrjxclt` foi provisionado, protegido por RLS e RPCs service-only, conectado à Vercel e validado com requests sintéticos idempotentes. Os dados de teste foram removidos por identificador exato.
+- Publicação: GitHub privado, Vercel, sitemap e APIs estão operacionais em `https://promo-brindes-v1.vercel.app`.
+- Performance: hero responsivo em 640/828/1024/1672 px e logo redimensionado eliminam transferência desperdiçada; a home crítica carrega com o shell para impedir o salto causado pelo fallback de rota. Lighthouse móvel frio do build final: performance 96, acessibilidade 100, boas práticas 100, SEO 100, LCP 2,3 s, TBT 30 ms e CLS 0.
+- SEO inicial: canonical, Open Graph, JSON-LD, robots e sitemap passaram a usar o mesmo host realmente publicado, inclusive antes da hidratação React.
 
 ## Bloqueios externos e decisões necessárias
 
@@ -44,26 +48,26 @@ A chave anônima ainda consegue consultar recursos antigos que revelam preços/e
 
 Nenhum `REVOKE`, DDL adicional ou proxy de imagens foi executado: a view nova ainda depende da legada e os consumidores internos precisam ser inventariados primeiro. O corte exige autorização explícita, plano transacional e teste de regressão do Promo Gifts.
 
-### P0 — domínio não aponta para o build auditado
+### P1 — domínio próprio
 
-Na verificação de 08/09/2026, `www.promobrindes.com.br` respondeu 403 pela Cloudflare, enquanto o domínio sem `www` serviu o WordPress antigo. Robots e sitemap públicos também não estavam disponíveis. É necessário publicar o projeto, escolher um host canônico e configurar o redirecionamento permanente do outro.
+O build auditado está público no alias da Vercel. `promobrindes.com.br` e `www.promobrindes.com.br` ainda não foram associados a ele; a troca exige acesso ao DNS e escolha do host canônico. Até isso ocorrer, todos os sinais de indexação apontam para o alias real, evitando canonical quebrado.
 
-### P1 — receptor de leads e privacidade
+### P1 — privacidade e notificações
 
-Não existe backend de leads neste repositório. Rate limit, antispam, validação server-side, persistência do consentimento, retenção e idempotência só podem ser comprovados quando o endpoint definitivo for fornecido. O aviso de privacidade precisa de dados oficiais da pessoa jurídica, bases/finalidades, retenção, compartilhamentos e canal do titular, com aprovação jurídica.
+O backend de leads, rate limit, validação server-side, consentimento e idempotência está ativo. O aviso de privacidade ainda precisa dos dados oficiais da pessoa jurídica, bases/finalidades, retenção, compartilhamentos e canal do titular, com aprovação jurídica. Confirmações automáticas por e-mail/WhatsApp dependem de provedor, credenciais e templates; WhatsApp exige opt-in próprio.
 
 ### P1 — SSOT de migrations
 
 A migration aprovada existe no projeto novo e no ledger do Supabase, mas não no repositório canônico de schema. O PO precisa definir a incorporação no histórico oficial sem executar novamente o SQL.
 
-### P1 — SEO server-side e publicação
+### P2 — SEO server-side
 
-Metadados específicos ainda dependem de JavaScript. SSR/prerender é necessário para previews sociais completos, metadata inicial correta e 404 real para produto inexistente. O sitemap único atual funciona para 7.524 URLs, mas deve virar índice particionado antes de se aproximar do limite operacional de resposta da hospedagem.
+A home possui metadata inicial completa. Metadados específicos de catálogo/produto ainda dependem de JavaScript; SSR/prerender seria necessário para previews sociais individuais e status HTTP 404 real para produto inexistente. O sitemap único atual opera com 7.524 URLs e já impõe o limite normativo de 50 mil; particionamento só passa a ser necessário ao se aproximar desse patamar ou do limite de resposta da hospedagem.
 
-### P2 — CSP e ativos
+### P2 — CSP
 
-A CSP deve começar em modo Report-Only depois que os hosts definitivos de formulários e mídia forem conhecidos. Há cerca de 2,1 MB de imagens antigas não referenciadas e um PNG fallback grande; removê-los/otimizá-los reduz o artefato de deploy, embora eles não sejam baixados nas rotas onde não são usados.
+A CSP deve começar em modo Report-Only depois de inventariar os hosts efetivamente usados pelas imagens do catálogo. Aplicar uma allowlist incompleta agora poderia esconder produtos de fornecedores; os demais cabeçalhos defensivos já estão ativos.
 
 ## Conclusão
 
-O checkpoint local está consistente e com gates verdes. A classificação ainda não é “10/10 de produção” porque os bloqueios P0/P1 acima pertencem a infraestrutura, governança do banco, backend e jurídico. Fechá-los exige dados e autorização do PO, não apenas alterações de frontend.
+O produto está funcional, publicado e protegido pelos gates automatizados. A implementação técnica sob controle deste repositório foi concluída; domínio próprio, endurecimento do legado compartilhado, dados jurídicos e provedores de notificação continuam sendo dependências externas que exigem decisões ou credenciais do proprietário.

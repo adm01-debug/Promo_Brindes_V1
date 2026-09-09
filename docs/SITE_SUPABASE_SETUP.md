@@ -11,6 +11,7 @@ A migration deste diretório nunca deve ser aplicada ao banco canônico. Há dua
 
 ## O que já está pronto
 
+- Projeto isolado de produção `xlzmclcjdncjfdrjxclt`, sem compartilhamento de tabelas com o catálogo;
 - Migration isolada em `site-supabase/supabase/migrations`;
 - tabelas privadas, RLS ativo e nenhum grant para `anon` ou `authenticated`;
 - RPCs transacionais `create_site_quote_request` e `create_site_contact_request`;
@@ -20,7 +21,15 @@ A migration deste diretório nunca deve ser aplicada ao banco canônico. Há dua
 - validação de origem, método, tipo, tamanho e conteúdo;
 - tabela de auditoria preparada para e-mail/WhatsApp. Nenhum WhatsApp deve ser disparado sem opt-in específico.
 
-## Criação e vinculação — ação manual do proprietário
+## Estado de produção
+
+As migrations `20260908_230000_create_site_lead_storage.sql` e `20260909_103000_lock_down_rls_event_trigger.sql` foram aplicadas no projeto exclusivo após aprovação do proprietário. As variáveis server-side e os endpoints relativos estão configurados na Vercel; os formulários estão ativos em <https://promo-brindes-v1.vercel.app>.
+
+A validação remota confirmou saúde dos serviços, ausência de alertas de segurança/performance nos advisors, negação de acesso anônimo e persistência idempotente de contato e orçamento. Os registros sintéticos usados no teste foram removidos por identificador exato depois da conferência.
+
+## Reprovisionamento — somente em recuperação controlada
+
+As etapas abaixo são um runbook de contingência. Não as execute no projeto canônico nem reaplique migrations já presentes no ledger remoto.
 
 1. Crie um projeto novo em <https://supabase.com/dashboard/new>. Use um nome inequívoco, por exemplo `site-promo-brindes-prod`, e prefira a mesma região operacional do site.
 2. Guarde o novo `project ref` e a senha do banco. Confirme visualmente que o ref **não** é `doufsxqlfjyuvxuezpln`.
@@ -55,7 +64,7 @@ Configure como secrets no ambiente de produção:
 SITE_SUPABASE_URL=https://NOVO_PROJECT_REF.supabase.co
 SITE_SUPABASE_SECRET_KEY=sb_secret_...
 SITE_REQUEST_HASH_SALT=valor_aleatorio_de_32_ou_mais_caracteres
-SITE_PUBLIC_ORIGIN=https://www.promobrindes.com.br
+SITE_PUBLIC_ORIGIN=https://promo-brindes-v1.vercel.app
 ```
 
 Depois configure as duas variáveis públicas de rota e faça um novo build:
@@ -65,7 +74,7 @@ VITE_QUOTE_REQUEST_ENDPOINT=/api/quote-requests
 VITE_CONTACT_REQUEST_ENDPOINT=/api/contact-requests
 ```
 
-Enquanto essas duas variáveis estiverem vazias, os formulários mantêm o fallback por e-mail; isso evita quebrar o preview antes de o novo projeto existir.
+Enquanto essas duas variáveis estiverem vazias, os formulários mantêm o fallback por e-mail; isso é útil apenas em desenvolvimento ou recuperação. Em produção elas devem apontar para as rotas relativas acima.
 
 ## Validação pós-deploy
 
@@ -75,5 +84,7 @@ Enquanto essas duas variáveis estiverem vazias, os formulários mantêm o fallb
 4. Troque o corpo mantendo a chave e confirme HTTP 409.
 5. Confirme que `anon` e `authenticated` não conseguem consultar nem inserir nas tabelas.
 6. Confirme que o catálogo público continua consultando exclusivamente `doufsxqlfjyuvxuezpln`.
+
+Depois de um teste sintético, remova somente os registros criados pelo identificador do teste e confirme contagem zero. Nunca faça limpeza ampla por data, domínio de e-mail ou `TRUNCATE`.
 
 As secret keys modernas bypassam RLS e, por isso, ficam exclusivamente nas Functions server-side. A política de menor privilégio é reforçada mantendo as tabelas no schema `site_private`, fora dos schemas expostos pela Data API; os únicos RPCs públicos usam `security invoker`, são revogados de `public`/`anon`/`authenticated` e concedidos somente a `service_role`.

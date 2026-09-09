@@ -31,6 +31,9 @@ import { Seo } from '../components/Seo';
 import { useCatalog, useCategories } from '../lib/hooks';
 import type { Category } from '../types';
 
+const PUBLIC_SITE_URL =
+  import.meta.env.VITE_PUBLIC_URL?.replace(/\/$/, '') || 'https://promo-brindes-v1.vercel.app';
+
 const categoryIcons: Array<{ match: RegExp; icon: ReactNode; label: string }> = [
   { match: /tecnologia/i, icon: <Laptop />, label: 'Tecnologia' },
   { match: /bar|cozinha/i, icon: <Martini />, label: 'Bar & cozinha' },
@@ -76,7 +79,7 @@ export default function HomePage() {
           '@context': 'https://schema.org',
           '@type': 'Organization',
           name: 'Promo Brindes',
-          url: 'https://www.promobrindes.com.br',
+          url: PUBLIC_SITE_URL,
           telephone: '+55 11 4637-5517',
           address: { '@type': 'PostalAddress', addressLocality: 'São Paulo', addressRegion: 'SP', addressCountry: 'BR' },
         }}
@@ -84,8 +87,19 @@ export default function HomePage() {
 
       <section className="hero" aria-labelledby="hero-title">
         <picture className="hero__media" aria-hidden="true">
-          <source srcSet="/images/hero-gen-z-v2.webp" type="image/webp" />
-          <img src="/images/hero-gen-z-v2.png" alt="" width="1672" height="941" fetchPriority="high" />
+          <source
+            srcSet="/images/hero-gen-z-v2-640.webp 640w, /images/hero-gen-z-v2-828.webp 828w, /images/hero-gen-z-v2-1024.webp 1024w, /images/hero-gen-z-v2.webp 1672w"
+            sizes="100vw"
+            type="image/webp"
+          />
+          <img
+            src="/images/hero-gen-z-v2.webp"
+            alt=""
+            width="1672"
+            height="941"
+            decoding="async"
+            fetchPriority="high"
+          />
         </picture>
         <div className="hero__veil" />
         <div className="container hero__content">

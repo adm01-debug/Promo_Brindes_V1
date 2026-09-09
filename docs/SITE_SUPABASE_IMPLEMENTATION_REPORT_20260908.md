@@ -1,12 +1,12 @@
 # Relatório de implementação — Supabase exclusivo do site
 
-Data: 08/09/2026
+Data inicial: 08/09/2026 · validação de produção: 09/09/2026
 
 ## Resultado
 
 A separação aprovada foi implementada sem alterar o projeto `Promo_Gifts_V4` e sem executar DDL no Supabase canônico `doufsxqlfjyuvxuezpln`.
 
-O catálogo permanece no banco canônico em modo público de leitura. O novo domínio de leads foi preparado em `site-supabase/`, com backend próprio em `api/`. A criação e o vínculo do novo projeto remoto continuam pendentes porque exigem um project ref novo e uma secret key criada pelo proprietário.
+O catálogo permanece no banco canônico em modo público de leitura. O domínio de leads foi provisionado no projeto isolado `xlzmclcjdncjfdrjxclt`, com backend próprio em `api/`, e está ativo na Vercel. Nenhuma tabela do site foi criada no Supabase canônico.
 
 ## Controles implementados
 
@@ -30,8 +30,8 @@ O catálogo permanece no banco canônico em modo público de leitura. O novo dom
 | Camada | Resultado |
 |---|---:|
 | TypeScript | aprovado |
-| Vitest | 55/55 |
-| pgTAP | 14/14 |
+| Vitest | 56/56 |
+| pgTAP | 16/16 |
 | Supabase `db lint` | zero erros |
 | Reset limpo + reaplicação da migration | aprovado |
 | RPC real via PostgREST com secret key local | HTTP 200 + protocolo |
@@ -45,12 +45,16 @@ O catálogo permanece no banco canônico em modo público de leitura. O novo dom
 | Axe WCAG A/AA | zero violações automáticas nos templates cobertos |
 | `npm audit` | zero vulnerabilidades |
 | Sourcemaps de produção | nenhum arquivo `.map` |
+| Advisors remotos | 0 erros e 0 avisos |
+| Serviços remotos | DB, Auth, REST, Realtime e Storage saudáveis |
+| E2E sintético em produção | contato HTTP 201; orçamento HTTP 201; repetição idempotente HTTP 200/`duplicate: true` |
+| Limpeza pós-teste | zero registros sintéticos remanescentes |
 
 ## Estado operacional
 
-O preview segue disponível em `http://localhost:4180`. Enquanto o novo Supabase não for criado, os endpoints públicos permanecem desativados por configuração e os formulários usam o fallback por e-mail. Isso evita uma dependência parcial ou uma gravação acidental no banco errado.
+O site está publicado em <https://promo-brindes-v1.vercel.app>. Os endpoints `/api/quote-requests` e `/api/contact-requests` estão ativos e usam exclusivamente o Supabase isolado. O preview local pode ser iniciado com `npm run dev` ou `npm run preview` depois do build.
 
-O próximo passo autorizado é exclusivamente de provisionamento: criar o segundo projeto, vincular `site-supabase`, revisar `db push --dry-run`, aplicar a migration e inserir as quatro variáveis server-side na Vercel. O runbook está em `docs/SITE_SUPABASE_SETUP.md`.
+As próximas integrações opcionais são os provedores de e-mail e WhatsApp. Elas não devem ser ativadas sem credenciais server-side, templates aprovados, política de retries e opt-in específico para WhatsApp. O runbook do banco está em `docs/SITE_SUPABASE_SETUP.md`.
 
 ## Referências técnicas
 

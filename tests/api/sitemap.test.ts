@@ -20,6 +20,7 @@ describe('sitemap público', () => {
   });
 
   it('nunca ultrapassa 50 mil URLs incluindo páginas estáticas', async () => {
+    vi.stubEnv('VITE_PUBLIC_URL', '');
     const fetchMock = vi.fn(async (input: string | URL | Request) => {
       const url = new URL(String(input));
       const limit = Number(url.searchParams.get('limit'));
@@ -37,11 +38,26 @@ describe('sitemap público', () => {
 
     expect(result.statusCode).toBe(200);
     expect((result.body.match(/<url>/g) || [])).toHaveLength(50_000);
+    expect(result.body).toContain('<loc>https://promo-brindes-v1.vercel.app/</loc>');
+    expect(result.body).not.toContain('www.promobrindes.com.br');
     expect(fetchMock).toHaveBeenCalledTimes(50);
     const lastCall = fetchMock.mock.calls[fetchMock.mock.calls.length - 1];
     const lastUrl = new URL(String(lastCall?.[0]));
     expect(lastUrl.searchParams.get('limit')).toBe('995');
     expect(lastUrl.searchParams.get('order')).toBe('created_at.desc.nullslast,id.asc');
+  });
+
+  it('prioriza o host público configurado e remove a barra final', async () => {
+    vi.stubEnv('VITE_PUBLIC_URL', 'https://campanhas.promobrindes.com.br/');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('[]', { status: 200 })));
+    const { response, result } = responseDouble();
+
+    await handler({ method: 'GET' }, response);
+
+    expect(result.statusCode).toBe(200);
+    expect(result.body).toContain('<loc>https://campanhas.promobrindes.com.br/</loc>');
+    expect(result.body).toContain('<loc>https://campanhas.promobrindes.com.br/catalogo</loc>');
+    expect(result.body).not.toContain('promobrindes.com.br//catalogo');
   });
 
   it('responde 503 sem publicar sitemap parcial quando o catálogo falha', async () => {

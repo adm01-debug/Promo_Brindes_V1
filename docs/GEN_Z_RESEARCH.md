@@ -161,7 +161,7 @@ O design estará validado quando pessoas do público-alvo conseguirem dizer, sem
 
 ## 13. Registro do hero gerado
 
-Modo: ferramenta de geração de imagem integrada, caso de uso `photorealistic-natural`. Arquivos finais: `public/images/hero-gen-z-v2.png` e `public/images/hero-gen-z-v2.webp`.
+Modo: ferramenta de geração de imagem integrada, caso de uso `photorealistic-natural`. Arquivos finais responsivos: `public/images/hero-gen-z-v2-640.webp`, `public/images/hero-gen-z-v2-828.webp`, `public/images/hero-gen-z-v2-1024.webp` e `public/images/hero-gen-z-v2.webp`.
 
 ```text
 Use case: photorealistic-natural
