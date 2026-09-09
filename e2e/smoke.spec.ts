@@ -217,24 +217,27 @@ test('mostra produto sem estoque confiável e leva o cliente ao briefing sem che
   expect(briefingA11y.violations, 'Violações no briefing preenchível').toEqual([]);
 });
 
-test('card combina Sua marca aqui, Novidade e Kit sem perder a hierarquia', async ({ page }) => {
+test('card exibe somente o badge de maior prioridade', async ({ page }) => {
   await page.unroute(/\/rest\/v1\/v_(?:site_)?products_public\?/);
   await page.route(/\/rest\/v1\/v_(?:site_)?products_public\?/, (route) => route.fulfill({
     contentType: 'application/json',
     headers: { 'content-range': '0-0/1' },
-    body: JSON.stringify([{ ...product, name: 'Kit executivo sustentável', is_new: false, is_kit: true }]),
+    body: JSON.stringify([{
+      ...product,
+      name: 'Kit executivo sustentável',
+      is_new: false,
+      is_kit: true,
+      created_at: '2026-01-01T00:00:00.000Z',
+    }]),
   }));
 
   await page.goto('/catalogo');
   const card = page.locator('.product-card').first();
   const badges = card.locator('.product-card__badges .badge');
-  await expect(badges).toHaveCount(3);
-  await expect(badges.nth(0)).toHaveText('Sua marca aqui');
-  await expect(badges.nth(1)).toHaveText('Novidade');
-  await expect(badges.nth(2)).toHaveText('Kit');
-  await expect(badges.nth(0)).toHaveClass(/badge--green/);
-  await expect(badges.nth(1)).toHaveClass(/badge--new/);
-  await expect(badges.nth(2)).toHaveClass(/badge--kit/);
+  await expect(badges).toHaveCount(1);
+  await expect(badges).toHaveText('Kit');
+  await expect(badges).toHaveClass(/badge--kit/);
+  await expect(card.getByText('Sua marca aqui')).toHaveCount(0);
 
   const [badgeBox, imageBox] = await Promise.all([
     card.locator('.product-card__badges').boundingBox(),

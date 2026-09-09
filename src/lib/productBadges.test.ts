@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isCatalogKit, isWithinNoveltyWindow, productBadgeConfig } from './productBadges';
+import { isCatalogKit, isWithinNoveltyWindow, productBadgeConfig, resolveProductBadge } from './productBadges';
 
 describe('badges de produto', () => {
   const now = Date.parse('2026-09-09T12:00:00.000Z');
@@ -19,5 +19,20 @@ describe('badges de produto', () => {
     expect(isCatalogKit({ isKit: false, name: 'Kit boas-vindas' }, 'Presentes')).toBe(true);
     expect(isCatalogKit({ isKit: false, name: 'Kitten decorativo' }, 'Casa')).toBe(false);
     expect(isCatalogKit({ isKit: false, name: 'Caneca' }, 'Cozinha')).toBe(false);
+  });
+
+  it('resolve exatamente um badge na ordem Novidade, Kit e Sua marca aqui', () => {
+    const baseProduct = {
+      isNew: false,
+      isKit: false,
+      name: 'Caneca térmica',
+      allowsPersonalization: false,
+    };
+
+    expect(resolveProductBadge({ ...baseProduct, isNew: true, isKit: true, allowsPersonalization: true })).toBe('new');
+    expect(resolveProductBadge({ ...baseProduct, isKit: true, allowsPersonalization: true })).toBe('kit');
+    expect(resolveProductBadge({ ...baseProduct, allowsPersonalization: true })).toBe('personalizable');
+    expect(resolveProductBadge({ ...baseProduct, allowsPersonalization: true }, 'Kits executivos')).toBe('kit');
+    expect(resolveProductBadge(baseProduct)).toBeNull();
   });
 });

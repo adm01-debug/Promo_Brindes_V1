@@ -27,4 +27,20 @@ export function isCatalogKit(
   return KIT_TOKEN.test(normalized(categoryName)) || /^kits?(\s|$|[-_/|])/i.test(normalized(product.name));
 }
 
+export type ProductBadgeKind = 'new' | 'kit' | 'personalizable';
+
+/**
+ * Mantém um único sinal visual por card. A ordem favorece descoberta
+ * (novidade), depois composição do produto (kit) e, por fim, personalização.
+ */
+export function resolveProductBadge(
+  product: { isNew: boolean; isKit: boolean; name: string; allowsPersonalization: boolean },
+  categoryName?: string | null,
+): ProductBadgeKind | null {
+  if (product.isNew) return 'new';
+  if (isCatalogKit(product, categoryName)) return 'kit';
+  if (product.allowsPersonalization) return 'personalizable';
+  return null;
+}
+
 export const productBadgeConfig = { noveltyWindowDays: NOVELTY_WINDOW_DAYS } as const;
