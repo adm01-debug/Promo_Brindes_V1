@@ -62,7 +62,7 @@ A migration aprovada existe no projeto novo e no ledger do Supabase, mas não no
 
 ### P2 — SEO server-side
 
-A home possui metadata inicial completa. Metadados específicos de catálogo/produto ainda dependem de JavaScript; SSR/prerender seria necessário para previews sociais individuais e status HTTP 404 real para produto inexistente. O sitemap único atual opera com 7.524 URLs e já impõe o limite normativo de 50 mil; particionamento só passa a ser necessário ao se aproximar desse patamar ou do limite de resposta da hospedagem.
+A home possui metadata inicial completa. Metadados específicos de catálogo/produto ainda dependem de JavaScript; SSR/prerender seria necessário para previews sociais individuais e status HTTP 404 real para produto inexistente. O sitemap único opera com cerca de 7,5 mil URLs dinâmicas e já impõe o limite normativo de 50 mil; particionamento só passa a ser necessário ao se aproximar desse patamar ou do limite de resposta da hospedagem.
 
 ### P2 — CSP
 
