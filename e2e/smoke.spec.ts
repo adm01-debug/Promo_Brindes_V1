@@ -201,6 +201,7 @@ test('mostra produto sem estoque confiável e leva o cliente ao briefing sem che
   await page.goto('/catalogo');
   await expect(page.getByRole('heading', { name: 'Seu moodboard começa aqui.' })).toBeVisible();
   await expect(page.getByText('1 produto encontrado')).toBeVisible();
+  await expect(page.getByText('Novidade').first()).toBeVisible();
   await expect(page.getByText('Mín. 50 un.').first()).toBeVisible();
   await page.getByRole('link', { name: /Mochila Executiva Sustentável/i }).first().click();
   await expect(page.getByRole('heading', { name: product.name })).toBeVisible();
@@ -214,6 +215,32 @@ test('mostra produto sem estoque confiável e leva o cliente ao briefing sem che
   await waitForRoute(page);
   const briefingA11y = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
   expect(briefingA11y.violations, 'Violações no briefing preenchível').toEqual([]);
+});
+
+test('card combina Sua marca aqui, Novidade e Kit sem perder a hierarquia', async ({ page }) => {
+  await page.unroute(/\/rest\/v1\/v_(?:site_)?products_public\?/);
+  await page.route(/\/rest\/v1\/v_(?:site_)?products_public\?/, (route) => route.fulfill({
+    contentType: 'application/json',
+    headers: { 'content-range': '0-0/1' },
+    body: JSON.stringify([{ ...product, name: 'Kit executivo sustentável', is_new: false, is_kit: true }]),
+  }));
+
+  await page.goto('/catalogo');
+  const card = page.locator('.product-card').first();
+  const badges = card.locator('.product-card__badges .badge');
+  await expect(badges).toHaveCount(3);
+  await expect(badges.nth(0)).toHaveText('Sua marca aqui');
+  await expect(badges.nth(1)).toHaveText('Novidade');
+  await expect(badges.nth(2)).toHaveText('Kit');
+  await expect(badges.nth(0)).toHaveClass(/badge--green/);
+  await expect(badges.nth(1)).toHaveClass(/badge--new/);
+  await expect(badges.nth(2)).toHaveClass(/badge--kit/);
+
+  const [badgeBox, imageBox] = await Promise.all([
+    card.locator('.product-card__badges').boundingBox(),
+    card.locator('.product-card__image-wrap').boundingBox(),
+  ]);
+  expect(badgeBox && imageBox && badgeBox.y + badgeBox.height <= imageBox.y + imageBox.height).toBe(true);
 });
 
 test('FAQ contextual esclarece limites sem inventar preço ou estoque', async ({ page }) => {

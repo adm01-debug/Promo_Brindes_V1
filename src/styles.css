@@ -3635,6 +3635,18 @@ p {
   border-color: var(--ink);
 }
 
+.badge--new {
+  color: var(--ink);
+  background: var(--coral);
+  border-color: var(--ink);
+}
+
+.badge--kit {
+  color: var(--ink);
+  background: var(--lavender);
+  border-color: var(--ink);
+}
+
 .consult-label {
   max-width: 80px;
   color: var(--green-dark);

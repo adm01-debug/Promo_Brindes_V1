@@ -57,6 +57,11 @@ describe('catálogo público', () => {
     expect(product?.colors).toHaveLength(1);
   });
 
+  it('marca como novidade um produto dentro da janela canônica mesmo sem flag explícita', () => {
+    const recentProduct = mapProductRow({ ...row, is_new: false, created_at: new Date().toISOString() });
+    expect(recentProduct?.isNew).toBe(true);
+  });
+
   it('consulta todos os produtos ativos sem confiar no estoque do fornecedor', async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify([row]), {
       status: 200,

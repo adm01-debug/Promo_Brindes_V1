@@ -1,6 +1,7 @@
 import type { CatalogProduct, Category, ProductColor } from '../types';
 import { buildCatalogSearchGroups } from './search';
 import { isCatalogCategoryId, parseCatalogPage, resolveColorValues, resolveMaterialValues } from './catalogFilters';
+import { isWithinNoveltyWindow } from './productBadges';
 
 const CANONICAL_PROJECT_ID = 'doufsxqlfjyuvxuezpln';
 const CANONICAL_URL = `https://${CANONICAL_PROJECT_ID}.supabase.co`;
@@ -209,7 +210,7 @@ export function mapProductRow(row: ProductRow): CatalogProduct | null {
     mainCategoryId: row.main_category_id,
     brand: row.brand,
     minQuantity: Math.max(1, safeNumber(row.min_quantity, 1)),
-    isNew: Boolean(row.is_new),
+    isNew: Boolean(row.is_new) || isWithinNoveltyWindow(row.created_at),
     isFeatured: Boolean(row.is_featured),
     isBestseller: Boolean(row.is_bestseller),
     isKit: Boolean(row.is_kit),

@@ -2,6 +2,7 @@ import { ArrowUpRight, Check, Layers3, Plus, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQuoteCart } from '../context/QuoteCartContext';
 import { replaceBrokenProductImage } from '../lib/images';
+import { isCatalogKit } from '../lib/productBadges';
 import type { CatalogProduct } from '../types';
 
 interface ProductCardProps {
@@ -13,6 +14,7 @@ interface ProductCardProps {
 export function ProductCard({ product, categoryName, priority = false }: ProductCardProps) {
   const cart = useQuoteCart();
   const selected = cart.items.some((item) => item.productId === product.id);
+  const showKitBadge = isCatalogKit(product, categoryName);
 
   return (
     <article className="product-card">
@@ -31,9 +33,9 @@ export function ProductCard({ product, categoryName, priority = false }: Product
             onError={replaceBrokenProductImage}
           />
           <div className="product-card__badges" aria-label="Características">
-            {product.isNew && <span className="badge badge--ink">Drop novo</span>}
-            {product.isKit && <span className="badge badge--paper"><Layers3 size={13} /> Vira kit</span>}
-            {product.allowsPersonalization && <span className="badge badge--green"><Sparkles size={13} /> Sua marca aqui</span>}
+            {product.allowsPersonalization && <span className="badge badge--green"><Sparkles size={13} aria-hidden="true" /> Sua marca aqui</span>}
+            {product.isNew && <span className="badge badge--new">Novidade</span>}
+            {showKitBadge && <span className="badge badge--kit"><Layers3 size={13} aria-hidden="true" /> Kit</span>}
           </div>
           <span className="product-card__view" aria-hidden="true"><ArrowUpRight size={18} /></span>
         </div>
