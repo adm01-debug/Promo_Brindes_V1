@@ -20,6 +20,8 @@ A migration deste diretório nunca deve ser aplicada ao banco canônico. Há dua
 - endpoints Vercel `/api/quote-requests` e `/api/contact-requests`;
 - validação de origem, método, tipo, tamanho e conteúdo;
 - tabela de auditoria preparada para e-mail/WhatsApp. Nenhum WhatsApp deve ser disparado sem opt-in específico.
+- Área do Cliente preparada no código com Auth, titularidade por `auth.uid()`, histórico, linha do tempo e propostas em bucket privado;
+- migration `20260909180000_create_customer_quote_portal.sql`, que deve ser aplicada somente ao projeto isolado antes de ativar o acesso em produção.
 
 ## Estado de produção
 
@@ -74,6 +76,22 @@ VITE_QUOTE_REQUEST_ENDPOINT=/api/quote-requests
 VITE_CONTACT_REQUEST_ENDPOINT=/api/contact-requests
 ```
 
+Para a Área do Cliente, use a URL e a **publishable key** do mesmo Supabase isolado. Essas variáveis vão ao navegador por definição; nunca coloque uma `sb_secret_...` em variável `VITE_`:
+
+```dotenv
+VITE_SITE_SUPABASE_URL=https://xlzmclcjdncjfdrjxclt.supabase.co
+VITE_SITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+```
+
+No Supabase Auth, configure a Site URL de produção e permita os redirects exatos:
+
+```text
+https://promo-brindes-v1.vercel.app/auth/confirm
+https://promo-brindes-v1.vercel.app/definir-senha
+```
+
+O cadastro deve exigir confirmação de e-mail. Não desative essa verificação: ela é a condição usada por `claim_my_quote_requests()` para associar solicitações anteriores à conta correta.
+
 Enquanto essas duas variáveis estiverem vazias, os formulários mantêm o fallback por e-mail; isso é útil apenas em desenvolvimento ou recuperação. Em produção elas devem apontar para as rotas relativas acima.
 
 ## Validação pós-deploy
@@ -84,6 +102,10 @@ Enquanto essas duas variáveis estiverem vazias, os formulários mantêm o fallb
 4. Troque o corpo mantendo a chave e confirme HTTP 409.
 5. Confirme que `anon` e `authenticated` não conseguem consultar nem inserir nas tabelas.
 6. Confirme que o catálogo público continua consultando exclusivamente `doufsxqlfjyuvxuezpln`.
+7. Crie duas contas de teste com e-mails diferentes e confirme que nenhuma delas acessa o orçamento da outra, mesmo conhecendo o UUID.
+8. Confirme que uma conta sem e-mail verificado não reivindica histórico.
+9. Publique um PDF sintético no bucket privado `customer-proposals`, associe-o a uma solicitação e confirme URL assinada com expiração de 60 segundos.
+10. Confirme que `/minha-conta`, detalhes e callback de autenticação enviam `noindex` e não registram e-mail/protocolo nos eventos analíticos.
 
 Depois de um teste sintético, remova somente os registros criados pelo identificador do teste e confirme contagem zero. Nunca faça limpeza ampla por data, domínio de e-mail ou `TRUNCATE`.
 

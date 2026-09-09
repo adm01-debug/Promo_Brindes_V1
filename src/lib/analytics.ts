@@ -18,6 +18,10 @@ export interface FunnelEventMap {
   quote_submission_failed: { item_count: number; reason: 'network' | 'rate_limited' | 'conflict' | 'validation' | 'unknown' };
   selection_printed: { item_count: number };
   faq_opened: { scope: 'catalog' | 'product' | 'quote'; question: string };
+  customer_access_requested: { method: 'email' | 'password' | 'create' | 'recover' };
+  customer_history_viewed: { result_count: number; has_filter: boolean };
+  customer_quote_repeated: { item_count: number };
+  customer_proposal_opened: { version: number };
 }
 
 type FunnelEventName = keyof FunnelEventMap;
@@ -39,6 +43,10 @@ const ALLOWED_PROPERTIES: { [Name in FunnelEventName]: ReadonlyArray<keyof Funne
   quote_submission_failed: ['item_count', 'reason'],
   selection_printed: ['item_count'],
   faq_opened: ['scope', 'question'],
+  customer_access_requested: ['method'],
+  customer_history_viewed: ['result_count', 'has_filter'],
+  customer_quote_repeated: ['item_count'],
+  customer_proposal_opened: ['version'],
 };
 
 function safeProperties<Name extends FunnelEventName>(name: Name, properties: FunnelEventMap[Name]) {

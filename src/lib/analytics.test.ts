@@ -37,4 +37,9 @@ describe('instrumentação segura', () => {
       result_count: 2,
     });
   });
+
+  it('mede a área do cliente sem enviar identidade ou protocolo', () => {
+    trackFunnelEvent('customer_history_viewed', { result_count: 3, has_filter: true, email: 'cliente@empresa.com' } as never);
+    expect(trackMock).toHaveBeenCalledWith('customer_history_viewed', { result_count: 3, has_filter: true });
+  });
 });

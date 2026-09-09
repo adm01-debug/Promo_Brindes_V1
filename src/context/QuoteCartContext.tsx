@@ -80,6 +80,7 @@ interface QuoteCartValue {
   addProduct: (product: CatalogProduct, quantity?: number, color?: ProductColor) => void;
   removeItem: (key: string) => void;
   updateQuantity: (key: string, quantity: number) => void;
+  replaceItems: (items: QuoteItem[]) => void;
   clear: () => void;
 }
 
@@ -153,6 +154,7 @@ export function QuoteCartProvider({ children }: { children: ReactNode }) {
       addProduct,
       removeItem: (key) => dispatch({ type: 'remove', key }),
       updateQuantity: (key, quantity) => dispatch({ type: 'quantity', key, quantity }),
+      replaceItems: (items) => dispatch({ type: 'replace', items }),
       clear: () => dispatch({ type: 'clear' }),
     }),
     [addProduct, drawerOpen, state.items],

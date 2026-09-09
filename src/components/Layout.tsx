@@ -1,9 +1,10 @@
-import { Menu, Search, ShoppingBag, X } from 'lucide-react';
+import { Menu, Search, ShoppingBag, UserRound, X } from 'lucide-react';
 import { type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useQuoteCart } from '../context/QuoteCartContext';
 import { trackFunnelEvent } from '../lib/analytics';
 import { useCategories } from '../lib/hooks';
+import { hasSiteAuthConfiguration } from '../lib/siteSupabaseConfig';
 import { QuoteDrawer } from './QuoteDrawer';
 import { SearchAutocomplete } from './SearchAutocomplete';
 
@@ -24,6 +25,7 @@ export function Layout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const categories = useCategories();
+  const customerAreaEnabled = hasSiteAuthConfiguration();
   const catalogParams = new URLSearchParams(location.search);
 
   function isNavItemActive(item: typeof navItems[number]) {
@@ -61,7 +63,7 @@ export function Layout({ children }: { children: ReactNode }) {
       <div className="utility-bar">
         <div className="container utility-bar__inner">
           <span><i aria-hidden="true" /> Estratégia de marca em forma de presente</span>
-          <a href="tel:+551146375517">Briefing urgente? (11) 4637-5517</a>
+          <div className="utility-bar__actions">{customerAreaEnabled && <Link to="/minha-conta"><UserRound size={14} /> Meus orçamentos</Link>}<a href="tel:+551146375517">Briefing urgente? (11) 4637-5517</a></div>
         </div>
       </div>
       <header className="site-header">
@@ -112,6 +114,7 @@ export function Layout({ children }: { children: ReactNode }) {
                 return <Link key={item.to} to={item.to} className={active ? 'nav-link--active' : undefined} aria-current={active ? 'page' : undefined}>{item.label}</Link>;
               })}
               <Link to="/orcamento">Transformar saves em briefing</Link>
+              {customerAreaEnabled && <Link to="/minha-conta">Meus orçamentos</Link>}
             </nav>
           </div>
         )}
@@ -132,6 +135,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <Link to="/catalogo?perfil=kits">Kits & onboarding</Link>
             <Link to="/catalogo?perfil=novos">Novos drops</Link>
             <Link to="/orcamento">Meus saves</Link>
+            {customerAreaEnabled && <Link to="/minha-conta">Meus orçamentos</Link>}
           </div>
           <div>
             <h2>Promo Brindes</h2>

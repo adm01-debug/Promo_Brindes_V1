@@ -51,6 +51,14 @@ O projeto isolado `xlzmclcjdncjfdrjxclt` está provisionado e as rotas de produ�
 
 Confirmações automáticas por e-mail e WhatsApp ainda não estão habilitadas. A estrutura de auditoria está pronta, mas a ativação depende da escolha dos provedores, credenciais server-side, templates aprovados e opt-in específico para WhatsApp.
 
+## Área do Cliente
+
+A Área do Cliente mantém a solicitação inicial sem cadastro obrigatório e oferece continuidade depois da verificação do e-mail. O cliente pode entrar por link/código ou senha, consultar somente os próprios briefings, acompanhar a linha do tempo, abrir propostas publicadas e reaproveitar produtos e quantidades em uma nova solicitação.
+
+O histórico fica no Supabase exclusivo `xlzmclcjdncjfdrjxclt`. A associação retroativa compara o e-mail normalizado apenas depois de o Supabase confirmar a identidade; todas as leituras usam `auth.uid()` em RPCs protegidos. PDFs ficam em bucket privado e são entregues por URL assinada de 60 segundos através de `/api/customer-proposals`. O catálogo canônico continua somente leitura e não recebe contas ou históricos.
+
+Para desenvolvimento, configure também `VITE_SITE_SUPABASE_URL` e `VITE_SITE_SUPABASE_PUBLISHABLE_KEY` conforme `.env.example`. O runbook de Auth, redirects, migration e ativação está em [docs/CUSTOMER_PORTAL_IMPLEMENTATION_20260909.md](docs/CUSTOMER_PORTAL_IMPLEMENTATION_20260909.md).
+
 ## Deploy
 
 O projeto inclui configuração para Vercel:
@@ -75,7 +83,7 @@ public/              marca e imagens otimizadas
 src/components/      layout, cards, SEO e drawer da seleção
 src/context/         estado persistente da seleção
 src/lib/             catálogo público e envio do briefing
-src/pages/           home, catálogo, produto, orçamento e institucionais
+src/pages/           home, catálogo, produto, orçamento, Área do Cliente e institucionais
 docs/                estratégia e critérios de aceite
 supabase/migrations/  contrato do catálogo canônico (somente leitura)
 site-supabase/        migrations exclusivas do novo banco de leads do site

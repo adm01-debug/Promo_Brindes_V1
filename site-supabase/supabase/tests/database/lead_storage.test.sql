@@ -7,8 +7,8 @@ select plan(16);
 
 select is(
   (select count(*) from pg_catalog.pg_tables where schemaname = 'site_private'),
-  6::bigint,
-  'schema privado contém exatamente as seis tabelas planejadas'
+  9::bigint,
+  'schema privado contém as nove tabelas planejadas'
 );
 
 select ok(

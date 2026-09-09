@@ -22,7 +22,7 @@ export interface RequestMetadata {
   origin: string;
 }
 
-function siteDatabaseConfig(): SiteDatabaseConfig {
+export function getSiteDatabaseConfig(): SiteDatabaseConfig {
   const rawUrl = process.env.SITE_SUPABASE_URL?.trim();
   const secretKey = process.env.SITE_SUPABASE_SECRET_KEY?.trim();
   const requestHashSalt = process.env.SITE_REQUEST_HASH_SALT?.trim();
@@ -54,7 +54,7 @@ function requestHash(payload: NormalizedLeadPayload): string {
 }
 
 export async function persistLead(kind: LeadKind, payload: NormalizedLeadPayload, metadata: RequestMetadata) {
-  const config = siteDatabaseConfig();
+  const config = getSiteDatabaseConfig();
   const rpcName = kind === 'quote' ? 'create_site_quote_request' : 'create_site_contact_request';
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -101,6 +101,6 @@ export async function persistLead(kind: LeadKind, payload: NormalizedLeadPayload
 }
 
 export function assertSafeSiteDatabaseConfiguration(): boolean {
-  siteDatabaseConfig();
+  getSiteDatabaseConfig();
   return true;
 }

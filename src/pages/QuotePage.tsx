@@ -128,8 +128,10 @@ export default function QuotePage() {
         {success.requestId && <span className="success-page__protocol">Protocolo: {success.requestId}</span>}
         <div className="success-page__actions">
           {success.href && <a className="button button--green" href={success.href}><Mail size={18} /> Abrir e-mail novamente</a>}
+          {success.mode === 'endpoint' && <Link className="button button--green" to="/entrar?next=/minha-conta">Acompanhar meus orçamentos</Link>}
           <Link className="button button--outline" to="/catalogo">Voltar ao catálogo</Link>
         </div>
+        {success.mode === 'endpoint' && <p className="success-page__account-note">Entre com o mesmo e-mail informado no briefing para ver esta solicitação no seu histórico.</p>}
       </div>
     );
   }

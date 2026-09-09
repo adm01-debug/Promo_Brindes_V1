@@ -391,7 +391,7 @@ test('superfiltro móvel combina critérios, preserva a URL e devolve o foco', a
 });
 
 test('templates principais não apresentam violações automáticas WCAG A/AA', async ({ page }) => {
-  for (const path of ['/', '/catalogo', '/catalogos', `/produto/${product.slug}`, '/sobre', '/contato', '/privacidade', '/orcamento']) {
+  for (const path of ['/', '/catalogo', '/catalogos', `/produto/${product.slug}`, '/sobre', '/contato', '/privacidade', '/orcamento', '/entrar']) {
     await page.goto(path);
     await expect(page.locator('main')).toBeVisible();
     await waitForRoute(page);
@@ -406,6 +406,47 @@ test('mudança de rota posiciona o foco no conteúdo principal', async ({ page }
   await page.getByRole('link', { name: 'Como funciona' }).first().click();
   await expect(page).toHaveURL(/\/sobre$/);
   await expect(page.locator('#conteudo')).toBeFocused();
+});
+
+test('área do cliente protege histórico e oferece autenticação acessível', async ({ page }) => {
+  await page.goto('/minha-conta');
+  await expect(page).toHaveURL(/\/entrar\?next=/);
+  await expect(page.getByRole('heading', { name: 'Acessar meus orçamentos' })).toBeVisible();
+  await expect(page.getByRole('tab', { name: 'Link ou código' })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByLabel('E-mail')).toHaveAttribute('autocomplete', 'email');
+  await page.getByRole('tab', { name: 'Senha' }).click();
+  await expect(page.getByLabel('Senha')).toHaveAttribute('autocomplete', 'current-password');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+});
+
+test('callback de acesso inválido falha de forma recuperável e privada', async ({ page }) => {
+  await page.goto('/auth/confirm');
+  await expect(page.getByRole('heading', { name: 'Não conseguimos vincular seu histórico.' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Voltar ao acesso' })).toBeVisible();
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex,nofollow');
+});
+
+test('cliente autenticado consulta detalhe e reutiliza o orçamento sem misturar históricos', async ({ page }) => {
+  const quoteId = '55555555-5555-4555-8555-555555555555';
+  const user = { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', aud: 'authenticated', role: 'authenticated', email: 'cliente@empresa.com', email_confirmed_at: '2026-09-09T12:00:00Z', user_metadata: {}, app_metadata: {}, created_at: '2026-09-09T12:00:00Z' };
+  await page.addInitScript(({ user }) => {
+    localStorage.setItem('promo-brindes-customer-session', JSON.stringify({ access_token: 'header.payload.signature', refresh_token: 'refresh-token', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, token_type: 'bearer', user }));
+  }, { user });
+  await page.route('**/auth/v1/user', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify(user) }));
+  await page.route('**/rest/v1/rpc/claim_my_quote_requests', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ claimed: 1, email: user.email }) }));
+  await page.route('**/rest/v1/rpc/get_my_quote_requests', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ items: [{ id: quoteId, protocol: '55555555', status: 'in_progress', company: 'Empresa Criativa', createdAt: '2026-09-09T12:00:00Z', desiredDeadline: null, itemCount: 1, totalUnits: 100, productNames: ['Mochila Executiva Sustentável'] }], total: 1, limit: 12, offset: 0 }) }));
+  await page.route('**/rest/v1/rpc/get_my_quote_request', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ id: quoteId, protocol: '55555555', status: 'in_progress', company: 'Empresa Criativa', contactName: 'Ana', email: user.email, phone: '(11) 99999-9999', city: 'São Paulo / SP', desiredDeadline: null, notes: 'Onboarding', createdAt: '2026-09-09T12:00:00Z', submittedAt: '2026-09-09T12:00:00Z', items: [{ key: `${product.id}::azul`, productId: product.id, slug: product.slug, name: product.name, sku: product.sku, imageUrl: product.primary_image_url, quantity: 100, minQuantity: 50, colorName: 'Azul', colorHex: '#0047ab' }], events: [{ id: 'event-1', type: 'status_changed', status: 'in_progress', title: 'Curadoria em andamento', description: null, createdAt: '2026-09-09T13:00:00Z' }], proposals: [] }) }));
+
+  await page.goto('/minha-conta');
+  await expect(page.getByRole('heading', { name: 'Meus orçamentos' })).toBeVisible();
+  await expect(page.getByText('Empresa Criativa').first()).toBeVisible();
+  await page.getByRole('link', { name: 'Ver solicitação' }).click();
+  await expect(page).toHaveURL(new RegExp(`/minha-conta/orcamentos/${quoteId}$`));
+  await expect(page.getByRole('heading', { name: 'Seleção enviada' })).toBeVisible();
+  await page.getByRole('button', { name: 'Solicitar novamente' }).first().click();
+  await expect(page).toHaveURL(/\/orcamento\?repetir=/);
+  await expect(page.getByRole('heading', { name: 'Transforme o moodboard em briefing.' })).toBeVisible();
+  await expect(page.getByText('Mochila Executiva Sustentável').first()).toBeVisible();
 });
 
 test('produto com identificador inválido falha fechado e não pode ser indexado', async ({ page }) => {

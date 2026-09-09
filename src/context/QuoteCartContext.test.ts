@@ -58,4 +58,9 @@ describe('seleção para orçamento', () => {
     }));
     expect(normalizeQuoteItems(values)).toHaveLength(MAX_QUOTE_ITEMS);
   });
+
+  it('substitui o moodboard por um orçamento anterior normalizado', () => {
+    const previous = { ...item, quantity: 250 };
+    expect(cartReducer({ items: [] }, { type: 'replace', items: [previous] }).items).toEqual([previous]);
+  });
 });

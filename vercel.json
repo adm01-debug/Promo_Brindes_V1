@@ -8,7 +8,12 @@
     { "source": "/orcamento", "destination": "/index.html" },
     { "source": "/sobre", "destination": "/index.html" },
     { "source": "/contato", "destination": "/index.html" },
-    { "source": "/privacidade", "destination": "/index.html" }
+    { "source": "/privacidade", "destination": "/index.html" },
+    { "source": "/entrar", "destination": "/index.html" },
+    { "source": "/auth/confirm", "destination": "/index.html" },
+    { "source": "/definir-senha", "destination": "/index.html" },
+    { "source": "/minha-conta", "destination": "/index.html" },
+    { "source": "/minha-conta/orcamentos/:id", "destination": "/index.html" }
   ],
   "headers": [
     {
@@ -19,7 +24,7 @@
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
         { "key": "X-Frame-Options", "value": "DENY" },
         { "key": "Strict-Transport-Security", "value": "max-age=31536000" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; font-src 'self'; connect-src 'self' https://doufsxqlfjyuvxuezpln.supabase.co https://va.vercel-scripts.com" }
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; font-src 'self'; connect-src 'self' https://doufsxqlfjyuvxuezpln.supabase.co https://xlzmclcjdncjfdrjxclt.supabase.co https://va.vercel-scripts.com" }
       ]
     },
     {
