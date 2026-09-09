@@ -112,6 +112,12 @@ test('manifesto transforma as frases da marca em uma narrativa com próximo pass
   await expect(manifesto.getByRole('heading', { name: 'Excelência em cada detalhe' })).toBeVisible();
   await expect(manifesto.getByRole('heading', { name: 'Encantar pessoas, somos bons nisso!' })).toBeVisible();
 
+  const [manifestoBox, categoriesBox] = await Promise.all([
+    manifesto.boundingBox(),
+    page.locator('.category-section').boundingBox(),
+  ]);
+  expect(manifestoBox && categoriesBox && manifestoBox.y < categoriesBox.y).toBe(true);
+
   await manifesto.getByRole('link', { name: 'Criar algo memorável' }).click();
   await expect(page).toHaveURL(/#conversa$/);
   await expect(page.locator('#conversa')).toBeInViewport();

@@ -172,6 +172,42 @@ export default function HomePage() {
 
       <CampaignFinder />
 
+      <section className="brand-manifesto section" aria-labelledby="brand-manifesto-title">
+        <div className="container brand-manifesto__frame">
+          <div className="brand-manifesto__intro">
+            <div className="brand-manifesto__meta">
+              <span className="section-kicker">O jeito Promo</span>
+              <span aria-hidden="true">Manifesto 01—04</span>
+            </div>
+            <h2 id="brand-manifesto-title">Entender <span>para atender</span></h2>
+            <p>Antes de falar em produto, a gente escuta a ideia, lê o contexto e entende quem precisa ser conquistado.</p>
+          </div>
+
+          <div className="brand-manifesto__grid">
+            <article className="brand-statement brand-statement--connection">
+              <span className="brand-statement__number" aria-hidden="true">02</span>
+              <p>Nosso propósito</p>
+              <h3>Conectando <em>Marcas</em> e <em>Pessoas</em></h3>
+              <small>Brindes são pontos de contato: precisam carregar significado, não apenas um logo.</small>
+            </article>
+            <article className="brand-statement brand-statement--detail">
+              <span className="brand-statement__number" aria-hidden="true">03</span>
+              <p>Nosso padrão</p>
+              <h3>Excelência em cada detalhe</h3>
+              <small>Da curadoria ao acabamento, cada escolha trabalha para valorizar a experiência inteira.</small>
+            </article>
+            <article className="brand-statement brand-statement--delight">
+              <span className="brand-statement__number" aria-hidden="true">04</span>
+              <div>
+                <p>É isso que nos move</p>
+                <h3>Encantar pessoas, <em>somos bons nisso!</em></h3>
+              </div>
+              <a className="button button--light button--large" href="#conversa">Criar algo memorável <ArrowRight size={18} /></a>
+            </article>
+          </div>
+        </div>
+      </section>
+
       <section className="category-section section">
         <div className="container">
           <div className="section-heading section-heading--split">
@@ -272,42 +308,6 @@ export default function HomePage() {
             <li><span>02 / BRIEF</span><div><Sparkles /><h3>Dê o contexto</h3><p>Ajuste quantidades, prazo e objetivo da ação em um briefing curto.</p></div></li>
             <li><span>03 / HUMAN TOUCH</span><div><MessageCircleMore /><h3>Converse com quem entende</h3><p>Receba uma proposta consultiva, clara e pronta para levar ao time.</p></div></li>
           </ol>
-        </div>
-      </section>
-
-      <section className="brand-manifesto section" aria-labelledby="brand-manifesto-title">
-        <div className="container brand-manifesto__frame">
-          <div className="brand-manifesto__intro">
-            <div className="brand-manifesto__meta">
-              <span className="section-kicker">O jeito Promo</span>
-              <span aria-hidden="true">Manifesto 01—04</span>
-            </div>
-            <h2 id="brand-manifesto-title">Entender <span>para atender</span></h2>
-            <p>Antes de falar em produto, a gente escuta a ideia, lê o contexto e entende quem precisa ser conquistado.</p>
-          </div>
-
-          <div className="brand-manifesto__grid">
-            <article className="brand-statement brand-statement--connection">
-              <span className="brand-statement__number" aria-hidden="true">02</span>
-              <p>Nosso propósito</p>
-              <h3>Conectando <em>Marcas</em> e <em>Pessoas</em></h3>
-              <small>Brindes são pontos de contato: precisam carregar significado, não apenas um logo.</small>
-            </article>
-            <article className="brand-statement brand-statement--detail">
-              <span className="brand-statement__number" aria-hidden="true">03</span>
-              <p>Nosso padrão</p>
-              <h3>Excelência em cada detalhe</h3>
-              <small>Da curadoria ao acabamento, cada escolha trabalha para valorizar a experiência inteira.</small>
-            </article>
-            <article className="brand-statement brand-statement--delight">
-              <span className="brand-statement__number" aria-hidden="true">04</span>
-              <div>
-                <p>É isso que nos move</p>
-                <h3>Encantar pessoas, <em>somos bons nisso!</em></h3>
-              </div>
-              <a className="button button--light button--large" href="#conversa">Criar algo memorável <ArrowRight size={18} /></a>
-            </article>
-          </div>
         </div>
       </section>
 
