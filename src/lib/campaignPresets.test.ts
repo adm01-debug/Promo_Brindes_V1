@@ -45,4 +45,15 @@ describe('ache pelo briefing', () => {
     expect(resolveCampaignFilters({ mood: 'tech' }, categories).categoryIds).toEqual(['tech']);
     expect(resolveCampaignFilters({ mood: 'divertido' }, categories).colors).toEqual(['colorido']);
   });
+
+  it('não chama catálogo completo de curadoria quando momento ou público foram escolhidos', () => {
+    const categories = [{ id: 'tech', name: 'Tecnologia', parentId: null }];
+    expect(resolveCampaignFilters({ moment: 'evento', audience: 'publico-evento' }, categories)).toMatchObject({
+      profile: 'featured',
+      personalizable: true,
+    });
+    expect(resolveCampaignFilters({ moment: 'relacionamento', audience: 'clientes' }, categories)).toMatchObject({
+      profile: 'featured',
+    });
+  });
 });

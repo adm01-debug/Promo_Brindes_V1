@@ -8,6 +8,7 @@ import { ContextualFaq } from '../components/ContextualFaq';
 import { SearchAutocomplete } from '../components/SearchAutocomplete';
 import { Seo } from '../components/Seo';
 import { trackFunnelEvent } from '../lib/analytics';
+import { replaceBrokenProductImage } from '../lib/images';
 import {
   campaignLabels,
   campaignSelectionCount,
@@ -63,6 +64,8 @@ export default function CatalogPage() {
   const [retryKey, setRetryKey] = useState(0);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [comparison, setComparison] = useState<CatalogProduct[]>([]);
+  const [comparisonExpanded, setComparisonExpanded] = useState(() => typeof window === 'undefined' || window.innerWidth > 760);
+  const comparisonControlRefs = useRef(new Map<string, HTMLButtonElement>());
   const mobileTriggerRef = useRef<HTMLButtonElement>(null);
   const mobileDialogRef = useRef<HTMLDivElement>(null);
   const mobileCloseRef = useRef<HTMLButtonElement>(null);
@@ -84,6 +87,7 @@ export default function CatalogPage() {
   );
   const effectiveColors = [...new Set([...selectedColors, ...campaignFilters.colors])];
   const effectiveMaterials = [...new Set([...selectedMaterials, ...campaignFilters.materials])];
+  const effectivePersonalizable = personalizable || Boolean(campaignFilters.personalizable);
   const effectiveProfile = profileWasExplicitlySet
     ? profile === 'destaques' ? 'featured' : profile === 'novos' ? 'new' : profile === 'kits' ? 'kits' : 'all'
     : campaignFilters.profile || (profile === 'destaques' ? 'featured' : profile === 'novos' ? 'new' : profile === 'kits' ? 'kits' : 'all');
@@ -102,7 +106,7 @@ export default function CatalogPage() {
       categoryIds: catalogCategoryIds,
       colors: effectiveColors,
       materials: effectiveMaterials,
-      personalizable,
+      personalizable: effectivePersonalizable,
       giftPackaging,
       maxMinQuantity: campaignFilters.maxMinQuantity,
       profile: effectiveProfile,
@@ -122,12 +126,20 @@ export default function CatalogPage() {
   const totalPages = Math.max(1, Math.ceil(catalog.data.total / catalog.data.pageSize));
   const activeFilterCount = (
     Number(Boolean(query)) + selectedCategoryIds.length + selectedColors.length + selectedMaterials.length +
-    Number(profileWasExplicitlySet && profile !== 'todos') + Number(personalizable) + Number(giftPackaging) + campaignCount
+    Number(profileWasExplicitlySet && profile !== 'todos') + Number(effectivePersonalizable) + Number(giftPackaging) + campaignCount
   );
   const selectedCampaignLabels = campaignLabels(campaignSelection);
   const paramsKey = params.toString();
 
   useEffect(() => setSearchInput(query), [query]);
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 760px)');
+    const update = () => setComparisonExpanded(!media.matches);
+    update();
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, []);
 
   useEffect(() => {
     if (rawQuery === query) return;
@@ -231,9 +243,21 @@ export default function CatalogPage() {
   function toggleComparison(product: CatalogProduct) {
     setComparison((current) => {
       const exists = current.some((item) => item.id === product.id);
-      if (exists) return current.filter((item) => item.id !== product.id);
-      return current.length >= 3 ? current : [...current, product];
+      if (exists) {
+        const next = current.filter((item) => item.id !== product.id);
+        trackFunnelEvent('comparison_changed', { item_count: next.length, action: 'removed' });
+        return next;
+      }
+      if (current.length >= 3) return current;
+      const next = [...current, product];
+      trackFunnelEvent('comparison_changed', { item_count: next.length, action: 'added' });
+      return next;
     });
+  }
+
+  function removeComparison(product: CatalogProduct) {
+    toggleComparison(product);
+    window.requestAnimationFrame(() => comparisonControlRefs.current.get(product.id)?.focus());
   }
 
   const filterPanel = (instanceId: 'desktop' | 'mobile') => (
@@ -260,7 +284,10 @@ export default function CatalogPage() {
         if (campaignFilters.materials.includes(value) && !selectedMaterials.includes(value)) removeCampaignFilter('mood');
         else toggleParamValue('materiais', selectedMaterials, value);
       }}
-      onPersonalizableChange={(value) => updateParams({ personalizavel: value ? '1' : null })}
+      onPersonalizableChange={(value) => {
+        if (campaignFilters.personalizable && !value && !personalizable) removeCampaignFilter('audience');
+        else updateParams({ personalizavel: value ? '1' : null });
+      }}
       onGiftPackagingChange={(value) => updateParams({ embalagem: value ? '1' : null })}
     />
   );
@@ -381,6 +408,11 @@ export default function CatalogPage() {
                       selected: comparison.some((item) => item.id === product.id),
                       disabled: comparison.length >= 3,
                       onToggle: toggleComparison,
+                      controlId: `compare-${product.id}`,
+                      controlRef: (element) => {
+                        if (element) comparisonControlRefs.current.set(product.id, element);
+                        else comparisonControlRefs.current.delete(product.id);
+                      },
                     }}
                   />
                 ))}
@@ -398,24 +430,28 @@ export default function CatalogPage() {
       </div>
       <div className="container catalog-faq-wrap"><ContextualFaq scope="catalog" /></div>
       {comparison.length > 0 && (
-        <aside className="compare-tray" aria-labelledby="compare-tray-title">
+        <aside className={`compare-tray ${comparisonExpanded ? 'is-expanded' : ''}`} aria-labelledby="compare-tray-title">
           <div className="container compare-tray__inner">
             <div className="compare-tray__header">
               <div>
                 <span>Comparação local</span>
                 <h2 id="compare-tray-title">{comparison.length} de 3 referências lado a lado</h2>
               </div>
-              <button type="button" onClick={() => setComparison([])}>Limpar comparação</button>
+              <div className="compare-tray__header-actions">
+                <button className="compare-tray__toggle" type="button" onClick={() => setComparisonExpanded((current) => !current)} aria-expanded={comparisonExpanded} aria-controls="compare-tray-body">{comparisonExpanded ? 'Ocultar comparação' : 'Ver comparação'}</button>
+                <button type="button" onClick={() => { setComparison([]); trackFunnelEvent('comparison_changed', { item_count: 0, action: 'cleared' }); }}>Limpar comparação</button>
+              </div>
             </div>
+            <div id="compare-tray-body" className="compare-tray__body">
             <div className="compare-tray__items">
               {comparison.map((item) => (
                 <article key={item.id} className="compare-tray__item">
-                  <img src={item.imageUrl} alt="" width="72" height="72" />
+                  <img src={item.imageUrl} alt="" width="72" height="72" referrerPolicy="no-referrer" onError={replaceBrokenProductImage} />
                   <div>
                     <Link to={`/produto/${item.slug}`}>{item.name}</Link>
                     <p>Cód. {item.sku} · {item.minQuantity > 1 ? `mín. ${item.minQuantity.toLocaleString('pt-BR')} un.` : 'quantidade a confirmar'}</p>
                   </div>
-                  <button type="button" onClick={() => toggleComparison(item)} aria-label={`Remover ${item.name} da comparação`}><X size={17} /></button>
+                  <button type="button" onClick={() => removeComparison(item)} aria-label={`Remover ${item.name} da comparação`}><X size={17} /></button>
                 </article>
               ))}
             </div>
@@ -423,6 +459,7 @@ export default function CatalogPage() {
               <div className="compare-tray__table-wrap" tabIndex={0}>
                 <table>
                   <caption>Comparação de informações publicadas no catálogo</caption>
+                  <thead><tr><th scope="col">Critério</th>{comparison.map((item) => <th scope="col" key={item.id}><Link to={`/produto/${item.slug}`}>{item.name}</Link></th>)}</tr></thead>
                   <tbody>
                     <tr><th scope="row">Quantidade mínima</th>{comparison.map((item) => <td key={item.id}>{item.minQuantity > 1 ? `${item.minQuantity.toLocaleString('pt-BR')} un.` : 'A confirmar'}</td>)}</tr>
                     <tr><th scope="row">Personalização</th>{comparison.map((item) => <td key={item.id}>{item.allowsPersonalization ? 'A confirmar com o briefing' : 'Consulte nosso time de especialistas'}</td>)}</tr>
@@ -432,6 +469,7 @@ export default function CatalogPage() {
                 </table>
               </div>
             )}
+            </div>
           </div>
         </aside>
       )}

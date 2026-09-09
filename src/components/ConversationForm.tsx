@@ -2,7 +2,7 @@ import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import { type FormEvent, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { buildContactPayload, submitContactRequest } from '../lib/contactRequest';
-import { createClientRequestId } from '../lib/http';
+import { clearSubmissionAttempt, getOrCreateSubmissionAttempt } from '../lib/http';
 import type { ContactLead } from '../types';
 
 const initialLead: ContactLead = { name: '', email: '', phone: '', privacyAccepted: false };
@@ -33,10 +33,12 @@ export function ConversationForm() {
   const [success, setSuccess] = useState('');
   const formRef = useRef<HTMLFormElement>(null);
   const submittingRef = useRef(false);
-  const requestIdentityRef = useRef<{ fingerprint: string; id: string } | null>(null);
+  const requestAttemptRef = useRef<{ id: string; submittedAt: string } | null>(null);
 
   function updateField<Key extends keyof ContactLead>(key: Key, value: ContactLead[Key]) {
     setLead((current) => ({ ...current, [key]: value }));
+    requestAttemptRef.current = null;
+    clearSubmissionAttempt('promo-brindes:contact-attempt');
     if (errors[key]) setErrors((current) => ({ ...current, [key]: undefined }));
   }
 
@@ -56,16 +58,15 @@ export function ConversationForm() {
     setSubmitError('');
     setSuccess('');
     try {
-      const fingerprint = JSON.stringify(lead);
-      if (requestIdentityRef.current?.fingerprint !== fingerprint) {
-        requestIdentityRef.current = { fingerprint, id: createClientRequestId() };
-      }
-      const result = await submitContactRequest(buildContactPayload(lead, undefined, undefined, requestIdentityRef.current.id));
+      const attempt = requestAttemptRef.current || getOrCreateSubmissionAttempt('promo-brindes:contact-attempt');
+      requestAttemptRef.current = attempt;
+      const result = await submitContactRequest(buildContactPayload(lead, undefined, attempt.submittedAt, attempt.id));
       if (result.mode === 'email') {
         setSuccess('Seu e-mail foi preparado. Revise a mensagem e envie para concluir.');
         window.location.href = result.href;
       } else {
-        requestIdentityRef.current = null;
+        requestAttemptRef.current = null;
+        clearSubmissionAttempt('promo-brindes:contact-attempt');
         setSuccess(result.requestId ? `Mensagem recebida. Protocolo ${result.requestId}.` : 'Mensagem recebida. Nosso time de especialistas vai falar com você.');
         setLead(initialLead);
       }

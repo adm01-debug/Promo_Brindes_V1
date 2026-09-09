@@ -1,4 +1,5 @@
 import { normalizeLeadPayload, RequestValidationError, type LeadKind } from './contracts.js';
+import { reconcileQuoteItems } from './catalogValidation.js';
 import { persistLead, SiteDatabaseError } from './siteDatabase.js';
 
 export interface ApiRequest {
@@ -58,7 +59,10 @@ function requestIp(request: ApiRequest): string {
 function validateOrigin(request: ApiRequest): void {
   const origin = header(request, 'origin');
   const allowedOrigin = process.env.SITE_PUBLIC_ORIGIN?.trim();
-  if (origin && allowedOrigin && origin !== allowedOrigin) {
+  if (!allowedOrigin) {
+    throw new RequestValidationError('O recebimento online ainda não está configurado.', 503, 'origin_not_configured');
+  }
+  if (!origin || origin !== allowedOrigin) {
     throw new RequestValidationError('Origem não autorizada.', 403, 'origin_not_allowed');
   }
 }
@@ -74,20 +78,23 @@ export async function handleLeadRequest(kind: LeadKind, request: ApiRequest, res
   }
 
   try {
-    validateOrigin(request);
     const contentType = header(request, 'content-type').toLowerCase();
     if (!contentType.startsWith('application/json')) {
       throw new RequestValidationError('Envie o conteúdo como application/json.', 415, 'unsupported_media_type');
     }
+    validateOrigin(request);
     const requestBody = readRequestBody(request);
     if (bodySize(requestBody) > 64 * 1024) {
       throw new RequestValidationError('A solicitação ultrapassa o limite permitido.', 413, 'payload_too_large');
     }
-    const payload = normalizeLeadPayload(kind, parseBody(requestBody));
+    const normalizedPayload = normalizeLeadPayload(kind, parseBody(requestBody));
     const idempotencyKey = header(request, 'idempotency-key');
-    if (idempotencyKey && idempotencyKey !== payload.clientRequestId) {
+    if (idempotencyKey && idempotencyKey !== normalizedPayload.clientRequestId) {
       throw new RequestValidationError('A chave de idempotência não corresponde à solicitação.', 409, 'idempotency_key_mismatch');
     }
+    const payload = normalizedPayload.source === 'site-promo-brindes'
+      ? await reconcileQuoteItems(normalizedPayload)
+      : normalizedPayload;
     const result = await persistLead(kind, payload, {
       ip: requestIp(request),
       userAgent: header(request, 'user-agent'),

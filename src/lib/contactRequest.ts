@@ -46,5 +46,5 @@ export async function submitContactRequest(payload: ContactRequestPayload): Prom
     return { mode: 'email', href: buildContactEmailHref(payload, email) };
   }
   const data = await postJson(endpoint, payload, 'contato', payload.clientRequestId);
-  return { mode: 'endpoint', requestId: data.requestId || data.id };
+  return { mode: 'endpoint', requestId: data.requestId };
 }

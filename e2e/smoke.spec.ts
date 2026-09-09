@@ -400,3 +400,30 @@ test('falha temporária no detalhe oferece retry e recupera o produto', async ({
   await page.getByRole('button', { name: 'Tentar novamente' }).click();
   await expect(page.getByRole('heading', { name: product.name })).toBeVisible();
 });
+
+test('galeria com muitas fotos mantém o documento dentro da viewport móvel', async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.includes('mobile'), 'Cenário dedicado ao viewport móvel.');
+  await page.unroute(/\/rest\/v1\/v_(?:site_)?products_public\?/);
+  await page.route(/\/rest\/v1\/v_(?:site_)?products_public\?/, (route) => route.fulfill({
+    contentType: 'application/json',
+    headers: { 'content-range': '0-0/1' },
+    body: JSON.stringify([{
+      ...product,
+      images: Array.from({ length: 7 }, (_, index) => `/images/product-placeholder.svg?foto=${index + 1}`),
+    }]),
+  }));
+  await page.goto(`/produto/${product.slug}`);
+  await expect(page.locator('.product-gallery__thumbs button')).toHaveCount(8);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+});
+
+test('navegação de catálogo por query fecha menu e reposiciona resultados', async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.includes('mobile'), 'Cenário dedicado ao viewport móvel.');
+  await page.goto('/catalogo');
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await page.getByRole('button', { name: 'Abrir menu' }).click();
+  await page.getByRole('navigation', { name: 'Navegação móvel' }).getByRole('link', { name: 'Kits & onboarding' }).click();
+  await expect(page).toHaveURL(/perfil=kits/);
+  await expect(page.getByRole('navigation', { name: 'Navegação móvel' })).toBeHidden();
+  await expect(page.locator('#catalog-results-title')).toBeInViewport();
+});

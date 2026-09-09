@@ -1,6 +1,6 @@
 import { Menu, Search, ShoppingBag, X } from 'lucide-react';
 import { type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react';
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useQuoteCart } from '../context/QuoteCartContext';
 import { trackFunnelEvent } from '../lib/analytics';
 import { useCategories } from '../lib/hooks';
@@ -23,8 +23,18 @@ export function Layout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const categories = useCategories();
+  const catalogParams = new URLSearchParams(location.search);
 
-  useEffect(() => setMenuOpen(false), [location.pathname]);
+  function isNavItemActive(item: typeof navItems[number]) {
+    if (item.to === '/catalogo') return location.pathname === '/catalogo' && !catalogParams.get('perfil');
+    if (item.catalogQuery) return location.pathname === '/catalogo' && catalogParams.get('perfil') === item.to.split('perfil=')[1];
+    return location.pathname === item.to;
+  }
+
+  useEffect(() => {
+    setMenuOpen(false);
+    setSearch(catalogParams.get('q') || '');
+  }, [location.pathname, location.search]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -40,6 +50,7 @@ export function Layout({ children }: { children: ReactNode }) {
   const submitSearch = (event: FormEvent) => {
     event.preventDefault();
     const value = search.trim();
+    trackFunnelEvent('search_started', { source: 'header', query_length: value.length, suggestion: false });
     navigate(value ? `/catalogo?q=${encodeURIComponent(value)}` : '/catalogo');
   };
 
@@ -58,11 +69,10 @@ export function Layout({ children }: { children: ReactNode }) {
             <img src="/brand/promo-brindes-logo-v2-800.webp" width="800" height="420" alt="Promo Brindes" decoding="async" />
           </Link>
           <nav className="desktop-nav" aria-label="Navegação principal">
-            {navItems.map((item) => (
-              item.catalogQuery
-                ? <Link key={item.to} to={item.to} className={`nav-link ${location.search === `?${item.to.split('?')[1]}` ? 'nav-link--active' : ''}`}>{item.label}</Link>
-                : <NavLink key={item.to} to={item.to} className={({ isActive }) => isActive ? 'nav-link nav-link--active' : 'nav-link'}>{item.label}</NavLink>
-            ))}
+            {navItems.map((item) => {
+              const active = isNavItemActive(item);
+              return <Link key={item.to} to={item.to} className={`nav-link ${active ? 'nav-link--active' : ''}`} aria-current={active ? 'page' : undefined}>{item.label}</Link>;
+            })}
           </nav>
           <SearchAutocomplete
             variant="header"
@@ -96,7 +106,10 @@ export function Layout({ children }: { children: ReactNode }) {
               <button type="submit">Buscar</button>
             </form>
             <nav aria-label="Navegação móvel">
-              {navItems.map((item) => item.catalogQuery ? <Link key={item.to} to={item.to}>{item.label}</Link> : <NavLink key={item.to} to={item.to}>{item.label}</NavLink>)}
+              {navItems.map((item) => {
+                const active = isNavItemActive(item);
+                return <Link key={item.to} to={item.to} className={active ? 'nav-link--active' : undefined} aria-current={active ? 'page' : undefined}>{item.label}</Link>;
+              })}
               <Link to="/orcamento">Transformar saves em briefing</Link>
             </nav>
           </div>

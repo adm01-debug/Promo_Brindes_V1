@@ -1,6 +1,6 @@
 export type LeadKind = 'quote' | 'contact';
 
-interface NormalizedQuoteItem {
+export interface NormalizedQuoteItem {
   key: string;
   productId: string;
   slug: string;
@@ -31,7 +31,7 @@ interface NormalizedContactPayload extends NormalizedCommon {
   contact: { name: string; email: string; phone: string };
 }
 
-interface NormalizedQuotePayload extends NormalizedCommon {
+export interface NormalizedQuotePayload extends NormalizedCommon {
   source: 'site-promo-brindes';
   contact: { name: string; company: string; email: string; phone: string; city: string; deadline: string; notes: string };
   items: NormalizedQuoteItem[];
@@ -92,6 +92,10 @@ function isoInstant(value: unknown, field: string): string {
   const normalized = text(value, field, 20, 40);
   const instant = new Date(normalized);
   if (Number.isNaN(instant.getTime())) throw new RequestValidationError(`O campo ${field} é inválido.`);
+  const difference = instant.getTime() - Date.now();
+  if (difference > 10 * 60_000 || difference < -7 * 24 * 60 * 60_000) {
+    throw new RequestValidationError(`O campo ${field} está fora da janela permitida.`);
+  }
   return instant.toISOString();
 }
 
@@ -100,14 +104,52 @@ function pageUrl(value: unknown): string {
   if (!normalized) return '';
   try {
     const parsed = new URL(normalized);
-    if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error();
+    const configuredOrigin = process.env.SITE_PUBLIC_ORIGIN?.trim();
+    const allowedOrigin = configuredOrigin ? new URL(configuredOrigin).origin : '';
+    if (!allowedOrigin || !['http:', 'https:'].includes(parsed.protocol) || parsed.origin !== allowedOrigin) throw new Error();
     parsed.username = '';
     parsed.password = '';
     parsed.hash = '';
+    parsed.search = '';
     return parsed.href;
   } catch {
     throw new RequestValidationError('O campo pageUrl é inválido.');
   }
+}
+
+function deadline(value: unknown): string {
+  const normalized = text(value, 'prazo', 0, 10, true);
+  if (!normalized) return '';
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(normalized)) throw new RequestValidationError('O campo prazo é inválido.');
+  const date = new Date(`${normalized}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== normalized) {
+    throw new RequestValidationError('O campo prazo é inválido.');
+  }
+  if (normalized < new Date().toISOString().slice(0, 10)) {
+    throw new RequestValidationError('O prazo não pode estar no passado.');
+  }
+  return normalized;
+}
+
+function imageUrl(value: unknown, field: string): string {
+  const normalized = text(value, field, 0, 1000, true);
+  if (!normalized || normalized.startsWith('/')) return normalized;
+  try {
+    const parsed = new URL(normalized);
+    if (parsed.protocol !== 'https:' || parsed.username || parsed.password) throw new Error();
+    parsed.hash = '';
+    return parsed.href;
+  } catch {
+    throw new RequestValidationError(`O campo ${field} é inválido.`);
+  }
+}
+
+function colorHex(value: unknown, field: string): string {
+  const normalized = text(value, field, 0, 32, true);
+  if (normalized && !/^(#[0-9a-f]{3,8}|[a-z]{3,20})$/i.test(normalized)) {
+    throw new RequestValidationError(`O campo ${field} é inválido.`);
+  }
+  return normalized;
 }
 
 function clientRequestId(value: unknown): string {
@@ -154,11 +196,11 @@ function quoteItem(value: unknown, index: number): NormalizedQuoteItem {
     slug: text(item.slug, `items[${index}].slug`, 1, 180),
     name: text(item.name, `items[${index}].name`, 1, 240),
     sku: text(item.sku, `items[${index}].sku`, 1, 120),
-    imageUrl: text(item.imageUrl, `items[${index}].imageUrl`, 0, 1000, true),
+    imageUrl: imageUrl(item.imageUrl, `items[${index}].imageUrl`),
     quantity,
     minQuantity,
     colorName: text(item.colorName, `items[${index}].colorName`, 0, 120, true) || undefined,
-    colorHex: text(item.colorHex, `items[${index}].colorHex`, 0, 32, true) || undefined,
+    colorHex: colorHex(item.colorHex, `items[${index}].colorHex`) || undefined,
   };
 }
 
@@ -199,7 +241,7 @@ export function normalizeLeadPayload(kind: LeadKind, body: unknown): NormalizedL
       email: email(contact.email),
       phone: phone(contact.phone, true),
       city: text(contact.city, 'cidade', 0, 100, true),
-      deadline: text(contact.deadline, 'prazo', 0, 10, true),
+      deadline: deadline(contact.deadline),
       notes: text(contact.notes, 'observações', 0, 800, true),
     },
     items: payload.items.map(quoteItem),

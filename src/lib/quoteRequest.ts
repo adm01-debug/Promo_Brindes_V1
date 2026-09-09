@@ -59,5 +59,5 @@ export async function submitQuoteRequest(payload: QuoteRequestPayload): Promise<
     return { mode: 'email', href: buildEmailHref(payload, email) };
   }
   const data = await postJson(endpoint, payload, 'orçamento', payload.clientRequestId);
-  return { mode: 'endpoint', requestId: data.requestId || data.id };
+  return { mode: 'endpoint', requestId: data.requestId };
 }

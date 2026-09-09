@@ -1,4 +1,5 @@
 import { ArrowUpRight, Check, GitCompareArrows, Layers3, Plus, Sparkles } from 'lucide-react';
+import { type RefCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuoteCart } from '../context/QuoteCartContext';
 import { replaceBrokenProductImage } from '../lib/images';
@@ -13,6 +14,8 @@ interface ProductCardProps {
     selected: boolean;
     disabled: boolean;
     onToggle: (product: CatalogProduct) => void;
+    controlId?: string;
+    controlRef?: RefCallback<HTMLButtonElement>;
   };
 }
 
@@ -54,7 +57,7 @@ export function ProductCard({ product, categoryName, priority = false, compariso
           {product.shortDescription || 'Personalize este produto para sua próxima ação de marca.'}
         </p>
         <div className="product-card__decision-signals">
-          <span>{product.minQuantity > 1 ? `Mín. ${product.minQuantity.toLocaleString('pt-BR')} un.` : 'Quantidade flexível'}</span>
+          <span>{product.minQuantity > 1 ? `Mín. ${product.minQuantity.toLocaleString('pt-BR')} un.` : 'Quantidade a confirmar'}</span>
           {product.colors.length > 0 && <span>{product.colors.length} {product.colors.length === 1 ? 'cor' : 'cores'}</span>}
         </div>
         <div className="product-card__footer">
@@ -64,6 +67,8 @@ export function ProductCard({ product, categoryName, priority = false, compariso
               <button
                 className={`product-card__compare ${comparison.selected ? 'is-selected' : ''}`}
                 type="button"
+                id={comparison.controlId}
+                ref={comparison.controlRef}
                 disabled={comparison.disabled && !comparison.selected}
                 onClick={() => comparison.onToggle(product)}
                 aria-pressed={comparison.selected}

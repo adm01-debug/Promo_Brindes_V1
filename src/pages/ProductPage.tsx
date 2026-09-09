@@ -79,9 +79,8 @@ export default function ProductPage() {
     '@type': 'Product',
     name: product.name,
     sku: product.sku,
-    image: product.images,
+    image: product.images.map((image) => image.startsWith('http') ? image : `${import.meta.env.VITE_PUBLIC_URL?.replace(/\/$/, '') || 'https://promo-brindes-v1.vercel.app'}${image}`),
     description: product.shortDescription || product.description,
-    brand: product.brand ? { '@type': 'Brand', name: product.brand } : undefined,
   } : undefined, [product]);
 
   async function shareProduct() {
@@ -96,8 +95,9 @@ export default function ProductPage() {
       await navigator.clipboard.writeText(shareData.url);
       if (product) trackFunnelEvent('product_shared', { product_id: product.id, mode: 'copy' });
       setShareStatus('Link de referência copiado.');
-    } catch {
-      // Canceling the native share sheet should leave the product journey untouched.
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+      setShareStatus('Não foi possível compartilhar agora. Tente copiar o link novamente.');
     }
   }
 
@@ -152,8 +152,8 @@ export default function ProductPage() {
                 <legend>Cor preferida <span>opcional</span></legend>
                 <div className="color-picker__options">
                   <button type="button" className={!selectedColor ? 'is-active color-none' : 'color-none'} onClick={() => { setSelectedColor(undefined); setActiveImage(0); }} aria-pressed={!selectedColor}>A definir</button>
-                  {product.colors.map((color) => (
-                    <button key={color.variantId || color.name} type="button" className={selectedColor?.name === color.name ? 'is-active' : ''} onClick={() => { setSelectedColor(color); setActiveImage(0); }} aria-pressed={selectedColor?.name === color.name} title={color.name}>
+                  {product.colors.map((color, index) => (
+                    <button key={`${color.variantId || color.name}-${index}`} type="button" className={selectedColor?.name === color.name ? 'is-active' : ''} onClick={() => { setSelectedColor(color); setActiveImage(0); }} aria-pressed={selectedColor?.name === color.name} title={color.name}>
                       <span style={{ backgroundColor: color.hex }} /> <em>{color.name}</em>
                     </button>
                   ))}
@@ -162,7 +162,7 @@ export default function ProductPage() {
             )}
 
             <div className="product-quantity">
-              <div><label htmlFor="product-quantity">Quantidade estimada</label><span>{product.minQuantity > 1 ? `Mínimo deste item: ${product.minQuantity.toLocaleString('pt-BR')}` : 'Você pode ajustar depois'}</span></div>
+              <div><label htmlFor="product-quantity">Quantidade estimada</label><span>{product.minQuantity > 1 ? `Mínimo deste item: ${product.minQuantity.toLocaleString('pt-BR')}` : 'Quantidade mínima a confirmar com nosso time de especialistas'}</span></div>
               <div className="quantity-control">
                 <button type="button" onClick={() => setQuantity(Math.max(product.minQuantity, quantity - 10))} aria-label="Diminuir quantidade"><Minus size={17} /></button>
                 <input id="product-quantity" type="number" min={product.minQuantity} max="999999" inputMode="numeric" value={quantity} onChange={(event) => setQuantity(Math.min(999999, Math.max(product.minQuantity, Number(event.target.value) || product.minQuantity)))} />

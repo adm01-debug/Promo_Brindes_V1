@@ -34,19 +34,19 @@ describe('contato rápido', () => {
   });
 
   it('converte falha de rede em mensagem útil', async () => {
-    vi.stubEnv('VITE_CONTACT_REQUEST_ENDPOINT', 'https://api.promo.test/lead');
+    vi.stubEnv('VITE_CONTACT_REQUEST_ENDPOINT', '/api/contact-requests');
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')));
     await expect(submitContactRequest(buildContactPayload(lead))).rejects.toThrow('Verifique sua conexão');
   });
 
   it('envia somente JSON para um endpoint autorizado', async () => {
-    vi.stubEnv('VITE_CONTACT_REQUEST_ENDPOINT', 'https://api.promo.test/lead');
-    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ requestId: 'lead-42' }), { status: 200 }));
+    vi.stubEnv('VITE_CONTACT_REQUEST_ENDPOINT', '/api/contact-requests');
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ requestId: 'lead-00042' }), { status: 200 }));
     vi.stubGlobal('fetch', fetchMock);
     const payload = buildContactPayload(lead);
-    await expect(submitContactRequest(payload)).resolves.toEqual({ mode: 'endpoint', requestId: 'lead-42' });
-    expect(fetchMock).toHaveBeenCalledWith('https://api.promo.test/lead', expect.objectContaining({ method: 'POST' }));
-    expect(fetchMock).toHaveBeenCalledWith('https://api.promo.test/lead', expect.objectContaining({
+    await expect(submitContactRequest(payload)).resolves.toEqual({ mode: 'endpoint', requestId: 'lead-00042' });
+    expect(fetchMock).toHaveBeenCalledWith('/api/contact-requests', expect.objectContaining({ method: 'POST' }));
+    expect(fetchMock).toHaveBeenCalledWith('/api/contact-requests', expect.objectContaining({
       headers: expect.objectContaining({ 'Idempotency-Key': payload.clientRequestId }),
     }));
   });

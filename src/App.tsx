@@ -16,7 +16,7 @@ const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 function ScrollManager() {
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const initialRender = useRef(true);
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'auto' });
@@ -28,7 +28,7 @@ function ScrollManager() {
       document.getElementById('conteudo')?.focus({ preventScroll: true });
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [pathname]);
+  }, [pathname, search]);
   return null;
 }
 

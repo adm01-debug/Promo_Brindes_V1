@@ -61,6 +61,23 @@ function configureSiteDatabase() {
   vi.stubEnv('SITE_SUPABASE_SECRET_KEY', `sb_secret_${'x'.repeat(40)}`);
   vi.stubEnv('SITE_REQUEST_HASH_SALT', 'salt-de-testes-com-mais-de-32-caracteres');
   vi.stubEnv('SITE_PUBLIC_ORIGIN', 'https://www.promobrindes.com.br');
+  vi.stubEnv('CATALOG_SUPABASE_PUBLISHABLE_KEY', `sb_publishable_${'x'.repeat(40)}`);
+}
+
+function catalogResponse() {
+  return new Response(JSON.stringify([{
+    id: quotePayload.items[0].productId,
+    slug: quotePayload.items[0].slug,
+    name: quotePayload.items[0].name,
+    sku: quotePayload.items[0].sku,
+    min_quantity: quotePayload.items[0].minQuantity,
+  }]), { status: 200 });
+}
+
+function quoteFetchMock(rpcBody: string) {
+  return vi.fn(async (url: string | URL) => String(url).includes('/v_site_products_public')
+    ? catalogResponse()
+    : new Response(rpcBody, { status: 200 }));
 }
 
 describe('APIs de leads isoladas', () => {
@@ -90,9 +107,9 @@ describe('APIs de leads isoladas', () => {
 
   it('persiste orçamento e devolve 200 em repetição idempotente', async () => {
     configureSiteDatabase();
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{"requestId":"quote-42","duplicate":true}', { status: 200 })));
+    vi.stubGlobal('fetch', quoteFetchMock('{"requestId":"quote-42","duplicate":true}'));
     const { result, response } = responseDouble();
-    await quoteHandler(request(quotePayload, { headers: { 'content-type': 'application/json', 'idempotency-key': 'quote-request-123' } }), response);
+    await quoteHandler(request(quotePayload, { headers: { 'content-type': 'application/json', origin: 'https://www.promobrindes.com.br', 'idempotency-key': 'quote-request-123' } }), response);
     expect(result.statusCode).toBe(200);
     expect(result.body).toEqual({ requestId: 'quote-42', duplicate: true });
   });
@@ -131,12 +148,22 @@ describe('APIs de leads isoladas', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it('exige Origin igual ao domínio público configurado', async () => {
+    configureSiteDatabase();
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    await contactHandler(request(contactPayload, { headers: { 'content-type': 'application/json' } }), response);
+    expect(result.statusCode).toBe(403);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('rejeita chave de idempotência divergente', async () => {
     configureSiteDatabase();
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);
     const { result, response } = responseDouble();
-    await quoteHandler(request(quotePayload, { headers: { 'content-type': 'application/json', 'idempotency-key': 'outra-chave' } }), response);
+    await quoteHandler(request(quotePayload, { headers: { 'content-type': 'application/json', origin: 'https://www.promobrindes.com.br', 'idempotency-key': 'outra-chave' } }), response);
     expect(result.statusCode).toBe(409);
     expect(result.body).toMatchObject({ error: 'idempotency_key_mismatch' });
     expect(fetchMock).not.toHaveBeenCalled();
@@ -152,6 +179,22 @@ describe('APIs de leads isoladas', () => {
     const second = responseDouble();
     await contactHandler(request(JSON.stringify({ ...contactPayload, noise: 'x'.repeat(70_000) })), second.response);
     expect(second.result.statusCode).toBe(413);
+  });
+
+  it('rejeita prazo, URL e imagem hostis antes de consultar banco algum', async () => {
+    configureSiteDatabase();
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const invalidDeadline = { ...quotePayload, contact: { ...quotePayload.contact, deadline: 'not-a-date' } };
+    const first = responseDouble();
+    await quoteHandler(request(invalidDeadline), first.response);
+    expect(first.result.statusCode).toBe(400);
+
+    const invalidImage = { ...quotePayload, items: [{ ...quotePayload.items[0], imageUrl: 'javascript:alert(1)' }] };
+    const second = responseDouble();
+    await quoteHandler(request(invalidImage), second.response);
+    expect(second.result.statusCode).toBe(400);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('aceita exclusivamente POST com JSON', async () => {

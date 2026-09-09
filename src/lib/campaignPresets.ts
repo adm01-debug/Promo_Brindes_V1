@@ -102,6 +102,7 @@ export interface ResolvedCampaignFilters {
   profile?: 'featured' | 'new' | 'kits';
   materials: string[];
   colors: string[];
+  personalizable?: boolean;
   maxMinQuantity?: number;
   categoryIds: string[];
 }
@@ -111,9 +112,13 @@ export function resolveCampaignFilters(selection: CampaignSelection, categories:
   const categoryIds = categoryPattern
     ? categories.filter((category) => categoryPattern.test(normalizeSearchText(category.name))).map((category) => category.id)
     : [];
-  const profile = selection.moment === 'onboarding' || selection.moment === 'reconhecimento' || selection.mood === 'afetivo'
+  // Cada porta editorial só aplica sinais já publicados no contrato público.
+  // A curadoria não infere estoque, preço ou uma técnica de personalização.
+  const profile = selection.moment === 'onboarding' || selection.mood === 'afetivo' || selection.audience === 'colaboradores'
     ? 'kits'
-    : selection.moment === 'sazonal' || selection.mood === 'premium'
+    : selection.moment === 'evento' || selection.moment === 'relacionamento' || selection.moment === 'reconhecimento'
+      || selection.moment === 'sazonal' || selection.mood === 'premium' || selection.audience === 'clientes'
+      || selection.audience === 'lideranca' || selection.audience === 'parceiros'
       ? 'featured'
       : undefined;
   const maxMinQuantity = selection.scale === 'ate-50'
@@ -128,6 +133,7 @@ export function resolveCampaignFilters(selection: CampaignSelection, categories:
     profile,
     materials: selection.mood === 'sustentavel' ? ['reciclado'] : [],
     colors: selection.mood === 'divertido' ? ['colorido'] : [],
+    ...(selection.audience === 'publico-evento' ? { personalizable: true } : {}),
     maxMinQuantity,
     categoryIds,
   };

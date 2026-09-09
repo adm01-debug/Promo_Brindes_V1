@@ -8,8 +8,10 @@ export interface FunnelEventMap {
   product_viewed: { product_id: string; category_id: string };
   product_saved: { product_id: string; category_id: string; has_color: boolean };
   product_shared: { product_id: string; mode: 'native' | 'copy' };
+  comparison_changed: { item_count: number; action: 'added' | 'removed' | 'cleared' };
   briefing_started: { item_count: number };
   quote_submitted: { item_count: number; has_deadline: boolean };
+  quote_submission_failed: { item_count: number; reason: 'network' | 'rate_limited' | 'conflict' | 'validation' | 'unknown' };
   selection_printed: { item_count: number };
   faq_opened: { scope: 'catalog' | 'product' | 'quote'; question: string };
 }
@@ -23,8 +25,10 @@ const ALLOWED_PROPERTIES: { [Name in FunnelEventName]: ReadonlyArray<keyof Funne
   product_viewed: ['product_id', 'category_id'],
   product_saved: ['product_id', 'category_id', 'has_color'],
   product_shared: ['product_id', 'mode'],
+  comparison_changed: ['item_count', 'action'],
   briefing_started: ['item_count'],
   quote_submitted: ['item_count', 'has_deadline'],
+  quote_submission_failed: ['item_count', 'reason'],
   selection_printed: ['item_count'],
   faq_opened: ['scope', 'question'],
 };

@@ -6,7 +6,7 @@ import { ContextualFaq } from '../components/ContextualFaq';
 import { useQuoteCart } from '../context/QuoteCartContext';
 import { buildQuotePayload, submitQuoteRequest } from '../lib/quoteRequest';
 import { trackFunnelEvent } from '../lib/analytics';
-import { createClientRequestId } from '../lib/http';
+import { ClientRequestError, clearSubmissionAttempt, getOrCreateSubmissionAttempt } from '../lib/http';
 import { replaceBrokenProductImage } from '../lib/images';
 import type { QuoteContact } from '../types';
 
@@ -48,7 +48,8 @@ export default function QuotePage() {
   const [website, setWebsite] = useState('');
   const formRef = useRef<HTMLFormElement>(null);
   const submittingRef = useRef(false);
-  const requestIdentityRef = useRef<{ fingerprint: string; id: string } | null>(null);
+  const requestAttemptRef = useRef<{ id: string; submittedAt: string } | null>(null);
+  const cartInitializedRef = useRef(false);
   const briefingTrackedRef = useRef(false);
   const totalUnits = useMemo(() => cart.items.reduce((sum, item) => sum + item.quantity, 0), [cart.items]);
   const minimumDeadline = localDateInputValue();
@@ -61,8 +62,19 @@ export default function QuotePage() {
 
   function updateField<Key extends keyof QuoteContact>(key: Key, value: QuoteContact[Key]) {
     setContact((current) => ({ ...current, [key]: value }));
+    requestAttemptRef.current = null;
+    clearSubmissionAttempt('promo-brindes:quote-attempt');
     if (errors[key]) setErrors((current) => ({ ...current, [key]: undefined }));
   }
+
+  useEffect(() => {
+    if (!cartInitializedRef.current) {
+      cartInitializedRef.current = true;
+      return;
+    }
+    requestAttemptRef.current = null;
+    clearSubmissionAttempt('promo-brindes:quote-attempt');
+  }, [cart.items]);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -79,15 +91,14 @@ export default function QuotePage() {
     setSending(true);
     setSubmitError('');
     try {
-      const fingerprint = JSON.stringify({ contact, items: cart.items });
-      if (requestIdentityRef.current?.fingerprint !== fingerprint) {
-        requestIdentityRef.current = { fingerprint, id: createClientRequestId() };
-      }
-      const payload = buildQuotePayload(contact, cart.items, undefined, undefined, requestIdentityRef.current.id);
+      const attempt = requestAttemptRef.current || getOrCreateSubmissionAttempt('promo-brindes:quote-attempt');
+      requestAttemptRef.current = attempt;
+      const payload = buildQuotePayload(contact, cart.items, undefined, attempt.submittedAt, attempt.id);
       const result = await submitQuoteRequest(payload);
       if (result.mode === 'endpoint') {
         trackFunnelEvent('quote_submitted', { item_count: cart.items.length, has_deadline: Boolean(contact.deadline) });
-        requestIdentityRef.current = null;
+        requestAttemptRef.current = null;
+        clearSubmissionAttempt('promo-brindes:quote-attempt');
         setSuccess({ mode: 'endpoint', requestId: result.requestId });
         cart.clear();
       } else {
@@ -95,6 +106,10 @@ export default function QuotePage() {
         window.location.href = result.href;
       }
     } catch (error) {
+      const reason = error instanceof ClientRequestError
+        ? error.status === 429 ? 'rate_limited' : error.status === 409 ? 'conflict' : error.status && error.status < 500 ? 'validation' : 'network'
+        : 'unknown';
+      trackFunnelEvent('quote_submission_failed', { item_count: cart.items.length, reason });
       setSubmitError(error instanceof Error ? error.message : 'Não conseguimos enviar sua solicitação.');
     } finally {
       submittingRef.current = false;
@@ -137,6 +152,7 @@ export default function QuotePage() {
       <Seo title="Solicitar orçamento" description="Revise sua seleção de brindes e envie um briefing para receber uma proposta personalizada." path="/orcamento" noIndex />
       <header className="quote-page__header">
         <div className="container">
+          <div className="quote-print-identity"><img src="/brand/promo-brindes-logo-v2-800.webp" width="800" height="420" alt="Promo Brindes" /><span>Seleção para cotação · {localDateInputValue()}</span></div>
           <Link className="back-link" to="/catalogo"><ArrowLeft size={17} /> Continuar escolhendo</Link>
           <span className="section-kicker">Saves feitos. Contexto agora.</span>
           <h1>Transforme o moodboard em briefing.</h1>
