@@ -49,7 +49,7 @@ export function Layout({ children }: { children: ReactNode }) {
       <header className="site-header">
         <div className="container site-header__inner">
           <Link to="/" className="brand" aria-label="Promo Brindes — início">
-            <img src="/brand/promo-brindes-logo-v1-360.webp" width="154" height="80" alt="Promo Brindes" decoding="async" />
+            <img src="/brand/promo-brindes-logo-v2-800.webp" width="800" height="420" alt="Promo Brindes" decoding="async" />
           </Link>
           <nav className="desktop-nav" aria-label="Navegação principal">
             {navItems.map((item) => (
@@ -93,7 +93,7 @@ export function Layout({ children }: { children: ReactNode }) {
       <footer className="site-footer">
         <div className="container footer-grid">
           <div className="footer-brand">
-            <img src="/brand/promo-brindes-logo-v1-360.webp" width="180" height="94" alt="Promo Brindes" loading="lazy" decoding="async" />
+            <img src="/brand/promo-brindes-logo-v2-800.webp" width="800" height="420" alt="Promo Brindes" loading="lazy" decoding="async" />
             <p>Brindes que viram parte da cultura — não mais um item esquecido na gaveta.</p>
           </div>
           <div>

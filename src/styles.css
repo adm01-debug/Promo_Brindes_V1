@@ -2959,7 +2959,7 @@ p {
   height: 94px;
   margin-top: -18px;
   object-fit: contain;
-  filter: invert(1);
+  filter: brightness(0) invert(1);
 }
 
 .footer-brand p {

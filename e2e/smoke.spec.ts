@@ -83,6 +83,10 @@ test('headline principal usa Fold Text sem perder acessibilidade', async ({ page
   await page.goto('/');
 
   await expect(page.getByRole('heading', { name: 'Sua campanha merece um brinde que ninguém esquece.' })).toBeVisible();
+  const headerLogo = page.locator('.brand img');
+  await expect(headerLogo).toHaveAttribute('src', '/brand/promo-brindes-logo-v2-800.webp');
+  await expect(page.locator('.footer-brand img')).toHaveAttribute('src', '/brand/promo-brindes-logo-v2-800.webp');
+  expect(await headerLogo.evaluate((image: HTMLImageElement) => [image.naturalWidth, image.naturalHeight])).toEqual([800, 420]);
   await expect(page.locator('#hero-title .fold-text-piece')).toHaveCount(8);
   await expect(page.locator('#featured-title .glitch-text')).toHaveText('Drop da vez.');
 
