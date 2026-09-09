@@ -22,6 +22,7 @@ export interface FunnelEventMap {
   customer_history_viewed: { result_count: number; has_filter: boolean };
   customer_quote_repeated: { item_count: number };
   customer_proposal_opened: { version: number };
+  social_link_opened: { network: 'instagram' | 'facebook' | 'pinterest' | 'youtube' };
 }
 
 type FunnelEventName = keyof FunnelEventMap;
@@ -47,6 +48,7 @@ const ALLOWED_PROPERTIES: { [Name in FunnelEventName]: ReadonlyArray<keyof Funne
   customer_history_viewed: ['result_count', 'has_filter'],
   customer_quote_repeated: ['item_count'],
   customer_proposal_opened: ['version'],
+  social_link_opened: ['network'],
 };
 
 function safeProperties<Name extends FunnelEventName>(name: Name, properties: FunnelEventMap[Name]) {

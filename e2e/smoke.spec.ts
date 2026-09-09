@@ -408,6 +408,17 @@ test('mudança de rota posiciona o foco no conteúdo principal', async ({ page }
   await expect(page.locator('#conteudo')).toBeFocused();
 });
 
+test('rodapé apresenta redes sociais acessíveis e seguras', async ({ page }) => {
+  await page.goto('/');
+  const social = page.getByRole('navigation', { name: 'Redes sociais da Promo Brindes' });
+  await expect(social).toBeVisible();
+  for (const network of ['Instagram', 'Facebook', 'Pinterest', 'YouTube']) {
+    const link = social.getByRole('link', { name: `Promo Brindes no ${network}` });
+    await expect(link).toHaveAttribute('target', '_blank');
+    await expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+  }
+});
+
 test('área do cliente protege histórico e oferece autenticação acessível', async ({ page }) => {
   await page.goto('/minha-conta');
   await expect(page).toHaveURL(/\/entrar\?next=/);
