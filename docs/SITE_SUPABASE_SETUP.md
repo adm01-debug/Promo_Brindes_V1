@@ -27,7 +27,7 @@ A migration deste diretório nunca deve ser aplicada ao banco canônico. Há dua
 
 As migrations `20260908_230000_create_site_lead_storage.sql`, `20260909_103000_lock_down_rls_event_trigger.sql` e `20260909180000_create_customer_quote_portal.sql` foram aplicadas no projeto exclusivo após aprovação do proprietário. As variáveis server-side, endpoints relativos e configurações públicas da Área do Cliente estão configurados na Vercel; os formulários estão ativos em <https://promo-brindes-v1.vercel.app>.
 
-A validação remota confirmou saúde dos serviços, ledger de migrations reconciliado, lint de schema sem erros, negação de acesso anônimo e persistência idempotente de contato e orçamento. O Auth usa a URL oficial, exige senha mínima de oito caracteres e preserva redirects preexistentes ao acrescentar os callbacks da Promo Brindes. Os registros sintéticos usados em testes são removidos por identificador exato depois da conferência.
+A validação remota confirmou saúde dos serviços, ledger de migrations reconciliado, lint de schema sem erros, negação de acesso anônimo, bloqueio entre contas e persistência idempotente de contato e orçamento. O Auth usa a URL oficial, exige senha mínima de oito caracteres e preserva redirects preexistentes ao acrescentar os callbacks da Promo Brindes. O fluxo real de login, associação, listagem e detalhe passou na interface publicada; a conferência após a limpeza encontrou zero usuários, orçamentos ou rate limits sintéticos.
 
 ## Reprovisionamento — somente em recuperação controlada
 

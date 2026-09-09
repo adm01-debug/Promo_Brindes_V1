@@ -85,6 +85,6 @@ Os testes de banco usam duas identidades confirmadas e uma não confirmada. Eles
 7. Redirects, MFA, Twilio, pooler, SSL e Storage Analytics preexistentes foram preservados.
 8. `VITE_SITE_SUPABASE_URL` e `VITE_SITE_SUPABASE_PUBLISHABLE_KEY` foram adicionadas à Vercel em Production e Preview, sem expor secret keys.
 
-O smoke test pós-deploy deve validar a interface publicada, o login real, uma identidade sem histórico e a impossibilidade de acesso cruzado. Qualquer registro sintético precisa ser removido por identificador exato ao final.
+O smoke test pós-deploy foi concluído na URL principal. Ele validou login real pela interface, associação do orçamento sintético, listagem, detalhe, negação anônima e bloqueio de acesso cruzado com uma segunda identidade. Usuários, orçamento, itens, consentimento, eventos e rate limit sintéticos foram removidos por identificadores exatos; a conferência final encontrou zero resíduos de QA.
 
 Não executar `db reset --linked`, não copiar a secret key para variáveis `VITE_` e não aplicar esta migration ao catálogo canônico.
