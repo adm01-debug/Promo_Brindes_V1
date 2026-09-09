@@ -3,6 +3,7 @@
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
     { "source": "/catalogo", "destination": "/index.html" },
+    { "source": "/catalogos", "destination": "/index.html" },
     { "source": "/produto/:identifier", "destination": "/index.html" },
     { "source": "/orcamento", "destination": "/index.html" },
     { "source": "/sobre", "destination": "/index.html" },

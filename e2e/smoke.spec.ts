@@ -123,6 +123,42 @@ test('manifesto transforma as frases da marca em uma narrativa com próximo pass
   await expect(page.locator('#conversa')).toBeInViewport();
 });
 
+test('biblioteca de catálogos transforma contexto em coleções compartilháveis', async ({ page, context }, testInfo) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.goto('/catalogos');
+  await waitForRoute(page);
+
+  await expect(page.getByRole('heading', { name: /Catálogos para tirar seu briefing do branco/ })).toBeVisible();
+  await expect(page).toHaveTitle('Catálogos de brindes | Promo Brindes');
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /\/catalogos$/);
+  await expect(page.getByText('10 catálogos encontrados')).toBeVisible();
+  await expect(page.locator('.catalog-card')).toHaveCount(10);
+  if (testInfo.project.name.includes('mobile')) {
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  }
+
+  await page.getByRole('button', { name: 'Pessoas & cultura' }).click();
+  await expect(page).toHaveURL(/tema=people/);
+  await expect(page.locator('.catalog-card')).toHaveCount(2);
+  await expect(page.getByRole('button', { name: 'Pessoas & cultura' })).toHaveAttribute('aria-pressed', 'true');
+
+  await page.getByLabel('O que você está planejando?').fill('tecnologia mobilidade');
+  await page.getByRole('button', { name: 'Linhas de produto' }).click();
+  await expect(page).toHaveURL(/q=tecnologia(?:\+|%20)mobilidade.*tema=products|tema=products.*q=tecnologia(?:\+|%20)mobilidade/);
+  await expect(page.locator('.catalog-card')).toHaveCount(1);
+  await expect(page.getByRole('heading', { name: 'Tech que resolve' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Limpar filtros' }).click();
+  await expect(page).toHaveURL(/\/catalogos$/);
+  await expect(page.locator('.catalog-card')).toHaveCount(10);
+  const newDrops = page.locator('.catalog-card').filter({ has: page.getByRole('heading', { name: 'Novos drops' }) });
+  await newDrops.getByRole('button', { name: 'Compartilhar Novos drops' }).click();
+  await expect(newDrops.getByRole('button', { name: 'Compartilhar Novos drops' })).toContainText('Link copiado');
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(/\/catalogo\?perfil=novos$/);
+  await page.locator('.catalog-card').filter({ has: page.getByRole('heading', { name: 'Onboarding com cultura' }) }).getByRole('link', { name: /Explorar coleção/ }).click();
+  await expect(page).toHaveURL(/\/catalogo\?momento=onboarding.*perfil=kits/);
+});
+
 test('soluções editoriais levam a uma curadoria explícita, não a uma promessa de estoque', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('link', { name: /Onboarding sem kit genérico/i }).click();
@@ -353,7 +389,7 @@ test('superfiltro móvel combina critérios, preserva a URL e devolve o foco', a
 });
 
 test('templates principais não apresentam violações automáticas WCAG A/AA', async ({ page }) => {
-  for (const path of ['/', '/catalogo', `/produto/${product.slug}`, '/sobre', '/contato', '/privacidade', '/orcamento']) {
+  for (const path of ['/', '/catalogo', '/catalogos', `/produto/${product.slug}`, '/sobre', '/contato', '/privacidade', '/orcamento']) {
     await page.goto(path);
     await expect(page.locator('main')).toBeVisible();
     await waitForRoute(page);

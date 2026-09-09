@@ -23,4 +23,18 @@ describe('instrumentação segura', () => {
     expect(trackMock).toHaveBeenCalledWith('search_started', { source: 'home', query_length: 18, suggestion: false });
     expect(JSON.stringify(observed)).not.toMatch(/email|telefone|query_text|nome/i);
   });
+
+  it('mede a biblioteca sem enviar o texto pesquisado', () => {
+    trackFunnelEvent('catalog_library_filtered', {
+      theme: 'events',
+      has_query: true,
+      result_count: 2,
+      query: 'evento da Empresa Secreta',
+    } as never);
+    expect(trackMock).toHaveBeenCalledWith('catalog_library_filtered', {
+      theme: 'events',
+      has_query: true,
+      result_count: 2,
+    });
+  });
 });

@@ -1,6 +1,7 @@
 import {
   ArrowRight,
   BadgeCheck,
+  BookOpen,
   BriefcaseBusiness,
   CalendarHeart,
   ChevronRight,
@@ -171,6 +172,22 @@ export default function HomePage() {
       </section>
 
       <CampaignFinder />
+
+      <section className="catalog-shelf-teaser section" aria-labelledby="catalog-shelf-title">
+        <div className="container catalog-shelf-teaser__inner">
+          <div className="catalog-shelf-teaser__copy">
+            <span className="section-kicker">Biblioteca Promo</span>
+            <h2 id="catalog-shelf-title">Sua próxima campanha pode começar por uma capa.</h2>
+            <p>Explore coleções por ocasião, público e intenção. Compartilhe a direção com o time e avance para os produtos quando fizer sentido.</p>
+            <Link className="button button--dark" to="/catalogos"><BookOpen size={18} aria-hidden="true" /> Abrir catálogos</Link>
+          </div>
+          <div className="catalog-shelf-teaser__covers" aria-hidden="true">
+            <div><small>PB—01</small><strong>People<br />first</strong><span>Onboarding</span></div>
+            <div><small>PB—04</small><strong>Brand<br />love</strong><span>Relacionamento</span></div>
+            <div><small>PB—07</small><strong>Tech<br />útil</strong><span>Produtos</span></div>
+          </div>
+        </div>
+      </section>
 
       <section className="brand-manifesto section" aria-labelledby="brand-manifesto-title">
         <div className="container brand-manifesto__frame">

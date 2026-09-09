@@ -8,6 +8,7 @@ import HomePage from './pages/HomePage';
 import { redactAnalyticsUrl } from './lib/analytics';
 
 const CatalogPage = lazy(() => import('./pages/CatalogPage'));
+const CatalogsPage = lazy(() => import('./pages/CatalogsPage'));
 const ProductPage = lazy(() => import('./pages/ProductPage'));
 const QuotePage = lazy(() => import('./pages/QuotePage'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
@@ -48,6 +49,7 @@ export default function App() {
               <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/catalogo" element={<CatalogPage />} />
+                <Route path="/catalogos" element={<CatalogsPage />} />
                 <Route path="/produto/:identifier" element={<ProductPage />} />
                 <Route path="/orcamento" element={<QuotePage />} />
                 <Route path="/sobre" element={<AboutPage />} />

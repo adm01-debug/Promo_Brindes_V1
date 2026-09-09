@@ -39,11 +39,12 @@ describe('sitemap público', () => {
     expect(result.statusCode).toBe(200);
     expect((result.body.match(/<url>/g) || [])).toHaveLength(50_000);
     expect(result.body).toContain('<loc>https://promo-brindes-v1.vercel.app/</loc>');
+    expect(result.body).toContain('<loc>https://promo-brindes-v1.vercel.app/catalogos</loc>');
     expect(result.body).not.toContain('www.promobrindes.com.br');
     expect(fetchMock).toHaveBeenCalledTimes(50);
     const lastCall = fetchMock.mock.calls[fetchMock.mock.calls.length - 1];
     const lastUrl = new URL(String(lastCall?.[0]));
-    expect(lastUrl.searchParams.get('limit')).toBe('995');
+    expect(lastUrl.searchParams.get('limit')).toBe('994');
     expect(lastUrl.searchParams.get('order')).toBe('created_at.desc.nullslast,id.asc');
   });
 
