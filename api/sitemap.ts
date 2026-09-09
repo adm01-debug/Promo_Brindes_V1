@@ -18,7 +18,7 @@ interface ProductSitemapRow {
 }
 
 const MAX_SITEMAP_URLS = 50_000;
-const STATIC_URL_COUNT = 6;
+const STATIC_URL_COUNT = 7;
 const MAX_PRODUCT_URLS = MAX_SITEMAP_URLS - STATIC_URL_COUNT;
 
 class CatalogHttpError extends Error {
@@ -146,6 +146,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
     urlEntry(`${siteUrl}/`, 'weekly', '1.0'),
     urlEntry(`${siteUrl}/catalogo`, 'daily', '0.9'),
     urlEntry(`${siteUrl}/catalogos`, 'weekly', '0.8'),
+    urlEntry(`${siteUrl}/datas-comemorativas`, 'monthly', '0.8'),
     urlEntry(`${siteUrl}/sobre`, 'monthly', '0.6'),
     urlEntry(`${siteUrl}/contato`, 'monthly', '0.6'),
     urlEntry(`${siteUrl}/privacidade`, 'yearly', '0.2'),

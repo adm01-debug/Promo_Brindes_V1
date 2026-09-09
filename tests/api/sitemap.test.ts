@@ -44,7 +44,7 @@ describe('sitemap público', () => {
     expect(fetchMock).toHaveBeenCalledTimes(50);
     const lastCall = fetchMock.mock.calls[fetchMock.mock.calls.length - 1];
     const lastUrl = new URL(String(lastCall?.[0]));
-    expect(lastUrl.searchParams.get('limit')).toBe('994');
+    expect(lastUrl.searchParams.get('limit')).toBe('993');
     expect(lastUrl.searchParams.get('order')).toBe('created_at.desc.nullslast,id.asc');
   });
 

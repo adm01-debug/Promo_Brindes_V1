@@ -5888,3 +5888,248 @@ p {
 @media (prefers-reduced-motion: reduce) {
   .customer-auth-intro::after { transform: none; }
 }
+
+/* Agenda de conexões — datas comemorativas */
+.dates-hero {
+  position: relative;
+  overflow: hidden;
+  color: var(--white);
+  background:
+    radial-gradient(circle at 78% 28%, rgb(217 255 63 / 22%), transparent 25%),
+    radial-gradient(circle at 12% 86%, rgb(255 107 95 / 20%), transparent 22%),
+    #31164d;
+}
+.dates-hero::before { position: absolute; inset: 0; background-image: radial-gradient(rgb(255 255 255 / 14%) 1px, transparent 1px); background-size: 19px 19px; mask-image: linear-gradient(90deg, transparent, #000 45%, #000); content: ''; }
+.dates-hero__grid { position: relative; display: grid; grid-template-columns: minmax(0, .95fr) minmax(420px, 1.05fr); align-items: center; gap: clamp(48px, 8vw, 120px); min-height: 660px; padding-block: clamp(74px, 9vw, 130px); }
+.dates-hero__copy { position: relative; z-index: 2; }
+.dates-hero__copy .section-kicker { color: var(--ink); background: var(--acid); }
+.dates-hero__copy h1 { max-width: 890px; margin: 24px 0; font-size: clamp(4.2rem, 7.5vw, 8.7rem); letter-spacing: -.09em; line-height: .81; }
+.dates-hero__copy h1 em { color: #ff8d80; font-style: normal; }
+.dates-hero__copy p { max-width: 660px; margin: 0 0 34px; color: #eee8f2; font-size: clamp(1rem, 1.5vw, 1.22rem); line-height: 1.65; }
+.dates-hero__calendar { position: relative; min-height: 500px; perspective: 1000px; }
+.dates-hero__sheet { position: absolute; top: 25px; right: 9%; z-index: 2; display: flex; width: min(370px, 74%); aspect-ratio: .82; padding: 32px; flex-direction: column; border: 3px solid var(--ink); border-radius: 12px; color: var(--ink); background: #fffdf7; box-shadow: 18px 22px 0 #151116, 0 38px 70px rgb(0 0 0 / 34%); transform: rotate(3deg); }
+.dates-hero__sheet::before { position: absolute; top: 72px; right: 0; left: 0; height: 3px; background: var(--ink); content: ''; }
+.dates-hero__sheet > span { font-size: .76rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+.dates-hero__sheet > strong { margin: auto 0 0; color: #4844ff; font-size: clamp(8rem, 15vw, 13rem); letter-spacing: -.12em; line-height: .72; }
+.dates-hero__sheet > small { max-width: 260px; margin-top: 30px; font-size: clamp(1.25rem, 2.4vw, 2.1rem); font-weight: 800; letter-spacing: -.055em; line-height: 1; }
+.dates-hero__sheet--back { top: 1px; right: 17%; z-index: 0; color: var(--white); background: #4844ff; transform: rotate(-9deg); opacity: .82; }
+.dates-hero__sheet--back > strong { color: #ff8d80; }
+.dates-hero__pin { position: absolute; top: 4px; z-index: 4; width: 21px; height: 56px; border: 4px solid var(--ink); border-radius: 99px; background: var(--acid); box-shadow: 3px 3px 0 var(--ink); }
+.dates-hero__pin--one { right: 25%; transform: rotate(8deg); }
+.dates-hero__pin--two { right: 58%; transform: rotate(-7deg); }
+.dates-hero__note { position: absolute; right: 0; bottom: 10px; z-index: 3; padding: 21px 24px; color: var(--ink); background: #ff8d80; box-shadow: 7px 7px 0 var(--ink); font-size: 1.06rem; font-weight: 700; line-height: 1.22; transform: rotate(-5deg); }
+.dates-hero__note strong { font-size: 1.28rem; }
+.dates-next { position: relative; z-index: 3; display: flex; align-items: center; justify-content: space-between; gap: 30px; min-height: 102px; border-top: 1px solid rgb(255 255 255 / 27%); }
+.dates-next div { display: grid; grid-template-columns: auto auto; align-items: center; gap: 5px 18px; }
+.dates-next div > span { grid-row: 1 / 3; padding: 9px 11px; color: var(--ink); background: var(--acid); font-size: .6rem; font-weight: 900; letter-spacing: .1em; }
+.dates-next strong { font-size: 1.15rem; }
+.dates-next small { color: #d9d0df; font-size: .7rem; text-transform: capitalize; }
+.dates-next button { display: inline-flex; align-items: center; gap: 8px; min-height: 46px; padding: 0 20px; border: 1px solid rgb(255 255 255 / 60%); border-radius: 999px; color: var(--white); background: transparent; font: inherit; font-size: .75rem; font-weight: 850; cursor: pointer; }
+.dates-next button:hover { color: var(--ink); background: var(--white); }
+
+.dates-planner { background: #f4f0e7; }
+.dates-planner__heading { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(280px, .55fr); align-items: end; gap: 40px; margin-bottom: 42px; }
+.dates-planner__heading h2 { max-width: 890px; margin: 14px 0 0; font-size: clamp(3rem, 6vw, 6.4rem); letter-spacing: -.08em; line-height: .87; }
+.dates-planner__heading > p { margin: 0; color: var(--muted); line-height: 1.7; }
+.dates-toolbar { display: grid; grid-template-columns: minmax(280px, 1fr) 180px auto; align-items: end; gap: 18px; padding: clamp(20px, 3vw, 30px); border: 2px solid var(--ink); border-radius: 22px 22px 0 0; background: var(--white); }
+.dates-search label, .dates-year label { display: block; margin-bottom: 9px; font-size: .67rem; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; }
+.dates-search > div { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; min-height: 50px; padding-left: 14px; border: 1.5px solid var(--ink); border-radius: 999px; }
+.dates-search input { min-width: 0; height: 46px; padding: 0 9px; border: 0; outline: 0; background: transparent; font: inherit; }
+.dates-search button { min-width: 40px; height: 40px; margin-right: 4px; padding: 0 16px; border: 0; border-radius: 999px; color: var(--white); background: var(--ink); font: inherit; font-size: .72rem; font-weight: 850; cursor: pointer; }
+.dates-search button[type='button'] { padding: 0; color: var(--ink); background: transparent; }
+.dates-year select { width: 100%; height: 50px; padding: 0 14px; border: 1.5px solid var(--ink); border-radius: 12px; background: var(--white); font: inherit; font-weight: 800; }
+.dates-view { display: flex; gap: 5px; padding: 5px; border: 1.5px solid var(--ink); border-radius: 999px; }
+.dates-view button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 38px; padding: 0 13px; border: 0; border-radius: 999px; background: transparent; font: inherit; font-size: .69rem; font-weight: 850; cursor: pointer; }
+.dates-view button.is-active { color: var(--white); background: var(--ink); }
+.dates-audiences { display: flex; flex-wrap: wrap; gap: 8px; padding: 18px clamp(20px, 3vw, 30px); border-right: 2px solid var(--ink); border-bottom: 2px solid var(--ink); border-left: 2px solid var(--ink); background: #e9e2d5; }
+.dates-audiences button { min-height: 39px; padding: 7px 14px; border: 1.5px solid #9c998f; border-radius: 999px; background: transparent; font: inherit; font-size: .69rem; font-weight: 800; cursor: pointer; }
+.dates-audiences button.is-active { border-color: var(--ink); background: var(--acid); box-shadow: 3px 3px 0 var(--ink); transform: translate(-1px, -1px); }
+.dates-months { display: grid; grid-template-columns: repeat(13, minmax(60px, 1fr)); margin-top: 34px; overflow-x: auto; padding: 4px 4px 10px; scrollbar-width: thin; }
+.dates-months button { display: grid; min-width: 62px; min-height: 70px; place-items: center; gap: 2px; border: 1px solid #aaa69c; border-right: 0; color: var(--ink); background: transparent; font: inherit; cursor: pointer; }
+.dates-months button:first-child { border-radius: 12px 0 0 12px; }
+.dates-months button:last-child { border-right: 1px solid #aaa69c; border-radius: 0 12px 12px 0; }
+.dates-months button span { font-size: .59rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.dates-months button strong { font-size: 1.05rem; }
+.dates-months button.is-active { z-index: 1; border-color: var(--ink); color: var(--white); background: #4844ff; box-shadow: 4px 4px 0 var(--ink); transform: translate(-2px, -2px); }
+.dates-results-meta { display: flex; align-items: center; justify-content: space-between; min-height: 75px; gap: 20px; }
+.dates-results-meta p { margin: 0; color: var(--muted); font-size: .75rem; font-weight: 780; letter-spacing: .04em; text-transform: uppercase; }
+.dates-results-meta strong { color: var(--ink); font-size: 1.2rem; }
+.dates-results-meta button { border: 0; background: transparent; font: inherit; font-size: .7rem; font-weight: 800; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
+
+.occasion-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(20px, 3vw, 34px); }
+.commemorative-card { --occasion-accent: #4844ff; display: grid; grid-template-columns: 118px minmax(0, 1fr); min-height: 390px; overflow: hidden; border: 2px solid var(--ink); border-radius: 24px; background: var(--white); box-shadow: 8px 8px 0 #d7d2c7; transition: transform 180ms ease, box-shadow 180ms ease; }
+.commemorative-card:hover { box-shadow: 11px 11px 0 var(--occasion-accent); transform: translate(-3px, -3px); }
+.commemorative-card--cultura { --occasion-accent: #ff8d80; }
+.commemorative-card--impacto { --occasion-accent: #0e7540; }
+.commemorative-card--sazonal { --occasion-accent: #7b39b2; }
+.commemorative-card__date { display: flex; align-items: center; flex-direction: column; padding: 29px 12px; color: var(--white); background: var(--occasion-accent); }
+.commemorative-card--cultura .commemorative-card__date { color: var(--ink); }
+.commemorative-card__date strong { font-size: 4rem; letter-spacing: -.09em; line-height: .85; }
+.commemorative-card__date span { margin-top: 11px; font-size: .7rem; font-weight: 900; letter-spacing: .11em; text-transform: uppercase; }
+.commemorative-card__content { display: flex; min-width: 0; padding: clamp(22px, 3vw, 34px); flex-direction: column; }
+.commemorative-card__meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--muted); font-size: .62rem; font-weight: 850; letter-spacing: .05em; text-transform: uppercase; }
+.commemorative-card__meta span:last-child { display: inline-flex; align-items: center; gap: 5px; color: var(--ink); }
+.commemorative-card h2 { margin: 29px 0 12px; font-size: clamp(2rem, 3.2vw, 3.4rem); letter-spacing: -.065em; line-height: .92; }
+.commemorative-card p { margin: 0; color: var(--muted); font-size: .84rem; line-height: 1.6; }
+.commemorative-card blockquote { margin: 20px 0 28px; padding-left: 14px; border-left: 3px solid var(--occasion-accent); font-family: 'Space Grotesk', 'Inter', sans-serif; font-size: .9rem; font-weight: 650; line-height: 1.4; }
+.commemorative-card__actions { display: flex; align-items: center; gap: 15px; margin-top: auto; padding-top: 18px; border-top: 1px solid #d7d2c8; }
+.commemorative-card__actions button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; gap: 7px; border: 0; background: transparent; font: inherit; font-size: .72rem; font-weight: 850; cursor: pointer; }
+.commemorative-card__open { color: var(--ink); }
+.commemorative-card__favorite { margin-left: auto; padding: 0 12px; border: 1px solid #aaa69c !important; border-radius: 999px; }
+.commemorative-card__favorite.is-active { border-color: var(--ink) !important; background: var(--acid); }
+
+.dates-calendar { overflow: hidden; border: 2px solid var(--ink); border-radius: 22px; background: var(--white); box-shadow: 9px 9px 0 #d1cbbe; }
+.dates-calendar__weekdays { display: grid; grid-template-columns: repeat(7, 1fr); color: var(--white); background: var(--ink); }
+.dates-calendar__weekdays span { padding: 15px 8px; font-size: .63rem; font-weight: 900; letter-spacing: .08em; text-align: center; text-transform: uppercase; }
+.dates-calendar__days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.dates-calendar__day, .dates-calendar__blank { min-height: 142px; padding: 12px; border-right: 1px solid #d8d3ca; border-bottom: 1px solid #d8d3ca; }
+.dates-calendar__blank { background: #efebe2; }
+.dates-calendar__number { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 50%; font-size: .72rem; font-weight: 850; }
+.dates-calendar__day.is-today .dates-calendar__number { color: var(--white); background: var(--ink); }
+.dates-calendar__day button { display: block; width: 100%; margin-top: 7px; padding: 7px; border: 0; border-radius: 7px; color: var(--white); background: #4844ff; font: inherit; font-size: .61rem; font-weight: 800; line-height: 1.2; text-align: left; cursor: pointer; }
+.dates-calendar__day button.is-cultura { color: var(--ink); background: #ff8d80; }
+.dates-calendar__day button.is-impacto { background: #0e7540; }
+.dates-calendar__day button.is-sazonal { background: #7b39b2; }
+
+.dates-empty { padding: clamp(55px, 8vw, 100px); border: 2px dashed var(--ink); border-radius: 24px; text-align: center; background: var(--white); }
+.dates-empty > span { display: block; margin: 15px 0; font-size: .66rem; font-weight: 900; letter-spacing: .1em; }
+.dates-empty h2 { margin: 0 0 12px; font-size: clamp(2.3rem, 5vw, 4.7rem); letter-spacing: -.07em; }
+.dates-empty p { max-width: 620px; margin: 0 auto 28px; color: var(--muted); line-height: 1.6; }
+.dates-empty > div { display: flex; align-items: center; justify-content: center; gap: 24px; }
+
+.saved-dates { color: var(--white); background: #4844ff; }
+.saved-dates__grid { display: grid; grid-template-columns: minmax(260px, .75fr) minmax(0, 1.25fr); gap: clamp(50px, 8vw, 120px); }
+.saved-dates .section-kicker { color: var(--ink); background: var(--acid); }
+.saved-dates h2 { margin: 18px 0 13px; font-size: clamp(3.5rem, 7vw, 7.5rem); letter-spacing: -.085em; line-height: .85; }
+.saved-dates__grid > div:first-child > p { max-width: 490px; color: #edeaff; line-height: 1.65; }
+.saved-dates__content ul { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.saved-dates__content li { display: grid; grid-template-columns: 1fr 48px; min-height: 72px; border: 1px solid rgb(255 255 255 / 42%); border-radius: 14px; }
+.saved-dates__content li > button:first-child { display: grid; grid-template-columns: 80px 1fr auto; align-items: center; gap: 14px; padding: 10px 16px; border: 0; color: var(--white); background: transparent; text-align: left; cursor: pointer; }
+.saved-dates__content li > button:first-child span { color: var(--acid); font-size: .65rem; font-weight: 900; text-transform: uppercase; }
+.saved-dates__content li > button:last-child { border: 0; border-left: 1px solid rgb(255 255 255 / 30%); color: var(--white); background: transparent; cursor: pointer; }
+.saved-dates__empty { display: flex; align-items: center; gap: 16px; min-height: 130px; padding: 25px; border: 2px dashed rgb(255 255 255 / 45%); border-radius: 18px; }
+.saved-dates__empty p { max-width: 480px; margin: 0; color: #edeaff; line-height: 1.6; }
+.saved-dates__error { padding: 12px; border: 1px solid #ffc9c0; background: rgb(89 18 18 / 35%); }
+
+.own-date { overflow: hidden; color: var(--white); background: var(--ink); }
+.own-date__grid { display: grid; grid-template-columns: minmax(240px, .6fr) minmax(0, 1.4fr); align-items: center; gap: clamp(50px, 9vw, 140px); }
+.own-date__number { color: var(--acid); font-size: clamp(9rem, 20vw, 22rem); font-weight: 800; letter-spacing: -.13em; line-height: .65; transform: rotate(-7deg); text-shadow: 10px 10px 0 #4844ff; }
+.own-date h2 { max-width: 900px; margin: 18px 0; font-size: clamp(3rem, 6vw, 6.4rem); letter-spacing: -.08em; line-height: .88; }
+.own-date p { max-width: 720px; color: #d0d5d1; line-height: 1.7; }
+.own-date__grid > div:last-child > div { display: flex; align-items: center; flex-wrap: wrap; gap: 25px; margin-top: 30px; }
+
+.dates-method { background: #c9f7da; }
+.dates-method .section-heading { max-width: 1000px; }
+.dates-method .section-heading h2 { margin-bottom: 18px; }
+.dates-method .section-heading > p { max-width: 690px; margin: 0; color: var(--muted); line-height: 1.65; }
+.dates-method ol { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 55px 0 0; padding: 0; border-top: 2px solid var(--ink); list-style: none; }
+.dates-method li { min-height: 260px; padding: 28px clamp(18px, 2.5vw, 35px); border-right: 1px solid var(--ink); }
+.dates-method li:first-child { padding-left: 0; }
+.dates-method li:last-child { border: 0; }
+.dates-method li > span { display: grid; width: 48px; height: 48px; place-items: center; border-radius: 50%; color: var(--white); background: var(--ink); }
+.dates-method li > strong { display: block; margin: 42px 0 10px; font-size: 1.35rem; }
+.dates-method li p { margin: 0; color: var(--muted); font-size: .8rem; line-height: 1.65; }
+.dates-sources { padding-block: 22px; color: #d9ded9; background: #202420; }
+.dates-sources .container { display: flex; align-items: flex-start; gap: 13px; }
+.dates-sources p { margin: 0; font-size: .7rem; line-height: 1.6; }
+.dates-sources a { color: var(--acid); text-decoration: underline; text-underline-offset: 3px; }
+
+.occasion-detail-backdrop { position: fixed; z-index: 90; inset: 0; display: flex; justify-content: flex-end; padding-left: 20px; background: rgb(9 11 9 / 78%); backdrop-filter: blur(5px); }
+.occasion-detail { --detail-accent: #4844ff; width: min(680px, 100%); height: 100%; overflow-y: auto; padding: clamp(28px, 5vw, 55px); border-left: 3px solid var(--ink); color: var(--ink); background: #f8f4eb; box-shadow: -22px 0 70px rgb(0 0 0 / 34%); }
+.occasion-detail--cultura { --detail-accent: #ff8d80; }
+.occasion-detail--impacto { --detail-accent: #0e7540; }
+.occasion-detail--sazonal { --detail-accent: #7b39b2; }
+.occasion-detail__close { display: grid; width: 46px; height: 46px; margin-left: auto; place-items: center; border: 1.5px solid var(--ink); border-radius: 50%; background: transparent; cursor: pointer; }
+.occasion-detail__header { display: grid; grid-template-columns: 105px 1fr; align-items: start; gap: 24px; margin-top: 25px; }
+.occasion-detail__date { display: grid; min-height: 116px; place-items: center; padding: 14px; border-radius: 12px; color: var(--white); background: var(--detail-accent); }
+.occasion-detail--cultura .occasion-detail__date { color: var(--ink); }
+.occasion-detail__date strong { font-size: 3.8rem; letter-spacing: -.08em; line-height: .85; }
+.occasion-detail__date span { font-size: .65rem; font-weight: 900; text-transform: uppercase; }
+.occasion-detail__header > div:last-child > span, .occasion-detail__ideas > span, .occasion-detail__audiences > span { font-size: .63rem; font-weight: 900; letter-spacing: .09em; text-transform: uppercase; }
+.occasion-detail__header h2 { margin: 11px 0 13px; font-size: clamp(2.5rem, 6vw, 5.2rem); letter-spacing: -.075em; line-height: .86; }
+.occasion-detail__header p { margin: 0; color: var(--muted); line-height: 1.6; }
+.occasion-detail > blockquote { margin: 38px 0; padding: 25px; border: 2px solid var(--ink); color: var(--ink); background: var(--acid); box-shadow: 6px 6px 0 var(--ink); font-family: 'Space Grotesk', 'Inter', sans-serif; font-size: clamp(1.3rem, 3vw, 2rem); font-weight: 700; letter-spacing: -.04em; line-height: 1.2; }
+.occasion-detail__planning { display: flex; align-items: center; gap: 14px; padding: 18px; border-radius: 14px; color: var(--white); background: var(--ink); }
+.occasion-detail__planning > svg { flex: 0 0 auto; color: var(--acid); }
+.occasion-detail__planning strong, .occasion-detail__planning span { display: block; }
+.occasion-detail__planning span { margin-top: 4px; color: #cbd0cc; font-size: .68rem; }
+.occasion-detail__audiences { margin-block: 35px; }
+.occasion-detail__audiences ul { display: flex; flex-wrap: wrap; gap: 7px; margin: 12px 0 0; padding: 0; list-style: none; }
+.occasion-detail__audiences li { padding: 7px 10px; border: 1px solid #a9a69c; border-radius: 999px; font-size: .68rem; font-weight: 750; }
+.occasion-detail__ideas { display: grid; gap: 12px; }
+.occasion-detail__ideas > span { margin-bottom: 3px; }
+.occasion-detail__ideas article { display: grid; grid-template-columns: auto 1fr; gap: 14px; padding: 18px; border: 1.5px solid var(--ink); border-radius: 14px; background: var(--white); }
+.occasion-detail__ideas article > svg { color: var(--detail-accent); }
+.occasion-detail__ideas h3 { margin: 0 0 5px; font-size: 1rem; }
+.occasion-detail__ideas p { margin: 0 0 10px; color: var(--muted); font-size: .74rem; line-height: 1.5; }
+.occasion-detail__ideas a { display: inline-flex; align-items: center; gap: 5px; color: var(--ink); font-size: .7rem; font-weight: 850; }
+.occasion-detail__actions, .occasion-detail__calendar-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 25px; }
+.occasion-detail__actions button, .occasion-detail__calendar-actions button { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; gap: 7px; padding: 8px 12px; border: 1.5px solid var(--ink); border-radius: 999px; color: var(--ink); background: transparent; font: inherit; font-size: .7rem; font-weight: 850; cursor: pointer; }
+.occasion-detail__actions button.is-active { background: var(--acid); }
+.occasion-detail__calendar-actions { margin-top: 10px; }
+.occasion-detail__calendar-actions button { border-radius: 12px; color: var(--white); background: var(--ink); }
+.occasion-detail__source { display: inline-block; margin-top: 24px; color: var(--muted); font-size: .65rem; text-decoration: underline; text-underline-offset: 3px; }
+
+@media (max-width: 1180px) {
+  .dates-hero__grid { grid-template-columns: 1fr 420px; }
+  .dates-toolbar { grid-template-columns: minmax(280px, 1fr) 150px; }
+  .dates-view { grid-column: 1 / -1; justify-self: end; }
+  .occasion-list { grid-template-columns: 1fr; }
+  .dates-calendar__day, .dates-calendar__blank { min-height: 120px; padding: 8px; }
+}
+
+@media (max-width: 880px) {
+  .dates-hero__grid { grid-template-columns: 1fr; padding-bottom: 35px; }
+  .dates-hero__calendar { width: min(540px, 100%); min-height: 470px; margin-inline: auto; }
+  .dates-next { align-items: flex-start; flex-direction: column; padding-block: 25px; }
+  .dates-planner__heading, .saved-dates__grid, .own-date__grid { grid-template-columns: 1fr; }
+  .saved-dates__grid, .own-date__grid { gap: 45px; }
+  .own-date__number { font-size: 13rem; }
+  .dates-calendar { overflow-x: auto; }
+  .dates-calendar__weekdays, .dates-calendar__days { min-width: 760px; }
+  .dates-method ol { grid-template-columns: repeat(2, 1fr); }
+  .dates-method li:nth-child(2) { border-right: 0; }
+  .dates-method li:nth-child(-n+2) { border-bottom: 1px solid var(--ink); }
+}
+
+@media (max-width: 620px) {
+  .dates-hero__copy h1 { font-size: clamp(4rem, 19vw, 6.2rem); }
+  .dates-hero__calendar { min-height: 390px; }
+  .dates-hero__sheet { right: 4%; width: 78%; padding: 24px; }
+  .dates-hero__sheet--back { right: 13%; }
+  .dates-hero__sheet > strong { font-size: 9rem; }
+  .dates-hero__pin--one { right: 18%; }
+  .dates-hero__pin--two { right: 60%; }
+  .dates-hero__note { right: 3px; bottom: 2px; }
+  .dates-next div { grid-template-columns: 1fr; }
+  .dates-next div > span { grid-row: auto; justify-self: start; }
+  .dates-toolbar { grid-template-columns: 1fr; border-radius: 18px 18px 0 0; }
+  .dates-view { grid-column: auto; justify-self: stretch; }
+  .dates-view button { flex: 1; }
+  .dates-search > div { grid-template-columns: auto 1fr auto; border-radius: 14px; }
+  .dates-search button[type='submit'] { grid-column: 1 / -1; width: 100%; margin: 0; border-radius: 0 0 12px 12px; }
+  .commemorative-card { grid-template-columns: 82px minmax(0, 1fr); }
+  .commemorative-card__date strong { font-size: 3rem; }
+  .commemorative-card__content { padding: 20px 17px; }
+  .commemorative-card__meta { align-items: flex-start; flex-direction: column; }
+  .commemorative-card h2 { font-size: 2.25rem; }
+  .commemorative-card__actions { align-items: stretch; flex-direction: column; }
+  .commemorative-card__favorite { width: 100%; margin-left: 0; }
+  .saved-dates__content li > button:first-child { grid-template-columns: 55px 1fr; }
+  .saved-dates__content li > button:first-child svg { display: none; }
+  .dates-empty > div { flex-direction: column; }
+  .dates-method ol { grid-template-columns: 1fr; }
+  .dates-method li, .dates-method li:first-child { min-height: 220px; padding: 25px 0; border-right: 0; border-bottom: 1px solid var(--ink); }
+  .occasion-detail-backdrop { padding-left: 0; }
+  .occasion-detail { border-left: 0; }
+  .occasion-detail__header { grid-template-columns: 82px 1fr; gap: 15px; }
+  .occasion-detail__date { min-height: 96px; }
+  .occasion-detail__date strong { font-size: 3rem; }
+  .occasion-detail__header h2 { font-size: 2.7rem; }
+  .occasion-detail__actions, .occasion-detail__calendar-actions { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dates-hero__sheet, .dates-hero__note, .own-date__number, .commemorative-card, .dates-months button { transform: none; }
+  .commemorative-card, .dates-months button { transition: none; }
+}

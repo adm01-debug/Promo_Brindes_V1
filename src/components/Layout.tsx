@@ -11,6 +11,7 @@ import { SearchAutocomplete } from './SearchAutocomplete';
 const navItems = [
   { to: '/catalogo', label: 'Radar de produtos' },
   { to: '/catalogos', label: 'Catálogos' },
+  { to: '/datas-comemorativas', label: 'Datas comemorativas' },
   { to: '/catalogo?perfil=kits', label: 'Kits & onboarding', catalogQuery: true },
   { to: '/catalogo?perfil=novos', label: 'Novos drops', catalogQuery: true },
   { to: '/sobre', label: 'Como funciona' },
@@ -146,6 +147,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <h2>Explore</h2>
             <Link to="/catalogo">Radar completo</Link>
             <Link to="/catalogos">Catálogos por campanha</Link>
+            <Link to="/datas-comemorativas">Datas comemorativas</Link>
             <Link to="/catalogo?perfil=kits">Kits & onboarding</Link>
             <Link to="/catalogo?perfil=novos">Novos drops</Link>
             <Link to="/orcamento">Meus saves</Link>

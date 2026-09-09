@@ -391,13 +391,38 @@ test('superfiltro móvel combina critérios, preserva a URL e devolve o foco', a
 });
 
 test('templates principais não apresentam violações automáticas WCAG A/AA', async ({ page }) => {
-  for (const path of ['/', '/catalogo', '/catalogos', `/produto/${product.slug}`, '/sobre', '/contato', '/privacidade', '/orcamento', '/entrar']) {
+  for (const path of ['/', '/catalogo', '/catalogos', '/datas-comemorativas', `/produto/${product.slug}`, '/sobre', '/contato', '/privacidade', '/orcamento', '/entrar']) {
     await page.goto(path);
     await expect(page.locator('main')).toBeVisible();
     await waitForRoute(page);
     const result = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
     expect(result.violations, `Violações em ${path}`).toEqual([]);
   }
+});
+
+test('agenda transforma uma data em oportunidade salvável e exportável', async ({ page }) => {
+  await page.goto('/datas-comemorativas?ano=2026&mes=9');
+  await expect(page.getByRole('heading', { name: 'Marque a data. Deixe sua marca.' })).toBeVisible();
+  await expect(page.getByText('Dia do Cliente', { exact: true }).first()).toBeVisible();
+  const clientDay = page.getByRole('article').filter({ has: page.getByRole('heading', { name: 'Dia do Cliente' }) });
+  const openButton = clientDay.getByRole('button', { name: 'Ver ideias' });
+  await openButton.click();
+  const dialog = page.getByRole('dialog', { name: 'Dia do Cliente' });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByText(/Janela sugerida:/)).toBeVisible();
+  await expect(dialog.getByRole('link', { name: 'Explorar no catálogo' }).first()).toHaveAttribute('href', /\/catalogo\?q=/);
+  await dialog.getByRole('button', { name: 'Salvar data' }).click();
+  const download = page.waitForEvent('download');
+  await dialog.getByRole('button', { name: 'Adicionar a data à agenda' }).click();
+  expect((await download).suggestedFilename()).toBe('dia-do-cliente-2026.ics');
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
+  await expect(openButton).toBeFocused();
+  await expect(page.getByRole('heading', { name: 'Minhas datas' })).toBeVisible();
+  await expect(page.locator('.saved-dates').getByText('Dia do Cliente', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Calendário', exact: true }).click();
+  await expect(page.locator('.dates-calendar')).toHaveAttribute('aria-label', 'Setembro de 2026');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });
 
 test('mudança de rota posiciona o foco no conteúdo principal', async ({ page }) => {

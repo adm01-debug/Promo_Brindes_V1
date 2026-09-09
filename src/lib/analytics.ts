@@ -23,6 +23,12 @@ export interface FunnelEventMap {
   customer_quote_repeated: { item_count: number };
   customer_proposal_opened: { version: number };
   social_link_opened: { network: 'instagram' | 'facebook' | 'pinterest' | 'youtube' };
+  occasion_filtered: { has_query: boolean; audience: 'todos' | 'clientes' | 'colaboradores' | 'eventos' | 'comunidade'; month: number; result_count: number };
+  occasion_opened: { occasion_id: string; year: number };
+  occasion_saved: { occasion_id: string; saved: boolean };
+  occasion_shared: { occasion_id: string; mode: 'native' | 'copy' };
+  occasion_exported: { occasion_id: string; type: 'occasion' | 'planning' };
+  occasion_catalog_opened: { occasion_id: string; idea: string };
 }
 
 type FunnelEventName = keyof FunnelEventMap;
@@ -49,6 +55,12 @@ const ALLOWED_PROPERTIES: { [Name in FunnelEventName]: ReadonlyArray<keyof Funne
   customer_quote_repeated: ['item_count'],
   customer_proposal_opened: ['version'],
   social_link_opened: ['network'],
+  occasion_filtered: ['has_query', 'audience', 'month', 'result_count'],
+  occasion_opened: ['occasion_id', 'year'],
+  occasion_saved: ['occasion_id', 'saved'],
+  occasion_shared: ['occasion_id', 'mode'],
+  occasion_exported: ['occasion_id', 'type'],
+  occasion_catalog_opened: ['occasion_id', 'idea'],
 };
 
 function safeProperties<Name extends FunnelEventName>(name: Name, properties: FunnelEventMap[Name]) {
