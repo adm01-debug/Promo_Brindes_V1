@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight, Filter, SlidersHorizontal, Sparkles, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { CatalogFilterPanel } from '../components/CatalogFilterPanel';
 import { CatalogEmpty, CatalogError, ProductGridSkeleton } from '../components/CatalogFeedback';
 import { ProductCard } from '../components/ProductCard';
@@ -29,6 +29,7 @@ import {
 } from '../lib/catalogFilters';
 import { useAllCategories, useCatalog } from '../lib/hooks';
 import { sanitizeSearch } from '../lib/catalog';
+import type { CatalogProduct } from '../types';
 
 const quickSearches = ['camiseta', 'kit', 'squeeze', 'carregador', 'reciclado'];
 
@@ -61,6 +62,7 @@ export default function CatalogPage() {
   const [searchInput, setSearchInput] = useState(query);
   const [retryKey, setRetryKey] = useState(0);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [comparison, setComparison] = useState<CatalogProduct[]>([]);
   const mobileTriggerRef = useRef<HTMLButtonElement>(null);
   const mobileDialogRef = useRef<HTMLDivElement>(null);
   const mobileCloseRef = useRef<HTMLButtonElement>(null);
@@ -226,6 +228,14 @@ export default function CatalogPage() {
     updateParams({ [paramName]: null });
   }
 
+  function toggleComparison(product: CatalogProduct) {
+    setComparison((current) => {
+      const exists = current.some((item) => item.id === product.id);
+      if (exists) return current.filter((item) => item.id !== product.id);
+      return current.length >= 3 ? current : [...current, product];
+    });
+  }
+
   const filterPanel = (instanceId: 'desktop' | 'mobile') => (
     <CatalogFilterPanel
       instanceId={instanceId}
@@ -362,7 +372,17 @@ export default function CatalogPage() {
             <>
               <div className="product-grid">
                 {catalog.data.products.map((product, index) => (
-                  <ProductCard key={product.id} product={product} priority={index < 4} categoryName={categoryNameById.get(product.mainCategoryId || '')} />
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    priority={index < 4}
+                    categoryName={categoryNameById.get(product.mainCategoryId || '')}
+                    comparison={{
+                      selected: comparison.some((item) => item.id === product.id),
+                      disabled: comparison.length >= 3,
+                      onToggle: toggleComparison,
+                    }}
+                  />
                 ))}
               </div>
               {totalPages > 1 && (
@@ -377,6 +397,44 @@ export default function CatalogPage() {
         </section>
       </div>
       <div className="container catalog-faq-wrap"><ContextualFaq scope="catalog" /></div>
+      {comparison.length > 0 && (
+        <aside className="compare-tray" aria-labelledby="compare-tray-title">
+          <div className="container compare-tray__inner">
+            <div className="compare-tray__header">
+              <div>
+                <span>Comparação local</span>
+                <h2 id="compare-tray-title">{comparison.length} de 3 referências lado a lado</h2>
+              </div>
+              <button type="button" onClick={() => setComparison([])}>Limpar comparação</button>
+            </div>
+            <div className="compare-tray__items">
+              {comparison.map((item) => (
+                <article key={item.id} className="compare-tray__item">
+                  <img src={item.imageUrl} alt="" width="72" height="72" />
+                  <div>
+                    <Link to={`/produto/${item.slug}`}>{item.name}</Link>
+                    <p>Cód. {item.sku} · {item.minQuantity > 1 ? `mín. ${item.minQuantity.toLocaleString('pt-BR')} un.` : 'quantidade a confirmar'}</p>
+                  </div>
+                  <button type="button" onClick={() => toggleComparison(item)} aria-label={`Remover ${item.name} da comparação`}><X size={17} /></button>
+                </article>
+              ))}
+            </div>
+            {comparison.length > 1 && (
+              <div className="compare-tray__table-wrap" tabIndex={0}>
+                <table>
+                  <caption>Comparação de informações publicadas no catálogo</caption>
+                  <tbody>
+                    <tr><th scope="row">Quantidade mínima</th>{comparison.map((item) => <td key={item.id}>{item.minQuantity > 1 ? `${item.minQuantity.toLocaleString('pt-BR')} un.` : 'A confirmar'}</td>)}</tr>
+                    <tr><th scope="row">Personalização</th>{comparison.map((item) => <td key={item.id}>{item.allowsPersonalization ? 'A confirmar com o briefing' : 'Consulte nosso time de especialistas'}</td>)}</tr>
+                    <tr><th scope="row">Cores publicadas</th>{comparison.map((item) => <td key={item.id}>{item.colors.length ? `${item.colors.length} ${item.colors.length === 1 ? 'opção' : 'opções'}` : 'A confirmar'}</td>)}</tr>
+                    <tr><th scope="row">Materiais publicados</th>{comparison.map((item) => <td key={item.id}>{item.materials.length ? item.materials.join(', ') : 'A confirmar'}</td>)}</tr>
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </aside>
+      )}
     </>
   );
 }

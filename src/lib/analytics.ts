@@ -2,13 +2,15 @@ import { track } from '@vercel/analytics';
 import type { BeforeSendEvent } from '@vercel/analytics/react';
 
 export interface FunnelEventMap {
-  search_started: { source: 'home' | 'catalog'; query_length: number; suggestion: boolean };
+  search_started: { source: 'home' | 'catalog' | 'header'; query_length: number; suggestion: boolean };
   campaign_finder_completed: { moment: string; audience: string; scale: string; mood: string; choices: number };
   catalog_result_viewed: { result_count: number; page: number; active_filters: number; campaign: boolean };
   product_viewed: { product_id: string; category_id: string };
   product_saved: { product_id: string; category_id: string; has_color: boolean };
+  product_shared: { product_id: string; mode: 'native' | 'copy' };
   briefing_started: { item_count: number };
   quote_submitted: { item_count: number; has_deadline: boolean };
+  selection_printed: { item_count: number };
   faq_opened: { scope: 'catalog' | 'product' | 'quote'; question: string };
 }
 
@@ -20,8 +22,10 @@ const ALLOWED_PROPERTIES: { [Name in FunnelEventName]: ReadonlyArray<keyof Funne
   catalog_result_viewed: ['result_count', 'page', 'active_filters', 'campaign'],
   product_viewed: ['product_id', 'category_id'],
   product_saved: ['product_id', 'category_id', 'has_color'],
+  product_shared: ['product_id', 'mode'],
   briefing_started: ['item_count'],
   quote_submitted: ['item_count', 'has_deadline'],
+  selection_printed: ['item_count'],
   faq_opened: ['scope', 'question'],
 };
 

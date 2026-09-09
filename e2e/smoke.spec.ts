@@ -123,6 +123,13 @@ test('manifesto transforma as frases da marca em uma narrativa com próximo pass
   await expect(page.locator('#conversa')).toBeInViewport();
 });
 
+test('soluções editoriais levam a uma curadoria explícita, não a uma promessa de estoque', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('link', { name: /Onboarding sem kit genérico/i }).click();
+  await expect(page).toHaveURL(/momento=onboarding.*publico=colaboradores.*perfil=kits/);
+  await expect(page.getByRole('heading', { name: 'Curadoria para o seu briefing' })).toBeVisible();
+});
+
 test('ache pelo briefing transforma intenção em filtros explicáveis e compartilháveis', async ({ page }) => {
   await page.goto('/');
   const finder = page.locator('#ache-pelo-briefing');
@@ -250,6 +257,29 @@ test('card exibe somente o badge de maior prioridade', async ({ page }) => {
     card.locator('.product-card__image-wrap').boundingBox(),
   ]);
   expect(badgeBox && imageBox && badgeBox.y + badgeBox.height <= imageBox.y + imageBox.height).toBe(true);
+});
+
+test('comparação mantém no máximo três referências e não sugere preço ou estoque', async ({ page }) => {
+  await page.unroute(/\/rest\/v1\/v_(?:site_)?products_public\?/);
+  await page.route(/\/rest\/v1\/v_(?:site_)?products_public\?/, (route) => route.fulfill({
+    contentType: 'application/json',
+    headers: { 'content-range': '0-2/3' },
+    body: JSON.stringify([
+      product,
+      { ...product, id: 'b74ae6e5-b462-4c9e-8108-663f7fd11e70', sku: 'CO-43', slug: 'copo-43', name: 'Copo térmico', min_quantity: 100, materials: ['Aço inox'] },
+      { ...product, id: 'c74ae6e5-b462-4c9e-8108-663f7fd11e70', sku: 'CA-44', slug: 'caderno-44', name: 'Caderno de campanha', min_quantity: 25, materials: ['Papel reciclado'] },
+    ]),
+  }));
+
+  await page.goto('/catalogo');
+  await page.getByRole('button', { name: 'Comparar Mochila Executiva Sustentável' }).click();
+  await page.getByRole('button', { name: 'Comparar Copo térmico' }).click();
+  await page.getByRole('button', { name: 'Comparar Caderno de campanha' }).click();
+  const comparison = page.getByRole('complementary', { name: /3 de 3 referências lado a lado/i });
+  await expect(comparison).toBeVisible();
+  await expect(comparison).toContainText('Quantidade mínima');
+  await expect(comparison).not.toContainText(/R\$|em estoque|indisponível/i);
+  await expect(page.getByRole('button', { name: 'Remover Mochila Executiva Sustentável', exact: true })).toHaveAttribute('aria-pressed', 'true');
 });
 
 test('FAQ contextual esclarece limites sem inventar preço ou estoque', async ({ page }) => {

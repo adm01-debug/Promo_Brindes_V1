@@ -49,6 +49,7 @@ export default function ProductPage() {
   const [activeImage, setActiveImage] = useState(0);
   const [selectedColor, setSelectedColor] = useState<ProductColor | undefined>();
   const [quantity, setQuantity] = useState(100);
+  const [shareStatus, setShareStatus] = useState('');
   const trackedProductRef = useRef('');
 
   useEffect(() => {
@@ -88,9 +89,13 @@ export default function ProductPage() {
     try {
       if (navigator.share) {
         await navigator.share(shareData);
+        if (product) trackFunnelEvent('product_shared', { product_id: product.id, mode: 'native' });
+        setShareStatus('Link de referência compartilhado.');
         return;
       }
       await navigator.clipboard.writeText(shareData.url);
+      if (product) trackFunnelEvent('product_shared', { product_id: product.id, mode: 'copy' });
+      setShareStatus('Link de referência copiado.');
     } catch {
       // Canceling the native share sheet should leave the product journey untouched.
     }
@@ -132,7 +137,7 @@ export default function ProductPage() {
           </section>
 
           <section className="product-info" aria-labelledby="product-title">
-            <div className="product-info__topline"><span>{categoryName?.replaceAll(' | ', ' & ') || 'Radar Promo'}</span><button type="button" className="share-button" onClick={() => void shareProduct()} aria-label="Compartilhar produto"><Share2 size={17} /> Mandar para o time</button></div>
+            <div className="product-info__topline"><span>{categoryName?.replaceAll(' | ', ' & ') || 'Radar Promo'}</span><div className="share-action"><button type="button" className="share-button" onClick={() => void shareProduct()} aria-label="Compartilhar produto"><Share2 size={17} /> Mandar para o time</button><span role="status" aria-live="polite">{shareStatus}</span></div></div>
             <h1 id="product-title">{product.name}</h1>
             <p className="product-code">Cód. {product.sku}</p>
             <p className="product-info__lead">{product.shortDescription || product.description}</p>

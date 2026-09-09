@@ -1,4 +1,4 @@
-import { ArrowUpRight, Check, Layers3, Plus, Sparkles } from 'lucide-react';
+import { ArrowUpRight, Check, GitCompareArrows, Layers3, Plus, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQuoteCart } from '../context/QuoteCartContext';
 import { replaceBrokenProductImage } from '../lib/images';
@@ -9,9 +9,14 @@ interface ProductCardProps {
   product: CatalogProduct;
   categoryName?: string;
   priority?: boolean;
+  comparison?: {
+    selected: boolean;
+    disabled: boolean;
+    onToggle: (product: CatalogProduct) => void;
+  };
 }
 
-export function ProductCard({ product, categoryName, priority = false }: ProductCardProps) {
+export function ProductCard({ product, categoryName, priority = false, comparison }: ProductCardProps) {
   const cart = useQuoteCart();
   const selected = cart.items.some((item) => item.productId === product.id);
   const badge = resolveProductBadge(product, categoryName);
@@ -54,15 +59,29 @@ export function ProductCard({ product, categoryName, priority = false }: Product
         </div>
         <div className="product-card__footer">
           <span className="consult-label">Proposta sob medida</span>
-          <button
-            className={`button button--compact ${selected ? 'button--selected' : 'button--dark'}`}
-            type="button"
-            onClick={() => selected ? cart.setDrawerOpen(true) : cart.addProduct(product)}
-            aria-label={`${selected ? 'Revisar' : 'Salvar'} ${product.name} nos saves`}
-          >
-            {selected ? <Check size={17} /> : <Plus size={17} />}
-            {selected ? 'Salvo' : 'Salvar'}
-          </button>
+          <div className="product-card__actions">
+            {comparison && (
+              <button
+                className={`product-card__compare ${comparison.selected ? 'is-selected' : ''}`}
+                type="button"
+                disabled={comparison.disabled && !comparison.selected}
+                onClick={() => comparison.onToggle(product)}
+                aria-pressed={comparison.selected}
+                aria-label={`${comparison.selected ? 'Remover' : 'Comparar'} ${product.name}`}
+              >
+                <GitCompareArrows size={16} />
+              </button>
+            )}
+            <button
+              className={`button button--compact ${selected ? 'button--selected' : 'button--dark'}`}
+              type="button"
+              onClick={() => selected ? cart.setDrawerOpen(true) : cart.addProduct(product)}
+              aria-label={`${selected ? 'Revisar' : 'Salvar'} ${product.name} nos saves`}
+            >
+              {selected ? <Check size={17} /> : <Plus size={17} />}
+              {selected ? 'Salvo' : 'Salvar'}
+            </button>
+          </div>
         </div>
       </div>
     </article>

@@ -280,19 +280,19 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="occasion-section section">
+      <section id="solucoes" className="occasion-section section" aria-labelledby="solutions-title">
         <div className="container occasion-layout">
           <div className="occasion-intro">
             <span className="section-kicker section-kicker--light">Marca para viver, não para guardar</span>
-            <h2>Brinde também é mídia. Só que as pessoas levam.</h2>
+            <h2 id="solutions-title">Brinde também é mídia. Só que as pessoas levam.</h2>
             <p>Utilidade, acabamento e relevância cultural fazem a marca continuar presente quando a campanha já saiu do feed.</p>
             <Link className="button button--light" to="/contato">Trazer meu briefing <ArrowRight size={18} /></Link>
           </div>
           <div className="occasion-grid">
-            <article><span><BriefcaseBusiness /></span><div><p>01 / PEOPLE</p><h3>Onboarding sem kit genérico</h3><small>Boas-vindas que já apresentam a cultura da empresa.</small></div></article>
-            <article><span><CalendarHeart /></span><div><p>02 / LIVE</p><h3>Evento que continua no feed</h3><small>Itens que rendem uso, conversa e memória depois do credenciamento.</small></div></article>
-            <article><span><Trophy /></span><div><p>03 / RECOGNITION</p><h3>Reconhecimento com desejo</h3><small>Presentes que parecem escolha — não obrigação corporativa.</small></div></article>
-            <article><span><HeartHandshake /></span><div><p>04 / COMMUNITY</p><h3>Merch que a comunidade quer usar</h3><small>Qualidade e estilo para a marca circular de verdade.</small></div></article>
+            <Link className="occasion-card" to="/catalogo?momento=onboarding&publico=colaboradores&perfil=kits"><span><BriefcaseBusiness /></span><div><p>01 / PEOPLE</p><h3>Onboarding sem kit genérico</h3><small>Boas-vindas que já apresentam a cultura da empresa.</small></div><ArrowRight aria-hidden="true" /></Link>
+            <Link className="occasion-card" to="/catalogo?momento=evento&publico=publico-evento"><span><CalendarHeart /></span><div><p>02 / LIVE</p><h3>Evento que continua no feed</h3><small>Itens que rendem uso, conversa e memória depois do credenciamento.</small></div><ArrowRight aria-hidden="true" /></Link>
+            <Link className="occasion-card" to="/catalogo?momento=reconhecimento&publico=colaboradores&clima=premium"><span><Trophy /></span><div><p>03 / RECOGNITION</p><h3>Reconhecimento com desejo</h3><small>Presentes que parecem escolha — não obrigação corporativa.</small></div><ArrowRight aria-hidden="true" /></Link>
+            <Link className="occasion-card" to="/catalogo?momento=relacionamento&publico=clientes"><span><HeartHandshake /></span><div><p>04 / COMMUNITY</p><h3>Merch que a comunidade quer usar</h3><small>Qualidade e estilo para a marca circular de verdade.</small></div><ArrowRight aria-hidden="true" /></Link>
           </div>
         </div>
       </section>

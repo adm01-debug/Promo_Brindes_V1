@@ -4,7 +4,7 @@ import { buildSearchSuggestions, type SearchSuggestion } from '../lib/search';
 import type { Category } from '../types';
 
 interface SearchAutocompleteProps {
-  variant: 'hero' | 'catalog';
+  variant: 'hero' | 'catalog' | 'header';
   inputId: string;
   label: string;
   value: string;
@@ -70,7 +70,7 @@ export function SearchAutocomplete({
     }
   }
 
-  const formClass = variant === 'hero' ? 'hero-search smart-search' : 'catalog-search smart-search';
+  const formClass = variant === 'hero' ? 'hero-search smart-search' : variant === 'catalog' ? 'catalog-search smart-search' : 'header-search smart-search';
   const submitClass = variant === 'catalog' ? 'catalog-search__submit' : undefined;
 
   return (
@@ -103,8 +103,8 @@ export function SearchAutocomplete({
           <X size={18} />
         </button>
       )}
-      <button className={submitClass} type="submit">
-        {variant === 'hero' ? <>Explorar <ArrowRight size={17} /></> : 'Buscar'}
+      <button className={submitClass} type="submit" aria-label="Buscar">
+        {variant === 'hero' ? <>Explorar <ArrowRight size={17} /></> : variant === 'catalog' ? 'Buscar' : <Search size={16} aria-hidden="true" />}
       </button>
       <div id={listboxId} className={`search-suggestions ${visible ? 'is-open' : ''}`} role="listbox" aria-label="Sugestões de busca">
         {suggestions.map((suggestion, index) => (

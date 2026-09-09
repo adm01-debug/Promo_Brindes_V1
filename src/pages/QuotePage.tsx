@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, CheckCircle2, Mail, Minus, Plus, Send, ShieldCheck, ShoppingBag, Trash2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Mail, Minus, Plus, Printer, Send, ShieldCheck, ShoppingBag, Trash2 } from 'lucide-react';
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Seo } from '../components/Seo';
@@ -141,6 +141,7 @@ export default function QuotePage() {
           <span className="section-kicker">Saves feitos. Contexto agora.</span>
           <h1>Transforme o moodboard em briefing.</h1>
           <p>Revise quantidades e compartilhe o essencial. Não há pagamento nem compromisso nesta etapa.</p>
+          <button className="quote-print-button" type="button" onClick={() => { trackFunnelEvent('selection_printed', { item_count: cart.items.length }); window.print(); }}><Printer size={17} /> Imprimir / salvar em PDF</button>
           <ol className="quote-steps" aria-label="Etapas da solicitação"><li className="is-complete"><span><CheckCircle2 /></span>Saves</li><li className="is-current"><span>2</span>Briefing</li><li><span>3</span>Curadoria</li></ol>
         </div>
       </header>

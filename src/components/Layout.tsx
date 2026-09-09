@@ -2,10 +2,15 @@ import { Menu, Search, ShoppingBag, X } from 'lucide-react';
 import { type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useQuoteCart } from '../context/QuoteCartContext';
+import { trackFunnelEvent } from '../lib/analytics';
+import { useCategories } from '../lib/hooks';
 import { QuoteDrawer } from './QuoteDrawer';
+import { SearchAutocomplete } from './SearchAutocomplete';
 
 const navItems = [
   { to: '/catalogo', label: 'Radar de produtos' },
+  { to: '/catalogo?perfil=kits', label: 'Kits & onboarding', catalogQuery: true },
+  { to: '/catalogo?perfil=novos', label: 'Novos drops', catalogQuery: true },
   { to: '/sobre', label: 'Como funciona' },
   { to: '/contato', label: 'Fale com a gente' },
 ];
@@ -17,6 +22,7 @@ export function Layout({ children }: { children: ReactNode }) {
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const categories = useCategories();
 
   useEffect(() => setMenuOpen(false), [location.pathname]);
 
@@ -53,16 +59,25 @@ export function Layout({ children }: { children: ReactNode }) {
           </Link>
           <nav className="desktop-nav" aria-label="Navegação principal">
             {navItems.map((item) => (
-              <NavLink key={item.to} to={item.to} className={({ isActive }) => isActive ? 'nav-link nav-link--active' : 'nav-link'}>
-                {item.label}
-              </NavLink>
+              item.catalogQuery
+                ? <Link key={item.to} to={item.to} className={`nav-link ${location.search === `?${item.to.split('?')[1]}` ? 'nav-link--active' : ''}`}>{item.label}</Link>
+                : <NavLink key={item.to} to={item.to} className={({ isActive }) => isActive ? 'nav-link nav-link--active' : 'nav-link'}>{item.label}</NavLink>
             ))}
           </nav>
-          <form className="header-search" role="search" onSubmit={submitSearch}>
-            <label className="sr-only" htmlFor="header-search">Buscar no catálogo</label>
-            <Search size={18} aria-hidden="true" />
-            <input id="header-search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Camiseta, kit, squeeze, tech…" />
-          </form>
+          <SearchAutocomplete
+            variant="header"
+            inputId="header-search"
+            label="Buscar no catálogo"
+            value={search}
+            placeholder="Camiseta, kit, squeeze, tech…"
+            categories={categories.data}
+            onChange={setSearch}
+            onSubmit={(value) => { trackFunnelEvent('search_started', { source: 'header', query_length: value.length, suggestion: false }); navigate(value ? `/catalogo?q=${encodeURIComponent(value)}` : '/catalogo'); }}
+            onSelect={(suggestion) => {
+              trackFunnelEvent('search_started', { source: 'header', query_length: suggestion.value.length, suggestion: true });
+              navigate(suggestion.kind === 'category' && suggestion.categoryId ? `/catalogo?categoria=${suggestion.categoryId}&nome=${encodeURIComponent(suggestion.label)}` : `/catalogo?q=${encodeURIComponent(suggestion.value)}`);
+            }}
+          />
           <button className="selection-button" type="button" onClick={() => cart.setDrawerOpen(true)} aria-label={`Abrir seleção com ${cart.itemCount} produtos`}>
             <ShoppingBag size={20} />
             <span className="selection-button__label">Meus saves</span>
@@ -81,7 +96,7 @@ export function Layout({ children }: { children: ReactNode }) {
               <button type="submit">Buscar</button>
             </form>
             <nav aria-label="Navegação móvel">
-              {navItems.map((item) => <NavLink key={item.to} to={item.to}>{item.label}</NavLink>)}
+              {navItems.map((item) => item.catalogQuery ? <Link key={item.to} to={item.to}>{item.label}</Link> : <NavLink key={item.to} to={item.to}>{item.label}</NavLink>)}
               <Link to="/orcamento">Transformar saves em briefing</Link>
             </nav>
           </div>
