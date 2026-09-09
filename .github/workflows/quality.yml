@@ -20,7 +20,14 @@ jobs:
           node-version: 22.12.0
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      # O Chromium do Playwright não depende do repositório do Google Chrome.
+      # Removê-lo no runner efêmero evita falhas transitórias de hash nesse
+      # espelho antes que os testes do projeto possam começar.
+      - name: Install Chromium for Playwright
+        run: |
+          sudo rm -f /etc/apt/sources.list.d/google-chrome.list
+          sudo rm -rf /var/lib/apt/lists/*
+          npx playwright install --with-deps chromium
       - run: npm run check
       - run: npm audit --audit-level=high
       - name: Reject production sourcemaps
