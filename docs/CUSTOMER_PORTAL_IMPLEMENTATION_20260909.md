@@ -74,15 +74,17 @@ git diff --check: aprovado
 
 Os testes de banco usam duas identidades confirmadas e uma não confirmada. Eles demonstram isolamento cruzado, reivindicação seletiva por e-mail, idempotência, negação ao anônimo e bloqueio da identidade ainda não verificada.
 
-## Ativação remota controlada
+## Ativação remota controlada — executada em 09/09/2026
 
-1. Autenticar a CLI do Supabase com uma sessão administrativa nova.
-2. Executar `npm run db:site:guard` e confirmar `xlzmclcjdncjfdrjxclt`.
-3. Executar `npm run db:site:dry-run` e revisar somente a migration nova.
-4. Aplicar `SUPABASE_WORKDIR=site-supabase npx supabase@latest db push`.
-5. Configurar Site URL, redirects e confirmação de e-mail no Auth.
-6. Adicionar `VITE_SITE_SUPABASE_URL` e `VITE_SITE_SUPABASE_PUBLISHABLE_KEY` à Vercel em Production e Preview.
-7. Fazer novo build, publicar e executar o smoke test pós-deploy com duas contas distintas.
-8. Confirmar no banco que nenhum dado foi escrito no projeto canônico.
+1. CLI autenticada com uma sessão administrativa nova.
+2. `db:site:guard` confirmou exclusivamente `xlzmclcjdncjfdrjxclt`.
+3. O dry-run mostrou somente `20260909180000_create_customer_quote_portal.sql`.
+4. A migration foi aplicada e o ledger local/remoto ficou reconciliado.
+5. O lint remoto terminou sem erro nos schemas `public` e `site_private`.
+6. Site URL, redirects e senha mínima de oito caracteres foram configurados no Auth.
+7. Redirects, MFA, Twilio, pooler, SSL e Storage Analytics preexistentes foram preservados.
+8. `VITE_SITE_SUPABASE_URL` e `VITE_SITE_SUPABASE_PUBLISHABLE_KEY` foram adicionadas à Vercel em Production e Preview, sem expor secret keys.
+
+O smoke test pós-deploy deve validar a interface publicada, o login real, uma identidade sem histórico e a impossibilidade de acesso cruzado. Qualquer registro sintético precisa ser removido por identificador exato ao final.
 
 Não executar `db reset --linked`, não copiar a secret key para variáveis `VITE_` e não aplicar esta migration ao catálogo canônico.
