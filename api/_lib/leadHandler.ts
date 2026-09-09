@@ -41,6 +41,16 @@ function parseBody(body: unknown): unknown {
   }
 }
 
+function readRequestBody(request: ApiRequest): unknown {
+  try {
+    return request.body;
+  } catch {
+    // A Vercel expõe o corpo JSON por meio de um getter que pode lançar durante
+    // o parsing. Convertemos essa falha de entrada em 400 antes que vire 500.
+    throw new RequestValidationError('O corpo da solicitação não contém JSON válido.');
+  }
+}
+
 function requestIp(request: ApiRequest): string {
   return header(request, 'x-forwarded-for').split(',')[0]?.trim() || header(request, 'x-real-ip') || request.socket?.remoteAddress || 'unknown';
 }
@@ -69,10 +79,11 @@ export async function handleLeadRequest(kind: LeadKind, request: ApiRequest, res
     if (!contentType.startsWith('application/json')) {
       throw new RequestValidationError('Envie o conteúdo como application/json.', 415, 'unsupported_media_type');
     }
-    if (bodySize(request.body) > 64 * 1024) {
+    const requestBody = readRequestBody(request);
+    if (bodySize(requestBody) > 64 * 1024) {
       throw new RequestValidationError('A solicitação ultrapassa o limite permitido.', 413, 'payload_too_large');
     }
-    const payload = normalizeLeadPayload(kind, parseBody(request.body));
+    const payload = normalizeLeadPayload(kind, parseBody(requestBody));
     const idempotencyKey = header(request, 'idempotency-key');
     if (idempotencyKey && idempotencyKey !== payload.clientRequestId) {
       throw new RequestValidationError('A chave de idempotência não corresponde à solicitação.', 409, 'idempotency_key_mismatch');

@@ -30,7 +30,7 @@ O catálogo permanece no banco canônico em modo público de leitura. O domínio
 | Camada | Resultado |
 |---|---:|
 | TypeScript | aprovado |
-| Vitest | 57/57 |
+| Vitest | 58/58 |
 | pgTAP | 16/16 |
 | Supabase `db lint` | zero erros |
 | Reset limpo + reaplicação da migration | aprovado |

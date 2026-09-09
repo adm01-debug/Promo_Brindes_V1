@@ -185,4 +185,21 @@ describe('APIs de leads isoladas', () => {
     expect(circularResponse.result.body).toMatchObject({ error: 'invalid_request' });
     expect(fetchMock).not.toHaveBeenCalled();
   });
+
+  it('converte falha do getter de body da plataforma em resposta 400', async () => {
+    configureSiteDatabase();
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const platformRequest = request(undefined);
+    Object.defineProperty(platformRequest, 'body', {
+      get() { throw new SyntaxError('Unexpected end of JSON input'); },
+    });
+    const { result, response } = responseDouble();
+
+    await contactHandler(platformRequest, response);
+
+    expect(result.statusCode).toBe(400);
+    expect(result.body).toMatchObject({ error: 'invalid_request' });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 });
