@@ -12,6 +12,7 @@ export interface CatalogCollection {
   theme: CatalogCollectionTheme;
   href: string;
   tags: string[];
+  searchAliases?: string[];
   palette: { background: string; accent: string; ink: string };
   featured?: boolean;
   edition?: string;
@@ -97,6 +98,7 @@ export const catalogCollections: CatalogCollection[] = [
     theme: 'impact',
     href: '/catalogo?clima=sustentavel',
     tags: ['Reciclados', 'Ecológicos', 'Uso real'],
+    searchAliases: ['sustentável', 'sustentavel', 'ecológico', 'ecologico', 'reciclado', 'consciente'],
     palette: { background: '#bcebd0', accent: '#121511', ink: '#121511' },
     edition: 'Seleção viva',
   },
@@ -164,6 +166,7 @@ export function filterCatalogCollections(
       collection.eyebrow,
       collection.description,
       ...collection.tags,
+      ...(collection.searchAliases ?? []),
     ].join(' '));
     return terms.every((term) => haystack.includes(term));
   });

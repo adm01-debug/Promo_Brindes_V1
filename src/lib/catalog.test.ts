@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { buildCatalogParams, defaultQuoteQuantity, fetchCatalog, fetchProduct, mapProductRow, parseContentRange, resolveProductResource, resolvePublicApiKey, resolveSupabaseUrl, sanitizeSearch, type ProductRow } from './catalog';
+import { buildCatalogParams, buildNoveltyProfileFilter, defaultQuoteQuantity, fetchCatalog, fetchProduct, mapProductRow, parseContentRange, resolveProductResource, resolvePublicApiKey, resolveSupabaseUrl, sanitizeSearch, type ProductRow } from './catalog';
 
 const rootCategoryId = '11111111-1111-4111-8111-111111111111';
 const childCategoryId = '22222222-2222-4222-8222-222222222222';
@@ -60,6 +60,11 @@ describe('catálogo público', () => {
   it('marca como novidade um produto dentro da janela canônica mesmo sem flag explícita', () => {
     const recentProduct = mapProductRow({ ...row, is_new: false, created_at: new Date().toISOString() });
     expect(recentProduct?.isNew).toBe(true);
+  });
+
+  it('não confirma personalização quando o dado público ainda é desconhecido', () => {
+    const product = mapProductRow({ ...row, allows_personalization: null });
+    expect(product?.allowsPersonalization).toBe(false);
   });
 
   it('consulta todos os produtos ativos sem confiar no estoque do fornecedor', async () => {
@@ -128,7 +133,7 @@ describe('catálogo público', () => {
     expect(and).toContain('colors.cs."[\\"PRETO\\"]"');
     expect(and).toContain('materials.cs."[\\"Aço Inox\\"]"');
     expect(params.get('allows_personalization')).toBe('eq.true');
-    expect(params.get('has_gift_box')).toBe('eq.true');
+    expect(params.get('has_commercial_packaging')).toBe('eq.true');
     expect(and).toContain('or(min_quantity.lte.200,min_quantity.is.null)');
     expect(params.has('stock_quantity')).toBe(false);
   });
@@ -163,6 +168,12 @@ describe('catálogo público', () => {
     expect(buildCatalogParams({ sort: 'curated' }).get('order')).toBe('is_featured.desc.nullslast,is_bestseller.desc.nullslast,name.asc,id.asc');
     expect(buildCatalogParams({ sort: 'newest' }).get('order')).toBe('created_at.desc.nullslast,name.asc,id.asc');
     expect(buildCatalogParams({ sort: 'name' }).get('order')).toBe('name.asc,id.asc');
+  });
+
+  it('alinha o filtro Novos drops à mesma janela do badge, sem aceitar data futura', () => {
+    const now = Date.parse('2026-09-09T12:00:00.000Z');
+    expect(buildNoveltyProfileFilter(now)).toBe('or(is_new.eq.true,and(created_at.gte.2026-08-10T12:00:00.000Z,created_at.lte.2026-09-09T12:00:00.000Z))');
+    expect(buildCatalogParams({ profile: 'new' }).get('or')).toMatch(/^or\(is_new\.eq\.true,and\(created_at\.gte\./);
   });
 
   it('recusa registros sem identidade pública completa', () => {

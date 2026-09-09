@@ -7,6 +7,8 @@ describe('biblioteca de catálogos', () => {
       .toEqual(['tech-que-resolve']);
     expect(filterCatalogCollections(catalogCollections, 'ecologicos', 'impact').map(({ id }) => id))
       .toEqual(['escolhas-de-menor-impacto']);
+    expect(filterCatalogCollections(catalogCollections, 'sustentavel', 'all').map(({ id }) => id))
+      .toEqual(['escolhas-de-menor-impacto']);
   });
 
   it('não inventa resultados quando os termos não aparecem juntos', () => {

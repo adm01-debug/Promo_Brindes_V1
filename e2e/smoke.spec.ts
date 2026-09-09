@@ -141,12 +141,14 @@ test('biblioteca de catálogos transforma contexto em coleções compartilhávei
   await expect(page).toHaveURL(/tema=people/);
   await expect(page.locator('.catalog-card')).toHaveCount(2);
   await expect(page.getByRole('button', { name: 'Pessoas & cultura' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('button', { name: 'Pessoas & cultura' })).toBeFocused();
 
   await page.getByLabel('O que você está planejando?').fill('tecnologia mobilidade');
   await page.getByRole('button', { name: 'Linhas de produto' }).click();
   await expect(page).toHaveURL(/q=tecnologia(?:\+|%20)mobilidade.*tema=products|tema=products.*q=tecnologia(?:\+|%20)mobilidade/);
   await expect(page.locator('.catalog-card')).toHaveCount(1);
   await expect(page.getByRole('heading', { name: 'Tech que resolve' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Linhas de produto' })).toBeFocused();
 
   await page.getByRole('button', { name: 'Limpar filtros' }).click();
   await expect(page).toHaveURL(/\/catalogos$/);

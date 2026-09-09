@@ -13,6 +13,7 @@ import {
 } from '../lib/catalogLibrary';
 
 type CatalogThemeFilter = 'all' | CatalogCollectionTheme;
+type ShareState = 'idle' | 'copied' | 'shared' | 'error';
 
 function validTheme(value: string | null): CatalogThemeFilter {
   return catalogThemeOptions.some((option) => option.id === value) ? value as CatalogThemeFilter : 'all';
@@ -55,7 +56,7 @@ function CatalogCard({
   index: number;
   featured?: boolean;
   onShare: (collection: CatalogCollection) => void;
-  shareState: 'idle' | 'shared' | 'error';
+  shareState: ShareState;
 }) {
   const external = collection.format !== 'online';
   const actionClass = 'catalog-card__open';
@@ -78,8 +79,8 @@ function CatalogCard({
             ? <a className={actionClass} href={collection.href} target="_blank" rel="noreferrer" onClick={() => trackFunnelEvent('catalog_collection_opened', { catalog_id: collection.id, format: collection.format })}>{actionContent}</a>
             : <Link className={actionClass} to={collection.href} onClick={() => trackFunnelEvent('catalog_collection_opened', { catalog_id: collection.id, format: collection.format })}>{actionContent}</Link>}
           <button type="button" className="catalog-card__share" onClick={() => onShare(collection)} aria-label={`Compartilhar ${collection.title}`}>
-            {shareState === 'shared' ? <Check size={17} aria-hidden="true" /> : <Share2 size={17} aria-hidden="true" />}
-            {shareState === 'shared' ? 'Link copiado' : shareState === 'error' ? 'Tente novamente' : 'Compartilhar'}
+            {(shareState === 'shared' || shareState === 'copied') ? <Check size={17} aria-hidden="true" /> : <Share2 size={17} aria-hidden="true" />}
+            {shareState === 'shared' ? 'Compartilhado' : shareState === 'copied' ? 'Link copiado' : shareState === 'error' ? 'Tente novamente' : 'Compartilhar'}
           </button>
         </div>
       </div>
@@ -92,7 +93,7 @@ export default function CatalogsPage() {
   const query = (params.get('q') || '').trim().slice(0, 80);
   const theme = validTheme(params.get('tema'));
   const [searchInput, setSearchInput] = useState(query);
-  const [shareStates, setShareStates] = useState<Record<string, 'shared' | 'error'>>({});
+  const [shareStates, setShareStates] = useState<Record<string, Exclude<ShareState, 'idle'>>>({});
 
   useEffect(() => setSearchInput(query), [query]);
 
@@ -126,15 +127,31 @@ export default function CatalogsPage() {
 
   async function shareCollection(collection: CatalogCollection) {
     const url = new URL(collection.href, window.location.origin).href;
-    try {
-      if (navigator.share) await navigator.share({ title: `${collection.title} | Promo Brindes`, text: collection.description, url });
-      else await navigator.clipboard.writeText(url);
-      setShareStates((current) => ({ ...current, [collection.id]: 'shared' }));
-      trackFunnelEvent('catalog_collection_shared', { catalog_id: collection.id, format: collection.format });
-    } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') return;
-      setShareStates((current) => ({ ...current, [collection.id]: 'error' }));
+    let usedNativeShare = false;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `${collection.title} | Promo Brindes`, text: collection.description, url });
+        usedNativeShare = true;
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        try {
+          await navigator.clipboard.writeText(url);
+        } catch {
+          setShareStates((current) => ({ ...current, [collection.id]: 'error' }));
+          return;
+        }
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+      } catch {
+        setShareStates((current) => ({ ...current, [collection.id]: 'error' }));
+        return;
+      }
     }
+
+    setShareStates((current) => ({ ...current, [collection.id]: usedNativeShare ? 'shared' : 'copied' }));
+    trackFunnelEvent('catalog_collection_shared', { catalog_id: collection.id, format: collection.format });
   }
 
   return (

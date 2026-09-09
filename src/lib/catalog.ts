@@ -1,7 +1,7 @@
 import type { CatalogProduct, Category, ProductColor } from '../types';
 import { buildCatalogSearchGroups } from './search';
 import { isCatalogCategoryId, parseCatalogPage, resolveColorValues, resolveMaterialValues } from './catalogFilters';
-import { isWithinNoveltyWindow } from './productBadges';
+import { isWithinNoveltyWindow, productBadgeConfig } from './productBadges';
 
 const CANONICAL_PROJECT_ID = 'doufsxqlfjyuvxuezpln';
 const CANONICAL_URL = `https://${CANONICAL_PROJECT_ID}.supabase.co`;
@@ -140,6 +140,16 @@ export interface CatalogQuery {
   sort?: 'curated' | 'newest' | 'name';
 }
 
+/**
+ * Mantém a coleção de novidades alinhada ao badge: sinal editorial explícito
+ * ou inclusão nos últimos 30 dias, sem aceitar datas futuras.
+ */
+export function buildNoveltyProfileFilter(now = Date.now()): string {
+  const nowIso = new Date(now).toISOString();
+  const cutoffIso = new Date(now - productBadgeConfig.noveltyWindowDays * 86_400_000).toISOString();
+  return `or(is_new.eq.true,and(created_at.gte.${cutoffIso},created_at.lte.${nowIso}))`;
+}
+
 export interface CatalogResult {
   products: CatalogProduct[];
   total: number;
@@ -214,7 +224,7 @@ export function mapProductRow(row: ProductRow): CatalogProduct | null {
     isFeatured: Boolean(row.is_featured),
     isBestseller: Boolean(row.is_bestseller),
     isKit: Boolean(row.is_kit),
-    allowsPersonalization: row.allows_personalization !== false,
+    allowsPersonalization: Boolean(row.allows_personalization),
     hasCommercialPackaging: Boolean(row.has_commercial_packaging),
     colors: normalizeColors(row.color_swatches),
     materials: stringArray(row.materials),
@@ -373,9 +383,9 @@ export function buildCatalogParams(query: CatalogQuery = {}): URLSearchParams {
 
   if (andGroups.length) params.set('and', `(${andGroups.join(',')})`);
   if (query.personalizable) params.set('allows_personalization', 'eq.true');
-  if (query.giftPackaging) params.set('has_gift_box', 'eq.true');
+  if (query.giftPackaging) params.set('has_commercial_packaging', 'eq.true');
   if (query.profile === 'featured') params.set('is_featured', 'eq.true');
-  if (query.profile === 'new') params.set('is_new', 'eq.true');
+  if (query.profile === 'new') params.set('or', buildNoveltyProfileFilter());
   if (query.profile === 'kits') params.set('is_kit', 'eq.true');
 
   const sort = query.sort ?? 'curated';
