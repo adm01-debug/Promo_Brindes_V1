@@ -5654,7 +5654,7 @@ p {
 .customer-auth-card > p { margin: 0 0 28px; color: var(--muted); line-height: 1.6; }
 .customer-auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 24px; padding: 5px; border: 1px solid #c8c5bc; border-radius: 999px; }
 .customer-auth-tabs button { min-height: 42px; border: 0; border-radius: 999px; background: transparent; font: inherit; font-size: .75rem; font-weight: 800; cursor: pointer; }
-.customer-auth-tabs button[aria-selected='true'] { color: var(--white); background: var(--ink); }
+.customer-auth-tabs button[aria-pressed='true'] { color: var(--white); background: var(--ink); }
 .customer-auth-card form { display: grid; gap: 18px; }
 .customer-auth-card .form-field input, .customer-password .form-field input { width: 100%; height: 52px; padding: 0 15px; border: 1.5px solid var(--ink); border-radius: 12px; background: var(--white); font: inherit; }
 .customer-auth-card .form-field small { display: block; margin-top: 6px; color: var(--muted); font-size: .7rem; }
@@ -5755,6 +5755,13 @@ p {
 .customer-proposals article div { display: grid; gap: 4px; }
 .customer-proposals span, .customer-proposals small { color: var(--muted); font-size: .68rem; }
 .customer-proposals button { min-height: 42px; padding: 0 14px; border: 0; border-radius: 999px; color: var(--white); background: var(--ink); font-weight: 800; cursor: pointer; }
+.customer-proposal-error { margin: 14px 0 0; padding: 13px 15px; border-left: 4px solid #d45425; color: #79320f; background: #fff0e9; font-size: .8rem; font-weight: 700; line-height: 1.45; }
+
+.customer-confirmation-backdrop { position: fixed; z-index: 80; inset: 0; display: grid; place-items: center; padding: 20px; background: rgb(9 13 10 / 76%); }
+.customer-confirmation { width: min(100%, 540px); padding: clamp(24px, 5vw, 42px); border: 2px solid var(--ink); border-radius: 22px; background: var(--paper); box-shadow: 9px 9px 0 var(--lime); }
+.customer-confirmation h2 { margin: 12px 0; font-size: clamp(1.8rem, 5vw, 2.7rem); }
+.customer-confirmation p { margin: 0; color: var(--muted); line-height: 1.55; }
+.customer-confirmation > div { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
 .customer-repeat-cta { padding-block: 70px; color: var(--white); background: var(--ink); }
 .customer-repeat-cta > .container { display: flex; align-items: end; justify-content: space-between; gap: 40px; }
 .customer-repeat-cta h2 { max-width: 800px; margin: 12px 0; font-size: clamp(2.8rem, 5vw, 5.5rem); letter-spacing: -.07em; line-height: .9; }
@@ -5793,6 +5800,11 @@ p {
   .customer-proposals article { grid-template-columns: auto 1fr; }
   .customer-proposals button { grid-column: 1 / -1; width: 100%; }
   .customer-repeat-cta > .container { align-items: flex-start; flex-direction: column; }
+}
+
+@media (max-width: 560px) {
+  .customer-confirmation > div { display: grid; }
+  .customer-confirmation > div .button { width: 100%; justify-content: center; }
 }
 
 @media (prefers-reduced-motion: reduce) {

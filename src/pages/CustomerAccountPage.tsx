@@ -24,6 +24,7 @@ function AccountContent() {
   const [result, setResult] = useState<CustomerQuotePage | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => setSearch(query), [query]);
   useEffect(() => {
@@ -36,7 +37,7 @@ function AccountContent() {
       .catch(() => { if (active) setError('Não conseguimos carregar seus orçamentos agora.'); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [auth, page, query, status]);
+  }, [auth, page, query, retryKey, status]);
 
   function apply(next: { q?: string; status?: string; page?: number }) {
     const updated = new URLSearchParams(params);
@@ -67,7 +68,7 @@ function AccountContent() {
             <div className="form-field"><label htmlFor="customer-status">Status</label><select id="customer-status" value={status} onChange={(event) => apply({ status: event.target.value, page: 1 })}>{customerStatusOptions.map((option) => <option key={option.value || 'all'} value={option.value}>{option.label}</option>)}</select></div>
           </div>
           {loading && <div className="customer-results-state" role="status">Carregando seus orçamentos…</div>}
-          {error && <div className="customer-results-state customer-results-state--error" role="alert">{error}<button type="button" onClick={() => apply({ page })}>Tentar novamente</button></div>}
+          {error && <div className="customer-results-state customer-results-state--error" role="alert">{error}<button type="button" onClick={() => setRetryKey((current) => current + 1)}>Tentar novamente</button></div>}
           {!loading && !error && result?.items.length === 0 && <div className="customer-empty"><PackageOpen size={42} /><span>{query || status ? 'NENHUM RESULTADO' : 'PRIMEIRO BRIEFING'}</span><h2>{query || status ? 'Nenhum orçamento combina com estes filtros.' : 'Seu histórico começa com uma boa ideia.'}</h2><p>{query || status ? 'Limpe a busca ou escolha outro status.' : 'Explore o catálogo, salve seus favoritos e envie uma solicitação sem precisar comprar online.'}</p>{query || status ? <button className="button button--dark" type="button" onClick={() => { setSearch(''); setParams({}, { replace: true }); }}>Limpar filtros</button> : <Link className="button button--green" to="/catalogo">Explorar o radar</Link>}</div>}
           {!loading && !error && Boolean(result?.items.length) && <div className="customer-quote-grid">{result?.items.map((quote) => <article className="customer-quote-card" key={quote.id}><div className="customer-quote-card__top"><span className={`customer-status customer-status--${customerStatusTone(quote.status)}`}>{customerStatusLabel(quote.status)}</span><span>#{quote.protocol}</span></div><h2>{quote.company}</h2><p>{quote.productNames.slice(0, 3).join(' · ')}</p><dl><div><dt><CalendarDays size={15} /> Enviado</dt><dd>{dateLabel(quote.createdAt)}</dd></div><div><dt><Sparkles size={15} /> Seleção</dt><dd>{quote.itemCount} {quote.itemCount === 1 ? 'produto' : 'produtos'} · {quote.totalUnits.toLocaleString('pt-BR')} un.</dd></div></dl><Link to={`/minha-conta/orcamentos/${quote.id}`}>Ver solicitação <ArrowRight size={17} /></Link></article>)}</div>}
           {!loading && !error && totalPages > 1 && <nav className="customer-pagination" aria-label="Páginas do histórico"><button type="button" disabled={page <= 1} onClick={() => apply({ page: page - 1 })}>Anterior</button><span>Página {page} de {totalPages}</span><button type="button" disabled={page >= totalPages} onClick={() => apply({ page: page + 1 })}>Próxima</button></nav>}

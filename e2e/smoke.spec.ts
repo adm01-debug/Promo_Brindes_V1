@@ -412,11 +412,33 @@ test('área do cliente protege histórico e oferece autenticação acessível', 
   await page.goto('/minha-conta');
   await expect(page).toHaveURL(/\/entrar\?next=/);
   await expect(page.getByRole('heading', { name: 'Acessar meus orçamentos' })).toBeVisible();
-  await expect(page.getByRole('tab', { name: 'Link ou código' })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByRole('button', { name: 'Link ou código' })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByLabel('E-mail')).toHaveAttribute('autocomplete', 'email');
-  await page.getByRole('tab', { name: 'Senha' }).click();
+  await page.getByRole('button', { name: 'Senha', exact: true }).click();
   await expect(page.getByLabel('Senha')).toHaveAttribute('autocomplete', 'current-password');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+});
+
+test('histórico recupera de uma falha temporária sem exigir mudança de filtro', async ({ page }) => {
+  const quoteId = '66666666-6666-4666-8666-666666666666';
+  const user = { id: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', aud: 'authenticated', role: 'authenticated', email: 'recuperacao@empresa.com', email_confirmed_at: '2026-09-09T12:00:00Z', user_metadata: {}, app_metadata: {}, created_at: '2026-09-09T12:00:00Z' };
+  let listReads = 0;
+  await page.addInitScript(({ user }) => {
+    localStorage.setItem('promo-brindes-customer-session', JSON.stringify({ access_token: 'header.payload.signature', refresh_token: 'refresh-token', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, token_type: 'bearer', user }));
+  }, { user });
+  await page.route('**/auth/v1/user', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify(user) }));
+  await page.route('**/rest/v1/rpc/claim_my_quote_requests', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ claimed: 0 }) }));
+  await page.route('**/rest/v1/rpc/get_my_quote_requests', (route) => {
+    listReads += 1;
+    if (listReads === 1) return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ message: 'temporary_failure' }) });
+    return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ items: [{ id: quoteId, protocol: '66666666', status: 'new', company: 'Empresa Recuperada', createdAt: '2026-09-09T12:00:00Z', desiredDeadline: null, itemCount: 1, totalUnits: 50, productNames: ['Produto de teste'] }], total: 1, limit: 12, offset: 0 }) });
+  });
+
+  await page.goto('/minha-conta');
+  await expect(page.getByRole('alert')).toContainText('Não conseguimos carregar seus orçamentos agora.');
+  await page.getByRole('button', { name: 'Tentar novamente' }).click();
+  await expect(page.getByText('Empresa Recuperada').first()).toBeVisible();
+  expect(listReads).toBe(2);
 });
 
 test('callback de acesso inválido falha de forma recuperável e privada', async ({ page }) => {
@@ -426,11 +448,12 @@ test('callback de acesso inválido falha de forma recuperável e privada', async
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex,nofollow');
 });
 
-test('cliente autenticado consulta detalhe e reutiliza o orçamento sem misturar históricos', async ({ page }) => {
+test('cliente autenticado confirma antes de substituir saves ao reutilizar o orçamento', async ({ page }) => {
   const quoteId = '55555555-5555-4555-8555-555555555555';
   const user = { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', aud: 'authenticated', role: 'authenticated', email: 'cliente@empresa.com', email_confirmed_at: '2026-09-09T12:00:00Z', user_metadata: {}, app_metadata: {}, created_at: '2026-09-09T12:00:00Z' };
   await page.addInitScript(({ user }) => {
     localStorage.setItem('promo-brindes-customer-session', JSON.stringify({ access_token: 'header.payload.signature', refresh_token: 'refresh-token', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, token_type: 'bearer', user }));
+    localStorage.setItem('promo-brindes:quote-selection:v1', JSON.stringify([{ key: 'save-atual', productId: '99999999-9999-4999-8999-999999999999', slug: 'save-atual', name: 'Save atual', sku: 'SAVE-1', imageUrl: '/images/product-placeholder.svg', quantity: 50, minQuantity: 50 }]));
   }, { user });
   await page.route('**/auth/v1/user', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify(user) }));
   await page.route('**/rest/v1/rpc/claim_my_quote_requests', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ claimed: 1, email: user.email }) }));
@@ -444,9 +467,61 @@ test('cliente autenticado consulta detalhe e reutiliza o orçamento sem misturar
   await expect(page).toHaveURL(new RegExp(`/minha-conta/orcamentos/${quoteId}$`));
   await expect(page.getByRole('heading', { name: 'Seleção enviada' })).toBeVisible();
   await page.getByRole('button', { name: 'Solicitar novamente' }).first().click();
+  await expect(page.getByRole('dialog', { name: 'Trocar seus saves atuais?' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Manter seleção atual' })).toBeFocused();
+  await page.keyboard.press('Shift+Tab');
+  await expect(page.getByRole('button', { name: 'Substituir seleção e continuar' })).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('button', { name: 'Manter seleção atual' })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog', { name: 'Trocar seus saves atuais?' })).toBeHidden();
+  await page.getByRole('button', { name: 'Solicitar novamente' }).first().click();
+  await page.getByRole('button', { name: 'Substituir seleção e continuar' }).click();
   await expect(page).toHaveURL(/\/orcamento\?repetir=/);
   await expect(page.getByRole('heading', { name: 'Transforme o moodboard em briefing.' })).toBeVisible();
   await expect(page.getByText('Mochila Executiva Sustentável').first()).toBeVisible();
+});
+
+test('falha ao abrir proposta fica visível e permite nova tentativa', async ({ page }) => {
+  const quoteId = '77777777-7777-4777-8777-777777777777';
+  const proposalId = '88888888-8888-4888-8888-888888888888';
+  const user = { id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', aud: 'authenticated', role: 'authenticated', email: 'proposta@empresa.com', email_confirmed_at: '2026-09-09T12:00:00Z', user_metadata: {}, app_metadata: {}, created_at: '2026-09-09T12:00:00Z' };
+  await page.addInitScript(({ user }) => {
+    localStorage.setItem('promo-brindes-customer-session', JSON.stringify({ access_token: 'header.payload.signature', refresh_token: 'refresh-token', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, token_type: 'bearer', user }));
+  }, { user });
+  await page.route('**/auth/v1/user', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify(user) }));
+  await page.route('**/rest/v1/rpc/claim_my_quote_requests', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ claimed: 0 }) }));
+  await page.route('**/rest/v1/rpc/get_my_quote_request', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ id: quoteId, protocol: '77777777', status: 'quoted', company: 'Empresa Proposta', contactName: 'Bia', email: user.email, phone: '(11) 98888-8888', city: null, desiredDeadline: null, notes: '', createdAt: '2026-09-09T12:00:00Z', submittedAt: '2026-09-09T12:00:00Z', items: [{ key: `${product.id}::preto`, productId: product.id, slug: product.slug, name: product.name, sku: product.sku, imageUrl: product.primary_image_url, quantity: 50, minQuantity: 50, colorName: null, colorHex: null }], events: [], proposals: [{ id: proposalId, version: 1, title: 'Proposta para campanha', validUntil: null, publishedAt: '2026-09-09T14:00:00Z', isCurrent: true }] }) }));
+  await page.route('**/api/customer-proposals', (route) => route.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ message: 'proposal_not_found' }) }));
+
+  await page.goto(`/minha-conta/orcamentos/${quoteId}`);
+  await expect(page.getByRole('heading', { name: 'Propostas' })).toBeVisible();
+  const openProposal = page.getByRole('button', { name: 'Abrir proposta' });
+  await openProposal.click();
+  await expect(page.getByRole('alert')).toContainText('Não conseguimos abrir esta proposta agora.');
+  await expect(openProposal).toBeEnabled();
+});
+
+test('detalhe do orçamento recupera de indisponibilidade temporária', async ({ page }) => {
+  const quoteId = '99999999-9999-4999-8999-999999999998';
+  const user = { id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', aud: 'authenticated', role: 'authenticated', email: 'detalhe@empresa.com', email_confirmed_at: '2026-09-09T12:00:00Z', user_metadata: {}, app_metadata: {}, created_at: '2026-09-09T12:00:00Z' };
+  let detailReads = 0;
+  await page.addInitScript(({ user }) => {
+    localStorage.setItem('promo-brindes-customer-session', JSON.stringify({ access_token: 'header.payload.signature', refresh_token: 'refresh-token', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, token_type: 'bearer', user }));
+  }, { user });
+  await page.route('**/auth/v1/user', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify(user) }));
+  await page.route('**/rest/v1/rpc/claim_my_quote_requests', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ claimed: 0 }) }));
+  await page.route('**/rest/v1/rpc/get_my_quote_request', (route) => {
+    detailReads += 1;
+    if (detailReads === 1) return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ message: 'temporary_failure' }) });
+    return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ id: quoteId, protocol: '99999999', status: 'new', company: 'Empresa Recuperada', contactName: 'Caio', email: user.email, phone: '(11) 97777-7777', city: null, desiredDeadline: null, notes: '', createdAt: '2026-09-09T12:00:00Z', submittedAt: '2026-09-09T12:00:00Z', items: [{ key: `${product.id}::sem-cor`, productId: product.id, slug: product.slug, name: product.name, sku: product.sku, imageUrl: product.primary_image_url, quantity: 50, minQuantity: 50, colorName: null, colorHex: null }], events: [], proposals: [] }) });
+  });
+
+  await page.goto(`/minha-conta/orcamentos/${quoteId}`);
+  await expect(page.getByRole('heading', { name: 'Não foi possível abrir.' })).toBeVisible();
+  await page.getByRole('button', { name: 'Tentar novamente' }).click();
+  await expect(page.getByRole('heading', { name: 'Seleção enviada' })).toBeVisible();
+  expect(detailReads).toBe(2);
 });
 
 test('produto com identificador inválido falha fechado e não pode ser indexado', async ({ page }) => {
