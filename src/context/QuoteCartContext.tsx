@@ -9,6 +9,7 @@ import {
   useState,
 } from 'react';
 import { defaultQuoteQuantity } from '../lib/catalog';
+import { trackFunnelEvent } from '../lib/analytics';
 import { clampQuoteQuantity, MAX_QUOTE_ITEMS, normalizeQuoteItems } from '../lib/quoteItems';
 import type { CatalogProduct, ProductColor, QuoteItem } from '../types';
 
@@ -132,6 +133,11 @@ export function QuoteCartProvider({ children }: { children: ReactNode }) {
           colorName: color?.name,
           colorHex: color?.hex,
         },
+      });
+      trackFunnelEvent('product_saved', {
+        product_id: product.id,
+        category_id: product.mainCategoryId || product.categoryId || 'nao-informada',
+        has_color: Boolean(color),
       });
       setDrawerOpen(true);
     },

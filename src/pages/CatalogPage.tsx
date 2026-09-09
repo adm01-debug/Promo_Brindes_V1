@@ -1,10 +1,20 @@
-import { ChevronLeft, ChevronRight, Filter, Search, SlidersHorizontal, X } from 'lucide-react';
-import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { ChevronLeft, ChevronRight, Filter, SlidersHorizontal, Sparkles, X } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { CatalogFilterPanel } from '../components/CatalogFilterPanel';
 import { CatalogEmpty, CatalogError, ProductGridSkeleton } from '../components/CatalogFeedback';
 import { ProductCard } from '../components/ProductCard';
+import { ContextualFaq } from '../components/ContextualFaq';
+import { SearchAutocomplete } from '../components/SearchAutocomplete';
 import { Seo } from '../components/Seo';
+import { trackFunnelEvent } from '../lib/analytics';
+import {
+  campaignLabels,
+  campaignSelectionCount,
+  parseCampaignSelection,
+  resolveCampaignFilters,
+  type CampaignSelection,
+} from '../lib/campaignPresets';
 import {
   categoryQueryIds,
   colorFilterIds,
@@ -42,30 +52,55 @@ export default function CatalogPage() {
   const personalizable = params.get('personalizavel') === '1';
   const giftPackaging = params.get('embalagem') === '1';
   const profile = validProfile(params.get('perfil'));
+  const profileWasExplicitlySet = params.has('perfil');
   const sort = validSort(params.get('ordem'));
   const page = parseCatalogPage(params.get('pagina'));
+  const campaignSelection = parseCampaignSelection(params);
+  const campaignCount = campaignSelectionCount(campaignSelection);
+  const campaignKey = `${campaignSelection.moment || ''}|${campaignSelection.audience || ''}|${campaignSelection.scale || ''}|${campaignSelection.mood || ''}`;
   const [searchInput, setSearchInput] = useState(query);
   const [retryKey, setRetryKey] = useState(0);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const mobileTriggerRef = useRef<HTMLButtonElement>(null);
   const mobileDialogRef = useRef<HTMLDivElement>(null);
   const mobileCloseRef = useRef<HTMLButtonElement>(null);
+  const trackedCatalogViewsRef = useRef(new Set<string>());
   const categories = useAllCategories(retryKey);
-  const catalogCategoryIds = useMemo(
-    () => categoryQueryIds(categories.data, selectedCategoryIds),
-    [categories.data, selectedCategoryIds],
+  const campaignFilters = useMemo(
+    () => resolveCampaignFilters(campaignSelection, categories.data),
+    // A chave estabiliza o objeto lido da URL e evita recalcular por identidade.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [campaignKey, categories.data],
   );
+  const effectiveCategoryIds = selectedCategoryIds.length ? selectedCategoryIds : campaignFilters.categoryIds;
+  const catalogCategoryIds = useMemo(
+    () => categoryQueryIds(categories.data, effectiveCategoryIds),
+    [categories.data, effectiveCategoryIds],
+  );
+  const effectiveColors = [...new Set([...selectedColors, ...campaignFilters.colors])];
+  const effectiveMaterials = [...new Set([...selectedMaterials, ...campaignFilters.materials])];
+  const effectiveProfile = profileWasExplicitlySet
+    ? profile === 'destaques' ? 'featured' : profile === 'novos' ? 'new' : profile === 'kits' ? 'kits' : 'all'
+    : campaignFilters.profile || (profile === 'destaques' ? 'featured' : profile === 'novos' ? 'new' : profile === 'kits' ? 'kits' : 'all');
+  const filterPanelProfile: ProfileParam = effectiveProfile === 'featured'
+    ? 'destaques'
+    : effectiveProfile === 'new'
+      ? 'novos'
+      : effectiveProfile === 'kits'
+        ? 'kits'
+        : 'todos';
   const catalog = useCatalog(
     {
       page,
       pageSize: 24,
       search: query,
       categoryIds: catalogCategoryIds,
-      colors: selectedColors,
-      materials: selectedMaterials,
+      colors: effectiveColors,
+      materials: effectiveMaterials,
       personalizable,
       giftPackaging,
-      profile: profile === 'destaques' ? 'featured' : profile === 'novos' ? 'new' : profile === 'kits' ? 'kits' : 'all',
+      maxMinQuantity: campaignFilters.maxMinQuantity,
+      profile: effectiveProfile,
       sort: sort === 'recentes' ? 'newest' : sort === 'nome' ? 'name' : 'curated',
     },
     retryKey,
@@ -77,8 +112,10 @@ export default function CatalogPage() {
   const totalPages = Math.max(1, Math.ceil(catalog.data.total / catalog.data.pageSize));
   const activeFilterCount = (
     Number(Boolean(query)) + selectedCategoryIds.length + selectedColors.length + selectedMaterials.length +
-    Number(profile !== 'todos') + Number(personalizable) + Number(giftPackaging)
+    Number(profileWasExplicitlySet && profile !== 'todos') + Number(personalizable) + Number(giftPackaging) + campaignCount
   );
+  const selectedCampaignLabels = campaignLabels(campaignSelection);
+  const paramsKey = params.toString();
 
   useEffect(() => setSearchInput(query), [query]);
 
@@ -97,6 +134,19 @@ export default function CatalogPage() {
     else next.delete('pagina');
     setParams(next, { replace: true });
   }, [catalog.error, catalog.loading, page, params, setParams, totalPages]);
+
+  useEffect(() => {
+    if (catalog.loading || catalog.error) return;
+    const viewKey = `${paramsKey}|${catalog.data.total}`;
+    if (trackedCatalogViewsRef.current.has(viewKey)) return;
+    trackedCatalogViewsRef.current.add(viewKey);
+    trackFunnelEvent('catalog_result_viewed', {
+      result_count: catalog.data.total,
+      page: catalog.data.page,
+      active_filters: activeFilterCount,
+      campaign: campaignCount > 0,
+    });
+  }, [activeFilterCount, campaignCount, catalog.data.page, catalog.data.total, catalog.error, catalog.loading, paramsKey]);
 
   useEffect(() => {
     if (!mobileFiltersOpen) return;
@@ -141,9 +191,9 @@ export default function CatalogPage() {
     if (scroll) window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function submitSearch(event: FormEvent) {
-    event.preventDefault();
-    updateParams({ q: searchInput.trim() || null }, true);
+  function submitSearch(value: string, suggestion = false) {
+    trackFunnelEvent('search_started', { source: 'catalog', query_length: value.length, suggestion });
+    updateParams({ q: value || null }, true);
   }
 
   function clearAll() {
@@ -163,24 +213,35 @@ export default function CatalogPage() {
     updateParams({ categorias: serializeFilterIds(next), categoria: null, nome: null });
   }
 
+  function removeCampaignFilter(key: keyof CampaignSelection) {
+    const paramName = key === 'moment' ? 'momento' : key === 'audience' ? 'publico' : key === 'scale' ? 'escala' : 'clima';
+    updateParams({ [paramName]: null });
+  }
+
   const filterPanel = (instanceId: 'desktop' | 'mobile') => (
     <CatalogFilterPanel
       instanceId={instanceId}
       categories={categories.data}
       categoriesLoading={categories.loading}
       categoriesError={categories.error}
-      profile={profile}
+      profile={filterPanelProfile}
       selectedCategoryIds={selectedCategoryIds}
-      selectedColors={selectedColors}
-      selectedMaterials={selectedMaterials}
+      selectedColors={effectiveColors}
+      selectedMaterials={effectiveMaterials}
       personalizable={personalizable}
       giftPackaging={giftPackaging}
-      onProfileChange={(value) => updateParams({ perfil: value === 'todos' ? null : value })}
+      onProfileChange={(value) => updateParams({ perfil: value === 'todos' && !campaignCount ? null : value })}
       onToggleCategory={toggleCategory}
       onClearCategories={() => updateParams({ categorias: null, categoria: null, nome: null })}
       onRetryCategories={() => setRetryKey((key) => key + 1)}
-      onToggleColor={(value) => toggleParamValue('cores', selectedColors, value)}
-      onToggleMaterial={(value) => toggleParamValue('materiais', selectedMaterials, value)}
+      onToggleColor={(value) => {
+        if (campaignFilters.colors.includes(value) && !selectedColors.includes(value)) removeCampaignFilter('mood');
+        else toggleParamValue('cores', selectedColors, value);
+      }}
+      onToggleMaterial={(value) => {
+        if (campaignFilters.materials.includes(value) && !selectedMaterials.includes(value)) removeCampaignFilter('mood');
+        else toggleParamValue('materiais', selectedMaterials, value);
+      }}
       onPersonalizableChange={(value) => updateParams({ personalizavel: value ? '1' : null })}
       onGiftPackagingChange={(value) => updateParams({ embalagem: value ? '1' : null })}
     />
@@ -194,17 +255,34 @@ export default function CatalogPage() {
           <span className="section-kicker">Busca visual · curadoria humana</span>
           <h1>Seu moodboard começa aqui.</h1>
           <p>Explore sem login, salve o que conversa com a campanha e deixe valores, personalização e prazo para a proposta.</p>
-          <form className="catalog-search" role="search" onSubmit={submitSearch}>
-            <Search size={21} aria-hidden="true" />
-            <label className="sr-only" htmlFor="catalog-search">Buscar no catálogo</label>
-            <input id="catalog-search" value={searchInput} onChange={(event) => setSearchInput(event.target.value)} placeholder="Camiseta, kit, squeeze, tech ou código…" />
-            {searchInput && <button className="catalog-search__clear" type="button" aria-label="Limpar busca" onClick={() => { setSearchInput(''); updateParams({ q: null }); }}><X size={18} /></button>}
-            <button className="catalog-search__submit" type="submit">Buscar</button>
-          </form>
-          <div className="catalog-quick-searches" aria-label="Buscas rápidas">
-            <span>Em alta agora:</span>
-            {quickSearches.map((term) => <button key={term} type="button" onClick={() => { setSearchInput(term); updateParams({ q: term }, true); }}>{term}</button>)}
+          <SearchAutocomplete
+            variant="catalog"
+            inputId="catalog-search"
+            label="Buscar no catálogo"
+            value={searchInput}
+            placeholder="Camiseta, kit, squeeze, tech ou código…"
+            categories={categories.data}
+            onChange={setSearchInput}
+            onSubmit={(value) => submitSearch(value)}
+            onClear={() => { setSearchInput(''); updateParams({ q: null }); }}
+            onSelect={(suggestion) => {
+              trackFunnelEvent('search_started', { source: 'catalog', query_length: suggestion.value.length, suggestion: true });
+              if (suggestion.kind === 'category' && suggestion.categoryId) {
+                setSearchInput('');
+                updateParams({ q: null, categorias: suggestion.categoryId, categoria: null, nome: suggestion.label }, true);
+              } else {
+                setSearchInput(suggestion.value);
+                updateParams({ q: suggestion.value }, true);
+              }
+            }}
+          />
+          <div className="catalog-quick-searches" aria-label="Sugestões rápidas">
+            <span>Sugestões rápidas:</span>
+            {quickSearches.map((term) => <button key={term} type="button" onClick={() => { setSearchInput(term); submitSearch(term); }}>{term}</button>)}
           </div>
+          {campaignCount > 0 && (
+            <div className="campaign-context"><Sparkles aria-hidden="true" /><p><strong>Curadoria iniciada pelo seu briefing.</strong> O radar aplicou apenas sinais confiáveis. Você pode remover ou combinar qualquer filtro abaixo.</p></div>
+          )}
         </div>
       </header>
 
@@ -242,7 +320,7 @@ export default function CatalogPage() {
 
           <div className="catalog-toolbar">
             <div>
-              <h2 id="catalog-results-title">{query ? `Matchs para “${query}”` : selectedCategoryIds.length > 1 ? 'Seu recorte de campanha' : selectedCategoryName || (profile === 'kits' ? 'Kits & combos' : profile === 'novos' ? 'Novos drops' : profile === 'destaques' ? 'Em alta' : 'Radar completo')}</h2>
+              <h2 id="catalog-results-title">{query ? `Matchs para “${query}”` : campaignCount > 0 ? 'Curadoria para o seu briefing' : selectedCategoryIds.length > 1 ? 'Seu recorte de campanha' : selectedCategoryName || (filterPanelProfile === 'kits' ? 'Kits & combos' : filterPanelProfile === 'novos' ? 'Novos drops' : filterPanelProfile === 'destaques' ? 'Destaques da curadoria' : 'Radar completo')}</h2>
               <p aria-live="polite" aria-atomic="true">{catalog.loading ? 'Buscando produtos…' : `${catalog.data.total.toLocaleString('pt-BR')} ${catalog.data.total === 1 ? 'produto encontrado' : 'produtos encontrados'}`}</p>
             </div>
             <label className="sort-control">Ordenar por
@@ -258,8 +336,9 @@ export default function CatalogPage() {
             <div className="active-filters" aria-label="Filtros aplicados">
               <span>Filtros:</span>
               {query && <button type="button" onClick={() => { setSearchInput(''); updateParams({ q: null }); }}>Busca: {query} <X size={14} /></button>}
+              {selectedCampaignLabels.map((item) => <button key={item.key} type="button" onClick={() => removeCampaignFilter(item.key)}>{item.label} <X size={14} /></button>)}
               {selectedCategoryIds.map((id) => <button key={id} type="button" onClick={() => toggleCategory(id)}>{categoryNameById.get(id) || 'Categoria'} <X size={14} /></button>)}
-              {profile !== 'todos' && <button type="button" onClick={() => updateParams({ perfil: null })}>{PROFILE_OPTIONS.find((item) => item.value === profile)?.label} <X size={14} /></button>}
+              {profileWasExplicitlySet && profile !== 'todos' && <button type="button" onClick={() => updateParams({ perfil: null })}>{PROFILE_OPTIONS.find((item) => item.value === profile)?.label} <X size={14} /></button>}
               {selectedColors.map((id) => <button key={id} type="button" onClick={() => toggleParamValue('cores', selectedColors, id)}>Cor: {filterLabel('color', id)} <X size={14} /></button>)}
               {selectedMaterials.map((id) => <button key={id} type="button" onClick={() => toggleParamValue('materiais', selectedMaterials, id)}>Material: {filterLabel('material', id)} <X size={14} /></button>)}
               {personalizable && <button type="button" onClick={() => updateParams({ personalizavel: null })}>Personalizável <X size={14} /></button>}
@@ -289,6 +368,7 @@ export default function CatalogPage() {
           )}
         </section>
       </div>
+      <div className="container catalog-faq-wrap"><ContextualFaq scope="catalog" /></div>
     </>
   );
 }

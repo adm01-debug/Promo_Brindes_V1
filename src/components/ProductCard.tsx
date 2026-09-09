@@ -44,6 +44,10 @@ export function ProductCard({ product, categoryName, priority = false }: Product
         <p className="product-card__description">
           {product.shortDescription || 'Personalize este produto para sua próxima ação de marca.'}
         </p>
+        <div className="product-card__decision-signals">
+          <span>{product.minQuantity > 1 ? `Mín. ${product.minQuantity.toLocaleString('pt-BR')} un.` : 'Quantidade flexível'}</span>
+          {product.colors.length > 0 && <span>{product.colors.length} {product.colors.length === 1 ? 'cor' : 'cores'}</span>}
+        </div>
         <div className="product-card__footer">
           <span className="consult-label">Proposta sob medida</span>
           <button

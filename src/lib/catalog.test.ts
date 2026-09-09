@@ -98,6 +98,7 @@ describe('catálogo público', () => {
       materials: ['aco-inox', 'bambu'],
       personalizable: true,
       giftPackaging: true,
+      maxMinQuantity: 200,
     });
     const and = params.get('and') || '';
 
@@ -108,7 +109,15 @@ describe('catálogo público', () => {
     expect(and).toContain('materials.cs."[\\"Aço Inox\\"]"');
     expect(params.get('allows_personalization')).toBe('eq.true');
     expect(params.get('has_gift_box')).toBe('eq.true');
+    expect(and).toContain('or(min_quantity.lte.200,min_quantity.is.null)');
     expect(params.has('stock_quantity')).toBe(false);
+  });
+
+  it('expande sinônimos dentro de OR sem transformar alternativas em exigências simultâneas', () => {
+    const and = buildCatalogParams({ search: 'power bank' }).get('and') || '';
+    expect(and).toContain('name.ilike.*powerbank*');
+    expect(and).toContain('name.ilike.*carregador portatil*');
+    expect(and.match(/or\(/g)).toHaveLength(1);
   });
 
   it('descarta IDs de categoria capazes de alterar a expressão PostgREST', () => {

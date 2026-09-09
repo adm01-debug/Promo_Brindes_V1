@@ -34,7 +34,7 @@ npm run test:e2e
 - O frontend não solicita preço, estoque, `supplier_id`, URL do fornecedor ou margem. Uma auditoria semântica encontrou, porém, origem comercial inferível em `brand`, `sku` e domínios de imagem; veja o relatório de validação.
 - O ID canônico é validado no cliente; uma URL externa incorreta não é aceita silenciosamente.
 
-O site não deve consumir tabelas Bronze/Silver, usar `service_role` no navegador nem importar o client do sistema interno. O superfiltro combina categorias hierárquicas, cores, materiais, personalização e embalagem; não usa estoque, preço ou fornecedor. Consulte [docs/UX_STRATEGY.md](docs/UX_STRATEGY.md), [docs/GEN_Z_RESEARCH.md](docs/GEN_Z_RESEARCH.md) e [docs/DATABASE_PUBLIC_CONTRACT.md](docs/DATABASE_PUBLIC_CONTRACT.md).
+O site não deve consumir tabelas Bronze/Silver, usar `service_role` no navegador nem importar o client do sistema interno. O superfiltro combina categorias hierárquicas, cores, materiais, personalização e embalagem; não usa estoque, preço ou fornecedor. A camada “Ache pelo briefing” converte momento, público, escala e clima apenas em filtros sustentados pelo contrato público. A busca expande um dicionário curado de sinônimos, sem IA externa nem envio do texto digitado. Consulte [docs/UX_STRATEGY.md](docs/UX_STRATEGY.md), [docs/GEN_Z_RESEARCH.md](docs/GEN_Z_RESEARCH.md), [docs/FREESHOP_BENCHMARK_20260909.md](docs/FREESHOP_BENCHMARK_20260909.md) e [docs/DATABASE_PUBLIC_CONTRACT.md](docs/DATABASE_PUBLIC_CONTRACT.md).
 
 ## Entrega de solicitações
 
@@ -62,7 +62,7 @@ O projeto inclui configuração para Vercel:
 
 Produção atual: <https://promo-brindes-v1.vercel.app>. O domínio próprio ainda exige configuração de DNS, associação na Vercel e redirecionamento canônico. Ao trocar o domínio, atualize `VITE_PUBLIC_URL`, `SITE_PUBLIC_ORIGIN`, `index.html` e `public/robots.txt` no mesmo deploy.
 
-Antes da divulgação ampla, confirme destinatário comercial, texto jurídico de privacidade e, caso analytics seja habilitado, o mecanismo de consentimento adequado.
+O Vercel Web Analytics registra pageviews anonimizadas e sem cookies. O middleware do site remove query strings e fragmentos das URLs; eventos personalizados seguem uma allowlist sem PII. Pageviews estão disponíveis em todos os planos da Vercel, enquanto eventos personalizados dependem de plano Pro ou Enterprise. Antes da divulgação ampla, confirme o destinatário comercial e a revisão jurídica final do aviso de privacidade.
 
 O estado detalhado da auditoria e das simulações está em [docs/AUDIT_REPORT_20260908.md](docs/AUDIT_REPORT_20260908.md). A implementação do banco isolado e suas evidências estão em [docs/SITE_SUPABASE_IMPLEMENTATION_REPORT_20260908.md](docs/SITE_SUPABASE_IMPLEMENTATION_REPORT_20260908.md).
 

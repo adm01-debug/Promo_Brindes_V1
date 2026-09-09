@@ -1,9 +1,11 @@
 import { lazy, Suspense, useEffect, useRef } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { QuoteCartProvider } from './context/QuoteCartContext';
 import HomePage from './pages/HomePage';
+import { redactAnalyticsUrl } from './lib/analytics';
 
 const CatalogPage = lazy(() => import('./pages/CatalogPage'));
 const ProductPage = lazy(() => import('./pages/ProductPage'));
@@ -38,6 +40,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <QuoteCartProvider>
+        <Analytics beforeSend={redactAnalyticsUrl} debug={false} />
         <ScrollManager />
         <AppErrorBoundary>
           <Layout>

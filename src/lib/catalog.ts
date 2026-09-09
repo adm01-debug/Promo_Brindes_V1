@@ -1,4 +1,5 @@
 import type { CatalogProduct, Category, ProductColor } from '../types';
+import { buildCatalogSearchGroups } from './search';
 import { isCatalogCategoryId, parseCatalogPage, resolveColorValues, resolveMaterialValues } from './catalogFilters';
 
 const CANONICAL_PROJECT_ID = 'doufsxqlfjyuvxuezpln';
@@ -133,6 +134,7 @@ export interface CatalogQuery {
   materials?: string[];
   personalizable?: boolean;
   giftPackaging?: boolean;
+  maxMinQuantity?: number;
   profile?: 'all' | 'featured' | 'new' | 'kits';
   sort?: 'curated' | 'newest' | 'name';
 }
@@ -311,13 +313,15 @@ export function buildCatalogParams(query: CatalogQuery = {}): URLSearchParams {
   }
 
   const search = sanitizeSearch(query.search ?? '');
-  if (search) {
-    const tokens = search.split(' ');
-    const meaningfulTokens = (tokens.length > 1 ? tokens.filter((token) => token.length >= 2) : tokens).slice(0, 8);
-    meaningfulTokens.forEach((token) => andGroups.push(
-      `or(name.ilike.*${token}*,sku.ilike.*${token}*,short_description.ilike.*${token}*,ai_title.ilike.*${token}*)`,
-    ));
-  }
+  buildCatalogSearchGroups(search).forEach((alternatives) => {
+    const fields = alternatives.flatMap((term) => [
+      `name.ilike.*${term}*`,
+      `sku.ilike.*${term}*`,
+      `short_description.ilike.*${term}*`,
+      `ai_title.ilike.*${term}*`,
+    ]);
+    andGroups.push(`or(${fields.join(',')})`);
+  });
 
   const colorValues = resolveColorValues(query.colors ?? []);
   if (colorValues.length) {
@@ -327,6 +331,11 @@ export function buildCatalogParams(query: CatalogQuery = {}): URLSearchParams {
   const materialValues = resolveMaterialValues(query.materials ?? []);
   if (materialValues.length) {
     andGroups.push(`or(${materialValues.map((value) => jsonContains('materials', value)).join(',')})`);
+  }
+
+  const maxMinQuantity = Math.trunc(query.maxMinQuantity ?? 0);
+  if (maxMinQuantity > 0 && maxMinQuantity <= 999_999) {
+    andGroups.push(`or(min_quantity.lte.${maxMinQuantity},min_quantity.is.null)`);
   }
 
   if (andGroups.length) params.set('and', `(${andGroups.join(',')})`);

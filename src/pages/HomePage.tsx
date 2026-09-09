@@ -13,21 +13,23 @@ import {
   MousePointer2,
   NotebookPen,
   Palette,
-  Search,
   Shapes,
   Shirt,
   Sparkles,
   Trophy,
   Zap,
 } from 'lucide-react';
-import { type FormEvent, type ReactNode, useMemo, useState } from 'react';
+import { type ReactNode, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { CatalogError, ProductGridSkeleton } from '../components/CatalogFeedback';
 import { ConversationForm } from '../components/ConversationForm';
+import { CampaignFinder } from '../components/CampaignFinder';
 import { FoldText } from '../components/FoldText';
 import { GlitchText } from '../components/GlitchText';
 import { ProductCard } from '../components/ProductCard';
+import { SearchAutocomplete } from '../components/SearchAutocomplete';
 import { Seo } from '../components/Seo';
+import { trackFunnelEvent } from '../lib/analytics';
 import { useCatalog, useCategories } from '../lib/hooks';
 import type { Category } from '../types';
 
@@ -65,9 +67,8 @@ export default function HomePage() {
   );
   const homepageCategories = curatedCategories(categories.data);
 
-  const submitSearch = (event: FormEvent) => {
-    event.preventDefault();
-    const query = search.trim();
+  const submitSearch = (query: string, suggestion = false) => {
+    trackFunnelEvent('search_started', { source: 'home', query_length: query.length, suggestion });
     navigate(query ? `/catalogo?q=${encodeURIComponent(query)}` : '/catalogo');
   };
 
@@ -133,18 +134,28 @@ export default function HomePage() {
             <Link className="button button--green button--large" to="/catalogo">Montar minha seleção <ArrowRight size={19} /></Link>
             <a className="button button--glass button--large" href="#drop-da-vez">Ver o drop da vez</a>
           </div>
-          <form className="hero-search" role="search" onSubmit={submitSearch}>
-            <Search size={21} aria-hidden="true" />
-            <label className="sr-only" htmlFor="hero-search">Buscar produtos</label>
-            <input id="hero-search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Busque camiseta, kit, squeeze, tech…" />
-            <button type="submit">Explorar <ArrowRight size={17} /></button>
-          </form>
-          <nav className="hero__quick-links" aria-label="Buscas em alta">
-            <span>Em alta:</span>
-            <Link to="/catalogo?perfil=kits">Kits de onboarding</Link>
-            <Link to="/catalogo?q=camiseta">Wearables</Link>
-            <Link to="/catalogo?q=carregador">Tech útil</Link>
-            <Link to="/catalogo?q=reciclado">Menor impacto</Link>
+          <SearchAutocomplete
+            variant="hero"
+            inputId="hero-search"
+            label="Buscar produtos"
+            value={search}
+            placeholder="Busque camiseta, kit, squeeze, tech…"
+            categories={categories.data}
+            onChange={setSearch}
+            onSubmit={(query) => submitSearch(query)}
+            onSelect={(suggestion) => {
+              trackFunnelEvent('search_started', { source: 'home', query_length: suggestion.value.length, suggestion: true });
+              navigate(suggestion.kind === 'category' && suggestion.categoryId
+                ? `/catalogo?categoria=${suggestion.categoryId}&nome=${encodeURIComponent(suggestion.label)}`
+                : `/catalogo?q=${encodeURIComponent(suggestion.value)}`);
+            }}
+          />
+          <nav className="hero__quick-links" aria-label="Sugestões de busca">
+            <span>Sugestões:</span>
+            <Link to="/catalogo?perfil=kits" onClick={() => trackFunnelEvent('search_started', { source: 'home', query_length: 0, suggestion: true })}>Kits de onboarding</Link>
+            <Link to="/catalogo?q=camiseta" onClick={() => trackFunnelEvent('search_started', { source: 'home', query_length: 8, suggestion: true })}>Wearables</Link>
+            <Link to="/catalogo?q=carregador" onClick={() => trackFunnelEvent('search_started', { source: 'home', query_length: 10, suggestion: true })}>Tech útil</Link>
+            <Link to="/catalogo?q=reciclado" onClick={() => trackFunnelEvent('search_started', { source: 'home', query_length: 9, suggestion: true })}>Menor impacto</Link>
           </nav>
         </div>
         <div className="hero__sticker" aria-hidden="true"><Zap /><strong>ideia</strong><span>vira impacto</span></div>
@@ -158,6 +169,8 @@ export default function HomePage() {
           <p><span>04</span> Receba uma proposta real</p>
         </div>
       </section>
+
+      <CampaignFinder />
 
       <section className="category-section section">
         <div className="container">

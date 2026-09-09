@@ -1,9 +1,11 @@
 import { ArrowLeft, ArrowRight, CheckCircle2, Mail, Minus, Plus, Send, ShieldCheck, ShoppingBag, Trash2 } from 'lucide-react';
-import { type FormEvent, useMemo, useRef, useState } from 'react';
+import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Seo } from '../components/Seo';
+import { ContextualFaq } from '../components/ContextualFaq';
 import { useQuoteCart } from '../context/QuoteCartContext';
 import { buildQuotePayload, submitQuoteRequest } from '../lib/quoteRequest';
+import { trackFunnelEvent } from '../lib/analytics';
 import { createClientRequestId } from '../lib/http';
 import { replaceBrokenProductImage } from '../lib/images';
 import type { QuoteContact } from '../types';
@@ -47,8 +49,15 @@ export default function QuotePage() {
   const formRef = useRef<HTMLFormElement>(null);
   const submittingRef = useRef(false);
   const requestIdentityRef = useRef<{ fingerprint: string; id: string } | null>(null);
+  const briefingTrackedRef = useRef(false);
   const totalUnits = useMemo(() => cart.items.reduce((sum, item) => sum + item.quantity, 0), [cart.items]);
   const minimumDeadline = localDateInputValue();
+
+  useEffect(() => {
+    if (briefingTrackedRef.current || cart.items.length === 0) return;
+    briefingTrackedRef.current = true;
+    trackFunnelEvent('briefing_started', { item_count: cart.items.length });
+  }, [cart.items.length]);
 
   function updateField<Key extends keyof QuoteContact>(key: Key, value: QuoteContact[Key]) {
     setContact((current) => ({ ...current, [key]: value }));
@@ -77,6 +86,7 @@ export default function QuotePage() {
       const payload = buildQuotePayload(contact, cart.items, undefined, undefined, requestIdentityRef.current.id);
       const result = await submitQuoteRequest(payload);
       if (result.mode === 'endpoint') {
+        trackFunnelEvent('quote_submitted', { item_count: cart.items.length, has_deadline: Boolean(contact.deadline) });
         requestIdentityRef.current = null;
         setSuccess({ mode: 'endpoint', requestId: result.requestId });
         cart.clear();
@@ -171,6 +181,7 @@ export default function QuotePage() {
           </form>
         </section>
       </div>
+      <div className="container quote-faq-wrap"><ContextualFaq scope="quote" /></div>
     </>
   );
 }

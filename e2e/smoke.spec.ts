@@ -117,10 +117,43 @@ test('manifesto transforma as frases da marca em uma narrativa com próximo pass
   await expect(page.locator('#conversa')).toBeInViewport();
 });
 
+test('ache pelo briefing transforma intenção em filtros explicáveis e compartilháveis', async ({ page }) => {
+  await page.goto('/');
+  const finder = page.locator('#ache-pelo-briefing');
+  await finder.getByRole('button', { name: /^Onboarding/ }).click();
+  await expect(finder.getByRole('heading', { name: 'Quem precisa ser encantado?' })).toBeVisible();
+  await finder.getByRole('button', { name: /^Colaboradores/ }).click();
+  await finder.getByRole('button', { name: /^51–200/ }).click();
+  await finder.getByRole('button', { name: /^Sustentável/ }).click();
+
+  const filteredRequest = page.waitForRequest((request) => {
+    const url = new URL(request.url());
+    return url.pathname.includes('products_public') && url.searchParams.get('is_kit') === 'eq.true';
+  });
+  await finder.getByRole('button', { name: 'Ver minha curadoria' }).click();
+  const requestUrl = new URL((await filteredRequest).url());
+  expect(requestUrl.searchParams.get('and')).toContain('min_quantity.lte.200');
+  expect(requestUrl.searchParams.get('and')).toContain('materials.cs."[\\"Reciclado\\"]"');
+  await expect(page).toHaveURL(/momento=onboarding.*publico=colaboradores.*escala=51-200.*clima=sustentavel/);
+  await expect(page.getByRole('heading', { name: 'Curadoria para o seu briefing' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Momento: Onboarding/ })).toBeVisible();
+});
+
+test('busca sugere linguagem do comprador e aceita teclado', async ({ page }) => {
+  await page.goto('/');
+  const search = page.locator('#hero-search');
+  await search.fill('onbo');
+  await expect(page.getByRole('option', { name: /Kits de onboarding/i })).toBeVisible();
+  await search.press('ArrowDown');
+  await search.press('Enter');
+  await expect(page).toHaveURL(/\/catalogo\?q=kit(?:\+|%20)boas-vindas/);
+});
+
 test('mostra produto sem estoque confiável e leva o cliente ao briefing sem checkout', async ({ page }) => {
   await page.goto('/catalogo');
   await expect(page.getByRole('heading', { name: 'Seu moodboard começa aqui.' })).toBeVisible();
   await expect(page.getByText('1 produto encontrado')).toBeVisible();
+  await expect(page.getByText('Mín. 50 un.').first()).toBeVisible();
   await page.getByRole('link', { name: /Mochila Executiva Sustentável/i }).first().click();
   await expect(page.getByRole('heading', { name: product.name })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Azul' })).toBeVisible();
@@ -133,6 +166,15 @@ test('mostra produto sem estoque confiável e leva o cliente ao briefing sem che
   await waitForRoute(page);
   const briefingA11y = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
   expect(briefingA11y.violations, 'Violações no briefing preenchível').toEqual([]);
+});
+
+test('FAQ contextual esclarece limites sem inventar preço ou estoque', async ({ page }) => {
+  await page.goto('/catalogo');
+  await page.getByText('Por que os produtos não mostram preço?').click();
+  await expect(page.getByText(/quantidade, técnica de personalização/i)).toBeVisible();
+  await page.getByRole('link', { name: /Mochila Executiva Sustentável/i }).first().click();
+  await page.getByText('Como descubro se minha logo funciona neste produto?').click();
+  await expect(page.getByText(/área disponível, quantidade de cores/i)).toBeVisible();
 });
 
 test('menu e busca permanecem utilizáveis em tela móvel', async ({ page }, testInfo) => {

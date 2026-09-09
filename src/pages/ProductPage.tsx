@@ -12,13 +12,15 @@ import {
   Sparkles,
   Weight,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { CatalogError, ProductGridSkeleton } from '../components/CatalogFeedback';
 import { ProductCard } from '../components/ProductCard';
+import { ContextualFaq } from '../components/ContextualFaq';
 import { Seo } from '../components/Seo';
 import { useQuoteCart } from '../context/QuoteCartContext';
 import { defaultQuoteQuantity } from '../lib/catalog';
+import { trackFunnelEvent } from '../lib/analytics';
 import { useCatalog, useCategories, useProduct } from '../lib/hooks';
 import { replaceBrokenProductImage } from '../lib/images';
 import type { CatalogProduct, ProductColor } from '../types';
@@ -47,11 +49,21 @@ export default function ProductPage() {
   const [activeImage, setActiveImage] = useState(0);
   const [selectedColor, setSelectedColor] = useState<ProductColor | undefined>();
   const [quantity, setQuantity] = useState(100);
+  const trackedProductRef = useRef('');
 
   useEffect(() => {
     setActiveImage(0);
     setSelectedColor(undefined);
     if (product) setQuantity(defaultQuoteQuantity(product));
+  }, [product]);
+
+  useEffect(() => {
+    if (!product || trackedProductRef.current === product.id) return;
+    trackedProductRef.current = product.id;
+    trackFunnelEvent('product_viewed', {
+      product_id: product.id,
+      category_id: product.mainCategoryId || product.categoryId || 'nao-informada',
+    });
   }, [product]);
 
   const categoryName = categories.data.find((category) => category.id === product?.mainCategoryId)?.name;
@@ -172,6 +184,8 @@ export default function ProductPage() {
             {product.hasCommercialPackaging && <div><span><PackageCheck /></span><small>Apresentação</small><strong>Embalagem individual</strong></div>}
           </div>
         </section>
+
+        <ContextualFaq scope="product" />
 
         <section className="related-section section" aria-labelledby="related-title">
           <div className="section-heading section-heading--split"><div><span className="section-kicker">Continue o moodboard</span><h2 id="related-title">Ideias que podem entrar no mesmo conceito.</h2></div><Link className="text-link" to="/catalogo">Abrir radar <ArrowRight size={17} /></Link></div>
