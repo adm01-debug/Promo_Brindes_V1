@@ -11,12 +11,14 @@ import {
 import { defaultQuoteQuantity } from '../lib/catalog';
 import { trackFunnelEvent } from '../lib/analytics';
 import { clampQuoteQuantity, MAX_QUOTE_ITEMS, normalizeQuoteItems } from '../lib/quoteItems';
-import type { CatalogProduct, ProductColor, QuoteItem } from '../types';
+import { normalizeCampaignBrief } from '../lib/campaignBrief';
+import type { CampaignBrief, CatalogProduct, ProductColor, QuoteItem } from '../types';
 
 const STORAGE_KEY = 'promo-brindes:quote-selection:v1';
 
 interface CartState {
   items: QuoteItem[];
+  campaign?: CampaignBrief;
 }
 
 type CartAction =
@@ -24,7 +26,9 @@ type CartAction =
   | { type: 'remove'; key: string }
   | { type: 'quantity'; key: string; quantity: number }
   | { type: 'clear' }
-  | { type: 'replace'; items: QuoteItem[] };
+  | { type: 'reset' }
+  | { type: 'replace'; items: QuoteItem[] }
+  | { type: 'campaign'; campaign?: CampaignBrief };
 
 const initialState: CartState = { items: [] };
 
@@ -32,7 +36,12 @@ function loadInitialState(): CartState {
   if (typeof window === 'undefined') return initialState;
   try {
     const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || '[]') as unknown;
-    return { items: normalizeQuoteItems(parsed) };
+    if (Array.isArray(parsed)) return { items: normalizeQuoteItems(parsed) };
+    if (parsed && typeof parsed === 'object') {
+      const stored = parsed as { items?: unknown; campaign?: unknown };
+      return { items: normalizeQuoteItems(stored.items), campaign: normalizeCampaignBrief(stored.campaign) };
+    }
+    return initialState;
   } catch {
     return initialState;
   }
@@ -64,9 +73,14 @@ export function cartReducer(state: CartState, action: CartAction): CartState {
         ),
       };
     case 'clear':
+      return { ...state, items: [] };
+    case 'reset':
       return initialState;
     case 'replace':
-      return { items: normalizeQuoteItems(action.items) };
+      return { ...state, items: normalizeQuoteItems(action.items) };
+    case 'campaign':
+      if (JSON.stringify(state.campaign) === JSON.stringify(action.campaign)) return state;
+      return { ...state, campaign: action.campaign };
     default:
       return state;
   }
@@ -74,6 +88,7 @@ export function cartReducer(state: CartState, action: CartAction): CartState {
 
 interface QuoteCartValue {
   items: QuoteItem[];
+  campaign?: CampaignBrief;
   itemCount: number;
   drawerOpen: boolean;
   setDrawerOpen: (open: boolean) => void;
@@ -81,7 +96,12 @@ interface QuoteCartValue {
   removeItem: (key: string) => void;
   updateQuantity: (key: string, quantity: number) => void;
   replaceItems: (items: QuoteItem[]) => void;
+  setCampaign: (campaign?: CampaignBrief) => void;
   clear: () => void;
+  reset: () => void;
+  canUndoClear: boolean;
+  restoreLastClear: () => void;
+  dismissLastClear: () => void;
 }
 
 const QuoteCartContext = createContext<QuoteCartValue | null>(null);
@@ -89,26 +109,39 @@ const QuoteCartContext = createContext<QuoteCartValue | null>(null);
 export function QuoteCartProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(cartReducer, undefined, loadInitialState);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [lastCleared, setLastCleared] = useState<CartState | null>(null);
+
+  useEffect(() => {
+    if (!lastCleared) return;
+    const timeout = window.setTimeout(() => setLastCleared(null), 8_000);
+    return () => window.clearTimeout(timeout);
+  }, [lastCleared]);
 
   useEffect(() => {
     try {
-      if (state.items.length) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state.items));
+      if (state.items.length || state.campaign) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       else window.localStorage.removeItem(STORAGE_KEY);
     } catch {
       // Private browsing or a full storage quota must not block the quote journey.
     }
-  }, [state.items]);
+  }, [state]);
 
   useEffect(() => {
     const sync = (event: StorageEvent) => {
       if (event.key !== STORAGE_KEY) return;
       if (!event.newValue) {
-        dispatch({ type: 'clear' });
+        dispatch({ type: 'reset' });
+        setLastCleared(null);
         return;
       }
       try {
         const value = JSON.parse(event.newValue) as unknown;
         if (Array.isArray(value)) dispatch({ type: 'replace', items: normalizeQuoteItems(value) });
+        else if (value && typeof value === 'object') {
+          const stored = value as { items?: unknown; campaign?: unknown };
+          dispatch({ type: 'replace', items: normalizeQuoteItems(stored.items) });
+          dispatch({ type: 'campaign', campaign: normalizeCampaignBrief(stored.campaign) });
+        }
       } catch {
         // Ignore malformed data from another tab.
       }
@@ -148,6 +181,7 @@ export function QuoteCartProvider({ children }: { children: ReactNode }) {
   const value = useMemo<QuoteCartValue>(
     () => ({
       items: state.items,
+      campaign: state.campaign,
       itemCount: state.items.length,
       drawerOpen,
       setDrawerOpen,
@@ -155,9 +189,25 @@ export function QuoteCartProvider({ children }: { children: ReactNode }) {
       removeItem: (key) => dispatch({ type: 'remove', key }),
       updateQuantity: (key, quantity) => dispatch({ type: 'quantity', key, quantity }),
       replaceItems: (items) => dispatch({ type: 'replace', items }),
-      clear: () => dispatch({ type: 'clear' }),
+      setCampaign: (campaign) => dispatch({ type: 'campaign', campaign: normalizeCampaignBrief(campaign) }),
+      clear: () => {
+        if (state.items.length) setLastCleared(state);
+        dispatch({ type: 'clear' });
+      },
+      reset: () => {
+        setLastCleared(null);
+        dispatch({ type: 'reset' });
+      },
+      canUndoClear: Boolean(lastCleared),
+      restoreLastClear: () => {
+        if (!lastCleared) return;
+        dispatch({ type: 'replace', items: lastCleared.items });
+        dispatch({ type: 'campaign', campaign: lastCleared.campaign });
+        setLastCleared(null);
+      },
+      dismissLastClear: () => setLastCleared(null),
     }),
-    [addProduct, drawerOpen, state.items],
+    [addProduct, drawerOpen, lastCleared, state],
   );
 
   return <QuoteCartContext.Provider value={value}>{children}</QuoteCartContext.Provider>;

@@ -1,0 +1,146 @@
+[
+  {
+    "event": "material-state",
+    "checked": true
+  },
+  {
+    "event": "mobile-filter-combination",
+    "url": "https://promo-brindes-v1.vercel.app/catalogo?cores=vermelho&materiais=plastico",
+    "results": "Radar completo\n\n410 produtos encontrados\n\nOrdenar por\nCuradoria Promo\nMais recentes\nNome A–Z",
+    "filters": "Filtros:\nCor: Vermelho\nMaterial: Plástico\nLimpar todos"
+  },
+  {
+    "event": "filters-after-reload",
+    "filters": "Filtros:\nCor: Vermelho\nMaterial: Plástico\nLimpar todos"
+  },
+  {
+    "event": "mobile-comparison-two",
+    "tableVisible": true,
+    "text": "COMPARAÇÃO LOCAL\n2 de 3 referências lado a lado\nOcultar comparação\nLimpar comparação\nAgenda diária 2026\n\nCód. 02469 · mín. 10 un.\n\nAmassador de temperos em bambu quadrado\n\nCód. TE-00953 · quantidade a confirmar\n\nComparação de informações publicadas no catálogo\nCritério\tAgenda diária 2026\tAmassador de temperos em bambu quadrado\nQuantidade mínima\t10 un.\tA confirmar\nPersonalização\tConsulte nosso time de especialistas\tA confirmar com o briefing\nCores publicadas\t1 opção\t1 opção\nMateriais publicados\tCartão\tBambu, Madeira"
+  },
+  {
+    "event": "selection-reload",
+    "count": 1
+  },
+  {
+    "event": "clear-selection",
+    "items": 0,
+    "confirmation": 1,
+    "undo": 0
+  },
+  {
+    "event": "library-theme",
+    "count": "10\nCATÁLOGOS ENCONTRADOS",
+    "names": [
+      "Novos drops",
+      "Tech que resolve",
+      "Kits prontos para combinar"
+    ]
+  },
+  {
+    "event": "library-copy",
+    "button": "Compartilhar",
+    "clipboard": "https://promo-brindes-v1.vercel.app/catalogo?perfil=novos"
+  },
+  {
+    "event": "library-empty",
+    "text": "ZERO MATCH\nEssa estante ainda não tem esse tema.\n\nLimpe os filtros ou conte a ideia para nosso time de especialistas montar uma direção.\n\nVer todos\nFalar com especialistas"
+  },
+  {
+    "event": "occasion-reload",
+    "saved": "15 DE SET.\nDia do Cliente"
+  },
+  {
+    "event": "occasion-next-year",
+    "url": "https://promo-brindes-v1.vercel.app/datas-comemorativas?ano=2027&mes=9&visualizacao=calendario",
+    "saved": "15 DE SET.\nDia do Cliente"
+  },
+  {
+    "event": "axe-mobile",
+    "route": "/",
+    "violations": []
+  },
+  {
+    "event": "axe-mobile",
+    "route": "/catalogo",
+    "violations": []
+  },
+  {
+    "event": "axe-mobile",
+    "route": "/datas-comemorativas",
+    "violations": []
+  },
+  {
+    "event": "axe-mobile",
+    "route": "/entrar",
+    "violations": []
+  },
+  {
+    "event": "reduced-motion",
+    "headingAccessible": 1,
+    "fold": [
+      {
+        "transform": "none",
+        "opacity": "1"
+      },
+      {
+        "transform": "none",
+        "opacity": "1"
+      },
+      {
+        "transform": "none",
+        "opacity": "1"
+      },
+      {
+        "transform": "none",
+        "opacity": "1"
+      },
+      {
+        "transform": "none",
+        "opacity": "1"
+      },
+      {
+        "transform": "none",
+        "opacity": "1"
+      },
+      {
+        "transform": "none",
+        "opacity": "1"
+      },
+      {
+        "transform": "none",
+        "opacity": "1"
+      }
+    ]
+  },
+  {
+    "event": "initial-html-social",
+    "route": "/",
+    "og": [
+      "<meta property=\"og:title\" content=\"Promo Brindes | Brindes corporativos personalizados\" />",
+      "<meta property=\"og:description\" content=\"Brindes corporativos personalizados para campanhas, eventos, reconhecimento e relacionamento.\" />",
+      "<meta property=\"og:image\" content=\"https://promo-brindes-v1.vercel.app/images/hero-gen-z-v2.webp\" />"
+    ],
+    "title": "Promo Brindes | Brindes corporativos personalizados"
+  },
+  {
+    "event": "initial-html-social",
+    "route": "/produto/agenda-diaria-2026-02469",
+    "og": [
+      "<meta property=\"og:title\" content=\"Promo Brindes | Brindes corporativos personalizados\" />",
+      "<meta property=\"og:description\" content=\"Brindes corporativos personalizados para campanhas, eventos, reconhecimento e relacionamento.\" />",
+      "<meta property=\"og:image\" content=\"https://promo-brindes-v1.vercel.app/images/hero-gen-z-v2.webp\" />"
+    ],
+    "title": "Promo Brindes | Brindes corporativos personalizados"
+  },
+  {
+    "event": "initial-html-social",
+    "route": "/datas-comemorativas",
+    "og": [
+      "<meta property=\"og:title\" content=\"Promo Brindes | Brindes corporativos personalizados\" />",
+      "<meta property=\"og:description\" content=\"Brindes corporativos personalizados para campanhas, eventos, reconhecimento e relacionamento.\" />",
+      "<meta property=\"og:image\" content=\"https://promo-brindes-v1.vercel.app/images/hero-gen-z-v2.webp\" />"
+    ],
+    "title": "Promo Brindes | Brindes corporativos personalizados"
+  }
+]

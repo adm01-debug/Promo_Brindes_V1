@@ -81,10 +81,10 @@ export function ProductCard({ product, categoryName, priority = false, compariso
               className={`button button--compact ${selected ? 'button--selected' : 'button--dark'}`}
               type="button"
               onClick={() => selected ? cart.setDrawerOpen(true) : cart.addProduct(product)}
-              aria-label={`${selected ? 'Revisar' : 'Salvar'} ${product.name} nos saves`}
+              aria-label={`${selected ? 'Revisar' : 'Adicionar'} ${product.name} à seleção`}
             >
               {selected ? <Check size={17} /> : <Plus size={17} />}
-              {selected ? 'Salvo' : 'Salvar'}
+              {selected ? 'Na seleção' : 'Adicionar'}
             </button>
           </div>
         </div>

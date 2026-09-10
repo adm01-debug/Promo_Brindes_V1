@@ -5,7 +5,7 @@ import { buildContactPayload, submitContactRequest } from '../lib/contactRequest
 import { clearSubmissionAttempt, getOrCreateSubmissionAttempt } from '../lib/http';
 import type { ContactLead } from '../types';
 
-const initialLead: ContactLead = { name: '', email: '', phone: '', privacyAccepted: false };
+const initialLead: ContactLead = { name: '', email: '', phone: '', message: '', privacyAccepted: false };
 
 function formatPhone(value: string): string {
   const digits = value.replace(/\D/g, '').slice(0, 11);
@@ -102,6 +102,11 @@ export function ConversationForm() {
               <label htmlFor="conversation-phone">Telefone / WhatsApp <span>opcional</span></label>
               <input id="conversation-phone" name="phone" type="tel" inputMode="tel" autoComplete="tel" maxLength={16} value={lead.phone} onChange={(event) => updateField('phone', formatPhone(event.target.value))} aria-invalid={Boolean(errors.phone)} aria-describedby={errors.phone ? 'conversation-phone-error' : undefined} />
               {errors.phone && <span id="conversation-phone-error" className="conversation-field__error">{errors.phone}</span>}
+            </div>
+            <div className="conversation-field conversation-field--wide">
+              <label htmlFor="conversation-message">O que você quer fazer acontecer? <span>opcional</span></label>
+              <textarea id="conversation-message" name="message" rows={4} maxLength={800} placeholder="Ex.: precisamos de um kit para o evento de fim de ano, para cerca de 200 pessoas…" value={lead.message} onChange={(event) => updateField('message', event.target.value)} />
+              <small>{lead.message.length}/800</small>
             </div>
           </div>
 

@@ -1993,6 +1993,67 @@ p {
   gap: 7px;
 }
 
+.product-gallery__zoom {
+  position: absolute;
+  right: 15px;
+  bottom: 15px;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 11px;
+  color: #fff;
+  background: rgb(20 24 22 / 0.88);
+  border: 1px solid rgb(255 255 255 / 0.7);
+  border-radius: 999px;
+  font-size: 0.64rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.product-image-dialog-backdrop {
+  position: fixed;
+  z-index: 120;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgb(10 13 12 / 0.88);
+}
+
+.product-image-dialog {
+  position: relative;
+  max-width: min(92vw, 1000px);
+  max-height: 92vh;
+  display: grid;
+  place-items: center;
+}
+
+.product-image-dialog img {
+  max-width: 100%;
+  max-height: 88vh;
+  padding: 18px;
+  background: #f4f2ec;
+  border-radius: 14px;
+  object-fit: contain;
+}
+
+.product-image-dialog button {
+  position: absolute;
+  z-index: 1;
+  top: -12px;
+  right: -12px;
+  width: 42px;
+  height: 42px;
+  color: #fff;
+  background: var(--ink);
+  border: 1px solid #fff;
+  border-radius: 50%;
+  font-size: 1.8rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
 .product-gallery__thumbs {
   display: flex;
   gap: 9px;
@@ -2813,6 +2874,26 @@ p {
   position: relative;
 }
 
+.quote-campaign-context {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 22px;
+  align-items: center;
+  margin: 0 0 24px;
+  padding: 18px 20px;
+  color: var(--ink);
+  background: #e9f8ee;
+  border: 1px solid #a9dcb8;
+  border-radius: 12px;
+}
+
+.quote-campaign-context > div { display: grid; gap: 4px; }
+.quote-campaign-context span { color: var(--green-dark); font-size: 0.62rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.quote-campaign-context strong { font-family: 'Space Grotesk', 'Inter', sans-serif; font-size: 1.05rem; }
+.quote-campaign-context p { max-width: 610px; margin: 0; color: #3c5844; font-size: 0.69rem; line-height: 1.55; }
+.quote-campaign-context ul { max-width: 280px; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.quote-campaign-context li { padding: 6px 9px; background: #fff; border: 1px solid #b8d7c0; border-radius: 999px; font-size: 0.63rem; font-weight: 700; }
+
 .honeypot {
   position: absolute;
   left: -9999px;
@@ -2844,7 +2925,8 @@ p {
 }
 
 .form-field input,
-.form-field textarea {
+.form-field textarea,
+.form-field select {
   width: 100%;
   min-height: 51px;
   padding: 12px 14px;
@@ -2862,8 +2944,17 @@ p {
   line-height: 1.55;
 }
 
+.form-field select { appearance: auto; cursor: pointer; }
+
+.form-field small:not(.char-count) {
+  color: var(--muted);
+  font-size: 0.62rem;
+  line-height: 1.45;
+}
+
 .form-field input:focus,
-.form-field textarea:focus {
+.form-field textarea:focus,
+.form-field select:focus {
   background: #fff;
   border-color: var(--blue);
   box-shadow: 0 0 0 3px rgb(0 133 202 / 0.14);
@@ -2963,6 +3054,40 @@ p {
   color: var(--muted);
   font-size: 0.66rem;
 }
+
+.selection-undo {
+  position: fixed;
+  z-index: 100;
+  right: 22px;
+  bottom: 22px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 50px;
+  padding: 9px 10px 9px 15px;
+  color: #fff;
+  background: var(--ink);
+  border: 1px solid #fff;
+  border-radius: 999px;
+  box-shadow: 5px 5px 0 var(--blue);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.selection-undo button {
+  min-height: 32px;
+  display: inline-grid;
+  place-items: center;
+  color: var(--ink);
+  background: var(--acid);
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.selection-undo button:first-of-type { padding: 0 12px; }
+.selection-undo button:last-child { width: 32px; color: #fff; background: transparent; }
 
 .empty-quote,
 .success-page,
@@ -3562,6 +3687,8 @@ p {
   .quote-item__remove { grid-column: 3; grid-row: 1; }
   .form-grid { grid-template-columns: 1fr; }
   .form-field--wide { grid-column: auto; }
+  .quote-campaign-context { grid-template-columns: 1fr; }
+  .quote-campaign-context ul { max-width: none; justify-content: flex-start; }
   .quote-submit { align-items: stretch; flex-direction: column; }
   .about-intro__grid { grid-template-columns: 1fr; }
   .about-steps { grid-template-columns: 1fr; }
@@ -3610,6 +3737,7 @@ p {
   .drawer-item .quantity-control { grid-template-columns: 30px 62px 30px; }
   .quote-items,
   .quote-form-section { padding: 18px 14px; border-radius: 14px; }
+  .selection-undo { right: 12px; bottom: 76px; }
   .quote-section-heading { align-items: flex-start; }
   .quote-section-heading > button { align-self: center; }
   .footer-grid { grid-template-columns: 1fr; }
@@ -5259,7 +5387,8 @@ p {
   text-transform: none;
 }
 
-.conversation-field input {
+.conversation-field input,
+.conversation-field textarea {
   width: 100%;
   min-height: 52px;
   padding: 5px 12px 11px;
@@ -5273,6 +5402,9 @@ p {
   font-size: clamp(1rem, 1.6vw, 1.2rem);
 }
 
+.conversation-field textarea { min-height: 100px; resize: vertical; line-height: 1.5; }
+.conversation-field small { color: rgb(255 255 255 / 0.55); font-size: 0.6rem; text-align: right; }
+
 .conversation-field input:-webkit-autofill,
 .conversation-field input:-webkit-autofill:hover,
 .conversation-field input:-webkit-autofill:focus {
@@ -5280,7 +5412,8 @@ p {
   box-shadow: 0 0 0 1000px #552080 inset;
 }
 
-.conversation-field:has(input[aria-invalid='true']) {
+.conversation-field:has(input[aria-invalid='true']),
+.conversation-field:has(textarea[aria-invalid='true']) {
   border-bottom-color: var(--acid);
 }
 
@@ -5413,7 +5546,13 @@ p {
   box-shadow: 7px 7px 0 var(--ink);
 }
 
-.search-suggestions.is-open { display: grid; }
+.search-suggestions.is-open { display: grid; pointer-events: auto; }
+
+/* Reforça o estado fechado contra regras legadas de `.catalog-search > div`.
+   Sem isso, o listbox invisível ainda ocupava espaço e interceptava atalhos. */
+form.catalog-search > .search-suggestions { display: none; pointer-events: none; }
+
+form.catalog-search > .search-suggestions.is-open { display: grid; pointer-events: auto; }
 
 .search-suggestions button {
   width: 100%;
@@ -5735,6 +5874,10 @@ p {
 .customer-auth-tabs button[aria-pressed='true'] { color: var(--white); background: var(--ink); }
 .customer-auth-card form { display: grid; gap: 18px; }
 .customer-auth-card .form-field input, .customer-password .form-field input { width: 100%; height: 52px; padding: 0 15px; border: 1.5px solid var(--ink); border-radius: 12px; background: var(--white); font: inherit; }
+.password-field { position: relative; }
+.password-field input { padding-right: 54px !important; }
+.password-field button { position: absolute; top: 4px; right: 4px; width: 44px; height: 44px; display: grid; place-items: center; color: var(--ink); background: transparent; border: 0; border-radius: 9px; cursor: pointer; }
+.password-field button:hover, .password-field button:focus-visible { background: #e9efe7; }
 .customer-auth-card .form-field small { display: block; margin-top: 6px; color: var(--muted); font-size: .7rem; }
 .customer-auth-message { display: flex; gap: 9px; padding: 13px; border: 1px solid #77a48a; border-radius: 12px; color: #173e2a; background: #d8f5e3; font-size: .76rem; line-height: 1.5; }
 .customer-auth-message svg { flex: 0 0 auto; }

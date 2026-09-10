@@ -32,7 +32,7 @@ describe('solicitação de orçamento', () => {
   });
 
   it('separa o consentimento do contato e registra versão e instante', () => {
-    const payload = buildQuotePayload(contact, items, 'https://site.test/orcamento', '2026-09-08T12:00:00.000Z', 'request-quote-1');
+    const payload = buildQuotePayload(contact, items, 'https://site.test/orcamento', '2026-09-08T12:00:00.000Z', 'request-quote-1', { source: 'finder', moment: 'onboarding', audience: 'colaboradores' }, { actionName: 'Boas-vindas 2026', budgetRange: '51-100', responseChannel: 'whatsapp' });
     expect(payload.contact).not.toHaveProperty('privacyAccepted');
     expect(payload).toMatchObject({
       source: 'site-promo-brindes',
@@ -40,6 +40,8 @@ describe('solicitação de orçamento', () => {
       pageUrl: 'https://site.test/orcamento',
       consent: { accepted: true, noticeVersion: '2026-09-08', acceptedAt: '2026-09-08T12:00:00.000Z' },
       clientRequestId: 'request-quote-1',
+      campaign: { source: 'finder', moment: 'onboarding', audience: 'colaboradores' },
+      briefing: { actionName: 'Boas-vindas 2026', budgetRange: '51-100', responseChannel: 'whatsapp' },
     });
   });
 
@@ -49,6 +51,11 @@ describe('solicitação de orçamento', () => {
     expect(decodeURIComponent(href)).toContain('Olá, time de especialistas da Promo Brindes!');
     expect(decodeURIComponent(href)).toContain('Mochila Executiva — cód. MO-42 — 250 un. — cor: Verde');
     expect(decodeURIComponent(href)).toContain('Empresa: Empresa Exemplo');
+  });
+
+  it('não transmite um complemento opcional vazio ou manipulado', () => {
+    const payload = buildQuotePayload(contact, items, undefined, undefined, undefined, undefined, { budgetRange: 'forjado' as never });
+    expect(payload.briefing).toBeUndefined();
   });
 
   it('bloqueia endpoint sem HTTPS antes de transmitir dados pessoais', async () => {

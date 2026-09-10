@@ -14,7 +14,8 @@
     { "source": "/auth/confirm", "destination": "/index.html" },
     { "source": "/definir-senha", "destination": "/index.html" },
     { "source": "/minha-conta", "destination": "/index.html" },
-    { "source": "/minha-conta/orcamentos/:id", "destination": "/index.html" }
+    { "source": "/minha-conta/orcamentos/:id", "destination": "/index.html" },
+    { "source": "/:path((?!api/|assets/|images/|brand/|sitemap\\.xml$|robots\\.txt$).*)", "destination": "/index.html" }
   ],
   "headers": [
     {

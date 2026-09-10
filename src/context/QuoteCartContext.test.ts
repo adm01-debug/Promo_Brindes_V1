@@ -38,6 +38,13 @@ describe('seleção para orçamento', () => {
     expect(state.items).toEqual([other]);
   });
 
+  it('limpa a seleção sem perder a direção de campanha e permite reset completo após envio', () => {
+    const campaign = { source: 'finder' as const, moment: 'onboarding' as const };
+    const cleared = cartReducer({ items: [item], campaign }, { type: 'clear' });
+    expect(cleared).toEqual({ items: [], campaign });
+    expect(cartReducer(cleared, { type: 'reset' })).toEqual({ items: [] });
+  });
+
   it('normaliza storage corrompido, remove extras e consolida duplicatas', () => {
     const values = [
       { ...item, key: 'forjado', quantity: -777, admin: true },

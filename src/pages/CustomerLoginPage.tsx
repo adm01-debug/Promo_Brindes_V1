@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle2, KeyRound, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Eye, EyeOff, KeyRound, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { Seo } from '../components/Seo';
@@ -26,6 +26,7 @@ export default function CustomerLoginPage() {
   const [mode, setMode] = useState<AccessMode>('email');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [code, setCode] = useState('');
   const [codeSent, setCodeSent] = useState(false);
   const [message, setMessage] = useState('');
@@ -37,6 +38,10 @@ export default function CustomerLoginPage() {
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (!siteSupabase || sending) return;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError('Informe um e-mail válido para continuar.');
+      return;
+    }
     setSending(true);
     setError('');
     setMessage('');
@@ -110,7 +115,7 @@ export default function CustomerLoginPage() {
         {(mode === 'email' || mode === 'password') && <div className="customer-auth-tabs" aria-label="Forma de acesso"><button type="button" aria-pressed={mode === 'email'} onClick={() => { setMode('email'); setError(''); }}>Link ou código</button><button type="button" aria-pressed={mode === 'password'} onClick={() => { setMode('password'); setError(''); }}>Senha</button></div>}
         <form onSubmit={(event) => void submit(event)} noValidate>
           <div className="form-field"><label htmlFor="customer-email">E-mail</label><input id="customer-email" name="email" type="email" inputMode="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} /></div>
-          {(mode === 'password' || mode === 'create') && <div className="form-field"><label htmlFor="customer-password">Senha</label><input id="customer-password" name="password" type="password" autoComplete={mode === 'create' ? 'new-password' : 'current-password'} minLength={8} required value={password} onChange={(event) => setPassword(event.target.value)} /><small>Mínimo de 8 caracteres.</small></div>}
+          {(mode === 'password' || mode === 'create') && <div className="form-field"><label htmlFor="customer-password">Senha</label><div className="password-field"><input id="customer-password" name="password" type={passwordVisible ? 'text' : 'password'} autoComplete={mode === 'create' ? 'new-password' : 'current-password'} minLength={8} required value={password} onChange={(event) => setPassword(event.target.value)} /><button type="button" onClick={() => setPasswordVisible((visible) => !visible)} aria-label={passwordVisible ? 'Ocultar senha' : 'Mostrar senha'}>{passwordVisible ? <EyeOff size={18} /> : <Eye size={18} />}</button></div><small>Mínimo de 8 caracteres.</small></div>}
           {mode === 'email' && codeSent && <div className="form-field"><label htmlFor="customer-code">Código recebido <span>opcional se usar o link</span></label><input id="customer-code" name="one-time-code" inputMode="numeric" autoComplete="one-time-code" maxLength={8} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, ''))} /></div>}
           {error && <div className="submit-error" role="alert">{error}</div>}
           {message && <div className="customer-auth-message" role="status"><Mail aria-hidden="true" /> {message}</div>}

@@ -1,6 +1,8 @@
-import type { QuoteContact, QuoteItem, QuoteRequestPayload } from '../types';
+import type { CampaignBrief, QuoteBriefingDetails, QuoteContact, QuoteItem, QuoteRequestPayload } from '../types';
 import { createClientRequestId, postJson } from './http';
 import { normalizeQuoteItems } from './quoteItems';
+import { normalizeQuoteBriefing, quoteBriefingSummary } from './quoteBriefing';
+import { campaignBriefLabels } from './campaignBrief';
 
 const DEFAULT_CONTACT_EMAIL = 'adm01@promobrindes.com.br';
 
@@ -10,11 +12,16 @@ export function buildQuotePayload(
   pageUrl = typeof window === 'undefined' ? '' : window.location.href,
   submittedAt = new Date().toISOString(),
   clientRequestId = createClientRequestId(),
+  campaign?: CampaignBrief,
+  briefing?: QuoteBriefingDetails,
 ): QuoteRequestPayload {
   const { privacyAccepted: _privacyAccepted, ...safeContact } = contact;
+  const normalizedBriefing = normalizeQuoteBriefing(briefing);
   return {
     contact: safeContact,
     items: normalizeQuoteItems(items),
+    ...(campaign ? { campaign } : {}),
+    ...(normalizedBriefing ? { briefing: normalizedBriefing } : {}),
     consent: { accepted: contact.privacyAccepted, noticeVersion: '2026-09-08', acceptedAt: submittedAt },
     source: 'site-promo-brindes',
     submittedAt,
@@ -40,6 +47,8 @@ export function buildEmailHref(payload: QuoteRequestPayload, email = DEFAULT_CON
     `Telefone: ${payload.contact.phone}`,
     payload.contact.city ? `Cidade/UF: ${payload.contact.city}` : '',
     payload.contact.deadline ? `Prazo desejado: ${payload.contact.deadline}` : '',
+    ...campaignBriefLabels(payload.campaign).map((label) => `Direção da campanha: ${label}`),
+    ...quoteBriefingSummary(payload.briefing),
     payload.contact.notes ? `Observações: ${payload.contact.notes}` : '',
     '',
     'Aguardo o contato. Obrigado!',

@@ -250,7 +250,7 @@ test('busca sugere linguagem do comprador e aceita teclado', async ({ page }) =>
 
 test('mostra produto sem estoque confiável e leva o cliente ao briefing sem checkout', async ({ page }) => {
   await page.goto('/catalogo');
-  await expect(page.getByRole('heading', { name: 'Seu moodboard começa aqui.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Sua seleção começa aqui.' })).toBeVisible();
   await expect(page.getByText('1 produto encontrado')).toBeVisible();
   await expect(page.getByText('Novidade').first()).toBeVisible();
   await expect(page.getByText('Mín. 50 un.').first()).toBeVisible();
@@ -258,10 +258,14 @@ test('mostra produto sem estoque confiável e leva o cliente ao briefing sem che
   await expect(page.getByRole('heading', { name: product.name })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Azul' })).toBeVisible();
   await expect(page.getByText(/não paga nada pelo site/i)).toBeVisible();
-  await page.getByRole('button', { name: /Salvar no meu moodboard/i }).click();
-  await expect(page.getByRole('dialog', { name: 'Meus saves' })).toBeVisible();
+  await page.getByRole('button', { name: `Ampliar foto de ${product.name}` }).click();
+  await expect(page.getByRole('dialog', { name: `Foto ampliada de ${product.name}` })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog', { name: `Foto ampliada de ${product.name}` })).toBeHidden();
+  await page.getByRole('button', { name: /Adicionar à minha seleção/i }).click();
+  await expect(page.getByRole('dialog', { name: 'Minha seleção' })).toBeVisible();
   await page.getByRole('link', { name: /^Transformar em briefing$/i }).click();
-  await expect(page.getByRole('heading', { name: 'Transforme o moodboard em briefing.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Transforme sua seleção em briefing.' })).toBeVisible();
   await expect(page.getByText('Não há pagamento nem compromisso nesta etapa.')).toBeVisible();
   await waitForRoute(page);
   const briefingA11y = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
@@ -354,6 +358,16 @@ test('convite editorial de contato valida o essencial sem esconder labels', asyn
   await expect(name).toBeFocused();
   await expect(page.getByText('Conte para a gente como chamar você.')).toBeVisible();
   await expect(page.getByText('Autorize o contato para continuar.')).toBeVisible();
+  await expect(page.getByLabel('O que você quer fazer acontecer? opcional')).toBeVisible();
+});
+
+test('limpeza da seleção oferece uma recuperação reversível', async ({ page }) => {
+  await page.goto('/catalogo');
+  await page.getByRole('button', { name: /Adicionar Mochila Executiva Sustentável à seleção/ }).click();
+  await page.getByRole('button', { name: 'Limpar seleção' }).click();
+  await expect(page.getByRole('status')).toContainText('Seleção limpa.');
+  await page.getByRole('button', { name: 'Desfazer' }).click();
+  await expect(page.getByText('Mochila Executiva Sustentável').last()).toBeVisible();
 });
 
 test('superfiltro móvel combina critérios, preserva a URL e devolve o foco', async ({ page }, testInfo) => {
@@ -410,7 +424,7 @@ test('agenda transforma uma data em oportunidade salvável e exportável', async
   const dialog = page.getByRole('dialog', { name: 'Dia do Cliente' });
   await expect(dialog).toBeVisible();
   await expect(dialog.getByText(/Janela sugerida:/)).toBeVisible();
-  await expect(dialog.getByRole('link', { name: 'Explorar no catálogo' }).first()).toHaveAttribute('href', /\/catalogo\?q=/);
+  await expect(dialog.getByRole('link', { name: 'Explorar no catálogo' }).first()).toHaveAttribute('href', /\/catalogo\?.*ocasiao=dia-do-cliente.*q=/);
   await dialog.getByRole('button', { name: 'Salvar data' }).click();
   const download = page.waitForEvent('download');
   await dialog.getByRole('button', { name: 'Adicionar a data à agenda' }).click();
@@ -451,7 +465,10 @@ test('área do cliente protege histórico e oferece autenticação acessível', 
   await expect(page.getByRole('button', { name: 'Link ou código' })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByLabel('E-mail')).toHaveAttribute('autocomplete', 'email');
   await page.getByRole('button', { name: 'Senha', exact: true }).click();
-  await expect(page.getByLabel('Senha')).toHaveAttribute('autocomplete', 'current-password');
+  const passwordInput = page.getByRole('textbox', { name: 'Senha' });
+  await expect(passwordInput).toHaveAttribute('autocomplete', 'current-password');
+  await page.getByRole('button', { name: 'Mostrar senha' }).click();
+  await expect(passwordInput).toHaveAttribute('type', 'text');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });
 
@@ -514,7 +531,7 @@ test('cliente autenticado confirma antes de substituir saves ao reutilizar o or�
   await page.getByRole('button', { name: 'Solicitar novamente' }).first().click();
   await page.getByRole('button', { name: 'Substituir seleção e continuar' }).click();
   await expect(page).toHaveURL(/\/orcamento\?repetir=/);
-  await expect(page.getByRole('heading', { name: 'Transforme o moodboard em briefing.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Transforme sua seleção em briefing.' })).toBeVisible();
   await expect(page.getByText('Mochila Executiva Sustentável').first()).toBeVisible();
 });
 

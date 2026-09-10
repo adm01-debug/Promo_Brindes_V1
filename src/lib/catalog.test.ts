@@ -172,8 +172,8 @@ describe('catálogo público', () => {
 
   it('alinha o filtro Novos drops à mesma janela do badge, sem aceitar data futura', () => {
     const now = Date.parse('2026-09-09T12:00:00.000Z');
-    expect(buildNoveltyProfileFilter(now)).toBe('or(is_new.eq.true,and(created_at.gte.2026-08-10T12:00:00.000Z,created_at.lte.2026-09-09T12:00:00.000Z))');
-    expect(buildCatalogParams({ profile: 'new' }).get('or')).toMatch(/^or\(is_new\.eq\.true,and\(created_at\.gte\./);
+    expect(buildNoveltyProfileFilter(now)).toBe('(is_new.eq.true,and(created_at.gte.2026-08-10T12:00:00.000Z,created_at.lte.2026-09-09T12:00:00.000Z))');
+    expect(buildCatalogParams({ profile: 'new' }).get('or')).toMatch(/^\(is_new\.eq\.true,and\(created_at\.gte\./);
   });
 
   it('recusa registros sem identidade pública completa', () => {

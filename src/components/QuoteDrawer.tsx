@@ -70,8 +70,8 @@ export function QuoteDrawer() {
       >
         <header className="quote-drawer__header">
           <div>
-            <span className="section-kicker">Seu moodboard de produtos</span>
-            <h2 id="quote-drawer-title">Meus saves</h2>
+            <span className="section-kicker">Sua seleção de produtos</span>
+            <h2 id="quote-drawer-title">Minha seleção</h2>
           </div>
           <button ref={closeRef} className="icon-button" onClick={() => cart.setDrawerOpen(false)} aria-label="Fechar seleção">
             <X size={22} />
@@ -81,15 +81,15 @@ export function QuoteDrawer() {
         {cart.items.length === 0 ? (
           <div className="quote-drawer__empty">
             <span className="empty-icon"><ShoppingBag size={30} /></span>
-            <h3>Salve o que despertou uma ideia.</h3>
-            <p>Explore o radar e guarde produtos. Quantidade, cor e contexto podem ser ajustados depois.</p>
+            <h3>Escolha o que desperta uma ideia.</h3>
+            <p>Explore o catálogo e adicione produtos. Quantidade, cor e contexto podem ser ajustados depois.</p>
             <Link className="button button--dark" to="/catalogo">Abrir radar</Link>
           </div>
         ) : (
           <>
             <div className="quote-drawer__intro">
-              <p>{cart.itemCount} {cart.itemCount === 1 ? 'produto salvo' : 'produtos salvos'}</p>
-              <button className="text-button text-button--danger" type="button" onClick={cart.clear}>Limpar tudo</button>
+              <p>{cart.itemCount} {cart.itemCount === 1 ? 'produto selecionado' : 'produtos selecionados'}</p>
+              <button className="text-button text-button--danger" type="button" onClick={cart.clear}>Limpar seleção</button>
             </div>
             <div className="quote-drawer__items">
               {cart.items.map((item) => (
@@ -123,7 +123,7 @@ export function QuoteDrawer() {
             <footer className="quote-drawer__footer">
               <div className="drawer-note">
                 <strong>Zero checkout. Zero compromisso.</strong>
-                <span>A curadoria analisa seus saves e transforma tudo em uma proposta real.</span>
+                <span>A curadoria analisa sua seleção e transforma tudo em uma proposta real.</span>
               </div>
               <Link className="button button--green button--wide" to="/orcamento">
                 Transformar em briefing <ArrowRight size={18} />

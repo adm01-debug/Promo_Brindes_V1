@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(26);
+select plan(28);
 
 select has_column('site_private', 'quote_requests', 'customer_user_id', 'orçamento possui titular autenticado opcional');
 select has_table('site_private', 'customer_profiles', 'perfil do cliente existe no schema privado');
@@ -52,7 +52,7 @@ insert into site_private.quote_requests (
   id, client_request_id, request_hash, source, contact_name, company, email, phone,
   client_submitted_at, request_metadata
 ) values
-  ('11111111-1111-4111-8111-111111111111', 'portal-test-ana-1', repeat('a', 64), 'site-promo-brindes', 'Ana', 'Empresa A', 'ANA@EMPRESA.TEST', '(11) 99999-9999', now(), '{}'::jsonb),
+  ('11111111-1111-4111-8111-111111111111', 'portal-test-ana-1', repeat('a', 64), 'site-promo-brindes', 'Ana', 'Empresa A', 'ANA@EMPRESA.TEST', '(11) 99999-9999', now(), '{"campaign":{"source":"finder","moment":"onboarding"},"briefing":{"actionName":"Boas-vindas","budgetRange":"51-100"},"origin":"https://www.promobrindes.com.br","userAgent":"privado"}'::jsonb),
   ('22222222-2222-4222-8222-222222222222', 'portal-test-ana-2', repeat('b', 64), 'site-promo-brindes', 'Ana', 'Empresa A', 'ana@empresa.test', '(11) 99999-9999', now(), '{}'::jsonb),
   ('33333333-3333-4333-8333-333333333333', 'portal-test-bia-1', repeat('c', 64), 'site-promo-brindes', 'Bia', 'Empresa B', 'bia@empresa.test', '(11) 98888-8888', now(), '{}'::jsonb);
 
@@ -62,6 +62,8 @@ select is((public.claim_my_quote_requests() ->> 'claimed')::integer, 0, 'reivind
 select is((public.get_my_quote_requests(20, 0, null, null) ->> 'total')::integer, 2, 'cliente lista somente seus dois orçamentos');
 select ok(public.get_my_quote_request('11111111-1111-4111-8111-111111111111') is not null, 'cliente abre orçamento próprio');
 select ok(public.get_my_quote_request('33333333-3333-4333-8333-333333333333') is null, 'cliente não descobre orçamento alheio');
+select is(public.get_my_quote_request('11111111-1111-4111-8111-111111111111') #>> '{campaign,moment}', 'onboarding', 'cliente recebe somente o contexto de campanha do próprio briefing');
+select ok(not (public.get_my_quote_request('11111111-1111-4111-8111-111111111111') ? 'requestMetadata'), 'metadados operacionais não são expostos ao cliente');
 
 set local request.jwt.claims = '{"sub":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","role":"authenticated"}';
 select is((public.claim_my_quote_requests() ->> 'claimed')::integer, 1, 'segunda conta reivindica somente o próprio e-mail');

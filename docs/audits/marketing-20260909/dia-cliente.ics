@@ -1,0 +1,14 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Promo Brindes//Agenda de conexoes//PT-BR
+CALSCALE:GREGORIAN
+BEGIN:VEVENT
+UID:dia-do-cliente-20260915@promobrindes.com.br
+DTSTART;VALUE=DATE:20260915
+DTEND;VALUE=DATE:20260916
+SUMMARY:Dia do Cliente — campanha Promo Brindes
+DESCRIPTION:Encantar pessoas\, somos bons nisso. Veja ideias e prepare o briefing em https://promo-brindes-v1.vercel.app/datas-comemorativas?ano=2026&data=dia-do-cliente
+URL:https://promo-brindes-v1.vercel.app/datas-comemorativas?ano=2026&data=dia-do-cliente
+TRANSP:TRANSPARENT
+END:VEVENT
+END:VCALENDAR

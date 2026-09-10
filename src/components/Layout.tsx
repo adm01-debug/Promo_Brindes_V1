@@ -108,7 +108,7 @@ export function Layout({ children }: { children: ReactNode }) {
           />
           <button className="selection-button" type="button" onClick={() => cart.setDrawerOpen(true)} aria-label={`Abrir seleção com ${cart.itemCount} produtos`}>
             <ShoppingBag size={20} />
-            <span className="selection-button__label">Meus saves</span>
+            <span className="selection-button__label">Minha seleção</span>
             <span className="selection-button__count" aria-hidden="true">{cart.itemCount}</span>
           </button>
           <button ref={menuButtonRef} className="menu-button" type="button" onClick={() => setMenuOpen((open) => !open)} aria-expanded={menuOpen} aria-controls="mobile-navigation" aria-label={menuOpen ? 'Fechar menu' : 'Abrir menu'}>
@@ -128,7 +128,7 @@ export function Layout({ children }: { children: ReactNode }) {
                 const active = isNavItemActive(item);
                 return <Link key={item.to} to={item.to} className={active ? 'nav-link--active' : undefined} aria-current={active ? 'page' : undefined}>{item.label}</Link>;
               })}
-              <Link to="/orcamento">Transformar saves em briefing</Link>
+              <Link to="/orcamento">Transformar seleção em briefing</Link>
               {customerAreaEnabled && <Link to="/minha-conta">Meus orçamentos</Link>}
             </nav>
           </div>
@@ -150,7 +150,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <Link to="/datas-comemorativas">Datas comemorativas</Link>
             <Link to="/catalogo?perfil=kits">Kits & onboarding</Link>
             <Link to="/catalogo?perfil=novos">Novos drops</Link>
-            <Link to="/orcamento">Meus saves</Link>
+            <Link to="/orcamento">Minha seleção</Link>
             {customerAreaEnabled && <Link to="/minha-conta">Meus orçamentos</Link>}
           </div>
           <div>
@@ -182,10 +182,17 @@ export function Layout({ children }: { children: ReactNode }) {
 
       {cart.itemCount > 0 && location.pathname !== '/orcamento' && (
         <button className="mobile-selection-fab" type="button" onClick={() => cart.setDrawerOpen(true)}>
-          <ShoppingBag size={18} /> Meus saves <span>{cart.itemCount}</span>
+          <ShoppingBag size={18} /> Minha seleção <span>{cart.itemCount}</span>
         </button>
       )}
       <QuoteDrawer />
+      {cart.canUndoClear && (
+        <div className="selection-undo" role="status" aria-live="polite">
+          <span>Seleção limpa.</span>
+          <button type="button" onClick={cart.restoreLastClear}>Desfazer</button>
+          <button type="button" aria-label="Fechar aviso" onClick={cart.dismissLastClear}><X size={16} /></button>
+        </div>
+      )}
     </div>
   );
 }

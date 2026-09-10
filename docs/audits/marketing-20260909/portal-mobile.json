@@ -1,0 +1,93 @@
+[
+  {
+    "event": "mobile-menu",
+    "text": "Buscar no catálogo\nBuscar\nRadar de produtos\nCatálogos\nDatas comemorativas\nKits & onboarding\nNovos drops\nComo funciona\nFale com a gente\nTransformar saves em briefing\nMeus orçamentos"
+  },
+  {
+    "event": "mobile-search",
+    "searchBox": {
+      "x": 64,
+      "y": 392.921875,
+      "width": 310,
+      "height": 56
+    },
+    "quickSearchesVisible": true
+  },
+  {
+    "event": "mobile-filters",
+    "text": "SUPERFILTRO\nAfine seu radar\nCOLEÇÕES RÁPIDAS\nTodos\nEm alta\nNovos drops\nKits & combos\nCATEGORIAS\nBuscar categoria\nAgro\nAlimentos e Bebidas\nArtigos & Regionais\nBar & Cozinha\nChaveiros\nCordão de Crachá\nEcologia\nEmbalagens\nEsportes & Aventura & Lazer & Viagem\nFerramentas & Utilidades\nFestas & Eventos\nGuarda Chuva\nJogos e Brinquedos\nMotivacional & Premiações\nPapelaria & Escritório\nPet Care\nPlacas & Personalização\nRoupas & Calçados & Acessórios\nSaúde & Beleza & Bem Estar\nTecnologia & Eletrônicos\nUtensílios & Decoração\nVeículos\nCORES\nPreto\nAzul\nBranco\nVermelho\nVerde\nColorido\nCinza\nRosa\nRoxo\nLaranja\nPrata\nDourado\nAmarelo\nTransparente\nNatural\nMATERIAIS\nAço inox\nPlástico\nMetal\nBambu\nPoliéster e tecidos\nCouro sintético\nAlumínio\nNylon\nVer todos (19)\nDETALHES QUE AJUDAM\nPersonalizável\nPronto para receber sua marca\nCom embalagem\nMais presença na entrega\n?\n\nO briefing está abstrato?\nA gente ajuda a transformar intenção em produto.\n\nAtualizando produtos…"
+  },
+  {
+    "event": "filter-close-focus",
+    "focused": true,
+    "url": "https://promo-brindes-v1.vercel.app/catalogo"
+  },
+  {
+    "event": "mobile-comparison",
+    "text": "COMPARAÇÃO LOCAL\n1 de 3 referências lado a lado\nOcultar comparação\nLimpar comparação\nAgenda diária 2026\n\nCód. 02469 · mín. 10 un.",
+    "overflow": false
+  },
+  {
+    "event": "finder-mobile",
+    "url": "https://promo-brindes-v1.vercel.app/catalogo?momento=onboarding&publico=colaboradores&escala=51-200&clima=premium",
+    "text": "Curadoria para o seu briefing\n\n978 produtos encontrados\n\nOrdenar por\nCuradoria Promo\nMais recentes\nNome A–Z",
+    "filters": "Filtros:\nMomento: Onboarding\nPúblico: Colaboradores\nEscala: 51–200 un.\nClima: Premium\nLimpar todos"
+  },
+  {
+    "event": "briefing-context",
+    "notes": "",
+    "url": "https://promo-brindes-v1.vercel.app/orcamento",
+    "quantity": "100"
+  },
+  {
+    "event": "calendar-mobile",
+    "calendar": {
+      "client": 358,
+      "scroll": 760
+    },
+    "page": {
+      "client": 390,
+      "scroll": 390
+    }
+  },
+  {
+    "event": "portal-simulated",
+    "view": "desktop",
+    "text": "ÁREA DO CLIENTE\nSuas campanhas\ncontinuam daqui.\n\nConsulte briefings enviados, acompanhe o que já está disponível e reutilize boas escolhas.\n\nACESSO VERIFICADO\naudit@example.invalid\nSair\nHISTÓRICO\nMeus orçamentos\nCriar novo briefing\nBUSCAR POR PROTOCOLO, EMPRESA OU PRODUTO\nBuscar\nSTATUS\nTodos os status\nRecebida\nBriefing em análise\nCuradoria em andamento\nProposta disponível\nEncerrada\nPROPOSTA DISPONÍVEL\n#AUDIT-0001\nEmpresa fictícia — auditoria\n\nMochila — simulação da campanha\n\nEnviado\n9 de set. de 2026\nSeleção\n1 produto · 150 un.\nVer solicitação"
+  },
+  {
+    "event": "proposal-error-simulated",
+    "view": "desktop",
+    "alert": "Não conseguimos abrir esta proposta agora. Tente novamente em alguns instantes."
+  },
+  {
+    "event": "repeat-confirmation-simulated",
+    "view": "desktop",
+    "text": "SELEÇÃO ATUAL\nTrocar seus saves atuais?\n\nVocê tem 1 save não enviado. Ao continuar, eles serão substituídos pelos 1 itens deste orçamento para você revisar.\n\nManter seleção atual\nSubstituir seleção e continuar"
+  },
+  {
+    "event": "password-simulated",
+    "view": "desktop",
+    "text": "ÁREA DO CLIENTE\nDefina sua nova senha.\nNova senha\nRepita a senha\nSalvar nova senha"
+  },
+  {
+    "event": "portal-simulated",
+    "view": "mobile",
+    "text": "ÁREA DO CLIENTE\nSuas campanhas\ncontinuam daqui.\n\nConsulte briefings enviados, acompanhe o que já está disponível e reutilize boas escolhas.\n\nACESSO VERIFICADO\naudit@example.invalid\nSair\nHISTÓRICO\nMeus orçamentos\nCriar novo briefing\nBUSCAR POR PROTOCOLO, EMPRESA OU PRODUTO\nBuscar\nSTATUS\nTodos os status\nRecebida\nBriefing em análise\nCuradoria em andamento\nProposta disponível\nEncerrada\nCarregando seus orçamentos…"
+  },
+  {
+    "event": "proposal-error-simulated",
+    "view": "mobile",
+    "alert": "Não conseguimos abrir esta proposta agora. Tente novamente em alguns instantes."
+  },
+  {
+    "event": "repeat-confirmation-simulated",
+    "view": "mobile",
+    "text": "SELEÇÃO ATUAL\nTrocar seus saves atuais?\n\nVocê tem 1 save não enviado. Ao continuar, eles serão substituídos pelos 1 itens deste orçamento para você revisar.\n\nManter seleção atual\nSubstituir seleção e continuar"
+  },
+  {
+    "event": "password-simulated",
+    "view": "mobile",
+    "text": "ÁREA DO CLIENTE\nDefina sua nova senha.\nNova senha\nRepita a senha\nSalvar nova senha"
+  }
+]

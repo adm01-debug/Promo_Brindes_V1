@@ -37,7 +37,7 @@ const contactPayload = {
   ...common,
   source: 'site-promo-brindes-contact',
   clientRequestId: 'contact-request-123',
-  contact: { name: 'Ana Silva', email: 'ANA@EMPRESA.COM.BR', phone: '(11) 99999-9999' },
+  contact: { name: 'Ana Silva', email: 'ANA@EMPRESA.COM.BR', phone: '(11) 99999-9999', message: 'Quero um kit para onboarding.' },
 };
 
 const quotePayload = {
@@ -54,6 +54,8 @@ const quotePayload = {
     sku: 'MO-42', imageUrl: 'https://cdn.example.test/mochila.webp', quantity: 100, minQuantity: 50,
     colorName: 'Verde', colorHex: '#00aa66',
   }],
+  campaign: { source: 'finder', moment: 'onboarding', audience: 'colaboradores', scale: '51-200', mood: 'sustentavel' },
+  briefing: { actionName: 'Boas-vindas 2026', budgetRange: '51-100', responseChannel: 'whatsapp', brandAssetStatus: 'logo-pronto' },
 };
 
 function configureSiteDatabase() {
@@ -101,6 +103,7 @@ describe('APIs de leads isoladas', () => {
     expect(init.headers).toMatchObject({ apikey: expect.stringMatching(/^sb_secret_/) });
     const sent = JSON.parse(String(init.body));
     expect(sent.p_payload.contact.email).toBe('ana@empresa.com.br');
+    expect(sent.p_payload.contact.message).toBe('Quero um kit para onboarding.');
     expect(sent.p_request_meta.identifierHash).toMatch(/^[0-9a-f]{64}$/);
     expect(sent.p_request_meta).not.toHaveProperty('ip');
   });
@@ -112,6 +115,11 @@ describe('APIs de leads isoladas', () => {
     await quoteHandler(request(quotePayload, { headers: { 'content-type': 'application/json', origin: 'https://www.promobrindes.com.br', 'idempotency-key': 'quote-request-123' } }), response);
     expect(result.statusCode).toBe(200);
     expect(result.body).toEqual({ requestId: 'quote-42', duplicate: true });
+    const rpcCall = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.find(([url]) => String(url).includes('/create_site_quote_request'));
+    const sent = JSON.parse(String(rpcCall?.[1]?.body));
+    expect(sent.p_request_meta.campaign).toEqual(quotePayload.campaign);
+    expect(sent.p_request_meta.briefing).toEqual(quotePayload.briefing);
+    expect(sent.p_request_meta).not.toHaveProperty('ip');
   });
 
   it('bloqueia qualquer tentativa de apontar gravações ao Supabase canônico', async () => {
@@ -194,6 +202,17 @@ describe('APIs de leads isoladas', () => {
     const second = responseDouble();
     await quoteHandler(request(invalidImage), second.response);
     expect(second.result.statusCode).toBe(400);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('rejeita contexto opcional adulterado antes de consultar o banco', async () => {
+    configureSiteDatabase();
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const invalidCampaign = { ...quotePayload, campaign: { source: 'finder', mood: 'nao-existe' } };
+    const result = responseDouble();
+    await quoteHandler(request(invalidCampaign), result.response);
+    expect(result.result.statusCode).toBe(400);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 

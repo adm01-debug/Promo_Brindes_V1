@@ -1,16 +1,18 @@
-import type { Category } from '../types';
+import type { CampaignBrief, CampaignAudience, CampaignMoment, CampaignMood, CampaignScale, Category } from '../types';
 import { normalizeSearchText } from './search';
 
-export type CampaignMoment = 'onboarding' | 'evento' | 'relacionamento' | 'reconhecimento' | 'sazonal';
-export type CampaignAudience = 'clientes' | 'colaboradores' | 'lideranca' | 'parceiros' | 'publico-evento';
-export type CampaignScale = 'ate-50' | '51-200' | '201-500' | '500-mais';
-export type CampaignMood = 'util' | 'premium' | 'sustentavel' | 'tech' | 'afetivo' | 'divertido';
+export type { CampaignAudience, CampaignMoment, CampaignMood, CampaignScale } from '../types';
 
 export interface CampaignSelection {
   moment?: CampaignMoment;
   audience?: CampaignAudience;
   scale?: CampaignScale;
   mood?: CampaignMood;
+}
+
+export function campaignBriefFromSelection(selection: CampaignSelection): CampaignBrief | undefined {
+  if (!campaignSelectionCount(selection)) return undefined;
+  return { source: 'finder', ...selection };
 }
 
 interface CampaignOption<Value extends string> {

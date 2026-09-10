@@ -28,13 +28,31 @@ interface NormalizedCommon {
 
 interface NormalizedContactPayload extends NormalizedCommon {
   source: 'site-promo-brindes-contact';
-  contact: { name: string; email: string; phone: string };
+  contact: { name: string; email: string; phone: string; message: string };
+}
+
+export interface NormalizedCampaignBrief {
+  source: 'finder' | 'commemorative_date';
+  moment?: 'onboarding' | 'evento' | 'relacionamento' | 'reconhecimento' | 'sazonal';
+  audience?: 'clientes' | 'colaboradores' | 'lideranca' | 'parceiros' | 'publico-evento';
+  scale?: 'ate-50' | '51-200' | '201-500' | '500-mais';
+  mood?: 'util' | 'premium' | 'sustentavel' | 'tech' | 'afetivo' | 'divertido';
+  occasion?: { id: string; name: string; date: string };
+}
+
+export interface NormalizedQuoteBriefing {
+  actionName?: string;
+  budgetRange?: 'ate-25' | '26-50' | '51-100' | '101-200' | 'acima-200' | 'a-definir';
+  responseChannel?: 'whatsapp' | 'email' | 'telefone' | 'sem-preferencia';
+  brandAssetStatus?: 'logo-pronto' | 'identidade-em-criacao' | 'preciso-de-ajuda';
 }
 
 export interface NormalizedQuotePayload extends NormalizedCommon {
   source: 'site-promo-brindes';
   contact: { name: string; company: string; email: string; phone: string; city: string; deadline: string; notes: string };
   items: NormalizedQuoteItem[];
+  campaign?: NormalizedCampaignBrief;
+  briefing?: NormalizedQuoteBriefing;
 }
 
 export type NormalizedLeadPayload = NormalizedQuotePayload | NormalizedContactPayload;
@@ -131,6 +149,62 @@ function deadline(value: unknown): string {
   return normalized;
 }
 
+function validCalendarDate(value: string, field: string): string {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new RequestValidationError(`O campo ${field} é inválido.`);
+  const date = new Date(`${value}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value) {
+    throw new RequestValidationError(`O campo ${field} é inválido.`);
+  }
+  return value;
+}
+
+function optionalEnum<Value extends string>(value: unknown, field: string, values: readonly Value[]): Value | undefined {
+  if (value == null || value === '') return undefined;
+  if (typeof value !== 'string' || !values.includes(value as Value)) {
+    throw new RequestValidationError(`O campo ${field} é inválido.`);
+  }
+  return value as Value;
+}
+
+function campaignBrief(value: unknown): NormalizedCampaignBrief | undefined {
+  if (value == null) return undefined;
+  const raw = object(value, 'campaign');
+  const source = optionalEnum(raw.source, 'campaign.source', ['finder', 'commemorative_date'] as const);
+  if (!source) throw new RequestValidationError('O campo campaign.source é inválido.');
+  const moment = optionalEnum(raw.moment, 'campaign.moment', ['onboarding', 'evento', 'relacionamento', 'reconhecimento', 'sazonal'] as const);
+  const audience = optionalEnum(raw.audience, 'campaign.audience', ['clientes', 'colaboradores', 'lideranca', 'parceiros', 'publico-evento'] as const);
+  const scale = optionalEnum(raw.scale, 'campaign.scale', ['ate-50', '51-200', '201-500', '500-mais'] as const);
+  const mood = optionalEnum(raw.mood, 'campaign.mood', ['util', 'premium', 'sustentavel', 'tech', 'afetivo', 'divertido'] as const);
+  let occasion: NormalizedCampaignBrief['occasion'];
+  if (raw.occasion != null) {
+    const rawOccasion = object(raw.occasion, 'campaign.occasion');
+    const id = text(rawOccasion.id, 'campaign.occasion.id', 2, 80);
+    if (!/^[a-z0-9-]+$/i.test(id)) throw new RequestValidationError('O campo campaign.occasion.id é inválido.');
+    occasion = {
+      id,
+      name: text(rawOccasion.name, 'campaign.occasion.name', 1, 120),
+      date: validCalendarDate(text(rawOccasion.date, 'campaign.occasion.date', 10, 10), 'campaign.occasion.date'),
+    };
+  }
+  if (!moment && !audience && !scale && !mood && !occasion) {
+    throw new RequestValidationError('O contexto da campanha está vazio.');
+  }
+  return { source, moment, audience, scale, mood, occasion };
+}
+
+function quoteBriefing(value: unknown): NormalizedQuoteBriefing | undefined {
+  if (value == null) return undefined;
+  const raw = object(value, 'briefing');
+  const actionName = text(raw.actionName, 'briefing.actionName', 0, 100, true) || undefined;
+  const budgetRange = optionalEnum(raw.budgetRange, 'briefing.budgetRange', ['ate-25', '26-50', '51-100', '101-200', 'acima-200', 'a-definir'] as const);
+  const responseChannel = optionalEnum(raw.responseChannel, 'briefing.responseChannel', ['whatsapp', 'email', 'telefone', 'sem-preferencia'] as const);
+  const brandAssetStatus = optionalEnum(raw.brandAssetStatus, 'briefing.brandAssetStatus', ['logo-pronto', 'identidade-em-criacao', 'preciso-de-ajuda'] as const);
+  if (!actionName && !budgetRange && !responseChannel && !brandAssetStatus) {
+    throw new RequestValidationError('O complemento do briefing está vazio.');
+  }
+  return { actionName, budgetRange, responseChannel, brandAssetStatus };
+}
+
 function imageUrl(value: unknown, field: string): string {
   const normalized = text(value, field, 0, 1000, true);
   if (!normalized || normalized.startsWith('/')) return normalized;
@@ -224,6 +298,7 @@ export function normalizeLeadPayload(kind: LeadKind, body: unknown): NormalizedL
         name: text(contact.name, 'nome', 2, 100),
         email: email(contact.email),
         phone: phone(contact.phone, false),
+        message: text(contact.message, 'mensagem', 0, 800, true),
       },
     };
   }
@@ -245,5 +320,7 @@ export function normalizeLeadPayload(kind: LeadKind, body: unknown): NormalizedL
       notes: text(contact.notes, 'observações', 0, 800, true),
     },
     items: payload.items.map(quoteItem),
+    campaign: campaignBrief(payload.campaign),
+    briefing: quoteBriefing(payload.briefing),
   };
 }

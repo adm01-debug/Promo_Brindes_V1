@@ -29,6 +29,7 @@ export function buildContactEmailHref(payload: ContactRequestPayload, email = DE
     `Nome: ${payload.contact.name}`,
     `E-mail: ${payload.contact.email}`,
     payload.contact.phone ? `Telefone / WhatsApp: ${payload.contact.phone}` : '',
+    payload.contact.message ? `Mensagem: ${payload.contact.message}` : '',
     '',
     'Aguardo o contato. Obrigado!',
   ].filter(Boolean).join('\n');

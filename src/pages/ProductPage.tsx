@@ -5,6 +5,7 @@ import {
   Check,
   ChevronRight,
   Minus,
+  Maximize2,
   PackageCheck,
   Plus,
   Ruler,
@@ -50,13 +51,29 @@ export default function ProductPage() {
   const [selectedColor, setSelectedColor] = useState<ProductColor | undefined>();
   const [quantity, setQuantity] = useState(100);
   const [shareStatus, setShareStatus] = useState('');
+  const [imageZoomOpen, setImageZoomOpen] = useState(false);
   const trackedProductRef = useRef('');
+  const zoomCloseRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     setActiveImage(0);
     setSelectedColor(undefined);
     if (product) setQuantity(defaultQuoteQuantity(product));
   }, [product]);
+
+  useEffect(() => {
+    if (!imageZoomOpen) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setImageZoomOpen(false);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    zoomCloseRef.current?.focus();
+    return () => {
+      window.removeEventListener('keydown', closeOnEscape);
+      previousFocus?.focus();
+    };
+  }, [imageZoomOpen]);
 
   useEffect(() => {
     if (!product || trackedProductRef.current === product.id) return;
@@ -124,6 +141,7 @@ export default function ProductPage() {
             <div className="product-gallery__main">
               <img src={currentImage} alt={product.name} width="760" height="760" fetchPriority="high" referrerPolicy="no-referrer" onError={replaceBrokenProductImage} />
               <div className="product-gallery__badges">{product.isNew && <span className="badge badge--ink">Novo</span>}{product.isKit && <span className="badge badge--paper">Kit corporativo</span>}</div>
+              <button className="product-gallery__zoom" type="button" onClick={() => setImageZoomOpen(true)} aria-label={`Ampliar foto de ${product.name}`}><Maximize2 size={18} /><span>Ampliar</span></button>
             </div>
             {productImages.length > 1 && (
               <div className="product-gallery__thumbs" role="list" aria-label="Escolher foto">
@@ -170,7 +188,7 @@ export default function ProductPage() {
               </div>
             </div>
 
-            <button className="button button--green button--wide button--large" type="button" onClick={() => cart.addProduct(product, quantity, selectedColor)}><Plus size={19} /> Salvar no meu moodboard</button>
+            <button className="button button--green button--wide button--large" type="button" onClick={() => cart.addProduct(product, quantity, selectedColor)}><Plus size={19} /> Adicionar à minha seleção</button>
             <ul className="product-reassurance">
               <li><Check /> Sem checkout</li>
               {product.allowsPersonalization && <li><Check /> Pode receber sua marca</li>}
@@ -193,10 +211,11 @@ export default function ProductPage() {
         <ContextualFaq scope="product" />
 
         <section className="related-section section" aria-labelledby="related-title">
-          <div className="section-heading section-heading--split"><div><span className="section-kicker">Continue o moodboard</span><h2 id="related-title">Ideias que podem entrar no mesmo conceito.</h2></div><Link className="text-link" to="/catalogo">Abrir radar <ArrowRight size={17} /></Link></div>
+          <div className="section-heading section-heading--split"><div><span className="section-kicker">Continue selecionando</span><h2 id="related-title">Ideias que podem entrar no mesmo conceito.</h2></div><Link className="text-link" to="/catalogo">Abrir catálogo <ArrowRight size={17} /></Link></div>
           <RelatedProducts product={product} />
         </section>
       </div>
+      {imageZoomOpen && <div className="product-image-dialog-backdrop" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) setImageZoomOpen(false); }}><section className="product-image-dialog" role="dialog" aria-modal="true" aria-label={`Foto ampliada de ${product.name}`}><button ref={zoomCloseRef} type="button" onClick={() => setImageZoomOpen(false)} aria-label="Fechar foto ampliada">×</button><img src={currentImage} alt={product.name} referrerPolicy="no-referrer" onError={replaceBrokenProductImage} /></section></div>}
     </>
   );
 }

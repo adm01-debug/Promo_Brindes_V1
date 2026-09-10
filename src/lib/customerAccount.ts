@@ -1,4 +1,4 @@
-import type { QuoteItem } from '../types';
+import type { CampaignBrief, QuoteBriefingDetails, QuoteItem } from '../types';
 import { siteSupabase } from './siteSupabase';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -48,6 +48,8 @@ export interface CustomerQuoteDetail {
   city: string | null;
   desiredDeadline: string | null;
   notes: string | null;
+  campaign: CampaignBrief | null;
+  briefing: QuoteBriefingDetails | null;
   items: QuoteItem[];
   events: CustomerQuoteEvent[];
   proposals: CustomerProposal[];

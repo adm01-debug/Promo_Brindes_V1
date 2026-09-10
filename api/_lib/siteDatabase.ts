@@ -75,6 +75,10 @@ export async function persistLead(kind: LeadKind, payload: NormalizedLeadPayload
           requestHash: requestHash(payload),
           userAgent: metadata.userAgent.slice(0, 500),
           origin: metadata.origin.slice(0, 300),
+          ...(payload.source === 'site-promo-brindes' ? {
+            campaign: payload.campaign || null,
+            briefing: payload.briefing || null,
+          } : {}),
         },
       }),
       signal: controller.signal,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { commemorativeOccasions, easterDate, filterOccasions, nextOccasion, occasionCalendarFile, occasionsForYear, planningDate, resolveOccasionDate, toDateKey } from './commemorativeDates';
+import { commemorativeOccasions, easterDate, filterOccasions, nextOccasion, occasionCalendarFile, occasionsForYear, planningDate, prioritizeUpcomingOccasions, resolveOccasionDate, toDateKey } from './commemorativeDates';
 
 describe('commemorativeDates', () => {
   it('calcula datas móveis brasileiras sem depender do fuso do navegador', () => {
@@ -25,6 +25,13 @@ describe('commemorativeDates', () => {
 
   it('avança para o ano seguinte depois da última ocasião', () => {
     expect(nextOccasion(new Date(2026, 11, 31, 12)).dateKey).toBe('2027-01-01');
+  });
+
+  it('prioriza as próximas oportunidades sem esconder as datas anteriores', () => {
+    const ordered = prioritizeUpcomingOccasions(occasionsForYear(2026), new Date(2026, 8, 10, 14));
+    expect(ordered[0].dateKey).toBe('2026-09-15');
+    expect(ordered).toHaveLength(commemorativeOccasions.length);
+    expect(ordered.at(-1)?.date.getTime()).toBeLessThan(Date.UTC(2026, 8, 10));
   });
 
   it('gera evento de dia inteiro e lembrete de planejamento sem deslocar datas', () => {

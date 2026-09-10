@@ -8,9 +8,12 @@ import { buildQuotePayload, submitQuoteRequest } from '../lib/quoteRequest';
 import { trackFunnelEvent } from '../lib/analytics';
 import { ClientRequestError, clearSubmissionAttempt, getOrCreateSubmissionAttempt } from '../lib/http';
 import { replaceBrokenProductImage } from '../lib/images';
-import type { QuoteContact } from '../types';
+import { clearQuoteDraft, EMPTY_QUOTE_CONTACT, loadQuoteDraft, saveQuoteDraft } from '../lib/quoteDraft';
+import { campaignBriefLabels } from '../lib/campaignBrief';
+import { EMPTY_QUOTE_BRIEFING, normalizeQuoteBriefing, quoteBriefingLabels } from '../lib/quoteBriefing';
+import type { QuoteBriefingForm, QuoteContact } from '../types';
 
-const initialContact: QuoteContact = { name: '', company: '', email: '', phone: '', city: '', deadline: '', notes: '', privacyAccepted: false };
+const initialContact = EMPTY_QUOTE_CONTACT;
 
 function formatPhone(value: string): string {
   const digits = value.replace(/\D/g, '').slice(0, 11);
@@ -40,7 +43,9 @@ function validate(contact: QuoteContact) {
 
 export default function QuotePage() {
   const cart = useQuoteCart();
-  const [contact, setContact] = useState(initialContact);
+  const [savedDraft] = useState(loadQuoteDraft);
+  const [contact, setContact] = useState(savedDraft.contact);
+  const [briefing, setBriefing] = useState(savedDraft.briefing);
   const [errors, setErrors] = useState<Partial<Record<keyof QuoteContact, string>>>({});
   const [sending, setSending] = useState(false);
   const [submitError, setSubmitError] = useState('');
@@ -52,6 +57,7 @@ export default function QuotePage() {
   const cartInitializedRef = useRef(false);
   const briefingTrackedRef = useRef(false);
   const totalUnits = useMemo(() => cart.items.reduce((sum, item) => sum + item.quantity, 0), [cart.items]);
+  const campaignLabels = useMemo(() => campaignBriefLabels(cart.campaign), [cart.campaign]);
   const minimumDeadline = localDateInputValue();
 
   useEffect(() => {
@@ -60,11 +66,21 @@ export default function QuotePage() {
     trackFunnelEvent('briefing_started', { item_count: cart.items.length });
   }, [cart.items.length]);
 
+  useEffect(() => {
+    saveQuoteDraft({ contact, briefing });
+  }, [briefing, contact]);
+
   function updateField<Key extends keyof QuoteContact>(key: Key, value: QuoteContact[Key]) {
     setContact((current) => ({ ...current, [key]: value }));
     requestAttemptRef.current = null;
     clearSubmissionAttempt('promo-brindes:quote-attempt');
     if (errors[key]) setErrors((current) => ({ ...current, [key]: undefined }));
+  }
+
+  function updateBriefing<Key extends keyof QuoteBriefingForm>(key: Key, value: QuoteBriefingForm[Key]) {
+    setBriefing((current) => ({ ...current, [key]: value }));
+    requestAttemptRef.current = null;
+    clearSubmissionAttempt('promo-brindes:quote-attempt');
   }
 
   useEffect(() => {
@@ -93,14 +109,16 @@ export default function QuotePage() {
     try {
       const attempt = requestAttemptRef.current || getOrCreateSubmissionAttempt('promo-brindes:quote-attempt');
       requestAttemptRef.current = attempt;
-      const payload = buildQuotePayload(contact, cart.items, undefined, attempt.submittedAt, attempt.id);
+      const payload = buildQuotePayload(contact, cart.items, undefined, attempt.submittedAt, attempt.id, cart.campaign, normalizeQuoteBriefing(briefing));
       const result = await submitQuoteRequest(payload);
       if (result.mode === 'endpoint') {
         trackFunnelEvent('quote_submitted', { item_count: cart.items.length, has_deadline: Boolean(contact.deadline) });
         requestAttemptRef.current = null;
         clearSubmissionAttempt('promo-brindes:quote-attempt');
         setSuccess({ mode: 'endpoint', requestId: result.requestId });
-        cart.clear();
+        cart.reset();
+        clearQuoteDraft();
+        setBriefing(EMPTY_QUOTE_BRIEFING);
       } else {
         setSuccess({ mode: 'email', href: result.href });
         window.location.href = result.href;
@@ -141,8 +159,8 @@ export default function QuotePage() {
       <div className="empty-quote container">
         <Seo title="Solicitar orçamento" path="/orcamento" noIndex />
         <span className="empty-icon"><ShoppingBag size={34} /></span>
-        <span className="section-kicker">Meus saves</span>
-        <h1>Seu moodboard ainda está em branco.</h1>
+        <span className="section-kicker">Minha seleção</span>
+        <h1>Sua seleção ainda está em branco.</h1>
         <p>Salve ao menos um produto. Depois você organiza quantidades, contexto e prazo em um único briefing.</p>
         <Link className="button button--green button--large" to="/catalogo">Abrir radar <ArrowRight size={18} /></Link>
       </div>
@@ -156,17 +174,17 @@ export default function QuotePage() {
         <div className="container">
           <div className="quote-print-identity"><img src="/brand/promo-brindes-logo-v2-800.webp" width="800" height="420" alt="Promo Brindes" /><span>Seleção para cotação · {localDateInputValue()}</span></div>
           <Link className="back-link" to="/catalogo"><ArrowLeft size={17} /> Continuar escolhendo</Link>
-          <span className="section-kicker">Saves feitos. Contexto agora.</span>
-          <h1>Transforme o moodboard em briefing.</h1>
+          <span className="section-kicker">Seleção feita. Contexto agora.</span>
+          <h1>Transforme sua seleção em briefing.</h1>
           <p>Revise quantidades e compartilhe o essencial. Não há pagamento nem compromisso nesta etapa.</p>
           <button className="quote-print-button" type="button" onClick={() => { trackFunnelEvent('selection_printed', { item_count: cart.items.length }); window.print(); }}><Printer size={17} /> Imprimir / salvar em PDF</button>
-          <ol className="quote-steps" aria-label="Etapas da solicitação"><li className="is-complete"><span><CheckCircle2 /></span>Saves</li><li className="is-current"><span>2</span>Briefing</li><li><span>3</span>Curadoria</li></ol>
+          <ol className="quote-steps" aria-label="Etapas da solicitação"><li className="is-complete"><span><CheckCircle2 /></span>Seleção</li><li className="is-current"><span>2</span>Briefing</li><li><span>3</span>Curadoria</li></ol>
         </div>
       </header>
 
       <div className="container quote-layout">
         <section className="quote-items" aria-labelledby="selection-title">
-          <div className="quote-section-heading"><div><span>01</span><div><h2 id="selection-title">Produtos salvos</h2><p>{cart.itemCount} {cart.itemCount === 1 ? 'item' : 'itens'} · {totalUnits.toLocaleString('pt-BR')} unidades estimadas</p></div></div><button type="button" onClick={cart.clear}>Limpar saves</button></div>
+          <div className="quote-section-heading"><div><span>01</span><div><h2 id="selection-title">Produtos selecionados</h2><p>{cart.itemCount} {cart.itemCount === 1 ? 'item' : 'itens'} · {totalUnits.toLocaleString('pt-BR')} unidades estimadas</p></div></div><button type="button" onClick={cart.clear}>Limpar seleção</button></div>
           <div className="quote-items__list">
             {cart.items.map((item) => (
               <article className="quote-item" key={item.key}>
@@ -177,11 +195,12 @@ export default function QuotePage() {
               </article>
             ))}
           </div>
-          <Link className="add-more-link" to="/catalogo"><Plus size={17} /> Salvar mais produtos</Link>
+          <Link className="add-more-link" to="/catalogo"><Plus size={17} /> Adicionar mais produtos</Link>
         </section>
 
         <section className="quote-form-section" aria-labelledby="briefing-title">
           <div className="quote-section-heading"><div><span>02</span><div><h2 id="briefing-title">Seu briefing</h2><p>Campos com * são obrigatórios</p></div></div></div>
+          {campaignLabels.length > 0 && <aside className="quote-campaign-context" aria-label="Contexto recuperado da sua campanha"><div><span>Contexto recuperado</span><strong>Esta seleção já tem uma direção.</strong><p>Você pode complementar no briefing; essas referências acompanham a análise do nosso time de especialistas.</p></div><ul>{campaignLabels.map((label) => <li key={label}>{label}</li>)}</ul></aside>}
           <form ref={formRef} className="quote-form" onSubmit={(event) => void submit(event)} noValidate>
             <div className="honeypot" aria-hidden="true"><label>Website<input value={website} onChange={(event) => setWebsite(event.target.value)} autoComplete="off" tabIndex={-1} /></label></div>
             <div className="form-grid">
@@ -191,6 +210,10 @@ export default function QuotePage() {
               <div className="form-field"><label htmlFor="phone">Telefone / WhatsApp *</label><input id="phone" name="phone" type="tel" inputMode="tel" autoComplete="tel" maxLength={16} placeholder="(11) 99999-9999" value={contact.phone} onChange={(event) => updateField('phone', formatPhone(event.target.value))} aria-invalid={Boolean(errors.phone)} aria-describedby={errors.phone ? 'phone-error' : undefined} />{errors.phone && <span id="phone-error" className="field-error">{errors.phone}</span>}</div>
               <div className="form-field"><label htmlFor="city">Cidade / UF <span>opcional</span></label><input id="city" name="city" autoComplete="address-level2" maxLength={100} placeholder="Ex.: São Paulo / SP" value={contact.city} onChange={(event) => updateField('city', event.target.value)} /></div>
               <div className="form-field"><label htmlFor="deadline">Quando você precisa? <span>opcional</span></label><input id="deadline" name="deadline" type="date" min={minimumDeadline} value={contact.deadline} onChange={(event) => updateField('deadline', event.target.value)} aria-invalid={Boolean(errors.deadline)} aria-describedby={errors.deadline ? 'deadline-error' : undefined} />{errors.deadline && <span id="deadline-error" className="field-error">{errors.deadline}</span>}</div>
+              <div className="form-field form-field--wide"><label htmlFor="actionName">Como você chama esta ação? <span>opcional</span></label><input id="actionName" name="actionName" maxLength={100} placeholder="Ex.: Kit de boas-vindas do time 2026" value={briefing.actionName} onChange={(event) => updateBriefing('actionName', event.target.value)} /><small>Um nome ajuda nosso time de especialistas a reconhecer este briefing.</small></div>
+              <div className="form-field"><label htmlFor="budgetRange">Faixa de investimento por pessoa <span>opcional</span></label><select id="budgetRange" name="budgetRange" value={briefing.budgetRange} onChange={(event) => updateBriefing('budgetRange', event.target.value as QuoteBriefingForm['budgetRange'])}><option value="">Prefiro conversar sobre isso</option>{Object.entries(quoteBriefingLabels.budgetRange).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
+              <div className="form-field"><label htmlFor="responseChannel">Como prefere continuar a conversa? <span>opcional</span></label><select id="responseChannel" name="responseChannel" value={briefing.responseChannel} onChange={(event) => updateBriefing('responseChannel', event.target.value as QuoteBriefingForm['responseChannel'])}><option value="">Sem preferência</option>{Object.entries(quoteBriefingLabels.responseChannel).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
+              <div className="form-field form-field--wide"><label htmlFor="brandAssetStatus">Identidade visual <span>opcional</span></label><select id="brandAssetStatus" name="brandAssetStatus" value={briefing.brandAssetStatus} onChange={(event) => updateBriefing('brandAssetStatus', event.target.value as QuoteBriefingForm['brandAssetStatus'])}><option value="">Conte para a gente em que ponto está</option>{Object.entries(quoteBriefingLabels.brandAssetStatus).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select><small>Não envie arquivos sensíveis pelo formulário. Se necessário, nosso time de especialistas combinará um canal seguro para receber sua marca.</small></div>
               <div className="form-field form-field--wide"><label htmlFor="notes">Qual é a ideia da ação? <span>opcional</span></label><textarea id="notes" name="notes" rows={5} maxLength={800} placeholder="Ex.: onboarding para 300 pessoas, visual mais street, preferência por materiais reciclados, logo em uma cor…" value={contact.notes} onChange={(event) => updateField('notes', event.target.value)} /><small className="char-count">{contact.notes.length}/800</small></div>
             </div>
             <label className={`privacy-check ${errors.privacyAccepted ? 'has-error' : ''}`}><input name="privacyAccepted" type="checkbox" checked={contact.privacyAccepted} onChange={(event) => updateField('privacyAccepted', event.target.checked)} aria-invalid={Boolean(errors.privacyAccepted)} aria-describedby={errors.privacyAccepted ? 'privacy-error' : undefined} /><span><ShieldCheck size={20} /></span><span>Li o <Link to="/privacidade" target="_blank">aviso de privacidade</Link> e autorizo o contato da Promo Brindes sobre esta solicitação. *</span></label>

@@ -3,13 +3,15 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(16);
+select plan(17);
 
 select is(
   (select count(*) from pg_catalog.pg_tables where schemaname = 'site_private'),
   9::bigint,
   'schema privado contém as nove tabelas planejadas'
 );
+
+select has_column('site_private', 'contact_requests', 'message', 'contato inicial armazena o contexto opcional da conversa');
 
 select ok(
   (select bool_and(c.relrowsecurity)

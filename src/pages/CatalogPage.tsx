@@ -11,6 +11,7 @@ import { trackFunnelEvent } from '../lib/analytics';
 import { replaceBrokenProductImage } from '../lib/images';
 import {
   campaignLabels,
+  campaignBriefFromSelection,
   campaignSelectionCount,
   parseCampaignSelection,
   resolveCampaignFilters,
@@ -30,6 +31,9 @@ import {
 } from '../lib/catalogFilters';
 import { useAllCategories, useCatalog } from '../lib/hooks';
 import { sanitizeSearch } from '../lib/catalog';
+import { loadCatalogComparison, saveCatalogComparison } from '../lib/catalogComparison';
+import { normalizeCampaignBrief } from '../lib/campaignBrief';
+import { useQuoteCart } from '../context/QuoteCartContext';
 import type { CatalogProduct } from '../types';
 
 const quickSearches = ['camiseta', 'kit', 'squeeze', 'carregador', 'reciclado'];
@@ -42,7 +46,14 @@ function validSort(value: string | null): 'curadoria' | 'recentes' | 'nome' {
   return value === 'recentes' || value === 'nome' ? value : 'curadoria';
 }
 
+function comparisonDimensions(product: CatalogProduct): string {
+  const values = [product.dimensions.lengthCm, product.dimensions.widthCm, product.dimensions.heightCm]
+    .filter((value): value is number => typeof value === 'number' && Number.isFinite(value));
+  return values.length ? `${values.map((value) => value.toLocaleString('pt-BR')).join(' × ')} cm` : 'A confirmar';
+}
+
 export default function CatalogPage() {
+  const cart = useQuoteCart();
   const [params, setParams] = useSearchParams();
   const rawQuery = params.get('q') || '';
   const query = sanitizeSearch(rawQuery);
@@ -60,10 +71,18 @@ export default function CatalogPage() {
   const campaignSelection = parseCampaignSelection(params);
   const campaignCount = campaignSelectionCount(campaignSelection);
   const campaignKey = `${campaignSelection.moment || ''}|${campaignSelection.audience || ''}|${campaignSelection.scale || ''}|${campaignSelection.mood || ''}`;
+  const occasionCampaign = useMemo(() => normalizeCampaignBrief({
+    source: 'commemorative_date',
+    occasion: {
+      id: params.get('ocasiao'),
+      name: params.get('ocasiao_nome'),
+      date: params.get('ocasiao_data'),
+    },
+  }), [params]);
   const [searchInput, setSearchInput] = useState(query);
   const [retryKey, setRetryKey] = useState(0);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const [comparison, setComparison] = useState<CatalogProduct[]>([]);
+  const [comparison, setComparison] = useState<CatalogProduct[]>(loadCatalogComparison);
   const [comparisonExpanded, setComparisonExpanded] = useState(() => typeof window === 'undefined' || window.innerWidth > 760);
   const comparisonControlRefs = useRef(new Map<string, HTMLButtonElement>());
   const mobileTriggerRef = useRef<HTMLButtonElement>(null);
@@ -132,6 +151,23 @@ export default function CatalogPage() {
   const paramsKey = params.toString();
 
   useEffect(() => setSearchInput(query), [query]);
+
+  useEffect(() => {
+    const brief = occasionCampaign || campaignBriefFromSelection(campaignSelection);
+    if (brief) cart.setCampaign(brief);
+  }, [campaignKey, cart, occasionCampaign]);
+
+  useEffect(() => {
+    saveCatalogComparison(comparison);
+  }, [comparison]);
+
+  useEffect(() => {
+    if (!catalog.data.products.length) return;
+    setComparison((current) => {
+      const next = current.map((item) => catalog.data.products.find((product) => product.id === item.id) || item);
+      return next.every((item, index) => item === current[index]) ? current : next;
+    });
+  }, [catalog.data.products]);
 
   useEffect(() => {
     const media = window.matchMedia('(max-width: 760px)');
@@ -298,8 +334,8 @@ export default function CatalogPage() {
       <header className="catalog-hero">
         <div className="container">
           <span className="section-kicker">Busca visual · curadoria humana</span>
-          <h1>Seu moodboard começa aqui.</h1>
-          <p>Explore sem login, salve o que conversa com a campanha e deixe valores, personalização e prazo para a proposta.</p>
+          <h1>Sua seleção começa aqui.</h1>
+          <p>Explore sem login, adicione o que conversa com a campanha e deixe valores, personalização e prazo para a proposta.</p>
           <SearchAutocomplete
             variant="catalog"
             inputId="catalog-search"
@@ -465,6 +501,9 @@ export default function CatalogPage() {
                     <tr><th scope="row">Personalização</th>{comparison.map((item) => <td key={item.id}>{item.allowsPersonalization ? 'A confirmar com o briefing' : 'Consulte nosso time de especialistas'}</td>)}</tr>
                     <tr><th scope="row">Cores publicadas</th>{comparison.map((item) => <td key={item.id}>{item.colors.length ? `${item.colors.length} ${item.colors.length === 1 ? 'opção' : 'opções'}` : 'A confirmar'}</td>)}</tr>
                     <tr><th scope="row">Materiais publicados</th>{comparison.map((item) => <td key={item.id}>{item.materials.length ? item.materials.join(', ') : 'A confirmar'}</td>)}</tr>
+                    <tr><th scope="row">Dimensões</th>{comparison.map((item) => <td key={item.id}>{comparisonDimensions(item)}</td>)}</tr>
+                    <tr><th scope="row">Capacidade</th>{comparison.map((item) => <td key={item.id}>{item.dimensions.capacityMl ? `${item.dimensions.capacityMl.toLocaleString('pt-BR')} ml` : 'Não publicada'}</td>)}</tr>
+                    <tr><th scope="row">Embalagem</th>{comparison.map((item) => <td key={item.id}>{item.hasCommercialPackaging ? 'Individual publicada' : 'A confirmar'}</td>)}</tr>
                   </tbody>
                 </table>
               </div>

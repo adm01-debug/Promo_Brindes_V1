@@ -1,0 +1,527 @@
+[
+  {
+    "name": "query",
+    "route": "/catalogo?perfil=novos",
+    "results": "Novos drops\n\nNão foi possível concluir a busca.\n\nOrdenar por\nCuradoria Promo\nMais recentes\nNome A–Z",
+    "products": [],
+    "error": [
+      "Não foi possível concluir a busca."
+    ],
+    "responses": [
+      {
+        "status": 400,
+        "body": "{\"code\":\"PGRST100\",\"details\":\"unexpected \\\"o\\\" expecting \\\"(\\\"\",\"hint\":null,\"message\":\"\\\"failed to parse logic tree (or(is_new.eq.true,and(created_at.gte.2026-08-10T21:57:06.909Z,created_at.lte.2026-09-09T21:57:06.909Z)))\\\" (line 1, column 3)\"}"
+      }
+    ]
+  },
+  {
+    "name": "query",
+    "route": "/catalogo?q=squeeze",
+    "results": "Matchs para “squeeze”\n\n996 produtos encontrados\n\nOrdenar por\nCuradoria Promo\nMais recentes\nNome A–Z",
+    "products": [
+      "Garrafa 650ml em vidro borossilicato c/ infusor",
+      "Garrafa bebedouro PET 400ml",
+      "Garrafa de vidro 1 litro",
+      "Garrafa em aço inox 36% reciclado com isolamento a vácuo 810 ml",
+      "Garrafa em aço inox 90% reciclado de parede dupla térmica, isolada a vácuo com revestimento em pó 1200 ml",
+      "Garrafa em aluminio reciclado - preto - 750 ml",
+      "Garrafa térmica 1,2 litros",
+      "Garrafa térmica 1,25L",
+      "Garrafa térmica 1,6 litros",
+      "Garrafa térmica 1L c/ 2 canecas",
+      "Garrafa térmica 320ml",
+      "Garrafa térmica 350ml",
+      "Garrafa térmica 350ml",
+      "Garrafa térmica 350ml",
+      "Garrafa térmica 400ml",
+      "Garrafa térmica 400ml *tampas sortidas",
+      "Garrafa térmica 450 ml c/ trava",
+      "Garrafa térmica 450ml",
+      "Garrafa térmica 460ml",
+      "Garrafa térmica 470ml",
+      "Garrafa térmica 500ml",
+      "Garrafa térmica 500ml",
+      "Garrafa térmica 500ml",
+      "Garrafa térmica 500ml"
+    ],
+    "error": null,
+    "responses": [
+      {
+        "status": 206
+      }
+    ]
+  },
+  {
+    "name": "query",
+    "route": "/catalogo?q=garrafa",
+    "results": "Matchs para “garrafa”\n\n996 produtos encontrados\n\nOrdenar por\nCuradoria Promo\nMais recentes\nNome A–Z",
+    "products": [
+      "Garrafa 650ml em vidro borossilicato c/ infusor",
+      "Garrafa bebedouro PET 400ml",
+      "Garrafa de vidro 1 litro",
+      "Garrafa em aço inox 36% reciclado com isolamento a vácuo 810 ml",
+      "Garrafa em aço inox 90% reciclado de parede dupla térmica, isolada a vácuo com revestimento em pó 1200 ml",
+      "Garrafa em aluminio reciclado - preto - 750 ml",
+      "Garrafa térmica 1,2 litros",
+      "Garrafa térmica 1,25L",
+      "Garrafa térmica 1,6 litros",
+      "Garrafa térmica 1L c/ 2 canecas",
+      "Garrafa térmica 320ml",
+      "Garrafa térmica 350ml",
+      "Garrafa térmica 350ml",
+      "Garrafa térmica 350ml",
+      "Garrafa térmica 400ml",
+      "Garrafa térmica 400ml *tampas sortidas",
+      "Garrafa térmica 450 ml c/ trava",
+      "Garrafa térmica 450ml",
+      "Garrafa térmica 460ml",
+      "Garrafa térmica 470ml",
+      "Garrafa térmica 500ml",
+      "Garrafa térmica 500ml",
+      "Garrafa térmica 500ml",
+      "Garrafa térmica 500ml"
+    ],
+    "error": null,
+    "responses": [
+      {
+        "status": 206
+      }
+    ]
+  },
+  {
+    "name": "query",
+    "route": "/catalogo?q=squese",
+    "results": "Matchs para “squese”\n\n0 produtos encontrados\n\nOrdenar por\nCuradoria Promo\nMais recentes\nNome A–Z",
+    "products": [],
+    "error": null,
+    "responses": [
+      {
+        "status": 200
+      }
+    ]
+  },
+  {
+    "name": "query",
+    "route": "/catalogo?q=kit%20onboarding",
+    "results": "Matchs para “kit onboarding”\n\n1.250 produtos encontrados\n\nOrdenar por\nCuradoria Promo\nMais recentes\nNome A–Z",
+    "products": [
+      "Conj. De garfo e faca inox / madeira / bambu com estojo- 3 pçs",
+      "Conj. Para churrasco / cozinha em bambu / madeira / inox california - 6 pçs",
+      "Conj. Para churrasco em bambu / inox / madeira - 4 pçs",
+      "Conj. Para cozinha em bambu / inox - 3 pçs",
+      "Conj. Para cozinha em bambu / madeira / inox - 3 pçs",
+      "Conj. Para pizza em bambu 35 cm - 12 pçs",
+      "Conj. Para queijo em bambu / madeira / inox - 5 pçs",
+      "Conj. Para queijo em bambu / madeira / inox córdoba - 6 pçs",
+      "Conjunto caneta 3 em 1 c/ porta cartão",
+      "Conjunto de facas em madeira / inox - 3 pçs",
+      "Conjunto para cozinha com cepo em bambu / madeira / inox - 6 pçs",
+      "Estojo para kit tecnológico",
+      "Kit banho 6 peças",
+      "Kit banho ecológico c/ 3 pçs",
+      "Kit banho ecológico c/ 6 pçs",
+      "Kit bloco de anotações ecológico",
+      "Kit boas vindas - 3 pçs",
+      "Kit boas vindas - branco - 3 pçs",
+      "Kit boas vindas - preto - 4 pçs",
+      "Kit caderno com acessórios - 3 pçs",
+      "Kit caderno e acessórios - 3 pçs",
+      "Kit caderno e acessórios - 4 pçs",
+      "Kit caderno e acessórios - 4 pçs",
+      "Kit caderno e acessórios - 5 pçs"
+    ],
+    "error": null,
+    "responses": [
+      {
+        "status": 206
+      }
+    ]
+  },
+  {
+    "name": "query",
+    "route": "/catalogo?q=zzzxsemresultado",
+    "results": "Matchs para “zzzxsemresultado”\n\n0 produtos encontrados\n\nOrdenar por\nCuradoria Promo\nMais recentes\nNome A–Z",
+    "products": [],
+    "error": null,
+    "responses": [
+      {
+        "status": 200
+      }
+    ]
+  },
+  {
+    "name": "query",
+    "route": "/catalogo?momento=relacionamento&publico=clientes",
+    "results": "Curadoria para o seu briefing\n\n2.147 produtos encontrados\n\nOrdenar por\nCuradoria Promo\nMais recentes\nNome A–Z",
+    "products": [
+      "Agenda diária 2026",
+      "Amassador de temperos em bambu quadrado",
+      "Amplifiador premium",
+      "Base de carregamento por indução",
+      "Bateria portátil com carregador wireless em alumínio 100% reciclado e capacidade de 4'000 mah",
+      "Bateria portátil em ABS 100% reciclado com carregador por indução (wireless) super-rápido 15W e capacidade de 20'000 mah",
+      "Bateria portátil em ABS 100% reciclado e bateria em lítio com capacidade de 4'000 mah",
+      "Bloco de anotações eco. C/ caneta e auto adesivos",
+      "Bloco de anotações ecológico",
+      "Bolsa bicicleta oxford",
+      "Bolsa couro sintético 12L",
+      "Bolsa couro sintético 32 litros",
+      "Bolsa dobrável poliéster 6L",
+      "Bolsa esportiva 30L",
+      "Bolsa esportiva em 600D com fundo em placa semi-rígida 30 l",
+      "Bolsa esportiva oxford 42 litros",
+      "Bolsa esportiva poliéster 33 litros",
+      "Bolsa esportiva poliéster expansível 36 litros",
+      "Bolsa fio de papel torcido",
+      "Bolsa para transporte de animais PET`s",
+      "Bolsa térmica 10 litros",
+      "Bolsa térmica 11L",
+      "Bolsa térmica 13 litros",
+      "Bolsa térmica 15 litros"
+    ],
+    "error": null,
+    "responses": [
+      {
+        "status": 206
+      }
+    ]
+  },
+  {
+    "name": "query",
+    "route": "/catalogo?momento=reconhecimento&publico=colaboradores&clima=premium",
+    "results": "Curadoria para o seu briefing\n\n978 produtos encontrados\n\nOrdenar por\nCuradoria Promo\nMais recentes\nNome A–Z",
+    "products": [
+      "Conj. Para queijo em bambu c/ taça p/ champagne - 4 peça",
+      "Conjunto caneta 3 em 1 c/ porta cartão",
+      "Conjunto composto por uma esferográfica e uma caneta sem tinta, ambas em alumínio 94% reciclado",
+      "Conjunto de esferográfica com escrita em azul e lapiseira, ambas em bambu",
+      "Conjunto para cozinha com cepo em bambu / madeira / inox - 6 pçs",
+      "Estojo para kit tecnológico",
+      "Jogo resta um premium",
+      "Kit banho 6 peças",
+      "Kit banho ecológico c/ 3 pçs",
+      "Kit banho ecológico c/ 6 pçs",
+      "Kit bloco de anotações ecológico",
+      "Kit boas vindas - 3 pçs",
+      "Kit boas vindas - branco - 3 pçs",
+      "Kit boas vindas - preto - 4 pçs",
+      "Kit caderno com acessórios - 3 pçs",
+      "Kit caderno e acessórios - 3 pçs",
+      "Kit caderno e acessórios - 4 pçs",
+      "Kit caderno e acessórios - 4 pçs",
+      "Kit caderno e acessórios - 5 pçs",
+      "Kit caneta e caderneta tipo moleskine",
+      "Kit caneta e chaveiro bambu",
+      "Kit caneta esferográfica e roller",
+      "Kit canetinhas ponta dupla 100 cores",
+      "Kit canetinhas ponta dupla 120 cores"
+    ],
+    "error": null,
+    "responses": [
+      {
+        "status": 206
+      }
+    ]
+  },
+  {
+    "name": "query",
+    "route": "/catalogo?momento=evento&publico=publico-evento",
+    "results": "Curadoria para o seu briefing\n\n1.777 produtos encontrados\n\nOrdenar por\nCuradoria Promo\nMais recentes\nNome A–Z",
+    "products": [
+      "Amassador de temperos em bambu quadrado",
+      "Bateria portátil com carregador wireless em alumínio 100% reciclado e capacidade de 4'000 mah",
+      "Bateria portátil em ABS 100% reciclado com carregador por indução (wireless) super-rápido 15W e capacidade de 20'000 mah",
+      "Bateria portátil em ABS 100% reciclado e bateria em lítio com capacidade de 4'000 mah",
+      "Bloco de anotações eco. C/ caneta e auto adesivos",
+      "Bloco de anotações ecológico",
+      "Bolsa bicicleta oxford",
+      "Bolsa couro sintético 12L",
+      "Bolsa couro sintético 32 litros",
+      "Bolsa esportiva 30L",
+      "Bolsa esportiva em 600D com fundo em placa semi-rígida 30 l",
+      "Bolsa esportiva oxford 42 litros",
+      "Bolsa esportiva poliéster 33 litros",
+      "Bolsa esportiva poliéster expansível 36 litros",
+      "Bolsa fio de papel torcido",
+      "Bolsa para transporte de animais PET`s",
+      "Bolsa térmica 10 litros",
+      "Bolsa térmica 11L",
+      "Bolsa térmica 13 litros",
+      "Bolsa térmica 15 litros",
+      "Bolsa térmica 15 litros",
+      "Bolsa térmica 17 litros",
+      "Bolsa térmica 20 litros",
+      "Bolsa térmica 30L com rodinhas"
+    ],
+    "error": null,
+    "responses": [
+      {
+        "status": 206
+      }
+    ]
+  },
+  {
+    "name": "query",
+    "route": "/catalogo?clima=sustentavel",
+    "results": "Curadoria para o seu briefing\n\n199 produtos encontrados\n\nOrdenar por\nCuradoria Promo\nMais recentes\nNome A–Z",
+    "products": [
+      "Bateria portátil em ABS 100% reciclado com carregador por indução (wireless) super-rápido 15W e capacidade de 20'000 mah",
+      "Bolsa térmica 5 litros",
+      "Caderno A5 de capa dura em PET 100% reciclado com 160 páginas pautadas recicladas",
+      "Caixa de som de 15W com carregador wireless super-rápido 15W e 2h de autonomia em bambu e PET 100% reciclado",
+      "Caixa de som portátil em ABS 100% reciclado com microfone e autonomia de 4h30",
+      "Copo de viagem em aço inox 90% reciclado com parede dupla e acabamento em mate 440 ml",
+      "Copo de viagem em fibra de bambu (60%) e PP (40%) 380 ml",
+      "Esferográfica em alumínio 94% reciclado com clipe inovador e escrita em azul",
+      "Garrafa térmica em aço inox 90% reciclado com parede dupla, isolada a vácuo e acabamento em mate 520 ml",
+      "Kit executivo 3 peças",
+      "Saco tipo mochila em poliéster reciclado 190T com alças",
+      "Sacola em 70% algodão reciclado e 30% poliéster reciclado (180 g/m²) sem tingimento",
+      "Sacola em algodão reciclado e poliéster reciclado sem tingimento (140 g/m²) sem tingimento",
+      "Squeeze em alumínio 100% reciclado com parede simples e acabamento mate 700 ml",
+      "Avental em algodão 60% reciclado (140g/m²)",
+      "Bateria portátil em ABS 100% reciclado com carregador por indução (wireless) super-rápido 15W e capacidade de 10'000 mah",
+      "Bateria portátil em alumínio 100% reciclado e bateria em lítio com capacidade de 5'000 mah",
+      "Bateria portátil magnética em ABS 100% reciclado com suporte, carregador por indução (wireless) super-rápido 15W e capacidade de 5'000 mah",
+      "Bolsa multifunções em 70% algodão reciclado e 30% poliéster reciclado (140 g/m²)",
+      "Bolsa multifunções em 70% algodão reciclado e 30% poliéster reciclado (140 g/m²)",
+      "Bolsa térmica 4L",
+      "Bolsa térmica 4L",
+      "Bolsa térmica em 600D poliéster reciclado com interior forrado em peva 6 l",
+      "Cabo USB de carregamento rápido 3 em 1 com corpo em PET 100% reciclado"
+    ],
+    "error": null,
+    "responses": [
+      {
+        "status": 206
+      }
+    ]
+  },
+  {
+    "name": "quick-search-style",
+    "text": "SUGESTÕES RÁPIDAS:\ncamiseta\nkit\nsqueeze\ncarregador\nreciclado",
+    "style": {
+      "color": "rgb(255, 255, 255)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "children": [
+      {
+        "text": "SUGESTÕES RÁPIDAS:",
+        "color": "rgb(255, 255, 255)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "box": {
+          "x": 24,
+          "y": 615.0625,
+          "width": 138.875,
+          "height": 13,
+          "top": 615.0625,
+          "right": 162.875,
+          "bottom": 628.0625,
+          "left": 24
+        }
+      },
+      {
+        "text": "camiseta",
+        "color": "rgb(255, 255, 255)",
+        "bg": "rgba(17, 20, 16, 0.18)",
+        "box": {
+          "x": 169.875,
+          "y": 604.5625,
+          "width": 74.96875,
+          "height": 34,
+          "top": 604.5625,
+          "right": 244.84375,
+          "bottom": 638.5625,
+          "left": 169.875
+        }
+      },
+      {
+        "text": "kit",
+        "color": "rgb(255, 255, 255)",
+        "bg": "rgba(17, 20, 16, 0.18)",
+        "box": {
+          "x": 251.84375,
+          "y": 604.5625,
+          "width": 37.984375,
+          "height": 34,
+          "top": 604.5625,
+          "right": 289.828125,
+          "bottom": 638.5625,
+          "left": 251.84375
+        }
+      },
+      {
+        "text": "squeeze",
+        "color": "rgb(255, 255, 255)",
+        "bg": "rgba(17, 20, 16, 0.18)",
+        "box": {
+          "x": 296.828125,
+          "y": 604.5625,
+          "width": 70.546875,
+          "height": 34,
+          "top": 604.5625,
+          "right": 367.375,
+          "bottom": 638.5625,
+          "left": 296.828125
+        }
+      },
+      {
+        "text": "carregador",
+        "color": "rgb(255, 255, 255)",
+        "bg": "rgba(17, 20, 16, 0.18)",
+        "box": {
+          "x": 374.375,
+          "y": 604.5625,
+          "width": 85.15625,
+          "height": 34,
+          "top": 604.5625,
+          "right": 459.53125,
+          "bottom": 638.5625,
+          "left": 374.375
+        }
+      },
+      {
+        "text": "reciclado",
+        "color": "rgb(255, 255, 255)",
+        "bg": "rgba(17, 20, 16, 0.18)",
+        "box": {
+          "x": 466.53125,
+          "y": 604.5625,
+          "width": 74.5625,
+          "height": 34,
+          "top": 604.5625,
+          "right": 541.09375,
+          "bottom": 638.5625,
+          "left": 466.53125
+        }
+      }
+    ]
+  },
+  {
+    "name": "compare-three",
+    "visible": true,
+    "fourthDisabled": true,
+    "text": "COMPARAÇÃO LOCAL\n3 de 3 referências lado a lado\nLimpar comparação\nAgenda diária 2026\n\nCód. 02469 · mín. 10 un.\n\nAmassador de temperos em bambu quadrado\n\nCód. TE-00953 · quantidade a confirmar\n\nAmplifiador premium\n\nCód. 14906 · quantidade a confirmar\n\nComparação de informações publicadas no catálogo\nCritério\tAgenda diária 2026\tAmassador de temperos em bambu quadrado\tAmplifiador premium\nQuantidade mínima\t10 un.\tA confirmar\tA confirmar\nPersonalização\tConsulte nosso time de especialistas\tA confirmar com o briefing\tConsulte nosso time de especialistas\nCores publicadas\t1 opção\t1 opção\t1 opção\nMateriais publicados\tCartão\tBambu, Madeira\tCouro Legítimo, Madeira, Poliéster, Couro Sintético (Ecológico)"
+  },
+  {
+    "name": "compare-after-product-back",
+    "trayCount": 0
+  },
+  {
+    "name": "product-observed",
+    "text": "Início\nCatálogo\nRADAR PROMO\nMandar para o time\nAgenda diária 2026\n\nCÓD. 02469\n\nAgenda diária 2026 em capa dura de PU, com marcador de cetim, porta-canetas e elástico. Ideal para brindes corporativos, mantém sua marca presente o ano todo. Personalizável com lo\n\nSua marca pode morar aqui.\n\nA proposta cruza quantidade, personalização e prazo. Você salva agora, decide com o time depois e não paga nada pelo site.\n\nCor preferida opcional\nA definir\nPRETO\nQuantidade estimada\nMínimo deste item: 10\nSalvar no meu moodboard\nSem checkout\nCuradoria humana\nSOBRE ESTA ESCOLHA\nDetalhes que ajudam a decidir.\n\nComo fazer sua marca ser lembrada todos os dias? A resposta está nos brindes corporativos certos, escolhidos para quem realmente importa. A Agenda Diária 2026 é a solução perfeita para manter sua marca viva no dia a dia dos seus clientes. Com capa dura em poliuretano (PU), marcador de páginas em cetim, porta-canetas e elástico de fechamento, ela une sofisticação e praticidade. ✔ Alta visibilidade da marca durante o ano todo ✔ Uso frequente e prolongado – mais de 365 dias de exposição ✔ Excelente custo-benefício: brinde premium com valor acessível ✔ Grande variedade de cores e opções de personalização com seu logo Perfeita para feiras, eventos, campanhas promocionais, onboarding e convenções. Conquiste conexão emocional e reconhecimento instantâneo. Não perca essa oportunidade de transformar um item utilitário em um poderoso veículo de marketing. Solicite um orçamento sem compromisso! Personalize com a sua marca agora!\n\nMATERIAL\nCartão\nDIMENSÕES\n2,5 × 14,3 × 21 cm\nPESO APROXIMADO\n484 g\nAPRESENTAÇÃO\nEmbalagem individual\nDA IDEIA À EXECUÇÃO\nDetalhes que a curadoria confirma com você.\n\nSem prometer o que depende de técnica, quantidade ou disponibilidade.\n\nComo descubro se minha logo funciona neste produto?\nA personalização é aprovada antes da produção?\nPosso consultar amostra, outras cores ou embalagem?\nCONTINUE O MOODBOARD\nIdeias que podem entrar no mesmo conceito.\nAbrir radar\n\nBRINDES CORPORATIVOS · CÓD. P@15334\n\nAgenda diária 2026 wire-o\n\nAgenda diária wire-o 2026 em capa dura personalizável. Ideal para brindes corporativos com alta visibilidade, uso prolongado e excelente custo-benefício.\n\nMín. 10 un.\n1 cor\nProposta sob medida\nSalvar\n\nBRINDES CORPORATIVOS · CÓD. 14926\n\nAgenda diária cromato\n\nAgenda 2026 em cromato, capa dura, páginas para dados, calendários e anotações. Brinde corporativo de alto valor, ideal para manter sua marca presente no dia a dia do cliente. Pers\n\nMín. 10 un.\n6 cores\nProposta sob medida\nSalvar\n\nBRINDES CORPORATIVOS · CÓD. 14928\n\nAgenda 2026 cromato\n\nAgenda 2026 cromato para brindes corporativos. Capa dura, planejamento mensal, contatos e mapas. Personalização com logo. Alta visibilidade da marca. Ideal para feiras, eventos e p\n\nMín. 5 un.\n7 cores\nProposta sob medida\nSalvar\nSua marca aqui\n\nBRINDES CORPORATIVOS · CÓD. 06028\n\nAgenda couro sintético 2026\n\nAgenda 2026 em couro sintético: brinde corporativo de alta visibilidade, com abas mensais, marcador de cetim e páginas de planejamento. Ideal para manter sua marca presente no dia\n\nMín. 10 un.\n1 cor\nProposta sob medida\nSalvar",
+    "zoomButtons": 0
+  },
+  {
+    "name": "quote-empty-validation",
+    "invalid": 5,
+    "focus": "name",
+    "messages": [
+      "Informe seu nome.",
+      "Informe o nome da empresa.",
+      "Informe um e-mail válido.",
+      "Informe um telefone com DDD.",
+      "Confirme que leu o aviso de privacidade."
+    ]
+  },
+  {
+    "name": "",
+    "notes": "",
+    "selectionItems": 1
+  },
+  {
+    "name": "quote-network-error-simulated",
+    "alert": "Falha temporária simulada.",
+    "preservedName": "Ana Auditoria",
+    "payloadFields": [
+      "name",
+      "company",
+      "email",
+      "phone",
+      "city",
+      "deadline",
+      "notes"
+    ]
+  },
+  {
+    "name": "quote-success-simulated",
+    "text": "BRIEFING EM MOVIMENTO\nSua solicitação chegou.\n\nNosso time de especialistas vai analisar os itens e entrar em contato pelos dados informados.\n\nProtocolo: AUDIT-LOCAL-0001\nAcompanhar meus orçamentos\nVoltar ao catálogo\n\nEntre com o mesmo e-mail informado no briefing para ver esta solicitação no seu histórico."
+  },
+  {
+    "name": "contact-empty-validation",
+    "invalid": 3,
+    "focus": "conversation-name",
+    "fields": [
+      {
+        "type": "text",
+        "name": ""
+      },
+      {
+        "type": "text",
+        "name": "name"
+      },
+      {
+        "type": "email",
+        "name": "email"
+      },
+      {
+        "type": "tel",
+        "name": "phone"
+      },
+      {
+        "type": "checkbox",
+        "name": "privacyAccepted"
+      }
+    ]
+  },
+  {
+    "name": "occasion",
+    "dialog": "15\nSETEMBRO\nRELACIONAMENTO · 2026\nDia do Cliente\n\nUma das melhores oportunidades do ano para agradecer, fidelizar e mostrar que a relação vai além da entrega.\n\n“Encantar pessoas, somos bons nisso.”\nConsulte a viabilidade agora\nJanela sugerida: 5 a 8 semanas antes.\nBOA CONEXÃO PARA\nClientes & parceiros\nPOR ONDE COMEÇAR\nPresente que permanece\n\nEntrega valor percebido e uso frequente.\n\nExplorar no catálogo\nKit de relacionamento\n\nPermite construir uma narrativa completa de agradecimento.\n\nExplorar no catálogo\nData salva\nCompartilhar\nAdicionar a data à agenda\nLembrar quando começar\nFonte da data: Calendário Promocional Sebrae",
+    "download": "dia-do-cliente-2026.ics"
+  },
+  {
+    "name": "occasion-context-transfer",
+    "url": "https://promo-brindes-v1.vercel.app/catalogo?q=mochila%20premium",
+    "filters": "Filtros:\nBusca: mochila premium\nLimpar todos"
+  },
+  {
+    "name": "auth-password",
+    "showPasswordButton": 0,
+    "text": "SUA MEMÓRIA DE CAMPANHAS\nSeus briefings.\nSempre por perto.\n\nAcompanhe solicitações, recupere produtos escolhidos e comece a próxima ação com o contexto que você já construiu.\n\nPrimeiro orçamento sem cadastro obrigatório\nHistórico liberado após verificar o e-mail\nAcesso por senha, link ou código\nACESSO SEGURO\nAcessar meus orçamentos\n\nEntre com o e-mail e a senha cadastrados.\n\nLink ou código\nSenha\nE-mail\nSenha\nMínimo de 8 caracteres.\nEntrar com senha\nPrefiro criar uma senha\nEsqueci minha senha"
+  },
+  {
+    "name": "auth-recovery",
+    "text": "SUA MEMÓRIA DE CAMPANHAS\nSeus briefings.\nSempre por perto.\n\nAcompanhe solicitações, recupere produtos escolhidos e comece a próxima ação com o contexto que você já construiu.\n\nPrimeiro orçamento sem cadastro obrigatório\nHistórico liberado após verificar o e-mail\nAcesso por senha, link ou código\nACESSO SEGURO\nRecuperar minha senha\n\nEnviaremos um link seguro para definir uma nova senha.\n\nE-mail\nEnviar recuperação\nPrefiro criar uma senha\nVoltar ao acesso por e-mail"
+  },
+  {
+    "name": "auth-invalid-email-simulated",
+    "sentToApi": false,
+    "message": "Não conseguimos concluir o acesso agora. Tente novamente.",
+    "fieldAriaInvalid": null
+  },
+  {
+    "name": "axe-real-content",
+    "route": "/catalogo",
+    "violations": []
+  },
+  {
+    "name": "axe-real-content",
+    "route": "/catalogos",
+    "violations": []
+  },
+  {
+    "name": "axe-real-content",
+    "route": "/datas-comemorativas",
+    "violations": []
+  },
+  {
+    "name": "axe-real-content",
+    "route": "/contato",
+    "violations": []
+  },
+  {
+    "name": "axe-real-content",
+    "route": "/entrar",
+    "violations": []
+  }
+]

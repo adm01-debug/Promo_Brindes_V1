@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { buildContactEmailHref, buildContactPayload, submitContactRequest } from './contactRequest';
 
-const lead = { name: 'Ana Lima', email: 'ana@empresa.com.br', phone: '(11) 99999-0000', privacyAccepted: true };
+const lead = { name: 'Ana Lima', email: 'ana@empresa.com.br', phone: '(11) 99999-0000', message: 'Quero criar um kit para onboarding.', privacyAccepted: true };
 
 describe('contato rápido', () => {
   afterEach(() => {
@@ -26,6 +26,7 @@ describe('contato rápido', () => {
     const decodedHref = decodeURIComponent(href);
     expect(decodedHref).toContain('Olá, time de especialistas da Promo Brindes!');
     expect(decodedHref).toContain('Ana Lima');
+    expect(decodedHref).toContain('Quero criar um kit para onboarding.');
   });
 
   it('recusa endpoint inseguro', async () => {

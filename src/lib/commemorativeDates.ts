@@ -285,6 +285,17 @@ export function filterOccasions(occasions: DatedOccasion[], filters: { month: nu
   });
 }
 
+/** Mantém o ano inteiro acessível, mas evita começar a agenda atual por datas já passadas. */
+export function prioritizeUpcomingOccasions(occasions: DatedOccasion[], now = new Date()): DatedOccasion[] {
+  const today = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())).getTime();
+  return [...occasions].sort((left, right) => {
+    const leftUpcoming = left.date.getTime() >= today;
+    const rightUpcoming = right.date.getTime() >= today;
+    if (leftUpcoming !== rightUpcoming) return leftUpcoming ? -1 : 1;
+    return left.date.getTime() - right.date.getTime();
+  });
+}
+
 export function nextOccasion(now = new Date()): DatedOccasion {
   const today = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
   const thisYear = occasionsForYear(today.getUTCFullYear());

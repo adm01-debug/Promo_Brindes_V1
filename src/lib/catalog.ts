@@ -147,7 +147,9 @@ export interface CatalogQuery {
 export function buildNoveltyProfileFilter(now = Date.now()): string {
   const nowIso = new Date(now).toISOString();
   const cutoffIso = new Date(now - productBadgeConfig.noveltyWindowDays * 86_400_000).toISOString();
-  return `or(is_new.eq.true,and(created_at.gte.${cutoffIso},created_at.lte.${nowIso}))`;
+  // O parâmetro `or` do PostgREST já abre a expressão lógica: ele espera
+  // `or=(condição,condição)`. Incluir `or(...)` criava `or=or(...)` inválido.
+  return `(is_new.eq.true,and(created_at.gte.${cutoffIso},created_at.lte.${nowIso}))`;
 }
 
 export interface CatalogResult {
