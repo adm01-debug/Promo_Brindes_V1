@@ -1,8 +1,11 @@
-import { ArrowRight, Minus, Plus, ShoppingBag, Trash2, X } from 'lucide-react';
+import { ArrowRight, Check, Copy, Minus, Plus, Share2, ShoppingBag, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useQuoteCart } from '../context/QuoteCartContext';
 import { replaceBrokenProductImage } from '../lib/images';
+import { sharedSelectionUrl, MAX_SHARED_SELECTION_ITEMS } from '../lib/sharedSelection';
+import { trackFunnelEvent } from '../lib/analytics';
+import { quoteDecisionGroupsEnabled } from '../lib/siteFeatureFlags';
 
 export function QuoteDrawer() {
   const cart = useQuoteCart();
@@ -13,6 +16,7 @@ export function QuoteDrawer() {
   const clearCancelRef = useRef<HTMLButtonElement>(null);
   const clearDialogRef = useRef<HTMLElement>(null);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [shareState, setShareState] = useState<'idle' | 'copied' | 'shared' | 'limited' | 'error'>('idle');
 
   const closeClearConfirmation = useCallback(() => {
     setConfirmClear(false);
@@ -79,6 +83,32 @@ export function QuoteDrawer() {
     if (cart.drawerOpen && cart.itemCount === 0) closeRef.current?.focus();
   }, [cart.drawerOpen, cart.itemCount]);
 
+  async function shareSelection() {
+    if (cart.items.length > MAX_SHARED_SELECTION_ITEMS) {
+      setShareState('limited');
+      return;
+    }
+    const url = sharedSelectionUrl(cart.items);
+    if (!url) {
+      setShareState('error');
+      return;
+    }
+    let mode: 'native' | 'copy' = 'copy';
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'Seleção de brindes | Promo Brindes', text: 'Referências para uma próxima campanha.', url });
+        mode = 'native';
+        setShareState('shared');
+      } else {
+        await navigator.clipboard.writeText(url);
+        setShareState('copied');
+      }
+      trackFunnelEvent('selection_shared', { item_count: cart.itemCount, mode });
+    } catch {
+      setShareState('error');
+    }
+  }
+
   if (!cart.drawerOpen) return null;
 
   return (
@@ -121,8 +151,9 @@ export function QuoteDrawer() {
             <label className="quote-drawer__campaign">
               <span>Nome da campanha <em>opcional</em></span>
               <input value={cart.selectionTitle || ''} maxLength={100} placeholder="Ex.: Boas-vindas do time 2026" onChange={(event) => cart.setSelectionTitle(event.target.value)} />
-              <small>Ajuda nosso time de especialistas a reconhecer sua ideia depois.</small>
+              <small>Use um nome interno da campanha; evite nomes de pessoas, e-mails ou dados sensíveis.</small>
             </label>
+            <div className="quote-drawer__share"><div><strong>Compartilhar referências</strong><span>O link leva apenas itens, quantidades e variantes públicas.</span></div><button type="button" className="text-button" onClick={() => void shareSelection()}><Share2 size={16} /> {shareState === 'shared' ? 'Compartilhado' : shareState === 'copied' ? <><Check size={15} /> Link copiado</> : shareState === 'limited' ? `Máximo de ${MAX_SHARED_SELECTION_ITEMS} itens` : shareState === 'error' ? <><Copy size={15} /> Tentar copiar</> : 'Compartilhar'}</button></div>
             <div className="quote-drawer__items">
               {cart.items.map((item) => (
                 <article className="drawer-item" key={item.key}>
@@ -132,6 +163,17 @@ export function QuoteDrawer() {
                   <div className="drawer-item__content">
                     <Link to={`/produto/${item.slug}`} className="drawer-item__name">{item.name}</Link>
                     <p>Cód. {item.sku}{item.colorName ? ` · ${item.colorName}` : ''}</p>
+                    {quoteDecisionGroupsEnabled && <label className="drawer-item__decision">
+                      <span>Prioridade</span>
+                      <select
+                        aria-label={`Prioridade de ${item.name}`}
+                        value={item.decisionGroup || 'primary'}
+                        onChange={(event) => cart.setItemDecisionGroup(item.key, event.target.value as 'primary' | 'alternative')}
+                      >
+                        <option value="primary">Referência principal</option>
+                        <option value="alternative">Alternativa</option>
+                      </select>
+                    </label>}
                     <div className="quantity-control quantity-control--small" aria-label={`Quantidade de ${item.name}`}>
                       <button type="button" onClick={() => cart.updateQuantity(item.key, item.quantity - 1)} aria-label="Diminuir quantidade"><Minus size={15} /></button>
                       <input

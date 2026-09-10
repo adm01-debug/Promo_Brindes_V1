@@ -8,6 +8,8 @@
     { "source": "/datas-comemorativas", "destination": "/index.html" },
     { "source": "/produto/:identifier", "destination": "/api/product-page" },
     { "source": "/orcamento", "destination": "/index.html" },
+    { "source": "/selecoes/compartilhada", "destination": "/index.html" },
+    { "source": "/ideias/:topic", "destination": "/index.html" },
     { "source": "/sobre", "destination": "/index.html" },
     { "source": "/contato", "destination": "/index.html" },
     { "source": "/privacidade", "destination": "/index.html" },

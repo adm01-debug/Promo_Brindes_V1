@@ -17,10 +17,12 @@ export interface FunnelEventMap {
   quote_submitted: { item_count: number; has_deadline: boolean };
   quote_submission_failed: { item_count: number; reason: 'network' | 'rate_limited' | 'conflict' | 'validation' | 'unknown' };
   selection_printed: { item_count: number };
+  selection_shared: { item_count: number; mode: 'native' | 'copy' };
   faq_opened: { scope: 'catalog' | 'product' | 'quote'; question: string };
   customer_access_requested: { method: 'email' | 'password' | 'create' | 'recover' };
   customer_history_viewed: { result_count: number; has_filter: boolean };
   customer_quote_repeated: { item_count: number };
+  customer_adjustment_requested: { item_count: number };
   customer_proposal_opened: { version: number };
   social_link_opened: { network: 'instagram' | 'facebook' | 'pinterest' | 'youtube' };
   occasion_filtered: { has_query: boolean; audience: 'todos' | 'clientes' | 'colaboradores' | 'eventos' | 'comunidade'; month: number; result_count: number };
@@ -49,10 +51,12 @@ const ALLOWED_PROPERTIES: { [Name in FunnelEventName]: ReadonlyArray<keyof Funne
   quote_submitted: ['item_count', 'has_deadline'],
   quote_submission_failed: ['item_count', 'reason'],
   selection_printed: ['item_count'],
+  selection_shared: ['item_count', 'mode'],
   faq_opened: ['scope', 'question'],
   customer_access_requested: ['method'],
   customer_history_viewed: ['result_count', 'has_filter'],
   customer_quote_repeated: ['item_count'],
+  customer_adjustment_requested: ['item_count'],
   customer_proposal_opened: ['version'],
   social_link_opened: ['network'],
   occasion_filtered: ['has_query', 'audience', 'month', 'result_count'],

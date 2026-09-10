@@ -22,6 +22,8 @@ const CustomerAccountPage = lazy(() => import('./pages/CustomerAccountPage'));
 const CustomerQuotePage = lazy(() => import('./pages/CustomerQuotePage'));
 const AuthConfirmPage = lazy(() => import('./pages/AuthConfirmPage'));
 const SetPasswordPage = lazy(() => import('./pages/SetPasswordPage'));
+const SharedSelectionPage = lazy(() => import('./pages/SharedSelectionPage'));
+const IdeaLandingPage = lazy(() => import('./pages/IdeaLandingPage'));
 
 function ScrollManager() {
   const { key, pathname } = useLocation();
@@ -76,6 +78,8 @@ export default function App() {
                 <Route path="/datas-comemorativas" element={<CommemorativeDatesPage />} />
                 <Route path="/produto/:identifier" element={<ProductPage />} />
                 <Route path="/orcamento" element={<QuotePage />} />
+                <Route path="/selecoes/compartilhada" element={<SharedSelectionPage />} />
+                <Route path="/ideias/:topic" element={<IdeaLandingPage />} />
                 <Route path="/sobre" element={<AboutPage />} />
                 <Route path="/contato" element={<ContactPage />} />
                 <Route path="/privacidade" element={<PrivacyPage />} />

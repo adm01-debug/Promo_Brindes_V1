@@ -1,4 +1,5 @@
 import { normalizeSearchText } from './search';
+import type { CatalogQuery } from './catalog';
 
 export type CatalogCollectionFormat = 'online' | 'pdf' | 'digital';
 export type CatalogCollectionTheme = 'people' | 'events' | 'impact' | 'products';
@@ -17,6 +18,8 @@ export interface CatalogCollection {
   featured?: boolean;
   edition?: string;
   pageCount?: number;
+  /** Consulta pública usada para uma prévia real, carregada somente quando a capa aparece. */
+  coverQuery: CatalogQuery;
 }
 
 export const catalogThemeOptions: Array<{ id: 'all' | CatalogCollectionTheme; label: string }> = [
@@ -40,6 +43,7 @@ export const catalogCollections: CatalogCollection[] = [
     palette: { background: '#d9ff3f', accent: '#4844ff', ink: '#121511' },
     featured: true,
     edition: 'Seleção viva',
+    coverQuery: { search: 'kit', pageSize: 1, sort: 'curated' },
   },
   {
     id: 'eventos-que-continuam',
@@ -52,6 +56,7 @@ export const catalogCollections: CatalogCollection[] = [
     tags: ['Eventos', 'Ativações', 'Experiência'],
     palette: { background: '#ff6b5f', accent: '#d9ff3f', ink: '#121511' },
     edition: 'Seleção viva',
+    coverQuery: { search: 'copo', pageSize: 1, sort: 'curated' },
   },
   {
     id: 'reconhecimento-com-desejo',
@@ -64,6 +69,7 @@ export const catalogCollections: CatalogCollection[] = [
     tags: ['Reconhecimento', 'Premium', 'Tempo de casa'],
     palette: { background: '#111411', accent: '#d9ff3f', ink: '#f7f4ea' },
     edition: 'Seleção viva',
+    coverQuery: { search: 'mochila', pageSize: 1, sort: 'curated' },
   },
   {
     id: 'relacionamento-que-fica',
@@ -76,6 +82,7 @@ export const catalogCollections: CatalogCollection[] = [
     tags: ['Clientes', 'Parceiros', 'Relacionamento'],
     palette: { background: '#4844ff', accent: '#ff8d80', ink: '#ffffff' },
     edition: 'Seleção viva',
+    coverQuery: { search: 'garrafa', pageSize: 1, sort: 'curated' },
   },
   {
     id: 'novos-drops',
@@ -88,6 +95,7 @@ export const catalogCollections: CatalogCollection[] = [
     tags: ['Novidades', 'Tendências', 'Lançamentos'],
     palette: { background: '#f6f1e7', accent: '#4844ff', ink: '#121511' },
     edition: 'Atualização contínua',
+    coverQuery: { profile: 'new', pageSize: 1, sort: 'newest' },
   },
   {
     id: 'escolhas-de-menor-impacto',
@@ -101,6 +109,7 @@ export const catalogCollections: CatalogCollection[] = [
     searchAliases: ['sustentável', 'sustentavel', 'ecológico', 'ecologico', 'reciclado', 'consciente'],
     palette: { background: '#bcebd0', accent: '#121511', ink: '#121511' },
     edition: 'Seleção viva',
+    coverQuery: { search: 'reciclado', pageSize: 1, sort: 'curated' },
   },
   {
     id: 'tech-que-resolve',
@@ -113,6 +122,7 @@ export const catalogCollections: CatalogCollection[] = [
     tags: ['Tecnologia', 'Home office', 'Mobilidade'],
     palette: { background: '#dbe4ff', accent: '#4844ff', ink: '#121511' },
     edition: 'Seleção viva',
+    coverQuery: { search: 'carregador', pageSize: 1, sort: 'curated' },
   },
   {
     id: 'celebracoes-com-significado',
@@ -125,6 +135,7 @@ export const catalogCollections: CatalogCollection[] = [
     tags: ['Datas especiais', 'Celebração', 'Final de ano'],
     palette: { background: '#ffd4dc', accent: '#ff553d', ink: '#121511' },
     edition: 'Seleção viva',
+    coverQuery: { search: 'caneca', pageSize: 1, sort: 'curated' },
   },
   {
     id: 'kits-prontos-para-combinar',
@@ -137,6 +148,7 @@ export const catalogCollections: CatalogCollection[] = [
     tags: ['Kits', 'Embalagem', 'Composições'],
     palette: { background: '#f4e4bf', accent: '#ff6b5f', ink: '#121511' },
     edition: 'Seleção viva',
+    coverQuery: { profile: 'kits', pageSize: 1, sort: 'curated' },
   },
   {
     id: 'sua-marca-em-cena',
@@ -149,6 +161,7 @@ export const catalogCollections: CatalogCollection[] = [
     tags: ['Personalizáveis', 'Marca', 'Campanhas'],
     palette: { background: '#e6dcff', accent: '#d9ff3f', ink: '#121511' },
     edition: 'Seleção viva',
+    coverQuery: { personalizable: true, pageSize: 1, sort: 'curated' },
   },
 ];
 

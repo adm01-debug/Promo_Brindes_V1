@@ -23,6 +23,7 @@ const items: QuoteItem[] = [{
   quantity: 250,
   minQuantity: 50,
   colorName: 'Verde',
+  decisionGroup: 'alternative',
 }];
 
 describe('solicitação de orçamento', () => {
@@ -51,6 +52,7 @@ describe('solicitação de orçamento', () => {
     expect(decodeURIComponent(href)).toContain('Olá, time de especialistas da Promo Brindes!');
     expect(decodeURIComponent(href)).toContain('Mochila Executiva — cód. MO-42 — 250 un. — cor: Verde');
     expect(decodeURIComponent(href)).toContain('Empresa: Empresa Exemplo');
+    expect(decodeURIComponent(href)).toContain('prioridade: alternativa');
   });
 
   it('não transmite um complemento opcional vazio ou manipulado', () => {

@@ -23,25 +23,31 @@ Este registro separa alterações concluídas, evidências de teste e pendência
 
 ## Dados e isolamento
 
-Quatro migrations aditivas estão versionadas para o Supabase exclusivo do site (`xlzmclcjdncjfdrjxclt`):
+Seis migrations aditivas estão versionadas para o Supabase exclusivo do site (`xlzmclcjdncjfdrjxclt`):
 
 1. `20260910100000_expose_safe_quote_context_to_customer.sql` expõe somente campanha e briefing ao titular autenticado, nunca hashes, origem ou user-agent.
 2. `20260910103000_store_contact_message.sql` armazena a mensagem opcional de contato no schema privado.
 3. `20260910110000_enrich_customer_history.sql` entrega título de ação, miniaturas e última movimentação ao proprietário do histórico.
 4. `20260910120000_preserve_variant_and_contact_preference.sql` registra identificador da variante e preferência de retorno em campos privados.
+5. `20260910130000_customer_adjustments_and_preferences.sql` cria pedido de ajuste exclusivo do titular autenticado, sem expor o texto ao histórico da conta.
+6. `20260910140000_preserve_item_decision_group.sql` preserva se cada referência do briefing é principal ou alternativa, no envio e no histórico do titular.
 
 Nenhuma migration é direcionada ao banco canônico de catálogo (`doufsxqlfjyuvxuezpln`) e nenhum arquivo do projeto interno Promo Gifts foi alterado.
 
 ## Evidências executadas
 
 - TypeScript: aprovado.
-- Vitest: 125 testes unitários, de contrato e APIs aprovados.
+- Vitest: 129 testes unitários, de contrato e APIs aprovados.
 - Build Vite de produção: aprovado.
 - Playwright: 58 cenários aprovados em Chromium desktop/mobile; 4 cenários exclusivamente mobile foram pulados no desktop por desenho do teste.
-- pgTAP local: 52 testes aprovados após `supabase db reset` no ambiente local isolado, inclusive gravação/leitura de variante e preferência de contato.
+- pgTAP local: 66 testes aprovados após `supabase db reset` no ambiente local isolado, inclusive prioridade da referência, variante, pedido de ajuste, privacidade do texto e preferência de contato.
+- Orçamento estático de assets: aprovado após build; ele falha o CI se CSS, JavaScript total ou bundle de entrada excederem o limite versionado.
 - Auditoria de dependências: `npm audit --audit-level=high` sem vulnerabilidades encontradas.
 - Smoke de catálogo em leitura e simulações de retorno ao orçamento, contexto de data, confirmação/desfazer, zoom, área do cliente e contato foram cobertos por contrato ou navegador.
 
 ## Pendência externa, deliberadamente não executada
 
-O dry-run remoto e a aplicação das quatro migrations requerem `SUPABASE_ACCESS_TOKEN` administrativo disponível no ambiente. A autenticação não está presente; portanto nenhuma mudança remota foi aplicada por suposição. E-mail/WhatsApp automáticos seguem desativados até existir provedor, remetente/número e fluxo operacional aprovados.
+O dry-run remoto e a aplicação das migrations mais recentes exigem que a sessão administrativa tenha permissão para o projeto isolado. A sessão disponível respondeu `403` no endpoint administrativo de login role; por isso nenhuma mudança remota foi aplicada por suposição. E-mail/WhatsApp automáticos seguem desativados até existir provedor, remetente/número e fluxo operacional aprovados.
+
+Enquanto a migration `20260910130000` não estiver aplicada e auditada no ambiente remoto, `VITE_CUSTOMER_ADJUSTMENTS_ENABLED` deve permanecer `false`; assim a interface publicada não oferece um botão cujo RPC ainda não existe.
+O mesmo vale para `VITE_QUOTE_DECISION_GROUPS_ENABLED` e a migration `20260910140000`: a prioridade comercial de cada item permanece oculta até haver confirmação remota de persistência e leitura.

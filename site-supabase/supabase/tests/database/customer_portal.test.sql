@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(29);
+select plan(37);
 
 select has_column('site_private', 'quote_requests', 'customer_user_id', 'orçamento possui titular autenticado opcional');
 select has_table('site_private', 'customer_profiles', 'perfil do cliente existe no schema privado');
@@ -40,6 +40,14 @@ select ok(
   'RPCs autenticados são security definer com search_path vazio'
 );
 
+select ok(
+  (select p.prosecdef and array_to_string(p.proconfig, ',') = 'search_path=""'
+   from pg_catalog.pg_proc p
+   join pg_catalog.pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'public' and p.proname = 'request_my_quote_adjustment'),
+  'RPC de ajuste é security definer com search_path vazio'
+);
+
 insert into auth.users (
   instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
   raw_app_meta_data, raw_user_meta_data, created_at, updated_at
@@ -58,11 +66,11 @@ insert into site_private.quote_requests (
 
 insert into site_private.quote_items (
   quote_request_id, position, source_product_id, item_key, product_slug, product_name_snapshot,
-  sku_snapshot, quantity, minimum_quantity_snapshot, variant_id_snapshot, color_name_snapshot
+  sku_snapshot, quantity, minimum_quantity_snapshot, variant_id_snapshot, color_name_snapshot, decision_group_snapshot
 ) values (
   '11111111-1111-4111-8111-111111111111', 1, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
   'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa::variante-azul-1', 'produto-teste', 'Produto teste',
-  'TESTE-1', 100, 50, 'azul-1', 'Azul'
+  'TESTE-1', 100, 50, 'azul-1', 'Azul', 'alternative'
 );
 
 set local request.jwt.claims = '{"sub":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","role":"authenticated"}';
@@ -73,11 +81,29 @@ select ok(public.get_my_quote_request('11111111-1111-4111-8111-111111111111') is
 select ok(public.get_my_quote_request('33333333-3333-4333-8333-333333333333') is null, 'cliente não descobre orçamento alheio');
 select is(public.get_my_quote_request('11111111-1111-4111-8111-111111111111') #>> '{campaign,moment}', 'onboarding', 'cliente recebe somente o contexto de campanha do próprio briefing');
 select is(public.get_my_quote_request('11111111-1111-4111-8111-111111111111') #>> '{items,0,variantId}', 'azul-1', 'cliente recebe a variante exata do item que selecionou');
+select is(public.get_my_quote_request('11111111-1111-4111-8111-111111111111') #>> '{items,0,decisionGroup}', 'alternative', 'cliente recebe a prioridade da referência sem metadados internos');
 select ok(not (public.get_my_quote_request('11111111-1111-4111-8111-111111111111') ? 'requestMetadata'), 'metadados operacionais não são expostos ao cliente');
+select ok(
+  (public.request_my_quote_adjustment('11111111-1111-4111-8111-111111111111', 'Trocar para uma cor mais vibrante.', 'adjustment-ana-001') ->> 'id') is not null,
+  'titular autenticada envia um pedido de ajuste'
+);
+select is(
+  public.request_my_quote_adjustment('11111111-1111-4111-8111-111111111111', 'Trocar para uma cor mais vibrante.', 'adjustment-ana-001') ->> 'id',
+  public.request_my_quote_adjustment('11111111-1111-4111-8111-111111111111', 'Trocar para uma cor mais vibrante.', 'adjustment-ana-001') ->> 'id',
+  'pedido de ajuste é idempotente por cliente e solicitação'
+);
+select is(
+  (select count(*) from site_private.quote_adjustment_requests where quote_request_id = '11111111-1111-4111-8111-111111111111' and client_request_id = 'adjustment-ana-001'),
+  1::bigint,
+  'repetição não cria um segundo pedido de ajuste'
+);
+select ok(jsonb_path_exists(public.get_my_quote_request('11111111-1111-4111-8111-111111111111') -> 'events', '$[*] ? (@.title == "Pedido de ajuste enviado")'), 'linha do tempo mostra confirmação segura do ajuste');
+select ok(position('Trocar para uma cor mais vibrante.' in public.get_my_quote_request('11111111-1111-4111-8111-111111111111')::text) = 0, 'texto privado do ajuste não vaza ao histórico da cliente');
 
 set local request.jwt.claims = '{"sub":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","role":"authenticated"}';
 select is((public.claim_my_quote_requests() ->> 'claimed')::integer, 1, 'segunda conta reivindica somente o próprio e-mail');
 select is((public.get_my_quote_requests(20, 0, null, null) ->> 'total')::integer, 1, 'segunda conta não enxerga histórico da primeira');
+select throws_ok('select public.request_my_quote_adjustment(''11111111-1111-4111-8111-111111111111'', ''Tentar alterar o orçamento alheio.'', ''adjustment-bia-001'')', '42501', 'quote_not_found', 'outra conta não solicita ajuste de orçamento alheio');
 
 set local request.jwt.claims = '{"sub":"cccccccc-cccc-4ccc-8ccc-cccccccccccc","role":"authenticated"}';
 select throws_ok('select public.claim_my_quote_requests()', '42501', 'verified_email_required', 'e-mail não confirmado não reivindica histórico');

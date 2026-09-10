@@ -138,6 +138,7 @@ export default function CommemorativeDatesPage() {
   const view: CalendarView = params.get('visualizacao') === 'calendario' ? 'calendar' : 'list';
   const [search, setSearch] = useState(query);
   const [favorites, setFavorites] = useState(loadFavorites);
+  const [lastRemovedFavorite, setLastRemovedFavorite] = useState<DatedOccasion | null>(null);
   const [shareState, setShareState] = useState<ShareState>('idle');
   const [storageMessage, setStorageMessage] = useState('');
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -163,6 +164,12 @@ export default function CommemorativeDatesPage() {
       setStorageMessage('Seu navegador não permitiu salvar esta seleção neste dispositivo.');
     }
   }, [favorites]);
+
+  useEffect(() => {
+    if (!lastRemovedFavorite) return;
+    const timeout = window.setTimeout(() => setLastRemovedFavorite(null), 8_000);
+    return () => window.clearTimeout(timeout);
+  }, [lastRemovedFavorite]);
 
   useEffect(() => {
     if (!selected) return;
@@ -221,7 +228,15 @@ export default function CommemorativeDatesPage() {
       saved ? nextFavorites.delete(occasion.id) : nextFavorites.add(occasion.id);
       return nextFavorites;
     });
+    setLastRemovedFavorite(saved ? occasion : null);
     trackFunnelEvent('occasion_saved', { occasion_id: occasion.id, saved: !saved });
+  }
+
+  function restoreLastFavorite() {
+    if (!lastRemovedFavorite) return;
+    setFavorites((current) => new Set([...current, lastRemovedFavorite.id]));
+    trackFunnelEvent('occasion_saved', { occasion_id: lastRemovedFavorite.id, saved: true });
+    setLastRemovedFavorite(null);
   }
 
   async function shareOccasion(occasion: DatedOccasion) {
@@ -307,6 +322,7 @@ export default function CommemorativeDatesPage() {
           <div><span className="section-kicker">Seu shortlist</span><h2 id="saved-dates-title">Minhas datas</h2><p>Guarde oportunidades para revisar com seu time. Elas ficam salvas neste dispositivo.</p></div>
           <div className="saved-dates__content">
             {storageMessage && <p className="saved-dates__error" role="alert">{storageMessage}</p>}
+            {lastRemovedFavorite && <div className="saved-dates__undo" role="status"><span>{lastRemovedFavorite.name} removida.</span><button type="button" onClick={restoreLastFavorite}>Desfazer</button><button type="button" aria-label="Fechar aviso" onClick={() => setLastRemovedFavorite(null)}><X size={15} /></button></div>}
             {favoriteOccasions.length ? <ul>{favoriteOccasions.map((occasion) => <li key={occasion.id}><button type="button" onClick={() => openDetail(occasion)}><span>{formatDate(occasion.date, { day: '2-digit', month: 'short' })}</span><strong>{occasion.name}</strong><ArrowRight size={17} /></button><button type="button" aria-label={`Remover ${occasion.name} de Minhas datas`} onClick={() => toggleFavorite(occasion)}><X size={16} /></button></li>)}</ul> : <div className="saved-dates__empty"><Bookmark size={27} /><p>Use “Salvar” nas ocasiões que merecem entrar no seu radar.</p></div>}
           </div>
         </div>

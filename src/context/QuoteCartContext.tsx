@@ -31,7 +31,8 @@ type CartAction =
   | { type: 'replace'; items: QuoteItem[] }
   | { type: 'restore'; item: QuoteItem; index: number }
   | { type: 'campaign'; campaign?: CampaignBrief }
-  | { type: 'selection-title'; title?: string };
+  | { type: 'selection-title'; title?: string }
+  | { type: 'decision-group'; key: string; group: 'primary' | 'alternative' };
 
 const initialState: CartState = { items: [] };
 
@@ -100,6 +101,16 @@ export function cartReducer(state: CartState, action: CartAction): CartState {
       const title = action.title?.trim().slice(0, 100) || undefined;
       return state.selectionTitle === title ? state : { ...state, selectionTitle: title };
     }
+    case 'decision-group':
+      return {
+        ...state,
+        items: state.items.map((item) => {
+          if (item.key !== action.key) return item;
+          if (action.group === 'alternative') return { ...item, decisionGroup: 'alternative' };
+          const { decisionGroup: _decisionGroup, ...primaryItem } = item;
+          return primaryItem;
+        }),
+      };
     default:
       return state;
   }
@@ -115,6 +126,7 @@ interface QuoteCartValue {
   addProduct: (product: CatalogProduct, quantity?: number, color?: ProductColor) => void;
   removeItem: (key: string) => void;
   updateQuantity: (key: string, quantity: number) => void;
+  setItemDecisionGroup: (key: string, group: 'primary' | 'alternative') => void;
   replaceItems: (items: QuoteItem[]) => void;
   setCampaign: (campaign?: CampaignBrief) => void;
   setSelectionTitle: (title?: string) => void;
@@ -228,6 +240,7 @@ export function QuoteCartProvider({ children }: { children: ReactNode }) {
         dispatch({ type: 'remove', key });
       },
       updateQuantity: (key, quantity) => dispatch({ type: 'quantity', key, quantity }),
+      setItemDecisionGroup: (key, group) => dispatch({ type: 'decision-group', key, group }),
       replaceItems: (items) => dispatch({ type: 'replace', items }),
       setCampaign: (campaign) => dispatch({ type: 'campaign', campaign: normalizeCampaignBrief(campaign) }),
       setSelectionTitle: (title) => dispatch({ type: 'selection-title', title }),

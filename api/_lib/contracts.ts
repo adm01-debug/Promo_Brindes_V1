@@ -12,6 +12,7 @@ export interface NormalizedQuoteItem {
   variantId?: string;
   colorName?: string;
   colorHex?: string;
+  decisionGroup: 'primary' | 'alternative';
 }
 
 interface NormalizedConsent {
@@ -291,6 +292,7 @@ function quoteItem(value: unknown, index: number): NormalizedQuoteItem {
     variantId: variantId(item.variantId, `items[${index}].variantId`),
     colorName: text(item.colorName, `items[${index}].colorName`, 0, 120, true) || undefined,
     colorHex: colorHex(item.colorHex, `items[${index}].colorHex`) || undefined,
+    decisionGroup: optionalEnum(item.decisionGroup, `items[${index}].decisionGroup`, ['primary', 'alternative'] as const) || 'primary',
   };
 }
 

@@ -8,11 +8,12 @@ import { buildQuotePayload, submitQuoteRequest } from '../lib/quoteRequest';
 import { trackFunnelEvent } from '../lib/analytics';
 import { ClientRequestError, clearSubmissionAttempt, getOrCreateSubmissionAttempt } from '../lib/http';
 import { replaceBrokenProductImage } from '../lib/images';
-import { clearQuoteDraft, EMPTY_QUOTE_CONTACT, loadQuoteDraft, saveQuoteDraft } from '../lib/quoteDraft';
+import { clearQuoteDraft, EMPTY_QUOTE_CONTACT, loadQuoteDraft, QUOTE_DRAFT_RETENTION_LABEL, saveQuoteDraft } from '../lib/quoteDraft';
 import { campaignBriefLabels } from '../lib/campaignBrief';
 import { EMPTY_QUOTE_BRIEFING, normalizeQuoteBriefing, quoteBriefingLabels } from '../lib/quoteBriefing';
 import { clearQuoteRepeat, loadQuoteRepeat } from '../lib/quoteRepeat';
 import type { QuoteBriefingForm, QuoteContact } from '../types';
+import { quoteDecisionGroupsEnabled } from '../lib/siteFeatureFlags';
 
 const initialContact = EMPTY_QUOTE_CONTACT;
 
@@ -55,6 +56,7 @@ export default function QuotePage() {
   const [errors, setErrors] = useState<Partial<Record<keyof QuoteContact, string>>>({});
   const [sending, setSending] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [draftNotice, setDraftNotice] = useState('');
   const [success, setSuccess] = useState<{ mode: 'endpoint' | 'email'; href?: string; requestId?: string } | null>(null);
   const [website, setWebsite] = useState('');
   const formRef = useRef<HTMLFormElement>(null);
@@ -88,6 +90,14 @@ export default function QuotePage() {
     if (key === 'actionName') cart.setSelectionTitle(value as string);
     requestAttemptRef.current = null;
     clearSubmissionAttempt('promo-brindes:quote-attempt');
+  }
+
+  function discardDraft() {
+    clearQuoteDraft();
+    setContact(EMPTY_QUOTE_CONTACT);
+    setBriefing(EMPTY_QUOTE_BRIEFING);
+    setErrors({});
+    setDraftNotice('Rascunho apagado deste navegador. A sua seleção de produtos foi mantida.');
   }
 
   useEffect(() => {
@@ -197,7 +207,7 @@ export default function QuotePage() {
             {cart.items.map((item) => (
               <article className="quote-item" key={item.key}>
                 <Link className="quote-item__image" to={`/produto/${item.slug}`} aria-label={`Abrir ${item.name}`}><img src={item.imageUrl} alt="" width="130" height="130" referrerPolicy="no-referrer" onError={replaceBrokenProductImage} /></Link>
-                <div className="quote-item__main"><Link to={`/produto/${item.slug}`}>{item.name}</Link><p>Cód. {item.sku}</p>{item.colorName && <span className="quote-item__color"><i style={{ backgroundColor: item.colorHex }} /> {item.colorName}</span>}</div>
+                <div className="quote-item__main"><Link to={`/produto/${item.slug}`}>{item.name}</Link><p>Cód. {item.sku}</p>{item.colorName && <span className="quote-item__color"><i style={{ backgroundColor: item.colorHex }} /> {item.colorName}</span>}{quoteDecisionGroupsEnabled && <label className="quote-item__decision"><span>Como considerar</span><select aria-label={`Como considerar ${item.name}`} value={item.decisionGroup || 'primary'} onChange={(event) => cart.setItemDecisionGroup(item.key, event.target.value as 'primary' | 'alternative')}><option value="primary">Referência principal</option><option value="alternative">Alternativa para comparar</option></select></label>}</div>
                 <div className="quote-item__quantity"><label htmlFor={`quantity-${item.key}`}>Quantidade</label><div className="quantity-control quantity-control--small"><button type="button" onClick={() => cart.updateQuantity(item.key, item.quantity - 10)} aria-label="Diminuir quantidade"><Minus size={15} /></button><input id={`quantity-${item.key}`} type="number" min={item.minQuantity} max="999999" value={item.quantity} onChange={(event) => cart.updateQuantity(item.key, Number(event.target.value))} /><button type="button" onClick={() => cart.updateQuantity(item.key, item.quantity + 10)} aria-label="Aumentar quantidade"><Plus size={15} /></button></div>{item.minQuantity > 1 && <small>Mín. {item.minQuantity}</small>}</div>
                 <button className="quote-item__remove" type="button" onClick={() => cart.removeItem(item.key)} aria-label={`Remover ${item.name}`}><Trash2 size={18} /></button>
               </article>
@@ -207,7 +217,9 @@ export default function QuotePage() {
         </section>
 
         <section className="quote-form-section" aria-labelledby="briefing-title">
-          <div className="quote-section-heading"><div><span>02</span><div><h2 id="briefing-title">Seu briefing</h2><p>Campos com * são obrigatórios</p></div></div></div>
+          <div className="quote-section-heading"><div><span>02</span><div><h2 id="briefing-title">Seu briefing</h2><p>Campos com * são obrigatórios</p></div></div><button type="button" className="text-button" onClick={discardDraft}>Apagar rascunho</button></div>
+          <p className="quote-draft-notice" role="status">Seus dados deste formulário ficam salvos por {QUOTE_DRAFT_RETENTION_LABEL} para evitar perda de trabalho. Não use este campo para dados sensíveis.</p>
+          {draftNotice && <p className="quote-draft-notice quote-draft-notice--success" role="status">{draftNotice}</p>}
           {campaignLabels.length > 0 && <aside className="quote-campaign-context" aria-label="Contexto recuperado da sua campanha"><div><span>Contexto recuperado</span><strong>Esta seleção já tem uma direção.</strong><p>Você pode complementar no briefing; essas referências acompanham a análise do nosso time de especialistas.</p></div><ul>{campaignLabels.map((label) => <li key={label}>{label}</li>)}</ul></aside>}
           <form ref={formRef} className="quote-form" onSubmit={(event) => void submit(event)} noValidate>
             <div className="honeypot" aria-hidden="true"><label>Website<input value={website} onChange={(event) => setWebsite(event.target.value)} autoComplete="off" tabIndex={-1} /></label></div>

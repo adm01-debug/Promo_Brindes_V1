@@ -22,6 +22,7 @@ A URL do catálogo é fixada defensivamente no projeto canônico. A chave public
 npm run typecheck
 npm run test
 npm run build
+npm run check:performance-budget
 npx playwright install chromium
 npm run test:e2e
 ```
@@ -71,6 +72,8 @@ O projeto inclui configuração para Vercel:
 Produção atual: <https://promo-brindes-v1.vercel.app>. O domínio próprio ainda exige configuração de DNS, associação na Vercel e redirecionamento canônico. Ao trocar o domínio, atualize `VITE_PUBLIC_URL`, `SITE_PUBLIC_ORIGIN`, `index.html` e `public/robots.txt` no mesmo deploy.
 
 O Vercel Web Analytics registra pageviews anonimizadas e sem cookies. O middleware do site remove query strings e fragmentos das URLs; eventos personalizados seguem uma allowlist sem PII. Pageviews estão disponíveis em todos os planos da Vercel, enquanto eventos personalizados dependem de plano Pro ou Enterprise. Antes da divulgação ampla, confirme o destinatário comercial e a revisão jurídica final do aviso de privacidade.
+
+O CI também bloqueia regressões grosseiras de peso dos assets compilados. Essa proteção não substitui a medição de Core Web Vitals em campo: LCP, INP e CLS precisam ser acompanhados no percentil 75 depois que houver tráfego suficiente.
 
 O estado detalhado da auditoria e das simulações está em [docs/AUDIT_REPORT_20260908.md](docs/AUDIT_REPORT_20260908.md). A implementação do banco isolado e suas evidências estão em [docs/SITE_SUPABASE_IMPLEMENTATION_REPORT_20260908.md](docs/SITE_SUPABASE_IMPLEMENTATION_REPORT_20260908.md).
 

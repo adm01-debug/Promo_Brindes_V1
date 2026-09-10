@@ -18,7 +18,7 @@ interface ProductSitemapRow {
 }
 
 const MAX_SITEMAP_URLS = 50_000;
-const STATIC_URL_COUNT = 7;
+const STATIC_URL_COUNT = 11;
 const MAX_PRODUCT_URLS = MAX_SITEMAP_URLS - STATIC_URL_COUNT;
 
 class CatalogHttpError extends Error {
@@ -150,6 +150,10 @@ export default async function handler(request: VercelRequest, response: VercelRe
     urlEntry(`${siteUrl}/sobre`, 'monthly', '0.6'),
     urlEntry(`${siteUrl}/contato`, 'monthly', '0.6'),
     urlEntry(`${siteUrl}/privacidade`, 'yearly', '0.2'),
+    urlEntry(`${siteUrl}/ideias/onboarding`, 'monthly', '0.7'),
+    urlEntry(`${siteUrl}/ideias/eventos`, 'monthly', '0.7'),
+    urlEntry(`${siteUrl}/ideias/clientes-vip`, 'monthly', '0.7'),
+    urlEntry(`${siteUrl}/ideias/sustentaveis`, 'monthly', '0.7'),
   ];
   const seenSlugs = new Set<string>();
   const productEntries = products.flatMap((product) => {

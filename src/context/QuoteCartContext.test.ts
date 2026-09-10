@@ -63,6 +63,13 @@ describe('seleção para orçamento', () => {
     expect(cartReducer(named, { type: 'reset' })).toEqual({ items: [] });
   });
 
+  it('separa referência principal de alternativa sem perder o item', () => {
+    const alternative = cartReducer({ items: [item] }, { type: 'decision-group', key: item.key, group: 'alternative' });
+    expect(alternative.items[0]).toMatchObject({ ...item, decisionGroup: 'alternative' });
+    const primary = cartReducer(alternative, { type: 'decision-group', key: item.key, group: 'primary' });
+    expect(primary.items[0]).toEqual(item);
+  });
+
   it('normaliza storage corrompido, remove extras e consolida duplicatas', () => {
     const values = [
       { ...item, key: 'forjado', quantity: -777, admin: true },

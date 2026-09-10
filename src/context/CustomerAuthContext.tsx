@@ -54,6 +54,9 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
     signOut: async () => {
       const { siteSupabase } = await import('../lib/siteSupabase');
       if (siteSupabase) await siteSupabase.auth.signOut();
+      // Não deixa dados de contato preenchidos por uma conta em um navegador compartilhado.
+      const { clearQuoteDraft } = await import('../lib/quoteDraft');
+      clearQuoteDraft();
     },
   }), [configured, loading, session]);
 

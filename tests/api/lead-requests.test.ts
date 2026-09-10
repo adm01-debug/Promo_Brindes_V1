@@ -52,7 +52,7 @@ const quotePayload = {
     key: '11111111-1111-4111-8111-111111111111::verde',
     productId: '11111111-1111-4111-8111-111111111111', slug: 'mochila', name: 'Mochila',
     sku: 'MO-42', imageUrl: 'https://cdn.example.test/mochila.webp', quantity: 100, minQuantity: 50,
-    variantId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', colorName: 'Verde', colorHex: '#00aa66',
+    variantId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', colorName: 'Verde', colorHex: '#00aa66', decisionGroup: 'alternative',
   }],
   campaign: { source: 'finder', moment: 'onboarding', audience: 'colaboradores', scale: '51-200', mood: 'sustentavel' },
   briefing: { actionName: 'Boas-vindas 2026', budgetRange: '51-100', responseChannel: 'whatsapp', brandAssetStatus: 'logo-pronto' },
@@ -122,6 +122,7 @@ describe('APIs de leads isoladas', () => {
     expect(sent.p_request_meta.briefing).toEqual(quotePayload.briefing);
     expect(sent.p_request_meta).not.toHaveProperty('ip');
     expect(sent.p_payload.items[0].variantId).toBe('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
+    expect(sent.p_payload.items[0].decisionGroup).toBe('alternative');
   });
 
   it('bloqueia qualquer tentativa de apontar gravações ao Supabase canônico', async () => {
@@ -214,6 +215,16 @@ describe('APIs de leads isoladas', () => {
     const invalidCampaign = { ...quotePayload, campaign: { source: 'finder', mood: 'nao-existe' } };
     const result = responseDouble();
     await quoteHandler(request(invalidCampaign), result.response);
+    expect(result.result.statusCode).toBe(400);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('rejeita prioridade de item fora das duas opções comerciais', async () => {
+    configureSiteDatabase();
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const result = responseDouble();
+    await quoteHandler(request({ ...quotePayload, items: [{ ...quotePayload.items[0], decisionGroup: 'preferido' }] }), result.response);
     expect(result.result.statusCode).toBe(400);
     expect(fetchMock).not.toHaveBeenCalled();
   });

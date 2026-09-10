@@ -50,6 +50,7 @@ export function normalizeQuoteItems(values: unknown): QuoteItem[] {
     const colorHex = colorHexCandidate && /^(#[0-9a-f]{3,8}|[a-z]{3,20})$/i.test(colorHexCandidate)
       ? colorHexCandidate
       : undefined;
+    const decisionGroup = raw.decisionGroup === 'alternative' ? 'alternative' : 'primary';
     // Duas variantes podem ter o mesmo nome comercial de cor. Quando a origem
     // publicar um identificador, ele é a chave estável; registros antigos seguem
     // compatíveis com a chave por cor.
@@ -67,6 +68,7 @@ export function normalizeQuoteItems(values: unknown): QuoteItem[] {
       ...(variantId ? { variantId } : {}),
       ...(colorName ? { colorName } : {}),
       ...(colorHex ? { colorHex } : {}),
+      ...(decisionGroup === 'alternative' ? { decisionGroup } : {}),
     };
     const existing = normalized.get(key);
     normalized.set(key, existing ? { ...item, quantity: Math.max(existing.quantity, item.quantity) } : item);

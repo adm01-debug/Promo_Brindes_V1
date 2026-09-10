@@ -1,5 +1,5 @@
 import { ArrowRight, BookOpen, Check, Copy, FileText, Search, Share2, SlidersHorizontal, Sparkles, X } from 'lucide-react';
-import { type CSSProperties, type FormEvent, useEffect, useMemo, useState } from 'react';
+import { type CSSProperties, type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Seo } from '../components/Seo';
 import { trackFunnelEvent } from '../lib/analytics';
@@ -11,6 +11,8 @@ import {
   type CatalogCollection,
   type CatalogCollectionTheme,
 } from '../lib/catalogLibrary';
+import { useCatalog } from '../lib/hooks';
+import { replaceBrokenProductImage } from '../lib/images';
 
 type CatalogThemeFilter = 'all' | CatalogCollectionTheme;
 type ShareState = 'idle' | 'copied' | 'shared' | 'error';
@@ -28,8 +30,26 @@ function coverStyle(collection: CatalogCollection) {
 }
 
 function CatalogCover({ collection, index }: { collection: CatalogCollection; index: number }) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+  const cover = useCatalog(collection.coverQuery, 0, visible);
+  const product = cover.data.products[0];
+
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root || !('IntersectionObserver' in window)) { setVisible(true); return; }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry?.isIntersecting) return;
+      setVisible(true);
+      observer.disconnect();
+    }, { rootMargin: '180px 0px' });
+    observer.observe(root);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className="catalog-cover" style={coverStyle(collection)} aria-hidden="true">
+    <div ref={rootRef} className="catalog-cover" style={coverStyle(collection)} aria-hidden="true">
+      {product && <img className="catalog-cover__product" src={product.imageUrl} alt="" width="280" height="280" loading="lazy" referrerPolicy="no-referrer" onError={replaceBrokenProductImage} />}
       <span className="catalog-cover__brand">PROMO / BRINDES</span>
       <span className="catalog-cover__edition">{collection.edition}</span>
       <span className="catalog-cover__orb" />

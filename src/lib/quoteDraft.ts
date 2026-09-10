@@ -4,6 +4,9 @@ import { EMPTY_QUOTE_BRIEFING, quoteBriefingForm } from './quoteBriefing';
 const STORAGE_KEY = 'promo-brindes:quote-draft:v1';
 const MAX_AGE_MS = 24 * 60 * 60 * 1_000;
 
+/** O rascunho vive somente nesta aba e expira em 24 horas. */
+export const QUOTE_DRAFT_RETENTION_LABEL = '24 horas nesta aba do navegador';
+
 export const EMPTY_QUOTE_CONTACT: QuoteContact = {
   name: '', company: '', email: '', phone: '', city: '', deadline: '', notes: '', privacyAccepted: false,
 };
@@ -57,9 +60,18 @@ export function loadQuoteDraft(now = Date.now()): QuoteDraft {
 export function saveQuoteDraft(draft: QuoteDraft, now = new Date()): void {
   if (typeof window === 'undefined') return;
   try {
+    const normalizedContact = normalizeContact(draft.contact);
+    const normalizedBriefing = quoteBriefingForm(draft.briefing);
+    const hasContent = Object.values(normalizedContact).some((value) => typeof value === 'string' && Boolean(value.trim()))
+      || normalizedContact.privacyAccepted
+      || Object.values(normalizedBriefing).some((value) => typeof value === 'string' && Boolean(value.trim()));
+    if (!hasContent) {
+      window.sessionStorage.removeItem(STORAGE_KEY);
+      return;
+    }
     window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
-      contact: normalizeContact(draft.contact),
-      briefing: quoteBriefingForm(draft.briefing),
+      contact: normalizedContact,
+      briefing: normalizedBriefing,
       updatedAt: now.toISOString(),
     } satisfies StoredQuoteDraft));
   } catch {

@@ -129,6 +129,21 @@ export async function fetchMyQuoteRequest(id: string): Promise<CustomerQuoteDeta
   return data && typeof data === 'object' ? data as CustomerQuoteDetail : null;
 }
 
+export async function requestMyQuoteAdjustment(requestId: string, message: string, clientRequestId: string): Promise<{ id: string; createdAt: string }> {
+  if (!UUID_PATTERN.test(requestId)) throw new Error('quote_not_found');
+  const normalizedMessage = message.trim().slice(0, 800);
+  if (normalizedMessage.length < 2) throw new Error('adjustment_message_required');
+  const { data, error } = await requireClient().rpc('request_my_quote_adjustment', {
+    p_request_id: requestId,
+    p_message: normalizedMessage,
+    p_client_request_id: clientRequestId,
+  });
+  if (error) rpcError(error);
+  const result = data as { id?: unknown; createdAt?: unknown } | null;
+  if (typeof result?.id !== 'string' || typeof result.createdAt !== 'string') throw new Error('customer_area_unavailable');
+  return { id: result.id, createdAt: result.createdAt };
+}
+
 export function sanitizeCustomerNextPath(value: string | null): string {
   return value?.startsWith('/minha-conta') && !value.startsWith('//') ? value : '/minha-conta';
 }

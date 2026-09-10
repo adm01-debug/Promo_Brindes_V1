@@ -54,6 +54,8 @@ export interface QuoteItem {
   variantId?: string;
   colorName?: string;
   colorHex?: string;
+  /** Referência principal ou alternativa para facilitar a decisão comercial. */
+  decisionGroup?: 'primary' | 'alternative';
 }
 
 export type CampaignMoment = 'onboarding' | 'evento' | 'relacionamento' | 'reconhecimento' | 'sazonal';

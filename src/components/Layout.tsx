@@ -37,6 +37,7 @@ export function Layout({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [search, setSearch] = useState('');
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileNavRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const categories = useCategories();
@@ -56,13 +57,35 @@ export function Layout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!menuOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const focusFrame = window.requestAnimationFrame(() => mobileNavRef.current?.querySelector<HTMLInputElement>('input')?.focus());
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
-      setMenuOpen(false);
-      menuButtonRef.current?.focus();
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setMenuOpen(false);
+        menuButtonRef.current?.focus();
+        return;
+      }
+      if (event.key !== 'Tab' || !mobileNavRef.current) return;
+      const focusable = Array.from(mobileNavRef.current.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'));
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
     window.addEventListener('keydown', closeOnEscape);
-    return () => window.removeEventListener('keydown', closeOnEscape);
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', closeOnEscape);
+    };
   }, [menuOpen]);
 
   const submitSearch = (event: FormEvent) => {
@@ -116,7 +139,7 @@ export function Layout({ children }: { children: ReactNode }) {
           </button>
         </div>
         {menuOpen && (
-          <div id="mobile-navigation" className="mobile-nav">
+          <div ref={mobileNavRef} id="mobile-navigation" className="mobile-nav" role="dialog" aria-modal="true" aria-label="Menu de navegação">
             <form className="mobile-search" role="search" onSubmit={submitSearch}>
               <label className="sr-only" htmlFor="mobile-search">Buscar no catálogo</label>
               <Search size={18} />
