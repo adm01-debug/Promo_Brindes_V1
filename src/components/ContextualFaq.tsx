@@ -7,7 +7,7 @@ const FAQS: Record<FaqScope, Array<{ id: string; question: string; answer: strin
   catalog: [
     { id: 'price', question: 'Por que os produtos não mostram preço?', answer: 'O valor muda conforme quantidade, técnica de personalização, acabamento, embalagem, frete e prazo. Você salva as referências e recebe uma proposta feita para o seu cenário, sem checkout e sem compromisso.' },
     { id: 'availability', question: 'Tudo o que aparece pode entrar no orçamento?', answer: 'Todos os produtos ativos podem ser consultados. Como estoques de fornecedores mudam e não são publicados como promessa, disponibilidade, cor e prazo são confirmados pelo nosso time de especialistas durante a proposta.' },
-    { id: 'selection', question: 'Posso misturar categorias e ideias?', answer: 'Sim. Seu moodboard pode reunir produtos diferentes. Depois você ajusta quantidade e contexto em um único briefing para a curadoria entender o conceito completo.' },
+    { id: 'selection', question: 'Posso misturar categorias e ideias?', answer: 'Sim. Sua seleção pode reunir produtos diferentes. Depois você ajusta quantidade e contexto em um único briefing para a curadoria entender o conceito completo.' },
   ],
   product: [
     { id: 'logo', question: 'Como descubro se minha logo funciona neste produto?', answer: 'Salve o item e conte no briefing como imagina a aplicação. Nosso time de especialistas cruza material, área disponível, quantidade de cores e técnica indicada antes de fechar a proposta.' },

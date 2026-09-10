@@ -40,6 +40,10 @@ function formatDimensions(product: CatalogProduct): string | null {
   return parts.length ? `${parts.map((value) => value.toLocaleString('pt-BR')).join(' × ')} cm` : null;
 }
 
+function productColorKey(color: ProductColor): string {
+  return color.variantId ? `variant:${color.variantId}` : `name:${color.name.toLocaleLowerCase('pt-BR')}`;
+}
+
 export default function ProductPage() {
   const { identifier = '' } = useParams();
   const [retryKey, setRetryKey] = useState(0);
@@ -54,6 +58,7 @@ export default function ProductPage() {
   const [imageZoomOpen, setImageZoomOpen] = useState(false);
   const trackedProductRef = useRef('');
   const zoomCloseRef = useRef<HTMLButtonElement>(null);
+  const zoomDialogRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     setActiveImage(0);
@@ -64,13 +69,23 @@ export default function ProductPage() {
   useEffect(() => {
     if (!imageZoomOpen) return;
     const previousFocus = document.activeElement as HTMLElement | null;
-    const closeOnEscape = (event: KeyboardEvent) => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const closeOnKeyboard = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setImageZoomOpen(false);
+      if (event.key !== 'Tab') return;
+      const focusable = Array.from(zoomDialogRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])') || []);
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     };
-    window.addEventListener('keydown', closeOnEscape);
+    window.addEventListener('keydown', closeOnKeyboard);
     zoomCloseRef.current?.focus();
     return () => {
-      window.removeEventListener('keydown', closeOnEscape);
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', closeOnKeyboard);
       previousFocus?.focus();
     };
   }, [imageZoomOpen]);
@@ -171,7 +186,7 @@ export default function ProductPage() {
                 <div className="color-picker__options">
                   <button type="button" className={!selectedColor ? 'is-active color-none' : 'color-none'} onClick={() => { setSelectedColor(undefined); setActiveImage(0); }} aria-pressed={!selectedColor}>A definir</button>
                   {product.colors.map((color, index) => (
-                    <button key={`${color.variantId || color.name}-${index}`} type="button" className={selectedColor?.name === color.name ? 'is-active' : ''} onClick={() => { setSelectedColor(color); setActiveImage(0); }} aria-pressed={selectedColor?.name === color.name} title={color.name}>
+                    <button key={`${productColorKey(color)}-${index}`} type="button" className={selectedColor && productColorKey(selectedColor) === productColorKey(color) ? 'is-active' : ''} onClick={() => { setSelectedColor(color); setActiveImage(0); }} aria-pressed={Boolean(selectedColor && productColorKey(selectedColor) === productColorKey(color))} title={color.name}>
                       <span style={{ backgroundColor: color.hex }} /> <em>{color.name}</em>
                     </button>
                   ))}
@@ -215,7 +230,7 @@ export default function ProductPage() {
           <RelatedProducts product={product} />
         </section>
       </div>
-      {imageZoomOpen && <div className="product-image-dialog-backdrop" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) setImageZoomOpen(false); }}><section className="product-image-dialog" role="dialog" aria-modal="true" aria-label={`Foto ampliada de ${product.name}`}><button ref={zoomCloseRef} type="button" onClick={() => setImageZoomOpen(false)} aria-label="Fechar foto ampliada">×</button><img src={currentImage} alt={product.name} referrerPolicy="no-referrer" onError={replaceBrokenProductImage} /></section></div>}
+      {imageZoomOpen && <div className="product-image-dialog-backdrop" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) setImageZoomOpen(false); }}><section ref={zoomDialogRef} className="product-image-dialog" role="dialog" aria-modal="true" aria-label={`Foto ampliada de ${product.name}`}><button ref={zoomCloseRef} type="button" onClick={() => setImageZoomOpen(false)} aria-label="Fechar foto ampliada">×</button><img src={currentImage} alt={product.name} referrerPolicy="no-referrer" onError={replaceBrokenProductImage} /></section></div>}
     </>
   );
 }

@@ -10,11 +10,14 @@ export interface CustomerQuoteSummary {
   protocol: string;
   status: CustomerQuoteStatus;
   company: string;
+  actionName?: string | null;
   createdAt: string;
+  lastMovementAt?: string | null;
   desiredDeadline: string | null;
   itemCount: number;
   totalUnits: number;
   productNames: string[];
+  productImages?: string[];
 }
 
 export interface CustomerQuoteEvent {

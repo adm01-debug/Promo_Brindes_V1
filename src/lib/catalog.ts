@@ -434,6 +434,15 @@ export async function fetchProduct(identifier: string, signal?: AbortSignal): Pr
   return result.data[0] ? mapProductRow(result.data[0]) : null;
 }
 
+/** Revalida uma pequena lista de referências salvas localmente sem consultar estoque. */
+export async function fetchProductsByIds(ids: string[], signal?: AbortSignal): Promise<CatalogProduct[]> {
+  const safeIds = [...new Set(ids.filter((id) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)))].slice(0, 3);
+  if (!safeIds.length) return [];
+  const params = new URLSearchParams({ select: PRODUCT_FIELDS, is_active: 'eq.true', id: `in.(${safeIds.join(',')})`, limit: String(safeIds.length) });
+  const result = await productRest<ProductRow[]>(params, signal);
+  return result.data.map(mapProductRow).filter((item): item is CatalogProduct => item !== null);
+}
+
 export async function fetchCategories(signal?: AbortSignal): Promise<Category[]> {
   const params = new URLSearchParams({
     select: 'id,name,parent_id',

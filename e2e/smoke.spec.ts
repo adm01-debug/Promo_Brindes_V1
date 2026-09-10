@@ -364,10 +364,16 @@ test('convite editorial de contato valida o essencial sem esconder labels', asyn
 test('limpeza da seleção oferece uma recuperação reversível', async ({ page }) => {
   await page.goto('/catalogo');
   await page.getByRole('button', { name: /Adicionar Mochila Executiva Sustentável à seleção/ }).click();
+  await page.getByLabel(/Nome da campanha/).fill('Boas-vindas 2026');
   await page.getByRole('button', { name: 'Limpar seleção' }).click();
+  const confirmation = page.getByRole('alertdialog', { name: 'Limpar todos os produtos?' });
+  await expect(confirmation).toBeVisible();
+  await expect(confirmation.getByRole('button', { name: 'Manter seleção' })).toBeFocused();
+  await confirmation.getByRole('button', { name: 'Limpar produtos' }).click();
   await expect(page.getByRole('status')).toContainText('Seleção limpa.');
   await page.getByRole('button', { name: 'Desfazer' }).click();
   await expect(page.getByText('Mochila Executiva Sustentável').last()).toBeVisible();
+  await expect(page.getByLabel(/Nome da campanha/)).toHaveValue('Boas-vindas 2026');
 });
 
 test('superfiltro móvel combina critérios, preserva a URL e devolve o foco', async ({ page }, testInfo) => {
@@ -501,7 +507,7 @@ test('callback de acesso inválido falha de forma recuperável e privada', async
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex,nofollow');
 });
 
-test('cliente autenticado confirma antes de substituir saves ao reutilizar o orçamento', async ({ page }) => {
+test('cliente autenticado confirma antes de substituir a seleção ao reutilizar o orçamento', async ({ page }) => {
   const quoteId = '55555555-5555-4555-8555-555555555555';
   const user = { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', aud: 'authenticated', role: 'authenticated', email: 'cliente@empresa.com', email_confirmed_at: '2026-09-09T12:00:00Z', user_metadata: {}, app_metadata: {}, created_at: '2026-09-09T12:00:00Z' };
   await page.addInitScript(({ user }) => {
@@ -520,16 +526,16 @@ test('cliente autenticado confirma antes de substituir saves ao reutilizar o or�
   await expect(page).toHaveURL(new RegExp(`/minha-conta/orcamentos/${quoteId}$`));
   await expect(page.getByRole('heading', { name: 'Seleção enviada' })).toBeVisible();
   await page.getByRole('button', { name: 'Solicitar novamente' }).first().click();
-  await expect(page.getByRole('dialog', { name: 'Trocar seus saves atuais?' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Manter seleção atual' })).toBeFocused();
+  await expect(page.getByRole('dialog', { name: 'Trocar sua seleção atual?' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Manter minha seleção' })).toBeFocused();
   await page.keyboard.press('Shift+Tab');
-  await expect(page.getByRole('button', { name: 'Substituir seleção e continuar' })).toBeFocused();
+  await expect(page.getByRole('button', { name: 'Substituir e continuar' })).toBeFocused();
   await page.keyboard.press('Tab');
-  await expect(page.getByRole('button', { name: 'Manter seleção atual' })).toBeFocused();
+  await expect(page.getByRole('button', { name: 'Manter minha seleção' })).toBeFocused();
   await page.keyboard.press('Escape');
-  await expect(page.getByRole('dialog', { name: 'Trocar seus saves atuais?' })).toBeHidden();
+  await expect(page.getByRole('dialog', { name: 'Trocar sua seleção atual?' })).toBeHidden();
   await page.getByRole('button', { name: 'Solicitar novamente' }).first().click();
-  await page.getByRole('button', { name: 'Substituir seleção e continuar' }).click();
+  await page.getByRole('button', { name: 'Substituir e continuar' }).click();
   await expect(page).toHaveURL(/\/orcamento\?repetir=/);
   await expect(page.getByRole('heading', { name: 'Transforme sua seleção em briefing.' })).toBeVisible();
   await expect(page.getByText('Mochila Executiva Sustentável').first()).toBeVisible();

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MAX_COMPARISON_ITEMS, normalizeComparison } from './catalogComparison';
+import { MAX_COMPARISON_ITEMS, normalizeComparison, loadCatalogComparison, saveCatalogComparison } from './catalogComparison';
 import type { CatalogProduct } from '../types';
 
 const product = (id: string): CatalogProduct => ({
@@ -11,5 +11,12 @@ describe('comparação persistente', () => {
     const products = [product('a'), product('a'), product('b'), product('c'), product('d'), { id: 'forjado' }];
     expect(normalizeComparison(products)).toEqual([product('a'), product('b'), product('c')]);
     expect(normalizeComparison(products)).toHaveLength(MAX_COMPARISON_ITEMS);
+  });
+
+  it('salva identificadores estáveis junto de um retrato local para sobreviver à navegação', () => {
+    saveCatalogComparison([product('a'), product('b')]);
+    const stored = JSON.parse(window.sessionStorage.getItem('promo-brindes:catalog-comparison:v1') || '{}');
+    expect(stored.productIds).toEqual(['a', 'b']);
+    expect(loadCatalogComparison()).toEqual([product('a'), product('b')]);
   });
 });

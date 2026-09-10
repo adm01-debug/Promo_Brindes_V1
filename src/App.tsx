@@ -24,19 +24,34 @@ const AuthConfirmPage = lazy(() => import('./pages/AuthConfirmPage'));
 const SetPasswordPage = lazy(() => import('./pages/SetPasswordPage'));
 
 function ScrollManager() {
-  const { pathname } = useLocation();
+  const { key, pathname } = useLocation();
   const initialRender = useRef(true);
+  const previousPathname = useRef<string | null>(null);
+  const positions = useRef(new Map<string, number>());
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'auto' });
+    const savedPosition = positions.current.get(key);
+    const pathChanged = previousPathname.current !== null && previousPathname.current !== pathname;
+    // Atualizações locais de busca/filtro mudam a URL, mas não devem roubar foco
+    // nem devolver a pessoa ao topo da mesma página.
+    if (previousPathname.current === null || pathChanged) {
+      window.scrollTo({ top: savedPosition ?? 0, behavior: 'auto' });
+    }
+    let frame: number | undefined;
     if (initialRender.current) {
       initialRender.current = false;
-      return;
+    } else if (pathChanged) {
+      frame = window.requestAnimationFrame(() => {
+        document.getElementById('conteudo')?.focus({ preventScroll: true });
+      });
     }
-    const frame = window.requestAnimationFrame(() => {
-      document.getElementById('conteudo')?.focus({ preventScroll: true });
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [pathname]);
+    previousPathname.current = pathname;
+    return () => {
+      if (frame !== undefined) window.cancelAnimationFrame(frame);
+      positions.current.set(key, window.scrollY);
+      // Mantém a memória de navegação curta sem crescer durante longas sessões.
+      if (positions.current.size > 40) positions.current.delete(positions.current.keys().next().value as string);
+    };
+  }, [key, pathname]);
   return null;
 }
 

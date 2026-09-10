@@ -9,6 +9,7 @@ export interface NormalizedQuoteItem {
   imageUrl: string;
   quantity: number;
   minQuantity: number;
+  variantId?: string;
   colorName?: string;
   colorHex?: string;
 }
@@ -28,7 +29,7 @@ interface NormalizedCommon {
 
 interface NormalizedContactPayload extends NormalizedCommon {
   source: 'site-promo-brindes-contact';
-  contact: { name: string; email: string; phone: string; message: string };
+  contact: { name: string; email: string; phone: string; message: string; responseChannel?: 'whatsapp' | 'email' | 'telefone' };
 }
 
 export interface NormalizedCampaignBrief {
@@ -43,6 +44,9 @@ export interface NormalizedCampaignBrief {
 export interface NormalizedQuoteBriefing {
   actionName?: string;
   budgetRange?: 'ate-25' | '26-50' | '51-100' | '101-200' | 'acima-200' | 'a-definir';
+  budgetScope?: 'por-pessoa' | 'total';
+  eventDate?: string;
+  deadlineFlexibility?: 'flexivel' | 'data-fixa';
   responseChannel?: 'whatsapp' | 'email' | 'telefone' | 'sem-preferencia';
   brandAssetStatus?: 'logo-pronto' | 'identidade-em-criacao' | 'preciso-de-ajuda';
 }
@@ -197,12 +201,15 @@ function quoteBriefing(value: unknown): NormalizedQuoteBriefing | undefined {
   const raw = object(value, 'briefing');
   const actionName = text(raw.actionName, 'briefing.actionName', 0, 100, true) || undefined;
   const budgetRange = optionalEnum(raw.budgetRange, 'briefing.budgetRange', ['ate-25', '26-50', '51-100', '101-200', 'acima-200', 'a-definir'] as const);
+  const budgetScope = optionalEnum(raw.budgetScope, 'briefing.budgetScope', ['por-pessoa', 'total'] as const);
+  const eventDate = deadline(raw.eventDate) || undefined;
+  const deadlineFlexibility = optionalEnum(raw.deadlineFlexibility, 'briefing.deadlineFlexibility', ['flexivel', 'data-fixa'] as const);
   const responseChannel = optionalEnum(raw.responseChannel, 'briefing.responseChannel', ['whatsapp', 'email', 'telefone', 'sem-preferencia'] as const);
   const brandAssetStatus = optionalEnum(raw.brandAssetStatus, 'briefing.brandAssetStatus', ['logo-pronto', 'identidade-em-criacao', 'preciso-de-ajuda'] as const);
-  if (!actionName && !budgetRange && !responseChannel && !brandAssetStatus) {
+  if (!actionName && !budgetRange && !budgetScope && !eventDate && !deadlineFlexibility && !responseChannel && !brandAssetStatus) {
     throw new RequestValidationError('O complemento do briefing está vazio.');
   }
-  return { actionName, budgetRange, responseChannel, brandAssetStatus };
+  return { actionName, budgetRange, budgetScope, eventDate, deadlineFlexibility, responseChannel, brandAssetStatus };
 }
 
 function imageUrl(value: unknown, field: string): string {
@@ -224,6 +231,14 @@ function colorHex(value: unknown, field: string): string {
     throw new RequestValidationError(`O campo ${field} é inválido.`);
   }
   return normalized;
+}
+
+function variantId(value: unknown, field: string): string | undefined {
+  const normalized = text(value, field, 0, 100, true);
+  if (normalized && !/^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,99}$/.test(normalized)) {
+    throw new RequestValidationError(`O campo ${field} é inválido.`);
+  }
+  return normalized || undefined;
 }
 
 function clientRequestId(value: unknown): string {
@@ -273,6 +288,7 @@ function quoteItem(value: unknown, index: number): NormalizedQuoteItem {
     imageUrl: imageUrl(item.imageUrl, `items[${index}].imageUrl`),
     quantity,
     minQuantity,
+    variantId: variantId(item.variantId, `items[${index}].variantId`),
     colorName: text(item.colorName, `items[${index}].colorName`, 0, 120, true) || undefined,
     colorHex: colorHex(item.colorHex, `items[${index}].colorHex`) || undefined,
   };
@@ -291,6 +307,7 @@ export function normalizeLeadPayload(kind: LeadKind, body: unknown): NormalizedL
 
   if (kind === 'contact') {
     if (payload.source !== 'site-promo-brindes-contact') throw new RequestValidationError('A origem da solicitação é inválida.');
+    const responseChannel = optionalEnum(contact.responseChannel, 'canal de retorno', ['whatsapp', 'email', 'telefone', 'sem-preferencia'] as const);
     return {
       ...common,
       source: 'site-promo-brindes-contact',
@@ -299,6 +316,7 @@ export function normalizeLeadPayload(kind: LeadKind, body: unknown): NormalizedL
         email: email(contact.email),
         phone: phone(contact.phone, false),
         message: text(contact.message, 'mensagem', 0, 800, true),
+        responseChannel: responseChannel === 'sem-preferencia' ? undefined : responseChannel,
       },
     };
   }

@@ -45,6 +45,24 @@ describe('seleção para orçamento', () => {
     expect(cartReducer(cleared, { type: 'reset' })).toEqual({ items: [] });
   });
 
+  it('preserva a direção de campanha ao adicionar, alterar quantidade, remover e restaurar itens', () => {
+    const campaign = { source: 'finder' as const, moment: 'onboarding' as const };
+    const added = cartReducer({ items: [], campaign }, { type: 'add', item });
+    expect(added.campaign).toEqual(campaign);
+    const updated = cartReducer(added, { type: 'quantity', key: item.key, quantity: 300 });
+    expect(updated.campaign).toEqual(campaign);
+    const removed = cartReducer(updated, { type: 'remove', key: item.key });
+    expect(removed).toEqual({ items: [], campaign });
+    expect(cartReducer(removed, { type: 'restore', item, index: 0 })).toEqual({ items: [item], campaign });
+  });
+
+  it('mantém o nome opcional da seleção até o reset definitivo após envio', () => {
+    const named = cartReducer({ items: [item] }, { type: 'selection-title', title: 'Boas-vindas do time' });
+    expect(named.selectionTitle).toBe('Boas-vindas do time');
+    expect(cartReducer(named, { type: 'clear' }).selectionTitle).toBe('Boas-vindas do time');
+    expect(cartReducer(named, { type: 'reset' })).toEqual({ items: [] });
+  });
+
   it('normaliza storage corrompido, remove extras e consolida duplicatas', () => {
     const values = [
       { ...item, key: 'forjado', quantity: -777, admin: true },

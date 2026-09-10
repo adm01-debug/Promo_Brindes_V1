@@ -253,7 +253,7 @@ export default function CatalogsPage() {
           <ol className="catalog-how__steps">
             <li><span>01</span><h3>Encontre uma direção</h3><p>Busque pelo contexto da ação, pelo público ou pelo tipo de produto.</p></li>
             <li><span>02</span><h3>Compartilhe com o time</h3><p>Envie o link da coleção e alinhe referências sem anexos pesados.</p></li>
-            <li><span>03</span><h3>Salve os produtos</h3><p>Abra a coleção, escolha os itens e transforme seus saves em briefing.</p></li>
+            <li><span>03</span><h3>Monte sua seleção</h3><p>Abra a coleção, escolha os itens e transforme sua seleção em briefing.</p></li>
           </ol>
         </div>
       </section>

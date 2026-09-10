@@ -2,10 +2,11 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    { "source": "/", "destination": "/index.html" },
     { "source": "/catalogo", "destination": "/index.html" },
     { "source": "/catalogos", "destination": "/index.html" },
     { "source": "/datas-comemorativas", "destination": "/index.html" },
-    { "source": "/produto/:identifier", "destination": "/index.html" },
+    { "source": "/produto/:identifier", "destination": "/api/product-page" },
     { "source": "/orcamento", "destination": "/index.html" },
     { "source": "/sobre", "destination": "/index.html" },
     { "source": "/contato", "destination": "/index.html" },
@@ -15,7 +16,7 @@
     { "source": "/definir-senha", "destination": "/index.html" },
     { "source": "/minha-conta", "destination": "/index.html" },
     { "source": "/minha-conta/orcamentos/:id", "destination": "/index.html" },
-    { "source": "/:path((?!api/|assets/|images/|brand/|sitemap\\.xml$|robots\\.txt$).*)", "destination": "/index.html" }
+    { "source": "/:path((?!api/|assets/|images/|brand/|sitemap\\.xml$|robots\\.txt$|favicon\\.svg$).*)", "destination": "/api/not-found" }
   ],
   "headers": [
     {

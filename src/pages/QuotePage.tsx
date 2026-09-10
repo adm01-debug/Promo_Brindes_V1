@@ -1,6 +1,6 @@
 import { ArrowLeft, ArrowRight, CheckCircle2, Mail, Minus, Plus, Printer, Send, ShieldCheck, ShoppingBag, Trash2 } from 'lucide-react';
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Seo } from '../components/Seo';
 import { ContextualFaq } from '../components/ContextualFaq';
 import { useQuoteCart } from '../context/QuoteCartContext';
@@ -11,6 +11,7 @@ import { replaceBrokenProductImage } from '../lib/images';
 import { clearQuoteDraft, EMPTY_QUOTE_CONTACT, loadQuoteDraft, saveQuoteDraft } from '../lib/quoteDraft';
 import { campaignBriefLabels } from '../lib/campaignBrief';
 import { EMPTY_QUOTE_BRIEFING, normalizeQuoteBriefing, quoteBriefingLabels } from '../lib/quoteBriefing';
+import { clearQuoteRepeat, loadQuoteRepeat } from '../lib/quoteRepeat';
 import type { QuoteBriefingForm, QuoteContact } from '../types';
 
 const initialContact = EMPTY_QUOTE_CONTACT;
@@ -43,9 +44,14 @@ function validate(contact: QuoteContact) {
 
 export default function QuotePage() {
   const cart = useQuoteCart();
+  const [params] = useSearchParams();
   const [savedDraft] = useState(loadQuoteDraft);
+  const [repeatContext] = useState(() => loadQuoteRepeat(params.get('repetir')));
   const [contact, setContact] = useState(savedDraft.contact);
-  const [briefing, setBriefing] = useState(savedDraft.briefing);
+  const [briefing, setBriefing] = useState(() => {
+    const restored = repeatContext?.briefing ? { ...EMPTY_QUOTE_BRIEFING, ...repeatContext.briefing } : savedDraft.briefing;
+    return { ...restored, actionName: restored.actionName || cart.selectionTitle || '' };
+  });
   const [errors, setErrors] = useState<Partial<Record<keyof QuoteContact, string>>>({});
   const [sending, setSending] = useState(false);
   const [submitError, setSubmitError] = useState('');
@@ -79,6 +85,7 @@ export default function QuotePage() {
 
   function updateBriefing<Key extends keyof QuoteBriefingForm>(key: Key, value: QuoteBriefingForm[Key]) {
     setBriefing((current) => ({ ...current, [key]: value }));
+    if (key === 'actionName') cart.setSelectionTitle(value as string);
     requestAttemptRef.current = null;
     clearSubmissionAttempt('promo-brindes:quote-attempt');
   }
@@ -118,6 +125,7 @@ export default function QuotePage() {
         setSuccess({ mode: 'endpoint', requestId: result.requestId });
         cart.reset();
         clearQuoteDraft();
+        clearQuoteRepeat();
         setBriefing(EMPTY_QUOTE_BRIEFING);
       } else {
         setSuccess({ mode: 'email', href: result.href });
@@ -206,12 +214,15 @@ export default function QuotePage() {
             <div className="form-grid">
               <div className="form-field"><label htmlFor="name">Seu nome *</label><input id="name" name="name" autoComplete="name" maxLength={100} value={contact.name} onChange={(event) => updateField('name', event.target.value)} aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? 'name-error' : undefined} />{errors.name && <span id="name-error" className="field-error">{errors.name}</span>}</div>
               <div className="form-field"><label htmlFor="company">Empresa *</label><input id="company" name="company" autoComplete="organization" maxLength={150} value={contact.company} onChange={(event) => updateField('company', event.target.value)} aria-invalid={Boolean(errors.company)} aria-describedby={errors.company ? 'company-error' : undefined} />{errors.company && <span id="company-error" className="field-error">{errors.company}</span>}</div>
-              <div className="form-field"><label htmlFor="email">E-mail corporativo *</label><input id="email" name="email" type="email" inputMode="email" autoComplete="email" maxLength={160} value={contact.email} onChange={(event) => updateField('email', event.target.value)} aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? 'email-error' : undefined} />{errors.email && <span id="email-error" className="field-error">{errors.email}</span>}</div>
+              <div className="form-field"><label htmlFor="email">Seu e-mail *</label><input id="email" name="email" type="email" inputMode="email" autoComplete="email" maxLength={160} value={contact.email} onChange={(event) => updateField('email', event.target.value)} aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? 'email-error' : undefined} />{errors.email && <span id="email-error" className="field-error">{errors.email}</span>}</div>
               <div className="form-field"><label htmlFor="phone">Telefone / WhatsApp *</label><input id="phone" name="phone" type="tel" inputMode="tel" autoComplete="tel" maxLength={16} placeholder="(11) 99999-9999" value={contact.phone} onChange={(event) => updateField('phone', formatPhone(event.target.value))} aria-invalid={Boolean(errors.phone)} aria-describedby={errors.phone ? 'phone-error' : undefined} />{errors.phone && <span id="phone-error" className="field-error">{errors.phone}</span>}</div>
               <div className="form-field"><label htmlFor="city">Cidade / UF <span>opcional</span></label><input id="city" name="city" autoComplete="address-level2" maxLength={100} placeholder="Ex.: São Paulo / SP" value={contact.city} onChange={(event) => updateField('city', event.target.value)} /></div>
-              <div className="form-field"><label htmlFor="deadline">Quando você precisa? <span>opcional</span></label><input id="deadline" name="deadline" type="date" min={minimumDeadline} value={contact.deadline} onChange={(event) => updateField('deadline', event.target.value)} aria-invalid={Boolean(errors.deadline)} aria-describedby={errors.deadline ? 'deadline-error' : undefined} />{errors.deadline && <span id="deadline-error" className="field-error">{errors.deadline}</span>}</div>
+              <div className="form-field"><label htmlFor="deadline">Quando você precisa receber? <span>opcional</span></label><input id="deadline" name="deadline" type="date" min={minimumDeadline} value={contact.deadline} onChange={(event) => updateField('deadline', event.target.value)} aria-invalid={Boolean(errors.deadline)} aria-describedby={errors.deadline ? 'deadline-error' : undefined} />{errors.deadline && <span id="deadline-error" className="field-error">{errors.deadline}</span>}</div>
               <div className="form-field form-field--wide"><label htmlFor="actionName">Como você chama esta ação? <span>opcional</span></label><input id="actionName" name="actionName" maxLength={100} placeholder="Ex.: Kit de boas-vindas do time 2026" value={briefing.actionName} onChange={(event) => updateBriefing('actionName', event.target.value)} /><small>Um nome ajuda nosso time de especialistas a reconhecer este briefing.</small></div>
-              <div className="form-field"><label htmlFor="budgetRange">Faixa de investimento por pessoa <span>opcional</span></label><select id="budgetRange" name="budgetRange" value={briefing.budgetRange} onChange={(event) => updateBriefing('budgetRange', event.target.value as QuoteBriefingForm['budgetRange'])}><option value="">Prefiro conversar sobre isso</option>{Object.entries(quoteBriefingLabels.budgetRange).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
+              <div className="form-field"><label htmlFor="eventDate">Quando é o evento? <span>opcional</span></label><input id="eventDate" name="eventDate" type="date" min={minimumDeadline} value={briefing.eventDate} onChange={(event) => updateBriefing('eventDate', event.target.value)} /><small>Se for diferente da data de recebimento.</small></div>
+              <div className="form-field"><label htmlFor="deadlineFlexibility">Recebimento <span>opcional</span></label><select id="deadlineFlexibility" name="deadlineFlexibility" value={briefing.deadlineFlexibility} onChange={(event) => updateBriefing('deadlineFlexibility', event.target.value as QuoteBriefingForm['deadlineFlexibility'])}><option value="">Ainda vou confirmar</option>{Object.entries(quoteBriefingLabels.deadlineFlexibility).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
+              <div className="form-field"><label htmlFor="budgetScope">Investimento considerado <span>opcional</span></label><select id="budgetScope" name="budgetScope" value={briefing.budgetScope} onChange={(event) => updateBriefing('budgetScope', event.target.value as QuoteBriefingForm['budgetScope'])}><option value="">Prefiro conversar sobre isso</option>{Object.entries(quoteBriefingLabels.budgetScope).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
+              <div className="form-field"><label htmlFor="budgetRange">Faixa de investimento <span>opcional</span></label><select id="budgetRange" name="budgetRange" value={briefing.budgetRange} onChange={(event) => updateBriefing('budgetRange', event.target.value as QuoteBriefingForm['budgetRange'])}><option value="">Prefiro conversar sobre isso</option>{Object.entries(quoteBriefingLabels.budgetRange).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
               <div className="form-field"><label htmlFor="responseChannel">Como prefere continuar a conversa? <span>opcional</span></label><select id="responseChannel" name="responseChannel" value={briefing.responseChannel} onChange={(event) => updateBriefing('responseChannel', event.target.value as QuoteBriefingForm['responseChannel'])}><option value="">Sem preferência</option>{Object.entries(quoteBriefingLabels.responseChannel).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
               <div className="form-field form-field--wide"><label htmlFor="brandAssetStatus">Identidade visual <span>opcional</span></label><select id="brandAssetStatus" name="brandAssetStatus" value={briefing.brandAssetStatus} onChange={(event) => updateBriefing('brandAssetStatus', event.target.value as QuoteBriefingForm['brandAssetStatus'])}><option value="">Conte para a gente em que ponto está</option>{Object.entries(quoteBriefingLabels.brandAssetStatus).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select><small>Não envie arquivos sensíveis pelo formulário. Se necessário, nosso time de especialistas combinará um canal seguro para receber sua marca.</small></div>
               <div className="form-field form-field--wide"><label htmlFor="notes">Qual é a ideia da ação? <span>opcional</span></label><textarea id="notes" name="notes" rows={5} maxLength={800} placeholder="Ex.: onboarding para 300 pessoas, visual mais street, preferência por materiais reciclados, logo em uma cor…" value={contact.notes} onChange={(event) => updateField('notes', event.target.value)} /><small className="char-count">{contact.notes.length}/800</small></div>

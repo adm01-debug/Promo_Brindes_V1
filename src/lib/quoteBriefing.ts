@@ -3,6 +3,8 @@ import type { QuoteBriefingDetails, QuoteBriefingForm } from '../types';
 const budgetRanges = new Set<NonNullable<QuoteBriefingDetails['budgetRange']>>([
   'ate-25', '26-50', '51-100', '101-200', 'acima-200', 'a-definir',
 ]);
+const budgetScopes = new Set<NonNullable<QuoteBriefingDetails['budgetScope']>>(['por-pessoa', 'total']);
+const deadlineFlexibilities = new Set<NonNullable<QuoteBriefingDetails['deadlineFlexibility']>>(['flexivel', 'data-fixa']);
 const responseChannels = new Set<NonNullable<QuoteBriefingDetails['responseChannel']>>([
   'whatsapp', 'email', 'telefone', 'sem-preferencia',
 ]);
@@ -13,18 +15,29 @@ const brandAssetStatuses = new Set<NonNullable<QuoteBriefingDetails['brandAssetS
 export const EMPTY_QUOTE_BRIEFING: QuoteBriefingForm = {
   actionName: '',
   budgetRange: '',
+  budgetScope: '',
+  eventDate: '',
+  deadlineFlexibility: '',
   responseChannel: '',
   brandAssetStatus: '',
 };
 
 export const quoteBriefingLabels = {
   budgetRange: {
-    'ate-25': 'Até R$ 25 por pessoa',
-    '26-50': 'De R$ 26 a R$ 50 por pessoa',
-    '51-100': 'De R$ 51 a R$ 100 por pessoa',
-    '101-200': 'De R$ 101 a R$ 200 por pessoa',
-    'acima-200': 'Acima de R$ 200 por pessoa',
+    'ate-25': 'Até R$ 25',
+    '26-50': 'De R$ 26 a R$ 50',
+    '51-100': 'De R$ 51 a R$ 100',
+    '101-200': 'De R$ 101 a R$ 200',
+    'acima-200': 'Acima de R$ 200',
     'a-definir': 'Verba a definir',
+  },
+  budgetScope: {
+    'por-pessoa': 'por pessoa',
+    total: 'no total da ação',
+  },
+  deadlineFlexibility: {
+    flexivel: 'Recebimento com data flexível',
+    'data-fixa': 'Recebimento em data fixa',
   },
   responseChannel: {
     whatsapp: 'WhatsApp',
@@ -49,6 +62,16 @@ function optionalValue<Value extends string>(value: unknown, values: Set<Value>)
   return typeof value === 'string' && values.has(value as Value) ? value as Value : undefined;
 }
 
+function optionalDate(value: unknown): string | undefined {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return undefined;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value ? undefined : value;
+}
+
+function localizedDate(value: string): string {
+  return new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC', dateStyle: 'long' }).format(new Date(`${value}T12:00:00.000Z`));
+}
+
 /** Sanitiza o contexto opcional antes de ele sair do navegador. */
 export function normalizeQuoteBriefing(value: unknown): QuoteBriefingDetails | undefined {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
@@ -56,6 +79,9 @@ export function normalizeQuoteBriefing(value: unknown): QuoteBriefingDetails | u
   const result: QuoteBriefingDetails = {
     actionName: optionalText(raw.actionName, 100),
     budgetRange: optionalValue(raw.budgetRange, budgetRanges),
+    budgetScope: optionalValue(raw.budgetScope, budgetScopes),
+    eventDate: optionalDate(raw.eventDate),
+    deadlineFlexibility: optionalValue(raw.deadlineFlexibility, deadlineFlexibilities),
     responseChannel: optionalValue(raw.responseChannel, responseChannels),
     brandAssetStatus: optionalValue(raw.brandAssetStatus, brandAssetStatuses),
   };
@@ -67,6 +93,9 @@ export function quoteBriefingForm(value: unknown): QuoteBriefingForm {
   return {
     actionName: normalized?.actionName || '',
     budgetRange: normalized?.budgetRange || '',
+    budgetScope: normalized?.budgetScope || '',
+    eventDate: normalized?.eventDate || '',
+    deadlineFlexibility: normalized?.deadlineFlexibility || '',
     responseChannel: normalized?.responseChannel || '',
     brandAssetStatus: normalized?.brandAssetStatus || '',
   };
@@ -76,7 +105,9 @@ export function quoteBriefingSummary(briefing?: QuoteBriefingDetails): string[] 
   if (!briefing) return [];
   return [
     briefing.actionName ? `Ação: ${briefing.actionName}` : '',
-    briefing.budgetRange ? quoteBriefingLabels.budgetRange[briefing.budgetRange] : '',
+    briefing.budgetRange ? `${quoteBriefingLabels.budgetRange[briefing.budgetRange]}${briefing.budgetScope ? ` ${quoteBriefingLabels.budgetScope[briefing.budgetScope]}` : ''}` : '',
+    briefing.eventDate ? `Evento em ${localizedDate(briefing.eventDate)}` : '',
+    briefing.deadlineFlexibility ? quoteBriefingLabels.deadlineFlexibility[briefing.deadlineFlexibility] : '',
     briefing.responseChannel ? `Contato por ${quoteBriefingLabels.responseChannel[briefing.responseChannel]}` : '',
     briefing.brandAssetStatus ? quoteBriefingLabels.brandAssetStatus[briefing.brandAssetStatus] : '',
   ].filter(Boolean);

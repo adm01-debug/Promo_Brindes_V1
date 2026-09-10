@@ -15,13 +15,21 @@ const SYNONYM_GROUPS: string[][] = [
   ['sacochila', 'mochila saco'],
   ['powerbank', 'power bank', 'carregador portatil', 'carregador portátil'],
   ['stanley', 'termico', 'térmico'],
-  ['onboarding', 'boas vindas', 'boas-vindas', 'kit'],
+  // Onboarding é uma intenção de campanha, não sinônimo de qualquer kit.
+  // "Kit" continua pesquisável separadamente e pode ser combinado com a intenção.
+  ['onboarding', 'boas vindas', 'boas-vindas', 'kit de onboarding', 'kit onboarding'],
+  ['kit', 'kits', 'kit corporativo'],
   ['ecologico', 'ecológico', 'sustentavel', 'sustentável', 'reciclado'],
   ['caderno', 'moleskine', 'bloco de notas'],
   ['cordao', 'cordão', 'lanyard'],
   ['camiseta', 't shirt', 't-shirt'],
   ['necessaire', 'nécessaire', 'estojo'],
 ];
+
+const TYPO_CORRECTIONS = [
+  'squeeze', 'garrafa', 'sacochila', 'mochila', 'powerbank', 'carregador',
+  'termico', 'onboarding', 'reciclado', 'caderno', 'lanyard', 'camiseta', 'necessaire',
+] as const;
 
 const CURATED_SUGGESTIONS = [
   { label: 'Kits de onboarding', value: 'kit boas-vindas', keywords: 'onboarding boas vindas colaboradores kit' },
@@ -101,9 +109,45 @@ export function buildCatalogSearchGroups(input: string): string[][] {
   const objectTokens = withoutPrice.filter((token) => !CONTEXT_WORDS.has(token));
   const candidates = (objectTokens.length || groups.length ? objectTokens : withoutPrice).filter((token) => token.length >= 2);
   const nonNumeric = candidates.filter((token) => !/^\d+$/.test(token));
-  const meaningful = (nonNumeric.length ? nonNumeric : candidates).slice(0, 6);
+  // Números acompanham muitos briefings ("onboarding para 100 pessoas"),
+  // mas não devem virar condição de produto quando uma intenção já foi entendida.
+  const meaningful = (nonNumeric.length ? nonNumeric : groups.length ? [] : candidates).slice(0, 6);
   meaningful.forEach((token) => addUniqueGroup(groups, seen, synonymsFor(token)));
   return groups;
+}
+
+function editDistance(left: string, right: string): number {
+  const previous = Array.from({ length: right.length + 1 }, (_, index) => index);
+  for (let leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
+    let diagonal = previous[0];
+    previous[0] = leftIndex;
+    for (let rightIndex = 1; rightIndex <= right.length; rightIndex += 1) {
+      const saved = previous[rightIndex];
+      previous[rightIndex] = Math.min(
+        previous[rightIndex] + 1,
+        previous[rightIndex - 1] + 1,
+        diagonal + (left[leftIndex - 1] === right[rightIndex - 1] ? 0 : 1),
+      );
+      diagonal = saved;
+    }
+  }
+  return previous[right.length];
+}
+
+/**
+ * Sugere somente correções inequívocas de termos editoriais. Códigos e consultas
+ * compostas permanecem intactos para não transformar uma busca precisa em outra.
+ */
+export function suggestSearchCorrection(input: string): string | null {
+  const normalized = normalizeSearchText(input);
+  if (!normalized || normalized.includes(' ') || /^\d+$/.test(normalized) || normalized.length < 4) return null;
+  const candidates = TYPO_CORRECTIONS
+    .map((candidate) => ({ candidate, distance: editDistance(normalized, candidate) }))
+    .filter(({ candidate, distance }) => distance > 0 && distance <= (candidate.length >= 7 ? 2 : 1))
+    .sort((left, right) => left.distance - right.distance || left.candidate.localeCompare(right.candidate, 'pt-BR'));
+  if (!candidates.length) return null;
+  if (candidates.length > 1 && candidates[0].distance === candidates[1].distance) return null;
+  return candidates[0].candidate;
 }
 
 export function buildSearchSuggestions(input: string, categories: Category[], limit = 6): SearchSuggestion[] {

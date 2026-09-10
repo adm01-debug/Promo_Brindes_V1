@@ -37,7 +37,7 @@ const contactPayload = {
   ...common,
   source: 'site-promo-brindes-contact',
   clientRequestId: 'contact-request-123',
-  contact: { name: 'Ana Silva', email: 'ANA@EMPRESA.COM.BR', phone: '(11) 99999-9999', message: 'Quero um kit para onboarding.' },
+  contact: { name: 'Ana Silva', email: 'ANA@EMPRESA.COM.BR', phone: '(11) 99999-9999', message: 'Quero um kit para onboarding.', responseChannel: 'whatsapp' },
 };
 
 const quotePayload = {
@@ -52,7 +52,7 @@ const quotePayload = {
     key: '11111111-1111-4111-8111-111111111111::verde',
     productId: '11111111-1111-4111-8111-111111111111', slug: 'mochila', name: 'Mochila',
     sku: 'MO-42', imageUrl: 'https://cdn.example.test/mochila.webp', quantity: 100, minQuantity: 50,
-    colorName: 'Verde', colorHex: '#00aa66',
+    variantId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', colorName: 'Verde', colorHex: '#00aa66',
   }],
   campaign: { source: 'finder', moment: 'onboarding', audience: 'colaboradores', scale: '51-200', mood: 'sustentavel' },
   briefing: { actionName: 'Boas-vindas 2026', budgetRange: '51-100', responseChannel: 'whatsapp', brandAssetStatus: 'logo-pronto' },
@@ -104,6 +104,7 @@ describe('APIs de leads isoladas', () => {
     const sent = JSON.parse(String(init.body));
     expect(sent.p_payload.contact.email).toBe('ana@empresa.com.br');
     expect(sent.p_payload.contact.message).toBe('Quero um kit para onboarding.');
+    expect(sent.p_payload.contact.responseChannel).toBe('whatsapp');
     expect(sent.p_request_meta.identifierHash).toMatch(/^[0-9a-f]{64}$/);
     expect(sent.p_request_meta).not.toHaveProperty('ip');
   });
@@ -120,6 +121,7 @@ describe('APIs de leads isoladas', () => {
     expect(sent.p_request_meta.campaign).toEqual(quotePayload.campaign);
     expect(sent.p_request_meta.briefing).toEqual(quotePayload.briefing);
     expect(sent.p_request_meta).not.toHaveProperty('ip');
+    expect(sent.p_payload.items[0].variantId).toBe('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
   });
 
   it('bloqueia qualquer tentativa de apontar gravações ao Supabase canônico', async () => {

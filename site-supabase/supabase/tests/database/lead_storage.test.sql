@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(17);
+select plan(23);
 
 select is(
   (select count(*) from pg_catalog.pg_tables where schemaname = 'site_private'),
@@ -12,6 +12,8 @@ select is(
 );
 
 select has_column('site_private', 'contact_requests', 'message', 'contato inicial armazena o contexto opcional da conversa');
+select has_column('site_private', 'contact_requests', 'preferred_channel', 'contato registra preferência de retorno sem disparar mensagem');
+select has_column('site_private', 'quote_items', 'variant_id_snapshot', 'orçamento preserva identificador da variante escolhida');
 
 select ok(
   (select bool_and(c.relrowsecurity)
@@ -85,6 +87,55 @@ select ok(
   to_regprocedure('public.rls_auto_enable()') is null
     or not pg_catalog.has_function_privilege('authenticated', 'public.rls_auto_enable()', 'execute'),
   'authenticated não executa o helper automático de RLS'
+);
+
+select is(
+  (public.create_site_quote_request(
+    jsonb_build_object(
+      'source', 'site-promo-brindes',
+      'clientRequestId', 'variant-snapshot-test-1',
+      'submittedAt', now(),
+      'pageUrl', 'https://promo.test/orcamento',
+      'consent', jsonb_build_object('accepted', true, 'noticeVersion', '2026-09-08', 'acceptedAt', now()),
+      'contact', jsonb_build_object('name', 'Ana Teste', 'company', 'Empresa Teste', 'email', 'ana@teste.com', 'phone', '(11) 99999-9999', 'city', '', 'deadline', '', 'notes', ''),
+      'items', jsonb_build_array(jsonb_build_object(
+        'productId', '11111111-1111-4111-8111-111111111111', 'key', '11111111-1111-4111-8111-111111111111::variante-azul-1',
+        'slug', 'produto-teste', 'name', 'Produto teste', 'sku', 'TESTE-1', 'imageUrl', '/images/product-placeholder.svg',
+        'quantity', 100, 'minQuantity', 50, 'variantId', 'azul-1', 'colorName', 'Azul', 'colorHex', '#0047ab'
+      ))
+    ),
+    jsonb_build_object('requestHash', repeat('d', 64), 'identifierHash', repeat('e', 64))
+  )) ->> 'duplicate',
+  'false',
+  'RPC de orçamento aceita e registra o retrato da variante'
+);
+
+select is(
+  (select variant_id_snapshot from site_private.quote_items where item_key = '11111111-1111-4111-8111-111111111111::variante-azul-1'),
+  'azul-1',
+  'identificador da variante não se perde antes do histórico'
+);
+
+select is(
+  (public.create_site_contact_request(
+    jsonb_build_object(
+      'source', 'site-promo-brindes-contact',
+      'clientRequestId', 'contact-channel-test-1',
+      'submittedAt', now(),
+      'pageUrl', 'https://promo.test/contato',
+      'consent', jsonb_build_object('accepted', true, 'noticeVersion', '2026-09-08', 'acceptedAt', now()),
+      'contact', jsonb_build_object('name', 'Ana Teste', 'email', 'ana@teste.com', 'phone', '(11) 99999-9999', 'message', 'Quero conversar', 'responseChannel', 'whatsapp')
+    ),
+    jsonb_build_object('requestHash', repeat('f', 64), 'identifierHash', repeat('a', 64))
+  )) ->> 'duplicate',
+  'false',
+  'RPC de contato registra preferência sem criar notificação'
+);
+
+select is(
+  (select preferred_channel from site_private.contact_requests where client_request_id = 'contact-channel-test-1'),
+  'whatsapp',
+  'preferência de contato fica limitada ao registro privado'
 );
 
 select * from finish();

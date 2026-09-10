@@ -1243,6 +1243,8 @@ p {
 .compare-tray table { width: 100%; min-width: 620px; border-collapse: collapse; color: #eef2ee; font-size: 0.68rem; }
 .compare-tray caption { margin-bottom: 7px; color: #c8cec9; text-align: left; }
 .compare-tray th, .compare-tray td { padding: 7px 10px; border-top: 1px solid #3e4540; text-align: left; vertical-align: top; }
+.compare-tray td.is-different { background: rgb(217 255 63 / 13%); }
+.compare-tray__notice { margin: 0 0 12px; padding: 9px 11px; border-left: 3px solid var(--acid); color: #eef2ee; background: #292d2a; font-size: .68rem; line-height: 1.45; }
 .compare-tray th { width: 150px; color: #8df6b8; font-weight: 750; }
 .compare-tray thead th { width: auto; color: #fff; background: #292d2a; }
 .compare-tray thead th:first-child { width: 150px; color: #8df6b8; }
@@ -2476,6 +2478,35 @@ p {
   font-size: 0.72rem;
 }
 
+.quote-drawer__campaign {
+  display: grid;
+  gap: 6px;
+  padding: 14px 24px;
+  background: #f5f8f3;
+  border-bottom: 1px solid var(--line);
+}
+
+.quote-drawer__campaign > span {
+  color: var(--ink);
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.quote-drawer__campaign em { color: var(--muted); font-style: normal; font-weight: 500; text-transform: none; }
+.quote-drawer__campaign input {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 11px;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid #c9d1c8;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.76rem;
+}
+.quote-drawer__campaign small { color: var(--muted); font-size: 0.6rem; line-height: 1.4; }
+
 .quote-drawer__items {
   flex: 1;
   overflow-y: auto;
@@ -2586,6 +2617,47 @@ p {
   font-size: 0.84rem;
   line-height: 1.65;
 }
+
+.quote-clear-backdrop {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(15 17 16 / 0.52);
+}
+
+.quote-clear-confirmation {
+  width: min(100%, 420px);
+  padding: clamp(24px, 5vw, 36px);
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 24px 70px rgb(0 0 0 / 0.28);
+}
+
+.quote-clear-confirmation .section-kicker { margin-bottom: 12px; }
+.quote-clear-confirmation h3 {
+  margin: 0 0 10px;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: clamp(1.45rem, 4vw, 1.9rem);
+  line-height: 1.04;
+}
+.quote-clear-confirmation p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.65;
+}
+.quote-clear-confirmation > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+.quote-clear-confirmation .button { flex: 1 1 150px; }
 
 .mobile-selection-fab {
   position: fixed;
@@ -5919,6 +5991,8 @@ form.catalog-search > .search-suggestions.is-open { display: grid; pointer-event
 .customer-status--ready { color: #174a29; background: #d9f7df; }
 .customer-status--closed { color: #4e514e; background: #e8e8e4; }
 .customer-quote-card h2 { margin: 0 0 10px; font-size: 1.9rem; letter-spacing: -.045em; }
+.customer-quote-card__images { display: flex; min-height: 54px; margin: -8px 0 19px; padding-left: 12px; }
+.customer-quote-card__images img { width: 54px; height: 54px; margin-left: -12px; border: 2px solid var(--white); border-radius: 50%; object-fit: contain; background: #f0efe9; }
 .customer-quote-card > p { min-height: 50px; margin: 0 0 22px; color: var(--muted); font-size: .78rem; line-height: 1.55; }
 .customer-quote-card dl { display: grid; gap: 10px; margin: 0 0 23px; }
 .customer-quote-card dl div { display: flex; justify-content: space-between; gap: 14px; font-size: .7rem; }
@@ -5973,6 +6047,7 @@ form.catalog-search > .search-suggestions.is-open { display: grid; pointer-event
 .customer-timeline__empty { color: var(--muted); line-height: 1.6; }
 .customer-proposals { display: grid; gap: 12px; }
 .customer-proposals article { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 18px; padding: 18px; border: 1.5px solid var(--ink); border-radius: 16px; background: var(--white); }
+.customer-proposals article.is-current { border-color: var(--green-dark); box-shadow: 4px 4px 0 var(--acid); }
 .customer-proposals article div { display: grid; gap: 4px; }
 .customer-proposals span, .customer-proposals small { color: var(--muted); font-size: .68rem; }
 .customer-proposals button { min-height: 42px; padding: 0 14px; border: 0; border-radius: 999px; color: var(--white); background: var(--ink); font-weight: 800; cursor: pointer; }

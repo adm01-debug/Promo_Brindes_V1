@@ -50,6 +50,8 @@ export interface QuoteItem {
   imageUrl: string;
   quantity: number;
   minQuantity: number;
+  /** Identificador publicado da variante, quando a pessoa escolhe uma cor específica. */
+  variantId?: string;
   colorName?: string;
   colorHex?: string;
 }
@@ -74,13 +76,18 @@ export interface CampaignBrief {
 }
 
 export type QuoteBudgetRange = 'ate-25' | '26-50' | '51-100' | '101-200' | 'acima-200' | 'a-definir';
+export type QuoteBudgetScope = 'por-pessoa' | 'total';
 export type QuoteResponseChannel = 'whatsapp' | 'email' | 'telefone' | 'sem-preferencia';
 export type QuoteBrandAssetStatus = 'logo-pronto' | 'identidade-em-criacao' | 'preciso-de-ajuda';
+export type QuoteDeadlineFlexibility = 'flexivel' | 'data-fixa';
 
 /** Informações opcionais que tornam a curadoria mais objetiva, sem criar obrigação comercial. */
 export interface QuoteBriefingDetails {
   actionName?: string;
   budgetRange?: QuoteBudgetRange;
+  budgetScope?: QuoteBudgetScope;
+  eventDate?: string;
+  deadlineFlexibility?: QuoteDeadlineFlexibility;
   responseChannel?: QuoteResponseChannel;
   brandAssetStatus?: QuoteBrandAssetStatus;
 }
@@ -89,6 +96,9 @@ export interface QuoteBriefingDetails {
 export interface QuoteBriefingForm {
   actionName: string;
   budgetRange: QuoteBudgetRange | '';
+  budgetScope: QuoteBudgetScope | '';
+  eventDate: string;
+  deadlineFlexibility: QuoteDeadlineFlexibility | '';
   responseChannel: QuoteResponseChannel | '';
   brandAssetStatus: QuoteBrandAssetStatus | '';
 }
@@ -121,6 +131,7 @@ export interface ContactLead {
   email: string;
   phone: string;
   message: string;
+  responseChannel: QuoteResponseChannel | '';
   privacyAccepted: boolean;
 }
 

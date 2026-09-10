@@ -30,9 +30,10 @@ import {
   type ProfileParam,
 } from '../lib/catalogFilters';
 import { useAllCategories, useCatalog } from '../lib/hooks';
-import { sanitizeSearch } from '../lib/catalog';
+import { fetchProductsByIds, sanitizeSearch } from '../lib/catalog';
 import { loadCatalogComparison, saveCatalogComparison } from '../lib/catalogComparison';
 import { normalizeCampaignBrief } from '../lib/campaignBrief';
+import { suggestSearchCorrection } from '../lib/search';
 import { useQuoteCart } from '../context/QuoteCartContext';
 import type { CatalogProduct } from '../types';
 
@@ -84,6 +85,7 @@ export default function CatalogPage() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [comparison, setComparison] = useState<CatalogProduct[]>(loadCatalogComparison);
   const [comparisonExpanded, setComparisonExpanded] = useState(() => typeof window === 'undefined' || window.innerWidth > 760);
+  const [comparisonNotice, setComparisonNotice] = useState('');
   const comparisonControlRefs = useRef(new Map<string, HTMLButtonElement>());
   const mobileTriggerRef = useRef<HTMLButtonElement>(null);
   const mobileDialogRef = useRef<HTMLDivElement>(null);
@@ -149,6 +151,8 @@ export default function CatalogPage() {
   );
   const selectedCampaignLabels = campaignLabels(campaignSelection);
   const paramsKey = params.toString();
+  const searchCorrection = useMemo(() => suggestSearchCorrection(query), [query]);
+  const comparisonIds = useMemo(() => comparison.map((product) => product.id).sort().join(','), [comparison]);
 
   useEffect(() => setSearchInput(query), [query]);
 
@@ -160,6 +164,26 @@ export default function CatalogPage() {
   useEffect(() => {
     saveCatalogComparison(comparison);
   }, [comparison]);
+
+  useEffect(() => {
+    if (!comparisonIds) return;
+    const controller = new AbortController();
+    void fetchProductsByIds(comparisonIds.split(',').filter(Boolean), controller.signal)
+      .then((available) => {
+        const byId = new Map(available.map((product) => [product.id, product]));
+        setComparison((current) => {
+          const next = current.flatMap((product) => byId.has(product.id) ? [byId.get(product.id)!] : []);
+          const missing = current.length - next.length;
+          setComparisonNotice(missing ? `${missing === 1 ? 'Uma referência não está mais ativa e foi retirada da comparação.' : `${missing} referências não estão mais ativas e foram retiradas da comparação.`}` : '');
+          return next;
+        });
+      })
+      .catch(() => {
+        // A comparação continua legível com o retrato salvo se a consulta de leitura falhar.
+        setComparisonNotice('Não foi possível atualizar as referências agora; os dados exibidos são o último retrato salvo.');
+      });
+    return () => controller.abort();
+  }, [comparisonIds]);
 
   useEffect(() => {
     if (!catalog.data.products.length) return;
@@ -430,7 +454,15 @@ export default function CatalogPage() {
 
           {catalogLoading && <ProductGridSkeleton count={12} />}
           {catalogError && <CatalogError message={catalogError} onRetry={() => setRetryKey((key) => key + 1)} />}
-          {!catalogLoading && !catalogError && catalog.data.products.length === 0 && <CatalogEmpty onClear={clearAll} />}
+          {!catalogLoading && !catalogError && catalog.data.products.length === 0 && <CatalogEmpty
+            onClear={clearAll}
+            suggestion={searchCorrection}
+            onApplySuggestion={() => {
+              if (!searchCorrection) return;
+              setSearchInput(searchCorrection);
+              submitSearch(searchCorrection, true);
+            }}
+          />}
           {!catalogLoading && !catalogError && catalog.data.products.length > 0 && (
             <>
               <div className="product-grid">
@@ -479,6 +511,7 @@ export default function CatalogPage() {
               </div>
             </div>
             <div id="compare-tray-body" className="compare-tray__body">
+            {comparisonNotice && <p className="compare-tray__notice" role="status">{comparisonNotice}</p>}
             <div className="compare-tray__items">
               {comparison.map((item) => (
                 <article key={item.id} className="compare-tray__item">
@@ -497,13 +530,15 @@ export default function CatalogPage() {
                   <caption>Comparação de informações publicadas no catálogo</caption>
                   <thead><tr><th scope="col">Critério</th>{comparison.map((item) => <th scope="col" key={item.id}><Link to={`/produto/${item.slug}`}>{item.name}</Link></th>)}</tr></thead>
                   <tbody>
-                    <tr><th scope="row">Quantidade mínima</th>{comparison.map((item) => <td key={item.id}>{item.minQuantity > 1 ? `${item.minQuantity.toLocaleString('pt-BR')} un.` : 'A confirmar'}</td>)}</tr>
-                    <tr><th scope="row">Personalização</th>{comparison.map((item) => <td key={item.id}>{item.allowsPersonalization ? 'A confirmar com o briefing' : 'Consulte nosso time de especialistas'}</td>)}</tr>
-                    <tr><th scope="row">Cores publicadas</th>{comparison.map((item) => <td key={item.id}>{item.colors.length ? `${item.colors.length} ${item.colors.length === 1 ? 'opção' : 'opções'}` : 'A confirmar'}</td>)}</tr>
-                    <tr><th scope="row">Materiais publicados</th>{comparison.map((item) => <td key={item.id}>{item.materials.length ? item.materials.join(', ') : 'A confirmar'}</td>)}</tr>
-                    <tr><th scope="row">Dimensões</th>{comparison.map((item) => <td key={item.id}>{comparisonDimensions(item)}</td>)}</tr>
-                    <tr><th scope="row">Capacidade</th>{comparison.map((item) => <td key={item.id}>{item.dimensions.capacityMl ? `${item.dimensions.capacityMl.toLocaleString('pt-BR')} ml` : 'Não publicada'}</td>)}</tr>
-                    <tr><th scope="row">Embalagem</th>{comparison.map((item) => <td key={item.id}>{item.hasCommercialPackaging ? 'Individual publicada' : 'A confirmar'}</td>)}</tr>
+                    {([
+                      ['Quantidade mínima', comparison.map((item) => item.minQuantity > 1 ? `${item.minQuantity.toLocaleString('pt-BR')} un.` : 'A confirmar')],
+                      ['Personalização', comparison.map((item) => item.allowsPersonalization ? 'A confirmar com o briefing' : 'Consulte nosso time de especialistas')],
+                      ['Cores publicadas', comparison.map((item) => item.colors.length ? `${item.colors.length} ${item.colors.length === 1 ? 'opção' : 'opções'}` : 'A confirmar')],
+                      ['Materiais publicados', comparison.map((item) => item.materials.length ? item.materials.join(', ') : 'A confirmar')],
+                      ['Dimensões', comparison.map(comparisonDimensions)],
+                      ['Capacidade', comparison.map((item) => item.dimensions.capacityMl ? `${item.dimensions.capacityMl.toLocaleString('pt-BR')} ml` : 'Não publicada')],
+                      ['Embalagem', comparison.map((item) => item.hasCommercialPackaging ? 'Individual publicada' : 'A confirmar')],
+                    ] as Array<[string, string[]]>).map(([label, values]) => <tr key={label}><th scope="row">{label}</th>{values.map((value, index) => <td key={comparison[index].id} className={new Set(values).size > 1 ? 'is-different' : undefined}>{value}</td>)}</tr>)}
                   </tbody>
                 </table>
               </div>

@@ -193,6 +193,13 @@ export function Layout({ children }: { children: ReactNode }) {
           <button type="button" aria-label="Fechar aviso" onClick={cart.dismissLastClear}><X size={16} /></button>
         </div>
       )}
+      {cart.canUndoRemoval && !cart.canUndoClear && (
+        <div className="selection-undo" role="status" aria-live="polite">
+          <span>Produto removido.</span>
+          <button type="button" onClick={cart.restoreLastRemoval}>Desfazer</button>
+          <button type="button" aria-label="Fechar aviso" onClick={cart.dismissLastRemoval}><X size={16} /></button>
+        </div>
+      )}
     </div>
   );
 }

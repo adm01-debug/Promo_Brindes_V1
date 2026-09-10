@@ -15,10 +15,11 @@ describe('busca assistida', () => {
     expect(buildCatalogSearchGroups('copo barato para evento')).toEqual([['copo']]);
   });
 
-  it('entende briefing em linguagem natural sem exigir público, conectivos ou quantidade no produto', () => {
+  it('entende briefing em linguagem natural sem transformar onboarding em qualquer kit', () => {
     const groups = buildCatalogSearchGroups('kit de onboarding para 100 colaboradores');
     expect(groups).toHaveLength(1);
-    expect(groups[0]).toEqual(expect.arrayContaining(['onboarding', 'boas vindas', 'kit']));
+    expect(groups[0]).toEqual(expect.arrayContaining(['onboarding', 'boas vindas']));
+    expect(groups[0]).not.toEqual(expect.arrayContaining(['kit', 'kits']));
   });
 
   it('preserva expressões compostas dentro de uma frase e elimina dimensões repetidas', () => {
@@ -33,7 +34,7 @@ describe('busca assistida', () => {
   });
 
   it('ainda encontra uma intenção quando ela é o único termo informado', () => {
-    expect(buildCatalogSearchGroups('onboarding')[0]).toEqual(expect.arrayContaining(['onboarding', 'boas vindas', 'kit']));
+    expect(buildCatalogSearchGroups('onboarding')[0]).toEqual(expect.arrayContaining(['onboarding', 'boas vindas']));
   });
 
   it('combina ideias editoriais e categorias reais sem sugerir com uma letra', () => {
@@ -42,5 +43,12 @@ describe('busca assistida', () => {
     const suggestions = buildSearchSuggestions('tec', categories);
     expect(suggestions.some((item) => item.kind === 'idea' && item.label === 'Tech útil')).toBe(true);
     expect(suggestions.some((item) => item.kind === 'category' && item.label === 'Tecnologia & Áudio')).toBe(true);
+  });
+
+  it('sugere correção apenas para termos inequívocos, sem mexer em códigos', async () => {
+    const { suggestSearchCorrection } = await import('./search');
+    expect(suggestSearchCorrection('squese')).toBe('squeeze');
+    expect(suggestSearchCorrection('02040')).toBeNull();
+    expect(suggestSearchCorrection('kit squese')).toBeNull();
   });
 });

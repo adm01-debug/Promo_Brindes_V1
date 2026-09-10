@@ -73,6 +73,7 @@ export function ProductCard({ product, categoryName, priority = false, compariso
                 onClick={() => comparison.onToggle(product)}
                 aria-pressed={comparison.selected}
                 aria-label={`${comparison.selected ? 'Remover' : 'Comparar'} ${product.name}`}
+                title={comparison.disabled && !comparison.selected ? 'A comparação comporta até três produtos.' : undefined}
               >
                 <GitCompareArrows size={16} />
               </button>

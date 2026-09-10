@@ -6,6 +6,9 @@ describe('contexto opcional do briefing', () => {
     const result = normalizeQuoteBriefing({
       actionName: '  Kit de boas-vindas  ',
       budgetRange: '51-100',
+      budgetScope: 'por-pessoa',
+      eventDate: '2026-12-20',
+      deadlineFlexibility: 'data-fixa',
       responseChannel: 'whatsapp',
       brandAssetStatus: 'logo-pronto',
       injected: '<script>',
@@ -13,6 +16,9 @@ describe('contexto opcional do briefing', () => {
     expect(result).toEqual({
       actionName: 'Kit de boas-vindas',
       budgetRange: '51-100',
+      budgetScope: 'por-pessoa',
+      eventDate: '2026-12-20',
+      deadlineFlexibility: 'data-fixa',
       responseChannel: 'whatsapp',
       brandAssetStatus: 'logo-pronto',
     });
@@ -25,9 +31,10 @@ describe('contexto opcional do briefing', () => {
   });
 
   it('gera um resumo humano para e-mail e área do cliente', () => {
-    expect(quoteBriefingSummary({ actionName: 'Evento anual', budgetRange: 'ate-25', responseChannel: 'email' })).toEqual([
+    expect(quoteBriefingSummary({ actionName: 'Evento anual', budgetRange: 'ate-25', budgetScope: 'total', eventDate: '2026-12-20', responseChannel: 'email' })).toEqual([
       'Ação: Evento anual',
-      'Até R$ 25 por pessoa',
+      'Até R$ 25 no total da ação',
+      'Evento em 20 de dezembro de 2026',
       'Contato por E-mail',
     ]);
   });

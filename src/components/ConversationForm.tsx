@@ -3,9 +3,16 @@ import { type FormEvent, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { buildContactPayload, submitContactRequest } from '../lib/contactRequest';
 import { clearSubmissionAttempt, getOrCreateSubmissionAttempt } from '../lib/http';
-import type { ContactLead } from '../types';
+import type { ContactLead, QuoteResponseChannel } from '../types';
 
-const initialLead: ContactLead = { name: '', email: '', phone: '', message: '', privacyAccepted: false };
+const initialLead: ContactLead = { name: '', email: '', phone: '', message: '', responseChannel: '', privacyAccepted: false };
+
+const channelOptions: Array<{ value: QuoteResponseChannel; label: string }> = [
+  { value: 'email', label: 'Por e-mail' },
+  { value: 'telefone', label: 'Por telefone' },
+  { value: 'whatsapp', label: 'Por WhatsApp' },
+  { value: 'sem-preferencia', label: 'Sem preferência' },
+];
 
 function formatPhone(value: string): string {
   const digits = value.replace(/\D/g, '').slice(0, 11);
@@ -102,6 +109,14 @@ export function ConversationForm() {
               <label htmlFor="conversation-phone">Telefone / WhatsApp <span>opcional</span></label>
               <input id="conversation-phone" name="phone" type="tel" inputMode="tel" autoComplete="tel" maxLength={16} value={lead.phone} onChange={(event) => updateField('phone', formatPhone(event.target.value))} aria-invalid={Boolean(errors.phone)} aria-describedby={errors.phone ? 'conversation-phone-error' : undefined} />
               {errors.phone && <span id="conversation-phone-error" className="conversation-field__error">{errors.phone}</span>}
+            </div>
+            <div className="conversation-field">
+              <label htmlFor="conversation-channel">Como prefere conversar? <span>opcional</span></label>
+              <select id="conversation-channel" name="responseChannel" value={lead.responseChannel} onChange={(event) => updateField('responseChannel', event.target.value as ContactLead['responseChannel'])}>
+                <option value="">Sem preferência</option>
+                {channelOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+              </select>
+              <small>Esta escolha orienta o retorno; ela não envia mensagens automáticas.</small>
             </div>
             <div className="conversation-field conversation-field--wide">
               <label htmlFor="conversation-message">O que você quer fazer acontecer? <span>opcional</span></label>

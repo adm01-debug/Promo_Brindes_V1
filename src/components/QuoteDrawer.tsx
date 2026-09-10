@@ -1,5 +1,5 @@
 import { ArrowRight, Minus, Plus, ShoppingBag, Trash2, X } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useQuoteCart } from '../context/QuoteCartContext';
 import { replaceBrokenProductImage } from '../lib/images';
@@ -8,7 +8,16 @@ export function QuoteDrawer() {
   const cart = useQuoteCart();
   const location = useLocation();
   const closeRef = useRef<HTMLButtonElement>(null);
+  const clearTriggerRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
+  const clearCancelRef = useRef<HTMLButtonElement>(null);
+  const clearDialogRef = useRef<HTMLElement>(null);
+  const [confirmClear, setConfirmClear] = useState(false);
+
+  const closeClearConfirmation = useCallback(() => {
+    setConfirmClear(false);
+    window.requestAnimationFrame(() => clearTriggerRef.current?.focus());
+  }, []);
 
   useEffect(() => {
     cart.setDrawerOpen(false);
@@ -21,9 +30,10 @@ export function QuoteDrawer() {
     const previousFocus = document.activeElement as HTMLElement | null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    closeRef.current?.focus();
+    if (!confirmClear) closeRef.current?.focus();
 
     const handleKey = (event: KeyboardEvent) => {
+      if (confirmClear) return;
       if (event.key === 'Escape') cart.setDrawerOpen(false);
       if (event.key !== 'Tab' || !dialogRef.current) return;
       const focusable = [...dialogRef.current.querySelectorAll<HTMLElement>(
@@ -46,7 +56,24 @@ export function QuoteDrawer() {
       window.removeEventListener('keydown', handleKey);
       previousFocus?.focus();
     };
-  }, [cart.drawerOpen, cart.setDrawerOpen]);
+  }, [cart.drawerOpen, cart.setDrawerOpen, confirmClear]);
+
+  useEffect(() => {
+    if (!confirmClear) return;
+    clearCancelRef.current?.focus();
+    const keepFocus = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { closeClearConfirmation(); return; }
+      if (event.key !== 'Tab') return;
+      const focusable = Array.from(clearDialogRef.current?.querySelectorAll<HTMLElement>('button:not([disabled])') || []);
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    window.addEventListener('keydown', keepFocus);
+    return () => window.removeEventListener('keydown', keepFocus);
+  }, [closeClearConfirmation, confirmClear]);
 
   useEffect(() => {
     if (cart.drawerOpen && cart.itemCount === 0) closeRef.current?.focus();
@@ -89,8 +116,13 @@ export function QuoteDrawer() {
           <>
             <div className="quote-drawer__intro">
               <p>{cart.itemCount} {cart.itemCount === 1 ? 'produto selecionado' : 'produtos selecionados'}</p>
-              <button className="text-button text-button--danger" type="button" onClick={cart.clear}>Limpar seleção</button>
+              <button ref={clearTriggerRef} className="text-button text-button--danger" type="button" onClick={() => setConfirmClear(true)}>Limpar seleção</button>
             </div>
+            <label className="quote-drawer__campaign">
+              <span>Nome da campanha <em>opcional</em></span>
+              <input value={cart.selectionTitle || ''} maxLength={100} placeholder="Ex.: Boas-vindas do time 2026" onChange={(event) => cart.setSelectionTitle(event.target.value)} />
+              <small>Ajuda nosso time de especialistas a reconhecer sua ideia depois.</small>
+            </label>
             <div className="quote-drawer__items">
               {cart.items.map((item) => (
                 <article className="drawer-item" key={item.key}>
@@ -133,6 +165,16 @@ export function QuoteDrawer() {
           </>
         )}
       </div>
+      {confirmClear && (
+        <div className="quote-clear-backdrop" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) closeClearConfirmation(); }}>
+          <section ref={clearDialogRef} className="quote-clear-confirmation" role="alertdialog" aria-modal="true" aria-labelledby="quote-clear-title" aria-describedby="quote-clear-description">
+            <span className="section-kicker">MINHA SELEÇÃO</span>
+            <h3 id="quote-clear-title">Limpar todos os produtos?</h3>
+            <p id="quote-clear-description">Você poderá desfazer esta ação nos próximos segundos. A direção de campanha continua disponível para um novo começo.</p>
+            <div><button ref={clearCancelRef} className="button button--outline" type="button" onClick={closeClearConfirmation}>Manter seleção</button><button className="button button--dark" type="button" onClick={() => { cart.clear(); setConfirmClear(false); }}>Limpar produtos</button></div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }

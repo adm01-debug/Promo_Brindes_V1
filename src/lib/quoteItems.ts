@@ -4,6 +4,7 @@ export const MAX_QUOTE_ITEMS = 50;
 const MAX_QUANTITY = 999_999;
 const PRODUCT_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SLUG_PATTERN = /^[a-z0-9-]{1,200}$/i;
+const VARIANT_ID_PATTERN = /^[a-z0-9][a-z0-9._:-]{0,99}$/i;
 
 function requiredText(value: unknown, maxLength: number): string | null {
   if (typeof value !== 'string') return null;
@@ -42,12 +43,17 @@ export function normalizeQuoteItems(values: unknown): QuoteItem[] {
 
     const minQuantity = clampQuoteQuantity(Number(raw.minQuantity), 1);
     const quantity = clampQuoteQuantity(Number(raw.quantity), minQuantity);
+    const variantIdCandidate = optionalText(raw.variantId, 100);
+    const variantId = variantIdCandidate && VARIANT_ID_PATTERN.test(variantIdCandidate) ? variantIdCandidate : undefined;
     const colorName = optionalText(raw.colorName, 100);
     const colorHexCandidate = optionalText(raw.colorHex, 32);
     const colorHex = colorHexCandidate && /^(#[0-9a-f]{3,8}|[a-z]{3,20})$/i.test(colorHexCandidate)
       ? colorHexCandidate
       : undefined;
-    const colorKey = colorName?.toLocaleLowerCase('pt-BR') || 'sem-cor';
+    // Duas variantes podem ter o mesmo nome comercial de cor. Quando a origem
+    // publicar um identificador, ele é a chave estável; registros antigos seguem
+    // compatíveis com a chave por cor.
+    const colorKey = variantId ? `variante-${variantId}` : colorName?.toLocaleLowerCase('pt-BR') || 'sem-cor';
     const key = `${productId}::${colorKey}`;
     const item: QuoteItem = {
       key,
@@ -58,6 +64,7 @@ export function normalizeQuoteItems(values: unknown): QuoteItem[] {
       imageUrl: safeImageUrl(raw.imageUrl),
       minQuantity,
       quantity,
+      ...(variantId ? { variantId } : {}),
       ...(colorName ? { colorName } : {}),
       ...(colorHex ? { colorHex } : {}),
     };

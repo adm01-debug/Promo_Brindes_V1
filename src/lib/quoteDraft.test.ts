@@ -10,7 +10,7 @@ describe('rascunho do briefing', () => {
   afterEach(() => clearQuoteDraft());
 
   it('mantém o briefing na sessão para a pessoa voltar ao catálogo', () => {
-    const briefing = { actionName: 'Boas-vindas 2026', budgetRange: '51-100' as const, responseChannel: 'whatsapp' as const, brandAssetStatus: 'logo-pronto' as const };
+    const briefing = { actionName: 'Boas-vindas 2026', budgetRange: '51-100' as const, budgetScope: 'por-pessoa' as const, eventDate: '2026-12-20', deadlineFlexibility: 'data-fixa' as const, responseChannel: 'whatsapp' as const, brandAssetStatus: 'logo-pronto' as const };
     saveQuoteDraft({ contact, briefing }, new Date('2026-09-10T12:00:00.000Z'));
     expect(loadQuoteDraft(Date.parse('2026-09-10T12:30:00.000Z'))).toEqual({ contact, briefing });
   });

@@ -29,12 +29,13 @@ export function CatalogError({ message, onRetry }: { message: string; onRetry?: 
   );
 }
 
-export function CatalogEmpty({ onClear }: { onClear?: () => void }) {
+export function CatalogEmpty({ onClear, suggestion, onApplySuggestion }: { onClear?: () => void; suggestion?: string | null; onApplySuggestion?: () => void }) {
   return (
     <div className="catalog-message">
       <span className="catalog-message__icon"><PackageSearch size={28} /></span>
       <h2>Nenhum produto por aqui.</h2>
       <p>Tente um termo mais amplo ou remova alguns filtros da busca.</p>
+      {suggestion && onApplySuggestion && <button type="button" className="text-button" onClick={onApplySuggestion}>Você quis dizer “{suggestion}”?</button>}
       {onClear && <button type="button" className="button button--outline" onClick={onClear}>Limpar filtros</button>}
     </div>
   );
