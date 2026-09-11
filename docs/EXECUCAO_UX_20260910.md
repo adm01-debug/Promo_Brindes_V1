@@ -49,6 +49,6 @@ Nenhuma migration é direcionada ao banco canônico de catálogo (`doufsxqlfjyuv
 
 As RPCs remotas de ajuste de orçamento, prioridade de item e retenção foram confirmadas em leitura no Supabase isolado; as flags `VITE_CUSTOMER_ADJUSTMENTS_ENABLED` e `VITE_QUOTE_DECISION_GROUPS_ENABLED` estão configuradas em Production e Preview. A credencial administrativa disponível, porém, retorna `403` ao consultar o ledger pela CLI. Portanto, a presença das funções é evidência funcional, mas não substitui a reconciliação administrativa de migrations.
 
-A migration `20260911170000_add_revocable_shared_selections.sql` está versionada e passou nos contratos locais. Ela adiciona links persistentes opacos, com expiração, rate limit e revogação. `VITE_PERSISTENT_SHARED_SELECTIONS_ENABLED` permanece `false` até aplicação e auditoria remotas explícitas.
+A migration `20260911170000_add_revocable_shared_selections.sql` está aplicada e auditada no Supabase isolado. Ela adiciona links persistentes opacos, com expiração, rate limit e revogação. O ledger remoto foi reconciliado com as migrations locais, a RPC foi validada em leitura e o ciclo controlado de criar/ler/revogar foi confirmado em produção. `VITE_PERSISTENT_SHARED_SELECTIONS_ENABLED` está ativo em Production e Preview.
 
 E-mail e WhatsApp automáticos seguem deliberadamente desativados até existir provedor, remetente/número, templates, opt-in e fluxo operacional aprovados.
