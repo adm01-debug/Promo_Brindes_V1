@@ -114,6 +114,7 @@ export default function CatalogsPage() {
   const theme = validTheme(params.get('tema'));
   const [searchInput, setSearchInput] = useState(query);
   const [shareStates, setShareStates] = useState<Record<string, Exclude<ShareState, 'idle'>>>({});
+  const [shareStatus, setShareStatus] = useState('');
 
   useEffect(() => setSearchInput(query), [query]);
 
@@ -158,6 +159,7 @@ export default function CatalogsPage() {
           await navigator.clipboard.writeText(url);
         } catch {
           setShareStates((current) => ({ ...current, [collection.id]: 'error' }));
+          setShareStatus(`Não foi possível compartilhar ${collection.title} agora.`);
           return;
         }
       }
@@ -166,11 +168,13 @@ export default function CatalogsPage() {
         await navigator.clipboard.writeText(url);
       } catch {
         setShareStates((current) => ({ ...current, [collection.id]: 'error' }));
+        setShareStatus(`Não foi possível compartilhar ${collection.title} agora.`);
         return;
       }
     }
 
     setShareStates((current) => ({ ...current, [collection.id]: usedNativeShare ? 'shared' : 'copied' }));
+    setShareStatus(usedNativeShare ? `${collection.title} foi compartilhado.` : `Link de ${collection.title} copiado.`);
     trackFunnelEvent('catalog_collection_shared', { catalog_id: collection.id, format: collection.format });
   }
 
@@ -237,6 +241,7 @@ export default function CatalogsPage() {
             <strong>{results.length}</strong> {results.length === 1 ? 'catálogo encontrado' : 'catálogos encontrados'}
             {(query || theme !== 'all') && <button type="button" onClick={() => { setSearchInput(''); setParams({}, { replace: true }); }}>Limpar filtros</button>}
           </div>
+          <span className="sr-only" role="status" aria-live="polite">{shareStatus}</span>
 
           {featured && (
             <div className="catalog-featured" aria-label="Catálogo em destaque">

@@ -161,6 +161,19 @@ test('biblioteca de catálogos transforma contexto em coleções compartilhávei
   await expect(page).toHaveURL(/\/catalogo\?momento=onboarding.*perfil=kits/);
 });
 
+test('seleção compartilhada copia o link e anuncia o resultado', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  const selection = Buffer.from(JSON.stringify({ v: 1, i: [{ id: product.id, q: 100, v: 'variant-blue' }] })).toString('base64url');
+  await page.goto(`/selecoes/compartilhada?s=${selection}`);
+  await expect(page.getByRole('heading', { name: /Uma direção para começar a conversa/i })).toBeVisible();
+  await expect(page.getByText(product.name).first()).toBeVisible();
+
+  await page.getByRole('button', { name: 'Copiar link' }).click();
+  await expect(page.getByRole('button', { name: 'Link copiado' })).toBeVisible();
+  await expect(page.locator('.shared-selection-hero [role="status"]')).toHaveText('Link copiado para a área de transferência.');
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('/selecoes/compartilhada?s=');
+});
+
 test('soluções editoriais levam a uma curadoria explícita, não a uma promessa de estoque', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('link', { name: /Onboarding sem kit genérico/i }).click();
@@ -376,6 +389,26 @@ test('limpeza da seleção oferece uma recuperação reversível', async ({ page
   await expect(page.getByLabel(/Nome da campanha/)).toHaveValue('Boas-vindas 2026');
 });
 
+test('seleção com cinquenta produtos bloqueia a próxima inclusão de forma visível', async ({ page }) => {
+  const fullSelection = Array.from({ length: 50 }, (_, index) => {
+    const productId = `${String(index + 1).padStart(8, '0')}-1111-4111-8111-111111111111`;
+    return {
+      key: `${productId}::sem-cor`, productId, slug: `referencia-${index + 1}`, name: `Referência ${index + 1}`,
+      sku: `REF-${index + 1}`, imageUrl: '/images/product-placeholder.svg', quantity: 50, minQuantity: 50,
+    };
+  });
+  await page.addInitScript((items) => {
+    localStorage.setItem('promo-brindes:quote-selection:v1', JSON.stringify(items));
+  }, fullSelection);
+  await page.goto('/catalogo');
+  await page.getByRole('button', { name: `Adicionar ${product.name} à seleção` }).click();
+
+  const drawer = page.getByRole('dialog', { name: 'Minha seleção' });
+  await expect(drawer).toBeVisible();
+  await expect(drawer.locator('.quote-drawer__notice[role="status"]')).toContainText('limite de 50 produtos');
+  await expect(drawer.locator('.drawer-item')).toHaveCount(50);
+});
+
 test('superfiltro móvel combina critérios, preserva a URL e devolve o foco', async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.includes('mobile'), 'Cenário dedicado ao drawer móvel.');
   await page.goto('/catalogo');
@@ -534,6 +567,7 @@ test('cliente autenticado confirma antes de substituir a seleção ao reutilizar
   await expect(page.getByRole('button', { name: 'Manter minha seleção' })).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog', { name: 'Trocar sua seleção atual?' })).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Solicitar novamente' }).first()).toBeFocused();
   await page.getByRole('button', { name: 'Solicitar novamente' }).first().click();
   await page.getByRole('button', { name: 'Substituir e continuar' }).click();
   await expect(page).toHaveURL(/\/orcamento\?repetir=/);

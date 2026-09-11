@@ -1,5 +1,5 @@
 import { ArrowLeft, CalendarDays, Check, Download, MessageCircleMore, PackageOpen, RefreshCw, Send } from 'lucide-react';
-import { type FormEvent, useEffect, useRef, useState } from 'react';
+import { type FormEvent, type MouseEvent, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { CustomerRoute } from '../components/CustomerRoute';
 import { Seo } from '../components/Seo';
@@ -32,6 +32,12 @@ function QuoteContent() {
   const [retryKey, setRetryKey] = useState(0);
   const cancelRepeatRef = useRef<HTMLButtonElement>(null);
   const repeatConfirmationRef = useRef<HTMLElement>(null);
+  const repeatTriggerRef = useRef<HTMLButtonElement | null>(null);
+
+  function closeRepeatConfirmation() {
+    setRepeatConfirmationOpen(false);
+    window.requestAnimationFrame(() => repeatTriggerRef.current?.focus());
+  }
 
   useEffect(() => {
     let active = true;
@@ -45,7 +51,10 @@ function QuoteContent() {
     if (!repeatConfirmationOpen) return;
     cancelRepeatRef.current?.focus();
     function keepFocusInConfirmation(event: KeyboardEvent) {
-      if (event.key === 'Escape') setRepeatConfirmationOpen(false);
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeRepeatConfirmation();
+      }
       if (event.key !== 'Tab') return;
       const focusable = Array.from(repeatConfirmationRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled])') || []);
       if (!focusable.length) return;
@@ -73,9 +82,10 @@ function QuoteContent() {
     navigate(`/orcamento?repetir=${encodeURIComponent(quote.id)}`);
   }
 
-  function repeatQuote() {
+  function repeatQuote(event?: MouseEvent<HTMLButtonElement>) {
     if (!quote) return;
     if (cart.itemCount > 0) {
+      repeatTriggerRef.current = event?.currentTarget || null;
       setRepeatConfirmationOpen(true);
       return;
     }
@@ -136,7 +146,7 @@ function QuoteContent() {
       <aside className="customer-timeline" aria-labelledby="quote-timeline-title"><span>ACOMPANHAMENTO</span><h2 id="quote-timeline-title">Linha do tempo</h2>{quote.events.length ? <ol>{quote.events.map((event, index) => <li key={event.id} className={index === 0 ? 'is-current' : ''}><i>{index === 0 ? <Check size={14} /> : null}</i><div><strong>{event.title}</strong><time dateTime={event.createdAt}>{dateLabel(event.createdAt)}</time>{event.description && <p>{event.description}</p>}</div></li>)}</ol> : <div className="customer-timeline__empty"><PackageOpen /><p>Recebemos a solicitação. O próximo andamento aparecerá aqui.</p></div>}</aside>
     </div>
     <section className="customer-repeat-cta"><div className="container"><div><span className="section-kicker">Uma boa escolha pode evoluir</span><h2>Use este briefing como ponto de partida.</h2><p>Itens, quantidades e direção de campanha voltam para sua seleção para você revisar antes de enviar uma nova solicitação.</p></div><button className="button button--light button--large" type="button" onClick={repeatQuote}><RefreshCw size={18} /> Solicitar novamente</button></div></section>
-    {repeatConfirmationOpen && <div className="customer-confirmation-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setRepeatConfirmationOpen(false); }}><section ref={repeatConfirmationRef} className="customer-confirmation" role="dialog" aria-modal="true" aria-labelledby="replace-selection-title" aria-describedby="replace-selection-description"><span className="section-kicker">SELEÇÃO ATUAL</span><h2 id="replace-selection-title">Trocar sua seleção atual?</h2><p id="replace-selection-description">Você tem {cart.itemCount} {cart.itemCount === 1 ? 'produto' : 'produtos'} ainda não enviado{cart.itemCount === 1 ? '' : 's'}. Ao continuar, eles serão substituídos pelos {quote.items.length} itens deste orçamento para você revisar.</p><div><button ref={cancelRepeatRef} className="button button--outline" type="button" onClick={() => setRepeatConfirmationOpen(false)}>Manter minha seleção</button><button className="button button--green" type="button" onClick={continueRepeatQuote}>Substituir e continuar <RefreshCw size={17} /></button></div></section></div>}
+    {repeatConfirmationOpen && <div className="customer-confirmation-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) closeRepeatConfirmation(); }}><section ref={repeatConfirmationRef} className="customer-confirmation" role="dialog" aria-modal="true" aria-labelledby="replace-selection-title" aria-describedby="replace-selection-description"><span className="section-kicker">SELEÇÃO ATUAL</span><h2 id="replace-selection-title">Trocar sua seleção atual?</h2><p id="replace-selection-description">Você tem {cart.itemCount} {cart.itemCount === 1 ? 'produto' : 'produtos'} ainda não enviado{cart.itemCount === 1 ? '' : 's'}. Ao continuar, eles serão substituídos pelos {quote.items.length} itens deste orçamento para você revisar.</p><div><button ref={cancelRepeatRef} className="button button--outline" type="button" onClick={closeRepeatConfirmation}>Manter minha seleção</button><button className="button button--green" type="button" onClick={continueRepeatQuote}>Substituir e continuar <RefreshCw size={17} /></button></div></section></div>}
   </>;
 }
 

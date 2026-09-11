@@ -33,16 +33,47 @@ describe('tarefa de retenção', () => {
     expect(result.statusCode).toBe(401);
   });
 
-  it('executa somente o RPC de retenção com a credencial server-side', async () => {
+  it('remove blobs pela Storage API e finaliza somente os metadados confirmados', async () => {
     configure();
-    const fetchMock = vi.fn().mockResolvedValue(new Response('{}', { status: 200 }));
+    const quoteId = '11111111-1111-4111-8111-111111111111';
+    const fetchMock = vi.fn(async (url: string, _init?: RequestInit) => {
+      if (url.includes('/get_site_data_retention_candidates')) {
+        return new Response(JSON.stringify({ quoteIds: [quoteId], storagePaths: ['cliente/proposta.pdf'] }), { status: 200 });
+      }
+      if (url.includes('/storage/v1/object/customer-proposals')) return new Response('[]', { status: 200 });
+      if (url.includes('/finalize_site_data_retention')) return new Response(JSON.stringify({ quotesDeleted: 1, proposalDocumentsDeleted: 1 }), { status: 200 });
+      return new Response('{}', { status: 500 });
+    });
     vi.stubGlobal('fetch', fetchMock);
     const { result, response } = responseDouble();
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
     expect(result.statusCode).toBe(200);
-    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(url).toBe('https://xlzmclcjdncjfdrjxclt.supabase.co/rest/v1/rpc/run_site_data_retention');
-    expect(init.headers).toMatchObject({ apikey: expect.stringMatching(/^sb_secret_/) });
-    expect(init.body).toBe('{"p_batch_size":500}');
+    expect(fetchMock.mock.calls).toHaveLength(3);
+    const [candidatesUrl, candidatesInit] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(candidatesUrl).toBe('https://xlzmclcjdncjfdrjxclt.supabase.co/rest/v1/rpc/get_site_data_retention_candidates');
+    expect(candidatesInit.headers).toMatchObject({ apikey: expect.stringMatching(/^sb_secret_/) });
+    expect(candidatesInit.body).toBe('{"p_batch_size":100}');
+    const [storageUrl, storageInit] = fetchMock.mock.calls[1] as [string, RequestInit];
+    expect(storageUrl).toBe('https://xlzmclcjdncjfdrjxclt.supabase.co/storage/v1/object/customer-proposals');
+    expect(storageInit).toMatchObject({ method: 'DELETE', body: '{"prefixes":["cliente/proposta.pdf"]}' });
+    const [finalizeUrl, finalizeInit] = fetchMock.mock.calls[2] as [string, RequestInit];
+    expect(finalizeUrl).toBe('https://xlzmclcjdncjfdrjxclt.supabase.co/rest/v1/rpc/finalize_site_data_retention');
+    expect(finalizeInit.body).toBe(`{"p_quote_ids":["${quoteId}"],"p_storage_paths":["cliente/proposta.pdf"],"p_batch_size":100}`);
+  });
+
+  it('falha fechada e não remove metadados quando a Storage API falha', async () => {
+    configure();
+    const fetchMock = vi.fn(async (url: string, _init?: RequestInit) => {
+      if (url.includes('/get_site_data_retention_candidates')) {
+        return new Response(JSON.stringify({ quoteIds: ['11111111-1111-4111-8111-111111111111'], storagePaths: ['cliente/proposta.pdf'] }), { status: 200 });
+      }
+      return new Response('{}', { status: 500 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+    expect(result.statusCode).toBe(503);
+    expect(fetchMock.mock.calls).toHaveLength(2);
+    expect(String(fetchMock.mock.calls[1][0])).toContain('/storage/v1/object/customer-proposals');
   });
 });

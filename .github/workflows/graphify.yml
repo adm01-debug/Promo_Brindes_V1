@@ -3,31 +3,7 @@ name: Graphify structural map
 on:
   push:
     branches: [main]
-    paths:
-      - 'src/**'
-      - 'api/**'
-      - 'scripts/**'
-      - 'tests/**'
-      - 'e2e/**'
-      - 'site-supabase/supabase/migrations/**'
-      - 'site-supabase/supabase/tests/**'
-      - '.graphify*'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.github/workflows/graphify.yml'
   pull_request:
-    paths:
-      - 'src/**'
-      - 'api/**'
-      - 'scripts/**'
-      - 'tests/**'
-      - 'e2e/**'
-      - 'site-supabase/supabase/migrations/**'
-      - 'site-supabase/supabase/tests/**'
-      - '.graphify*'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.github/workflows/graphify.yml'
 
 permissions:
   contents: read

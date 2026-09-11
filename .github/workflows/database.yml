@@ -2,14 +2,8 @@ name: Isolated site database
 
 on:
   pull_request:
-    paths:
-      - 'site-supabase/**'
-      - '.github/workflows/database.yml'
   push:
     branches: [main]
-    paths:
-      - 'site-supabase/**'
-      - '.github/workflows/database.yml'
 
 permissions:
   contents: read

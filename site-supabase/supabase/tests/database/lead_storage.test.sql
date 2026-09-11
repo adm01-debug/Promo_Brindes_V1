@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(37);
+select plan(46);
 
 select is(
   (select count(*) from pg_catalog.pg_tables where schemaname = 'site_private'),
@@ -168,34 +168,67 @@ select is(
   'preferência de contato fica limitada ao registro privado'
 );
 
+select ok(to_regprocedure('site_private.get_expired_site_data_candidates(integer)') is not null, 'rotina privada de candidatos de retenção existe');
+select ok(to_regprocedure('site_private.finalize_expired_site_data(uuid[],text[],integer)') is not null, 'rotina privada de finalização de retenção existe');
+select ok(to_regprocedure('public.get_site_data_retention_candidates(integer)') is not null, 'ponto público controlado de candidatos existe');
+select ok(to_regprocedure('public.finalize_site_data_retention(uuid[],text[],integer)') is not null, 'ponto público controlado de finalização existe');
+select ok(not pg_catalog.has_function_privilege('anon', 'public.get_site_data_retention_candidates(integer)', 'execute'), 'anon não consulta candidatos de retenção');
+select ok(not pg_catalog.has_function_privilege('anon', 'public.finalize_site_data_retention(uuid[],text[],integer)', 'execute'), 'anon não finaliza retenção');
+select ok(pg_catalog.has_function_privilege('service_role', 'public.get_site_data_retention_candidates(integer)', 'execute'), 'service_role consulta candidatos de retenção');
+select ok(pg_catalog.has_function_privilege('service_role', 'public.finalize_site_data_retention(uuid[],text[],integer)', 'execute'), 'service_role finaliza retenção');
 select ok(
-  to_regprocedure('site_private.purge_expired_site_data(timestamp with time zone,integer)') is not null,
-  'rotina de retenção em lote existe'
+  not exists (
+    select 1 from pg_catalog.pg_proc procedure
+    join pg_catalog.pg_namespace namespace on namespace.oid = procedure.pronamespace
+    where namespace.nspname = 'site_private'
+      and procedure.proname = 'finalize_expired_site_data'
+      and procedure.prosrc like '%storage.objects%'
+  ),
+  'finalização não manipula storage.objects por SQL'
+);
+
+insert into site_private.quote_requests (
+  id, client_request_id, request_hash, source, contact_name, company, email, phone,
+  client_submitted_at, request_metadata, retention_until
+) values (
+  '55555555-5555-4555-8555-555555555555', 'expired-quote-test-1', repeat('2', 64), 'site-promo-brindes', 'Quote expirado',
+  'Empresa expirada', 'quote-expirado@teste.com', '(11) 99999-9999', now() - interval '25 months', '{}'::jsonb, now() - interval '1 minute'
+);
+
+insert into site_private.proposal_documents (
+  id, quote_request_id, version, title, storage_bucket, storage_path, published_at
+) values (
+  '66666666-6666-4666-8666-666666666666', '55555555-5555-4555-8555-555555555555',
+  1, 'Proposta expirada', 'customer-proposals', 'retencao/proposta-expirada.pdf', now()
 );
 
 select ok(
-  not pg_catalog.has_function_privilege('anon', 'site_private.purge_expired_site_data(timestamptz,integer)', 'execute'),
-  'anon não executa a rotina de retenção'
+  public.get_site_data_retention_candidates(10) -> 'quoteIds' ? '55555555-5555-4555-8555-555555555555',
+  'candidatos incluem o orçamento expirado'
 );
-
 select ok(
-  pg_catalog.has_function_privilege('service_role', 'site_private.purge_expired_site_data(timestamptz,integer)', 'execute'),
-  'service_role executa a rotina de retenção'
+  public.get_site_data_retention_candidates(10) -> 'storagePaths' ? 'retencao/proposta-expirada.pdf',
+  'candidatos incluem o caminho a ser apagado pela Storage API'
 );
-
-select ok(
-  to_regprocedure('public.run_site_data_retention(integer)') is not null,
-  'ponto de entrada seguro da tarefa agendada existe'
+select is(
+  (public.finalize_site_data_retention(array['55555555-5555-4555-8555-555555555555']::uuid[], array['retencao/caminho-incorreto.pdf']::text[], 10) ->> 'quotesDeleted')::integer,
+  0,
+  'finalização não remove orçamento enquanto o documento correspondente não foi confirmado'
 );
-
-select ok(
-  not pg_catalog.has_function_privilege('anon', 'public.run_site_data_retention(integer)', 'execute'),
-  'anon não executa o ponto de entrada da retenção'
+select is(
+  (select count(*) from site_private.proposal_documents where id = '66666666-6666-4666-8666-666666666666'),
+  1::bigint,
+  'metadado da proposta permanece quando a Storage API não confirmou o caminho'
 );
-
-select ok(
-  pg_catalog.has_function_privilege('service_role', 'public.run_site_data_retention(integer)', 'execute'),
-  'service_role executa o ponto de entrada da retenção'
+select is(
+  (public.finalize_site_data_retention(array['55555555-5555-4555-8555-555555555555']::uuid[], array['retencao/proposta-expirada.pdf']::text[], 10) ->> 'proposalDocumentsDeleted')::integer,
+  1,
+  'finalização remove somente o metadado confirmado pela Storage API'
+);
+select is(
+  (select count(*) from site_private.quote_requests where id = '55555555-5555-4555-8555-555555555555'),
+  0::bigint,
+  'orçamento expirado é removido após todos os documentos serem confirmados'
 );
 
 insert into site_private.contact_requests (
@@ -207,7 +240,7 @@ insert into site_private.contact_requests (
 );
 
 select is(
-  (site_private.purge_expired_site_data(now(), 1) ->> 'contactsDeleted')::integer,
+  (public.finalize_site_data_retention('{}'::uuid[], '{}'::text[], 1) ->> 'contactsDeleted')::integer,
   1,
   'rotina remove um contato vencido dentro do lote solicitado'
 );
