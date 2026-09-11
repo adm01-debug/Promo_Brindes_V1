@@ -25,7 +25,9 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     return;
   }
 
-  const cronSecret = process.env.SITE_CRON_SECRET?.trim();
+  // A Vercel injeta CRON_SECRET automaticamente nas chamadas configuradas em vercel.json.
+  // SITE_CRON_SECRET fica como compatibilidade para um acionador externo controlado.
+  const cronSecret = process.env.CRON_SECRET?.trim() || process.env.SITE_CRON_SECRET?.trim();
   if (!cronSecret || cronSecret.length < 32 || !matchesCronSecret(header(request, 'authorization'), cronSecret)) {
     response.status(401).json({ error: 'unauthorized' });
     return;
