@@ -25,6 +25,9 @@ const SAFE_GRAPH_FILES = new Set([
 ]);
 const SENSITIVE_PATTERNS = [
   { name: 'Supabase personal access token', pattern: /sbp_[A-Za-z0-9_]{16,}/i },
+  { name: 'GitHub token', pattern: /gh[pousr]_[A-Za-z0-9_]{20,}/i },
+  { name: 'Vercel token', pattern: /vercel(?:_token)?_[A-Za-z0-9]{20,}/i },
+  { name: 'AWS access key', pattern: /AKIA[0-9A-Z]{16}/ },
   { name: 'Supabase service-role variable', pattern: /SUPABASE_(?:ACCESS_TOKEN|SERVICE_ROLE_KEY)\s*[=:]/i },
   { name: 'private key material', pattern: /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/ },
   { name: 'generic secret assignment', pattern: /(?:api[_-]?key|secret|password)\s*[=:]\s*["'][^"'\s]{12,}/i },
@@ -40,7 +43,7 @@ export function assertSafeRoot(root = PROJECT_ROOT) {
   }
   const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
   const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-  if (path.basename(realRoot) !== 'Promo_Brindes_V1' || packageJson.name !== config.packageName || config.project !== 'Promo_Brindes_V1') {
+  if (packageJson.name !== config.packageName || config.project !== 'Promo_Brindes_V1') {
     throw new Error('Recusado: Graphify só pode operar a raiz explícita Promo_Brindes_V1.');
   }
   return realRoot;

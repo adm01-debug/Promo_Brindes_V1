@@ -41,20 +41,22 @@ jobs:
       PIP_DISABLE_PIP_VERSION_CHECK: '1'
       PYTHONHASHSEED: '0'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version: 22.13.1
           cache: npm
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.0.0
         with:
           python-version: '3.11'
       - name: Install locked Graphify CLI
         run: python -m pip install 'graphifyy==0.9.48'
       - name: Install application dependencies
-        run: npm ci
+        run: |
+          npm install --global npm@11.17.0
+          npm ci
       - name: Validate Graphify guards
         run: |
           npm run graph:doctor
@@ -65,7 +67,7 @@ jobs:
           npm run graph:check
       - name: Upload safe local map
         if: success()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: graphify-structural-map-${{ github.sha }}
           path: graphify-out/

@@ -1,0 +1,34 @@
+name: Isolated site database
+
+on:
+  pull_request:
+    paths:
+      - 'site-supabase/**'
+      - '.github/workflows/database.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'site-supabase/**'
+      - '.github/workflows/database.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  pg-tap:
+    name: Migrations and pgTAP
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.13.1
+      - name: Install locked Supabase CLI
+        run: npm install --global supabase@2.115.0
+      - name: Rebuild the isolated database from migrations
+        run: SUPABASE_WORKDIR=site-supabase supabase db reset
+      - name: Run database contracts
+        run: SUPABASE_WORKDIR=site-supabase supabase test db
+      - name: Lint local database schema
+        run: SUPABASE_WORKDIR=site-supabase supabase db lint --local

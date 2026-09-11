@@ -59,7 +59,7 @@ const quotePayload = {
 };
 
 function configureSiteDatabase() {
-  vi.stubEnv('SITE_SUPABASE_URL', 'https://abcdefghijklmnopqrst.supabase.co');
+  vi.stubEnv('SITE_SUPABASE_URL', 'https://xlzmclcjdncjfdrjxclt.supabase.co');
   vi.stubEnv('SITE_SUPABASE_SECRET_KEY', `sb_secret_${'x'.repeat(40)}`);
   vi.stubEnv('SITE_REQUEST_HASH_SALT', 'salt-de-testes-com-mais-de-32-caracteres');
   vi.stubEnv('SITE_PUBLIC_ORIGIN', 'https://www.promobrindes.com.br');
@@ -73,11 +73,12 @@ function catalogResponse() {
     name: quotePayload.items[0].name,
     sku: quotePayload.items[0].sku,
     min_quantity: quotePayload.items[0].minQuantity,
+    primary_image_url: 'https://catalogo-canonico.test/mochila-validada.webp',
   }]), { status: 200 });
 }
 
 function quoteFetchMock(rpcBody: string) {
-  return vi.fn(async (url: string | URL) => String(url).includes('/v_site_products_public')
+  return vi.fn(async (url: string | URL, _init?: RequestInit) => String(url).includes('/v_site_products_public')
     ? catalogResponse()
     : new Response(rpcBody, { status: 200 }));
 }
@@ -99,7 +100,7 @@ describe('APIs de leads isoladas', () => {
     expect(result.statusCode).toBe(201);
     expect(result.body).toEqual({ requestId: 'lead-42', duplicate: false });
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(url).toBe('https://abcdefghijklmnopqrst.supabase.co/rest/v1/rpc/create_site_contact_request');
+    expect(url).toBe('https://xlzmclcjdncjfdrjxclt.supabase.co/rest/v1/rpc/create_site_contact_request');
     expect(init.headers).toMatchObject({ apikey: expect.stringMatching(/^sb_secret_/) });
     const sent = JSON.parse(String(init.body));
     expect(sent.p_payload.contact.email).toBe('ana@empresa.com.br');
@@ -123,6 +124,7 @@ describe('APIs de leads isoladas', () => {
     expect(sent.p_request_meta).not.toHaveProperty('ip');
     expect(sent.p_payload.items[0].variantId).toBe('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
     expect(sent.p_payload.items[0].decisionGroup).toBe('alternative');
+    expect(sent.p_payload.items[0].imageUrl).toBe('https://catalogo-canonico.test/mochila-validada.webp');
   });
 
   it('bloqueia qualquer tentativa de apontar gravações ao Supabase canônico', async () => {
@@ -135,6 +137,33 @@ describe('APIs de leads isoladas', () => {
     expect(result.statusCode).toBe(503);
     expect(result.body).toMatchObject({ error: 'unsafe_database_target' });
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('recusa um projeto Supabase diferente do destino isolado aprovado', async () => {
+    configureSiteDatabase();
+    vi.stubEnv('SITE_SUPABASE_URL', 'https://zyxwvutsrqponmlkjihg.supabase.co');
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    await contactHandler(request(contactPayload), response);
+    expect(result.statusCode).toBe(503);
+    expect(result.body).toMatchObject({ error: 'unsafe_database_target' });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('prioriza o IP assinado pela Vercel para o bucket de rate limit', async () => {
+    configureSiteDatabase();
+    const fetchMock = quoteFetchMock('{"requestId":"quote-42","duplicate":false}');
+    vi.stubGlobal('fetch', fetchMock);
+    const { response } = responseDouble();
+    await quoteHandler(request(quotePayload, { headers: {
+      'content-type': 'application/json',
+      origin: 'https://www.promobrindes.com.br',
+      'x-forwarded-for': '198.51.100.99',
+      'x-vercel-forwarded-for': '203.0.113.42',
+    } }), response);
+    const rpcCall = fetchMock.mock.calls.find(([url]) => String(url).includes('/create_site_quote_request'));
+    expect(JSON.parse(String(rpcCall?.[1]?.body)).p_request_meta.identifierHash).toMatch(/^[0-9a-f]{64}$/);
   });
 
   it('nunca envia a secret key para um host que não seja Supabase', async () => {

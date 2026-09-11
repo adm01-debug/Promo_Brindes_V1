@@ -7,6 +7,7 @@ export interface FunnelEventMap {
   catalog_result_viewed: { result_count: number; page: number; active_filters: number; campaign: boolean };
   product_viewed: { product_id: string; category_id: string };
   product_saved: { product_id: string; category_id: string; has_color: boolean };
+  selection_limit_reached: { item_count: number };
   product_shared: { product_id: string; mode: 'native' | 'copy' };
   comparison_changed: { item_count: number; action: 'added' | 'removed' | 'cleared' };
   catalog_library_filtered: { theme: string; has_query: boolean; result_count: number };
@@ -41,6 +42,7 @@ const ALLOWED_PROPERTIES: { [Name in FunnelEventName]: ReadonlyArray<keyof Funne
   catalog_result_viewed: ['result_count', 'page', 'active_filters', 'campaign'],
   product_viewed: ['product_id', 'category_id'],
   product_saved: ['product_id', 'category_id', 'has_color'],
+  selection_limit_reached: ['item_count'],
   product_shared: ['product_id', 'mode'],
   comparison_changed: ['item_count', 'action'],
   catalog_library_filtered: ['theme', 'has_query', 'result_count'],

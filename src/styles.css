@@ -2474,6 +2474,24 @@ p {
   border-bottom: 1px solid var(--line);
 }
 
+.quote-drawer__notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 28px 4px;
+  padding: 11px 12px;
+  color: #17351f;
+  background: #d9f7dd;
+  border: 1px solid #88ce94;
+  border-radius: 10px;
+  font-size: .72rem;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.quote-drawer__notice .text-button { flex: 0 0 auto; }
+
 .quote-drawer__intro p {
   margin: 0;
   color: var(--muted);

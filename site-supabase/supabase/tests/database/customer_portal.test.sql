@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(37);
+select plan(40);
 
 select has_column('site_private', 'quote_requests', 'customer_user_id', 'orçamento possui titular autenticado opcional');
 select has_table('site_private', 'customer_profiles', 'perfil do cliente existe no schema privado');
@@ -73,12 +73,21 @@ insert into site_private.quote_items (
   'TESTE-1', 100, 50, 'azul-1', 'Azul', 'alternative'
 );
 
+insert into site_private.proposal_documents (
+  id, quote_request_id, version, title, storage_bucket, storage_path, published_at
+) values (
+  '44444444-4444-4444-8444-444444444444',
+  '11111111-1111-4111-8111-111111111111',
+  1, 'Proposta Ana', 'customer-proposals', 'ana/proposta-1.pdf', now()
+);
+
 set local request.jwt.claims = '{"sub":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","role":"authenticated"}';
 select is((public.claim_my_quote_requests() ->> 'claimed')::integer, 2, 'e-mail confirmado reivindica todos os orçamentos ainda sem titular');
 select is((public.claim_my_quote_requests() ->> 'claimed')::integer, 0, 'reivindicação repetida é idempotente');
 select is((public.get_my_quote_requests(20, 0, null, null) ->> 'total')::integer, 2, 'cliente lista somente seus dois orçamentos');
 select ok(public.get_my_quote_request('11111111-1111-4111-8111-111111111111') is not null, 'cliente abre orçamento próprio');
 select ok(public.get_my_quote_request('33333333-3333-4333-8333-333333333333') is null, 'cliente não descobre orçamento alheio');
+select is(public.get_my_proposal_document('44444444-4444-4444-8444-444444444444') ->> 'path', 'ana/proposta-1.pdf', 'titular autenticada recebe somente o caminho de sua proposta publicada');
 select is(public.get_my_quote_request('11111111-1111-4111-8111-111111111111') #>> '{campaign,moment}', 'onboarding', 'cliente recebe somente o contexto de campanha do próprio briefing');
 select is(public.get_my_quote_request('11111111-1111-4111-8111-111111111111') #>> '{items,0,variantId}', 'azul-1', 'cliente recebe a variante exata do item que selecionou');
 select is(public.get_my_quote_request('11111111-1111-4111-8111-111111111111') #>> '{items,0,decisionGroup}', 'alternative', 'cliente recebe a prioridade da referência sem metadados internos');
@@ -103,10 +112,12 @@ select ok(position('Trocar para uma cor mais vibrante.' in public.get_my_quote_r
 set local request.jwt.claims = '{"sub":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","role":"authenticated"}';
 select is((public.claim_my_quote_requests() ->> 'claimed')::integer, 1, 'segunda conta reivindica somente o próprio e-mail');
 select is((public.get_my_quote_requests(20, 0, null, null) ->> 'total')::integer, 1, 'segunda conta não enxerga histórico da primeira');
+select is(public.get_my_proposal_document('44444444-4444-4444-8444-444444444444'), null, 'segunda conta não descobre o documento da primeira');
 select throws_ok('select public.request_my_quote_adjustment(''11111111-1111-4111-8111-111111111111'', ''Tentar alterar o orçamento alheio.'', ''adjustment-bia-001'')', '42501', 'quote_not_found', 'outra conta não solicita ajuste de orçamento alheio');
 
 set local request.jwt.claims = '{"sub":"cccccccc-cccc-4ccc-8ccc-cccccccccccc","role":"authenticated"}';
 select throws_ok('select public.claim_my_quote_requests()', '42501', 'verified_email_required', 'e-mail não confirmado não reivindica histórico');
+select ok(public.get_my_proposal_document('44444444-4444-4444-8444-444444444444') is null, 'conta sem proposta não descobre documento alheio');
 
 select * from finish();
 rollback;

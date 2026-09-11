@@ -6,6 +6,7 @@ const FALLBACK_SITE_URL = 'https://promo-brindes-v1.vercel.app';
 const PRODUCT_FIELDS = 'id,name,sku,slug,short_description,description,ai_summary,ai_description,primary_image_url,primary_image_fallback_url,set_image_url,og_image_url,images';
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,198}[a-z0-9])?$/i;
+const NETWORK_TIMEOUT_MS = 8_000;
 
 export interface PublicProductRow {
   id: string;
@@ -74,6 +75,16 @@ export function validProductIdentifier(value: string): boolean {
   return UUID_PATTERN.test(value) || SLUG_PATTERN.test(value);
 }
 
+async function fetchWithTimeout(input: string, init: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), NETWORK_TIMEOUT_MS);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 export async function fetchPublicProduct(identifier: string): Promise<PublicProductRow | null> {
   if (!validProductIdentifier(identifier)) throw new PublicProductPageError(400, 'Identificador de produto inválido.');
   const apiKey = publicApiKey(process.env.VITE_SUPABASE_PUBLISHABLE_KEY);
@@ -81,7 +92,7 @@ export async function fetchPublicProduct(identifier: string): Promise<PublicProd
   const isUuid = UUID_PATTERN.test(identifier);
   const params = new URLSearchParams({ select: PRODUCT_FIELDS, is_active: 'eq.true', limit: '1' });
   params.set(isUuid ? 'id' : 'slug', `eq.${identifier}`);
-  const get = async (resource: string) => fetch(`${CATALOG_URL}/rest/v1/${resource}?${params.toString()}`, {
+  const get = async (resource: string) => fetchWithTimeout(`${CATALOG_URL}/rest/v1/${resource}?${params.toString()}`, {
     headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}`, Accept: 'application/json' },
   });
   let response: Response;
@@ -101,7 +112,7 @@ export async function fetchPublicProduct(identifier: string): Promise<PublicProd
 
 export async function loadAppShell(): Promise<string> {
   try {
-    const response = await fetch(`${deployedAppOrigin()}/index.html`, { headers: { Accept: 'text/html' } });
+    const response = await fetchWithTimeout(`${deployedAppOrigin()}/index.html`, { headers: { Accept: 'text/html' } });
     if (!response.ok) throw new Error('app shell unavailable');
     return await response.text();
   } catch {

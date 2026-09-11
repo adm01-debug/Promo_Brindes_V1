@@ -53,7 +53,14 @@ function readRequestBody(request: ApiRequest): unknown {
 }
 
 function requestIp(request: ApiRequest): string {
-  return header(request, 'x-forwarded-for').split(',')[0]?.trim() || header(request, 'x-real-ip') || request.socket?.remoteAddress || 'unknown';
+  // Na Vercel, este cabeçalho é mantido pela plataforma mesmo quando há um proxy
+  // adicional. Nunca aceite um X-Forwarded-For fornecido pelo cliente como fonte
+  // preferencial do bucket de rate limit.
+  return header(request, 'x-vercel-forwarded-for').split(',')[0]?.trim()
+    || header(request, 'x-forwarded-for').split(',')[0]?.trim()
+    || header(request, 'x-real-ip')
+    || request.socket?.remoteAddress
+    || 'unknown';
 }
 
 function validateOrigin(request: ApiRequest): void {

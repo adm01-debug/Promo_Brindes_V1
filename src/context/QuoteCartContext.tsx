@@ -122,7 +122,9 @@ interface QuoteCartValue {
   selectionTitle?: string;
   itemCount: number;
   drawerOpen: boolean;
+  selectionLimitReached: boolean;
   setDrawerOpen: (open: boolean) => void;
+  dismissSelectionLimit: () => void;
   addProduct: (product: CatalogProduct, quantity?: number, color?: ProductColor) => void;
   removeItem: (key: string) => void;
   updateQuantity: (key: string, quantity: number) => void;
@@ -147,6 +149,7 @@ export function QuoteCartProvider({ children }: { children: ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [lastCleared, setLastCleared] = useState<CartState | null>(null);
   const [lastRemoved, setLastRemoved] = useState<{ item: QuoteItem; index: number } | null>(null);
+  const [selectionLimitReached, setSelectionLimitReached] = useState(false);
 
   useEffect(() => {
     if (!lastCleared) return;
@@ -159,6 +162,12 @@ export function QuoteCartProvider({ children }: { children: ReactNode }) {
     const timeout = window.setTimeout(() => setLastRemoved(null), 8_000);
     return () => window.clearTimeout(timeout);
   }, [lastRemoved]);
+
+  useEffect(() => {
+    if (!selectionLimitReached) return;
+    const timeout = window.setTimeout(() => setSelectionLimitReached(false), 8_000);
+    return () => window.clearTimeout(timeout);
+  }, [selectionLimitReached]);
 
   useEffect(() => {
     try {
@@ -197,10 +206,18 @@ export function QuoteCartProvider({ children }: { children: ReactNode }) {
   const addProduct = useCallback(
     (product: CatalogProduct, quantity = defaultQuoteQuantity(product), color?: ProductColor) => {
       const colorKey = color?.name.trim().toLocaleLowerCase('pt-BR') || 'sem-cor';
+      const key = `${product.id}::${color?.variantId ? `variante-${color.variantId}` : colorKey}`;
+      if (!state.items.some((item) => item.key === key) && state.items.length >= MAX_QUOTE_ITEMS) {
+        setSelectionLimitReached(true);
+        setDrawerOpen(true);
+        trackFunnelEvent('selection_limit_reached', { item_count: state.items.length });
+        return;
+      }
+      setSelectionLimitReached(false);
       dispatch({
         type: 'add',
         item: {
-          key: `${product.id}::${color?.variantId ? `variante-${color.variantId}` : colorKey}`,
+          key,
           productId: product.id,
           slug: product.slug,
           name: product.name,
@@ -220,7 +237,7 @@ export function QuoteCartProvider({ children }: { children: ReactNode }) {
       });
       setDrawerOpen(true);
     },
-    [],
+    [state.items],
   );
 
   const value = useMemo<QuoteCartValue>(
@@ -230,7 +247,9 @@ export function QuoteCartProvider({ children }: { children: ReactNode }) {
       selectionTitle: state.selectionTitle,
       itemCount: state.items.length,
       drawerOpen,
+      selectionLimitReached,
       setDrawerOpen,
+      dismissSelectionLimit: () => setSelectionLimitReached(false),
       addProduct,
       removeItem: (key) => {
         const index = state.items.findIndex((item) => item.key === key);
@@ -269,7 +288,7 @@ export function QuoteCartProvider({ children }: { children: ReactNode }) {
       },
       dismissLastRemoval: () => setLastRemoved(null),
     }),
-    [addProduct, drawerOpen, lastCleared, lastRemoved, state],
+    [addProduct, drawerOpen, lastCleared, lastRemoved, selectionLimitReached, state],
   );
 
   return <QuoteCartContext.Provider value={value}>{children}</QuoteCartContext.Provider>;

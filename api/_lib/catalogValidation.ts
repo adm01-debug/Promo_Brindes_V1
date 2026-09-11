@@ -9,6 +9,15 @@ interface CatalogRow {
   name?: string;
   sku?: string;
   min_quantity?: number;
+  primary_image_url?: string | null;
+  primary_image_fallback_url?: string | null;
+  set_image_url?: string | null;
+  og_image_url?: string | null;
+}
+
+function canonicalImage(row: CatalogRow): string {
+  return [row.primary_image_url, row.primary_image_fallback_url, row.set_image_url, row.og_image_url]
+    .find((candidate): candidate is string => typeof candidate === 'string' && (candidate.startsWith('/') || /^https:\/\//i.test(candidate))) || '';
 }
 
 function catalogKey(): string {
@@ -27,7 +36,7 @@ export async function reconcileQuoteItems(payload: NormalizedQuotePayload): Prom
   let response: Response;
   try {
     const url = new URL(`${CANONICAL_CATALOG_URL}/rest/v1/v_site_products_public`);
-    url.searchParams.set('select', 'id,slug,name,sku,min_quantity');
+    url.searchParams.set('select', 'id,slug,name,sku,min_quantity,primary_image_url,primary_image_fallback_url,set_image_url,og_image_url');
     url.searchParams.set('id', `in.(${ids.join(',')})`);
     response = await fetch(url, {
       headers: { apikey: key, Authorization: `Bearer ${key}` },
@@ -66,6 +75,7 @@ export async function reconcileQuoteItems(payload: NormalizedQuotePayload): Prom
         name: product.name!,
         sku: product.sku!,
         minQuantity: product.min_quantity!,
+        imageUrl: canonicalImage(product),
       };
     }),
   };

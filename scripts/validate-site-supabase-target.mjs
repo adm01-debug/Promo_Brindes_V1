@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 
 const CANONICAL_CATALOG_PROJECT = 'doufsxqlfjyuvxuezpln';
+const SITE_DATABASE_PROJECT = 'xlzmclcjdncjfdrjxclt';
 const projectRefFile = new URL('../site-supabase/supabase/.temp/project-ref', import.meta.url);
 
 if (!existsSync(projectRefFile)) {
@@ -9,8 +10,8 @@ if (!existsSync(projectRefFile)) {
 }
 
 const projectRef = readFileSync(projectRefFile, 'utf8').trim();
-if (!projectRef || projectRef === CANONICAL_CATALOG_PROJECT) {
-  console.error('BLOQUEADO: a migration de leads nunca pode ser aplicada no Supabase canônico do catálogo.');
+if (!projectRef || projectRef === CANONICAL_CATALOG_PROJECT || projectRef !== SITE_DATABASE_PROJECT) {
+  console.error(`BLOQUEADO: migrations do site só podem ser aplicadas no projeto isolado ${SITE_DATABASE_PROJECT}.`);
   process.exit(1);
 }
 

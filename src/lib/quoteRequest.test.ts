@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { buildEmailHref, buildQuotePayload, submitQuoteRequest } from './quoteRequest';
+import { buildEmailHref, buildQuotePayload, sanitizeLeadPageUrl, submitQuoteRequest } from './quoteRequest';
 import type { QuoteContact, QuoteItem } from '../types';
 
 const contact: QuoteContact = {
@@ -58,6 +58,12 @@ describe('solicitação de orçamento', () => {
   it('não transmite um complemento opcional vazio ou manipulado', () => {
     const payload = buildQuotePayload(contact, items, undefined, undefined, undefined, undefined, { budgetRange: 'forjado' as never });
     expect(payload.briefing).toBeUndefined();
+  });
+
+  it('remove query, fragmento e credenciais da URL antes de montar o payload', () => {
+    expect(sanitizeLeadPageUrl('https://ana:token@site.test/orcamento?email=ana%40empresa.test#codigo')).toBe('https://site.test/orcamento');
+    expect(buildQuotePayload(contact, items, 'https://site.test/orcamento?email=ana%40empresa.test#codigo').pageUrl).toBe('https://site.test/orcamento');
+    expect(sanitizeLeadPageUrl('javascript:alert(1)')).toBe('');
   });
 
   it('bloqueia endpoint sem HTTPS antes de transmitir dados pessoais', async () => {

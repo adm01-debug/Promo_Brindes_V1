@@ -1,5 +1,6 @@
 import type { ContactLead, ContactRequestPayload } from '../types';
 import { createClientRequestId, postJson } from './http';
+import { sanitizeLeadPageUrl } from './quoteRequest';
 
 const DEFAULT_CONTACT_EMAIL = 'adm01@promobrindes.com.br';
 
@@ -15,7 +16,7 @@ export function buildContactPayload(
     consent: { accepted: lead.privacyAccepted, noticeVersion: '2026-09-08', acceptedAt: submittedAt },
     source: 'site-promo-brindes-contact',
     submittedAt,
-    pageUrl,
+    pageUrl: sanitizeLeadPageUrl(pageUrl),
     clientRequestId,
   };
 }

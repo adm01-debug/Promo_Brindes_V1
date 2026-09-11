@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(29);
+select plan(37);
 
 select is(
   (select count(*) from pg_catalog.pg_tables where schemaname = 'site_private'),
@@ -166,6 +166,56 @@ select is(
   (select preferred_channel from site_private.contact_requests where client_request_id = 'contact-channel-test-1'),
   'whatsapp',
   'preferência de contato fica limitada ao registro privado'
+);
+
+select ok(
+  to_regprocedure('site_private.purge_expired_site_data(timestamp with time zone,integer)') is not null,
+  'rotina de retenção em lote existe'
+);
+
+select ok(
+  not pg_catalog.has_function_privilege('anon', 'site_private.purge_expired_site_data(timestamptz,integer)', 'execute'),
+  'anon não executa a rotina de retenção'
+);
+
+select ok(
+  pg_catalog.has_function_privilege('service_role', 'site_private.purge_expired_site_data(timestamptz,integer)', 'execute'),
+  'service_role executa a rotina de retenção'
+);
+
+select ok(
+  to_regprocedure('public.run_site_data_retention(integer)') is not null,
+  'ponto de entrada seguro da tarefa agendada existe'
+);
+
+select ok(
+  not pg_catalog.has_function_privilege('anon', 'public.run_site_data_retention(integer)', 'execute'),
+  'anon não executa o ponto de entrada da retenção'
+);
+
+select ok(
+  pg_catalog.has_function_privilege('service_role', 'public.run_site_data_retention(integer)', 'execute'),
+  'service_role executa o ponto de entrada da retenção'
+);
+
+insert into site_private.contact_requests (
+  client_request_id, request_hash, source, contact_name, email, phone,
+  client_submitted_at, request_metadata, retention_until
+) values (
+  'expired-contact-test-1', repeat('1', 64), 'site-promo-brindes-contact', 'Contato expirado',
+  'expirado@teste.com', null, now() - interval '25 months', '{}'::jsonb, now() - interval '1 minute'
+);
+
+select is(
+  (site_private.purge_expired_site_data(now(), 1) ->> 'contactsDeleted')::integer,
+  1,
+  'rotina remove um contato vencido dentro do lote solicitado'
+);
+
+select is(
+  (select count(*) from site_private.contact_requests where client_request_id = 'expired-contact-test-1'),
+  0::bigint,
+  'contato vencido não permanece após a retenção'
 );
 
 select * from finish();

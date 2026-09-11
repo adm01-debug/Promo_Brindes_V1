@@ -6,7 +6,7 @@ Este projeto é independente do sistema interno `Promo_Gifts_V4`. Ele apenas lê
 
 ## Rodar localmente
 
-Requer Node.js 20.19+ ou 22.12+.
+Requer Node.js 22.13+ e npm 11.17.0 (veja `.nvmrc` e `package.json`).
 
 ```bash
 npm install

@@ -41,3 +41,14 @@ test('varredura de artefatos identifica token de exemplo sem expor o valor', () 
     fs.rmSync(directory, { recursive: true, force: true });
   }
 });
+
+test('varredura bloqueia famílias adicionais de token antes do upload', () => {
+  const directory = fs.mkdtempSync('/tmp/promo-brindes-graphify-test-');
+  try {
+    fs.writeFileSync(`${directory}/artifact.txt`, 'ghp_abcdefghijklmnopqrstuvwxyz123456 vercel_token_abcdefghijklmnopqrstuvwxyz AWS=AKIAABCDEFGHIJKLMNOP');
+    const kinds = findSensitiveArtifacts(directory).map((finding) => finding.kind);
+    assert.deepEqual(kinds.sort(), ['AWS access key', 'GitHub token', 'Vercel token']);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});

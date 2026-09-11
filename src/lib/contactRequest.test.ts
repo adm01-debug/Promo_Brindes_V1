@@ -20,6 +20,10 @@ describe('contato rápido', () => {
     expect(payload.contact).not.toHaveProperty('privacyAccepted');
   });
 
+  it('não transmite query ou fragmento da página de contato', () => {
+    expect(buildContactPayload(lead, 'https://site.test/contato?email=ana%40empresa.test#segredo').pageUrl).toBe('https://site.test/contato');
+  });
+
   it('prepara fallback de e-mail sem depender de infraestrutura', () => {
     const href = buildContactEmailHref(buildContactPayload(lead), 'contato@promo.test');
     expect(href).toMatch(/^mailto:contato%40promo\.test/);

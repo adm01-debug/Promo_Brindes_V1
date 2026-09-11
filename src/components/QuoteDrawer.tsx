@@ -144,6 +144,7 @@ export function QuoteDrawer() {
           </div>
         ) : (
           <>
+            {cart.selectionLimitReached && <div className="quote-drawer__notice" role="status" aria-live="polite"><span>Sua seleção chegou ao limite de {cart.itemCount} produtos. Remova uma referência para incluir outra.</span><button type="button" className="text-button" onClick={cart.dismissSelectionLimit}>Entendi</button></div>}
             <div className="quote-drawer__intro">
               <p>{cart.itemCount} {cart.itemCount === 1 ? 'produto selecionado' : 'produtos selecionados'}</p>
               <button ref={clearTriggerRef} className="text-button text-button--danger" type="button" onClick={() => setConfirmClear(true)}>Limpar seleção</button>
@@ -153,7 +154,7 @@ export function QuoteDrawer() {
               <input value={cart.selectionTitle || ''} maxLength={100} placeholder="Ex.: Boas-vindas do time 2026" onChange={(event) => cart.setSelectionTitle(event.target.value)} />
               <small>Use um nome interno da campanha; evite nomes de pessoas, e-mails ou dados sensíveis.</small>
             </label>
-            <div className="quote-drawer__share"><div><strong>Compartilhar referências</strong><span>O link leva apenas itens, quantidades e variantes públicas.</span></div><button type="button" className="text-button" onClick={() => void shareSelection()}><Share2 size={16} /> {shareState === 'shared' ? 'Compartilhado' : shareState === 'copied' ? <><Check size={15} /> Link copiado</> : shareState === 'limited' ? `Máximo de ${MAX_SHARED_SELECTION_ITEMS} itens` : shareState === 'error' ? <><Copy size={15} /> Tentar copiar</> : 'Compartilhar'}</button></div>
+            <div className="quote-drawer__share"><div><strong>Compartilhar referências</strong><span>O link leva apenas itens, quantidades e variantes públicas.</span></div><button type="button" className="text-button" onClick={() => void shareSelection()}><Share2 size={16} /> {shareState === 'shared' ? 'Compartilhado' : shareState === 'copied' ? <><Check size={15} /> Link copiado</> : shareState === 'limited' ? `Máximo de ${MAX_SHARED_SELECTION_ITEMS} itens` : shareState === 'error' ? <><Copy size={15} /> Tentar copiar</> : 'Compartilhar'}</button><span className="sr-only" role="status" aria-live="polite">{shareState === 'copied' ? 'Link da seleção copiado.' : shareState === 'shared' ? 'Seleção compartilhada.' : shareState === 'error' ? 'Não foi possível compartilhar agora.' : ''}</span></div>
             <div className="quote-drawer__items">
               {cart.items.map((item) => (
                 <article className="drawer-item" key={item.key}>

@@ -1,7 +1,8 @@
 import { createHash, createHmac } from 'node:crypto';
 import type { LeadKind, NormalizedLeadPayload } from './contracts.js';
 
-const CANONICAL_CATALOG_PROJECT = 'doufsxqlfjyuvxuezpln';
+// Allowlist exata: por definição, o catálogo canônico não pode receber escritas do site.
+const SITE_DATABASE_PROJECT = 'xlzmclcjdncjfdrjxclt';
 const REQUEST_TIMEOUT_MS = 10_000;
 
 export class SiteDatabaseError extends Error {
@@ -36,7 +37,7 @@ export function getSiteDatabaseConfig(): SiteDatabaseConfig {
     throw new SiteDatabaseError('Configuração do banco do site inválida.', 'backend_misconfigured');
   }
   const projectHost = /^([a-z0-9]{20})\.supabase\.co$/.exec(url.hostname);
-  if (url.protocol !== 'https:' || !projectHost || projectHost[1] === CANONICAL_CATALOG_PROJECT) {
+  if (url.protocol !== 'https:' || !projectHost || projectHost[1] !== SITE_DATABASE_PROJECT) {
     throw new SiteDatabaseError('Destino isolado do banco do site inválido.', 'unsafe_database_target');
   }
   if (!secretKey.startsWith('sb_secret_') || requestHashSalt.length < 32) {

@@ -6,6 +6,20 @@ import { campaignBriefLabels } from './campaignBrief';
 
 const DEFAULT_CONTACT_EMAIL = 'adm01@promobrindes.com.br';
 
+export function sanitizeLeadPageUrl(candidate: string): string {
+  try {
+    const url = new URL(candidate);
+    if (!['http:', 'https:'].includes(url.protocol)) return '';
+    url.username = '';
+    url.password = '';
+    url.search = '';
+    url.hash = '';
+    return url.href;
+  } catch {
+    return '';
+  }
+}
+
 export function buildQuotePayload(
   contact: QuoteContact,
   items: QuoteItem[],
@@ -25,7 +39,7 @@ export function buildQuotePayload(
     consent: { accepted: contact.privacyAccepted, noticeVersion: '2026-09-08', acceptedAt: submittedAt },
     source: 'site-promo-brindes',
     submittedAt,
-    pageUrl,
+    pageUrl: sanitizeLeadPageUrl(pageUrl),
     clientRequestId,
   };
 }
