@@ -10,7 +10,7 @@ import { ClientRequestError, clearSubmissionAttempt, getOrCreateSubmissionAttemp
 import { replaceBrokenProductImage } from '../lib/images';
 import { clearQuoteDraft, EMPTY_QUOTE_CONTACT, loadQuoteDraft, QUOTE_DRAFT_RETENTION_LABEL, saveQuoteDraft } from '../lib/quoteDraft';
 import { campaignBriefLabels } from '../lib/campaignBrief';
-import { EMPTY_QUOTE_BRIEFING, normalizeQuoteBriefing, quoteBriefingLabels } from '../lib/quoteBriefing';
+import { EMPTY_QUOTE_BRIEFING, normalizeQuoteBriefing, quoteBriefingLabels, validateQuoteBriefing } from '../lib/quoteBriefing';
 import { clearQuoteRepeat, loadQuoteRepeat } from '../lib/quoteRepeat';
 import type { QuoteBriefingForm, QuoteContact } from '../types';
 import { quoteDecisionGroupsEnabled } from '../lib/siteFeatureFlags';
@@ -117,6 +117,15 @@ export default function QuotePage() {
     const firstError = Object.keys(nextErrors)[0] as keyof QuoteContact | undefined;
     if (firstError) {
       formRef.current?.querySelector<HTMLElement>(`[name="${firstError}"]`)?.focus();
+      return;
+    }
+    const briefingError = validateQuoteBriefing(briefing, contact.deadline);
+    if (briefingError) {
+      setSubmitError(briefingError);
+      const field = briefing.budgetRange && briefing.budgetRange !== 'a-definir' && !briefing.budgetScope
+        ? 'budgetScope'
+        : briefing.budgetScope && !briefing.budgetRange ? 'budgetRange' : 'eventDate';
+      formRef.current?.querySelector<HTMLElement>(`[name="${field}"]`)?.focus();
       return;
     }
     if (!cart.items.length) return;

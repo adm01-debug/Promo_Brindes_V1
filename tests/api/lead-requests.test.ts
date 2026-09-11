@@ -55,7 +55,7 @@ const quotePayload = {
     variantId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', colorName: 'Verde', colorHex: '#00aa66', decisionGroup: 'alternative',
   }],
   campaign: { source: 'finder', moment: 'onboarding', audience: 'colaboradores', scale: '51-200', mood: 'sustentavel' },
-  briefing: { actionName: 'Boas-vindas 2026', budgetRange: '51-100', responseChannel: 'whatsapp', brandAssetStatus: 'logo-pronto' },
+  briefing: { actionName: 'Boas-vindas 2026', budgetRange: '51-100', budgetScope: 'por-pessoa', responseChannel: 'whatsapp', brandAssetStatus: 'logo-pronto' },
 };
 
 function configureSiteDatabase() {
@@ -245,6 +245,41 @@ describe('APIs de leads isoladas', () => {
     const result = responseDouble();
     await quoteHandler(request(invalidCampaign), result.response);
     expect(result.result.statusCode).toBe(400);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('exige escopo para uma faixa de investimento numérica antes de consultar o banco', async () => {
+    configureSiteDatabase();
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const result = responseDouble();
+    const inconsistentBriefing = {
+      ...quotePayload,
+      briefing: { ...quotePayload.briefing, budgetScope: undefined },
+    };
+
+    await quoteHandler(request(inconsistentBriefing), result.response);
+
+    expect(result.result.statusCode).toBe(400);
+    expect(result.result.body).toMatchObject({ error: 'invalid_request' });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('rejeita recebimento posterior ao evento antes de consultar o banco', async () => {
+    configureSiteDatabase();
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const result = responseDouble();
+    const inconsistentDates = {
+      ...quotePayload,
+      contact: { ...quotePayload.contact, deadline: '2026-12-12' },
+      briefing: { ...quotePayload.briefing, eventDate: '2026-12-10' },
+    };
+
+    await quoteHandler(request(inconsistentDates), result.response);
+
+    expect(result.result.statusCode).toBe(400);
+    expect(result.result.body).toMatchObject({ error: 'invalid_request' });
     expect(fetchMock).not.toHaveBeenCalled();
   });
 

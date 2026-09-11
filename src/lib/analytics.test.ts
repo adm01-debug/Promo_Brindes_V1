@@ -16,6 +16,15 @@ describe('instrumentação segura', () => {
     expect(redactAnalyticsUrl({ type: 'event', url: 'http://[' })).toBeNull();
   });
 
+  it('normaliza identificadores da área privada antes do pageview', () => {
+    expect(redactAnalyticsUrl({ type: 'pageview', url: 'https://promo.test/minha-conta/orcamentos/11111111-1111-4111-8111-111111111111?utm=teste' })).toMatchObject({
+      url: 'https://promo.test/minha-conta/orcamentos/:id',
+    });
+    expect(redactAnalyticsUrl({ type: 'pageview', url: 'https://promo.test/selecoes/compartilhada?s=segredo' })).toMatchObject({
+      url: 'https://promo.test/selecoes/compartilhada',
+    });
+  });
+
   it('emite somente propriedades agregadas do contrato fechado', () => {
     let observed: unknown;
     window.addEventListener('promo:analytics', (event) => { observed = (event as CustomEvent).detail; }, { once: true });

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useQuoteCart } from '../context/QuoteCartContext';
 import { replaceBrokenProductImage } from '../lib/images';
-import { createPersistentSharedSelection, revokePersistentSharedSelection, sharedSelectionUrl, MAX_SHARED_SELECTION_ITEMS } from '../lib/sharedSelection';
+import { createPersistentSharedSelection, managedSharedSelectionTokens, revokePersistentSharedSelection, sharedSelectionUrl, MAX_SHARED_SELECTION_ITEMS } from '../lib/sharedSelection';
 import { trackFunnelEvent } from '../lib/analytics';
 import { persistentSharedSelectionsEnabled, quoteDecisionGroupsEnabled } from '../lib/siteFeatureFlags';
 
@@ -16,8 +16,12 @@ export function QuoteDrawer() {
   const clearCancelRef = useRef<HTMLButtonElement>(null);
   const clearDialogRef = useRef<HTMLElement>(null);
   const [confirmClear, setConfirmClear] = useState(false);
-  const [shareState, setShareState] = useState<'idle' | 'copied' | 'shared' | 'limited' | 'error'>('idle');
-  const [persistentShareToken, setPersistentShareToken] = useState<string | null>(null);
+  const [shareState, setShareState] = useState<'idle' | 'preparing' | 'copied' | 'shared' | 'limited' | 'error'>('idle');
+  const [managedShareTokens, setManagedShareTokens] = useState<string[]>(managedSharedSelectionTokens);
+
+  useEffect(() => {
+    if (cart.drawerOpen) setManagedShareTokens(managedSharedSelectionTokens());
+  }, [cart.drawerOpen]);
 
   const closeClearConfirmation = useCallback(() => {
     setConfirmClear(false);
@@ -85,6 +89,7 @@ export function QuoteDrawer() {
   }, [cart.drawerOpen, cart.itemCount]);
 
   async function shareSelection() {
+    if (shareState === 'preparing') return;
     if (cart.items.length > MAX_SHARED_SELECTION_ITEMS) {
       setShareState('limited');
       return;
@@ -96,10 +101,11 @@ export function QuoteDrawer() {
     }
     let mode: 'native' | 'copy' = 'copy';
     try {
+      setShareState('preparing');
       if (persistentSharedSelectionsEnabled) {
         const persistent = await createPersistentSharedSelection(cart.items);
         url = persistent.url;
-        setPersistentShareToken(persistent.token);
+        setManagedShareTokens(managedSharedSelectionTokens());
       }
       if (navigator.share) {
         await navigator.share({ title: 'Seleção de brindes | Promo Brindes', text: 'Referências para uma próxima campanha.', url });
@@ -110,17 +116,20 @@ export function QuoteDrawer() {
         setShareState('copied');
       }
       trackFunnelEvent('selection_shared', { item_count: cart.itemCount, mode });
-    } catch {
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        setShareState('idle');
+        return;
+      }
       setShareState('error');
     }
   }
 
-  async function revokeShare() {
-    if (!persistentShareToken) return;
+  async function revokeShare(token: string) {
     try {
-      const revoked = await revokePersistentSharedSelection(persistentShareToken);
+      const revoked = await revokePersistentSharedSelection(token);
       if (!revoked) throw new Error('not_revoked');
-      setPersistentShareToken(null);
+      setManagedShareTokens(managedSharedSelectionTokens());
       setShareState('idle');
     } catch {
       setShareState('error');
@@ -172,7 +181,7 @@ export function QuoteDrawer() {
               <input value={cart.selectionTitle || ''} maxLength={100} placeholder="Ex.: Boas-vindas do time 2026" onChange={(event) => cart.setSelectionTitle(event.target.value)} />
               <small>Use um nome interno da campanha; evite nomes de pessoas, e-mails ou dados sensíveis.</small>
             </label>
-            <div className="quote-drawer__share"><div><strong>Compartilhar referências</strong><span>{persistentSharedSelectionsEnabled ? 'Link privado, com validade de 30 dias e revogação neste dispositivo.' : 'O link leva apenas itens, quantidades e variantes públicas.'}</span></div><div className="quote-drawer__share-actions"><button type="button" className="text-button" onClick={() => void shareSelection()}><Share2 size={16} /> {shareState === 'shared' ? 'Compartilhado' : shareState === 'copied' ? <><Check size={15} /> Link copiado</> : shareState === 'limited' ? `Máximo de ${MAX_SHARED_SELECTION_ITEMS} itens` : shareState === 'error' ? <><Copy size={15} /> Tentar copiar</> : 'Compartilhar'}</button>{persistentShareToken && <button type="button" className="text-button text-button--danger" onClick={() => void revokeShare()}>Revogar link</button>}</div><span className="sr-only" role="status" aria-live="polite">{shareState === 'copied' ? 'Link da seleção copiado.' : shareState === 'shared' ? 'Seleção compartilhada.' : shareState === 'limited' ? `O compartilhamento é limitado a ${MAX_SHARED_SELECTION_ITEMS} itens.` : shareState === 'error' ? 'Não foi possível compartilhar agora.' : ''}</span></div>
+            <div className="quote-drawer__share"><div><strong>Compartilhar referências</strong><span>{persistentSharedSelectionsEnabled ? 'Link privado, com validade de 30 dias e revogável neste dispositivo.' : 'O link leva apenas itens, quantidades e variantes públicas.'}</span></div><div className="quote-drawer__share-actions"><button type="button" className="text-button" disabled={shareState === 'preparing'} onClick={() => void shareSelection()}><Share2 size={16} /> {shareState === 'preparing' ? 'Preparando link…' : shareState === 'shared' ? 'Compartilhado' : shareState === 'copied' ? <><Check size={15} /> Link copiado</> : shareState === 'limited' ? `Máximo de ${MAX_SHARED_SELECTION_ITEMS} itens` : shareState === 'error' ? <><Copy size={15} /> Tentar copiar</> : 'Compartilhar'}</button>{managedShareTokens.map((token, index) => <button key={token} type="button" className="text-button text-button--danger" onClick={() => void revokeShare(token)}>Revogar link {managedShareTokens.length > 1 ? index + 1 : ''}</button>)}</div><span className="sr-only" role="status" aria-live="polite">{shareState === 'preparing' ? 'Preparando link privado.' : shareState === 'copied' ? 'Link da seleção copiado.' : shareState === 'shared' ? 'Seleção compartilhada.' : shareState === 'limited' ? `O compartilhamento é limitado a ${MAX_SHARED_SELECTION_ITEMS} itens.` : shareState === 'error' ? 'Não foi possível compartilhar agora.' : ''}</span></div>
             <div className="quote-drawer__items">
               {cart.items.map((item) => (
                 <article className="drawer-item" key={item.key}>

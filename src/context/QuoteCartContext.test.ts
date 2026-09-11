@@ -95,4 +95,13 @@ describe('seleção para orçamento', () => {
     const previous = { ...item, quantity: 250 };
     expect(cartReducer({ items: [] }, { type: 'replace', items: [previous] }).items).toEqual([previous]);
   });
+
+  it('limpa o contexto anterior quando uma seleção compartilhada substitui a atual', () => {
+    const replacement = { ...item, quantity: 250 };
+    const state = cartReducer(
+      { items: [item], campaign: { source: 'finder', moment: 'onboarding' }, selectionTitle: 'Campanha anterior' },
+      { type: 'replace-selection', items: [replacement] },
+    );
+    expect(state).toEqual({ items: [replacement] });
+  });
 });

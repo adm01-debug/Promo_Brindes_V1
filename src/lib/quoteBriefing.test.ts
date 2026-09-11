@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { EMPTY_QUOTE_BRIEFING, normalizeQuoteBriefing, quoteBriefingForm, quoteBriefingSummary } from './quoteBriefing';
+import { EMPTY_QUOTE_BRIEFING, normalizeQuoteBriefing, quoteBriefingForm, quoteBriefingSummary, validateQuoteBriefing } from './quoteBriefing';
 
 describe('contexto opcional do briefing', () => {
   it('preserva apenas escolhas reconhecidas e texto limitado', () => {
@@ -37,5 +37,12 @@ describe('contexto opcional do briefing', () => {
       'Evento em 20 de dezembro de 2026',
       'Contato por E-mail',
     ]);
+  });
+
+  it('exige contexto para a faixa e evita receber depois do evento', () => {
+    expect(validateQuoteBriefing({ ...EMPTY_QUOTE_BRIEFING, budgetRange: '51-100' })).toMatch(/por pessoa/i);
+    expect(validateQuoteBriefing({ ...EMPTY_QUOTE_BRIEFING, budgetScope: 'total' })).toMatch(/faixa/i);
+    expect(validateQuoteBriefing({ ...EMPTY_QUOTE_BRIEFING, eventDate: '2026-12-10' }, '2026-12-11')).toMatch(/depois/i);
+    expect(validateQuoteBriefing({ ...EMPTY_QUOTE_BRIEFING, budgetRange: '51-100', budgetScope: 'por-pessoa', eventDate: '2026-12-10' }, '2026-12-09')).toBeNull();
   });
 });

@@ -1,5 +1,5 @@
 import { ArrowRight, Copy, PackageOpen, ShieldCheck, ShoppingBag } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Seo } from '../components/Seo';
 import { useQuoteCart } from '../context/QuoteCartContext';
@@ -23,6 +23,9 @@ export default function SharedSelectionPage() {
   const [loading, setLoading] = useState(Boolean(legacyPayload.length || persistentToken));
   const [error, setError] = useState('');
   const [copyStatus, setCopyStatus] = useState('');
+  const [duplicateConfirmationOpen, setDuplicateConfirmationOpen] = useState(false);
+  const duplicateCancelRef = useRef<HTMLButtonElement>(null);
+  const duplicateTriggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     let active = true;
@@ -43,7 +46,10 @@ export default function SharedSelectionPage() {
   }, [legacyPayload, persistentToken]);
 
   useEffect(() => {
+    // Um token persistente começa sem payload e ainda está sendo consultado pelo
+    // efeito acima. Não transformar essa espera em “link inválido”.
     if (!payload.length) {
+      if (persistentToken) return;
       setItems([]);
       setLoading(false);
       return;
@@ -69,9 +75,32 @@ export default function SharedSelectionPage() {
     }
   }
 
-  function duplicate() {
-    cart.replaceItems(items);
+  useEffect(() => {
+    if (!duplicateConfirmationOpen) return;
+    duplicateCancelRef.current?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setDuplicateConfirmationOpen(false);
+        window.requestAnimationFrame(() => duplicateTriggerRef.current?.focus());
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [duplicateConfirmationOpen]);
+
+  function applyDuplicate() {
+    cart.replaceSelection(items);
+    setDuplicateConfirmationOpen(false);
     cart.setDrawerOpen(true);
+  }
+
+  function duplicate() {
+    if (cart.itemCount > 0) {
+      setDuplicateConfirmationOpen(true);
+      return;
+    }
+    applyDuplicate();
   }
 
   if (!loading && !payload.length && !error) {
@@ -81,7 +110,7 @@ export default function SharedSelectionPage() {
   return (
     <>
       <Seo title="Seleção compartilhada" description="Referências de brindes compartilhadas pela Promo Brindes." path="/selecoes/compartilhada" noIndex />
-      <header className="shared-selection-hero"><div className="container"><span className="section-kicker">Seleção compartilhada</span><h1>Uma direção para<br /><em>começar a conversa.</em></h1><p>Estas referências refletem o catálogo público no momento da abertura. Disponibilidade, personalização e condições são confirmadas no briefing.</p><div className="shared-selection-hero__actions"><button className="button button--light" type="button" onClick={duplicate} disabled={loading || !items.length}><ShoppingBag size={18} /> Duplicar e ajustar</button><button className="button button--ghost-light" type="button" onClick={() => void copyLink()}><Copy size={17} /> {copyStatus.startsWith('Link copiado') ? 'Link copiado' : 'Copiar link'}</button></div><span className="sr-only" role="status" aria-live="polite">{copyStatus}</span></div></header>
+      <header className="shared-selection-hero"><div className="container"><span className="section-kicker">Seleção compartilhada</span><h1>Uma direção para<br /><em>começar a conversa.</em></h1><p>Estas referências refletem o catálogo público no momento da abertura. Disponibilidade, personalização e condições são confirmadas no briefing.</p><div className="shared-selection-hero__actions"><button ref={duplicateTriggerRef} className="button button--light" type="button" onClick={duplicate} disabled={loading || !items.length}><ShoppingBag size={18} /> Duplicar e ajustar</button><button className="button button--ghost-light" type="button" onClick={() => void copyLink()}><Copy size={17} /> {copyStatus.startsWith('Link copiado') ? 'Link copiado' : 'Copiar link'}</button></div><span className="sr-only" role="status" aria-live="polite">{copyStatus}</span></div></header>
       <section className="section shared-selection"><div className="container">
         <aside className="shared-selection__privacy"><ShieldCheck size={19} /><p>Este link não inclui contato, nome de campanha, observações ou dados de orçamento. Ele mostra somente produtos, quantidades e variantes publicadas.</p></aside>
         {loading && <div className="shared-selection-state" role="status">Carregando referências…</div>}
@@ -89,6 +118,7 @@ export default function SharedSelectionPage() {
         {!loading && !error && !items.length && <div className="shared-selection-state"><PackageOpen size={40} /><h2>Os produtos deste link não estão mais publicados.</h2><p>O catálogo muda; abra o radar para encontrar alternativas atuais.</p><Link className="button button--dark" to="/catalogo">Ver alternativas</Link></div>}
         {!loading && !error && items.length > 0 && <><div className="shared-selection__heading"><div><span>{items.length} {items.length === 1 ? 'referência' : 'referências'}</span><h2>{totalUnits(items).toLocaleString('pt-BR')} unidades estimadas</h2></div><p>Você pode duplicar esta base e ajustar quantidades antes de pedir uma proposta.</p></div><div className="shared-selection__grid">{items.map((item) => <article key={item.key}><img src={item.imageUrl} alt="" width="180" height="180" referrerPolicy="no-referrer" /><div><p>Cód. {item.sku}</p><h2>{item.name}</h2>{item.colorName && <span>{item.colorName}</span>}</div><strong>{item.quantity.toLocaleString('pt-BR')} un.</strong><Link to={`/produto/${item.slug}`}>Ver produto <ArrowRight size={16} /></Link></article>)}</div></>}
       </div></section>
+      {duplicateConfirmationOpen && <div className="customer-confirmation-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setDuplicateConfirmationOpen(false); }}><section className="customer-confirmation" role="dialog" aria-modal="true" aria-labelledby="shared-selection-replace-title" aria-describedby="shared-selection-replace-description"><span className="section-kicker">SUA SELEÇÃO ATUAL</span><h2 id="shared-selection-replace-title">Substituir sua seleção atual?</h2><p id="shared-selection-replace-description">Você tem {cart.itemCount} {cart.itemCount === 1 ? 'produto salvo' : 'produtos salvos'}. Ao continuar, eles serão substituídos pelas {items.length} referências deste link. O contexto anterior será removido para não misturar campanhas.</p><div><button ref={duplicateCancelRef} className="button button--outline" type="button" onClick={() => { setDuplicateConfirmationOpen(false); window.requestAnimationFrame(() => duplicateTriggerRef.current?.focus()); }}>Manter minha seleção</button><button className="button button--green" type="button" onClick={applyDuplicate}>Substituir e ajustar <ShoppingBag size={17} /></button></div></section></div>}
     </>
   );
 }

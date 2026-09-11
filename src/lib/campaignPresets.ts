@@ -116,7 +116,10 @@ export function resolveCampaignFilters(selection: CampaignSelection, categories:
     : [];
   // Cada porta editorial só aplica sinais já publicados no contrato público.
   // A curadoria não infere estoque, preço ou uma técnica de personalização.
-  const profile = selection.moment === 'onboarding' || selection.mood === 'afetivo' || selection.audience === 'colaboradores'
+  // “Onboarding” e “colaboradores” descrevem contexto, não um formato de
+  // produto. Só aplicamos kits quando a própria pessoa escolhe a direção
+  // afetiva; os demais casos permanecem exploráveis e com filtros removíveis.
+  const profile = selection.mood === 'afetivo'
     ? 'kits'
     : selection.moment === 'evento' || selection.moment === 'relacionamento' || selection.moment === 'reconhecimento'
       || selection.moment === 'sazonal' || selection.mood === 'premium' || selection.audience === 'clientes'

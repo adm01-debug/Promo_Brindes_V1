@@ -10,7 +10,7 @@ import { trackFunnelEvent } from '../lib/analytics';
 import { campaignBriefLabels, normalizeCampaignBrief } from '../lib/campaignBrief';
 import { normalizeQuoteBriefing, quoteBriefingSummary } from '../lib/quoteBriefing';
 import { saveQuoteRepeat } from '../lib/quoteRepeat';
-import { createClientRequestId } from '../lib/http';
+import { clearSubmissionAttempt, getOrCreateSubmissionAttempt } from '../lib/http';
 import { customerAdjustmentsEnabled, quoteDecisionGroupsEnabled } from '../lib/siteFeatureFlags';
 
 function dateLabel(value: string): string {
@@ -29,7 +29,9 @@ function QuoteContent() {
   const [repeatConfirmationOpen, setRepeatConfirmationOpen] = useState(false);
   const [adjustmentMessage, setAdjustmentMessage] = useState('');
   const [adjustmentState, setAdjustmentState] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+  const [adjustmentError, setAdjustmentError] = useState('');
   const [retryKey, setRetryKey] = useState(0);
+  const adjustmentAttemptRef = useRef<{ id: string; submittedAt: string } | null>(null);
   const cancelRepeatRef = useRef<HTMLButtonElement>(null);
   const repeatConfirmationRef = useRef<HTMLElement>(null);
   const repeatTriggerRef = useRef<HTMLButtonElement | null>(null);
@@ -115,14 +117,21 @@ function QuoteContent() {
       return;
     }
     setAdjustmentState('sending');
+    setAdjustmentError('');
     try {
-      await requestMyQuoteAdjustment(quote.id, adjustmentMessage, createClientRequestId());
+      const attemptKey = `promo-brindes:quote-adjustment:${quote.id}`;
+      const attempt = adjustmentAttemptRef.current || getOrCreateSubmissionAttempt(attemptKey);
+      adjustmentAttemptRef.current = attempt;
+      await requestMyQuoteAdjustment(quote.id, adjustmentMessage, attempt.id);
+      adjustmentAttemptRef.current = null;
+      clearSubmissionAttempt(attemptKey);
       setAdjustmentMessage('');
       setAdjustmentState('success');
       trackFunnelEvent('customer_adjustment_requested', { item_count: quote.items.length });
       setRetryKey((current) => current + 1);
-    } catch {
+    } catch (error) {
       setAdjustmentState('error');
+      setAdjustmentError(error instanceof Error ? error.message : 'Não conseguimos enviar o pedido de ajuste agora. Tente novamente em alguns instantes.');
     }
   }
 
@@ -141,7 +150,7 @@ function QuoteContent() {
         <section className="customer-detail-section" aria-labelledby="quote-products-title"><div className="customer-detail-section__heading"><span>01</span><div><h2 id="quote-products-title">Seleção enviada</h2><p>Retrato dos produtos e quantidades no momento do briefing.</p></div></div><div className="customer-detail-items">{quote.items.map((item) => <article key={item.key}><img src={item.imageUrl || '/images/product-placeholder.svg'} alt="" width="92" height="92" referrerPolicy="no-referrer" /><div><h3>{item.name}</h3><p>Cód. {item.sku}{item.colorName ? ` · ${item.colorName}` : ''}</p>{quoteDecisionGroupsEnabled && item.decisionGroup && <small className={item.decisionGroup === 'alternative' ? 'customer-item-priority is-alternative' : 'customer-item-priority'}>{item.decisionGroup === 'alternative' ? 'Alternativa para comparar' : 'Referência principal'}</small>}</div><strong>{item.quantity.toLocaleString('pt-BR')} un.</strong></article>)}</div></section>
         <section className="customer-detail-section" aria-labelledby="quote-briefing-title"><div className="customer-detail-section__heading"><span>02</span><div><h2 id="quote-briefing-title">Briefing original</h2><p>Os dados abaixo não mudam depois do envio.</p></div></div><dl className="customer-briefing-data"><div><dt>Contato</dt><dd>{quote.contactName}<br />{quote.email}<br />{quote.phone}</dd></div><div><dt>Local e recebimento</dt><dd>{quote.city || 'Local não informado'}<br />{quote.desiredDeadline ? `Recebimento desejado: ${new Intl.DateTimeFormat('pt-BR').format(new Date(`${quote.desiredDeadline}T12:00:00`))}` : 'Data de recebimento a combinar'}</dd></div>{curationContext.length > 0 && <div className="customer-briefing-data__wide"><dt>Direção de curadoria</dt><dd>{curationContext.join(' · ')}</dd></div>}<div className="customer-briefing-data__wide"><dt>Contexto da ação</dt><dd>{quote.notes || 'Nenhuma observação adicional foi informada.'}</dd></div></dl></section>
         {quote.proposals.length > 0 && <section className="customer-detail-section" aria-labelledby="quote-proposals-title"><div className="customer-detail-section__heading"><span>03</span><div><h2 id="quote-proposals-title">Propostas</h2><p>Versões disponibilizadas pelo nosso time de especialistas.</p></div></div><div className="customer-proposals">{quote.proposals.map((proposal) => <article key={proposal.id} className={proposal.isCurrent ? 'is-current' : ''}><Download /><div><strong>{proposal.title}</strong><span>{proposal.isCurrent ? 'Versão atual' : 'Versão anterior'} · v{proposal.version} · publicada em {dateLabel(proposal.publishedAt)}</span>{proposal.validUntil && <small>Válida até {new Intl.DateTimeFormat('pt-BR').format(new Date(`${proposal.validUntil}T12:00:00`))}</small>}</div><button type="button" disabled={downloading === proposal.id} onClick={() => void downloadProposal(proposal)}>{downloading === proposal.id ? 'Abrindo…' : 'Abrir proposta'}</button></article>)}</div>{proposalError && <p className="customer-proposal-error" role="alert">{proposalError}</p>}</section>}
-        {customerAdjustmentsEnabled && <section className="customer-detail-section customer-adjustment" aria-labelledby="quote-adjustment-title"><div className="customer-detail-section__heading"><span>04</span><div><h2 id="quote-adjustment-title">Precisa ajustar algo?</h2><p>Conte o que mudou. O pedido fica vinculado a esta solicitação e entra no acompanhamento.</p></div></div><form onSubmit={(event) => void submitAdjustment(event)}><label htmlFor="customer-adjustment-message">O que você gostaria de revisar?</label><textarea id="customer-adjustment-message" maxLength={800} rows={4} value={adjustmentMessage} onChange={(event) => { setAdjustmentMessage(event.target.value); if (adjustmentState !== 'idle') setAdjustmentState('idle'); }} placeholder="Ex.: a quantidade mudou, preciso de outra opção de cor ou quero considerar uma embalagem diferente." /><div><span>{adjustmentMessage.length}/800</span><button type="submit" className="button button--dark" disabled={adjustmentState === 'sending'}><Send size={16} /> {adjustmentState === 'sending' ? 'Enviando…' : 'Enviar pedido de ajuste'}</button></div>{adjustmentState === 'success' && <p className="customer-adjustment__message is-success" role="status"><Check size={16} /> Pedido de ajuste enviado. Ele aparecerá na linha do tempo.</p>}{adjustmentState === 'error' && <p className="customer-adjustment__message is-error" role="alert"><MessageCircleMore size={16} /> Escreva ao menos dois caracteres e tente novamente.</p>}</form></section>}
+        {customerAdjustmentsEnabled && <section className="customer-detail-section customer-adjustment" aria-labelledby="quote-adjustment-title"><div className="customer-detail-section__heading"><span>04</span><div><h2 id="quote-adjustment-title">Precisa ajustar algo?</h2><p>Conte o que mudou. O pedido fica vinculado a esta solicitação e entra no acompanhamento.</p></div></div><form onSubmit={(event) => void submitAdjustment(event)}><label htmlFor="customer-adjustment-message">O que você gostaria de revisar?</label><textarea id="customer-adjustment-message" disabled={adjustmentState === 'sending'} maxLength={800} rows={4} value={adjustmentMessage} onChange={(event) => { setAdjustmentMessage(event.target.value); adjustmentAttemptRef.current = null; clearSubmissionAttempt(`promo-brindes:quote-adjustment:${quote.id}`); if (adjustmentState !== 'idle') setAdjustmentState('idle'); setAdjustmentError(''); }} placeholder="Ex.: a quantidade mudou, preciso de outra opção de cor ou quero considerar uma embalagem diferente." /><div><span>{adjustmentMessage.length}/800</span><button type="submit" className="button button--dark" disabled={adjustmentState === 'sending'}><Send size={16} /> {adjustmentState === 'sending' ? 'Enviando…' : 'Enviar pedido de ajuste'}</button></div>{adjustmentState === 'success' && <p className="customer-adjustment__message is-success" role="status"><Check size={16} /> Pedido de ajuste enviado. Ele aparecerá na linha do tempo.</p>}{adjustmentState === 'error' && <p className="customer-adjustment__message is-error" role="alert"><MessageCircleMore size={16} /> {adjustmentError || 'Não conseguimos enviar o pedido de ajuste agora. Tente novamente em alguns instantes.'}</p>}</form></section>}
       </div>
       <aside className="customer-timeline" aria-labelledby="quote-timeline-title"><span>ACOMPANHAMENTO</span><h2 id="quote-timeline-title">Linha do tempo</h2>{quote.events.length ? <ol>{quote.events.map((event, index) => <li key={event.id} className={index === 0 ? 'is-current' : ''}><i>{index === 0 ? <Check size={14} /> : null}</i><div><strong>{event.title}</strong><time dateTime={event.createdAt}>{dateLabel(event.createdAt)}</time>{event.description && <p>{event.description}</p>}</div></li>)}</ol> : <div className="customer-timeline__empty"><PackageOpen /><p>Recebemos a solicitação. O próximo andamento aparecerá aqui.</p></div>}</aside>
     </div>

@@ -84,7 +84,15 @@ function safeProperties<Name extends FunnelEventName>(name: Name, properties: Fu
 export function redactAnalyticsUrl(event: BeforeSendEvent): BeforeSendEvent | null {
   try {
     const url = new URL(event.url, typeof window === 'undefined' ? 'https://promo-brindes.invalid' : window.location.origin);
-    return { ...event, url: `${url.origin}${url.pathname}` };
+    // Pageviews podem ser coletados sem passar pelos eventos tipados. Rotas com
+    // identificadores opacos continuam identificadores pessoais no contexto da
+    // área do cliente, portanto só enviamos um template estável da rota.
+    const pathname = /^\/minha-conta\/orcamentos\/[^/]+\/?$/i.test(url.pathname)
+      ? '/minha-conta/orcamentos/:id'
+      : url.pathname === '/selecoes/compartilhada'
+        ? '/selecoes/compartilhada'
+        : url.pathname;
+    return { ...event, url: `${url.origin}${pathname}` };
   } catch {
     return null;
   }

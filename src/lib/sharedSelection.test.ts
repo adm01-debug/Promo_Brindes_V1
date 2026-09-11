@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createPersistentSharedSelection, decodeSharedSelection, encodeSharedSelection, fetchPersistentSharedSelection, hydrateSharedSelection, managedSharedSelectionToken, revokePersistentSharedSelection } from './sharedSelection';
+import { createPersistentSharedSelection, decodeSharedSelection, encodeSharedSelection, fetchPersistentSharedSelection, hydrateSharedSelection, managedSharedSelectionToken, managedSharedSelectionTokens, MAX_SHARED_SELECTION_ITEMS, revokePersistentSharedSelection } from './sharedSelection';
 
 const item = {
   key: '11111111-1111-4111-8111-111111111111::variante-azul',
@@ -40,10 +40,24 @@ describe('sharedSelection', () => {
     const created = await createPersistentSharedSelection([item]);
     expect(created.url).toContain(`s=${token}`);
     expect(managedSharedSelectionToken(token)).toBe(managementToken);
+    expect(managedSharedSelectionTokens()).toEqual([token]);
     expect(JSON.stringify(fetchMock.mock.calls[0][1])).not.toContain('Garrafa');
 
     await expect(fetchPersistentSharedSelection(token)).resolves.toEqual({ items: [{ id: item.productId, q: 25, v: 'azul' }], expiresAt: '2026-10-11T12:00:00.000Z' });
     await expect(revokePersistentSharedSelection(token)).resolves.toBe(true);
     expect(managedSharedSelectionToken(token)).toBeNull();
+  });
+
+  it('mantém o mesmo limite do moodboard e remove chaves expiradas do dispositivo', async () => {
+    const items = Array.from({ length: MAX_SHARED_SELECTION_ITEMS + 2 }, (_, index) => ({
+      ...item,
+      productId: `${String(index + 1).padStart(8, '0')}-1111-4111-8111-111111111111`,
+    }));
+    expect(decodeSharedSelection(encodeSharedSelection(items))).toHaveLength(MAX_SHARED_SELECTION_ITEMS);
+
+    const token = '44444444-4444-4444-8444-444444444444';
+    window.localStorage.setItem(`promo-brindes:shared-selection-management:${token}`, JSON.stringify({ managementToken: '55555555-5555-4555-8555-555555555555', expiresAt: '2020-01-01T00:00:00.000Z' }));
+    expect(managedSharedSelectionTokens(Date.parse('2026-01-01T00:00:00.000Z'))).not.toContain(token);
+    expect(window.localStorage.getItem(`promo-brindes:shared-selection-management:${token}`)).toBeNull();
   });
 });

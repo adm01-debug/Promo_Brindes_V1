@@ -1,5 +1,5 @@
 import type { Session, User } from '@supabase/supabase-js';
-import { createContext, type ReactNode, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, type ReactNode, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { hasSiteAuthConfiguration } from '../lib/siteSupabaseConfig';
 
 interface CustomerAuthValue {
@@ -17,6 +17,7 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
   const configured = hasSiteAuthConfiguration();
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(configured);
+  const sessionUserId = useRef<string | null>(null);
 
   useEffect(() => {
     if (!configured) {
@@ -29,11 +30,17 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
       if (!active || !siteSupabase) return;
       void siteSupabase.auth.getSession().then(({ data }) => {
         if (!active) return;
+        sessionUserId.current = data.session?.user.id || null;
         setSession(data.session);
         setLoading(false);
       });
       const { data: subscription } = siteSupabase.auth.onAuthStateChange((_event, nextSession) => {
         if (!active) return;
+        const nextUserId = nextSession?.user.id || null;
+        if (sessionUserId.current && sessionUserId.current !== nextUserId) {
+          void import('../lib/quoteDraft').then(({ clearQuoteDraft }) => clearQuoteDraft());
+        }
+        sessionUserId.current = nextUserId;
         setSession(nextSession);
         setLoading(false);
       });

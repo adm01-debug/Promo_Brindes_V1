@@ -85,4 +85,17 @@ describe('links persistentes de seleção', () => {
     await handler(request({ action: 'read', token }, { headers: { origin: 'https://evil.test' } }), foreign.response);
     expect(foreign.result.statusCode).toBe(403);
   });
+
+  it('aceita somente o deployment Vercel atual além do domínio público configurado', async () => {
+    configure();
+    vi.stubEnv('VERCEL_URL', 'promo-brindes-v1-preview-abc-juca1.vercel.app');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ items: [item], expiresAt: '2026-10-11T12:00:00.000Z' }), { status: 200 })));
+    const allowed = responseDouble();
+    await handler(request({ action: 'read', token }, { headers: { origin: 'https://promo-brindes-v1-preview-abc-juca1.vercel.app' } }), allowed.response);
+    expect(allowed.result.statusCode).toBe(200);
+
+    const denied = responseDouble();
+    await handler(request({ action: 'read', token }, { headers: { origin: 'https://promo-brindes-v1-preview-other.vercel.app' } }), denied.response);
+    expect(denied.result.statusCode).toBe(403);
+  });
 });

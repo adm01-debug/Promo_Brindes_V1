@@ -207,6 +207,12 @@ function quoteBriefing(value: unknown): NormalizedQuoteBriefing | undefined {
   const deadlineFlexibility = optionalEnum(raw.deadlineFlexibility, 'briefing.deadlineFlexibility', ['flexivel', 'data-fixa'] as const);
   const responseChannel = optionalEnum(raw.responseChannel, 'briefing.responseChannel', ['whatsapp', 'email', 'telefone', 'sem-preferencia'] as const);
   const brandAssetStatus = optionalEnum(raw.brandAssetStatus, 'briefing.brandAssetStatus', ['logo-pronto', 'identidade-em-criacao', 'preciso-de-ajuda'] as const);
+  if (budgetRange && budgetRange !== 'a-definir' && !budgetScope) {
+    throw new RequestValidationError('Informe se a faixa de investimento é por pessoa ou para o total da ação.');
+  }
+  if (budgetScope && !budgetRange) {
+    throw new RequestValidationError('Escolha uma faixa de investimento para o contexto informado.');
+  }
   if (!actionName && !budgetRange && !budgetScope && !eventDate && !deadlineFlexibility && !responseChannel && !brandAssetStatus) {
     throw new RequestValidationError('O complemento do briefing está vazio.');
   }
@@ -327,6 +333,11 @@ export function normalizeLeadPayload(kind: LeadKind, body: unknown): NormalizedL
   if (!Array.isArray(payload.items) || payload.items.length < 1 || payload.items.length > 50) {
     throw new RequestValidationError('O orçamento deve conter entre 1 e 50 produtos.');
   }
+  const normalizedBriefing = quoteBriefing(payload.briefing);
+  const normalizedDeadline = deadline(contact.deadline);
+  if (normalizedBriefing?.eventDate && normalizedDeadline && normalizedDeadline > normalizedBriefing.eventDate) {
+    throw new RequestValidationError('A data de recebimento não pode ficar depois da data do evento.');
+  }
   return {
     ...common,
     source: 'site-promo-brindes',
@@ -336,11 +347,11 @@ export function normalizeLeadPayload(kind: LeadKind, body: unknown): NormalizedL
       email: email(contact.email),
       phone: phone(contact.phone, true),
       city: text(contact.city, 'cidade', 0, 100, true),
-      deadline: deadline(contact.deadline),
+      deadline: normalizedDeadline,
       notes: text(contact.notes, 'observações', 0, 800, true),
     },
     items: payload.items.map(quoteItem),
     campaign: campaignBrief(payload.campaign),
-    briefing: quoteBriefing(payload.briefing),
+    briefing: normalizedBriefing,
   };
 }

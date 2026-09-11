@@ -29,6 +29,7 @@ type CartAction =
   | { type: 'clear' }
   | { type: 'reset' }
   | { type: 'replace'; items: QuoteItem[] }
+  | { type: 'replace-selection'; items: QuoteItem[] }
   | { type: 'restore'; item: QuoteItem; index: number }
   | { type: 'campaign'; campaign?: CampaignBrief }
   | { type: 'selection-title'; title?: string }
@@ -88,6 +89,11 @@ export function cartReducer(state: CartState, action: CartAction): CartState {
       return initialState;
     case 'replace':
       return { ...state, items: normalizeQuoteItems(action.items) };
+    case 'replace-selection':
+      // Referências recebidas por link não transportam campanha, contato ou
+      // observações. Não deixar metadados de uma seleção anterior descrevendo
+      // os novos produtos.
+      return { items: normalizeQuoteItems(action.items) };
     case 'restore': {
       const restored = normalizeQuoteItems([action.item])[0];
       if (!restored || state.items.some((item) => item.key === restored.key)) return state;
@@ -130,6 +136,7 @@ interface QuoteCartValue {
   updateQuantity: (key: string, quantity: number) => void;
   setItemDecisionGroup: (key: string, group: 'primary' | 'alternative') => void;
   replaceItems: (items: QuoteItem[]) => void;
+  replaceSelection: (items: QuoteItem[]) => void;
   setCampaign: (campaign?: CampaignBrief) => void;
   setSelectionTitle: (title?: string) => void;
   clear: () => void;
@@ -261,6 +268,7 @@ export function QuoteCartProvider({ children }: { children: ReactNode }) {
       updateQuantity: (key, quantity) => dispatch({ type: 'quantity', key, quantity }),
       setItemDecisionGroup: (key, group) => dispatch({ type: 'decision-group', key, group }),
       replaceItems: (items) => dispatch({ type: 'replace', items }),
+      replaceSelection: (items) => dispatch({ type: 'replace-selection', items }),
       setCampaign: (campaign) => dispatch({ type: 'campaign', campaign: normalizeCampaignBrief(campaign) }),
       setSelectionTitle: (title) => dispatch({ type: 'selection-title', title }),
       clear: () => {

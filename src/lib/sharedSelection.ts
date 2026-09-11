@@ -2,10 +2,13 @@ import type { CatalogProduct, QuoteItem } from '../types';
 import { clampQuoteQuantity, normalizeQuoteItems } from './quoteItems';
 
 const VERSION = 1;
-export const MAX_SHARED_SELECTION_ITEMS = 8;
+// O moodboard aceita até 50 referências; o link persistente deve representar a
+// mesma seleção, sem cortar silenciosamente a parte final.
+export const MAX_SHARED_SELECTION_ITEMS = 50;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const VARIANT_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,99}$/;
 const MANAGED_LINK_PREFIX = 'promo-brindes:shared-selection-management:';
+const ephemeralManagementTokens = new Map<string, string>();
 
 interface SharedSelectionItem {
   id: string;
@@ -16,6 +19,11 @@ interface SharedSelectionItem {
 interface SharedSelectionPayload {
   v: typeof VERSION;
   i: SharedSelectionItem[];
+}
+
+interface StoredManagementToken {
+  managementToken: string;
+  expiresAt?: string;
 }
 
 export interface PersistentSharedSelection {
@@ -58,7 +66,9 @@ export function encodeSharedSelection(items: QuoteItem[]): string | null {
 }
 
 export function decodeSharedSelection(value: string | null): SharedSelectionItem[] {
-  if (!value || value.length > 2_000) return [];
+  // Cinquenta UUIDs e variantes válidas ainda cabem com folga no limite
+  // conservador de URL; rejeitamos cargas anormalmente grandes antes de decodificar.
+  if (!value || value.length > 8_000) return [];
   const raw = fromBase64Url(value);
   if (!raw) return [];
   try {
@@ -100,16 +110,49 @@ function safeLocalStorage(): Storage | null {
   try { return typeof window === 'undefined' ? null : window.localStorage; } catch { return null; }
 }
 
-function saveManagementToken(token: string, managementToken: string) {
-  try { safeLocalStorage()?.setItem(`${MANAGED_LINK_PREFIX}${token}`, managementToken); } catch { /* owner can still use the current session */ }
+function saveManagementToken(token: string, managementToken: string, expiresAt?: string) {
+  ephemeralManagementTokens.set(token, managementToken);
+  try { safeLocalStorage()?.setItem(`${MANAGED_LINK_PREFIX}${token}`, JSON.stringify({ managementToken, expiresAt } satisfies StoredManagementToken)); } catch { /* armazenamento pode estar indisponível; o link continua compartilhável nesta sessão */ }
 }
 
 export function managedSharedSelectionToken(token: string): string | null {
   if (!UUID_PATTERN.test(token)) return null;
+  const inMemory = ephemeralManagementTokens.get(token);
+  if (inMemory && UUID_PATTERN.test(inMemory)) return inMemory;
   try {
     const value = safeLocalStorage()?.getItem(`${MANAGED_LINK_PREFIX}${token}`) || null;
-    return value && UUID_PATTERN.test(value) ? value : null;
+    if (value && UUID_PATTERN.test(value)) return value; // compatibilidade com links criados antes deste formato.
+    const parsed = value ? JSON.parse(value) as StoredManagementToken : null;
+    return parsed && UUID_PATTERN.test(parsed.managementToken) ? parsed.managementToken : null;
   } catch { return null; }
+}
+
+/**
+ * Links criados neste navegador continuam revogáveis depois de recarregar.
+ * A chave de gestão nunca sai deste dispositivo nem é apresentada na interface.
+ */
+export function managedSharedSelectionTokens(now = Date.now()): string[] {
+  const storage = safeLocalStorage();
+  if (!storage) return [...ephemeralManagementTokens.keys()];
+  const tokens = new Set<string>(ephemeralManagementTokens.keys());
+  try {
+    for (let index = 0; index < storage.length; index += 1) {
+      const key = storage.key(index);
+      if (!key?.startsWith(MANAGED_LINK_PREFIX)) continue;
+      const token = key.slice(MANAGED_LINK_PREFIX.length);
+      if (!UUID_PATTERN.test(token)) continue;
+      const raw = storage.getItem(key);
+      if (!raw) continue;
+      if (UUID_PATTERN.test(raw)) { tokens.add(token); continue; }
+      const value = JSON.parse(raw) as StoredManagementToken;
+      if (!UUID_PATTERN.test(value.managementToken)) { storage.removeItem(key); continue; }
+      if (value.expiresAt && Date.parse(value.expiresAt) <= now) { storage.removeItem(key); continue; }
+      tokens.add(token);
+    }
+  } catch {
+    // A revogação do link corrente ainda funciona quando o armazenamento falha.
+  }
+  return [...tokens];
 }
 
 export function isPersistentSharedSelectionToken(value: string | null): value is string {
@@ -134,7 +177,7 @@ export async function createPersistentSharedSelection(items: QuoteItem[]): Promi
   if (!payload.token || !UUID_PATTERN.test(payload.token) || !payload.managementToken || !UUID_PATTERN.test(payload.managementToken) || !payload.expiresAt || Number.isNaN(Date.parse(payload.expiresAt))) {
     throw new Error('O serviço não confirmou um link válido.');
   }
-  saveManagementToken(payload.token, payload.managementToken);
+  saveManagementToken(payload.token, payload.managementToken, payload.expiresAt);
   return { token: payload.token, expiresAt: payload.expiresAt, url: persistentSelectionUrl(payload.token) };
 }
 
@@ -154,6 +197,7 @@ export async function revokePersistentSharedSelection(token: string): Promise<bo
   if (!managementToken) throw new Error('Este dispositivo não possui a chave para revogar o link.');
   const payload = await selectionApi<{ revoked?: boolean }>({ action: 'revoke', token, managementToken });
   if (payload.revoked) {
+    ephemeralManagementTokens.delete(token);
     try { safeLocalStorage()?.removeItem(`${MANAGED_LINK_PREFIX}${token}`); } catch { /* noop */ }
   }
   return Boolean(payload.revoked);

@@ -88,6 +88,22 @@ export function normalizeQuoteBriefing(value: unknown): QuoteBriefingDetails | u
   return Object.values(result).some(Boolean) ? result : undefined;
 }
 
+/** Mantém o contexto útil sem transformar faixas de investimento em preço final. */
+export function validateQuoteBriefing(value: QuoteBriefingForm, desiredDeadline?: string): string | null {
+  const normalized = normalizeQuoteBriefing(value);
+  if (!normalized) return null;
+  if (normalized.budgetRange && normalized.budgetRange !== 'a-definir' && !normalized.budgetScope) {
+    return 'Informe se a faixa de investimento é por pessoa ou para o total da ação.';
+  }
+  if (normalized.budgetScope && !normalized.budgetRange) {
+    return 'Escolha também uma faixa de investimento ou deixe os dois campos para conversar com nosso time de especialistas.';
+  }
+  if (normalized.eventDate && desiredDeadline && desiredDeadline > normalized.eventDate) {
+    return 'A data de recebimento não pode ficar depois da data do evento.';
+  }
+  return null;
+}
+
 export function quoteBriefingForm(value: unknown): QuoteBriefingForm {
   const normalized = normalizeQuoteBriefing(value);
   return {

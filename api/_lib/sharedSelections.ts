@@ -4,6 +4,7 @@ import { getSiteDatabaseConfig, SiteDatabaseError, type RequestMetadata } from '
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const VARIANT_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,99}$/;
 const TIMEOUT_MS = 10_000;
+const MAX_SHARED_SELECTION_ITEMS = 50;
 
 export interface SharedSelectionReference {
   id: string;
@@ -20,8 +21,8 @@ function identifierHash(ip: string, salt: string) {
 }
 
 export function normalizeSharedSelectionReferences(value: unknown): SharedSelectionReference[] {
-  if (!Array.isArray(value) || value.length < 1 || value.length > 8) {
-    throw new SiteDatabaseError('Escolha entre 1 e 8 referências para compartilhar.', 'invalid_shared_selection', 400);
+  if (!Array.isArray(value) || value.length < 1 || value.length > MAX_SHARED_SELECTION_ITEMS) {
+    throw new SiteDatabaseError(`Escolha entre 1 e ${MAX_SHARED_SELECTION_ITEMS} referências para compartilhar.`, 'invalid_shared_selection', 400);
   }
   const unique = new Map<string, SharedSelectionReference>();
   value.forEach((candidate) => {

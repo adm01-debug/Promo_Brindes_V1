@@ -22,8 +22,10 @@ function body(request: ApiRequest): Record<string, unknown> {
 }
 
 function requireOrigin(request: ApiRequest) {
-  const origin = process.env.SITE_PUBLIC_ORIGIN?.trim();
-  if (!origin || header(request, 'origin') !== origin) {
+  const primaryOrigin = process.env.SITE_PUBLIC_ORIGIN?.trim();
+  const deploymentHost = process.env.VERCEL_URL?.trim();
+  const allowedOrigins = new Set([primaryOrigin, deploymentHost ? `https://${deploymentHost}` : ''].filter(Boolean));
+  if (!allowedOrigins.size || !allowedOrigins.has(header(request, 'origin'))) {
     throw new SiteDatabaseError('Origem não autorizada.', 'origin_not_allowed', 403);
   }
 }

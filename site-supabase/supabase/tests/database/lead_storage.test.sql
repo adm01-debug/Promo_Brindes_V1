@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(56);
+select plan(59);
 
 select is(
   (select count(*) from pg_catalog.pg_tables where schemaname = 'site_private'),
@@ -46,6 +46,13 @@ select is(
   (select jsonb_array_length(public.get_site_shared_selection((select token from site_private.shared_selections order by created_at desc limit 1)) -> 'items')),
   1,
   'leitura retorna somente itens da seleção'
+);
+select ok(
+  public.create_site_shared_selection(
+    (select jsonb_agg(jsonb_build_object('id', lpad(value::text, 8, '0') || '-1111-4111-8111-111111111111', 'q', 100)) from generate_series(1, 50) value),
+    repeat('e', 64), repeat('f', 64)
+  ) ? 'token',
+  'banco aceita cinquenta referências únicas no mesmo link'
 );
 
 select has_column('site_private', 'contact_requests', 'message', 'contato inicial armazena o contexto opcional da conversa');
@@ -286,6 +293,22 @@ select is(
   (select count(*) from site_private.contact_requests where client_request_id = 'expired-contact-test-1'),
   0::bigint,
   'contato vencido não permanece após a retenção'
+);
+
+insert into site_private.shared_selections (token, management_token_hash, items, expires_at, created_at)
+values ('99999999-9999-4999-8999-999999999999', repeat('9', 64), jsonb_build_array(jsonb_build_object('id', '77777777-7777-4777-8777-777777777777', 'q', 100)), now() - interval '1 minute', now() - interval '31 days');
+insert into site_private.shared_selection_rate_limits (identifier_hash, window_started_at, request_count, updated_at)
+values (repeat('8', 64), now() - interval '31 days', 1, now() - interval '31 days');
+
+select is(
+  (public.finalize_site_data_retention('{}'::uuid[], '{}'::text[], 1) ->> 'sharedSelectionsDeleted')::integer,
+  1,
+  'retenção remove links compartilhados expirados'
+);
+select is(
+  (select count(*) from site_private.shared_selection_rate_limits where identifier_hash = repeat('8', 64)),
+  0::bigint,
+  'retenção remove limites de links compartilhados vencidos'
 );
 
 select * from finish();

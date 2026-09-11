@@ -36,7 +36,7 @@ describe('ache pelo briefing', () => {
       { id: 'other', name: 'Casa', parentId: null },
     ];
     expect(resolveCampaignFilters({ moment: 'onboarding', scale: '201-500', mood: 'sustentavel', audience: 'clientes' }, categories)).toEqual({
-      profile: 'kits',
+      profile: 'featured',
       materials: ['reciclado'],
       colors: [],
       maxMinQuantity: 500,
@@ -44,6 +44,12 @@ describe('ache pelo briefing', () => {
     });
     expect(resolveCampaignFilters({ mood: 'tech' }, categories).categoryIds).toEqual(['tech']);
     expect(resolveCampaignFilters({ mood: 'divertido' }, categories).colors).toEqual(['colorido']);
+  });
+
+  it('não converte onboarding ou colaboradores em kit sem uma escolha explícita de clima', () => {
+    const categories = [{ id: 'tech', name: 'Tecnologia', parentId: null }];
+    expect(resolveCampaignFilters({ moment: 'onboarding', audience: 'colaboradores' }, categories).profile).toBeUndefined();
+    expect(resolveCampaignFilters({ moment: 'onboarding', mood: 'afetivo' }, categories).profile).toBe('kits');
   });
 
   it('não chama catálogo completo de curadoria quando momento ou público foram escolhidos', () => {

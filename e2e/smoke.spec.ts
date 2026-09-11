@@ -200,6 +200,35 @@ test('seleção compartilhada copia o link e anuncia o resultado', async ({ page
   expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('/selecoes/compartilhada?s=');
 });
 
+test('link persistente espera a consulta e confirma antes de substituir a seleção local', async ({ page }) => {
+  const token = '11111111-1111-4111-8111-111111111111';
+  await page.addInitScript(() => {
+    localStorage.setItem('promo-brindes:quote-selection:v1', JSON.stringify({
+      items: [{ key: 'atual', productId: '99999999-9999-4999-8999-999999999999', slug: 'atual', name: 'Seleção atual', sku: 'ATUAL-1', imageUrl: '/images/product-placeholder.svg', quantity: 50, minQuantity: 50 }],
+      selectionTitle: 'Campanha anterior', campaign: { source: 'finder', moment: 'evento' },
+    }));
+  });
+  await page.route('**/api/shared-selections', async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ items: [{ id: product.id, q: 100, v: 'variant-blue' }], expiresAt: '2026-10-11T12:00:00.000Z' }) });
+  });
+
+  await page.goto(`/selecoes/compartilhada?s=${token}`);
+  await expect(page.getByText('Carregando referências…')).toBeVisible();
+  await expect(page.getByText('LINK INVÁLIDO')).toHaveCount(0);
+  await expect(page.getByText(product.name).first()).toBeVisible();
+  await page.getByRole('button', { name: 'Duplicar e ajustar' }).click();
+  await expect(page.getByRole('dialog', { name: 'Substituir sua seleção atual?' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Manter minha seleção' })).toBeFocused();
+  await page.getByRole('button', { name: 'Substituir e ajustar' }).click();
+  await expect(page.getByRole('dialog', { name: 'Minha seleção' })).toBeVisible();
+  await expect(page.getByText(product.name).last()).toBeVisible();
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('promo-brindes:quote-selection:v1') || '{}'))).toEqual(expect.objectContaining({
+    items: [expect.objectContaining({ productId: product.id })],
+  }));
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('promo-brindes:quote-selection:v1') || '{}').selectionTitle)).toBeUndefined();
+});
+
 test('soluções editoriais levam a uma curadoria explícita, não a uma promessa de estoque', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('link', { name: /Onboarding sem kit genérico/i }).click();
@@ -218,7 +247,7 @@ test('ache pelo briefing transforma intenção em filtros explicáveis e compart
 
   const filteredRequest = page.waitForRequest((request) => {
     const url = new URL(request.url());
-    return url.pathname.includes('products_public') && url.searchParams.get('is_kit') === 'eq.true';
+    return url.pathname.includes('products_public') && url.searchParams.get('is_kit') === null;
   });
   await finder.getByRole('button', { name: 'Ver minha curadoria' }).click();
   const requestUrl = new URL((await filteredRequest).url());
