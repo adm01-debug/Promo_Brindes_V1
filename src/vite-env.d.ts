@@ -8,6 +8,7 @@ interface ImportMetaEnv {
   readonly VITE_CONTACT_REQUEST_ENDPOINT?: string;
   readonly VITE_PUBLIC_URL?: string;
   readonly VITE_CONTACT_EMAIL?: string;
+  readonly VITE_PERSISTENT_SHARED_SELECTIONS_ENABLED?: string;
   readonly VITE_SITE_SUPABASE_URL?: string;
   readonly VITE_SITE_SUPABASE_PUBLISHABLE_KEY?: string;
 }

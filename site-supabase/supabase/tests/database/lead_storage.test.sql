@@ -3,12 +3,49 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(46);
+select plan(56);
 
 select is(
   (select count(*) from pg_catalog.pg_tables where schemaname = 'site_private'),
-  10::bigint,
-  'schema privado contém as dez tabelas planejadas'
+  12::bigint,
+  'schema privado contém as doze tabelas planejadas'
+);
+
+select has_table('site_private', 'shared_selections', 'seleções persistentes ficam no schema privado');
+select has_table('site_private', 'shared_selection_rate_limits', 'criação de links recebe rate limit próprio');
+select ok(not pg_catalog.has_table_privilege('anon', 'site_private.shared_selections', 'select,insert,update,delete'), 'anon não lê nem altera links persistentes diretamente');
+select ok(pg_catalog.has_function_privilege('service_role', 'public.create_site_shared_selection(jsonb,text,text)', 'execute'), 'somente o backend cria links persistentes');
+select ok(not pg_catalog.has_function_privilege('anon', 'public.get_site_shared_selection(uuid)', 'execute'), 'anon não consulta links persistentes diretamente');
+select ok(not pg_catalog.has_function_privilege('authenticated', 'public.revoke_site_shared_selection(uuid,text)', 'execute'), 'usuário autenticado não revoga links sem backend');
+select ok(
+  (select bool_and(array_to_string(p.proconfig, ',') = 'search_path=""')
+   from pg_catalog.pg_proc p join pg_catalog.pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'public' and p.proname in ('create_site_shared_selection', 'get_site_shared_selection', 'revoke_site_shared_selection')),
+  'RPCs de links persistentes fixam search_path vazio'
+);
+select ok(
+  public.create_site_shared_selection(
+    jsonb_build_array(jsonb_build_object('id', '77777777-7777-4777-8777-777777777777', 'q', 100, 'v', 'blue')),
+    repeat('a', 64), repeat('b', 64)
+  ) ? 'token',
+  'criação retorna token opaco'
+);
+select throws_ok(
+  $$select public.create_site_shared_selection(
+    jsonb_build_array(
+      jsonb_build_object('id', '88888888-8888-4888-8888-888888888888', 'q', 100, 'v', 'blue'),
+      jsonb_build_object('id', '88888888-8888-4888-8888-888888888888', 'q', 250, 'v', 'blue')
+    ),
+    repeat('c', 64), repeat('d', 64)
+  )$$,
+  '22023',
+  'duplicate_shared_selection_item',
+  'banco rejeita referência e variante repetidas, mesmo com quantidade diferente'
+);
+select is(
+  (select jsonb_array_length(public.get_site_shared_selection((select token from site_private.shared_selections order by created_at desc limit 1)) -> 'items')),
+  1,
+  'leitura retorna somente itens da seleção'
 );
 
 select has_column('site_private', 'contact_requests', 'message', 'contato inicial armazena o contexto opcional da conversa');

@@ -5,6 +5,7 @@ const VERSION = 1;
 export const MAX_SHARED_SELECTION_ITEMS = 8;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const VARIANT_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,99}$/;
+const MANAGED_LINK_PREFIX = 'promo-brindes:shared-selection-management:';
 
 interface SharedSelectionItem {
   id: string;
@@ -15,6 +16,12 @@ interface SharedSelectionItem {
 interface SharedSelectionPayload {
   v: typeof VERSION;
   i: SharedSelectionItem[];
+}
+
+export interface PersistentSharedSelection {
+  token: string;
+  expiresAt: string;
+  url: string;
 }
 
 function toBase64Url(value: string): string {
@@ -77,6 +84,79 @@ export function sharedSelectionUrl(items: QuoteItem[], origin = typeof window ==
   const url = new URL('/selecoes/compartilhada', origin);
   url.searchParams.set('s', payload);
   return url.href;
+}
+
+function toReferences(items: QuoteItem[]): SharedSelectionItem[] {
+  return decodeSharedSelection(encodeSharedSelection(items));
+}
+
+function persistentSelectionUrl(token: string, origin = window.location.origin) {
+  const url = new URL('/selecoes/compartilhada', origin);
+  url.searchParams.set('s', token);
+  return url.href;
+}
+
+function safeLocalStorage(): Storage | null {
+  try { return typeof window === 'undefined' ? null : window.localStorage; } catch { return null; }
+}
+
+function saveManagementToken(token: string, managementToken: string) {
+  try { safeLocalStorage()?.setItem(`${MANAGED_LINK_PREFIX}${token}`, managementToken); } catch { /* owner can still use the current session */ }
+}
+
+export function managedSharedSelectionToken(token: string): string | null {
+  if (!UUID_PATTERN.test(token)) return null;
+  try {
+    const value = safeLocalStorage()?.getItem(`${MANAGED_LINK_PREFIX}${token}`) || null;
+    return value && UUID_PATTERN.test(value) ? value : null;
+  } catch { return null; }
+}
+
+export function isPersistentSharedSelectionToken(value: string | null): value is string {
+  return Boolean(value && UUID_PATTERN.test(value));
+}
+
+async function selectionApi<T>(body: Record<string, unknown>): Promise<T> {
+  const response = await fetch('/api/shared-selections', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const payload = await response.json().catch(() => ({})) as T & { message?: string };
+  if (!response.ok) throw new Error(payload.message || 'Não conseguimos preparar este link agora.');
+  return payload;
+}
+
+export async function createPersistentSharedSelection(items: QuoteItem[]): Promise<PersistentSharedSelection> {
+  const references = toReferences(items);
+  if (!references.length) throw new Error('Não há referências válidas para compartilhar.');
+  const payload = await selectionApi<{ token?: string; managementToken?: string; expiresAt?: string }>({ action: 'create', items: references });
+  if (!payload.token || !UUID_PATTERN.test(payload.token) || !payload.managementToken || !UUID_PATTERN.test(payload.managementToken) || !payload.expiresAt || Number.isNaN(Date.parse(payload.expiresAt))) {
+    throw new Error('O serviço não confirmou um link válido.');
+  }
+  saveManagementToken(payload.token, payload.managementToken);
+  return { token: payload.token, expiresAt: payload.expiresAt, url: persistentSelectionUrl(payload.token) };
+}
+
+export async function fetchPersistentSharedSelection(token: string): Promise<{ items: SharedSelectionItem[]; expiresAt: string } | null> {
+  if (!UUID_PATTERN.test(token)) return null;
+  try {
+    const payload = await selectionApi<{ items?: unknown; expiresAt?: string }>({ action: 'read', token });
+    return { items: decodeSharedSelection(toBase64Url(JSON.stringify({ v: VERSION, i: payload.items }))), expiresAt: String(payload.expiresAt || '') };
+  } catch (error) {
+    if (error instanceof Error && error.message === 'Esta seleção não está disponível.') return null;
+    throw error;
+  }
+}
+
+export async function revokePersistentSharedSelection(token: string): Promise<boolean> {
+  const managementToken = managedSharedSelectionToken(token);
+  if (!managementToken) throw new Error('Este dispositivo não possui a chave para revogar o link.');
+  const payload = await selectionApi<{ revoked?: boolean }>({ action: 'revoke', token, managementToken });
+  if (payload.revoked) {
+    try { safeLocalStorage()?.removeItem(`${MANAGED_LINK_PREFIX}${token}`); } catch { /* noop */ }
+  }
+  return Boolean(payload.revoked);
 }
 
 /** Recompõe uma seleção somente a partir do catálogo público atual. */

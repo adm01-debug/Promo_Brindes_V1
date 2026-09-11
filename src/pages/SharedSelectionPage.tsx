@@ -4,7 +4,8 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { Seo } from '../components/Seo';
 import { useQuoteCart } from '../context/QuoteCartContext';
 import { fetchProductsByIds } from '../lib/catalog';
-import { decodeSharedSelection, hydrateSharedSelection } from '../lib/sharedSelection';
+import { decodeSharedSelection, fetchPersistentSharedSelection, hydrateSharedSelection, isPersistentSharedSelectionToken } from '../lib/sharedSelection';
+import { persistentSharedSelectionsEnabled } from '../lib/siteFeatureFlags';
 import type { QuoteItem } from '../types';
 
 function totalUnits(items: QuoteItem[]): number {
@@ -14,11 +15,32 @@ function totalUnits(items: QuoteItem[]): number {
 export default function SharedSelectionPage() {
   const [params] = useSearchParams();
   const cart = useQuoteCart();
-  const payload = useMemo(() => decodeSharedSelection(params.get('s')), [params]);
+  const rawToken = params.get('s');
+  const legacyPayload = useMemo(() => decodeSharedSelection(rawToken), [rawToken]);
+  const persistentToken = persistentSharedSelectionsEnabled && isPersistentSharedSelectionToken(rawToken) ? rawToken : null;
+  const [payload, setPayload] = useState(legacyPayload);
   const [items, setItems] = useState<QuoteItem[]>([]);
-  const [loading, setLoading] = useState(Boolean(payload.length));
+  const [loading, setLoading] = useState(Boolean(legacyPayload.length || persistentToken));
   const [error, setError] = useState('');
   const [copyStatus, setCopyStatus] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    if (persistentToken) {
+      setLoading(true);
+      setError('');
+      void fetchPersistentSharedSelection(persistentToken)
+        .then((selection) => {
+          if (!active) return;
+          setPayload(selection?.items || []);
+          if (!selection) setError('Este link expirou ou foi revogado.');
+        })
+        .catch(() => { if (active) { setPayload([]); setError('Não foi possível consultar esta seleção agora.'); } })
+        .finally(() => { if (active) setLoading(false); });
+      return () => { active = false; };
+    }
+    setPayload(legacyPayload);
+  }, [legacyPayload, persistentToken]);
 
   useEffect(() => {
     if (!payload.length) {
@@ -52,7 +74,7 @@ export default function SharedSelectionPage() {
     cart.setDrawerOpen(true);
   }
 
-  if (!payload.length) {
+  if (!loading && !payload.length && !error) {
     return <div className="shared-selection-state container"><Seo title="Seleção não encontrada" path="/selecoes/compartilhada" noIndex /><PackageOpen size={42} /><span>LINK INVÁLIDO</span><h1>Esta seleção não está disponível.</h1><p>Peça um novo link ou comece uma seleção pelo catálogo.</p><Link className="button button--dark" to="/catalogo">Abrir catálogo <ArrowRight size={18} /></Link></div>;
   }
 

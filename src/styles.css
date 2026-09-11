@@ -2540,6 +2540,7 @@ p {
 .quote-drawer__share strong { font-size: .75rem; }
 .quote-drawer__share span { color: var(--muted); font-size: .66rem; line-height: 1.4; }
 .quote-drawer__share button { display: inline-flex; align-items: center; flex: 0 0 auto; gap: 5px; }
+.quote-drawer__share-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; }
 
 .quote-drawer__items {
   flex: 1;

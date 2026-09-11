@@ -1,0 +1,88 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import handler from '../../api/shared-selections.js';
+import type { ApiRequest, ApiResponse } from '../../api/_lib/leadHandler.js';
+
+const token = '11111111-1111-4111-8111-111111111111';
+const manager = '22222222-2222-4222-8222-222222222222';
+const item = { id: '33333333-3333-4333-8333-333333333333', q: 100, v: 'blue' };
+
+function responseDouble() {
+  const result = { headers: new Map<string, string>(), statusCode: 0, body: undefined as unknown };
+  const response: ApiResponse = {
+    setHeader(name, value) { result.headers.set(name, value); },
+    status(code) { result.statusCode = code; return response; },
+    json(body) { result.body = body; },
+  };
+  return { result, response };
+}
+
+function request(body: unknown, overrides: Partial<ApiRequest> = {}): ApiRequest {
+  return {
+    method: 'POST',
+    headers: { origin: 'https://promo-brindes-v1.vercel.app', 'content-type': 'application/json', 'x-vercel-forwarded-for': '203.0.113.10' },
+    body,
+    ...overrides,
+  };
+}
+
+function configure() {
+  vi.stubEnv('SITE_PUBLIC_ORIGIN', 'https://promo-brindes-v1.vercel.app');
+  vi.stubEnv('SITE_SUPABASE_URL', 'https://xlzmclcjdncjfdrjxclt.supabase.co');
+  vi.stubEnv('SITE_SUPABASE_SECRET_KEY', `sb_secret_${'x'.repeat(40)}`);
+  vi.stubEnv('SITE_REQUEST_HASH_SALT', 'salt-de-testes-com-mais-de-32-caracteres');
+}
+
+describe('links persistentes de seleção', () => {
+  afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
+
+  it('cria link opaco, sem dados de produto ou contato no banco público', async () => {
+    configure();
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ token, expiresAt: '2026-10-11T12:00:00.000Z' }), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+
+    await handler(request({ action: 'create', items: [item] }), response);
+
+    expect(result.statusCode).toBe(201);
+    expect(result.body).toMatchObject({ token, managementToken: expect.stringMatching(/^[0-9a-f-]{36}$/i) });
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toContain('/rpc/create_site_shared_selection');
+    const sent = JSON.parse(String(init.body));
+    expect(sent.p_items).toEqual([item]);
+    expect(sent.p_management_token_hash).toMatch(/^[0-9a-f]{64}$/);
+    expect(sent.p_identifier_hash).toMatch(/^[0-9a-f]{64}$/);
+    expect(JSON.stringify(sent)).not.toContain('contact');
+  });
+
+  it('lê somente referências públicas e trata ausência como 404', async () => {
+    configure();
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(new Response(JSON.stringify({ items: [item], expiresAt: '2026-10-11T12:00:00.000Z' }), { status: 200 })));
+    const first = responseDouble();
+    await handler(request({ action: 'read', token }), first.response);
+    expect(first.result.statusCode).toBe(200);
+    expect(first.result.body).toEqual({ items: [item], expiresAt: '2026-10-11T12:00:00.000Z' });
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(new Response('null', { status: 200 })));
+    const second = responseDouble();
+    await handler(request({ action: 'read', token }), second.response);
+    expect(second.result.statusCode).toBe(404);
+  });
+
+  it('revoga apenas com a chave de gestão e não aceita origem ou referências forjadas', async () => {
+    configure();
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ revoked: true }), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const valid = responseDouble();
+    await handler(request({ action: 'revoke', token, managementToken: manager }), valid.response);
+    expect(valid.result.statusCode).toBe(200);
+    expect(JSON.parse(String(fetchMock.mock.calls[0][1].body)).p_management_token_hash).toMatch(/^[0-9a-f]{64}$/);
+
+    const invalid = responseDouble();
+    await handler(request({ action: 'create', items: [{ ...item, id: 'not-a-uuid' }] }), invalid.response);
+    expect(invalid.result.statusCode).toBe(400);
+
+    const foreign = responseDouble();
+    await handler(request({ action: 'read', token }, { headers: { origin: 'https://evil.test' } }), foreign.response);
+    expect(foreign.result.statusCode).toBe(403);
+  });
+});

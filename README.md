@@ -60,6 +60,8 @@ A arquitetura aprovada separa responsabilidades:
 
 As rotas `/api/quote-requests` e `/api/contact-requests` validam origem, conteúdo, tamanho e idempotência, aplicam rate limit usando hash HMAC do IP e chamam RPCs transacionais. A API contém uma guarda explícita que bloqueia qualquer tentativa de usar o projeto canônico como destino de gravação.
 
+Links de seleção usam somente referências públicas. A versão persistente e revogável está protegida por `VITE_PERSISTENT_SHARED_SELECTIONS_ENABLED`: ela só deve ser ativada após a migration `20260911170000_add_revocable_shared_selections.sql` estar aplicada e auditada no Supabase isolado. Até isso, o compartilhamento permanece no formato local sem dados de contato ou briefing.
+
 O projeto isolado `xlzmclcjdncjfdrjxclt` está provisionado e as rotas de produção estão ativas. Os formulários persistem contatos e briefings no Supabase exclusivo do site, com protocolo e idempotência; não gravam no banco canônico do Promo Gifts. O runbook e os controles de recuperação estão em [docs/SITE_SUPABASE_SETUP.md](docs/SITE_SUPABASE_SETUP.md).
 
 Confirmações automáticas por e-mail e WhatsApp ainda não estão habilitadas. A estrutura de auditoria está pronta, mas a ativação depende da escolha dos provedores, credenciais server-side, templates aprovados e opt-in específico para WhatsApp.

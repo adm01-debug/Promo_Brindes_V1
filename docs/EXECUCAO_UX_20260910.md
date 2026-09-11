@@ -45,9 +45,10 @@ Nenhuma migration é direcionada ao banco canônico de catálogo (`doufsxqlfjyuv
 - Auditoria de dependências: `npm audit --audit-level=high` sem vulnerabilidades encontradas.
 - Smoke de catálogo em leitura e simulações de retorno ao orçamento, contexto de data, confirmação/desfazer, zoom, área do cliente e contato foram cobertos por contrato ou navegador.
 
-## Pendência externa, deliberadamente não executada
+## Estado remoto e pendências operacionais — atualização de 11 de setembro de 2026
 
-O dry-run remoto e a aplicação das migrations mais recentes exigem que a sessão administrativa tenha permissão para o projeto isolado. A sessão disponível respondeu `403` no endpoint administrativo de login role; por isso nenhuma mudança remota foi aplicada por suposição. E-mail/WhatsApp automáticos seguem desativados até existir provedor, remetente/número e fluxo operacional aprovados.
+As RPCs remotas de ajuste de orçamento, prioridade de item e retenção foram confirmadas em leitura no Supabase isolado; as flags `VITE_CUSTOMER_ADJUSTMENTS_ENABLED` e `VITE_QUOTE_DECISION_GROUPS_ENABLED` estão configuradas em Production e Preview. A credencial administrativa disponível, porém, retorna `403` ao consultar o ledger pela CLI. Portanto, a presença das funções é evidência funcional, mas não substitui a reconciliação administrativa de migrations.
 
-Enquanto a migration `20260910130000` não estiver aplicada e auditada no ambiente remoto, `VITE_CUSTOMER_ADJUSTMENTS_ENABLED` deve permanecer `false`; assim a interface publicada não oferece um botão cujo RPC ainda não existe.
-O mesmo vale para `VITE_QUOTE_DECISION_GROUPS_ENABLED` e a migration `20260910140000`: a prioridade comercial de cada item permanece oculta até haver confirmação remota de persistência e leitura.
+A migration `20260911170000_add_revocable_shared_selections.sql` está versionada e passou nos contratos locais. Ela adiciona links persistentes opacos, com expiração, rate limit e revogação. `VITE_PERSISTENT_SHARED_SELECTIONS_ENABLED` permanece `false` até aplicação e auditoria remotas explícitas.
+
+E-mail e WhatsApp automáticos seguem deliberadamente desativados até existir provedor, remetente/número, templates, opt-in e fluxo operacional aprovados.
