@@ -76,6 +76,32 @@ async function waitForRoute(page: Page) {
   await expect(page.locator('.route-fallback')).toHaveCount(0);
 }
 
+/**
+ * Clipboard permissions are implemented by Chromium only.  The product still
+ * uses the same Web Clipboard API everywhere; this shim keeps the assertion
+ * portable for Firefox/WebKit without asking those engines for an unsupported
+ * browser permission.
+ */
+async function enableClipboardForTest(page: Page, projectName: string) {
+  if (projectName.includes('chromium')) {
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+    return;
+  }
+
+  await page.addInitScript(() => {
+    let value = '';
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: {
+        writeText: async (text: string) => {
+          value = text;
+        },
+        readText: async () => value,
+      },
+    });
+  });
+}
+
 test.beforeEach(async ({ page }) => mockCatalog(page));
 
 test('headline principal usa Fold Text sem perder acessibilidade', async ({ page }) => {
@@ -123,8 +149,8 @@ test('manifesto transforma as frases da marca em uma narrativa com próximo pass
   await expect(page.locator('#conversa')).toBeInViewport();
 });
 
-test('biblioteca de catálogos transforma contexto em coleções compartilháveis', async ({ page, context }, testInfo) => {
-  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+test('biblioteca de catálogos transforma contexto em coleções compartilháveis', async ({ page }, testInfo) => {
+  await enableClipboardForTest(page, testInfo.project.name);
   await page.goto('/catalogos');
   await waitForRoute(page);
 
@@ -161,8 +187,8 @@ test('biblioteca de catálogos transforma contexto em coleções compartilhávei
   await expect(page).toHaveURL(/\/catalogo\?momento=onboarding.*perfil=kits/);
 });
 
-test('seleção compartilhada copia o link e anuncia o resultado', async ({ page, context }) => {
-  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+test('seleção compartilhada copia o link e anuncia o resultado', async ({ page }, testInfo) => {
+  await enableClipboardForTest(page, testInfo.project.name);
   const selection = Buffer.from(JSON.stringify({ v: 1, i: [{ id: product.id, q: 100, v: 'variant-blue' }] })).toString('base64url');
   await page.goto(`/selecoes/compartilhada?s=${selection}`);
   await expect(page.getByRole('heading', { name: /Uma direção para começar a conversa/i })).toBeVisible();
@@ -443,7 +469,8 @@ test('superfiltro móvel combina critérios, preserva a URL e devolve o foco', a
   await expect(trigger).toBeFocused();
 });
 
-test('templates principais não apresentam violações automáticas WCAG A/AA', async ({ page }) => {
+test('templates principais não apresentam violações automáticas WCAG A/AA', async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.includes('chromium'), 'Axe é executado uma vez no Chromium; a matriz cobre os fluxos nos demais motores.');
   for (const path of ['/', '/catalogo', '/catalogos', '/datas-comemorativas', `/produto/${product.slug}`, '/sobre', '/contato', '/privacidade', '/orcamento', '/entrar']) {
     await page.goto(path);
     await expect(page.locator('main')).toBeVisible();

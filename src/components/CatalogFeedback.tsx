@@ -2,7 +2,7 @@ import { AlertCircle, PackageSearch, RefreshCw } from 'lucide-react';
 
 export function ProductGridSkeleton({ count = 8 }: { count?: number }) {
   return (
-    <div className="product-grid" aria-label="Carregando produtos" aria-busy="true">
+    <div className="product-grid" role="status" aria-label="Carregando produtos" aria-busy="true">
       {Array.from({ length: count }, (_, index) => (
         <div className="product-skeleton" key={index} aria-hidden="true">
           <div className="skeleton skeleton--image" />
