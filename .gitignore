@@ -9,6 +9,7 @@ test-results
 *.log
 *.tsbuildinfo
 graphify-out/
+.graphify-work/
 .vercel/
 supabase/.temp/
 site-supabase/supabase/.temp/

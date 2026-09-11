@@ -1,0 +1,4 @@
+# Read by Graphify's optional native hooks. This repository uses explicit
+# `npm run graph:*` commands, but keeps the visualisation bounded if a local
+# developer elects to install Graphify's native hook.
+viz_node_limit=2500

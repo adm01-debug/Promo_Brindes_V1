@@ -1,0 +1,22 @@
+# Graphify is an engineering aid. Never index credentials, generated assets,
+# customer-audit material, local databases, or its own generated artifacts.
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+graphify-out/
+.graphify-work/
+.vercel/
+docs/audits/
+public/
+raw/
+site-supabase/supabase/.temp/
+site-supabase/supabase/.branches/
+*.log

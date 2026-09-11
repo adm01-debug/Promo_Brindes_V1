@@ -22,7 +22,16 @@
     "db:site:reset": "SUPABASE_WORKDIR=site-supabase supabase db reset",
     "db:site:dry-run": "npm run db:site:guard && SUPABASE_WORKDIR=site-supabase npx supabase@latest db push --dry-run",
     "db:site:test": "SUPABASE_WORKDIR=site-supabase supabase test db",
-    "db:site:stop": "SUPABASE_WORKDIR=site-supabase supabase stop"
+    "db:site:stop": "SUPABASE_WORKDIR=site-supabase supabase stop",
+    "graph:doctor": "node scripts/graphify.mjs doctor",
+    "graph:build": "node scripts/graphify.mjs build",
+    "graph:update": "node scripts/graphify.mjs update",
+    "graph:status": "node scripts/graphify.mjs status",
+    "graph:check": "node scripts/graphify.mjs check",
+    "graph:query": "node scripts/graphify.mjs query",
+    "graph:impact": "node scripts/graphify.mjs impact",
+    "graph:tree": "node scripts/graphify.mjs tree",
+    "test:graphify": "node --test tests/graphify-tools.node.mjs"
   },
   "dependencies": {
     "@fontsource/space-grotesk": "^5.3.0",

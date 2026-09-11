@@ -27,6 +27,18 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
+## Mapa técnico Graphify
+
+O repositório mantém um mapa estrutural local para apoiar revisão e investigação de dependências. Ele não é publicado com o site e não acessa nenhum banco de dados.
+
+```bash
+npm run graph:doctor
+npm run graph:build
+npm run graph:query -- "como funciona o orçamento?"
+```
+
+Veja o procedimento, os limites de interpretação e a recuperação em [docs/GRAPHIFY.md](docs/GRAPHIFY.md).
+
 ## Integração de dados
 
 - Origem pública de produtos: `public.v_site_products_public` (contrato mínimo aplicado em 08/09/2026).

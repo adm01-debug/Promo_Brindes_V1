@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "project": "Promo_Brindes_V1",
+  "packageName": "site-promo-brindes",
+  "graphifyVersion": "0.9.48",
+  "mode": "code-only",
+  "outputDirectory": "graphify-out",
+  "workspaceDirectory": ".graphify-work",
+  "sourceRoots": [
+    "src",
+    "api",
+    "scripts",
+    "tests",
+    "e2e",
+    "site-supabase/supabase/migrations",
+    "site-supabase/supabase/tests",
+    "vite.config.ts",
+    "playwright.config.ts"
+  ],
+  "maxWorkers": 2,
+  "queryTokenBudget": 1200,
+  "visualizationNodeLimit": 2500,
+  "ciArtifactRetentionDays": 14,
+  "automation": {
+    "usesNetwork": false,
+    "usesAiProvider": false,
+    "publishesToProduction": false,
+    "connectsToSupabase": false
+  },
+  "limitations": {
+    "graphDirection": "undirected",
+    "impactAnalysis": "neighborhood-only"
+  }
+}
