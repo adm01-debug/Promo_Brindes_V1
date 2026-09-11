@@ -26,6 +26,8 @@ jobs:
           node-version: 22.13.1
       - name: Install locked Supabase CLI
         run: npm install --global supabase@2.115.0
+      - name: Start local Supabase services
+        run: SUPABASE_WORKDIR=site-supabase supabase start
       - name: Rebuild the isolated database from migrations
         run: SUPABASE_WORKDIR=site-supabase supabase db reset
       - name: Run database contracts
