@@ -57,6 +57,7 @@ export default function QuotePage() {
   const [sending, setSending] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [draftNotice, setDraftNotice] = useState('');
+  const [quantityDrafts, setQuantityDrafts] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState<{ mode: 'endpoint' | 'email'; href?: string; requestId?: string } | null>(null);
   const [website, setWebsite] = useState('');
   const formRef = useRef<HTMLFormElement>(null);
@@ -90,6 +91,29 @@ export default function QuotePage() {
     if (key === 'actionName') cart.setSelectionTitle(value as string);
     requestAttemptRef.current = null;
     clearSubmissionAttempt('promo-brindes:quote-attempt');
+  }
+
+  function commitItemQuantity(key: string, minimum: number) {
+    const draft = quantityDrafts[key];
+    if (draft === undefined) return;
+    const nextQuantity = draft ? Number(draft) : minimum;
+    setQuantityDrafts((drafts) => {
+      const { [key]: _draft, ...remaining } = drafts;
+      return remaining;
+    });
+    cart.updateQuantity(key, nextQuantity);
+  }
+
+  function adjustItemQuantity(key: string, currentQuantity: number, minimum: number, delta: number) {
+    const draft = quantityDrafts[key];
+    const parsed = Number(draft);
+    const baseQuantity = draft && Number.isFinite(parsed) ? parsed : currentQuantity;
+    const nextQuantity = Math.min(999999, Math.max(minimum, Math.round(baseQuantity + delta)));
+    setQuantityDrafts((drafts) => {
+      const { [key]: _draft, ...remaining } = drafts;
+      return remaining;
+    });
+    cart.updateQuantity(key, nextQuantity);
   }
 
   function discardDraft() {
@@ -217,7 +241,7 @@ export default function QuotePage() {
               <article className="quote-item" key={item.key}>
                 <Link className="quote-item__image" to={`/produto/${item.slug}`} aria-label={`Abrir ${item.name}`}><img src={item.imageUrl} alt="" width="130" height="130" referrerPolicy="no-referrer" onError={replaceBrokenProductImage} /></Link>
                 <div className="quote-item__main"><Link to={`/produto/${item.slug}`}>{item.name}</Link><p>Cód. {item.sku}</p>{item.colorName && <span className="quote-item__color"><i style={{ backgroundColor: item.colorHex }} /> {item.colorName}</span>}{quoteDecisionGroupsEnabled && <label className="quote-item__decision"><span>Como considerar</span><select aria-label={`Como considerar ${item.name}`} value={item.decisionGroup || 'primary'} onChange={(event) => cart.setItemDecisionGroup(item.key, event.target.value as 'primary' | 'alternative')}><option value="primary">Referência principal</option><option value="alternative">Alternativa para comparar</option></select></label>}</div>
-                <div className="quote-item__quantity"><label htmlFor={`quantity-${item.key}`}>Quantidade</label><div className="quantity-control quantity-control--small"><button type="button" onClick={() => cart.updateQuantity(item.key, item.quantity - 10)} aria-label="Diminuir quantidade"><Minus size={15} /></button><input id={`quantity-${item.key}`} type="number" min={item.minQuantity} max="999999" value={item.quantity} onChange={(event) => cart.updateQuantity(item.key, Number(event.target.value))} /><button type="button" onClick={() => cart.updateQuantity(item.key, item.quantity + 10)} aria-label="Aumentar quantidade"><Plus size={15} /></button></div>{item.minQuantity > 1 && <small>Mín. {item.minQuantity}</small>}</div>
+                <div className="quote-item__quantity"><label htmlFor={`quantity-${item.key}`}>Quantidade</label><div className="quantity-control quantity-control--small"><button type="button" onClick={() => adjustItemQuantity(item.key, item.quantity, item.minQuantity, -10)} aria-label="Diminuir quantidade"><Minus size={15} /></button><input id={`quantity-${item.key}`} type="number" min={item.minQuantity} max="999999" inputMode="numeric" value={quantityDrafts[item.key] ?? item.quantity} onFocus={(event) => event.currentTarget.select()} onChange={(event) => setQuantityDrafts((drafts) => ({ ...drafts, [item.key]: event.target.value.replace(/\D/g, '') }))} onBlur={() => commitItemQuantity(item.key, item.minQuantity)} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); }} /><button type="button" onClick={() => adjustItemQuantity(item.key, item.quantity, item.minQuantity, 10)} aria-label="Aumentar quantidade"><Plus size={15} /></button></div>{item.minQuantity > 1 && <small>Mín. {item.minQuantity}</small>}</div>
                 <button className="quote-item__remove" type="button" onClick={() => cart.removeItem(item.key)} aria-label={`Remover ${item.name}`}><Trash2 size={18} /></button>
               </article>
             ))}

@@ -365,6 +365,14 @@ test('mostra produto sem estoque confiável e leva o cliente ao briefing sem che
   await expect(page.getByRole('dialog', { name: 'Minha seleção' })).toBeVisible();
   await page.getByRole('link', { name: /^Transformar em briefing$/i }).click();
   await expect(page.getByRole('heading', { name: 'Transforme sua seleção em briefing.' })).toBeVisible();
+  const briefingQuantity = page.locator('input[id^="quantity-"]').first();
+  await briefingQuantity.fill('');
+  await briefingQuantity.pressSequentially('250');
+  await expect(briefingQuantity).toHaveValue('250');
+  await page.getByRole('button', { name: 'Aumentar quantidade' }).last().click();
+  await expect(briefingQuantity).toHaveValue('260');
+  await briefingQuantity.blur();
+  await expect(briefingQuantity).toHaveValue('260');
   await expect(page.getByText('Não há pagamento nem compromisso nesta etapa.')).toBeVisible();
   await waitForRoute(page);
   const briefingA11y = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
