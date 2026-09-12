@@ -18,6 +18,12 @@ Implementado localmente, com testes de regressão:
 
 Essas mudanças precisam ser publicadas e verificadas no alias real antes de reclassificar a falha de produção como encerrada. Migrations remotas, notificações transacionais, anexos privados, campanhas remotas e configurador de kits continuam abertos.
 
+### Verificação pós-publicação — commit `d0d423b`
+
+O deployment de produção foi validado no alias público. As rotas `/`, `/catalogo`, `/catalogos`, `/datas-comemorativas`, `/entrar` e `/minha-conta` entregaram `#root` e script de assets da aplicação, sem `Protected Deployment` ou “Log in to Vercel”. As rotas inexistentes de ideias e produto devolveram 404 com o shell correto. Em Chromium, catálogo, biblioteca, agenda e login exibiram os respectivos `h1` da aplicação. Portanto, **A01 está resolvido em produção**.
+
+A02, A03 e A06 foram validados localmente em unitários/API e em browser Chromium, Firefox e WebKit. A04 permanece aberta: o check `Supabase Preview` continua sinalizando versões remotas não presentes no diretório local e a consulta administrativa do projeto isolado ainda retorna 403. Não houve tentativa de forçar ou marcar migrations sem reconciliação.
+
 ### Escopo e rastreabilidade
 
 - Repositório: `adm01-debug/Promo_Brindes_V1`.
