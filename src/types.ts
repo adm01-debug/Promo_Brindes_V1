@@ -54,6 +54,8 @@ export interface QuoteItem {
   variantId?: string;
   colorName?: string;
   colorHex?: string;
+  /** A variante referenciada pelo link não está mais publicada; não deve ser enviada sem revisão. */
+  variantUnavailable?: boolean;
   /** Referência principal ou alternativa para facilitar a decisão comercial. */
   decisionGroup?: 'primary' | 'alternative';
 }

@@ -10,7 +10,7 @@ const appShell = `<!doctype html><html><head>
   <meta property="og:image" content="https://example.test/default.webp" />
   <link rel="canonical" href="https://example.test/" />
   <title>Genérico</title>
-</head><body><div id="root"></div></body></html>`;
+</head><body><div id="root"></div><script type="module" src="/assets/app-test.js"></script></body></html>`;
 
 function responseDouble() {
   const result = { headers: new Map<string, string>(), statusCode: 0, body: '' };
@@ -52,5 +52,18 @@ describe('HTML inicial das páginas estáticas', () => {
     expect(result.statusCode).toBe(404);
     expect(result.body).toContain('Página não encontrada | Promo Brindes');
     expect(result.body).toContain('noindex,nofollow');
+  });
+
+  it('não transforma HTML de autenticação de terceiro em página estática', async () => {
+    vi.stubEnv('VITE_PUBLIC_URL', 'https://promo-brindes-v1.vercel.app');
+    vi.stubEnv('VERCEL_URL', 'deployment-protegido.vercel.app');
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('<html>Protected Deployment — Log in to Vercel</html>', { status: 200 })));
+    const { result, response } = responseDouble();
+
+    await handler({ method: 'GET', query: { page: 'catalogo' } }, response);
+
+    expect(result.statusCode).toBe(503);
+    expect(result.body).toContain('Catálogo de brindes | Promo Brindes');
+    expect(result.body).not.toContain('Log in to Vercel');
   });
 });

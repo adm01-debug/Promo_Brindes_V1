@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createPersistentSharedSelection, decodeSharedSelection, encodeSharedSelection, fetchPersistentSharedSelection, hydrateSharedSelection, managedSharedSelectionToken, managedSharedSelectionTokens, MAX_SHARED_SELECTION_ITEMS, revokePersistentSharedSelection, sharedSelectionUrl } from './sharedSelection';
+import { createPersistentSharedSelection, decodeSharedSelection, encodeSharedSelection, fetchPersistentSharedSelection, hydrateSharedSelection, hydrateSharedSelectionDetails, managedSharedSelectionToken, managedSharedSelectionTokens, MAX_SHARED_SELECTION_ITEMS, revokePersistentSharedSelection, sharedSelectionUrl } from './sharedSelection';
 
 const item = {
   key: '11111111-1111-4111-8111-111111111111::variante-azul',
@@ -26,6 +26,26 @@ describe('sharedSelection', () => {
     expect(hydrateSharedSelection([{ id: item.productId, q: 1, v: 'azul' }], [{
       id: item.productId, name: 'Garrafa atual', sku: 'PB-1', slug: 'garrafa-atual', description: '', shortDescription: '', imageUrl: '/a.webp', images: ['/a.webp'], categoryId: null, mainCategoryId: null, brand: null, minQuantity: 10, isNew: false, isFeatured: false, isBestseller: false, isKit: false, allowsPersonalization: false, hasCommercialPackaging: false, colors: [{ variantId: 'azul', name: 'Azul', hex: '#0033aa' }], materials: [], dimensions: {},
     }])).toMatchObject([{ name: 'Garrafa atual', quantity: 10, variantId: 'azul' }]);
+  });
+
+  it('preserva variantes não publicadas e aponta produtos removidos sem perder quantidades', () => {
+    const removedProduct = '22222222-2222-4222-8222-222222222222';
+    const hydration = hydrateSharedSelectionDetails([
+      { id: item.productId, q: 100, v: 'azul' },
+      { id: item.productId, q: 200, v: 'verde' },
+      { id: removedProduct, q: 300, v: 'preto' },
+    ], [{
+      id: item.productId, name: 'Garrafa atual', sku: 'PB-1', slug: 'garrafa-atual', description: '', shortDescription: '', imageUrl: '/a.webp', images: ['/a.webp'], categoryId: null, mainCategoryId: null, brand: null, minQuantity: 10, isNew: false, isFeatured: false, isBestseller: false, isKit: false, allowsPersonalization: false, hasCommercialPackaging: false, colors: [], materials: [], dimensions: {},
+    }]);
+
+    expect(hydration.items).toEqual(expect.arrayContaining([
+      expect.objectContaining({ variantId: 'azul', quantity: 100, variantUnavailable: true }),
+      expect.objectContaining({ variantId: 'verde', quantity: 200, variantUnavailable: true }),
+    ]));
+    expect(hydration.items).toHaveLength(2);
+    expect(hydration.items.reduce((total, current) => total + current.quantity, 0)).toBe(300);
+    expect(hydration.unavailableVariantReferences).toHaveLength(2);
+    expect(hydration.unavailableProductReferences).toEqual([{ id: removedProduct, q: 300, v: 'preto' }]);
   });
 
   it('usa token opaco persistente e conserva a chave de revogação somente no dispositivo criador', async () => {

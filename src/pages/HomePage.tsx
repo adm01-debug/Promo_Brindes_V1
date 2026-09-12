@@ -153,7 +153,7 @@ export default function HomePage() {
           />
           <nav className="hero__quick-links" aria-label="Sugestões de busca">
             <span>Sugestões:</span>
-            <Link to="/catalogo?perfil=kits" onClick={() => trackFunnelEvent('search_started', { source: 'home', query_length: 0, suggestion: true })}>Kits de onboarding</Link>
+            <Link to="/catalogo?momento=onboarding&publico=colaboradores" onClick={() => trackFunnelEvent('search_started', { source: 'home', query_length: 0, suggestion: true })}>Ideias de onboarding</Link>
             <Link to="/catalogo?q=camiseta" onClick={() => trackFunnelEvent('search_started', { source: 'home', query_length: 8, suggestion: true })}>Wearables</Link>
             <Link to="/catalogo?q=carregador" onClick={() => trackFunnelEvent('search_started', { source: 'home', query_length: 10, suggestion: true })}>Tech útil</Link>
             <Link to="/catalogo?q=reciclado" onClick={() => trackFunnelEvent('search_started', { source: 'home', query_length: 9, suggestion: true })}>Menor impacto</Link>
@@ -306,7 +306,7 @@ export default function HomePage() {
             <Link className="button button--light" to="/contato">Trazer meu briefing <ArrowRight size={18} /></Link>
           </div>
           <div className="occasion-grid">
-            <Link className="occasion-card" to="/catalogo?momento=onboarding&publico=colaboradores&perfil=kits"><span><BriefcaseBusiness /></span><div><p>01 / PEOPLE</p><h3>Onboarding sem kit genérico</h3><small>Boas-vindas que já apresentam a cultura da empresa.</small></div><ArrowRight aria-hidden="true" /></Link>
+            <Link className="occasion-card" to="/catalogo?momento=onboarding&publico=colaboradores"><span><BriefcaseBusiness /></span><div><p>01 / PEOPLE</p><h3>Onboarding sem kit genérico</h3><small>Boas-vindas que já apresentam a cultura da empresa.</small></div><ArrowRight aria-hidden="true" /></Link>
             <Link className="occasion-card" to="/catalogo?momento=evento&publico=publico-evento"><span><CalendarHeart /></span><div><p>02 / LIVE</p><h3>Evento que continua no feed</h3><small>Itens que rendem uso, conversa e memória depois do credenciamento.</small></div><ArrowRight aria-hidden="true" /></Link>
             <Link className="occasion-card" to="/catalogo?momento=reconhecimento&publico=colaboradores&clima=premium"><span><Trophy /></span><div><p>03 / RECOGNITION</p><h3>Reconhecimento com desejo</h3><small>Presentes que parecem escolha — não obrigação corporativa.</small></div><ArrowRight aria-hidden="true" /></Link>
             <Link className="occasion-card" to="/catalogo?momento=relacionamento&publico=clientes"><span><HeartHandshake /></span><div><p>04 / COMMUNITY</p><h3>Merch que a comunidade quer usar</h3><small>Qualidade e estilo para a marca circular de verdade.</small></div><ArrowRight aria-hidden="true" /></Link>

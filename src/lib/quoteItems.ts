@@ -68,6 +68,7 @@ export function normalizeQuoteItems(values: unknown): QuoteItem[] {
       ...(variantId ? { variantId } : {}),
       ...(colorName ? { colorName } : {}),
       ...(colorHex ? { colorHex } : {}),
+      ...(raw.variantUnavailable && variantId ? { variantUnavailable: true } : {}),
       ...(decisionGroup === 'alternative' ? { decisionGroup } : {}),
     };
     const existing = normalized.get(key);

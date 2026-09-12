@@ -65,10 +65,21 @@ export function configuredSiteOrigin(): string {
   }
 }
 
-function deployedAppOrigin(): string {
-  const deploymentHost = process.env.VERCEL_URL?.trim();
-  if (deploymentHost && /^[a-z0-9.-]+$/i.test(deploymentHost)) return `https://${deploymentHost}`;
-  return configuredSiteOrigin();
+/**
+ * A função é executada dentro de um deployment que pode exigir autenticação
+ * interna da Vercel. O shell, porém, precisa ser obtido do endereço público
+ * canônico que o visitante também usa. Buscar VERCEL_URL aqui fazia `fetch`
+ * seguir o redirect para a tela de login e servir aquele HTML como se fosse
+ * o aplicativo.
+ */
+function publicAppShellUrl(): string {
+  return `${configuredSiteOrigin()}/index.html`;
+}
+
+function isValidAppShell(html: string): boolean {
+  return /<div\s+id=["']root["'][^>]*>/i.test(html)
+    && /<script\b[^>]*\bsrc=["']\/assets\//i.test(html)
+    && !/Protected Deployment|Log in to Vercel/i.test(html);
 }
 
 export function validProductIdentifier(value: string): boolean {
@@ -112,9 +123,15 @@ export async function fetchPublicProduct(identifier: string): Promise<PublicProd
 
 export async function loadAppShell(): Promise<string> {
   try {
-    const response = await fetchWithTimeout(`${deployedAppOrigin()}/index.html`, { headers: { Accept: 'text/html' } });
+    const shellUrl = publicAppShellUrl();
+    const response = await fetchWithTimeout(shellUrl, { headers: { Accept: 'text/html' }, redirect: 'error' });
     if (!response.ok) throw new Error('app shell unavailable');
-    return await response.text();
+    // Response.url fica vazio nos doubles de teste, mas é preenchido pelo
+    // runtime HTTP. Quando existir, ele não pode trocar de origem.
+    if (response.url && new URL(response.url).origin !== new URL(shellUrl).origin) throw new Error('unexpected app shell origin');
+    const shell = await response.text();
+    if (!isValidAppShell(shell)) throw new Error('invalid app shell');
+    return shell;
   } catch {
     throw new PublicProductPageError(503, 'Site temporariamente indisponível.');
   }

@@ -54,6 +54,7 @@ export default function ProductPage() {
   const [activeImage, setActiveImage] = useState(0);
   const [selectedColor, setSelectedColor] = useState<ProductColor | undefined>();
   const [quantity, setQuantity] = useState(100);
+  const [quantityDraft, setQuantityDraft] = useState('100');
   const [shareStatus, setShareStatus] = useState('');
   const [imageZoomOpen, setImageZoomOpen] = useState(false);
   const trackedProductRef = useRef('');
@@ -63,8 +64,32 @@ export default function ProductPage() {
   useEffect(() => {
     setActiveImage(0);
     setSelectedColor(undefined);
-    if (product) setQuantity(defaultQuoteQuantity(product));
+    if (product) {
+      const initialQuantity = defaultQuoteQuantity(product);
+      setQuantity(initialQuantity);
+      setQuantityDraft(String(initialQuantity));
+    }
   }, [product]);
+
+  function commitQuantityDraft() {
+    if (!product) return quantity;
+    const parsed = Number(quantityDraft);
+    const nextQuantity = Number.isFinite(parsed) && quantityDraft
+      ? Math.min(999999, Math.max(product.minQuantity, Math.round(parsed)))
+      : product.minQuantity;
+    setQuantity(nextQuantity);
+    setQuantityDraft(String(nextQuantity));
+    return nextQuantity;
+  }
+
+  function adjustQuantity(delta: number) {
+    if (!product) return;
+    const draftValue = Number(quantityDraft);
+    const baseQuantity = Number.isFinite(draftValue) && quantityDraft ? draftValue : quantity;
+    const normalized = Math.min(999999, Math.max(product.minQuantity, Math.round(baseQuantity + delta)));
+    setQuantity(normalized);
+    setQuantityDraft(String(normalized));
+  }
 
   useEffect(() => {
     if (!imageZoomOpen) return;
@@ -197,13 +222,13 @@ export default function ProductPage() {
             <div className="product-quantity">
               <div><label htmlFor="product-quantity">Quantidade estimada</label><span>{product.minQuantity > 1 ? `Mínimo deste item: ${product.minQuantity.toLocaleString('pt-BR')}` : 'Quantidade mínima a confirmar com nosso time de especialistas'}</span></div>
               <div className="quantity-control">
-                <button type="button" onClick={() => setQuantity(Math.max(product.minQuantity, quantity - 10))} aria-label="Diminuir quantidade"><Minus size={17} /></button>
-                <input id="product-quantity" type="number" min={product.minQuantity} max="999999" inputMode="numeric" value={quantity} onChange={(event) => setQuantity(Math.min(999999, Math.max(product.minQuantity, Number(event.target.value) || product.minQuantity)))} />
-                <button type="button" onClick={() => setQuantity(Math.min(999999, quantity + 10))} aria-label="Aumentar quantidade"><Plus size={17} /></button>
+                <button type="button" onClick={() => adjustQuantity(-10)} aria-label="Diminuir quantidade"><Minus size={17} /></button>
+                <input id="product-quantity" type="number" min={product.minQuantity} max="999999" inputMode="numeric" value={quantityDraft} onFocus={(event) => event.currentTarget.select()} onChange={(event) => setQuantityDraft(event.target.value.replace(/\D/g, ''))} onBlur={commitQuantityDraft} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); }} />
+                <button type="button" onClick={() => adjustQuantity(10)} aria-label="Aumentar quantidade"><Plus size={17} /></button>
               </div>
             </div>
 
-            <button className="button button--green button--wide button--large" type="button" onClick={() => cart.addProduct(product, quantity, selectedColor)}><Plus size={19} /> Adicionar à minha seleção</button>
+            <button className="button button--green button--wide button--large" type="button" onClick={() => cart.addProduct(product, commitQuantityDraft(), selectedColor)}><Plus size={19} /> Adicionar à minha seleção</button>
             <ul className="product-reassurance">
               <li><Check /> Sem checkout</li>
               {product.allowsPersonalization && <li><Check /> Pode receber sua marca</li>}

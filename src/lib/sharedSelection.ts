@@ -35,6 +35,14 @@ export interface PersistentSharedSelection {
   url: string;
 }
 
+export interface SharedSelectionHydration {
+  items: QuoteItem[];
+  /** Produtos que deixaram de estar publicados e, portanto, não podem ser duplicados silenciosamente. */
+  unavailableProductReferences: SharedSelectionItem[];
+  /** Variantes que a pessoa referenciou, mas que não existem mais no produto publicado. */
+  unavailableVariantReferences: SharedSelectionItem[];
+}
+
 function normalizeSharedSelectionItems(value: unknown): SharedSelectionItem[] {
   if (!Array.isArray(value) || value.length < 1 || value.length > MAX_SHARED_SELECTION_ITEMS) return [];
   const result = new Map<string, SharedSelectionItem>();
@@ -238,15 +246,26 @@ export async function revokePersistentSharedSelection(token: string): Promise<bo
   return Boolean(payload.revoked);
 }
 
-/** Recompõe uma seleção somente a partir do catálogo público atual. */
-export function hydrateSharedSelection(payload: SharedSelectionItem[], products: CatalogProduct[]): QuoteItem[] {
+/**
+ * Recompõe referências do catálogo atual sem esconder perdas parciais.
+ * Produtos ausentes ficam separados para a interface orientar a revisão;
+ * variantes ausentes preservam seu ID e não colapsam em "sem-cor".
+ */
+export function hydrateSharedSelectionDetails(payload: SharedSelectionItem[], products: CatalogProduct[]): SharedSelectionHydration {
   const productById = new Map(products.map((product) => [product.id, product]));
-  return normalizeQuoteItems(payload.flatMap((shared) => {
+  const unavailableProductReferences: SharedSelectionItem[] = [];
+  const unavailableVariantReferences: SharedSelectionItem[] = [];
+  const items = normalizeQuoteItems(payload.flatMap((shared) => {
     const product = productById.get(shared.id);
-    if (!product) return [];
+    if (!product) {
+      unavailableProductReferences.push(shared);
+      return [];
+    }
     const color = shared.v ? product.colors.find((candidate) => candidate.variantId === shared.v) : undefined;
+    const variantUnavailable = Boolean(shared.v && !color);
+    if (variantUnavailable) unavailableVariantReferences.push(shared);
     return [{
-      key: `${product.id}::${color?.variantId ? `variante-${color.variantId}` : color?.name?.toLocaleLowerCase('pt-BR') || 'sem-cor'}`,
+      key: `${product.id}::${shared.v ? `variante-${shared.v}` : color?.name?.toLocaleLowerCase('pt-BR') || 'sem-cor'}`,
       productId: product.id,
       slug: product.slug,
       name: product.name,
@@ -254,8 +273,15 @@ export function hydrateSharedSelection(payload: SharedSelectionItem[], products:
       imageUrl: color?.imageUrl || product.imageUrl,
       minQuantity: product.minQuantity,
       quantity: clampQuoteQuantity(shared.q, product.minQuantity),
-      ...(color?.variantId ? { variantId: color.variantId } : {}),
+      ...(shared.v ? { variantId: shared.v } : color?.variantId ? { variantId: color.variantId } : {}),
       ...(color?.name ? { colorName: color.name, colorHex: color.hex } : {}),
+      ...(variantUnavailable ? { variantUnavailable: true } : {}),
     }];
   }));
+  return { items, unavailableProductReferences, unavailableVariantReferences };
+}
+
+/** Compatibilidade para consumidores que só precisam dos itens ainda publicados. */
+export function hydrateSharedSelection(payload: SharedSelectionItem[], products: CatalogProduct[]): QuoteItem[] {
+  return hydrateSharedSelectionDetails(payload, products).items;
 }

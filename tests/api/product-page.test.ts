@@ -12,7 +12,7 @@ const appShell = `<!doctype html><html><head>
   <meta property="og:image" content="https://example.test/default.webp" />
   <link rel="canonical" href="https://example.test/" />
   <title>Genérico</title>
-</head><body><div id="root"></div></body></html>`;
+</head><body><div id="root"></div><script type="module" src="/assets/app-test.js"></script></body></html>`;
 
 function responseDouble() {
   const result = { headers: new Map<string, string>(), statusCode: 0, body: '' };
@@ -109,5 +109,24 @@ describe('HTML inicial de fichas de produto', () => {
     expect(result.statusCode).toBe(404);
     expect(result.body).toContain('<title>Página não encontrada | Promo Brindes</title>');
     expect(result.body).toContain('noindex,nofollow');
+  });
+
+  it('usa a origem pública canônica e rejeita HTML de proteção mesmo quando retorna 200', async () => {
+    configure();
+    vi.stubEnv('VERCEL_URL', 'deployment-protegido.vercel.app');
+    const fetchMock = vi.fn(async (input: string | URL) => {
+      const url = String(input);
+      if (url.endsWith('/index.html')) return new Response('<html><title>Log in to Vercel</title>Protected Deployment</html>', { status: 200 });
+      return new Response('[]', { status: 200 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+
+    await handler({ method: 'GET', query: { identifier: 'produto-removido' } }, response);
+
+    expect(String(fetchMock.mock.calls.find(([url]) => String(url).endsWith('/index.html'))?.[0])).toBe('https://www.promobrindes.com.br/index.html');
+    expect(result.statusCode).toBe(503);
+    expect(result.body).toContain('Produto temporariamente indisponível');
+    expect(result.body).not.toContain('Log in to Vercel');
   });
 });

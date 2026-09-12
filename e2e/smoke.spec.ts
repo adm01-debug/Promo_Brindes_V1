@@ -184,7 +184,8 @@ test('biblioteca de catálogos transforma contexto em coleções compartilhávei
   await expect(newDrops.getByRole('button', { name: 'Compartilhar Novos drops' })).toContainText('Link copiado');
   expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(/\/catalogo\?perfil=novos$/);
   await page.locator('.catalog-card').filter({ has: page.getByRole('heading', { name: 'Onboarding com cultura' }) }).getByRole('link', { name: /Explorar coleção/ }).click();
-  await expect(page).toHaveURL(/\/catalogo\?momento=onboarding.*perfil=kits/);
+  await expect(page).toHaveURL(/\/catalogo\?momento=onboarding.*publico=colaboradores/);
+  await expect(page).not.toHaveURL(/perfil=kits/);
 });
 
 test('seleção compartilhada copia o link e anuncia o resultado', async ({ page }, testInfo) => {
@@ -198,6 +199,19 @@ test('seleção compartilhada copia o link e anuncia o resultado', async ({ page
   await expect(page.getByRole('button', { name: 'Link copiado' })).toBeVisible();
   await expect(page.locator('.shared-selection-hero [role="status"]')).toHaveText('Link copiado para a área de transferência.');
   expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('/selecoes/compartilhada?s=');
+});
+
+test('seleção compartilhada não perde variantes removidas nem permite duplicação silenciosa', async ({ page }) => {
+  const selection = Buffer.from(JSON.stringify({ v: 1, i: [
+    { id: product.id, q: 100, v: 'variant-removed-blue' },
+    { id: product.id, q: 200, v: 'variant-removed-green' },
+    { id: '22222222-2222-4222-8222-222222222222', q: 300, v: 'variant-removed-black' },
+  ] })).toString('base64url');
+  await page.goto(`/selecoes/compartilhada?s=${selection}`);
+  await expect(page.getByRole('alert')).toContainText('Esta seleção precisa de revisão.');
+  await expect(page.getByText('Variante não publicada')).toHaveCount(2);
+  await expect(page.getByText('300 unidades estimadas')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Duplicar e ajustar' })).toBeDisabled();
 });
 
 test('link persistente espera a consulta e confirma antes de substituir a seleção local', async ({ page }) => {
@@ -240,7 +254,8 @@ test('link persistente espera a consulta e confirma antes de substituir a seleç
 test('soluções editoriais levam a uma curadoria explícita, não a uma promessa de estoque', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('link', { name: /Onboarding sem kit genérico/i }).click();
-  await expect(page).toHaveURL(/momento=onboarding.*publico=colaboradores.*perfil=kits/);
+  await expect(page).toHaveURL(/momento=onboarding.*publico=colaboradores/);
+  await expect(page).not.toHaveURL(/perfil=kits/);
   await expect(page.getByRole('heading', { name: 'Curadoria para o seu briefing' })).toBeVisible();
 });
 
@@ -334,6 +349,14 @@ test('mostra produto sem estoque confiável e leva o cliente ao briefing sem che
   await expect(page.getByRole('heading', { name: product.name })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Azul' })).toBeVisible();
   await expect(page.getByText(/não paga nada pelo site/i)).toBeVisible();
+  const quantity = page.locator('#product-quantity');
+  await quantity.fill('');
+  await quantity.pressSequentially('250');
+  await expect(quantity).toHaveValue('250');
+  await page.getByRole('button', { name: 'Aumentar quantidade' }).click();
+  await expect(quantity).toHaveValue('260');
+  await quantity.blur();
+  await expect(quantity).toHaveValue('260');
   await page.getByRole('button', { name: `Ampliar foto de ${product.name}` }).click();
   await expect(page.getByRole('dialog', { name: `Foto ampliada de ${product.name}` })).toBeVisible();
   await page.keyboard.press('Escape');
@@ -733,7 +756,7 @@ test('navegação de catálogo por query fecha menu e reposiciona resultados', a
   await page.goto('/catalogo');
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   await page.getByRole('button', { name: 'Abrir menu' }).click();
-  await page.getByRole('navigation', { name: 'Navegação móvel' }).getByRole('link', { name: 'Kits & onboarding' }).click();
+  await page.getByRole('navigation', { name: 'Navegação móvel' }).getByRole('link', { name: 'Kits' }).click();
   await expect(page).toHaveURL(/perfil=kits/);
   await expect(page.getByRole('navigation', { name: 'Navegação móvel' })).toBeHidden();
   await expect(page.locator('#catalog-results-title')).toBeInViewport();
