@@ -436,7 +436,9 @@ export async function fetchProduct(identifier: string, signal?: AbortSignal): Pr
 
 /** Revalida uma pequena lista de referências salvas localmente sem consultar estoque. */
 export async function fetchProductsByIds(ids: string[], signal?: AbortSignal, maxItems = 3): Promise<CatalogProduct[]> {
-  const safeLimit = Math.max(1, Math.min(8, Math.trunc(maxItems) || 3));
+  // A comparação é enxuta, mas uma seleção compartilhada autorizada pode ter
+  // cinquenta referências. Nunca corte itens silenciosamente neste helper.
+  const safeLimit = Math.max(1, Math.min(50, Math.trunc(maxItems) || 3));
   const safeIds = [...new Set(ids.filter((id) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)))].slice(0, safeLimit);
   if (!safeIds.length) return [];
   const params = new URLSearchParams({ select: PRODUCT_FIELDS, is_active: 'eq.true', id: `in.(${safeIds.join(',')})`, limit: String(safeIds.length) });

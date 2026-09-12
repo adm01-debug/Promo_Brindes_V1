@@ -18,6 +18,7 @@ export function QuoteDrawer() {
   const [confirmClear, setConfirmClear] = useState(false);
   const [shareState, setShareState] = useState<'idle' | 'preparing' | 'copied' | 'shared' | 'limited' | 'error'>('idle');
   const [managedShareTokens, setManagedShareTokens] = useState<string[]>(managedSharedSelectionTokens);
+  const [quantityDrafts, setQuantityDrafts] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (cart.drawerOpen) setManagedShareTokens(managedSharedSelectionTokens());
@@ -94,18 +95,17 @@ export function QuoteDrawer() {
       setShareState('limited');
       return;
     }
-    let url = sharedSelectionUrl(cart.items);
-    if (!url) {
-      setShareState('error');
-      return;
-    }
     let mode: 'native' | 'copy' = 'copy';
     try {
       setShareState('preparing');
+      let url: string | null;
       if (persistentSharedSelectionsEnabled) {
         const persistent = await createPersistentSharedSelection(cart.items);
         url = persistent.url;
         setManagedShareTokens(managedSharedSelectionTokens());
+      } else {
+        url = sharedSelectionUrl(cart.items);
+        if (!url) throw new Error('legacy_link_too_large');
       }
       if (navigator.share) {
         await navigator.share({ title: 'Seleção de brindes | Promo Brindes', text: 'Referências para uma próxima campanha.', url });
@@ -134,6 +134,20 @@ export function QuoteDrawer() {
     } catch {
       setShareState('error');
     }
+  }
+
+  function updateItemQuantity(key: string, quantity: number) {
+    setQuantityDrafts((drafts) => {
+      const { [key]: _draft, ...remaining } = drafts;
+      return remaining;
+    });
+    cart.updateQuantity(key, quantity);
+  }
+
+  function commitQuantityDraft(key: string, minimum: number) {
+    const draft = quantityDrafts[key];
+    if (draft === undefined) return;
+    updateItemQuantity(key, draft ? Number(draft) : minimum);
   }
 
   if (!cart.drawerOpen) return null;
@@ -203,17 +217,20 @@ export function QuoteDrawer() {
                       </select>
                     </label>}
                     <div className="quantity-control quantity-control--small" aria-label={`Quantidade de ${item.name}`}>
-                      <button type="button" onClick={() => cart.updateQuantity(item.key, item.quantity - 1)} aria-label="Diminuir quantidade"><Minus size={15} /></button>
+                      <button type="button" onClick={() => updateItemQuantity(item.key, item.quantity - 1)} aria-label="Diminuir quantidade"><Minus size={15} /></button>
                       <input
                         aria-label={`Quantidade desejada de ${item.name}`}
                         inputMode="numeric"
                         min={item.minQuantity}
                         max="999999"
                         type="number"
-                        value={item.quantity}
-                        onChange={(event) => cart.updateQuantity(item.key, Number(event.target.value))}
+                        value={quantityDrafts[item.key] ?? item.quantity}
+                        onFocus={(event) => event.currentTarget.select()}
+                        onChange={(event) => setQuantityDrafts((drafts) => ({ ...drafts, [item.key]: event.target.value.replace(/\D/g, '') }))}
+                        onBlur={() => commitQuantityDraft(item.key, item.minQuantity)}
+                        onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); }}
                       />
-                      <button type="button" onClick={() => cart.updateQuantity(item.key, item.quantity + 1)} aria-label="Aumentar quantidade"><Plus size={15} /></button>
+                      <button type="button" onClick={() => updateItemQuantity(item.key, item.quantity + 1)} aria-label="Aumentar quantidade"><Plus size={15} /></button>
                     </div>
                   </div>
                   <button className="drawer-item__remove" type="button" onClick={() => cart.removeItem(item.key)} aria-label={`Remover ${item.name}`}>

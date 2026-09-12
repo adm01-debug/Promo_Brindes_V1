@@ -2,6 +2,8 @@ import type { ApiRequest, ApiResponse } from './_lib/leadHandler.js';
 import { createSharedSelection, readSharedSelection, revokeSharedSelection } from './_lib/sharedSelections.js';
 import { SiteDatabaseError } from './_lib/siteDatabase.js';
 
+const MAX_SHARED_SELECTION_BODY_BYTES = 16 * 1024;
+
 function header(request: ApiRequest, name: string): string {
   const value = request.headers[name] ?? request.headers[name.toLowerCase()];
   return Array.isArray(value) ? value[0] || '' : value || '';
@@ -9,16 +11,30 @@ function header(request: ApiRequest, name: string): string {
 
 function requestIp(request: ApiRequest): string {
   return header(request, 'x-vercel-forwarded-for').split(',')[0]?.trim()
-    || header(request, 'x-forwarded-for').split(',')[0]?.trim()
     || request.socket?.remoteAddress
     || 'unknown';
 }
 
 function body(request: ApiRequest): Record<string, unknown> {
-  if (!request.body || typeof request.body !== 'object' || Array.isArray(request.body)) {
+  if (header(request, 'content-type').split(';', 1)[0]?.trim().toLowerCase() !== 'application/json') {
+    throw new SiteDatabaseError('Envie o conteúdo como application/json.', 'unsupported_media_type', 415);
+  }
+  let parsed: unknown;
+  try {
+    const serialized = JSON.stringify(request.body ?? null);
+    if (!serialized) throw new Error('empty_body');
+    if (Buffer.byteLength(serialized) > MAX_SHARED_SELECTION_BODY_BYTES) {
+      throw new SiteDatabaseError('A solicitação ultrapassa o limite permitido.', 'payload_too_large', 413);
+    }
+    parsed = JSON.parse(serialized);
+  } catch (error) {
+    if (error instanceof SiteDatabaseError) throw error;
     throw new SiteDatabaseError('Envie uma solicitação válida.', 'invalid_shared_selection', 400);
   }
-  return request.body as Record<string, unknown>;
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new SiteDatabaseError('Envie uma solicitação válida.', 'invalid_shared_selection', 400);
+  }
+  return parsed as Record<string, unknown>;
 }
 
 function requireOrigin(request: ApiRequest) {

@@ -220,6 +220,14 @@ test('link persistente espera a consulta e confirma antes de substituir a seleç
   await page.getByRole('button', { name: 'Duplicar e ajustar' }).click();
   await expect(page.getByRole('dialog', { name: 'Substituir sua seleção atual?' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Manter minha seleção' })).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('button', { name: 'Substituir e ajustar' })).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('button', { name: 'Manter minha seleção' })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog', { name: 'Substituir sua seleção atual?' })).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Duplicar e ajustar' })).toBeFocused();
+  await page.getByRole('button', { name: 'Duplicar e ajustar' }).click();
   await page.getByRole('button', { name: 'Substituir e ajustar' }).click();
   await expect(page.getByRole('dialog', { name: 'Minha seleção' })).toBeVisible();
   await expect(page.getByText(product.name).last()).toBeVisible();

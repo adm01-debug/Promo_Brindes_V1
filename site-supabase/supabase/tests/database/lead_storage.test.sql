@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(59);
+select plan(61);
 
 select is(
   (select count(*) from pg_catalog.pg_tables where schemaname = 'site_private'),
@@ -273,6 +273,30 @@ select is(
   (select count(*) from site_private.quote_requests where id = '55555555-5555-4555-8555-555555555555'),
   0::bigint,
   'orçamento expirado é removido após todos os documentos serem confirmados'
+);
+
+insert into site_private.quote_requests (
+  id, client_request_id, request_hash, source, contact_name, company, email, phone,
+  client_submitted_at, request_metadata, retention_until
+) values (
+  '56565656-5656-4565-8565-565656565656', 'active-quote-retention-test-1', repeat('6', 64), 'site-promo-brindes', 'Quote vigente',
+  'Empresa vigente', 'quote-vigente@teste.com', '(11) 99999-9999', now(), '{}'::jsonb, now() + interval '1 day'
+);
+insert into site_private.proposal_documents (
+  id, quote_request_id, version, title, storage_bucket, storage_path, published_at
+) values (
+  '67676767-6767-4676-8676-676767676767', '56565656-5656-4565-8565-565656565656',
+  1, 'Proposta vigente', 'customer-proposals', 'retencao/proposta-vigente.pdf', now()
+);
+select is(
+  (public.finalize_site_data_retention(array['56565656-5656-4565-8565-565656565656']::uuid[], array['retencao/proposta-vigente.pdf']::text[], 10) ->> 'proposalDocumentsDeleted')::integer,
+  0,
+  'finalização não remove metadado de proposta antes do vencimento do orçamento'
+);
+select is(
+  (select count(*) from site_private.proposal_documents where id = '67676767-6767-4676-8676-676767676767'),
+  1::bigint,
+  'proposta de orçamento vigente permanece íntegra'
 );
 
 insert into site_private.contact_requests (

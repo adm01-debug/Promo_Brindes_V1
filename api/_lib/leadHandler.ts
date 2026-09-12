@@ -53,12 +53,10 @@ function readRequestBody(request: ApiRequest): unknown {
 }
 
 function requestIp(request: ApiRequest): string {
-  // Na Vercel, este cabeçalho é mantido pela plataforma mesmo quando há um proxy
-  // adicional. Nunca aceite um X-Forwarded-For fornecido pelo cliente como fonte
-  // preferencial do bucket de rate limit.
+  // Na Vercel, este cabeçalho é inserido pela plataforma. X-Forwarded-For e
+  // X-Real-IP podem ser fornecidos pelo próprio cliente e não podem decidir um
+  // bucket de rate limit; fora da Vercel, usamos somente o endereço do socket.
   return header(request, 'x-vercel-forwarded-for').split(',')[0]?.trim()
-    || header(request, 'x-forwarded-for').split(',')[0]?.trim()
-    || header(request, 'x-real-ip')
     || request.socket?.remoteAddress
     || 'unknown';
 }
@@ -85,8 +83,8 @@ export async function handleLeadRequest(kind: LeadKind, request: ApiRequest, res
   }
 
   try {
-    const contentType = header(request, 'content-type').toLowerCase();
-    if (!contentType.startsWith('application/json')) {
+    const contentType = header(request, 'content-type').split(';', 1)[0]?.trim().toLowerCase();
+    if (contentType !== 'application/json') {
       throw new RequestValidationError('Envie o conteúdo como application/json.', 415, 'unsupported_media_type');
     }
     validateOrigin(request);

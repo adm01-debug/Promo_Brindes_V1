@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createPersistentSharedSelection, decodeSharedSelection, encodeSharedSelection, fetchPersistentSharedSelection, hydrateSharedSelection, managedSharedSelectionToken, managedSharedSelectionTokens, MAX_SHARED_SELECTION_ITEMS, revokePersistentSharedSelection } from './sharedSelection';
+import { createPersistentSharedSelection, decodeSharedSelection, encodeSharedSelection, fetchPersistentSharedSelection, hydrateSharedSelection, managedSharedSelectionToken, managedSharedSelectionTokens, MAX_SHARED_SELECTION_ITEMS, revokePersistentSharedSelection, sharedSelectionUrl } from './sharedSelection';
 
 const item = {
   key: '11111111-1111-4111-8111-111111111111::variante-azul',
@@ -59,5 +59,51 @@ describe('sharedSelection', () => {
     window.localStorage.setItem(`promo-brindes:shared-selection-management:${token}`, JSON.stringify({ managementToken: '55555555-5555-4555-8555-555555555555', expiresAt: '2020-01-01T00:00:00.000Z' }));
     expect(managedSharedSelectionTokens(Date.parse('2026-01-01T00:00:00.000Z'))).not.toContain(token);
     expect(window.localStorage.getItem(`promo-brindes:shared-selection-management:${token}`)).toBeNull();
+  });
+
+  it('mantém cinquenta variantes longas no link persistente sem forçar o limite da URL legada', async () => {
+    const references = Array.from({ length: MAX_SHARED_SELECTION_ITEMS }, (_, index) => ({
+      ...item,
+      productId: `${String(index + 1).padStart(8, '0')}-1111-4111-8111-111111111111`,
+      variantId: `variante-${String(index).padStart(2, '0')}-${'x'.repeat(84)}`,
+    }));
+    const encoded = encodeSharedSelection(references);
+    expect(encoded?.length).toBeGreaterThan(8_000);
+    expect(decodeSharedSelection(encoded)).toEqual([]);
+    expect(sharedSelectionUrl(references)).toBeNull();
+
+    const token = '88888888-8888-4888-8888-888888888888';
+    const managementToken = '99999999-9999-4999-8999-999999999999';
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ token, managementToken, expiresAt: '2030-01-01T00:00:00.000Z' }), { status: 201 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(createPersistentSharedSelection(references)).resolves.toMatchObject({ token });
+    const request = JSON.parse(String(fetchMock.mock.calls[0][1].body));
+    expect(request.items).toHaveLength(MAX_SHARED_SELECTION_ITEMS);
+    expect(request.items[0].v).toHaveLength(96);
+  });
+
+  it('mantém links válidos acessíveis quando uma chave anterior expirou ou está corrompida', () => {
+    const expired = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    const corrupted = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+    const active = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+    const managementToken = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
+    const prefix = 'promo-brindes:shared-selection-management:';
+    window.localStorage.setItem(`${prefix}${expired}`, JSON.stringify({ managementToken, expiresAt: '2020-01-01T00:00:00.000Z' }));
+    window.localStorage.setItem(`${prefix}${corrupted}`, '{not-json');
+    window.localStorage.setItem(`${prefix}${active}`, JSON.stringify({ managementToken, expiresAt: '2030-01-01T00:00:00.000Z' }));
+
+    expect(managedSharedSelectionTokens(Date.parse('2026-01-01T00:00:00.000Z'))).toContain(active);
+    expect(window.localStorage.getItem(`${prefix}${expired}`)).toBeNull();
+    expect(window.localStorage.getItem(`${prefix}${corrupted}`)).toBeNull();
+  });
+
+  it('remove também a chave expirada que ainda existe somente nesta sessão', async () => {
+    const token = '66666666-6666-4666-8666-666666666666';
+    const managementToken = '77777777-7777-4777-8777-777777777777';
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ token, managementToken, expiresAt: '2020-01-01T00:00:00.000Z' }), { status: 201 })));
+    await createPersistentSharedSelection([item]);
+    expect(managedSharedSelectionTokens(Date.parse('2026-01-01T00:00:00.000Z'))).not.toContain(token);
+    expect(managedSharedSelectionToken(token, Date.parse('2026-01-01T00:00:00.000Z'))).toBeNull();
   });
 });

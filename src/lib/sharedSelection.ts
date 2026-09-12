@@ -5,12 +5,15 @@ const VERSION = 1;
 // O moodboard aceita até 50 referências; o link persistente deve representar a
 // mesma seleção, sem cortar silenciosamente a parte final.
 export const MAX_SHARED_SELECTION_ITEMS = 50;
+// Links legados levam as referências na URL. O formato persistente usa token
+// opaco e não pode herdar essa limitação de transporte.
+const MAX_LEGACY_SHARED_SELECTION_PAYLOAD_LENGTH = 8_000;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const VARIANT_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,99}$/;
 const MANAGED_LINK_PREFIX = 'promo-brindes:shared-selection-management:';
-const ephemeralManagementTokens = new Map<string, string>();
+const ephemeralManagementTokens = new Map<string, StoredManagementToken>();
 
-interface SharedSelectionItem {
+export interface SharedSelectionItem {
   id: string;
   q: number;
   v?: string;
@@ -32,6 +35,37 @@ export interface PersistentSharedSelection {
   url: string;
 }
 
+function normalizeSharedSelectionItems(value: unknown): SharedSelectionItem[] {
+  if (!Array.isArray(value) || value.length < 1 || value.length > MAX_SHARED_SELECTION_ITEMS) return [];
+  const result = new Map<string, SharedSelectionItem>();
+  value.forEach((item) => {
+    if (!item || typeof item !== 'object') return;
+    const candidate = item as Partial<SharedSelectionItem>;
+    const id = String(candidate.id || '');
+    if (!UUID_PATTERN.test(id)) return;
+    const quantity = Number(candidate.q);
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > 999_999) return;
+    const variant = typeof candidate.v === 'string' && VARIANT_PATTERN.test(candidate.v) ? candidate.v : undefined;
+    result.set(`${id}:${variant || ''}`, { id, q: quantity, ...(variant ? { v: variant } : {}) });
+  });
+  return [...result.values()];
+}
+
+function referencesFromQuoteItems(items: QuoteItem[]): SharedSelectionItem[] {
+  const unique = new Map<string, SharedSelectionItem>();
+  for (const item of normalizeQuoteItems(items)) {
+    if (!UUID_PATTERN.test(item.productId)) continue;
+    const key = `${item.productId}:${item.variantId || ''}`;
+    unique.set(key, {
+      id: item.productId,
+      q: clampQuoteQuantity(item.quantity, item.minQuantity),
+      ...(item.variantId && VARIANT_PATTERN.test(item.variantId) ? { v: item.variantId } : {}),
+    });
+    if (unique.size >= MAX_SHARED_SELECTION_ITEMS) break;
+  }
+  return [...unique.values()];
+}
+
 function toBase64Url(value: string): string {
   return btoa(value).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
 }
@@ -50,39 +84,19 @@ function fromBase64Url(value: string): string | null {
  * campanha, dados de contato, observações ou contexto que possam identificar alguém.
  */
 export function encodeSharedSelection(items: QuoteItem[]): string | null {
-  const unique = new Map<string, SharedSelectionItem>();
-  for (const item of normalizeQuoteItems(items)) {
-    if (!UUID_PATTERN.test(item.productId)) continue;
-    const key = `${item.productId}:${item.variantId || ''}`;
-    unique.set(key, {
-      id: item.productId,
-      q: clampQuoteQuantity(item.quantity, item.minQuantity),
-      ...(item.variantId && VARIANT_PATTERN.test(item.variantId) ? { v: item.variantId } : {}),
-    });
-    if (unique.size >= MAX_SHARED_SELECTION_ITEMS) break;
-  }
-  if (!unique.size) return null;
-  return toBase64Url(JSON.stringify({ v: VERSION, i: [...unique.values()] } satisfies SharedSelectionPayload));
+  const references = referencesFromQuoteItems(items);
+  if (!references.length) return null;
+  return toBase64Url(JSON.stringify({ v: VERSION, i: references } satisfies SharedSelectionPayload));
 }
 
 export function decodeSharedSelection(value: string | null): SharedSelectionItem[] {
-  // Cinquenta UUIDs e variantes válidas ainda cabem com folga no limite
-  // conservador de URL; rejeitamos cargas anormalmente grandes antes de decodificar.
-  if (!value || value.length > 8_000) return [];
+  if (!value || value.length > MAX_LEGACY_SHARED_SELECTION_PAYLOAD_LENGTH) return [];
   const raw = fromBase64Url(value);
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw) as Partial<SharedSelectionPayload>;
-    if (parsed.v !== VERSION || !Array.isArray(parsed.i) || parsed.i.length < 1 || parsed.i.length > MAX_SHARED_SELECTION_ITEMS) return [];
-    const result = new Map<string, SharedSelectionItem>();
-    parsed.i.forEach((item) => {
-      if (!item || typeof item !== 'object' || !UUID_PATTERN.test(String(item.id || ''))) return;
-      const quantity = Number(item.q);
-      if (!Number.isInteger(quantity) || quantity < 1 || quantity > 999_999) return;
-      const variant = typeof item.v === 'string' && VARIANT_PATTERN.test(item.v) ? item.v : undefined;
-      result.set(`${item.id}:${variant || ''}`, { id: item.id, q: quantity, ...(variant ? { v: variant } : {}) });
-    });
-    return [...result.values()];
+    if (parsed.v !== VERSION) return [];
+    return normalizeSharedSelectionItems(parsed.i);
   } catch {
     return [];
   }
@@ -90,14 +104,14 @@ export function decodeSharedSelection(value: string | null): SharedSelectionItem
 
 export function sharedSelectionUrl(items: QuoteItem[], origin = typeof window === 'undefined' ? 'https://promo-brindes-v1.vercel.app' : window.location.origin): string | null {
   const payload = encodeSharedSelection(items);
-  if (!payload) return null;
+  if (!payload || payload.length > MAX_LEGACY_SHARED_SELECTION_PAYLOAD_LENGTH) return null;
   const url = new URL('/selecoes/compartilhada', origin);
   url.searchParams.set('s', payload);
   return url.href;
 }
 
 function toReferences(items: QuoteItem[]): SharedSelectionItem[] {
-  return decodeSharedSelection(encodeSharedSelection(items));
+  return referencesFromQuoteItems(items);
 }
 
 function persistentSelectionUrl(token: string, origin = window.location.origin) {
@@ -111,19 +125,29 @@ function safeLocalStorage(): Storage | null {
 }
 
 function saveManagementToken(token: string, managementToken: string, expiresAt?: string) {
-  ephemeralManagementTokens.set(token, managementToken);
-  try { safeLocalStorage()?.setItem(`${MANAGED_LINK_PREFIX}${token}`, JSON.stringify({ managementToken, expiresAt } satisfies StoredManagementToken)); } catch { /* armazenamento pode estar indisponível; o link continua compartilhável nesta sessão */ }
+  const value = { managementToken, expiresAt } satisfies StoredManagementToken;
+  ephemeralManagementTokens.set(token, value);
+  try { safeLocalStorage()?.setItem(`${MANAGED_LINK_PREFIX}${token}`, JSON.stringify(value)); } catch { /* armazenamento pode estar indisponível; o link continua compartilhável nesta sessão */ }
 }
 
-export function managedSharedSelectionToken(token: string): string | null {
+function isManagementTokenActive(value: StoredManagementToken, now: number): boolean {
+  return UUID_PATTERN.test(value.managementToken) && (!value.expiresAt || (Number.isFinite(Date.parse(value.expiresAt)) && Date.parse(value.expiresAt) > now));
+}
+
+export function managedSharedSelectionToken(token: string, now = Date.now()): string | null {
   if (!UUID_PATTERN.test(token)) return null;
   const inMemory = ephemeralManagementTokens.get(token);
-  if (inMemory && UUID_PATTERN.test(inMemory)) return inMemory;
+  if (inMemory) {
+    if (isManagementTokenActive(inMemory, now)) return inMemory.managementToken;
+    ephemeralManagementTokens.delete(token);
+  }
   try {
     const value = safeLocalStorage()?.getItem(`${MANAGED_LINK_PREFIX}${token}`) || null;
     if (value && UUID_PATTERN.test(value)) return value; // compatibilidade com links criados antes deste formato.
     const parsed = value ? JSON.parse(value) as StoredManagementToken : null;
-    return parsed && UUID_PATTERN.test(parsed.managementToken) ? parsed.managementToken : null;
+    if (parsed && isManagementTokenActive(parsed, now)) return parsed.managementToken;
+    if (value) safeLocalStorage()?.removeItem(`${MANAGED_LINK_PREFIX}${token}`);
+    return null;
   } catch { return null; }
 }
 
@@ -133,21 +157,30 @@ export function managedSharedSelectionToken(token: string): string | null {
  */
 export function managedSharedSelectionTokens(now = Date.now()): string[] {
   const storage = safeLocalStorage();
-  if (!storage) return [...ephemeralManagementTokens.keys()];
-  const tokens = new Set<string>(ephemeralManagementTokens.keys());
+  const tokens = new Set<string>();
+  for (const [token, value] of ephemeralManagementTokens) {
+    if (isManagementTokenActive(value, now)) tokens.add(token);
+    else ephemeralManagementTokens.delete(token);
+  }
+  if (!storage) return [...tokens];
   try {
-    for (let index = 0; index < storage.length; index += 1) {
-      const key = storage.key(index);
+    // Remover uma entrada dentro de um loop indexado desloca a próxima chave e
+    // faz um link válido desaparecer da lista. Percorremos uma fotografia.
+    const keys = Array.from({ length: storage.length }, (_, index) => storage.key(index)).filter((key): key is string => Boolean(key));
+    for (const key of keys) {
       if (!key?.startsWith(MANAGED_LINK_PREFIX)) continue;
       const token = key.slice(MANAGED_LINK_PREFIX.length);
-      if (!UUID_PATTERN.test(token)) continue;
+      if (!UUID_PATTERN.test(token)) { storage.removeItem(key); continue; }
       const raw = storage.getItem(key);
       if (!raw) continue;
       if (UUID_PATTERN.test(raw)) { tokens.add(token); continue; }
-      const value = JSON.parse(raw) as StoredManagementToken;
-      if (!UUID_PATTERN.test(value.managementToken)) { storage.removeItem(key); continue; }
-      if (value.expiresAt && Date.parse(value.expiresAt) <= now) { storage.removeItem(key); continue; }
-      tokens.add(token);
+      try {
+        const value = JSON.parse(raw) as StoredManagementToken;
+        if (!isManagementTokenActive(value, now)) { storage.removeItem(key); continue; }
+        tokens.add(token);
+      } catch {
+        storage.removeItem(key);
+      }
     }
   } catch {
     // A revogação do link corrente ainda funciona quando o armazenamento falha.
@@ -185,7 +218,9 @@ export async function fetchPersistentSharedSelection(token: string): Promise<{ i
   if (!UUID_PATTERN.test(token)) return null;
   try {
     const payload = await selectionApi<{ items?: unknown; expiresAt?: string }>({ action: 'read', token });
-    return { items: decodeSharedSelection(toBase64Url(JSON.stringify({ v: VERSION, i: payload.items }))), expiresAt: String(payload.expiresAt || '') };
+    const items = normalizeSharedSelectionItems(payload.items);
+    if (!items.length) return null;
+    return { items, expiresAt: String(payload.expiresAt || '') };
   } catch (error) {
     if (error instanceof Error && error.message === 'Esta seleção não está disponível.') return null;
     throw error;

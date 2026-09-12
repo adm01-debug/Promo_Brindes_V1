@@ -30,6 +30,7 @@ type CartAction =
   | { type: 'reset' }
   | { type: 'replace'; items: QuoteItem[] }
   | { type: 'replace-selection'; items: QuoteItem[] }
+  | { type: 'restore-selection'; state: CartState }
   | { type: 'restore'; item: QuoteItem; index: number }
   | { type: 'campaign'; campaign?: CampaignBrief }
   | { type: 'selection-title'; title?: string }
@@ -94,6 +95,12 @@ export function cartReducer(state: CartState, action: CartAction): CartState {
       // observações. Não deixar metadados de uma seleção anterior descrevendo
       // os novos produtos.
       return { items: normalizeQuoteItems(action.items) };
+    case 'restore-selection':
+      return {
+        items: normalizeQuoteItems(action.state.items),
+        campaign: normalizeCampaignBrief(action.state.campaign),
+        selectionTitle: action.state.selectionTitle?.trim().slice(0, 100) || undefined,
+      };
     case 'restore': {
       const restored = normalizeQuoteItems([action.item])[0];
       if (!restored || state.items.some((item) => item.key === restored.key)) return state;
@@ -283,8 +290,7 @@ export function QuoteCartProvider({ children }: { children: ReactNode }) {
       canUndoClear: Boolean(lastCleared),
       restoreLastClear: () => {
         if (!lastCleared) return;
-        dispatch({ type: 'replace', items: lastCleared.items });
-        dispatch({ type: 'campaign', campaign: lastCleared.campaign });
+        dispatch({ type: 'restore-selection', state: lastCleared });
         setLastCleared(null);
       },
       dismissLastClear: () => setLastCleared(null),

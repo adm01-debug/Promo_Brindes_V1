@@ -2,6 +2,8 @@
 
 Data: 11/09/2026. Código auditado: `7104660`.
 
+> Registro histórico. Para o estado posterior em `90761ab` e as alterações locais ainda não publicadas, consulte a [revisão atual](REVISAO_IMPLEMENTACAO_ATUAL_20260911.md) e sua matriz de rastreabilidade. Os achados e números abaixo não devem ser interpretados como validação atual de produção.
+
 ## 1. Conclusão executiva
 
 **Não implementamos integralmente todos os planos.** Há uma base funcional relevante, mas também funções ausentes, entregas parciais, critérios de aceite sem comprovação e defeitos reproduzidos em funcionalidades já publicadas. Aprovação de testes existentes não equivale a aprovação de todos os requisitos.

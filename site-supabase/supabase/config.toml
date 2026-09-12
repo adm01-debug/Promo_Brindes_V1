@@ -31,19 +31,11 @@ backend = "postgres"
 
 [auth]
 site_url = "https://promo-brindes-v1.vercel.app"
-# Entradas legadas já existentes no projeto remoto são preservadas para que um
-# config push do site nunca interrompa callbacks de integrações ainda ativas.
+# Login e recuperação sempre retornam à aplicação pública canônica. Previews
+# não recebem códigos de autenticação: eles usam mocks nos testes de interface.
 additional_redirect_urls = [
   "https://promo-brindes-v1.vercel.app/auth/confirm",
   "https://promo-brindes-v1.vercel.app/definir-senha",
-  "https://promo-brindes-v1-juca1.vercel.app/",
-  "https://promo-brindes-v1-juca1.vercel.app/**",
-  "https://promo-*-brindes-v1-juca1.vercel.app",
-  "https://promo-*-brindes-v1-juca1.vercel.app/**",
-  "https://visao-v2-juca1.vercel.app/",
-  "https://visao-v2-juca1.vercel.app/**",
-  "https://visao-*-v2-juca1.vercel.app",
-  "https://visao-*-v2-juca1.vercel.app/**",
 ]
 enable_signup = true
 minimum_password_length = 8

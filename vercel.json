@@ -6,24 +6,28 @@
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
     { "source": "/", "destination": "/index.html" },
-    { "source": "/catalogo", "destination": "/index.html" },
-    { "source": "/catalogos", "destination": "/index.html" },
-    { "source": "/datas-comemorativas", "destination": "/index.html" },
+    { "source": "/catalogo", "destination": "/api/site-page?page=catalogo" },
+    { "source": "/catalogos", "destination": "/api/site-page?page=catalogos" },
+    { "source": "/datas-comemorativas", "destination": "/api/site-page?page=datas" },
     { "source": "/produto/:identifier", "destination": "/api/product-page" },
-    { "source": "/orcamento", "destination": "/index.html" },
-    { "source": "/selecoes/compartilhada", "destination": "/index.html" },
-    { "source": "/ideias/:topic", "destination": "/index.html" },
-    { "source": "/sobre", "destination": "/index.html" },
-    { "source": "/contato", "destination": "/index.html" },
-    { "source": "/privacidade", "destination": "/index.html" },
-    { "source": "/entrar", "destination": "/index.html" },
-    { "source": "/auth/confirm", "destination": "/index.html" },
-    { "source": "/definir-senha", "destination": "/index.html" },
-    { "source": "/minha-conta", "destination": "/index.html" },
-    { "source": "/minha-conta/orcamentos/:id", "destination": "/index.html" },
+    { "source": "/orcamento", "destination": "/api/site-page?page=orcamento" },
+    { "source": "/selecoes/compartilhada", "destination": "/api/site-page?page=compartilhada" },
+    { "source": "/ideias/:topic", "destination": "/api/site-page?page=ideia&topic=:topic" },
+    { "source": "/sobre", "destination": "/api/site-page?page=sobre" },
+    { "source": "/contato", "destination": "/api/site-page?page=contato" },
+    { "source": "/privacidade", "destination": "/api/site-page?page=privacidade" },
+    { "source": "/entrar", "destination": "/api/site-page?page=entrar" },
+    { "source": "/auth/confirm", "destination": "/api/site-page?page=confirmar" },
+    { "source": "/definir-senha", "destination": "/api/site-page?page=senha" },
+    { "source": "/minha-conta", "destination": "/api/site-page?page=conta" },
+    { "source": "/minha-conta/orcamentos/:id", "destination": "/api/site-page?page=detalheOrcamento" },
     { "source": "/:path((?!api/|assets/|images/|brand/|sitemap\\.xml$|robots\\.txt$|favicon\\.svg$).*)", "destination": "/api/not-found" }
   ],
   "headers": [
+    {
+      "source": "/minha-conta",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }]
+    },
     {
       "source": "/minha-conta/(.*)",
       "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }]
@@ -55,13 +59,17 @@
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
         { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "Strict-Transport-Security", "value": "max-age=31536000" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; font-src 'self'; connect-src 'self' https://doufsxqlfjyuvxuezpln.supabase.co https://xlzmclcjdncjfdrjxclt.supabase.co https://va.vercel-scripts.com" }
+        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains" },
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; font-src 'self'; connect-src 'self' https://doufsxqlfjyuvxuezpln.supabase.co https://xlzmclcjdncjfdrjxclt.supabase.co https://va.vercel-scripts.com" }
       ]
     },
     {
       "source": "/assets/(.*)",
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/hero-preload.js",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600, must-revalidate" }]
     },
     {
       "source": "/images/(.*)",

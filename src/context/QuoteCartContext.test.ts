@@ -104,4 +104,9 @@ describe('seleção para orçamento', () => {
     );
     expect(state).toEqual({ items: [replacement] });
   });
+
+  it('restaura itens, campanha e título juntos ao desfazer uma limpeza', () => {
+    const saved = { items: [item], campaign: { source: 'finder' as const, moment: 'onboarding' as const }, selectionTitle: 'Boas-vindas do time' };
+    expect(cartReducer({ items: [] }, { type: 'restore-selection', state: saved })).toEqual(saved);
+  });
 });

@@ -91,11 +91,29 @@ describe('links persistentes de seleção', () => {
     vi.stubEnv('VERCEL_URL', 'promo-brindes-v1-preview-abc-juca1.vercel.app');
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ items: [item], expiresAt: '2026-10-11T12:00:00.000Z' }), { status: 200 })));
     const allowed = responseDouble();
-    await handler(request({ action: 'read', token }, { headers: { origin: 'https://promo-brindes-v1-preview-abc-juca1.vercel.app' } }), allowed.response);
+    await handler(request({ action: 'read', token }, { headers: { origin: 'https://promo-brindes-v1-preview-abc-juca1.vercel.app', 'content-type': 'application/json' } }), allowed.response);
     expect(allowed.result.statusCode).toBe(200);
 
     const denied = responseDouble();
-    await handler(request({ action: 'read', token }, { headers: { origin: 'https://promo-brindes-v1-preview-other.vercel.app' } }), denied.response);
+    await handler(request({ action: 'read', token }, { headers: { origin: 'https://promo-brindes-v1-preview-other.vercel.app', 'content-type': 'application/json' } }), denied.response);
     expect(denied.result.statusCode).toBe(403);
+  });
+
+  it('exige JSON e limita o payload antes de consultar o banco', async () => {
+    configure();
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const unsupported = responseDouble();
+    await handler(request({ action: 'read', token }, { headers: { origin: 'https://promo-brindes-v1.vercel.app', 'content-type': 'text/plain' } }), unsupported.response);
+    expect(unsupported.result.statusCode).toBe(415);
+
+    const oversized = responseDouble();
+    await handler(request({ action: 'read', token, padding: 'x'.repeat(17 * 1024) }), oversized.response);
+    expect(oversized.result.statusCode).toBe(413);
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    const spoofed = responseDouble();
+    await handler(request({ action: 'read', token }, { headers: { origin: 'https://promo-brindes-v1.vercel.app', 'content-type': 'application/json-evil' } }), spoofed.response);
+    expect(spoofed.result.statusCode).toBe(415);
   });
 });

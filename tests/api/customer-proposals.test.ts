@@ -60,6 +60,28 @@ describe('download autenticado de propostas', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it('aceita o deployment Vercel corrente e bloqueia corpo inválido antes do banco', async () => {
+    configure();
+    vi.stubEnv('VERCEL_URL', 'promo-brindes-v1-preview-abc-juca1.vercel.app');
+    const fetchMock = vi.fn().mockResolvedValue(new Response('null', { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const preview = responseDouble();
+    await proposalHandler(request({ headers: { origin: 'https://promo-brindes-v1-preview-abc-juca1.vercel.app', authorization: `Bearer ${'a'.repeat(40)}`, 'content-type': 'application/json' } }), preview.response);
+    expect(preview.result.statusCode).toBe(404);
+
+    const unsupported = responseDouble();
+    await proposalHandler(request({ headers: { origin: 'https://promo-brindes-v1.vercel.app', authorization: `Bearer ${'a'.repeat(40)}`, 'content-type': 'text/plain' } }), unsupported.response);
+    expect(unsupported.result.statusCode).toBe(415);
+
+    const oversized = responseDouble();
+    await proposalHandler(request({ body: { proposalId: '11111111-1111-4111-8111-111111111111', padding: 'x'.repeat(5 * 1024) } }), oversized.response);
+    expect(oversized.result.statusCode).toBe(413);
+
+    const spoofed = responseDouble();
+    await proposalHandler(request({ headers: { origin: 'https://promo-brindes-v1.vercel.app', authorization: `Bearer ${'a'.repeat(40)}`, 'content-type': 'application/json-evil' } }), spoofed.response);
+    expect(spoofed.result.statusCode).toBe(415);
+  });
+
   it('não revela se proposta alheia existe', async () => {
     configure();
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('null', { status: 200 })));

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { buildCatalogParams, buildNoveltyProfileFilter, defaultQuoteQuantity, fetchCatalog, fetchProduct, mapProductRow, parseContentRange, resolveProductResource, resolvePublicApiKey, resolveSupabaseUrl, sanitizeSearch, type ProductRow } from './catalog';
+import { buildCatalogParams, buildNoveltyProfileFilter, defaultQuoteQuantity, fetchCatalog, fetchProduct, fetchProductsByIds, mapProductRow, parseContentRange, resolveProductResource, resolvePublicApiKey, resolveSupabaseUrl, sanitizeSearch, type ProductRow } from './catalog';
 
 const rootCategoryId = '11111111-1111-4111-8111-111111111111';
 const childCategoryId = '22222222-2222-4222-8222-222222222222';
@@ -198,6 +198,20 @@ describe('catálogo público', () => {
     await expect(fetchProduct(`${'slug-'.repeat(2_000)}fim`)).resolves.toBeNull();
     await expect(fetchProduct('produto),or(is_active.eq.false')).resolves.toBeNull();
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('reidrata até cinquenta referências compartilhadas sem truncar a consulta', async () => {
+    const ids = Array.from({ length: 50 }, (_, index) => `${String(index + 1).padStart(8, '0')}-1111-4111-8111-111111111111`);
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify([row]), {
+      status: 200,
+      headers: { 'content-range': '0-0/1' },
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await fetchProductsByIds(ids, undefined, ids.length);
+    const requestUrl = new URL(String(fetchMock.mock.calls[0][0]));
+    expect(requestUrl.searchParams.get('limit')).toBe('50');
+    expect(requestUrl.searchParams.get('id')).toContain(ids.at(-1)!);
   });
 
   it('aceita apenas a origem canônica ou o Supabase local', () => {

@@ -3,11 +3,34 @@ import type { ApiRequest, ApiResponse } from './_lib/leadHandler.js';
 
 const PROPOSAL_BUCKET = 'customer-proposals';
 const REQUEST_TIMEOUT_MS = 10_000;
+const MAX_PROPOSAL_BODY_BYTES = 4 * 1024;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function header(request: ApiRequest, name: string): string {
   const value = request.headers[name] ?? request.headers[name.toLowerCase()];
   return Array.isArray(value) ? value[0] || '' : value || '';
+}
+
+function hasAllowedOrigin(request: ApiRequest): boolean {
+  const primaryOrigin = process.env.SITE_PUBLIC_ORIGIN?.trim();
+  const deploymentHost = process.env.VERCEL_URL?.trim();
+  const allowedOrigins = new Set([primaryOrigin, deploymentHost ? `https://${deploymentHost}` : ''].filter(Boolean));
+  return allowedOrigins.has(header(request, 'origin'));
+}
+
+function proposalPayload(request: ApiRequest): { proposalId?: string; error?: 'unsupported_media_type' | 'payload_too_large' | 'invalid_proposal' } {
+  if (header(request, 'content-type').split(';', 1)[0]?.trim().toLowerCase() !== 'application/json') return { error: 'unsupported_media_type' };
+  let parsed: unknown;
+  try {
+    const serialized = JSON.stringify(request.body ?? null);
+    if (!serialized) return { error: 'invalid_proposal' };
+    if (Buffer.byteLength(serialized) > MAX_PROPOSAL_BODY_BYTES) return { error: 'payload_too_large' };
+    parsed = JSON.parse(serialized);
+  } catch {
+    return { error: 'invalid_proposal' };
+  }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return { error: 'invalid_proposal' };
+  return { proposalId: String((parsed as { proposalId?: unknown }).proposalId || '') };
 }
 
 function signedStorageUrl(baseUrl: string, candidate: string): string {
@@ -30,8 +53,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     response.status(405).json({ error: 'method_not_allowed', message: 'Método não permitido.' });
     return;
   }
-  const allowedOrigin = process.env.SITE_PUBLIC_ORIGIN?.trim();
-  if (!allowedOrigin || header(request, 'origin') !== allowedOrigin) {
+  if (!hasAllowedOrigin(request)) {
     response.status(403).json({ error: 'origin_not_allowed', message: 'Origem não autorizada.' });
     return;
   }
@@ -40,9 +62,16 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     response.status(401).json({ error: 'authentication_required', message: 'Entre novamente para abrir a proposta.' });
     return;
   }
-  const proposalId = request.body && typeof request.body === 'object' && !Array.isArray(request.body)
-    ? String((request.body as { proposalId?: unknown }).proposalId || '')
-    : '';
+  const payload = proposalPayload(request);
+  if (payload.error === 'unsupported_media_type') {
+    response.status(415).json({ error: payload.error, message: 'Envie o conteúdo como application/json.' });
+    return;
+  }
+  if (payload.error === 'payload_too_large') {
+    response.status(413).json({ error: payload.error, message: 'A solicitação ultrapassa o limite permitido.' });
+    return;
+  }
+  const proposalId = payload.proposalId || '';
   if (!UUID_PATTERN.test(proposalId)) {
     response.status(400).json({ error: 'invalid_proposal', message: 'Proposta inválida.' });
     return;

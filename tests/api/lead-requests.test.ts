@@ -302,6 +302,10 @@ describe('APIs de leads isoladas', () => {
     const formResponse = responseDouble();
     await contactHandler(request(contactPayload, { headers: { 'content-type': 'application/x-www-form-urlencoded' } }), formResponse.response);
     expect(formResponse.result.statusCode).toBe(415);
+
+    const spoofedJsonResponse = responseDouble();
+    await contactHandler(request(contactPayload, { headers: { 'content-type': 'application/json-evil', origin: 'https://www.promobrindes.com.br' } }), spoofedJsonResponse.response);
+    expect(spoofedJsonResponse.result.statusCode).toBe(415);
   });
 
   it('rejeita JSON malformado em texto, buffer ou corpo não serializável', async () => {

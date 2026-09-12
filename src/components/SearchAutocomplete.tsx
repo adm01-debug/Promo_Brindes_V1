@@ -80,7 +80,10 @@ export function SearchAutocomplete({
       onSubmit={submit}
       onFocus={() => setOpen(true)}
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOpen(false);
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          setOpen(false);
+          setActiveIndex(-1);
+        }
       }}
     >
       <Search size={21} aria-hidden="true" />
@@ -96,7 +99,7 @@ export function SearchAutocomplete({
         aria-autocomplete="list"
         aria-expanded={visible}
         aria-controls={listboxId}
-        aria-activedescendant={activeIndex >= 0 ? `${listboxId}-${activeIndex}` : undefined}
+        aria-activedescendant={visible && activeIndex >= 0 ? `${listboxId}-${activeIndex}` : undefined}
       />
       {variant === 'catalog' && value && onClear && (
         <button className="catalog-search__clear" type="button" aria-label="Limpar busca" onClick={() => { setOpen(false); onClear(); }}>

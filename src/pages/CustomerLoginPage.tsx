@@ -9,6 +9,16 @@ import { trackFunnelEvent } from '../lib/analytics';
 
 type AccessMode = 'email' | 'password' | 'create' | 'recover';
 
+const CANONICAL_PUBLIC_ORIGIN = 'https://promo-brindes-v1.vercel.app';
+
+export function customerAuthRedirect(next: string): string {
+  // Auth não herda window.location.origin: previews e hosts inesperados não
+  // podem virar destino de magic-link ou recuperação de senha.
+  const url = new URL('/auth/confirm', CANONICAL_PUBLIC_ORIGIN);
+  url.searchParams.set('next', next);
+  return url.href;
+}
+
 function authMessage(message: string): string {
   const normalized = message.toLowerCase();
   if (normalized.includes('invalid login')) return 'E-mail ou senha não conferem.';
@@ -57,7 +67,7 @@ export default function CustomerLoginPage() {
       if (mode === 'email') {
         const result = await siteSupabase.auth.signInWithOtp({
           email: email.trim().toLowerCase(),
-          options: { emailRedirectTo: `${window.location.origin}/auth/confirm?next=${encodeURIComponent(next)}`, shouldCreateUser: true },
+          options: { emailRedirectTo: customerAuthRedirect(next), shouldCreateUser: true },
         });
         if (result.error) throw result.error;
         setCodeSent(true);
@@ -75,7 +85,7 @@ export default function CustomerLoginPage() {
         const result = await siteSupabase.auth.signUp({
           email: email.trim().toLowerCase(),
           password,
-          options: { emailRedirectTo: `${window.location.origin}/auth/confirm?next=${encodeURIComponent(next)}` },
+          options: { emailRedirectTo: customerAuthRedirect(next) },
         });
         if (result.error) throw result.error;
         setMessage(result.data.session ? 'Acesso criado. Abrindo seus orçamentos…' : 'Conta criada. Confirme o link enviado ao seu e-mail.');
@@ -86,7 +96,7 @@ export default function CustomerLoginPage() {
         return;
       }
       const result = await siteSupabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
-        redirectTo: `${window.location.origin}/auth/confirm?next=/definir-senha`,
+        redirectTo: customerAuthRedirect('/definir-senha'),
       });
       if (result.error) throw result.error;
       setMessage('Se houver uma conta com este e-mail, enviaremos as instruções de recuperação.');
