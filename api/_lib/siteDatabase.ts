@@ -79,6 +79,7 @@ export async function persistLead(kind: LeadKind, payload: NormalizedLeadPayload
           ...(payload.source === 'site-promo-brindes' ? {
             campaign: payload.campaign || null,
             briefing: payload.briefing || null,
+            notificationPreferences: payload.notificationPreferences,
           } : {}),
         },
       }),

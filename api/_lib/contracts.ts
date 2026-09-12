@@ -58,6 +58,7 @@ export interface NormalizedQuotePayload extends NormalizedCommon {
   items: NormalizedQuoteItem[];
   campaign?: NormalizedCampaignBrief;
   briefing?: NormalizedQuoteBriefing;
+  notificationPreferences: { emailCopy: true; whatsappCopy: boolean };
 }
 
 export type NormalizedLeadPayload = NormalizedQuotePayload | NormalizedContactPayload;
@@ -89,6 +90,13 @@ function text(value: unknown, field: string, min: number, max: number, optional 
 function boolean(value: unknown, field: string): boolean {
   if (typeof value !== 'boolean') throw new RequestValidationError(`O campo ${field} é inválido.`);
   return value;
+}
+
+function notificationPreferences(value: unknown): NormalizedQuotePayload['notificationPreferences'] {
+  if (value == null) return { emailCopy: true, whatsappCopy: false };
+  const raw = object(value, 'notificationPreferences');
+  if (raw.emailCopy !== true) throw new RequestValidationError('A cópia de confirmação por e-mail é obrigatória para este fluxo.');
+  return { emailCopy: true, whatsappCopy: boolean(raw.whatsappCopy, 'notificationPreferences.whatsappCopy') };
 }
 
 function email(value: unknown): string {
@@ -140,6 +148,14 @@ function pageUrl(value: unknown): string {
   }
 }
 
+function businessCalendarDate(now = new Date()): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(now);
+  const value = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${value.year}-${value.month}-${value.day}`;
+}
+
 function deadline(value: unknown): string {
   const normalized = text(value, 'prazo', 0, 10, true);
   if (!normalized) return '';
@@ -148,7 +164,7 @@ function deadline(value: unknown): string {
   if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== normalized) {
     throw new RequestValidationError('O campo prazo é inválido.');
   }
-  if (normalized < new Date().toISOString().slice(0, 10)) {
+  if (normalized < businessCalendarDate()) {
     throw new RequestValidationError('O prazo não pode estar no passado.');
   }
   return normalized;
@@ -353,5 +369,6 @@ export function normalizeLeadPayload(kind: LeadKind, body: unknown): NormalizedL
     items: payload.items.map(quoteItem),
     campaign: campaignBrief(payload.campaign),
     briefing: normalizedBriefing,
+    notificationPreferences: notificationPreferences(payload.notificationPreferences),
   };
 }

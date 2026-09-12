@@ -1,0 +1,46 @@
+{
+  "date": "2026-09-12",
+  "commit": "b789e45f3171ce56a9e5eff4f8bbb3d6acc145c7",
+  "mode": "audit-no-application-or-remote-writes",
+  "gitHubMainMatchesLocalHead": true,
+  "checks": {
+    "npmRunCheck": {
+      "exitCode": 0,
+      "types": "passed",
+      "unitFiles": 33,
+      "unitPassed": 164,
+      "build": "passed",
+      "performanceBudget": "passed",
+      "chromiumPassed": 66,
+      "chromiumSkipped": 4
+    },
+    "dbSiteTest": { "passed": 101, "files": 2, "environment": "local" },
+    "graphifyTests": { "passed": 6 },
+    "crossBrowser": {
+      "passed": 59,
+      "skipped": 10,
+      "failed": 1,
+      "failure": "desktop-webkit: mostra produto sem estoque confiável; quantidade esperada 250, recebida 50",
+      "isolatedRepeatPassed": 3,
+      "conclusion": "Intermittent failure remains unresolved; isolated retries do not erase the first failure."
+    },
+    "npmAudit": { "vulnerabilities": 0 },
+    "productionHttp": { "requests": 20, "valid200": 17, "invalid404": 3 },
+    "databaseLedger": { "local": 14, "remote": 14, "differences": 0 },
+    "vercelProductionCronSecret": "present-and-sensitive; value not read; scheduled execution not exercised"
+  },
+  "ciAtAuditedCommit": {
+    "quality": "success",
+    "crossBrowser": "success",
+    "database": "success",
+    "graphify": "success",
+    "supabasePreview": "failure-before-ledger-reconciliation; not rerun during this audit"
+  },
+  "limitations": [
+    "Local Node 24.19.0 differs from the project's >=22.13 <23 engine and CI Node 22.13.1.",
+    "No current real authenticated end-to-end write cycle or email/WhatsApp delivery test.",
+    "Viewport snapshots and automated tests do not certify physical devices or assistive technology.",
+    "No destructive retention run was invoked in production.",
+    "230 overlapping plan references are not 230 independently tested acceptance criteria."
+  ]
+}

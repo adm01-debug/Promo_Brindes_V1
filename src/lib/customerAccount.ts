@@ -38,6 +38,17 @@ export interface CustomerProposal {
   isCurrent: boolean;
 }
 
+function localCalendarDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+export function isProposalExpired(proposal: Pick<CustomerProposal, 'validUntil'>, today = localCalendarDate(new Date())): boolean {
+  return Boolean(proposal.validUntil && proposal.validUntil < today);
+}
+
 export interface CustomerQuoteDetail {
   id: string;
   protocol: string;

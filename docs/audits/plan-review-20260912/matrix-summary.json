@@ -1,0 +1,66 @@
+{
+  "references": 230,
+  "states": {
+    "I": 86,
+    "P": 114,
+    "E": 11,
+    "N": 15,
+    "A": 4
+  },
+  "plans": {
+    "UX": {
+      "I": 35,
+      "P": 54,
+      "E": 4,
+      "N": 7
+    },
+    "LK": {
+      "I": 12,
+      "E": 7,
+      "P": 25,
+      "N": 6
+    },
+    "GR": {
+      "I": 18,
+      "P": 26,
+      "A": 4,
+      "N": 2
+    },
+    "AC": {
+      "I": 21,
+      "P": 9
+    }
+  },
+  "changes": [
+    {
+      "id": "UX07",
+      "estado_anterior": "I",
+      "estado_revisado": "P"
+    },
+    {
+      "id": "UX19",
+      "estado_anterior": "P",
+      "estado_revisado": "I"
+    },
+    {
+      "id": "UX52",
+      "estado_anterior": "P",
+      "estado_revisado": "I"
+    },
+    {
+      "id": "UX56",
+      "estado_anterior": "P",
+      "estado_revisado": "I"
+    },
+    {
+      "id": "AC22",
+      "estado_anterior": "I",
+      "estado_revisado": "P"
+    },
+    {
+      "id": "AC28",
+      "estado_anterior": "P",
+      "estado_revisado": "I"
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "date": "2026-09-12T16:12:16.212Z",
+  "environment": "local-mocked",
+  "results": [
+    {
+      "scenario": "rascunho_apos_sucesso",
+      "posts": 1,
+      "draftExists": true,
+      "contactRetained": true,
+      "consentRetained": true
+    },
+    {
+      "scenario": "evento_passado_sem_recebimento",
+      "submittedEventDate": "2020-01-01"
+    },
+    {
+      "scenario": "proposta_vencida",
+      "proposalText": "Proposta vencida\nVersão atual · v1 · publicada em 31 de dezembro de 2019 às 21:00\nVálida até 01/01/2020\nAbrir proposta"
+    },
+    {
+      "scenario": "troca_solicitacao_com_erro",
+      "calls": 3,
+      "urlHasNewId": true,
+      "oldTitleVisible": true,
+      "genericErrorVisible": false
+    },
+    {
+      "scenario": "reconciliar_catalogo",
+      "minimum": null,
+      "accepted": false,
+      "code": "catalog_item_unavailable"
+    },
+    {
+      "scenario": "reconciliar_catalogo",
+      "minimum": 0,
+      "accepted": true,
+      "storedMinimum": 0,
+      "acceptedUnknownVariant": true
+    },
+    {
+      "scenario": "reconciliar_catalogo",
+      "minimum": 50,
+      "accepted": true,
+      "storedMinimum": 50,
+      "acceptedUnknownVariant": true
+    }
+  ]
+}

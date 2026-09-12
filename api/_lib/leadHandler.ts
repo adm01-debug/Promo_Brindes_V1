@@ -1,6 +1,7 @@
 import { normalizeLeadPayload, RequestValidationError, type LeadKind } from './contracts.js';
 import { reconcileQuoteItems } from './catalogValidation.js';
 import { persistLead, SiteDatabaseError } from './siteDatabase.js';
+import { deliverQuoteConfirmationsNow } from '../notifications.js';
 
 export interface ApiRequest {
   method?: string;
@@ -105,7 +106,15 @@ export async function handleLeadRequest(kind: LeadKind, request: ApiRequest, res
       userAgent: header(request, 'user-agent'),
       origin: header(request, 'origin'),
     });
-    response.status(result.duplicate ? 200 : 201).json(result);
+    const confirmations = payload.source === 'site-promo-brindes'
+      ? result.duplicate
+        ? { email: 'pending' as const, whatsapp: payload.notificationPreferences.whatsappCopy ? 'pending' as const : 'not_requested' as const }
+        : await deliverQuoteConfirmationsNow(result.requestId, payload.notificationPreferences.whatsappCopy)
+      : undefined;
+    response.status(result.duplicate ? 200 : 201).json({
+      ...result,
+      ...(confirmations ? { confirmations } : {}),
+    });
   } catch (error) {
     if (error instanceof RequestValidationError || error instanceof SiteDatabaseError) {
       response.status(error.status).json({ error: error.code, message: error.message });

@@ -1,0 +1,426 @@
+{
+  "date": "2026-09-12T16:12:28.753Z",
+  "project": "xlzmclcjdncjfdrjxclt",
+  "ledgerHttp": 200,
+  "catalogHttp": 201,
+  "advisorHttp": 200,
+  "remote": [
+    {
+      "version": "20260908",
+      "name": "230000_create_site_lead_storage"
+    },
+    {
+      "version": "20260909",
+      "name": "103000_lock_down_rls_event_trigger"
+    },
+    {
+      "version": "20260909180000",
+      "name": "create_customer_quote_portal"
+    },
+    {
+      "version": "20260910100000",
+      "name": "expose_safe_quote_context_to_customer"
+    },
+    {
+      "version": "20260910103000",
+      "name": "store_contact_message"
+    },
+    {
+      "version": "20260910110000",
+      "name": "enrich_customer_history"
+    },
+    {
+      "version": "20260910120000",
+      "name": "preserve_variant_and_contact_preference"
+    },
+    {
+      "version": "20260910130000",
+      "name": "customer_adjustments_and_preferences"
+    },
+    {
+      "version": "20260910140000",
+      "name": "preserve_item_decision_group"
+    },
+    {
+      "version": "20260911130000",
+      "name": "add_site_data_retention"
+    },
+    {
+      "version": "20260911150000",
+      "name": "fix_retention_storage_orchestration"
+    },
+    {
+      "version": "20260911170000",
+      "name": "add_revocable_shared_selections"
+    },
+    {
+      "version": "20260911180000",
+      "name": "expand_shared_selection_retention"
+    },
+    {
+      "version": "20260911190000",
+      "name": "harden_retention_metadata"
+    }
+  ],
+  "local": [
+    {
+      "version": "20260908",
+      "name": "230000_create_site_lead_storage"
+    },
+    {
+      "version": "20260909180000",
+      "name": "create_customer_quote_portal"
+    },
+    {
+      "version": "20260909",
+      "name": "103000_lock_down_rls_event_trigger"
+    },
+    {
+      "version": "20260910100000",
+      "name": "expose_safe_quote_context_to_customer"
+    },
+    {
+      "version": "20260910103000",
+      "name": "store_contact_message"
+    },
+    {
+      "version": "20260910110000",
+      "name": "enrich_customer_history"
+    },
+    {
+      "version": "20260910120000",
+      "name": "preserve_variant_and_contact_preference"
+    },
+    {
+      "version": "20260910130000",
+      "name": "customer_adjustments_and_preferences"
+    },
+    {
+      "version": "20260910140000",
+      "name": "preserve_item_decision_group"
+    },
+    {
+      "version": "20260911130000",
+      "name": "add_site_data_retention"
+    },
+    {
+      "version": "20260911150000",
+      "name": "fix_retention_storage_orchestration"
+    },
+    {
+      "version": "20260911170000",
+      "name": "add_revocable_shared_selections"
+    },
+    {
+      "version": "20260911180000",
+      "name": "expand_shared_selection_retention"
+    },
+    {
+      "version": "20260911190000",
+      "name": "harden_retention_metadata"
+    }
+  ],
+  "differences": [],
+  "catalog": [
+    {
+      "audit": {
+        "tables": [
+          {
+            "rls": true,
+            "name": "customer_profiles",
+            "anon_select": false,
+            "auth_select": false
+          },
+          {
+            "rls": true,
+            "name": "proposal_documents",
+            "anon_select": false,
+            "auth_select": false
+          },
+          {
+            "rls": true,
+            "name": "quote_request_events",
+            "anon_select": false,
+            "auth_select": false
+          },
+          {
+            "rls": true,
+            "name": "quote_adjustment_requests",
+            "anon_select": false,
+            "auth_select": false
+          },
+          {
+            "rls": true,
+            "name": "shared_selections",
+            "anon_select": false,
+            "auth_select": false
+          },
+          {
+            "rls": true,
+            "name": "shared_selection_rate_limits",
+            "anon_select": false,
+            "auth_select": false
+          },
+          {
+            "rls": true,
+            "name": "quote_requests",
+            "anon_select": false,
+            "auth_select": false
+          },
+          {
+            "rls": true,
+            "name": "contact_requests",
+            "anon_select": false,
+            "auth_select": false
+          },
+          {
+            "rls": true,
+            "name": "consent_receipts",
+            "anon_select": false,
+            "auth_select": false
+          },
+          {
+            "rls": true,
+            "name": "rate_limit_buckets",
+            "anon_select": false,
+            "auth_select": false
+          },
+          {
+            "rls": true,
+            "name": "notification_deliveries",
+            "anon_select": false,
+            "auth_select": false
+          },
+          {
+            "rls": true,
+            "name": "quote_items",
+            "anon_select": false,
+            "auth_select": false
+          }
+        ],
+        "limit_50": true,
+        "policies": 0,
+        "functions": [
+          {
+            "name": "revoke_site_shared_selection",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "definer": false,
+            "anon_exec": false,
+            "auth_exec": false
+          },
+          {
+            "name": "claim_my_quote_requests",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "definer": true,
+            "anon_exec": false,
+            "auth_exec": true
+          },
+          {
+            "name": "get_my_quote_requests",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "definer": true,
+            "anon_exec": false,
+            "auth_exec": true
+          },
+          {
+            "name": "create_site_contact_request",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "definer": false,
+            "anon_exec": false,
+            "auth_exec": false
+          },
+          {
+            "name": "get_site_data_retention_candidates",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "definer": false,
+            "anon_exec": false,
+            "auth_exec": false
+          },
+          {
+            "name": "finalize_site_data_retention",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "definer": false,
+            "anon_exec": false,
+            "auth_exec": false
+          },
+          {
+            "name": "request_my_quote_adjustment",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "definer": true,
+            "anon_exec": false,
+            "auth_exec": true
+          },
+          {
+            "name": "create_site_quote_request",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "definer": false,
+            "anon_exec": false,
+            "auth_exec": false
+          },
+          {
+            "name": "get_my_quote_request",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "definer": true,
+            "anon_exec": false,
+            "auth_exec": true
+          },
+          {
+            "name": "get_expired_site_data_candidates",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "site_private",
+            "definer": false,
+            "anon_exec": false,
+            "auth_exec": false
+          },
+          {
+            "name": "get_site_shared_selection",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "definer": false,
+            "anon_exec": false,
+            "auth_exec": false
+          },
+          {
+            "name": "create_site_shared_selection",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "definer": false,
+            "anon_exec": false,
+            "auth_exec": false
+          },
+          {
+            "name": "finalize_expired_site_data",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "site_private",
+            "definer": false,
+            "anon_exec": false,
+            "auth_exec": false
+          }
+        ],
+        "retention_guard": true
+      }
+    }
+  ],
+  "advisors": [
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "title": "RLS Enabled No Policy"
+    },
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "title": "RLS Enabled No Policy"
+    },
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "title": "RLS Enabled No Policy"
+    },
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "title": "RLS Enabled No Policy"
+    },
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "title": "RLS Enabled No Policy"
+    },
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "title": "RLS Enabled No Policy"
+    },
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "title": "RLS Enabled No Policy"
+    },
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "title": "RLS Enabled No Policy"
+    },
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "title": "RLS Enabled No Policy"
+    },
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "title": "RLS Enabled No Policy"
+    },
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "title": "RLS Enabled No Policy"
+    },
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "title": "RLS Enabled No Policy"
+    },
+    {
+      "name": "authenticated_security_definer_function_executable",
+      "level": "WARN",
+      "title": "Signed-In Users Can Execute SECURITY DEFINER Function"
+    },
+    {
+      "name": "authenticated_security_definer_function_executable",
+      "level": "WARN",
+      "title": "Signed-In Users Can Execute SECURITY DEFINER Function"
+    },
+    {
+      "name": "authenticated_security_definer_function_executable",
+      "level": "WARN",
+      "title": "Signed-In Users Can Execute SECURITY DEFINER Function"
+    },
+    {
+      "name": "authenticated_security_definer_function_executable",
+      "level": "WARN",
+      "title": "Signed-In Users Can Execute SECURITY DEFINER Function"
+    },
+    {
+      "name": "authenticated_security_definer_function_executable",
+      "level": "WARN",
+      "title": "Signed-In Users Can Execute SECURITY DEFINER Function"
+    }
+  ]
+}

@@ -61,7 +61,7 @@ export class ClientRequestError extends Error {
   }
 }
 
-export async function postJson(endpoint: string, payload: unknown, label: string, idempotencyKey?: string): Promise<{ requestId: string }> {
+export async function postJson(endpoint: string, payload: unknown, label: string, idempotencyKey?: string): Promise<{ requestId: string; confirmations?: unknown }> {
   const url = validHttpsEndpoint(endpoint, label);
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -83,7 +83,7 @@ export async function postJson(endpoint: string, payload: unknown, label: string
   } finally {
     window.clearTimeout(timeout);
   }
-  const body = await response.json().catch(() => ({})) as { id?: string; requestId?: string; error?: string; message?: string };
+  const body = await response.json().catch(() => ({})) as { id?: string; requestId?: string; error?: string; message?: string; confirmations?: unknown };
   if (!response.ok) {
     const message = response.status === 429
       ? 'Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente novamente.'
@@ -96,5 +96,5 @@ export async function postJson(endpoint: string, payload: unknown, label: string
   if (typeof requestId !== 'string' || !/^[a-zA-Z0-9-]{8,100}$/.test(requestId)) {
     throw new ClientRequestError('O serviço não confirmou um protocolo válido. Sua seleção foi preservada.', response.status, 'invalid_response');
   }
-  return { requestId };
+  return { requestId, confirmations: body.confirmations };
 }

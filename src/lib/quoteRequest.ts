@@ -29,7 +29,7 @@ export function buildQuotePayload(
   campaign?: CampaignBrief,
   briefing?: QuoteBriefingDetails,
 ): QuoteRequestPayload {
-  const { privacyAccepted: _privacyAccepted, ...safeContact } = contact;
+  const { privacyAccepted: _privacyAccepted, whatsappCopyAccepted: _whatsappCopyAccepted, ...safeContact } = contact;
   const normalizedBriefing = normalizeQuoteBriefing(briefing);
   return {
     contact: safeContact,
@@ -41,6 +41,7 @@ export function buildQuotePayload(
     submittedAt,
     pageUrl: sanitizeLeadPageUrl(pageUrl),
     clientRequestId,
+    notificationPreferences: { emailCopy: true, whatsappCopy: contact.whatsappCopyAccepted },
   };
 }
 
@@ -72,8 +73,16 @@ export function buildEmailHref(payload: QuoteRequestPayload, email = DEFAULT_CON
 }
 
 export type SubmitResult =
-  | { mode: 'endpoint'; requestId?: string }
+  | { mode: 'endpoint'; requestId?: string; confirmations?: { email: 'sent' | 'pending'; whatsapp: 'sent' | 'pending' | 'not_requested' } }
   | { mode: 'email'; href: string };
+
+function confirmationResult(value: unknown): Extract<SubmitResult, { mode: 'endpoint' }>['confirmations'] {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const result = value as Record<string, unknown>;
+  const email = result.email === 'sent' ? 'sent' : 'pending';
+  const whatsapp = result.whatsapp === 'sent' || result.whatsapp === 'pending' ? result.whatsapp : 'not_requested';
+  return { email, whatsapp };
+}
 
 export async function submitQuoteRequest(payload: QuoteRequestPayload): Promise<SubmitResult> {
   const endpoint = import.meta.env.VITE_QUOTE_REQUEST_ENDPOINT?.trim();
@@ -82,5 +91,9 @@ export async function submitQuoteRequest(payload: QuoteRequestPayload): Promise<
     return { mode: 'email', href: buildEmailHref(payload, email) };
   }
   const data = await postJson(endpoint, payload, 'orçamento', payload.clientRequestId);
-  return { mode: 'endpoint', requestId: data.requestId };
+  return {
+    mode: 'endpoint',
+    requestId: data.requestId,
+    confirmations: confirmationResult(data.confirmations),
+  };
 }

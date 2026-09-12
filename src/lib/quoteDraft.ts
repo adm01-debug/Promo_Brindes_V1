@@ -8,7 +8,7 @@ const MAX_AGE_MS = 24 * 60 * 60 * 1_000;
 export const QUOTE_DRAFT_RETENTION_LABEL = '24 horas nesta aba do navegador';
 
 export const EMPTY_QUOTE_CONTACT: QuoteContact = {
-  name: '', company: '', email: '', phone: '', city: '', deadline: '', notes: '', privacyAccepted: false,
+  name: '', company: '', email: '', phone: '', city: '', deadline: '', notes: '', privacyAccepted: false, whatsappCopyAccepted: false,
 };
 
 export interface QuoteDraft {
@@ -26,7 +26,8 @@ function isQuoteContact(value: unknown): value is QuoteContact {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
   const contact = value as Partial<QuoteContact>;
   return ['name', 'company', 'email', 'phone', 'city', 'deadline', 'notes'].every((key) => typeof contact[key as keyof QuoteContact] === 'string')
-    && typeof contact.privacyAccepted === 'boolean';
+    && typeof contact.privacyAccepted === 'boolean'
+    && (contact.whatsappCopyAccepted === undefined || typeof contact.whatsappCopyAccepted === 'boolean');
 }
 
 function normalizeContact(contact: QuoteContact): QuoteContact {
@@ -39,6 +40,7 @@ function normalizeContact(contact: QuoteContact): QuoteContact {
     deadline: contact.deadline.slice(0, 10),
     notes: contact.notes.slice(0, 800),
     privacyAccepted: contact.privacyAccepted,
+    whatsappCopyAccepted: Boolean(contact.whatsappCopyAccepted),
   };
 }
 
@@ -64,6 +66,7 @@ export function saveQuoteDraft(draft: QuoteDraft, now = new Date()): void {
     const normalizedBriefing = quoteBriefingForm(draft.briefing);
     const hasContent = Object.values(normalizedContact).some((value) => typeof value === 'string' && Boolean(value.trim()))
       || normalizedContact.privacyAccepted
+      || normalizedContact.whatsappCopyAccepted
       || Object.values(normalizedBriefing).some((value) => typeof value === 'string' && Boolean(value.trim()));
     if (!hasContent) {
       window.sessionStorage.removeItem(STORAGE_KEY);

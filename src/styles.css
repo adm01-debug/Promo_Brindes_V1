@@ -2983,6 +2983,9 @@ p {
 }
 
 .quote-item__decision { margin-bottom: 0; }
+.quote-availability-alert { display: grid; gap: 4px; margin: 0 0 18px; padding: 14px 16px; border: 1px solid #d68462; border-left-width: 5px; border-radius: 10px; color: #6e2d14; background: #fff4ee; font-size: .78rem; line-height: 1.5; }
+.quote-availability-alert:focus { outline: 3px solid var(--purple); outline-offset: 3px; }
+.quote-item__unavailable { display: block; margin-top: 8px; color: #973b16; font-size: .7rem; font-weight: 800; line-height: 1.35; }
 
 .customer-item-priority {
   display: inline-flex;
@@ -3310,6 +3313,9 @@ p {
   font-size: 0.7rem;
   font-weight: 700;
 }
+.success-page__confirmations { display: grid; gap: 5px; width: min(100%, 520px); margin: 4px auto 10px; padding: 14px 18px; border: 1px solid var(--line); border-radius: 14px; text-align: left; background: var(--white); }
+.success-page__confirmations span { color: var(--muted); font-size: .78rem; line-height: 1.45; }
+.privacy-check--optional { margin-top: 10px; background: #f7f5ff; border-color: #cfc6ee; }
 
 .success-page__actions {
   display: flex;
@@ -6145,8 +6151,10 @@ form.catalog-search > .search-suggestions.is-open { display: grid; pointer-event
 .customer-proposals { display: grid; gap: 12px; }
 .customer-proposals article { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 18px; padding: 18px; border: 1.5px solid var(--ink); border-radius: 16px; background: var(--white); }
 .customer-proposals article.is-current { border-color: var(--green-dark); box-shadow: 4px 4px 0 var(--acid); }
+.customer-proposals article.is-expired { border-color: #d7b7a8; background: #fffaf7; }
 .customer-proposals article div { display: grid; gap: 4px; }
 .customer-proposals span, .customer-proposals small { color: var(--muted); font-size: .68rem; }
+.customer-proposals .customer-proposal-expired { color: #973b16; font-weight: 800; }
 .customer-proposals button { min-height: 42px; padding: 0 14px; border: 0; border-radius: 999px; color: var(--white); background: var(--ink); font-weight: 800; cursor: pointer; }
 .customer-proposal-error { margin: 14px 0 0; padding: 13px 15px; border-left: 4px solid #d45425; color: #79320f; background: #fff0e9; font-size: .8rem; font-weight: 700; line-height: 1.45; }
 .customer-adjustment form { display: grid; gap: 12px; padding: 20px; border: 1.5px solid var(--ink); border-radius: 16px; background: #fff; }

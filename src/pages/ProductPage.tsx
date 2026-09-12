@@ -13,7 +13,7 @@ import {
   Sparkles,
   Weight,
 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { CatalogError, ProductGridSkeleton } from '../components/CatalogFeedback';
 import { ProductCard } from '../components/ProductCard';
@@ -61,7 +61,7 @@ export default function ProductPage() {
   const zoomCloseRef = useRef<HTMLButtonElement>(null);
   const zoomDialogRef = useRef<HTMLElement>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setActiveImage(0);
     setSelectedColor(undefined);
     if (product) {

@@ -379,6 +379,60 @@ test('mostra produto sem estoque confiável e leva o cliente ao briefing sem che
   expect(briefingA11y.violations, 'Violações no briefing preenchível').toEqual([]);
 });
 
+test('envio confirmado remove contato e consentimento do rascunho da aba', async ({ page }) => {
+  await page.addInitScript(({ product }) => {
+    localStorage.setItem('promo-brindes:quote-selection:v1', JSON.stringify({ items: [{
+      key: `${product.id}::sem-cor`, productId: product.id, slug: product.slug, name: product.name,
+      sku: product.sku, imageUrl: product.primary_image_url, quantity: 100, minQuantity: 50,
+    }] }));
+  }, { product });
+  let submissions = 0;
+  let sentPayload: Record<string, unknown> | undefined;
+  await page.route('**/api/quote-requests', (route) => {
+    submissions += 1;
+    sentPayload = route.request().postDataJSON();
+    return route.fulfill({ status: 201, contentType: 'application/json', body: '{"requestId":"quote-e2e","duplicate":false,"confirmations":{"email":"pending","whatsapp":"pending"}}' });
+  });
+  await page.goto('/orcamento');
+  await page.locator('#name').fill('Pessoa de teste');
+  await page.locator('#company').fill('Empresa de teste');
+  await page.locator('#email').fill('pessoa@example.invalid');
+  await page.locator('#phone').fill('11999999999');
+  await page.getByRole('checkbox', { name: /Li o aviso de privacidade/ }).check();
+  await page.getByRole('checkbox', { name: /cópia desta solicitação também pelo WhatsApp/ }).check();
+  await page.getByRole('button', { name: 'Enviar briefing' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Sua solicitação chegou.' })).toBeVisible();
+  await expect.poll(() => page.evaluate(() => sessionStorage.getItem('promo-brindes:quote-draft:v1'))).toBeNull();
+  await expect(page.getByText('Cópia por e-mail registrada para envio.')).toBeVisible();
+  await expect(page.getByText('Cópia pelo WhatsApp autorizada e registrada para envio.')).toBeVisible();
+  expect(submissions).toBe(1);
+  expect(sentPayload).toMatchObject({ notificationPreferences: { emailCopy: true, whatsappCopy: true } });
+});
+
+test('evento passado recebe erro no campo e não chama a API', async ({ page }) => {
+  await page.addInitScript(({ product }) => {
+    localStorage.setItem('promo-brindes:quote-selection:v1', JSON.stringify({ items: [{
+      key: `${product.id}::sem-cor`, productId: product.id, slug: product.slug, name: product.name,
+      sku: product.sku, imageUrl: product.primary_image_url, quantity: 100, minQuantity: 50,
+    }] }));
+  }, { product });
+  let submissions = 0;
+  await page.route('**/api/quote-requests', (route) => { submissions += 1; return route.abort(); });
+  await page.goto('/orcamento');
+  await page.locator('#name').fill('Pessoa de teste');
+  await page.locator('#company').fill('Empresa de teste');
+  await page.locator('#email').fill('pessoa@example.invalid');
+  await page.locator('#phone').fill('11999999999');
+  await page.locator('#eventDate').fill('2020-01-01');
+  await page.getByRole('checkbox', { name: /Li o aviso de privacidade/ }).check();
+  await page.getByRole('button', { name: 'Enviar briefing' }).click();
+
+  await expect(page.locator('#event-date-error')).toContainText('a partir de hoje');
+  await expect(page.locator('#eventDate')).toBeFocused();
+  expect(submissions).toBe(0);
+});
+
 test('card exibe somente o badge de maior prioridade', async ({ page }) => {
   await page.unroute(/\/rest\/v1\/v_(?:site_)?products_public\?/);
   await page.route(/\/rest\/v1\/v_(?:site_)?products_public\?/, (route) => route.fulfill({
@@ -679,11 +733,13 @@ test('falha ao abrir proposta fica visível e permite nova tentativa', async ({ 
   }, { user });
   await page.route('**/auth/v1/user', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify(user) }));
   await page.route('**/rest/v1/rpc/claim_my_quote_requests', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ claimed: 0 }) }));
-  await page.route('**/rest/v1/rpc/get_my_quote_request', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ id: quoteId, protocol: '77777777', status: 'quoted', company: 'Empresa Proposta', contactName: 'Bia', email: user.email, phone: '(11) 98888-8888', city: null, desiredDeadline: null, notes: '', createdAt: '2026-09-09T12:00:00Z', submittedAt: '2026-09-09T12:00:00Z', items: [{ key: `${product.id}::preto`, productId: product.id, slug: product.slug, name: product.name, sku: product.sku, imageUrl: product.primary_image_url, quantity: 50, minQuantity: 50, colorName: null, colorHex: null }], events: [], proposals: [{ id: proposalId, version: 1, title: 'Proposta para campanha', validUntil: null, publishedAt: '2026-09-09T14:00:00Z', isCurrent: true }] }) }));
+  await page.route('**/rest/v1/rpc/get_my_quote_request', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ id: quoteId, protocol: '77777777', status: 'quoted', company: 'Empresa Proposta', contactName: 'Bia', email: user.email, phone: '(11) 98888-8888', city: null, desiredDeadline: null, notes: '', createdAt: '2026-09-09T12:00:00Z', submittedAt: '2026-09-09T12:00:00Z', items: [{ key: `${product.id}::preto`, productId: product.id, slug: product.slug, name: product.name, sku: product.sku, imageUrl: product.primary_image_url, quantity: 50, minQuantity: 50, colorName: null, colorHex: null }], events: [], proposals: [{ id: proposalId, version: 1, title: 'Proposta para campanha', validUntil: '2020-01-01', publishedAt: '2026-09-09T14:00:00Z', isCurrent: true }] }) }));
   await page.route('**/api/customer-proposals', (route) => route.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ message: 'proposal_not_found' }) }));
 
   await page.goto(`/minha-conta/orcamentos/${quoteId}`);
   await expect(page.getByRole('heading', { name: 'Propostas' })).toBeVisible();
+  await expect(page.getByText('Validade encerrada em 01/01/2020')).toBeVisible();
+  await expect(page.getByText(/Versão mais recente · v1/)).toBeVisible();
   const openProposal = page.getByRole('button', { name: 'Abrir proposta' });
   await openProposal.click();
   await expect(page.getByRole('alert')).toContainText('Não conseguimos abrir esta proposta agora.');
@@ -710,6 +766,33 @@ test('detalhe do orçamento recupera de indisponibilidade temporária', async ({
   await page.getByRole('button', { name: 'Tentar novamente' }).click();
   await expect(page.getByRole('heading', { name: 'Seleção enviada' })).toBeVisible();
   expect(detailReads).toBe(2);
+});
+
+test('falha ao trocar de orçamento nunca mantém dados e ações da rota anterior', async ({ page }) => {
+  const firstId = '11111111-aaaa-4aaa-8aaa-111111111111';
+  const nextId = '22222222-bbbb-4bbb-8bbb-222222222222';
+  const user = { id: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', aud: 'authenticated', role: 'authenticated', email: 'rotas@empresa.com', email_confirmed_at: '2026-09-09T12:00:00Z', user_metadata: {}, app_metadata: {}, created_at: '2026-09-09T12:00:00Z' };
+  await page.addInitScript(({ user }) => {
+    localStorage.setItem('promo-brindes-customer-session', JSON.stringify({ access_token: 'header.payload.signature', refresh_token: 'refresh-token', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, token_type: 'bearer', user }));
+  }, { user });
+  await page.route('**/auth/v1/user', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify(user) }));
+  await page.route('**/rest/v1/rpc/claim_my_quote_requests', (route) => route.fulfill({ contentType: 'application/json', body: '{"claimed":0}' }));
+  await page.route('**/rest/v1/rpc/get_my_quote_request', (route) => {
+    const requestId = Object.values(route.request().postDataJSON() || {}).find((value) => typeof value === 'string');
+    if (requestId === nextId) return route.fulfill({ status: 503, contentType: 'application/json', body: '{"message":"temporary_failure"}' });
+    return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ id: firstId, protocol: 'ROTA-1', status: 'new', company: 'Empresa da rota anterior', contactName: 'Dani', email: user.email, phone: '(11) 96666-6666', city: null, desiredDeadline: null, notes: '', createdAt: '2026-09-09T12:00:00Z', submittedAt: '2026-09-09T12:00:00Z', items: [{ key: `${product.id}::sem-cor`, productId: product.id, slug: product.slug, name: product.name, sku: product.sku, imageUrl: product.primary_image_url, quantity: 50, minQuantity: 50 }], events: [], proposals: [] }) });
+  });
+
+  await page.goto(`/minha-conta/orcamentos/${firstId}`);
+  await expect(page.getByRole('heading', { name: 'Empresa da rota anterior' })).toBeVisible();
+  await page.evaluate((id) => {
+    history.pushState({}, '', `/minha-conta/orcamentos/${id}`);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  }, nextId);
+
+  await expect(page.getByRole('heading', { name: 'Não foi possível abrir.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Empresa da rota anterior' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Solicitar novamente' })).toHaveCount(0);
 });
 
 test('produto com identificador inválido falha fechado e não pode ser indexado', async ({ page }) => {

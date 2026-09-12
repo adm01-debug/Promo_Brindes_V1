@@ -45,4 +45,9 @@ describe('contexto opcional do briefing', () => {
     expect(validateQuoteBriefing({ ...EMPTY_QUOTE_BRIEFING, eventDate: '2026-12-10' }, '2026-12-11')).toMatch(/depois/i);
     expect(validateQuoteBriefing({ ...EMPTY_QUOTE_BRIEFING, budgetRange: '51-100', budgetScope: 'por-pessoa', eventDate: '2026-12-10' }, '2026-12-09')).toBeNull();
   });
+
+  it('impede evento passado antes de transmitir dados ao servidor', () => {
+    expect(validateQuoteBriefing({ ...EMPTY_QUOTE_BRIEFING, eventDate: '2026-09-11' }, '', '2026-09-12')).toMatch(/a partir de hoje/i);
+    expect(validateQuoteBriefing({ ...EMPTY_QUOTE_BRIEFING, eventDate: '2026-09-12' }, '', '2026-09-12')).toBeNull();
+  });
 });

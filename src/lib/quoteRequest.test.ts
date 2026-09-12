@@ -11,6 +11,7 @@ const contact: QuoteContact = {
   deadline: '2026-12-01',
   notes: 'Evento de relacionamento',
   privacyAccepted: true,
+  whatsappCopyAccepted: true,
 };
 
 const items: QuoteItem[] = [{
@@ -35,6 +36,7 @@ describe('solicitação de orçamento', () => {
   it('separa o consentimento do contato e registra versão e instante', () => {
     const payload = buildQuotePayload(contact, items, 'https://site.test/orcamento', '2026-09-08T12:00:00.000Z', 'request-quote-1', { source: 'finder', moment: 'onboarding', audience: 'colaboradores' }, { actionName: 'Boas-vindas 2026', budgetRange: '51-100', responseChannel: 'whatsapp' });
     expect(payload.contact).not.toHaveProperty('privacyAccepted');
+    expect(payload.contact).not.toHaveProperty('whatsappCopyAccepted');
     expect(payload).toMatchObject({
       source: 'site-promo-brindes',
       items,
@@ -43,6 +45,7 @@ describe('solicitação de orçamento', () => {
       clientRequestId: 'request-quote-1',
       campaign: { source: 'finder', moment: 'onboarding', audience: 'colaboradores' },
       briefing: { actionName: 'Boas-vindas 2026', budgetRange: '51-100', responseChannel: 'whatsapp' },
+      notificationPreferences: { emailCopy: true, whatsappCopy: true },
     });
   });
 

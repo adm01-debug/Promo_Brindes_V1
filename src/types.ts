@@ -56,6 +56,8 @@ export interface QuoteItem {
   colorHex?: string;
   /** A variante referenciada pelo link não está mais publicada; não deve ser enviada sem revisão. */
   variantUnavailable?: boolean;
+  /** O produto de uma solicitação anterior não está mais no catálogo público. */
+  productUnavailable?: boolean;
   /** Referência principal ou alternativa para facilitar a decisão comercial. */
   decisionGroup?: 'primary' | 'alternative';
 }
@@ -116,10 +118,11 @@ export interface QuoteContact {
   deadline: string;
   notes: string;
   privacyAccepted: boolean;
+  whatsappCopyAccepted: boolean;
 }
 
 export interface QuoteRequestPayload {
-  contact: Omit<QuoteContact, 'privacyAccepted'>;
+  contact: Omit<QuoteContact, 'privacyAccepted' | 'whatsappCopyAccepted'>;
   items: QuoteItem[];
   campaign?: CampaignBrief;
   briefing?: QuoteBriefingDetails;
@@ -128,6 +131,10 @@ export interface QuoteRequestPayload {
   submittedAt: string;
   pageUrl: string;
   clientRequestId: string;
+  notificationPreferences: {
+    emailCopy: true;
+    whatsappCopy: boolean;
+  };
 }
 
 export interface ContactLead {

@@ -52,6 +52,11 @@ export const quoteBriefingLabels = {
   },
 } as const;
 
+export interface QuoteBriefingValidationError {
+  field: 'budgetRange' | 'budgetScope' | 'eventDate';
+  message: string;
+}
+
 function optionalText(value: unknown, max: number): string | undefined {
   if (typeof value !== 'string') return undefined;
   const normalized = value.trim().slice(0, max);
@@ -89,19 +94,31 @@ export function normalizeQuoteBriefing(value: unknown): QuoteBriefingDetails | u
 }
 
 /** Mantém o contexto útil sem transformar faixas de investimento em preço final. */
-export function validateQuoteBriefing(value: QuoteBriefingForm, desiredDeadline?: string): string | null {
+export function getQuoteBriefingValidationError(
+  value: QuoteBriefingForm,
+  desiredDeadline?: string,
+  minimumDate?: string,
+): QuoteBriefingValidationError | null {
   const normalized = normalizeQuoteBriefing(value);
   if (!normalized) return null;
   if (normalized.budgetRange && normalized.budgetRange !== 'a-definir' && !normalized.budgetScope) {
-    return 'Informe se a faixa de investimento é por pessoa ou para o total da ação.';
+    return { field: 'budgetScope', message: 'Informe se a faixa de investimento é por pessoa ou para o total da ação.' };
   }
   if (normalized.budgetScope && !normalized.budgetRange) {
-    return 'Escolha também uma faixa de investimento ou deixe os dois campos para conversar com nosso time de especialistas.';
+    return { field: 'budgetRange', message: 'Escolha também uma faixa de investimento ou deixe os dois campos para conversar com nosso time de especialistas.' };
+  }
+  if (normalized.eventDate && minimumDate && normalized.eventDate < minimumDate) {
+    return { field: 'eventDate', message: 'Escolha uma data de evento a partir de hoje.' };
   }
   if (normalized.eventDate && desiredDeadline && desiredDeadline > normalized.eventDate) {
-    return 'A data de recebimento não pode ficar depois da data do evento.';
+    return { field: 'eventDate', message: 'A data de recebimento não pode ficar depois da data do evento.' };
   }
   return null;
+}
+
+/** Compatibilidade para consumidores que só precisam da mensagem. */
+export function validateQuoteBriefing(value: QuoteBriefingForm, desiredDeadline?: string, minimumDate?: string): string | null {
+  return getQuoteBriefingValidationError(value, desiredDeadline, minimumDate)?.message || null;
 }
 
 export function quoteBriefingForm(value: unknown): QuoteBriefingForm {

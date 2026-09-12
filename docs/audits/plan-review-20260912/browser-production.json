@@ -1,0 +1,128 @@
+{
+  "date": "2026-09-12T16:13:23.276Z",
+  "environment": "production-readonly-mobile390",
+  "result": [
+    {
+      "path": "/",
+      "status": 200,
+      "headings": [
+        "Sua campanha merece um brindeSua campanha merece um brindeque ninguém esquece.que ninguém esquece."
+      ],
+      "overflow": false,
+      "productCards": 0
+    },
+    {
+      "path": "/catalogo",
+      "status": 200,
+      "headings": [
+        "Sua seleção começa aqui."
+      ],
+      "overflow": false,
+      "productCards": 0
+    },
+    {
+      "path": "/catalogo?perfil=novos",
+      "status": 200,
+      "headings": [
+        "Sua seleção começa aqui."
+      ],
+      "overflow": false,
+      "productCards": 24
+    },
+    {
+      "path": "/catalogo?perfil=kits",
+      "status": 200,
+      "headings": [
+        "Sua seleção começa aqui."
+      ],
+      "overflow": false,
+      "productCards": 24
+    },
+    {
+      "path": "/catalogos",
+      "status": 200,
+      "headings": [
+        "Catálogos para tirar seu briefing do branco."
+      ],
+      "overflow": false,
+      "productCards": 0
+    },
+    {
+      "path": "/datas-comemorativas",
+      "status": 200,
+      "headings": [
+        "Marque a data.Deixe sua marca."
+      ],
+      "overflow": false,
+      "productCards": 0
+    },
+    {
+      "path": "/entrar",
+      "status": 200,
+      "headings": [
+        "Seus briefings.Sempre por perto."
+      ],
+      "overflow": false,
+      "productCards": 0
+    },
+    {
+      "path": "/minha-conta",
+      "status": 200,
+      "headings": [
+        "Seus briefings.Sempre por perto."
+      ],
+      "overflow": false,
+      "productCards": 0
+    },
+    {
+      "path": "/sobre",
+      "status": 200,
+      "headings": [
+        "Sua ideia vem primeiro. O produto vem depois."
+      ],
+      "overflow": false,
+      "productCards": 0
+    },
+    {
+      "path": "/contato",
+      "status": 200,
+      "headings": [
+        "Uma boa ideia começa com um bom briefing."
+      ],
+      "overflow": false,
+      "productCards": 0
+    },
+    {
+      "path": "/privacidade",
+      "status": 200,
+      "headings": [
+        "Aviso de privacidade"
+      ],
+      "overflow": false,
+      "productCards": 0
+    },
+    {
+      "path": "/orcamento",
+      "status": 200,
+      "headings": [
+        "Sua seleção ainda está em branco."
+      ],
+      "overflow": false,
+      "productCards": 0
+    },
+    {
+      "path": "produto-real-amostrado",
+      "heading": [
+        "Agenda diária 2026"
+      ],
+      "quantityControl": 1
+    }
+  ],
+  "quality": {
+    "sample": 76,
+    "nullMinimum": 0,
+    "zeroMinimum": 0,
+    "noMainImage": 7,
+    "zeroOrNullStock": 76
+  }
+}

@@ -56,6 +56,7 @@ const quotePayload = {
   }],
   campaign: { source: 'finder', moment: 'onboarding', audience: 'colaboradores', scale: '51-200', mood: 'sustentavel' },
   briefing: { actionName: 'Boas-vindas 2026', budgetRange: '51-100', budgetScope: 'por-pessoa', responseChannel: 'whatsapp', brandAssetStatus: 'logo-pronto' },
+  notificationPreferences: { emailCopy: true, whatsappCopy: true },
 };
 
 function configureSiteDatabase() {
@@ -74,6 +75,12 @@ function catalogResponse() {
     sku: quotePayload.items[0].sku,
     min_quantity: quotePayload.items[0].minQuantity,
     primary_image_url: 'https://catalogo-canonico.test/mochila-validada.webp',
+    color_swatches: [{
+      variant_id: quotePayload.items[0].variantId,
+      color_name: quotePayload.items[0].colorName,
+      color_hex: quotePayload.items[0].colorHex,
+      image_url: 'https://catalogo-canonico.test/mochila-verde.webp',
+    }],
   }]), { status: 200 });
 }
 
@@ -85,6 +92,7 @@ function quoteFetchMock(rpcBody: string) {
 
 describe('APIs de leads isoladas', () => {
   afterEach(() => {
+    vi.useRealTimers();
     vi.unstubAllEnvs();
     vi.unstubAllGlobals();
   });
@@ -116,15 +124,51 @@ describe('APIs de leads isoladas', () => {
     const { result, response } = responseDouble();
     await quoteHandler(request(quotePayload, { headers: { 'content-type': 'application/json', origin: 'https://www.promobrindes.com.br', 'idempotency-key': 'quote-request-123' } }), response);
     expect(result.statusCode).toBe(200);
-    expect(result.body).toEqual({ requestId: 'quote-42', duplicate: true });
+    expect(result.body).toEqual({
+      requestId: 'quote-42', duplicate: true,
+      confirmations: { email: 'pending', whatsapp: 'pending' },
+    });
     const rpcCall = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.find(([url]) => String(url).includes('/create_site_quote_request'));
     const sent = JSON.parse(String(rpcCall?.[1]?.body));
     expect(sent.p_request_meta.campaign).toEqual(quotePayload.campaign);
     expect(sent.p_request_meta.briefing).toEqual(quotePayload.briefing);
+    expect(sent.p_request_meta.notificationPreferences).toEqual({ emailCopy: true, whatsappCopy: true });
     expect(sent.p_request_meta).not.toHaveProperty('ip');
     expect(sent.p_payload.items[0].variantId).toBe('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
     expect(sent.p_payload.items[0].decisionGroup).toBe('alternative');
-    expect(sent.p_payload.items[0].imageUrl).toBe('https://catalogo-canonico.test/mochila-validada.webp');
+    expect(sent.p_payload.items[0].imageUrl).toBe('https://catalogo-canonico.test/mochila-verde.webp');
+  });
+
+  it('mantém no briefing produto publicado com mínimo ainda não confirmado', async () => {
+    configureSiteDatabase();
+    const fetchMock = vi.fn(async (url: string | URL, _init?: RequestInit) => String(url).includes('/v_site_products_public')
+      ? new Response(JSON.stringify([{ ...JSON.parse(await catalogResponse().text())[0], min_quantity: null }]), { status: 200 })
+      : new Response('{"requestId":"quote-minimum-pending","duplicate":false}', { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+
+    await quoteHandler(request(quotePayload), response);
+
+    expect(result.statusCode).toBe(201);
+    const rpcCall = fetchMock.mock.calls.find(([url]) => String(url).includes('/create_site_quote_request'));
+    expect(JSON.parse(String(rpcCall?.[1]?.body)).p_payload.items[0].minQuantity).toBe(1);
+  });
+
+  it('recusa variante que não pertence ao produto publicado', async () => {
+    configureSiteDatabase();
+    const fetchMock = quoteFetchMock('{"requestId":"should-not-write","duplicate":false}');
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    const forgedVariant = {
+      ...quotePayload,
+      items: [{ ...quotePayload.items[0], variantId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb' }],
+    };
+
+    await quoteHandler(request(forgedVariant), response);
+
+    expect(result.statusCode).toBe(422);
+    expect(result.body).toMatchObject({ error: 'catalog_variant_unavailable' });
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/create_site_quote_request'))).toBe(false);
   });
 
   it('bloqueia qualquer tentativa de apontar gravações ao Supabase canônico', async () => {
@@ -283,12 +327,45 @@ describe('APIs de leads isoladas', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it('usa o calendário de São Paulo na virada do dia do servidor', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-09-13T01:30:00.000Z'));
+    configureSiteDatabase();
+    const now = new Date().toISOString();
+    const payload = {
+      ...quotePayload,
+      submittedAt: now,
+      consent: { ...quotePayload.consent, acceptedAt: now },
+      contact: { ...quotePayload.contact, deadline: '2026-09-12' },
+    };
+    const fetchMock = quoteFetchMock('{"requestId":"quote-calendar","duplicate":false}');
+    vi.stubGlobal('fetch', fetchMock);
+    const result = responseDouble();
+
+    await quoteHandler(request(payload), result.response);
+
+    expect(result.result.statusCode).toBe(201);
+  });
+
   it('rejeita prioridade de item fora das duas opções comerciais', async () => {
     configureSiteDatabase();
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);
     const result = responseDouble();
     await quoteHandler(request({ ...quotePayload, items: [{ ...quotePayload.items[0], decisionGroup: 'preferido' }] }), result.response);
+    expect(result.result.statusCode).toBe(400);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('não aceita preferência de notificação forjada', async () => {
+    configureSiteDatabase();
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const result = responseDouble();
+    await quoteHandler(request({
+      ...quotePayload,
+      notificationPreferences: { emailCopy: false, whatsappCopy: 'sim' },
+    }), result.response);
     expect(result.result.statusCode).toBe(400);
     expect(fetchMock).not.toHaveBeenCalled();
   });

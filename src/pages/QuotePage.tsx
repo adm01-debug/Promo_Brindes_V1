@@ -10,7 +10,7 @@ import { ClientRequestError, clearSubmissionAttempt, getOrCreateSubmissionAttemp
 import { replaceBrokenProductImage } from '../lib/images';
 import { clearQuoteDraft, EMPTY_QUOTE_CONTACT, loadQuoteDraft, QUOTE_DRAFT_RETENTION_LABEL, saveQuoteDraft } from '../lib/quoteDraft';
 import { campaignBriefLabels } from '../lib/campaignBrief';
-import { EMPTY_QUOTE_BRIEFING, normalizeQuoteBriefing, quoteBriefingLabels, validateQuoteBriefing } from '../lib/quoteBriefing';
+import { EMPTY_QUOTE_BRIEFING, getQuoteBriefingValidationError, normalizeQuoteBriefing, quoteBriefingLabels } from '../lib/quoteBriefing';
 import { clearQuoteRepeat, loadQuoteRepeat } from '../lib/quoteRepeat';
 import type { QuoteBriefingForm, QuoteContact } from '../types';
 import { quoteDecisionGroupsEnabled } from '../lib/siteFeatureFlags';
@@ -26,10 +26,14 @@ function formatPhone(value: string): string {
 }
 
 export function localDateInputValue(date = new Date()): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+  const value = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${value.year}-${value.month}-${value.day}`;
 }
 
 function validate(contact: QuoteContact) {
@@ -54,13 +58,15 @@ export default function QuotePage() {
     return { ...restored, actionName: restored.actionName || cart.selectionTitle || '' };
   });
   const [errors, setErrors] = useState<Partial<Record<keyof QuoteContact, string>>>({});
+  const [briefingErrors, setBriefingErrors] = useState<Partial<Record<keyof QuoteBriefingForm, string>>>({});
   const [sending, setSending] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [draftNotice, setDraftNotice] = useState('');
   const [quantityDrafts, setQuantityDrafts] = useState<Record<string, string>>({});
-  const [success, setSuccess] = useState<{ mode: 'endpoint' | 'email'; href?: string; requestId?: string } | null>(null);
+  const [success, setSuccess] = useState<{ mode: 'endpoint' | 'email'; href?: string; requestId?: string; confirmations?: { email: 'sent' | 'pending'; whatsapp: 'sent' | 'pending' | 'not_requested' } } | null>(null);
   const [website, setWebsite] = useState('');
   const formRef = useRef<HTMLFormElement>(null);
+  const availabilityNoticeRef = useRef<HTMLDivElement>(null);
   const submittingRef = useRef(false);
   const requestAttemptRef = useRef<{ id: string; submittedAt: string } | null>(null);
   const cartInitializedRef = useRef(false);
@@ -76,8 +82,12 @@ export default function QuotePage() {
   }, [cart.items.length]);
 
   useEffect(() => {
+    if (success) {
+      clearQuoteDraft();
+      return;
+    }
     saveQuoteDraft({ contact, briefing });
-  }, [briefing, contact]);
+  }, [briefing, contact, success]);
 
   function updateField<Key extends keyof QuoteContact>(key: Key, value: QuoteContact[Key]) {
     setContact((current) => ({ ...current, [key]: value }));
@@ -88,6 +98,8 @@ export default function QuotePage() {
 
   function updateBriefing<Key extends keyof QuoteBriefingForm>(key: Key, value: QuoteBriefingForm[Key]) {
     setBriefing((current) => ({ ...current, [key]: value }));
+    if (briefingErrors[key]) setBriefingErrors((current) => ({ ...current, [key]: undefined }));
+    if (submitError) setSubmitError('');
     if (key === 'actionName') cart.setSelectionTitle(value as string);
     requestAttemptRef.current = null;
     clearSubmissionAttempt('promo-brindes:quote-attempt');
@@ -121,6 +133,7 @@ export default function QuotePage() {
     setContact(EMPTY_QUOTE_CONTACT);
     setBriefing(EMPTY_QUOTE_BRIEFING);
     setErrors({});
+    setBriefingErrors({});
     setDraftNotice('Rascunho apagado deste navegador. A sua seleção de produtos foi mantida.');
   }
 
@@ -136,6 +149,11 @@ export default function QuotePage() {
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (website || submittingRef.current) return;
+    if (cart.items.some((item) => item.productUnavailable || item.variantUnavailable)) {
+      setSubmitError('Revise as referências indisponíveis antes de enviar o briefing.');
+      availabilityNoticeRef.current?.focus();
+      return;
+    }
     const nextErrors = validate(contact);
     setErrors(nextErrors);
     const firstError = Object.keys(nextErrors)[0] as keyof QuoteContact | undefined;
@@ -143,13 +161,11 @@ export default function QuotePage() {
       formRef.current?.querySelector<HTMLElement>(`[name="${firstError}"]`)?.focus();
       return;
     }
-    const briefingError = validateQuoteBriefing(briefing, contact.deadline);
+    const briefingError = getQuoteBriefingValidationError(briefing, contact.deadline, minimumDeadline);
+    setBriefingErrors(briefingError ? { [briefingError.field]: briefingError.message } : {});
     if (briefingError) {
-      setSubmitError(briefingError);
-      const field = briefing.budgetRange && briefing.budgetRange !== 'a-definir' && !briefing.budgetScope
-        ? 'budgetScope'
-        : briefing.budgetScope && !briefing.budgetRange ? 'budgetRange' : 'eventDate';
-      formRef.current?.querySelector<HTMLElement>(`[name="${field}"]`)?.focus();
+      setSubmitError(briefingError.message);
+      formRef.current?.querySelector<HTMLElement>(`[name="${briefingError.field}"]`)?.focus();
       return;
     }
     if (!cart.items.length) return;
@@ -165,10 +181,11 @@ export default function QuotePage() {
         trackFunnelEvent('quote_submitted', { item_count: cart.items.length, has_deadline: Boolean(contact.deadline) });
         requestAttemptRef.current = null;
         clearSubmissionAttempt('promo-brindes:quote-attempt');
-        setSuccess({ mode: 'endpoint', requestId: result.requestId });
+        setSuccess({ mode: 'endpoint', requestId: result.requestId, confirmations: result.confirmations });
         cart.reset();
         clearQuoteDraft();
         clearQuoteRepeat();
+        setContact(EMPTY_QUOTE_CONTACT);
         setBriefing(EMPTY_QUOTE_BRIEFING);
       } else {
         setSuccess({ mode: 'email', href: result.href });
@@ -195,6 +212,7 @@ export default function QuotePage() {
         <h1>{success.mode === 'endpoint' ? 'Sua solicitação chegou.' : 'Seu e-mail está pronto.'}</h1>
         <p>{success.mode === 'endpoint' ? 'Nosso time de especialistas vai analisar os itens e entrar em contato pelos dados informados.' : 'Abrimos seu aplicativo de e-mail com a seleção preenchida. Revise a mensagem e toque em enviar para concluir.'}</p>
         {success.requestId && <span className="success-page__protocol">Protocolo: {success.requestId}</span>}
+        {success.mode === 'endpoint' && success.confirmations && <div className="success-page__confirmations" role="status"><strong>Seus comprovantes</strong><span>{success.confirmations.email === 'sent' ? 'Cópia enviada para o seu e-mail.' : 'Cópia por e-mail registrada para envio.'}</span>{success.confirmations.whatsapp !== 'not_requested' && <span>{success.confirmations.whatsapp === 'sent' ? 'Cópia enviada também pelo WhatsApp autorizado.' : 'Cópia pelo WhatsApp autorizada e registrada para envio.'}</span>}</div>}
         <div className="success-page__actions">
           {success.href && <a className="button button--green" href={success.href}><Mail size={18} /> Abrir e-mail novamente</a>}
           {success.mode === 'endpoint' && <Link className="button button--green" to="/entrar?next=/minha-conta">Acompanhar meus orçamentos</Link>}
@@ -236,11 +254,12 @@ export default function QuotePage() {
       <div className="container quote-layout">
         <section className="quote-items" aria-labelledby="selection-title">
           <div className="quote-section-heading"><div><span>01</span><div><h2 id="selection-title">Produtos selecionados</h2><p>{cart.itemCount} {cart.itemCount === 1 ? 'item' : 'itens'} · {totalUnits.toLocaleString('pt-BR')} unidades estimadas</p></div></div><button type="button" onClick={cart.clear}>Limpar seleção</button></div>
+          {cart.items.some((item) => item.productUnavailable || item.variantUnavailable) && <div ref={availabilityNoticeRef} className="quote-availability-alert" role="alert" tabIndex={-1}><strong>Esta seleção precisa de revisão.</strong><span>Um produto ou uma cor de uma solicitação anterior mudou no catálogo. Remova a referência sinalizada ou escolha uma opção atual.</span></div>}
           <div className="quote-items__list">
             {cart.items.map((item) => (
               <article className="quote-item" key={item.key}>
                 <Link className="quote-item__image" to={`/produto/${item.slug}`} aria-label={`Abrir ${item.name}`}><img src={item.imageUrl} alt="" width="130" height="130" referrerPolicy="no-referrer" onError={replaceBrokenProductImage} /></Link>
-                <div className="quote-item__main"><Link to={`/produto/${item.slug}`}>{item.name}</Link><p>Cód. {item.sku}</p>{item.colorName && <span className="quote-item__color"><i style={{ backgroundColor: item.colorHex }} /> {item.colorName}</span>}{quoteDecisionGroupsEnabled && <label className="quote-item__decision"><span>Como considerar</span><select aria-label={`Como considerar ${item.name}`} value={item.decisionGroup || 'primary'} onChange={(event) => cart.setItemDecisionGroup(item.key, event.target.value as 'primary' | 'alternative')}><option value="primary">Referência principal</option><option value="alternative">Alternativa para comparar</option></select></label>}</div>
+                <div className="quote-item__main"><Link to={`/produto/${item.slug}`}>{item.name}</Link><p>Cód. {item.sku}</p>{item.colorName && <span className="quote-item__color"><i style={{ backgroundColor: item.colorHex }} /> {item.colorName}</span>}{item.productUnavailable && <span className="quote-item__unavailable">Produto não publicado. Escolha outra opção no catálogo.</span>}{item.variantUnavailable && !item.productUnavailable && <span className="quote-item__unavailable">Cor não publicada. Escolha uma opção atual.</span>}{quoteDecisionGroupsEnabled && <label className="quote-item__decision"><span>Como considerar</span><select aria-label={`Como considerar ${item.name}`} value={item.decisionGroup || 'primary'} onChange={(event) => cart.setItemDecisionGroup(item.key, event.target.value as 'primary' | 'alternative')}><option value="primary">Referência principal</option><option value="alternative">Alternativa para comparar</option></select></label>}</div>
                 <div className="quote-item__quantity"><label htmlFor={`quantity-${item.key}`}>Quantidade</label><div className="quantity-control quantity-control--small"><button type="button" onClick={() => adjustItemQuantity(item.key, item.quantity, item.minQuantity, -10)} aria-label="Diminuir quantidade"><Minus size={15} /></button><input id={`quantity-${item.key}`} type="number" min={item.minQuantity} max="999999" inputMode="numeric" value={quantityDrafts[item.key] ?? item.quantity} onFocus={(event) => event.currentTarget.select()} onChange={(event) => setQuantityDrafts((drafts) => ({ ...drafts, [item.key]: event.target.value.replace(/\D/g, '') }))} onBlur={() => commitItemQuantity(item.key, item.minQuantity)} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); }} /><button type="button" onClick={() => adjustItemQuantity(item.key, item.quantity, item.minQuantity, 10)} aria-label="Aumentar quantidade"><Plus size={15} /></button></div>{item.minQuantity > 1 && <small>Mín. {item.minQuantity}</small>}</div>
                 <button className="quote-item__remove" type="button" onClick={() => cart.removeItem(item.key)} aria-label={`Remover ${item.name}`}><Trash2 size={18} /></button>
               </article>
@@ -264,16 +283,17 @@ export default function QuotePage() {
               <div className="form-field"><label htmlFor="city">Cidade / UF <span>opcional</span></label><input id="city" name="city" autoComplete="address-level2" maxLength={100} placeholder="Ex.: São Paulo / SP" value={contact.city} onChange={(event) => updateField('city', event.target.value)} /></div>
               <div className="form-field"><label htmlFor="deadline">Quando você precisa receber? <span>opcional</span></label><input id="deadline" name="deadline" type="date" min={minimumDeadline} value={contact.deadline} onChange={(event) => updateField('deadline', event.target.value)} aria-invalid={Boolean(errors.deadline)} aria-describedby={errors.deadline ? 'deadline-error' : undefined} />{errors.deadline && <span id="deadline-error" className="field-error">{errors.deadline}</span>}</div>
               <div className="form-field form-field--wide"><label htmlFor="actionName">Como você chama esta ação? <span>opcional</span></label><input id="actionName" name="actionName" maxLength={100} placeholder="Ex.: Kit de boas-vindas do time 2026" value={briefing.actionName} onChange={(event) => updateBriefing('actionName', event.target.value)} /><small>Um nome ajuda nosso time de especialistas a reconhecer este briefing.</small></div>
-              <div className="form-field"><label htmlFor="eventDate">Quando é o evento? <span>opcional</span></label><input id="eventDate" name="eventDate" type="date" min={minimumDeadline} value={briefing.eventDate} onChange={(event) => updateBriefing('eventDate', event.target.value)} /><small>Se for diferente da data de recebimento.</small></div>
+              <div className="form-field"><label htmlFor="eventDate">Quando é o evento? <span>opcional</span></label><input id="eventDate" name="eventDate" type="date" min={minimumDeadline} value={briefing.eventDate} onChange={(event) => updateBriefing('eventDate', event.target.value)} aria-invalid={Boolean(briefingErrors.eventDate)} aria-describedby={briefingErrors.eventDate ? 'event-date-error' : 'event-date-help'} />{briefingErrors.eventDate ? <span id="event-date-error" className="field-error">{briefingErrors.eventDate}</span> : <small id="event-date-help">Se for diferente da data de recebimento.</small>}</div>
               <div className="form-field"><label htmlFor="deadlineFlexibility">Recebimento <span>opcional</span></label><select id="deadlineFlexibility" name="deadlineFlexibility" value={briefing.deadlineFlexibility} onChange={(event) => updateBriefing('deadlineFlexibility', event.target.value as QuoteBriefingForm['deadlineFlexibility'])}><option value="">Ainda vou confirmar</option>{Object.entries(quoteBriefingLabels.deadlineFlexibility).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
-              <div className="form-field"><label htmlFor="budgetScope">Investimento considerado <span>opcional</span></label><select id="budgetScope" name="budgetScope" value={briefing.budgetScope} onChange={(event) => updateBriefing('budgetScope', event.target.value as QuoteBriefingForm['budgetScope'])}><option value="">Prefiro conversar sobre isso</option>{Object.entries(quoteBriefingLabels.budgetScope).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
-              <div className="form-field"><label htmlFor="budgetRange">Faixa de investimento <span>opcional</span></label><select id="budgetRange" name="budgetRange" value={briefing.budgetRange} onChange={(event) => updateBriefing('budgetRange', event.target.value as QuoteBriefingForm['budgetRange'])}><option value="">Prefiro conversar sobre isso</option>{Object.entries(quoteBriefingLabels.budgetRange).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
+              <div className="form-field"><label htmlFor="budgetScope">Investimento considerado <span>opcional</span></label><select id="budgetScope" name="budgetScope" value={briefing.budgetScope} onChange={(event) => updateBriefing('budgetScope', event.target.value as QuoteBriefingForm['budgetScope'])} aria-invalid={Boolean(briefingErrors.budgetScope)} aria-describedby={briefingErrors.budgetScope ? 'budget-scope-error' : undefined}><option value="">Prefiro conversar sobre isso</option>{Object.entries(quoteBriefingLabels.budgetScope).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>{briefingErrors.budgetScope && <span id="budget-scope-error" className="field-error">{briefingErrors.budgetScope}</span>}</div>
+              <div className="form-field"><label htmlFor="budgetRange">Faixa de investimento <span>opcional</span></label><select id="budgetRange" name="budgetRange" value={briefing.budgetRange} onChange={(event) => updateBriefing('budgetRange', event.target.value as QuoteBriefingForm['budgetRange'])} aria-invalid={Boolean(briefingErrors.budgetRange)} aria-describedby={briefingErrors.budgetRange ? 'budget-range-error' : undefined}><option value="">Prefiro conversar sobre isso</option>{Object.entries(quoteBriefingLabels.budgetRange).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>{briefingErrors.budgetRange && <span id="budget-range-error" className="field-error">{briefingErrors.budgetRange}</span>}</div>
               <div className="form-field"><label htmlFor="responseChannel">Como prefere continuar a conversa? <span>opcional</span></label><select id="responseChannel" name="responseChannel" value={briefing.responseChannel} onChange={(event) => updateBriefing('responseChannel', event.target.value as QuoteBriefingForm['responseChannel'])}><option value="">Sem preferência</option>{Object.entries(quoteBriefingLabels.responseChannel).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
               <div className="form-field form-field--wide"><label htmlFor="brandAssetStatus">Identidade visual <span>opcional</span></label><select id="brandAssetStatus" name="brandAssetStatus" value={briefing.brandAssetStatus} onChange={(event) => updateBriefing('brandAssetStatus', event.target.value as QuoteBriefingForm['brandAssetStatus'])}><option value="">Conte para a gente em que ponto está</option>{Object.entries(quoteBriefingLabels.brandAssetStatus).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select><small>Não envie arquivos sensíveis pelo formulário. Se necessário, nosso time de especialistas combinará um canal seguro para receber sua marca.</small></div>
               <div className="form-field form-field--wide"><label htmlFor="notes">Qual é a ideia da ação? <span>opcional</span></label><textarea id="notes" name="notes" rows={5} maxLength={800} placeholder="Ex.: onboarding para 300 pessoas, visual mais street, preferência por materiais reciclados, logo em uma cor…" value={contact.notes} onChange={(event) => updateField('notes', event.target.value)} /><small className="char-count">{contact.notes.length}/800</small></div>
             </div>
             <label className={`privacy-check ${errors.privacyAccepted ? 'has-error' : ''}`}><input name="privacyAccepted" type="checkbox" checked={contact.privacyAccepted} onChange={(event) => updateField('privacyAccepted', event.target.checked)} aria-invalid={Boolean(errors.privacyAccepted)} aria-describedby={errors.privacyAccepted ? 'privacy-error' : undefined} /><span><ShieldCheck size={20} /></span><span>Li o <Link to="/privacidade" target="_blank">aviso de privacidade</Link> e autorizo o contato da Promo Brindes sobre esta solicitação. *</span></label>
             {errors.privacyAccepted && <span id="privacy-error" className="field-error privacy-error">{errors.privacyAccepted}</span>}
+            <label className="privacy-check privacy-check--optional"><input name="whatsappCopyAccepted" type="checkbox" checked={contact.whatsappCopyAccepted} onChange={(event) => updateField('whatsappCopyAccepted', event.target.checked)} /><span><ShieldCheck size={20} /></span><span>Quero receber uma cópia desta solicitação também pelo WhatsApp informado. Esta autorização é opcional e vale apenas para o atendimento deste orçamento.</span></label>
             {submitError && <div className="submit-error" role="alert">{submitError}</div>}
             <div className="quote-submit"><div><strong>Pronto para ativar a curadoria?</strong><span>Você alinha todos os detalhes com nosso time de especialistas antes de qualquer decisão.</span></div><button className="button button--green button--large" type="submit" disabled={sending}>{sending ? 'Enviando…' : <><Send size={18} /> Enviar briefing</>}</button></div>
           </form>

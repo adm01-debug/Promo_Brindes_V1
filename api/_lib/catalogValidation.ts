@@ -8,11 +8,40 @@ interface CatalogRow {
   slug?: string;
   name?: string;
   sku?: string;
-  min_quantity?: number;
+  min_quantity?: number | null;
+  color_swatches?: unknown;
   primary_image_url?: string | null;
   primary_image_fallback_url?: string | null;
   set_image_url?: string | null;
   og_image_url?: string | null;
+}
+
+interface CatalogVariant {
+  variantId: string;
+  name?: string;
+  hex?: string;
+  imageUrl?: string;
+}
+
+function catalogMinimum(value: unknown): number {
+  return typeof value === 'number' && Number.isInteger(value) && value > 0
+    ? Math.min(value, 999_999)
+    : 1;
+}
+
+function catalogVariants(value: unknown): CatalogVariant[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((raw) => {
+    if (!raw || typeof raw !== 'object') return [];
+    const variant = raw as Record<string, unknown>;
+    if (typeof variant.variant_id !== 'string' || !variant.variant_id.trim()) return [];
+    return [{
+      variantId: variant.variant_id.trim(),
+      ...(typeof variant.color_name === 'string' && variant.color_name.trim() ? { name: variant.color_name.trim() } : {}),
+      ...(typeof variant.color_hex === 'string' && variant.color_hex.trim() ? { hex: variant.color_hex.trim() } : {}),
+      ...(typeof variant.image_url === 'string' && variant.image_url.trim() ? { imageUrl: variant.image_url.trim() } : {}),
+    }];
+  });
 }
 
 function canonicalImage(row: CatalogRow): string {
@@ -36,7 +65,7 @@ export async function reconcileQuoteItems(payload: NormalizedQuotePayload): Prom
   let response: Response;
   try {
     const url = new URL(`${CANONICAL_CATALOG_URL}/rest/v1/v_site_products_public`);
-    url.searchParams.set('select', 'id,slug,name,sku,min_quantity,primary_image_url,primary_image_fallback_url,set_image_url,og_image_url');
+    url.searchParams.set('select', 'id,slug,name,sku,min_quantity,primary_image_url,primary_image_fallback_url,set_image_url,og_image_url,color_swatches');
     url.searchParams.set('id', `in.(${ids.join(',')})`);
     response = await fetch(url, {
       headers: { apikey: key, Authorization: `Bearer ${key}` },
@@ -56,7 +85,7 @@ export async function reconcileQuoteItems(payload: NormalizedQuotePayload): Prom
   }
   const products = new Map(rows.filter((row) => (
     typeof row.id === 'string' && typeof row.slug === 'string' && typeof row.name === 'string'
-      && typeof row.sku === 'string' && typeof row.min_quantity === 'number' && Number.isInteger(row.min_quantity)
+      && typeof row.sku === 'string'
   )).map((row) => [row.id!, row]));
 
   return {
@@ -66,16 +95,28 @@ export async function reconcileQuoteItems(payload: NormalizedQuotePayload): Prom
       if (!product) {
         throw new RequestValidationError(`O produto ${index + 1} não está mais disponível para briefing. Atualize sua seleção.`, 422, 'catalog_item_unavailable');
       }
-      if (item.quantity < product.min_quantity!) {
+      const minimum = catalogMinimum(product.min_quantity);
+      if (item.quantity < minimum) {
         throw new RequestValidationError(`A quantidade do produto ${index + 1} está abaixo do mínimo atual.`, 422, 'catalog_minimum_not_met');
       }
+      const variants = catalogVariants(product.color_swatches);
+      const variant = item.variantId ? variants.find((candidate) => candidate.variantId === item.variantId) : undefined;
+      if (item.variantId && !variant) {
+        throw new RequestValidationError(`A variante do produto ${index + 1} não está mais disponível. Revise a cor escolhida.`, 422, 'catalog_variant_unavailable');
+      }
+      const variantImage = variant?.imageUrl && (variant.imageUrl.startsWith('/') || /^https:\/\//i.test(variant.imageUrl))
+        ? variant.imageUrl
+        : undefined;
       return {
         ...item,
+        key: variant ? `${product.id!}::variante-${variant.variantId}` : item.key,
         slug: product.slug!,
         name: product.name!,
         sku: product.sku!,
-        minQuantity: product.min_quantity!,
-        imageUrl: canonicalImage(product),
+        minQuantity: minimum,
+        imageUrl: variantImage || canonicalImage(product),
+        ...(variant?.name ? { colorName: variant.name } : {}),
+        ...(variant?.hex ? { colorHex: variant.hex } : {}),
       };
     }),
   };

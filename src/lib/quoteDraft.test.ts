@@ -3,7 +3,7 @@ import { clearQuoteDraft, EMPTY_QUOTE_CONTACT, loadQuoteDraft, saveQuoteDraft } 
 import { EMPTY_QUOTE_BRIEFING } from './quoteBriefing';
 
 const contact = {
-  name: 'Ana', company: 'Marca', email: 'ana@marca.test', phone: '(11) 99999-9999', city: 'São Paulo / SP', deadline: '2026-10-10', notes: 'Onboarding para 150 pessoas.', privacyAccepted: true,
+  name: 'Ana', company: 'Marca', email: 'ana@marca.test', phone: '(11) 99999-9999', city: 'São Paulo / SP', deadline: '2026-10-10', notes: 'Onboarding para 150 pessoas.', privacyAccepted: true, whatsappCopyAccepted: true,
 };
 
 describe('rascunho do briefing', () => {

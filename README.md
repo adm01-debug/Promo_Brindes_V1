@@ -64,7 +64,7 @@ Links de seleção usam somente referências públicas. A versão persistente e 
 
 O projeto isolado `xlzmclcjdncjfdrjxclt` está provisionado e as rotas de produção estão ativas. Os formulários persistem contatos e briefings no Supabase exclusivo do site, com protocolo e idempotência; não gravam no banco canônico do Promo Gifts. O runbook e os controles de recuperação estão em [docs/SITE_SUPABASE_SETUP.md](docs/SITE_SUPABASE_SETUP.md).
 
-Confirmações automáticas por e-mail e WhatsApp ainda não estão habilitadas. A estrutura de auditoria está pronta, mas a ativação depende da escolha dos provedores, credenciais server-side, templates aprovados e opt-in específico para WhatsApp.
+Comprovantes de orçamento usam uma fila transacional no Supabase isolado. E-mail é solicitado para todo briefing persistido; WhatsApp só entra na fila após o checkbox específico. O worker `/api/notifications` usa `CRON_SECRET`, Resend e/ou Meta WhatsApp Cloud exclusivamente no backend, com no máximo cinco tentativas e backoff. Sem credenciais válidas, os jobs permanecem pendentes e o orçamento continua salvo; não anuncie entrega efetiva antes de configurar domínio/remetente, template aprovado e validar um ciclo real.
 
 ## Área do Cliente
 

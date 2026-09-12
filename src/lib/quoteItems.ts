@@ -1,4 +1,4 @@
-import type { QuoteItem } from '../types';
+import type { CatalogProduct, QuoteItem } from '../types';
 
 export const MAX_QUOTE_ITEMS = 50;
 const MAX_QUANTITY = 999_999;
@@ -69,6 +69,7 @@ export function normalizeQuoteItems(values: unknown): QuoteItem[] {
       ...(colorName ? { colorName } : {}),
       ...(colorHex ? { colorHex } : {}),
       ...(raw.variantUnavailable && variantId ? { variantUnavailable: true } : {}),
+      ...(raw.productUnavailable ? { productUnavailable: true } : {}),
       ...(decisionGroup === 'alternative' ? { decisionGroup } : {}),
     };
     const existing = normalized.get(key);
@@ -77,4 +78,39 @@ export function normalizeQuoteItems(values: unknown): QuoteItem[] {
   }
 
   return [...normalized.values()];
+}
+
+/**
+ * Revalida uma seleção histórica sem apagar silenciosamente o que mudou.
+ * Referências indisponíveis permanecem visíveis e bloqueiam o novo envio até revisão.
+ */
+export function reconcileHistoricalQuoteItems(items: QuoteItem[], products: CatalogProduct[]): QuoteItem[] {
+  const productsById = new Map(products.map((product) => [product.id, product]));
+  return normalizeQuoteItems(items.map((item) => {
+    const product = productsById.get(item.productId);
+    if (!product) return { ...item, productUnavailable: true };
+    const variant = item.variantId
+      ? product.colors.find((color) => color.variantId === item.variantId)
+      : item.colorName
+        ? product.colors.find((color) => color.name.localeCompare(item.colorName!, 'pt-BR', { sensitivity: 'base' }) === 0)
+        : undefined;
+    const variantUnavailable = Boolean(item.variantId && !variant);
+    const colorKey = variant?.variantId
+      ? `variante-${variant.variantId}`
+      : variant?.name.toLocaleLowerCase('pt-BR') || item.colorName?.toLocaleLowerCase('pt-BR') || 'sem-cor';
+    return {
+      ...item,
+      key: `${product.id}::${colorKey}`,
+      slug: product.slug,
+      name: product.name,
+      sku: product.sku,
+      imageUrl: variant?.imageUrl || product.imageUrl,
+      minQuantity: product.minQuantity,
+      quantity: clampQuoteQuantity(item.quantity, product.minQuantity),
+      ...(variant?.variantId ? { variantId: variant.variantId } : {}),
+      ...(variant?.name ? { colorName: variant.name, colorHex: variant.hex } : {}),
+      variantUnavailable: variantUnavailable || undefined,
+      productUnavailable: false,
+    };
+  }));
 }

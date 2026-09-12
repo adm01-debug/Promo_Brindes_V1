@@ -13,7 +13,7 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   webServer: {
-    command: 'VITE_SITE_SUPABASE_URL=https://xlzmclcjdncjfdrjxclt.supabase.co VITE_SITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_playwright_test VITE_CUSTOMER_ADJUSTMENTS_ENABLED=true VITE_QUOTE_DECISION_GROUPS_ENABLED=true VITE_PERSISTENT_SHARED_SELECTIONS_ENABLED=true npm run build && npm run preview -- --host 127.0.0.1 --port 4175',
+    command: 'VITE_SITE_SUPABASE_URL=https://xlzmclcjdncjfdrjxclt.supabase.co VITE_SITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_playwright_test VITE_CUSTOMER_ADJUSTMENTS_ENABLED=true VITE_QUOTE_DECISION_GROUPS_ENABLED=true VITE_PERSISTENT_SHARED_SELECTIONS_ENABLED=true VITE_QUOTE_REQUEST_ENDPOINT=/api/quote-requests npm run build && npm run preview -- --host 127.0.0.1 --port 4175',
     url: 'http://127.0.0.1:4175',
     reuseExistingServer: false,
   },

@@ -1,0 +1,185 @@
+{
+  "date": "2026-09-12T16:12:13.110Z",
+  "results": [
+    {
+      "path": "/",
+      "status": 200,
+      "root": true,
+      "assets": true,
+      "foreignLogin": false,
+      "title": "Promo Brindes | Brindes corporativos personalizados",
+      "robots": null
+    },
+    {
+      "path": "/catalogo",
+      "status": 200,
+      "root": true,
+      "assets": true,
+      "foreignLogin": false,
+      "title": "Catálogo de brindes | Promo Brindes",
+      "robots": null
+    },
+    {
+      "path": "/catalogo?perfil=novos",
+      "status": 200,
+      "root": true,
+      "assets": true,
+      "foreignLogin": false,
+      "title": "Catálogo de brindes | Promo Brindes",
+      "robots": null
+    },
+    {
+      "path": "/catalogo?perfil=kits",
+      "status": 200,
+      "root": true,
+      "assets": true,
+      "foreignLogin": false,
+      "title": "Catálogo de brindes | Promo Brindes",
+      "robots": null
+    },
+    {
+      "path": "/catalogos",
+      "status": 200,
+      "root": true,
+      "assets": true,
+      "foreignLogin": false,
+      "title": "Catálogos para planejar campanhas | Promo Brindes",
+      "robots": null
+    },
+    {
+      "path": "/datas-comemorativas",
+      "status": 200,
+      "root": true,
+      "assets": true,
+      "foreignLogin": false,
+      "title": "Datas comemorativas para campanhas | Promo Brindes",
+      "robots": null
+    },
+    {
+      "path": "/sobre",
+      "status": 200,
+      "root": true,
+      "assets": true,
+      "foreignLogin": false,
+      "title": "Sobre a Promo Brindes | Promo Brindes",
+      "robots": null
+    },
+    {
+      "path": "/contato",
+      "status": 200,
+      "root": true,
+      "assets": true,
+      "foreignLogin": false,
+      "title": "Fale com nosso time de especialistas | Promo Brindes",
+      "robots": null
+    },
+    {
+      "path": "/privacidade",
+      "status": 200,
+      "root": true,
+      "assets": true,
+      "foreignLogin": false,
+      "title": "Privacidade | Promo Brindes",
+      "robots": null
+    },
+    {
+      "path": "/orcamento",
+      "status": 200,
+      "root": true,
+      "assets": true,
+      "foreignLogin": false,
+      "title": "Solicitar orçamento | Promo Brindes",
+      "robots": "noindex, nofollow, noarchive"
+    },
+    {
+      "path": "/entrar",
+      "status": 200,
+      "root": true,
+      "assets": true,
+      "foreignLogin": false,
+      "title": "Acessar meus orçamentos | Promo Brindes",
+      "robots": "noindex, nofollow, noarchive"
+    },
+    {
+      "path": "/minha-conta",
+      "status": 200,
+      "root": true,
+      "assets": true,
+      "foreignLogin": false,
+      "title": "Meus orçamentos | Promo Brindes",
+      "robots": "noindex, nofollow, noarchive"
+    },
+    {
+      "path": "/minha-conta/orcamentos/aaaaaaaa-1111-4111-8111-111111111111",
+      "status": 200,
+      "root": true,
+      "assets": true,
+      "foreignLogin": false,
+      "title": "Detalhe do orçamento | Promo Brindes",
+      "robots": "noindex, nofollow, noarchive"
+    },
+    {
+      "path": "/auth/confirm",
+      "status": 200,
+      "root": true,
+      "assets": true,
+      "foreignLogin": false,
+      "title": "Confirmar acesso | Promo Brindes",
+      "robots": "noindex, nofollow, noarchive"
+    },
+    {
+      "path": "/definir-senha",
+      "status": 200,
+      "root": true,
+      "assets": true,
+      "foreignLogin": false,
+      "title": "Definir senha | Promo Brindes",
+      "robots": "noindex, nofollow, noarchive"
+    },
+    {
+      "path": "/selecoes/compartilhada",
+      "status": 200,
+      "root": true,
+      "assets": true,
+      "foreignLogin": false,
+      "title": "Seleção compartilhada | Promo Brindes",
+      "robots": "noindex, nofollow, noarchive"
+    },
+    {
+      "path": "/ideias/onboarding",
+      "status": 200,
+      "root": true,
+      "assets": true,
+      "foreignLogin": false,
+      "title": "Ideias para onboarding | Promo Brindes",
+      "robots": null
+    },
+    {
+      "path": "/ideias/auditoria-inexistente",
+      "status": 404,
+      "root": true,
+      "assets": true,
+      "foreignLogin": false,
+      "title": "Página não encontrada | Promo Brindes",
+      "robots": null
+    },
+    {
+      "path": "/produto/auditoria-inexistente",
+      "status": 404,
+      "root": true,
+      "assets": true,
+      "foreignLogin": false,
+      "title": "Produto não encontrado | Promo Brindes",
+      "robots": null
+    },
+    {
+      "path": "/auditoria-rota-inexistente",
+      "status": 404,
+      "root": true,
+      "assets": true,
+      "foreignLogin": false,
+      "title": "Página não encontrada | Promo Brindes",
+      "robots": null
+    }
+  ]
+}
