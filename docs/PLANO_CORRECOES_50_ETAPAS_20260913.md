@@ -1,0 +1,707 @@
+# Plano de melhorias e correções — 50 etapas — 13/09/2026
+
+## Escopo e método
+
+Plano de engenharia derivado de inspeção direta do commit `f20df4452f0d70f295154b0ba8bd9af8f8be64dd`, confrontado com a [revisão de fechamento de 12/09](REVISAO_FECHAMENTO_PLANOS_20260912.md).
+
+Cada etapa declara **evidência** (arquivo:linha verificado), **entrega**, **aceite** e **verificação executável**. Nenhuma etapa é concluída por inspeção: exige teste que falha antes e passa depois.
+
+Três achados desta rodada **não constavam** da revisão anterior e estão marcados `[NOVO]`: E04 (backend sem `strict`), E24 (`maxDuration` ausente na Vercel) e E03 (supressões de ESLint órfãs).
+
+### Sequenciamento
+
+As fases são ordenadas por dependência técnica, não por esforço. A Fase 0 é pré-requisito das demais porque nenhuma correção posterior tem rede de proteção sem ela. As Fases 2 e 3 devem ser concluídas **antes** de configurar credenciais reais de Resend/Meta — ativar provedores sobre a fila atual produz reenvio duplicado ao cliente final.
+
+| Fase | Etapas | Tema | Bloqueia |
+|---|---|---|---|
+| 0 | 1–8 | Rede de proteção | Todas as demais |
+| 1 | 9–13 | Sessão e dados pessoais (R08) | Nada; risco ativo em produção |
+| 2 | 14–23 | Integridade da fila (R01–R04) | Ativação de provedores |
+| 3 | 24–31 | Capacidade e entrega (R05–R07) | Ativação de provedores |
+| 4 | 32–37 | Performance | Nada |
+| 5 | 38–42 | Observabilidade | Aceite operacional |
+| 6 | 43–47 | Qualidade e dependências | Nada |
+| 7 | 48–50 | Dívida estrutural e governança | Nada |
+
+---
+
+## Fase 0 — Rede de proteção (etapas 1–8)
+
+> Sem linter, sem `strict` no backend e sem cobertura, qualquer correção das fases seguintes é aplicada às cegas. Esta fase não altera comportamento de produto.
+
+### Etapa 1 — Versionar os artefatos de auditoria pendentes
+
+**Evidência:** oito arquivos não rastreados: `docs/MATRIZ_FECHAMENTO_PLANOS_20260912.csv`, `docs/REVISAO_FECHAMENTO_PLANOS_20260912.md` e `docs/audits/closure-review-20260912/` (6 arquivos). Nenhuma regra do `.gitignore` os cobre — nunca foram adicionados.
+
+**Entrega:** commit dos oito arquivos. Varredura prévia confirmou que não há credencial real: o único match é o placeholder `sb_secret_${'x'.repeat(40)}` em `notifications.mjs:26`.
+
+**Aceite:** `git status --porcelain` vazio; a matriz de 230 referências passa a ter histórico versionado.
+
+**Verificação:** `git status --porcelain | wc -l` retorna `0`.
+
+---
+
+### Etapa 2 — Introduzir ESLint 9 com flat config
+
+**Evidência:** não existe `eslint.config.js`, `.eslintrc*`, `biome.json` nem script `lint` em `package.json`. O projeto tem 11.658 linhas de TS/TSX sem análise estática além do compilador.
+
+**Entrega:** `eslint.config.js` com `typescript-eslint` (type-aware, `projectService`), `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh` e `eslint-plugin-jsx-a11y`. Regras iniciais como `error`: `no-floating-promises`, `no-misused-promises`, `await-thenable`, `react-hooks/exhaustive-deps`, `react-hooks/rules-of-hooks`.
+
+**Aceite:** `npm run lint` executa sobre `src`, `api`, `scripts`, `tests`, `e2e`. Violações pré-existentes são corrigidas, não silenciadas por `ignorePatterns`.
+
+**Verificação:** `npm run lint` sai com código 0.
+
+**Risco:** `no-floating-promises` provavelmente acusará os `void import(...)` em `CustomerAuthContext.tsx:29` e `:41`. São intencionais — manter o `void` satisfaz a regra sem mudar comportamento.
+
+---
+
+### Etapa 3 — Reativar as três supressões órfãs de `exhaustive-deps` `[NOVO]`
+
+**Evidência:** existem três `// eslint-disable-next-line react-hooks/exhaustive-deps` em `src/pages/CommemorativeDatesPage.tsx:196`, `src/components/QuoteDrawer.tsx:35` e `src/pages/CatalogPage.tsx:98` — **sem ESLint instalado**. São comentários mortos: suprimem uma regra que nunca rodou. As dependências desses três efeitos nunca foram validadas por ferramenta alguma.
+
+**Entrega:** com a Etapa 2 ativa, cada supressão é reavaliada individualmente. Para cada uma: corrigir o array de dependências, ou manter a supressão **com comentário justificando por que a dependência omitida é deliberada**.
+
+**Aceite:** zero supressões sem justificativa escrita. Toda supressão remanescente aponta o motivo e o efeito colateral evitado.
+
+**Verificação:** `grep -rn 'eslint-disable' src/ api/` — cada ocorrência tem comentário adjacente explicando a exceção.
+
+**Observação:** este é o achado de maior risco latente da Fase 0. Um `useEffect` com dependências incorretas em `CatalogPage` (a maior página do projeto, 552 linhas) pode produzir estado obsoleto em filtros, e nunca houve verificação automática.
+
+---
+
+### Etapa 4 — Ativar `strict` no `tsconfig.node.json` `[NOVO]`
+
+**Evidência:** `tsconfig.app.json:11` declara `"strict": true`. O `tsconfig.node.json` **não declara `strict`** — confirmado por `tsc --showConfig`, que não emite a flag. Esse projeto cobre `api/**/*.ts`, `tests/api/**/*.ts`, `e2e/**/*.ts`, `vite.config.ts` e `playwright.config.ts`.
+
+**Consequência:** todo o backend serverless — sete endpoints públicos e sete módulos em `api/_lib/` — compila com `strictNullChecks` desligado. `null` e `undefined` são atribuíveis a qualquer tipo, e parâmetros implícitos ganham `any`. O código que valida payloads de clientes anônimos é justamente o que tem a garantia de tipos mais fraca.
+
+**Entrega:** adicionar `"strict": true` a `tsconfig.node.json` e corrigir os erros resultantes. Correção real, não `as` nem `!`.
+
+**Aceite:** `npm run typecheck` aprovado com `strict` ativo nos dois projetos.
+
+**Verificação:**
+```bash
+npx tsc -p tsconfig.node.json --showConfig | grep '"strict"'   # deve retornar true
+npm run typecheck
+```
+
+**Risco:** esta é a etapa de maior volume de correções da fase. Executar isoladamente, em commit próprio, antes de qualquer mudança de comportamento no backend — caso contrário os erros de tipo se misturam aos defeitos funcionais das Fases 2 e 3.
+
+---
+
+### Etapa 5 — Endurecer o `tsconfig.app.json`
+
+**Evidência:** `tsconfig.app.json` tem `strict` mas não tem `noUnusedLocals`, `noUnusedParameters`, `noFallthroughCasesInSwitch` nem `noUncheckedIndexedAccess`. Ambos os projetos usam `skipLibCheck: true`.
+
+**Entrega:** ativar as quatro flags nos dois projetos. `noUncheckedIndexedAccess` é a de maior impacto — o código faz acesso indexado em vários pontos (`body.messages?.[0]?.id` em `api/notifications.ts:139`, `header(...).split(',')[0]` em `api/_lib/leadHandler.ts:60`) onde o tipo atual mente sobre a possibilidade de `undefined`.
+
+**Aceite:** typecheck aprovado com as quatro flags.
+
+**Verificação:** `npm run typecheck`.
+
+**Nota:** se `noUncheckedIndexedAccess` gerar volume alto, adotá-la em etapa separada. As outras três são baratas e devem entrar de imediato.
+
+---
+
+### Etapa 6 — Prettier e `.editorconfig`
+
+**Evidência:** nenhum formatador configurado. O projeto é editado a partir do Windows via `\\wsl.localhost\` sobre um repositório em ext4, com `core.autocrlf=input`.
+
+**Entrega:** `.prettierrc` e `.editorconfig` com `end_of_line = lf` explícito, mais `.gitattributes` com `* text=auto eol=lf` para fixar a normalização independentemente da configuração local de cada máquina.
+
+**Aceite:** `npx prettier --check .` aprovado; nenhum arquivo muda de line ending ao ser editado pelo Windows.
+
+**Verificação:** `npx prettier --check . && git diff --stat` vazio após reabrir arquivos no editor do Windows.
+
+---
+
+### Etapa 7 — Incluir lint no `check` e no CI
+
+**Evidência:** `package.json` define `check` como `typecheck && test && build && check:performance-budget && test:e2e`. Não há lint. O workflow `quality.yml` roda `npm run check`, herdando a lacuna.
+
+**Entrega:** inserir `npm run lint` como **primeiro** passo de `check` (falha em segundos, antes dos ~6 minutos de E2E). Adicionar `npx prettier --check .`.
+
+**Aceite:** PR com violação de lint reprova no Quality gate.
+
+**Verificação:** branch de teste com erro de lint deliberado reprova o check.
+
+---
+
+### Etapa 8 — Configurar cobertura com limiar
+
+**Evidência:** `vite.config.ts:13-18` define o bloco `test` sem `coverage`. São 180 testes Vitest aprovados sem nenhuma medição de cobertura — não se sabe o que os 11.658 linhas realmente exercitam.
+
+**Entrega:** `@vitest/coverage-v8` com provider `v8`, relatórios `text` e `lcov`, e `thresholds` iniciais calibrados **pela medição real** (medir primeiro, fixar o limiar no valor obtido menos uma margem, subir a cada etapa). Cobrir `src/**` e `api/**`.
+
+**Aceite:** `npm run test -- --coverage` publica o relatório e reprova abaixo do limiar. Limiar registrado no PR com o número medido.
+
+**Verificação:** `npm run test -- --coverage` e inspeção de `coverage/lcov-report/index.html`. `coverage` já está no `.gitignore`.
+
+---
+
+## Fase 1 — Sessão e dados pessoais: R08 (etapas 9–13)
+
+> Risco ativo e sem dependência externa: em navegador compartilhado, dados de contato do titular anterior permanecem no formulário após logout e são regravados no storage.
+
+### Etapa 9 — Contrato único de limpeza de dados pessoais
+
+**Evidência:** hoje a limpeza está dispersa. `CustomerAuthContext.tsx:65-66` chama `clearQuoteDraft()` no `signOut`; `CustomerAuthContext.tsx:41` chama o mesmo em troca de titular; `QuotePage.tsx:94-95` e `:104-105` limpam `clearSubmissionAttempt`. Nenhum ponto limpa o estado React.
+
+**Entrega:** módulo `src/lib/personalDataReset.ts` com uma função que enumera explicitamente tudo que deve ser invalidado em troca de titular: rascunho, tentativa de submissão, contexto de repetição, consentimento e estados React ativos. A seleção anônima é preservada **por contrato explícito e documentado**, não por omissão.
+
+**Aceite:** um único módulo define o conjunto; adicionar um novo campo pessoal exige alterá-lo.
+
+**Verificação:** teste unitário que percorre o contrato e falha se uma chave pessoal conhecida não estiver contemplada.
+
+---
+
+### Etapa 10 — Expor troca de titular como evento no contexto
+
+**Evidência:** `CustomerAuthContext.tsx:37-46` detecta a troca via `onAuthStateChange` comparando `sessionUserId.current`, mas a reação é interna ao provider — importa `quoteDraft` diretamente (linha 41) e nenhum consumidor é notificado. Componentes montados não têm como saber que o titular mudou.
+
+**Entrega:** acrescentar ao `CustomerAuthValue` um contador ou token de identidade (`identityEpoch`) que muda a cada troca de titular ou logout. Consumidores reagem por `useEffect` sobre esse valor.
+
+**Aceite:** qualquer componente pode assinar a troca de titular sem acoplar-se ao storage.
+
+**Verificação:** teste do contexto que simula `onAuthStateChange` A→B e confirma o incremento do epoch.
+
+---
+
+### Etapa 11 — Resetar os estados do QuotePage no logout
+
+**Evidência — causa raiz do R08:** `QuotePage.tsx:55` e `:56-59` inicializam `contact` e `briefing` via `useState(savedDraft.contact)` — lidos **uma única vez** na montagem. `signOut` limpa o storage, mas os estados React permanecem. Em seguida, `QuotePage.tsx:89` (`saveQuoteDraft({ contact, briefing })`, no efeito das linhas 84-90) **regrava** o contato do titular anterior na primeira edição de qualquer campo.
+
+**Entrega:** efeito que observa o `identityEpoch` da Etapa 10 e reinicializa `contact`, `briefing`, `errors`, `briefingErrors`, `website` e `quantityDrafts` para o estado vazio, aplicando o contrato da Etapa 9. Garantir que a reinicialização ocorra **antes** do efeito de gravação, evitando que o reset dispare uma regravação do valor antigo.
+
+**Aceite:** após logout em outra aba, editar o campo empresa não regrava e-mail nem consentimento anteriores. `privacyAccepted` volta a `false` — consentimento nunca é herdado entre titulares.
+
+**Verificação:** reproduzir `docs/audits/closure-review-20260912/logout.mjs`. O diagnóstico deve deixar de reproduzir o defeito e ser convertido em teste de regressão aprovado.
+
+---
+
+### Etapa 12 — Cancelar requisição em andamento no logout
+
+**Evidência:** `QuotePage.tsx:70-71` mantém `submittingRef` e `requestAttemptRef`. Não há `AbortController` para o envio. Se o titular sai da conta durante uma submissão, a requisição conclui carregando os dados do titular anterior.
+
+**Entrega:** `AbortController` no envio, abortado na troca de titular. Estado de UI tratado para o caso abortado — nem sucesso, nem erro de rede genérico.
+
+**Aceite:** logout durante o envio aborta a requisição; o formulário não exibe sucesso de uma submissão de outro titular.
+
+**Verificação:** teste E2E com resposta atrasada e logout no intervalo.
+
+---
+
+### Etapa 13 — Regressões E2E de troca de sessão
+
+**Evidência:** `e2e/smoke.spec.ts` tem 38 testes e cobre axe em duas rotas (linhas 378 e 600), mas nenhum cenário de logout multi-aba. A revisão registra que o caso R08 escapou justamente por isso.
+
+**Entrega:** quatro cenários E2E: (a) logout em outra aba seguido de edição; (b) troca direta A→B; (c) edição após logout na mesma aba; (d) término de requisição em andamento durante logout.
+
+**Aceite:** os quatro cenários rodam nos projetos `desktop-chromium` e `mobile-chromium` e reprovam se a Etapa 11 for revertida.
+
+**Verificação:** `npm run test:e2e`.
+
+---
+
+## Fase 2 — Integridade da fila de notificações: R01–R04 (etapas 14–23)
+
+> **Bloqueia a configuração de credenciais reais.** Ativar Resend ou Meta sobre a fila atual produz reenvio duplicado ao cliente final no cenário de retomada.
+
+### Etapa 14 — Validar o retorno booleano da finalização (R01)
+
+**Evidência:** `site-supabase/supabase/migrations/20260912170000_add_quote_notification_outbox.sql:147` retorna `v_updated = 1`. Em `api/notifications.ts:154`, `finalize()` chama `rpc<boolean>(...)` e **descarta o valor**. `deliverJob` (`:170-172`) retorna `true` incondicionalmente após um `finalize` que não lançou. Um `false` — nenhuma linha atualizada — é reportado como `sent`.
+
+**Entrega:** `finalize()` retorna o booleano; `deliverJob` só considera sucesso quando a finalização confirma `true`. Um `false` é classificado como **inconclusivo** (Etapa 20), nunca como sucesso nem como falha simples.
+
+**Aceite:** provedor aceita + RPC retorna `false` ⇒ o resultado **não** é `sent`.
+
+**Verificação:** adaptar `docs/audits/closure-review-20260912/notifications.mjs`, que hoje reproduz o defeito, para teste de regressão em `tests/api/notifications.test.ts`.
+
+---
+
+### Etapa 15 — Emitir token de lease na reivindicação (R04)
+
+**Evidência:** `claim_site_notification_deliveries` (migration, linhas 74-80) faz `attempts = delivery.attempts + 1` e devolve o job em `:81-102` sem qualquer identificador da reivindicação.
+
+**Entrega:** migration **aditiva** que acrescenta `lease_token uuid` à tabela, gerado a cada claim e incluído no JSON retornado. Aplicar também a `claim_site_quote_notification` (migration, linha 151).
+
+**Aceite:** cada reivindicação produz token distinto; o token trafega até o handler.
+
+**Verificação:** pgTAP confirmando que duas reivindicações do mesmo job geram tokens diferentes.
+
+**Restrição:** migration exclusivamente aditiva no Supabase isolado do site (`xlzmclcjdncjfdrjxclt`), conforme a política do repositório. Nenhuma alteração no projeto canônico Promo Gifts.
+
+---
+
+### Etapa 16 — Exigir o lease na finalização (R04)
+
+**Evidência:** `finalize_site_notification_delivery` (migration, linha 145): `where delivery.id = p_delivery_id and delivery.status = 'processing'`. Não há verificação de tentativa. A revisão reproduziu localmente um trabalhador da tentativa 4 finalizando a reivindicação da tentativa 5.
+
+**Entrega:** parâmetro `p_lease_token` obrigatório, comparado na cláusula `where`. Chamada de lease obsoleto retorna `false` sem escrever.
+
+**Aceite:** finalização com token divergente não altera a linha e retorna `false`; o `false` é tratado conforme a Etapa 14.
+
+**Verificação:** `site-supabase/supabase/tests/database/notification_outbox.test.sql`, cenário de retorno tardio. Reexecutar `docs/audits/closure-review-20260912/outbox.sql`.
+
+**Nota:** os timeouts atuais (7s e 20s) são menores que a janela de recuperação de 10 minutos, o que torna o cenário improvável no fluxo usual — mas o contrato do banco não o impede, e a Etapa 24 revela que a função pode ser morta pela plataforma antes de qualquer timeout interno.
+
+---
+
+### Etapa 17 — Separar recuperação de `processing` do limite de tentativas (R03)
+
+**Evidência:** migration, linha 66: `delivery.attempts < 5` aplica-se ao predicado inteiro, incluindo o ramo de recuperação da linha 69 (`status = 'processing' and updated_at <= now() - interval '10 minutes'`). Um job em `processing` com 5 tentativas **nunca** é reavaliado: fica preso indefinidamente, sem estado terminal e sem alerta.
+
+**Entrega:** desmembrar o predicado — o limite de tentativas governa apenas a nova tentativa (`pending`/`failed`); `processing` expirado é sempre elegível a **reconciliação**, ainda que não a novo envio.
+
+**Aceite:** job em `processing` com 5 tentativas e 20 minutos de inatividade é recuperado e atinge estado terminal ou de revisão.
+
+**Verificação:** pgTAP reproduzindo exatamente o cenário descrito na revisão.
+
+---
+
+### Etapa 18 — Estado terminal para tentativa esgotada (R03)
+
+**Evidência:** a tabela suporta `sent`, `failed`, `cancelled` (migration, linha 127). Não há estado que signifique "esgotou as tentativas e requer decisão humana".
+
+**Entrega:** estado `exhausted` (ou `needs_review`), atribuído quando a recuperação da Etapa 17 encontra um job sem tentativas restantes. Jobs nesse estado saem da elegibilidade automática e entram no monitoramento da Etapa 29.
+
+**Aceite:** nenhum job permanece em `processing` por mais de uma janela de recuperação.
+
+**Verificação:** pgTAP mais consulta operacional que retorna zero jobs presos.
+
+---
+
+### Etapa 19 — Chave de idempotência no WhatsApp (R02)
+
+**Evidência:** `api/notifications.ts:102` envia `Idempotency-Key: quote-${job.requestId}-customer-email` ao Resend. O POST à Meta (`:125-137`) **não tem equivalente**. Com aceite da Meta e falha de finalização, o job volta a ser elegível e o mesmo destinatário recebe a mesma mensagem: a revisão observou duas submissões idênticas ao provedor simulado.
+
+**Entrega:** usar o mecanismo de deduplicação suportado pela Graph API para a versão em uso, derivado de `requestId` + canal (determinístico entre tentativas). Se a API não oferecer garantia adequada, a idempotência passa a ser responsabilidade da Etapa 21 e isso deve ser **registrado explicitamente** — não presumido.
+
+**Aceite:** retomada após aceite não produz segunda submissão ao transporte.
+
+**Verificação:** cenário de `notifications.mjs` que hoje observa duas submissões passa a observar uma.
+
+**Limite honesto:** confirmar a janela e as garantias reais de deduplicação de cada provedor antes de anunciar entrega única. A unicidade da linha na fila **não** prova entrega única.
+
+---
+
+### Etapa 20 — Modelar o resultado inconclusivo
+
+**Evidência:** `deliverJob` (`api/notifications.ts:161-178`) tem apenas dois desfechos booleanos. O comentário nas linhas 174-175 reconhece o caso ambíguo — provedor recebeu, finalização falhou — mas o tipo de retorno não o representa, e o `catch` da linha 173 o colapsa em `false`, que significa "falhou".
+
+**Entrega:** trocar o `boolean` por união discriminada: `delivered | failed | inconclusive`, com o `provider_message_id` preservado no caso inconclusivo para permitir reconciliação.
+
+**Aceite:** o caminho inconclusivo é distinguível nos logs e no banco; não realimenta reenvio automático.
+
+**Verificação:** testes de API cobrindo os três desfechos.
+
+---
+
+### Etapa 21 — Reconciliação por identificador do provedor
+
+**Evidência:** `sendEmail` (`:107`) e `sendWhatsApp` (`:141`) retornam o ID do provedor, persistido em `provider_message_id` apenas quando `p_status = 'sent'` (migration, linha 139). No caminho inconclusivo, o ID é **perdido**.
+
+**Entrega:** persistir o ID do provedor assim que ele for conhecido, antes da finalização. A recuperação da Etapa 17, ao encontrar um job com ID de provedor registrado, reconcilia em vez de reenviar.
+
+**Aceite:** job interrompido após aceite do provedor é fechado por reconciliação, sem nova chamada ao transporte.
+
+**Verificação:** pgTAP mais teste de API do ciclo aceite → interrupção → recuperação.
+
+---
+
+### Etapa 22 — Matriz pgTAP de retomadas
+
+**Evidência:** a suíte tem 118 testes pgTAP aprovados, 17 da fila, "sem matriz completa de retomadas" conforme registrado na revisão.
+
+**Entrega:** matriz cobrindo interrupção antes do envio, depois do aceite e durante a finalização; lease obsoleto; tentativa esgotada em `processing`; e concorrência entre dois trabalhadores sobre o mesmo job.
+
+**Aceite:** cada defeito R01–R04 tem ao menos um teste que reprova sem a respectiva correção.
+
+**Verificação:** `npm run db:site:test`.
+
+---
+
+### Etapa 23 — Testes de API dos novos contratos
+
+**Evidência:** `tests/api/notifications.test.ts` existe; a revisão registra seis testes de notificações entre os 180 do Vitest — insuficiente para os contratos das Etapas 14–21.
+
+**Entrega:** ampliar a suíte cobrindo boolean `false` da finalização, lease divergente, os três desfechos da Etapa 20 e o caminho de reconciliação. `fetch` inteiramente simulado, sem provedor real.
+
+**Aceite:** suíte reprova se qualquer correção da Fase 2 for revertida.
+
+**Verificação:** `npm run test`.
+
+---
+
+## Fase 3 — Capacidade e entrega: R05–R07 (etapas 24–31)
+
+### Etapa 24 — Declarar `maxDuration` das funções na Vercel `[NOVO]`
+
+**Evidência:** `vercel.json` **não possui bloco `functions`** — confirmado por inspeção das 84 linhas do arquivo. Portanto todas as funções usam o `maxDuration` padrão da plataforma. Enquanto isso, `api/notifications.ts:6` declara `REQUEST_TIMEOUT_MS = 20_000` e o aplica em `:231`.
+
+**Consequência:** o AbortController de 20 segundos **nunca chega a disparar** se o padrão da plataforma for menor. A plataforma encerra a invocação primeiro, sem executar o `finally` da linha 244 e sem finalizar os jobs já reivindicados. Esses jobs ficam em `processing` — e, ao atingirem a quinta tentativa, tornam-se exatamente os jobs irrecuperáveis do R03.
+
+Este é o elo que fecha o ciclo: o R03 descreve o sintoma no banco; a ausência de `maxDuration` é um dos mecanismos que o produz em produção. A revisão de 12/09 não registrou este ponto.
+
+**Entrega:** bloco `functions` no `vercel.json` declarando `maxDuration` explícito por rota, com folga sobre o timeout interno de cada handler (`api/notifications.ts` é o caso crítico com 20s; `retention`, `customer-proposals` e `siteDatabase` usam 10s; `sitemap` e `publicProductPage`, 8s). Confirmar o teto real permitido pelo plano contratado da Vercel e, se o teto for inferior a 20s, **reduzir o timeout interno** para caber — nunca deixar o interno maior que o da plataforma.
+
+**Aceite:** para todo handler, `timeout interno < maxDuration declarado`. Relação registrada em comentário no `vercel.json`.
+
+**Verificação:** teste que lê `vercel.json` e as constantes de timeout de `api/**` e reprova se algum interno for maior ou igual ao declarado. Confirmar no painel da Vercel que o `maxDuration` aplicado corresponde ao declarado.
+
+---
+
+### Etapa 25 — Orçamento de tempo por job, não por lote
+
+**Evidência:** `api/notifications.ts:230-239` cria **um** `AbortController` para todo o lote e itera sequencialmente sobre até dez jobs (`BATCH_SIZE = 10`, linha 5). Os últimos jobs herdam um sinal possivelmente já abortado — a revisão registra o risco e anota que o esgotamento não foi simulado.
+
+**Entrega:** orçamento de tempo por job, derivado do tempo restante do lote. Job que não couber no orçamento restante **não é reivindicado**, em vez de ser reivindicado e abortado.
+
+**Aceite:** nenhum job é marcado como falha por um sinal abortado que ele nunca teve chance de usar.
+
+**Verificação:** teste com transporte lento que confirma parada limpa em vez de cascata de falhas.
+
+---
+
+### Etapa 26 — Timeout por canal na confirmação imediata
+
+**Evidência:** `deliverQuoteConfirmationsNow` (`:191-192`) cria um `AbortController` de 7 segundos e o compartilha pelo laço sequencial das linhas 194-202, que percorre até dois canais. Se o e-mail consumir 6 segundos, o WhatsApp fica com 1.
+
+**Entrega:** orçamento por canal, ou paralelização com `Promise.allSettled` sob orçamento individual. O caminho síncrono não pode degradar o segundo canal por lentidão do primeiro.
+
+**Aceite:** lentidão do e-mail não converte o WhatsApp em `pending` por falta de tempo.
+
+**Verificação:** teste com e-mail lento e WhatsApp rápido, confirmando ambos como `sent`.
+
+**Contexto:** o valor de 7s precisa caber no `maxDuration` de `/api/quote-requests` (Etapa 24), pois `deliverQuoteConfirmationsNow` é chamada de forma síncrona a partir de `api/_lib/leadHandler.ts:112`, dentro da requisição do cliente.
+
+---
+
+### Etapa 27 — Frequência do cron compatível com o SLA
+
+**Evidência:** `vercel.json:5` agenda `/api/notifications` em `15 3 * * *` — uma vez por dia. Com `BATCH_SIZE = 10` e sem drenagem, cem mensagens acumuladas exigem dez dias. O backoff de `api/notifications.ts:153` calcula elegibilidade em minutos, mas não existe agendamento em minutos que a honre.
+
+**Entrega:** definir o SLA de recuperação com o negócio e ajustar a frequência. A cadência precisa ser coerente com o backoff — caso contrário o cálculo de `retrySeconds` é decorativo.
+
+**Aceite:** SLA escrito; frequência comprovadamente compatível com o pico esperado; nenhuma comunicação promete recuperação mais rápida do que a configuração entrega.
+
+**Verificação:** cálculo documentado (volume de pico × tamanho do lote × frequência) revisado no PR.
+
+---
+
+### Etapa 28 — Drenagem de múltiplos lotes por invocação
+
+**Evidência:** `:233` reivindica **um** lote e o laço `:236-239` o processa. Não há repetição enquanto houver backlog e tempo.
+
+**Entrega:** laço externo que drena lotes sucessivos enquanto houver orçamento de tempo (Etapa 25) e jobs elegíveis, com teto por invocação.
+
+**Aceite:** invocação única esvazia backlog dentro do orçamento, em vez de limitar-se a dez mensagens.
+
+**Verificação:** teste com 25 jobs pendentes confirmando drenagem em uma invocação.
+
+---
+
+### Etapa 29 — Monitoramento de idade da fila
+
+**Evidência:** `:240` registra `console.info('site_notifications_completed', ...)` com contagens do lote. Não há métrica da **idade** do item mais antigo nem alerta de acúmulo. Com cron diário, um acúmulo passa despercebido por dias.
+
+**Entrega:** métrica de idade do job mais antigo por canal; contagem em `exhausted` (Etapa 18); alerta quando qualquer uma ultrapassar o limite do SLA da Etapa 27. Sem conteúdo pessoal nos logs — o padrão atual da linha 240, que registra apenas contagens e canais, deve ser mantido.
+
+**Aceite:** acúmulo ou job preso gera alerta ativo, não descoberta manual.
+
+**Verificação:** injetar job antigo em ambiente local e confirmar o disparo.
+
+---
+
+### Etapa 30 — Webhooks de entrega e devolução (R07)
+
+**Evidência:** o inventário de `api/` tem onze endpoints; **nenhum** é webhook de provedor. Hoje, HTTP aceito com ID (`:106`, `:140`) resulta em `sent`. Não há estado de entregue nem devolvido, e o aceite de bounce do LK45 não é satisfeito.
+
+**Entrega:** endpoint de webhook com **validação de assinatura**, deduplicação e ordenação de eventos; estados distintos de aceite, entrega, devolução e reclamação. Um endpoint sem verificação de assinatura é superfície de abuso e não deve ser publicado.
+
+**Aceite:** ciclo aceite → entrega → devolução refletido no banco e validado com destinatários controlados.
+
+**Verificação:** testes de API com payloads assinados válidos e inválidos; teste com destinatário de devolução controlado.
+
+---
+
+### Etapa 31 — Definir o conteúdo do comprovante (R06)
+
+**Evidência:** `:92-99` monta e-mail com nome, empresa, protocolo, itens, quantidades e cores — **sem** ação, prazo, verba, observações e contexto. `:132-134` envia ao template da Meta apenas nome, protocolo e empresa; a lista de produtos não integra o payload. A interface, porém, sugere confirmação do briefing.
+
+**Entrega:** decidir formalmente entre comprovante resumido e cópia integral. Escolhido o resumo, **ajustar o texto da interface** para corresponder. Escolhida a cópia, incluir os campos acordados ou oferecer acesso autenticado ao conteúdo, com privacidade e versionamento.
+
+**Aceite:** o que a interface promete é o que o cliente recebe, por canal.
+
+**Verificação:** revisão conjunta de produto e conteúdo; teste que compara os campos prometidos na UI com os efetivamente enviados.
+
+---
+
+## Fase 4 — Performance (etapas 32–37)
+
+### Etapa 32 — Carregar GSAP sob demanda
+
+**Evidência:** `gsap` está no bundle de entrada — `dist/assets/index-COB8q88v.js` contém a biblioteca. É usada **exclusivamente** por `src/components/FoldText.tsx` (linhas 2, 124, 125, 128, 154), um efeito tipográfico decorativo. Todo visitante baixa a biblioteca de animação no caminho crítico, inclusive quem nunca vê o componente.
+
+**Entrega:** importar GSAP dinamicamente dentro de `FoldText`, com fallback estático sem animação enquanto carrega — e permanentemente sob `prefers-reduced-motion`.
+
+**Aceite:** GSAP sai do chunk de entrada; a página renderiza o texto legível antes de a animação carregar.
+
+**Verificação:** `npm run build && grep -l gsap dist/assets/index-*.js` não retorna resultado.
+
+---
+
+### Etapa 33 — Recuperar folga no bundle de entrada
+
+**Evidência:** o bundle de entrada tem **362.565 bytes** contra um orçamento de 380 KiB (`scripts/check-performance-budget.mjs:29`) — folga de 4,6%. Qualquer funcionalidade nova reprova o orçamento. O chunk `createLucideIcon-9-Lt1dDQ.js` soma 41.409 bytes.
+
+**Entrega:** após a Etapa 32, analisar a composição do chunk de entrada e mover o que não for crítico para carregamento por rota. Meta: folga mínima de 20%.
+
+**Aceite:** entrada abaixo de 300 KiB brutos, com orçamento reduzido na mesma medida para travar o ganho.
+
+**Verificação:** `npm run build && npm run check:performance-budget`.
+
+---
+
+### Etapa 34 — Medir o orçamento em bytes comprimidos
+
+**Evidência:** `scripts/check-performance-budget.mjs:10` usa `stat().size` — bytes **brutos**. O navegador transfere Brotli. O orçamento mede uma grandeza que ninguém baixa, superestimando o peso real e mascarando regressões de compressibilidade.
+
+**Entrega:** medir também o tamanho Brotli de cada asset e aplicar orçamentos separados para bruto (custo de parse) e comprimido (custo de rede).
+
+**Aceite:** o script informa e limita as duas grandezas.
+
+**Verificação:** `npm run check:performance-budget` exibe ambas.
+
+---
+
+### Etapa 35 — Revisar o peso do CSS
+
+**Evidência:** `dist/assets/index-CdAS_n0j.css` tem **161.237 bytes** contra orçamento de 180 KiB (`:27`) — folga de 10%. Todo o CSS vem de um único `src/styles.css`, apesar de `cssCodeSplit: true` em `vite.config.ts:11`.
+
+**Entrega:** identificar regras não utilizadas e avaliar divisão do CSS por rota, aproveitando o `cssCodeSplit` já ativo.
+
+**Aceite:** CSS crítico reduzido sem regressão visual nos quatro projetos Playwright.
+
+**Verificação:** `npm run test:e2e && npm run test:e2e:cross-browser`.
+
+---
+
+### Etapa 36 — Verificar o tree-shaking do lucide-react
+
+**Evidência:** `lucide-react` está fixado em `1.23.0` (exato, sem `^` — único caso no `package.json`) e produz um chunk de 41.409 bytes. Convém confirmar se apenas os ícones usados entram no bundle.
+
+**Entrega:** auditar os pontos de importação; garantir importação nomeada por ícone. Documentar o motivo da fixação exata — se for defeito conhecido da versão, registrar no `package.json`; se for arbitrária, alinhar ao `^` das demais dependências.
+
+**Aceite:** o chunk contém apenas ícones efetivamente referenciados; a fixação tem justificativa escrita.
+
+**Verificação:** inspeção do chunk após build.
+
+---
+
+### Etapa 37 — Métricas de campo (Core Web Vitals)
+
+**Evidência:** `@vercel/analytics` está nas dependências e `scripts/check-performance-budget.mjs:26` afirma explicitamente que o orçamento "não substitui Core Web Vitals reais". A revisão confirma ausência de medição de campo.
+
+**Entrega:** ativar a coleta de Web Vitals reais e estabelecer linha de base de LCP, INP e CLS antes das Etapas 32–35, para que o ganho seja demonstrável.
+
+**Aceite:** painel com série histórica; ganhos das etapas anteriores visíveis em dados de campo.
+
+**Verificação:** comparação antes/depois no painel.
+
+---
+
+## Fase 5 — Observabilidade (etapas 38–42)
+
+### Etapa 38 — Erro 500 deixa de ser silencioso
+
+**Evidência:** `api/_lib/leadHandler.ts:118-124` — o `catch` final devolve `500 internal_error` **sem nenhum log**. Um erro não previsto no fluxo de captação de leads não deixa rastro algum. Este é o endpoint que recebe todos os orçamentos do site.
+
+**Entrega:** log estruturado antes de responder 500, com classe do erro, rota, timestamp e identificador de correlação — **sem dados pessoais**, seguindo o padrão já adotado em `api/notifications.ts:240`.
+
+**Aceite:** todo 500 produz exatamente uma entrada de log correlacionável à resposta.
+
+**Verificação:** teste de API que força erro inesperado e confirma a emissão do log.
+
+---
+
+### Etapa 39 — Instrumentar os `catch` silenciosos
+
+**Evidência:** vários blocos descartam o erro sem registro: `api/notifications.ts:167` (`catch { /* processing expirará */ }`), `:173-177`, `:203-205` (`catch { }` que engole toda falha da confirmação imediata) e `src/context/CustomerAuthContext.tsx:48`.
+
+**Entrega:** cada `catch` silencioso passa a registrar em nível apropriado. A decisão de **não propagar** o erro é preservada — o que muda é deixar de perder a informação.
+
+**Aceite:** nenhum `catch` descarta erro sem log ou métrica.
+
+**Verificação:** regra de lint (`no-empty`, com `allowEmptyCatch: false`) mais revisão manual dos comentários justificativos.
+
+---
+
+### Etapa 40 — Identificador de correlação fim a fim
+
+**Evidência:** `api/_lib/leadHandler.ts:97` já lê o header `idempotency-key` e `normalizedPayload.clientRequestId`. Não há, porém, um identificador de correlação que atravesse requisição, persistência e fila de notificações.
+
+**Entrega:** propagar um identificador de correlação da requisição até os logs da fila, permitindo reconstruir o ciclo completo de um orçamento.
+
+**Aceite:** dado um protocolo, é possível recuperar toda a cadeia nos logs.
+
+**Verificação:** exercício de rastreamento em ambiente local.
+
+---
+
+### Etapa 41 — Alertas do cron
+
+**Evidência:** `vercel.json:3-6` define dois crons (`/api/retention` e `/api/notifications`). O handler devolve `503 notification_delivery_unavailable` (`api/notifications.ts:243`) em falha, mas nada alerta quando o cron falha repetidamente ou deixa de executar. A revisão aponta que o histórico de execução ainda precisa ser verificado.
+
+**Entrega:** alerta para falha consecutiva e para ausência de execução na janela esperada, cobrindo os dois crons.
+
+**Aceite:** cron que para de executar gera alerta em uma janela, não na auditoria seguinte.
+
+**Verificação:** simular falha e confirmar o disparo.
+
+---
+
+### Etapa 42 — Relato de erros do frontend
+
+**Evidência:** `src/components/AppErrorBoundary.tsx:19` faz apenas `console.error`. Erro em produção fica no console do visitante e nunca chega à equipe.
+
+**Entrega:** encaminhar exceções capturadas a um coletor, com amostragem e **sem dados pessoais**. Respeitar o CSP vigente (`vercel.json:64`): o `connect-src` está restrito a três origens e precisará incluir explicitamente o coletor escolhido.
+
+**Aceite:** erro de interface em produção gera evento consultável.
+
+**Verificação:** erro deliberado em preview aparece no painel; CSP não bloqueia o envio.
+
+---
+
+## Fase 6 — Qualidade e dependências (etapas 43–47)
+
+### Etapa 43 — Atualização escalonada de dependências
+
+**Evidência:** `npm audit` reporta **zero vulnerabilidades** — a postura de segurança está boa. Há, porém, defasagem relevante: `typescript` 5.9.3 → 7.0.2 (duas majors), `vitest` 4.1.11 → 5.0.0, `jsdom` 29.1.1 → 30.0.1, `lucide-react` 1.23.0 → 1.45.0, `@testing-library/jest-dom` 6.9.1 → 7.0.1, `react`/`react-dom` 19.2.8 → 19.3.0, `vite` 8.2.2 → 8.3.0.
+
+**Entrega:** três ondas, cada uma em PR próprio: (a) patches e minors — React 19.3, Vite 8.3, `@types/*`; (b) majors de ferramenta de teste — Vitest 5, jsdom 30, jest-dom 7; (c) TypeScript 7, isoladamente, após a Etapa 4, pois `strict` no backend altera o conjunto de erros.
+
+**Aceite:** cada onda passa `npm run check` completo antes da seguinte.
+
+**Verificação:** `npm run check` por onda.
+
+**Ordem obrigatória:** TypeScript 7 **depois** da Etapa 4. Ativar `strict` e trocar de major simultaneamente torna impossível atribuir cada erro à sua causa.
+
+---
+
+### Etapa 44 — Atualização automatizada de dependências
+
+**Evidência:** não há `.github/dependabot.yml` nem configuração de Renovate. As três defasagens de major indicam ausência de processo contínuo.
+
+**Entrega:** Dependabot para `npm` e `github-actions`, agrupando patches e minors, com majors em PR individual. O agrupamento evita ruído sem esconder mudanças que exigem leitura.
+
+**Aceite:** PRs automáticos com CI verde; nenhuma major entra sem revisão.
+
+**Verificação:** primeiro ciclo semanal abre PRs corretamente agrupados.
+
+---
+
+### Etapa 45 — Análise estática de segurança no CI
+
+**Evidência:** `quality.yml` já faz o essencial — actions fixadas por SHA, `permissions: contents: read`, `npm audit --audit-level=high` e rejeição de sourcemaps em produção. Falta análise de código e revisão de dependências em PR.
+
+**Entrega:** CodeQL para JavaScript/TypeScript e `dependency-review-action` nos PRs. Acrescentar `concurrency` a `database.yml` e `graphify.yml`, que hoje não o têm — apenas `quality.yml` o declara, e sem isso pushes seguidos desperdiçam execuções.
+
+**Aceite:** PR com dependência vulnerável ou padrão inseguro reprova antes do merge.
+
+**Verificação:** PR de teste com dependência vulnerável conhecida reprova.
+
+---
+
+### Etapa 46 — Resolver o check Supabase Preview
+
+**Evidência:** a revisão de 12/09 registra que `validate`, `cross-browser`, `Migrations and pgTAP` e Graphify estão aprovados, mas **Supabase Preview falhou**, com causa atual não resolvida. Confirmei que os três workflows do repositório estão verdes no HEAD — logo, o check que falha é da integração externa, fora de `.github/workflows/`.
+
+**Entrega:** diagnosticar a causa na integração Supabase↔GitHub e corrigi-la na origem.
+
+**Aceite:** check aprovado por execução real.
+
+**Verificação:** `gh pr checks` em PR novo.
+
+**Restrição:** a revisão anterior é explícita — não alterar ledger de migrations para fabricar aprovação. Um check verde obtido por manipulação de histórico é pior que um check vermelho honesto.
+
+---
+
+### Etapa 47 — Acessibilidade além do axe
+
+**Evidência:** `e2e/smoke.spec.ts` aplica `AxeBuilder` com `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa` e `wcag22aa` em duas rotas (linhas 378 e 600). A revisão registra ausência de leitores de tela e dispositivos físicos. Varredura automática cobre parte do WCAG, não a experiência real.
+
+**Entrega:** estender o axe às rotas ainda não cobertas e executar roteiro manual com NVDA ou VoiceOver nos fluxos de orçamento, login e seleção compartilhada. Adicionar `eslint-plugin-jsx-a11y` (Etapa 2) para detecção em tempo de edição.
+
+**Aceite:** roteiro manual documentado com achados e correções; rotas principais cobertas por axe.
+
+**Verificação:** `npm run test:e2e` mais relatório do roteiro manual.
+
+---
+
+## Fase 7 — Dívida estrutural e governança (etapas 48–50)
+
+### Etapa 48 — Decompor os módulos de maior superfície
+
+**Evidência:** `src/pages/CatalogPage.tsx` tem **552 linhas** e concentra uma das três supressões órfãs de `exhaustive-deps` (linha 98). Seguem `src/lib/catalog.ts` (492), `api/_lib/contracts.ts` (374) e `src/pages/CommemorativeDatesPage.tsx` (340, também com supressão na linha 196).
+
+**Entrega:** extrair lógica de estado e filtragem de `CatalogPage` para hooks testáveis isoladamente. Decomposição orientada por testabilidade — a justificativa de cada extração é permitir um teste que hoje não é possível escrever.
+
+**Aceite:** nenhuma página acima de 300 linhas; lógica extraída com cobertura própria; comportamento idêntico verificado por E2E.
+
+**Verificação:** `npm run test && npm run test:e2e`.
+
+**Nota:** fazer **depois** da Etapa 3. Refatorar um efeito cujas dependências nunca foram validadas é reescrever sobre terreno não verificado.
+
+---
+
+### Etapa 49 — Fechar as 12 referências ausentes por lotes coerentes
+
+**Evidência:** a revisão classifica 12 referências como ausentes, agrupadas em 11 linhas (UX65 e LK43 tratam do mesmo upload). Onze outras dependem de material, pesquisa ou operação externa.
+
+**Entrega:** três lotes por afinidade técnica, não por plano de origem:
+- **Upload privado** (UX65/LK43): tipo, tamanho, upload autorizado, vínculo ao pedido, remoção e retenção — deve reusar a política de retenção já existente em `20260911130000_add_site_data_retention.sql`.
+- **Composição de kits** (LK27/LK28/LK29): componentes, configurador e aritmética (100 kits × 2 cadernos = 200 cadernos), com contratos próprios de validação.
+- **Continuidade e sincronização** (UX59/UX60): propriedade por conta, versões, conflitos e arquivar/restaurar.
+
+UX34 (conjunto julgado de busca), UX84, LK10, GR40 e GR44 dependem de curadoria ou benchmark e seguem trilha separada.
+
+**Aceite:** cada lote entrega código, testes, ativação e evidência operacional. Nenhum item é declarado pronto sem os quatro.
+
+**Verificação:** atualização da matriz de 230 referências com evidência por linha.
+
+---
+
+### Etapa 50 — Governança do ledger de fechamento
+
+**Evidência:** o repositório acumula planos sobrepostos — UX 100, Lukka 50, Graphify 50, Área do Cliente 30 — e a revisão registra que as listas literais de 50 etapas de catálogos e de datas comemorativas **não foram recuperadas no repositório**. A revisão também alerta contra calcular percentual global de produto pronto a partir de 230 referências com sobreposição.
+
+**Entrega:** consolidar a matriz como fonte única de estado, com atualização obrigatória no PR que altera o estado de uma referência. Registrar formalmente a decisão sobre os quatro desvios do Graphify (GR14 não direcionado, GR24 vizinhança em vez de dependentes direcionais, GR26 reconstrução total, GR30 hooks não instalados): ou a alternativa é aceita e documentada como especificação vigente, ou a especificação original entra no backlog. Deixá-los como "alternativa" indefinidamente mantém dívida sem dono.
+
+**Aceite:** estado de qualquer referência consultável na matriz sem reabrir auditoria completa; os quatro desvios com decisão registrada e datada.
+
+**Verificação:** revisão trimestral confirmando que a matriz corresponde ao código.
+
+---
+
+## Resumo executivo
+
+| Prioridade | Etapas | Justificativa |
+|---|---|---|
+| **Imediata** | 1–8 | Sem linter, `strict` no backend e cobertura, toda correção subsequente é feita às cegas |
+| **Imediata** | 9–13 | R08 é exposição de dados pessoais ativa em navegador compartilhado, sem dependência externa |
+| **Antes dos provedores** | 14–31 | Ativar Resend/Meta sobre a fila atual gera reenvio duplicado ao cliente final |
+| **Contínua** | 32–47 | Performance, observabilidade e qualidade, sem bloqueio mútuo |
+| **Planejada** | 48–50 | Dívida estrutural e governança do estado do produto |
+
+### Três achados novos desta rodada
+
+1. **Etapa 4** — todo o backend serverless compila sem `strict`. O código que valida entrada de clientes anônimos é o que tem a garantia de tipos mais fraca do projeto.
+2. **Etapa 24** — `maxDuration` não declarado na Vercel contra um timeout interno de 20s. Fecha o ciclo causal do R03: explica **como** jobs chegam ao estado `processing` irrecuperável em produção.
+3. **Etapa 3** — três supressões de `exhaustive-deps` ativas sobre um linter inexistente. As dependências desses efeitos nunca foram verificadas por ferramenta alguma.
+
+### O que este plano não faz
+
+Não substitui pesquisa com compradores (UX20/91, LK02), não produz material autorizado (UX26/28, LK03/31–34/40), não configura credenciais de provedores e não demonstra recebimento real de mensagens. Essas dependências são externas ao código e permanecem conforme registrado na revisão de 12/09. Mesmo após resolvê-las, as entregas ausentes da Etapa 49 continuam pendentes.
+
+Nenhuma etapa deste plano foi executada. Este documento é um plano, não um relatório de execução.
