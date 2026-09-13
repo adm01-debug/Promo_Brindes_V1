@@ -103,15 +103,19 @@ npm run typecheck
 
 ---
 
-### Etapa 6 — Prettier e `.editorconfig`
+### Etapa 6 — `.editorconfig` e `.gitattributes` — **revisada durante a execução**
 
-**Evidência:** nenhum formatador configurado. O projeto é editado a partir do Windows via `\\wsl.localhost\` sobre um repositório em ext4, com `core.autocrlf=input`.
+**Evidência:** nenhum normalizador configurado. O projeto é editado a partir do Windows via `\\wsl.localhost\` sobre um repositório em ext4, com `core.autocrlf=input`.
 
-**Entrega:** `.prettierrc` e `.editorconfig` com `end_of_line = lf` explícito, mais `.gitattributes` com `* text=auto eol=lf` para fixar a normalização independentemente da configuração local de cada máquina.
+**Entrega:** `.editorconfig` com `end_of_line = lf` explícito e `.gitattributes` com `* text=auto eol=lf`, fixando a normalização independentemente da máquina.
 
-**Aceite:** `npx prettier --check .` aprovado; nenhum arquivo muda de line ending ao ser editado pelo Windows.
+**Aceite:** nenhum arquivo muda de line ending ao ser editado pelo Windows.
 
-**Verificação:** `npx prettier --check . && git diff --stat` vazio após reabrir arquivos no editor do Windows.
+**Verificação:** `git diff --stat` vazio após reabrir arquivos no editor do Windows.
+
+**Desvio registrado em 13/09, com evidência:** a etapa original também previa adotar Prettier com `--check` bloqueante no CI. Testado antes de aplicar — instalação real, `printWidth` elevado a 999 para não forçar quebra de linha, checagem contra a árvore inteira. Resultado: **99 de ~150 arquivos relevantes divergiram mesmo assim.** Inspeção de três amostras (`api/not-found.ts`, `src/pages/SetPasswordPage.tsx`, `api/notifications.ts`) mostrou que a causa não é largura de linha: o código usa um estilo manual deliberado e consistente — interfaces de um membro em uma linha, guards `if (...) { ...; return; }` compactos, JSX inteiro de um componente em uma única linha — que o Prettier reescreve destrutivamente porque ele reimprime pela própria AST e não preserva quebras manuais, independente do `printWidth`.
+
+Adotar Prettier bloqueante exigiria reformatar ~99 arquivos só para introduzir a ferramenta, sem ganho de legibilidade — em alguns casos (ternário quebrado manualmente para leitura, recolhido pelo Prettier em uma linha de 160 caracteres) o resultado é **pior** que o original. É exatamente o retrabalho de baixo valor que este plano deveria evitar. Prettier foi desinstalado; a etapa mantém apenas `.editorconfig`/`.gitattributes`, que resolvem o problema real descrito na evidência (normalização de fim de linha entre Windows e WSL). Adotar um formatador de código no futuro é decisão de estilo da equipe, não uma correção técnica — não deve ser forçada por automação sem esse acordo prévio.
 
 ---
 
@@ -119,7 +123,7 @@ npm run typecheck
 
 **Evidência:** `package.json` define `check` como `typecheck && test && build && check:performance-budget && test:e2e`. Não há lint. O workflow `quality.yml` roda `npm run check`, herdando a lacuna.
 
-**Entrega:** inserir `npm run lint` como **primeiro** passo de `check` (falha em segundos, antes dos ~6 minutos de E2E). Adicionar `npx prettier --check .`.
+**Entrega:** inserir `npm run lint` como **primeiro** passo de `check` (falha em segundos, antes dos ~6 minutos de E2E). Sem `prettier --check` — revertido na Etapa 6.
 
 **Aceite:** PR com violação de lint reprova no Quality gate.
 
