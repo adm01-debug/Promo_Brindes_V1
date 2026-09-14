@@ -61,7 +61,7 @@ export default function CustomerLoginPage() {
         const result = await siteSupabase.auth.verifyOtp({ email: email.trim().toLowerCase(), token: code.trim(), type: 'email' });
         if (result.error) throw result.error;
         await auth.claimHistory();
-        navigate(next, { replace: true });
+        void navigate(next, { replace: true });
         return;
       }
       if (mode === 'email') {
@@ -78,7 +78,7 @@ export default function CustomerLoginPage() {
         const result = await siteSupabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
         if (result.error) throw result.error;
         await auth.claimHistory();
-        navigate(next, { replace: true });
+        void navigate(next, { replace: true });
         return;
       }
       if (mode === 'create') {
@@ -91,7 +91,7 @@ export default function CustomerLoginPage() {
         setMessage(result.data.session ? 'Acesso criado. Abrindo seus orçamentos…' : 'Conta criada. Confirme o link enviado ao seu e-mail.');
         if (result.data.session) {
           await auth.claimHistory();
-          navigate(next, { replace: true });
+          void navigate(next, { replace: true });
         }
         return;
       }

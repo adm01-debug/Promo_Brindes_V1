@@ -39,6 +39,10 @@ export function useCatalog(query: CatalogQuery, refreshKey = 0, enabled = true):
         setState((current) => ({ ...current, loading: false, error: errorMessage(error) }));
       });
     return () => controller.abort();
+    // queryKey é a chave estável (JSON.stringify) derivada de query, usada no
+    // lugar do objeto para não refazer a consulta a cada render do chamador
+    // (query é um literal novo a cada vez). O efeito lê query via closure.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, queryKey, refreshKey]);
 
   return state;

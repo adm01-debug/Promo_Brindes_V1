@@ -31,7 +31,11 @@ export function QuoteDrawer() {
 
   useEffect(() => {
     cart.setDrawerOpen(false);
-    // Only react to route changes, not to a new context function identity.
+    // A regra sugere incluir `cart` (não apenas setDrawerOpen, que é estável
+    // por vir de useState). `cart` é o valor memoizado do contexto e ganha
+    // nova referência a cada mudança de estado do carrinho — incluí-lo faria
+    // este efeito fechar o drawer a cada edição de item, mesmo sem navegação.
+    // Só a rota deve fechar o drawer.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
@@ -66,6 +70,13 @@ export function QuoteDrawer() {
       window.removeEventListener('keydown', handleKey);
       previousFocus?.focus();
     };
+    // A sugestão automática da regra é incluir o objeto `cart` inteiro. Ele vem
+    // de um useMemo cuja dependência cobre todo o estado do carrinho (itens,
+    // campanha, limite...) — uma nova referência a cada edição de item. Incluí-lo
+    // reexecutaria este efeito a cada mudança de quantidade com o drawer aberto,
+    // roubando o foco de volta para closeRef enquanto a pessoa ainda digita.
+    // cart.drawerOpen e cart.setDrawerOpen já cobrem o que o efeito de fato lê.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cart.drawerOpen, cart.setDrawerOpen, confirmClear]);
 
   useEffect(() => {
@@ -155,6 +166,7 @@ export function QuoteDrawer() {
   return (
     <div
       className="drawer-backdrop"
+      role="presentation"
       onMouseDown={(event) => {
         if (event.currentTarget === event.target) cart.setDrawerOpen(false);
       }}
