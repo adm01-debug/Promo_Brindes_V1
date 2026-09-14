@@ -27,11 +27,18 @@ function configure() {
 
 const emailJob = {
   id: '11111111-1111-4111-8111-111111111111',
+  leaseToken: '55555555-5555-4555-8555-555555555555',
+  existingProvider: null, existingProviderMessageId: null,
   requestId: '22222222-2222-4222-8222-222222222222',
   channel: 'email', attempt: 1, protocol: '22222222', recipientEmail: 'cliente@example.test',
   recipientPhone: '(11) 99999-9999', contactName: 'Ana & Cia', company: 'Marca <Teste>',
   submittedAt: '2026-09-12T12:00:00Z', items: [{ name: 'Mochila <Premium>', sku: 'MO-1', quantity: 100, colorName: 'Azul' }],
 };
+
+// A finalização e o registro de aceite do provedor caem aqui quando um teste
+// não os mocka explicitamente; rpc() trata !response.ok como erro e o
+// chamador (tryFinalize/recordProviderAcceptance) já absorve essa falha.
+const notMocked = () => new Response('{}', { status: 500 });
 
 describe('worker de comprovantes do orçamento', () => {
   afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
@@ -61,15 +68,16 @@ describe('worker de comprovantes do orçamento', () => {
     const fetchMock = vi.fn(async (url: string | URL, _init?: RequestInit) => {
       if (String(url).includes('/claim_site_notification_deliveries')) return new Response(JSON.stringify([emailJob]), { status: 200 });
       if (String(url) === 'https://api.resend.com/emails') return new Response('{"id":"email-provider-1"}', { status: 200 });
+      if (String(url).includes('/record_site_notification_provider_acceptance')) return new Response('true', { status: 200 });
       if (String(url).includes('/finalize_site_notification_delivery')) return new Response('true', { status: 200 });
-      return new Response('{}', { status: 500 });
+      return notMocked();
     });
     vi.stubGlobal('fetch', fetchMock);
     const { result, response } = responseDouble();
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
 
     expect(result.statusCode).toBe(200);
-    expect(result.body).toEqual({ ok: true, claimed: 1, sent: 1, failed: 0 });
+    expect(result.body).toEqual({ ok: true, claimed: 1, delivered: 1, failed: 0, inconclusive: 0 });
     const resendCall = fetchMock.mock.calls.find(([url]) => String(url) === 'https://api.resend.com/emails');
     const resendPayload = JSON.parse(String(resendCall?.[1]?.body));
     expect(resendPayload.to).toEqual(['cliente@example.test']);
@@ -77,8 +85,50 @@ describe('worker de comprovantes do orçamento', () => {
     expect(resendPayload.html).toContain('Marca &lt;Teste&gt;');
     expect(resendPayload.html).not.toContain('Mochila <Premium>');
     expect(resendCall?.[1]?.headers).toMatchObject({ 'Idempotency-Key': `quote-${emailJob.requestId}-customer-email` });
+    const acceptanceCall = fetchMock.mock.calls.find(([url]) => String(url).includes('/record_site_notification_provider_acceptance'));
+    expect(JSON.parse(String(acceptanceCall?.[1]?.body))).toMatchObject({ p_delivery_id: emailJob.id, p_lease_token: emailJob.leaseToken, p_provider: 'resend', p_provider_message_id: 'email-provider-1' });
     const finalizeCall = fetchMock.mock.calls.find(([url]) => String(url).includes('/finalize_site_notification_delivery'));
-    expect(JSON.parse(String(finalizeCall?.[1]?.body))).toMatchObject({ p_status: 'sent', p_provider: 'resend', p_provider_message_id: 'email-provider-1' });
+    expect(JSON.parse(String(finalizeCall?.[1]?.body))).toMatchObject({ p_delivery_id: emailJob.id, p_lease_token: emailJob.leaseToken, p_status: 'sent', p_provider: 'resend', p_provider_message_id: 'email-provider-1' });
+  });
+
+  it('R01: boolean false da finalização não vira sucesso nem some silenciosamente', async () => {
+    configure();
+    vi.stubEnv('RESEND_API_KEY', 're_synthetic_test_key');
+    vi.stubEnv('SITE_EMAIL_FROM', 'Promo Brindes <atendimento@example.test>');
+    const fetchMock = vi.fn(async (url: string | URL) => {
+      if (String(url).includes('/claim_site_notification_deliveries')) return new Response(JSON.stringify([emailJob]), { status: 200 });
+      if (String(url) === 'https://api.resend.com/emails') return new Response('{"id":"email-provider-1"}', { status: 200 });
+      if (String(url).includes('/record_site_notification_provider_acceptance')) return new Response('true', { status: 200 });
+      // Simula lease expirado ou linha já alterada: o RPC responde 200 com o
+      // boolean false — nenhuma linha foi de fato atualizada.
+      if (String(url).includes('/finalize_site_notification_delivery')) return new Response('false', { status: 200 });
+      return notMocked();
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+
+    expect(result.body).toEqual({ ok: true, claimed: 1, delivered: 0, failed: 0, inconclusive: 1 });
+  });
+
+  it('R02/R21: reconcilia em vez de reenviar quando um aceite anterior já foi persistido', async () => {
+    configure();
+    vi.stubEnv('RESEND_API_KEY', 're_synthetic_test_key');
+    vi.stubEnv('SITE_EMAIL_FROM', 'Promo Brindes <atendimento@example.test>');
+    const reconciledJob = { ...emailJob, existingProvider: 'resend', existingProviderMessageId: 'email-ja-aceito' };
+    const fetchMock = vi.fn(async (url: string | URL, _init?: RequestInit) => {
+      if (String(url).includes('/claim_site_notification_deliveries')) return new Response(JSON.stringify([reconciledJob]), { status: 200 });
+      if (String(url).includes('/finalize_site_notification_delivery')) return new Response('true', { status: 200 });
+      return notMocked();
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+
+    expect(result.body).toEqual({ ok: true, claimed: 1, delivered: 1, failed: 0, inconclusive: 0 });
+    expect(fetchMock.mock.calls.some(([url]) => String(url) === 'https://api.resend.com/emails')).toBe(false);
+    const finalizeCall = fetchMock.mock.calls.find(([url]) => String(url).includes('/finalize_site_notification_delivery'));
+    expect(JSON.parse(String(finalizeCall?.[1]?.body))).toMatchObject({ p_status: 'sent', p_provider: 'resend', p_provider_message_id: 'email-ja-aceito' });
   });
 
   it('tenta imediatamente a confirmação do orçamento recém-criado', async () => {
@@ -88,8 +138,9 @@ describe('worker de comprovantes do orçamento', () => {
     const fetchMock = vi.fn(async (url: string | URL) => {
       if (String(url).includes('/claim_site_quote_notification')) return new Response(JSON.stringify(emailJob), { status: 200 });
       if (String(url) === 'https://api.resend.com/emails') return new Response('{"id":"email-immediate"}', { status: 200 });
+      if (String(url).includes('/record_site_notification_provider_acceptance')) return new Response('true', { status: 200 });
       if (String(url).includes('/finalize_site_notification_delivery')) return new Response('true', { status: 200 });
-      return new Response('{}', { status: 500 });
+      return notMocked();
     });
     vi.stubGlobal('fetch', fetchMock);
 
@@ -107,15 +158,15 @@ describe('worker de comprovantes do orçamento', () => {
       if (String(url).includes('/claim_site_notification_deliveries')) return new Response(JSON.stringify([{ ...emailJob, attempt: 3 }]), { status: 200 });
       if (String(url) === 'https://api.resend.com/emails') return new Response('{"message":"temporary"}', { status: 503 });
       if (String(url).includes('/finalize_site_notification_delivery')) return new Response('true', { status: 200 });
-      return new Response('{}', { status: 500 });
+      return notMocked();
     });
     vi.stubGlobal('fetch', fetchMock);
     const { result, response } = responseDouble();
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
 
-    expect(result.body).toEqual({ ok: true, claimed: 1, sent: 0, failed: 1 });
+    expect(result.body).toEqual({ ok: true, claimed: 1, delivered: 0, failed: 1, inconclusive: 0 });
     const finalizeCall = fetchMock.mock.calls.find(([url]) => String(url).includes('/finalize_site_notification_delivery'));
-    expect(JSON.parse(String(finalizeCall?.[1]?.body))).toMatchObject({ p_status: 'failed', p_error_code: 'email_provider_503', p_retry_after_seconds: 1200 });
+    expect(JSON.parse(String(finalizeCall?.[1]?.body))).toMatchObject({ p_lease_token: emailJob.leaseToken, p_status: 'failed', p_error_code: 'email_provider_503', p_retry_after_seconds: 1200 });
   });
 
   it('só envia WhatsApp por template quando o canal foi enfileirado', async () => {
@@ -128,17 +179,38 @@ describe('worker de comprovantes do orçamento', () => {
     const fetchMock = vi.fn(async (url: string | URL, _init?: RequestInit) => {
       if (String(url).includes('/claim_site_notification_deliveries')) return new Response(JSON.stringify([whatsappJob]), { status: 200 });
       if (String(url).includes('graph.facebook.com')) return new Response('{"messages":[{"id":"wamid-test"}]}', { status: 200 });
+      if (String(url).includes('/record_site_notification_provider_acceptance')) return new Response('true', { status: 200 });
       if (String(url).includes('/finalize_site_notification_delivery')) return new Response('true', { status: 200 });
-      return new Response('{}', { status: 500 });
+      return notMocked();
     });
     vi.stubGlobal('fetch', fetchMock);
     const { result, response } = responseDouble();
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
 
-    expect(result.body).toEqual({ ok: true, claimed: 1, sent: 1, failed: 0 });
+    expect(result.body).toEqual({ ok: true, claimed: 1, delivered: 1, failed: 0, inconclusive: 0 });
     const metaCall = fetchMock.mock.calls.find(([url]) => String(url).includes('graph.facebook.com'));
     const payload = JSON.parse(String(metaCall?.[1]?.body));
     expect(payload.to).toBe('5511999999999');
     expect(payload.template.name).toBe('confirmacao_orcamento');
+  });
+
+  it('WhatsApp com retomada não reenvia quando um aceite anterior já foi persistido (R19/R21)', async () => {
+    configure();
+    vi.stubEnv('WHATSAPP_ACCESS_TOKEN', 'meta-synthetic-token');
+    vi.stubEnv('WHATSAPP_PHONE_NUMBER_ID', '1234567890');
+    vi.stubEnv('WHATSAPP_QUOTE_TEMPLATE', 'confirmacao_orcamento');
+    vi.stubEnv('WHATSAPP_GRAPH_API_VERSION', 'v23.0');
+    const reconciledJob = { ...emailJob, channel: 'whatsapp', existingProvider: 'meta-whatsapp-cloud', existingProviderMessageId: 'wamid-ja-aceito' };
+    const fetchMock = vi.fn(async (url: string | URL) => {
+      if (String(url).includes('/claim_site_notification_deliveries')) return new Response(JSON.stringify([reconciledJob]), { status: 200 });
+      if (String(url).includes('/finalize_site_notification_delivery')) return new Response('true', { status: 200 });
+      return notMocked();
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+
+    expect(result.body).toEqual({ ok: true, claimed: 1, delivered: 1, failed: 0, inconclusive: 0 });
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('graph.facebook.com'))).toBe(false);
   });
 });

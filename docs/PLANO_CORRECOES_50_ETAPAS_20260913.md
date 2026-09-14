@@ -217,7 +217,25 @@ O cenário (b) do plano original ("troca direta A→B sem logout explícito") n�
 
 ---
 
-## Fase 2 — Integridade da fila de notificações: R01–R04 (etapas 14–23)
+## Fase 2 — Integridade da fila de notificações: R01–R04 (etapas 14–23) — **concluída em 14/09/2026, com um desvio parcial registrado (Etapa 19)**
+
+Implementada como uma migration aditiva coesa (`20260914120000_fix_notification_outbox_contract.sql`) mais a reescrita de `api/notifications.ts` — as dez etapas são interdependentes o bastante para não fazer sentido como dez migrations separadas.
+
+**R04 (Etapas 15–16):** coluna `lease_token`, gerada a cada `claim_*` e exigida por `finalize_site_notification_delivery` (agora com `p_lease_token` obrigatório). A assinatura antiga foi **dropada explicitamente**, não apenas substituída — `create or replace` com uma assinatura diferente criaria uma segunda função, deixando a antiga órfã no catálogo.
+
+**R03 (Etapas 17–18):** `claim_site_notification_deliveries` agora separa dois ramos antes ilegitimamente unidos pelo mesmo `attempts < 5`: jobs presos em `processing` com tentativas esgotadas são varridos para o novo estado terminal `exhausted`, incondicionalmente; jobs presos com tentativas restantes são genuinamente reclamados (nova tentativa, novo lease). A constraint de `status` foi expandida para incluir `exhausted`.
+
+**R01 (Etapa 14):** `finalize()` agora retorna o boolean real do RPC; `false` (lease divergente ou linha já alterada) nunca é tratado como sucesso.
+
+**R02/R21 (Etapas 19 e 21, unificadas):** nova função `record_site_notification_provider_acceptance`, chamada assim que o provedor aceita a mensagem, **antes** da finalização — persiste `provider`/`provider_message_id` mesmo que a finalização falhe em seguida. Os `claim_*` passam a devolver `existingProvider`/`existingProviderMessageId` quando presentes; `deliverJob` reconcilia (finaliza direto) em vez de reenviar quando os encontra. Isso cobre o WhatsApp mesmo sem uma chave de idempotência nativa da Graph API — a garantia vem do nosso próprio banco, não do provedor.
+
+**Etapa 20:** `boolean` trocado por `DeliveryOutcome = 'delivered' | 'failed' | 'inconclusive'`; o handler e `deliverQuoteConfirmationsNow` foram atualizados para os três estados.
+
+**Desvio registrado (Etapa 19):** a Graph API do WhatsApp não oferece um cabeçalho de idempotência nativo equivalente ao `Idempotency-Key` do Resend (confirmado por leitura da documentação disponível, não testado contra a API real). A garantia efetiva contra reenvio vem inteiramente da reconciliação da Etapa 21 (nosso próprio banco), não de uma chave enviada à Meta. Isso é suficiente para o cenário de retomada reproduzido (aceite → falha de finalização → nova tentativa), mas não é uma garantia simétrica à do e-mail — registrado como limite honesto, não como lacuna escondida.
+
+**Verificação real:** migration aplicada via `supabase db reset` (do zero, igual ao CI) e `db lint` limpo. Suíte pgTAP ampliada de 17 para 29 asserções em `notification_outbox.test.sql` — cobre lease divergente, dupla finalização, job exaurido→exhausted e job recuperável→nova tentativa com novo lease; **130/130 pgTAP aprovados**. `tests/api/notifications.test.ts` ampliado de 6 para 9 testes, cobrindo o boolean falso (R01) e a reconciliação por e-mail e WhatsApp (R02/R19/R21); **183/183 testes unitários aprovados**. Build de produção ok.
+
+Uma armadilha de teste real foi descoberta e corrigida durante a escrita do pgTAP: o trigger `notification_deliveries_set_updated_at` sobrescreve `updated_at` incondicionalmente em todo `UPDATE`, silenciando qualquer tentativa de simular um job "preso há 20 minutos" por SQL direto. A correção usa `alter table ... disable/enable trigger` ao redor do setup do teste — registrado aqui para quem escrever testes pgTAP parecidos depois.
 
 > **Bloqueia a configuração de credenciais reais.** Ativar Resend ou Meta sobre a fila atual produz reenvio duplicado ao cliente final no cenário de retomada.
 
