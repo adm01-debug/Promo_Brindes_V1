@@ -61,10 +61,13 @@ export class ClientRequestError extends Error {
   }
 }
 
-export async function postJson(endpoint: string, payload: unknown, label: string, idempotencyKey?: string): Promise<{ requestId: string; confirmations?: unknown }> {
+export async function postJson(endpoint: string, payload: unknown, label: string, idempotencyKey?: string, externalSignal?: AbortSignal): Promise<{ requestId: string; confirmations?: unknown }> {
   const url = validHttpsEndpoint(endpoint, label);
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  // externalSignal permite ao chamador cancelar por um motivo próprio (ex.:
+  // troca de titular em outra aba) sem se misturar com o timeout interno.
+  const signal = externalSignal ? AbortSignal.any([controller.signal, externalSignal]) : controller.signal;
   let response: Response;
   try {
     response = await fetch(url, {
@@ -75,9 +78,10 @@ export async function postJson(endpoint: string, payload: unknown, label: string
         ...(idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {}),
       },
       body: JSON.stringify(payload),
-      signal: controller.signal,
+      signal,
     });
   } catch {
+    if (externalSignal?.aborted) throw new Error('O envio foi cancelado.');
     if (controller.signal.aborted) throw new Error('O envio demorou além do esperado. Tente novamente.');
     throw new Error('Não conseguimos conectar ao serviço de envio. Verifique sua conexão e tente novamente.');
   } finally {

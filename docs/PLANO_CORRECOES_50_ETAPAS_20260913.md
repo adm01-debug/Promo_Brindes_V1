@@ -145,7 +145,15 @@ Adotar Prettier bloqueante exigiria reformatar ~99 arquivos só para introduzir 
 
 ---
 
-## Fase 1 — Sessão e dados pessoais: R08 (etapas 9–13)
+## Fase 1 — Sessão e dados pessoais: R08 (etapas 9–13) — **concluída em 14/09/2026**
+
+Implementada integralmente: `src/lib/personalDataReset.ts` (contrato único de storage), `identityEpoch` em `CustomerAuthContext`, efeito de reset em `QuotePage` reagindo a `identityEpoch`, `AbortSignal` externo encadeado por `http.ts` → `quoteRequest.ts` → `QuotePage.tsx` para cancelar envio em andamento.
+
+Verificação real, não apenas por leitura: `docs/audits/closure-review-20260912/logout.mjs` — o diagnóstico que antes reproduzia o defeito (`defectReproduced: true`) agora **falha em sua própria asserção de bug**, porque o e-mail retido é `''` em vez do e-mail do titular anterior. Três novos testes E2E em `e2e/smoke.spec.ts` cobrem logout em outra aba (reprodução direta do R08), saída na mesma aba, e logout durante envio em andamento — os três passaram em desktop e mobile Chromium, sem regressão nos 79 testes E2E pré-existentes nem nos 180 testes unitários.
+
+Um desvio real de execução, registrado por transparência: duas das quatro tentativas iniciais de teste E2E falharam não por defeito no código, mas por dois erros de teste — `page.addInitScript` reexecuta a cada navegação da mesma página (mascarando a limpeza real como se tivesse falhado) e `page.close()` interrompe uma operação assíncrona (`signOut()`) ainda em voo. Ambos diagnosticados com instrumentação real antes de corrigir os testes, não o código de produto.
+
+O cenário (b) do plano original ("troca direta A→B sem logout explícito") não foi implementado como E2E nesta rodada — depende de um comportamento específico do supabase-js (reconhecer uma troca de sessão via evento nativo `storage` sem uma chamada de `signOut()` real) que não foi verificado com confiança suficiente para um teste não-frágil. Fica como acompanhamento pontual, não como lacuna do fix em si — o mecanismo de `identityEpoch` já cobre esse caso pela mesma condição (`sessionUserId.current && sessionUserId.current !== nextUserId`) que dispara o logout comum.
 
 > Risco ativo e sem dependência externa: em navegador compartilhado, dados de contato do titular anterior permanecem no formulário após logout e são regravados no storage.
 

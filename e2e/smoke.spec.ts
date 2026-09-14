@@ -410,6 +410,130 @@ test('envio confirmado remove contato e consentimento do rascunho da aba', async
   expect(sentPayload).toMatchObject({ notificationPreferences: { emailCopy: true, whatsappCopy: true } });
 });
 
+// R08: dados pessoais e consentimento não podem sobreviver a uma troca de
+// titular em navegador compartilhado. As três rotas de conta abaixo se
+// repetem em cada teste porque cada `page`/`context.newPage()` tem seu
+// próprio interceptador de rede.
+function customerAuthUser(user: { id: string; email: string }) {
+  // O SDK valida a resposta de /auth/v1/user contra este formato; um objeto
+  // incompleto (faltando aud/role/etc.) faz o signOut() falhar em silêncio.
+  return { ...user, aud: 'authenticated', role: 'authenticated', email_confirmed_at: '2026-09-09T12:00:00Z', user_metadata: {}, app_metadata: {}, created_at: '2026-09-09T12:00:00Z' };
+}
+
+function synthenticCustomerSession(fullUser: ReturnType<typeof customerAuthUser>) {
+  return {
+    access_token: 'header.payload.signature', refresh_token: 'refresh-token', expires_in: 3600,
+    expires_at: Math.floor(Date.now() / 1000) + 3600, token_type: 'bearer',
+    user: fullUser,
+  };
+}
+
+function mockCustomerAccountRoutes(target: Page, fullUser: ReturnType<typeof customerAuthUser>) {
+  return Promise.all([
+    target.route('**/auth/v1/user', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify(fullUser) })),
+    target.route('**/auth/v1/logout**', (route) => route.fulfill({ status: 204, contentType: 'application/json', body: '{}' })),
+    target.route('**/rest/v1/rpc/claim_my_quote_requests', (route) => route.fulfill({ contentType: 'application/json', body: '{"claimed":0}' })),
+    target.route('**/rest/v1/rpc/get_my_quote_requests', (route) => route.fulfill({ contentType: 'application/json', body: '{"items":[],"total":0,"limit":12,"offset":0}' })),
+  ]);
+}
+
+test('logout em outra aba invalida contato e consentimento do briefing aberto', async ({ page, context }) => {
+  const user = customerAuthUser({ id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', email: 'titular-anterior@empresa.com' });
+  await page.addInitScript(({ session, product }) => {
+    localStorage.setItem('promo-brindes-customer-session', JSON.stringify(session));
+    localStorage.setItem('promo-brindes:quote-selection:v1', JSON.stringify({ items: [{ key: `${product.id}::sem-cor`, productId: product.id, slug: product.slug, name: product.name, sku: product.sku, imageUrl: product.primary_image_url, quantity: 100, minQuantity: 50 }] }));
+  }, { session: synthenticCustomerSession(user), product });
+  await mockCustomerAccountRoutes(page, user);
+
+  await page.goto('/orcamento');
+  await page.locator('#email').fill(user.email);
+  await page.getByRole('checkbox', { name: /Li o aviso de privacidade/ }).check();
+  await expect.poll(() => page.evaluate(() => JSON.parse(sessionStorage.getItem('promo-brindes:quote-draft:v1') || 'null')?.contact?.email)).toBe(user.email);
+
+  const account = await context.newPage();
+  await mockCatalog(account);
+  await mockCustomerAccountRoutes(account, user);
+  await account.goto('/minha-conta');
+  await account.getByRole('button', { name: 'Sair', exact: true }).click();
+  // signOut() é fire-and-forget (void auth.signOut() no onClick); fechar a aba
+  // antes de a rede real completar aborta a operação em andamento.
+  await expect.poll(() => account.evaluate(() => localStorage.getItem('promo-brindes-customer-session'))).toBeNull();
+  await account.close();
+
+  // A limpeza do storage é assíncrona (SDK reage ao evento nativo entre abas).
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('promo-brindes-customer-session'))).toBeNull();
+  await expect.poll(() => page.locator('#email').inputValue()).toBe('');
+  await expect(page.getByRole('checkbox', { name: /Li o aviso de privacidade/ })).not.toBeChecked();
+
+  // A regressão real do R08: editar outro campo não pode regravar o contato anterior.
+  await page.locator('#company').fill('Outra pessoa usando o navegador');
+  await expect.poll(() => page.evaluate(() => JSON.parse(sessionStorage.getItem('promo-brindes:quote-draft:v1') || 'null')?.contact?.email || '')).toBe('');
+});
+
+test('sair encerra a sessão e o próximo briefing aberto começa limpo', async ({ page }) => {
+  // addInitScript reaplicaria estes dados a cada navegação da mesma página
+  // (inclusive na segunda, para /orcamento), mascarando a limpeza real do
+  // signOut. Semeia uma única vez via evaluate() + reload, só para a primeira.
+  const user = customerAuthUser({ id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', email: 'saida-mesma-aba@empresa.com' });
+  await mockCustomerAccountRoutes(page, user);
+  await page.goto('/minha-conta');
+  await page.evaluate(({ session, product }) => {
+    localStorage.setItem('promo-brindes-customer-session', JSON.stringify(session));
+    localStorage.setItem('promo-brindes:quote-selection:v1', JSON.stringify({ items: [{ key: `${product.id}::sem-cor`, productId: product.id, slug: product.slug, name: product.name, sku: product.sku, imageUrl: product.primary_image_url, quantity: 100, minQuantity: 50 }] }));
+    sessionStorage.setItem('promo-brindes:quote-draft:v1', JSON.stringify({ contact: { name: 'Pessoa', company: 'Empresa', email: session.user.email, phone: '', city: '', deadline: '', notes: '', privacyAccepted: true, whatsappCopyAccepted: false }, updatedAt: new Date().toISOString() }));
+  }, { session: synthenticCustomerSession(user), product });
+  await page.reload();
+
+  await page.getByRole('button', { name: 'Sair', exact: true }).click();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('promo-brindes-customer-session'))).toBeNull();
+
+  await page.goto('/orcamento');
+  await expect(page.locator('#email')).toHaveValue('');
+  await expect(page.getByRole('checkbox', { name: /Li o aviso de privacidade/ })).not.toBeChecked();
+  expect(await page.evaluate(() => sessionStorage.getItem('promo-brindes:quote-draft:v1'))).toBeNull();
+});
+
+test('logout durante envio em andamento não mostra sucesso nem erro de outra pessoa', async ({ page, context }) => {
+  const user = customerAuthUser({ id: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', email: 'envio-interrompido@empresa.com' });
+  await page.addInitScript(({ session, product }) => {
+    localStorage.setItem('promo-brindes-customer-session', JSON.stringify(session));
+    localStorage.setItem('promo-brindes:quote-selection:v1', JSON.stringify({ items: [{ key: `${product.id}::sem-cor`, productId: product.id, slug: product.slug, name: product.name, sku: product.sku, imageUrl: product.primary_image_url, quantity: 100, minQuantity: 50 }] }));
+  }, { session: synthenticCustomerSession(user), product });
+  await mockCustomerAccountRoutes(page, user);
+  let releaseSubmission: () => void = () => {};
+  const submissionRequested = new Promise<void>((resolve) => {
+    releaseSubmission = resolve;
+  });
+  await page.route('**/api/quote-requests', async (route) => {
+    await submissionRequested;
+    await route.fulfill({ status: 201, contentType: 'application/json', body: '{"requestId":"quote-interrompido","duplicate":false,"confirmations":{"email":"pending","whatsapp":"pending"}}' });
+  });
+
+  await page.goto('/orcamento');
+  await page.locator('#name').fill('Pessoa de teste');
+  await page.locator('#company').fill('Empresa de teste');
+  await page.locator('#email').fill(user.email);
+  await page.locator('#phone').fill('11999999999');
+  await page.getByRole('checkbox', { name: /Li o aviso de privacidade/ }).check();
+  await page.getByRole('button', { name: 'Enviar briefing' }).click();
+  await expect(page.getByRole('button', { name: 'Enviando…' })).toBeVisible();
+
+  const account = await context.newPage();
+  await mockCatalog(account);
+  await mockCustomerAccountRoutes(account, user);
+  await account.goto('/minha-conta');
+  await account.getByRole('button', { name: 'Sair', exact: true }).click();
+  await expect.poll(() => account.evaluate(() => localStorage.getItem('promo-brindes-customer-session'))).toBeNull();
+  await account.close();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('promo-brindes-customer-session'))).toBeNull();
+
+  releaseSubmission();
+  await page.waitForTimeout(200);
+  await expect(page.getByRole('heading', { name: 'Sua solicitação chegou.' })).not.toBeVisible();
+  await expect(page.getByRole('alert')).not.toBeVisible();
+  await expect(page.locator('#email')).toHaveValue('');
+});
+
 test('evento passado recebe erro no campo e não chama a API', async ({ page }) => {
   await page.addInitScript(({ product }) => {
     localStorage.setItem('promo-brindes:quote-selection:v1', JSON.stringify({ items: [{

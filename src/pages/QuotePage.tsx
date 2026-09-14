@@ -4,11 +4,13 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { Seo } from '../components/Seo';
 import { ContextualFaq } from '../components/ContextualFaq';
 import { useQuoteCart } from '../context/QuoteCartContext';
+import { useCustomerAuth } from '../context/CustomerAuthContext';
 import { buildQuotePayload, submitQuoteRequest } from '../lib/quoteRequest';
 import { trackFunnelEvent } from '../lib/analytics';
 import { ClientRequestError, clearSubmissionAttempt, getOrCreateSubmissionAttempt } from '../lib/http';
 import { replaceBrokenProductImage } from '../lib/images';
 import { clearQuoteDraft, EMPTY_QUOTE_CONTACT, loadQuoteDraft, QUOTE_DRAFT_RETENTION_LABEL, saveQuoteDraft } from '../lib/quoteDraft';
+import { clearPersonalQuoteStorage } from '../lib/personalDataReset';
 import { campaignBriefLabels } from '../lib/campaignBrief';
 import { EMPTY_QUOTE_BRIEFING, getQuoteBriefingValidationError, normalizeQuoteBriefing, quoteBriefingLabels } from '../lib/quoteBriefing';
 import { clearQuoteRepeat, loadQuoteRepeat } from '../lib/quoteRepeat';
@@ -47,6 +49,7 @@ function validate(contact: QuoteContact) {
 
 export default function QuotePage() {
   const cart = useQuoteCart();
+  const auth = useCustomerAuth();
   const [params] = useSearchParams();
   const [savedDraft] = useState(loadQuoteDraft);
   const [repeatContext] = useState(() => loadQuoteRepeat(params.get('repetir')));
@@ -69,6 +72,8 @@ export default function QuotePage() {
   const requestAttemptRef = useRef<{ id: string; submittedAt: string } | null>(null);
   const cartInitializedRef = useRef(false);
   const briefingTrackedRef = useRef(false);
+  const identityInitializedRef = useRef(false);
+  const submitAbortControllerRef = useRef<AbortController | null>(null);
   const totalUnits = useMemo(() => cart.items.reduce((sum, item) => sum + item.quantity, 0), [cart.items]);
   const campaignLabels = useMemo(() => campaignBriefLabels(cart.campaign), [cart.campaign]);
   const minimumDeadline = localDateInputValue();
@@ -78,6 +83,36 @@ export default function QuotePage() {
     briefingTrackedRef.current = true;
     trackFunnelEvent('briefing_started', { item_count: cart.items.length });
   }, [cart.items.length]);
+
+  // R08: troca de titular (login → outro login, ou logout) em qualquer aba
+  // deve invalidar os dados pessoais ativos deste formulário. Sem isto, o
+  // storage é limpo (CustomerAuthContext) mas o estado React permanece — a
+  // primeira edição de qualquer campo regrava o contato do titular anterior.
+  // A seleção de produtos (cart) não é dado de titular e é preservada;
+  // actionName é derivado de cart.selectionTitle, não do titular, então é
+  // recomposto em vez de zerado.
+  useEffect(() => {
+    if (!identityInitializedRef.current) {
+      identityInitializedRef.current = true;
+      return;
+    }
+    submitAbortControllerRef.current?.abort();
+    setContact(EMPTY_QUOTE_CONTACT);
+    setBriefing({ ...EMPTY_QUOTE_BRIEFING, actionName: cart.selectionTitle || '' });
+    setErrors({});
+    setBriefingErrors({});
+    setWebsite('');
+    setQuantityDrafts({});
+    setSubmitError('');
+    setSending(false);
+    submittingRef.current = false;
+    requestAttemptRef.current = null;
+    clearPersonalQuoteStorage();
+    // cart é o valor memoizado do QuoteCartContext e ganha nova referência a
+    // cada mudança de estado do carrinho (mesmo padrão já visto em outros
+    // efeitos deste projeto); só a troca de titular deve disparar este reset.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth.identityEpoch]);
 
   useEffect(() => {
     if (success) {
@@ -170,11 +205,13 @@ export default function QuotePage() {
     submittingRef.current = true;
     setSending(true);
     setSubmitError('');
+    const controller = new AbortController();
+    submitAbortControllerRef.current = controller;
     try {
       const attempt = requestAttemptRef.current || getOrCreateSubmissionAttempt('promo-brindes:quote-attempt');
       requestAttemptRef.current = attempt;
       const payload = buildQuotePayload(contact, cart.items, undefined, attempt.submittedAt, attempt.id, cart.campaign, normalizeQuoteBriefing(briefing));
-      const result = await submitQuoteRequest(payload);
+      const result = await submitQuoteRequest(payload, controller.signal);
       if (result.mode === 'endpoint') {
         trackFunnelEvent('quote_submitted', { item_count: cart.items.length, has_deadline: Boolean(contact.deadline) });
         requestAttemptRef.current = null;
@@ -190,12 +227,17 @@ export default function QuotePage() {
         window.location.href = result.href;
       }
     } catch (error) {
+      // A troca de titular já assumiu o estado da UI (efeito de identityEpoch);
+      // mostrar um erro genérico agora exibiria uma mensagem sem relação com o
+      // formulário recém-resetado, referente a uma submissão de outra pessoa.
+      if (controller.signal.aborted) return;
       const reason = error instanceof ClientRequestError
         ? error.status === 429 ? 'rate_limited' : error.status === 409 ? 'conflict' : error.status && error.status < 500 ? 'validation' : 'network'
         : 'unknown';
       trackFunnelEvent('quote_submission_failed', { item_count: cart.items.length, reason });
       setSubmitError(error instanceof Error ? error.message : 'Não conseguimos enviar sua solicitação.');
     } finally {
+      if (submitAbortControllerRef.current === controller) submitAbortControllerRef.current = null;
       submittingRef.current = false;
       setSending(false);
     }
