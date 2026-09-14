@@ -365,7 +365,27 @@ Uma armadilha de teste real foi descoberta e corrigida durante a escrita do pgTA
 
 ---
 
-## Fase 3 — Capacidade e entrega: R05–R07 (etapas 24–31)
+## Fase 3 — Capacidade e entrega: R05–R07 (etapas 24–31) — **etapas 24, 25, 26 e 28 concluídas em 14/09/2026; 27, 29, 30, 31 pendentes**
+
+**Etapa 24 concluída:** bloco `functions` em `vercel.json` com `maxDuration` explícito por rota, calculado a partir da soma real dos timeouts internos de cada handler (não estimado): `quote-requests` (catalogValidation 5s + siteDatabase 10s + confirmação 7s = 22s) → 30; `notifications` (orçamento total 25s, já contemplando a Etapa 28) → 30; demais rotas (10s ou 8s internos) → 15. Confirmado por `vercel project inspect` que o projeto pertence a um time (não conta pessoal Hobby, que não permite times) — plano Pro ou superior, cujo teto configurável de 300s comporta folgadamente todos os valores escolhidos.
+
+Escrito como teste automatizado permanente (`tests/api/maxDuration.test.ts`), não só como cálculo manual: importa as constantes de timeout reais de cada módulo (exportadas para esse fim) e o `vercel.json`, e reprova se algum timeout interno deixar de caber sob o `maxDuration` declarado. Testado deliberadamente contra uma violação real (reduzi `quote-requests` para 20 e confirmei a falha) antes de aceitar como correto.
+
+**Etapa 25 concluída:** `claim_site_notification_deliveries` agora é chamado com um `p_batch_size` calculado a partir do tempo restante (`remainingMs / MIN_TIME_PER_JOB_MS`), nunca maior que cabe no orçamento — em vez de reivindicar um lote fixo e abortar no meio.
+
+**Etapa 28 concluída:** o handler drena lotes sucessivos em laço enquanto houver orçamento e o lote anterior tiver vindo cheio (sinal de backlog), em vez de se limitar a um único lote de 10 por invocação. Testado com um cenário de dois lotes (primeiro cheio, segundo vazio) confirmando drenagem real.
+
+**Etapa 26 concluída:** `deliverQuoteConfirmationsNow` agora paraleliza os dois canais com `Promise.allSettled`, cada um com seu próprio `AbortController` de 7s — corrigindo o design anterior em que um único controller compartilhado podia zerar o orçamento do segundo canal. Testado provando a propriedade real (não apenas a ausência de erro): o WhatsApp é comprovadamente tentado enquanto o e-mail está deliberadamente bloqueado em um gate controlado pelo teste.
+
+**Verificação:** 195/195 testes unitários (12 só em `notifications.test.ts`, mais 10 em `maxDuration.test.ts`), typecheck e lint limpos, build de produção ok.
+
+**Etapa 27 (frequência do cron) — não resolvida, decisão de negócio:** exige definir o SLA de recuperação esperado com o time comercial antes de ajustar `15 3 * * *`. Não há como escolher uma frequência correta sem essa decisão externa ao código.
+
+**Etapa 29 (monitoramento de idade da fila) — não implementada nesta rodada.**
+
+**Etapa 30 (webhooks de entrega/devolução) — não implementada nesta rodada.** É a etapa de maior escopo restante da fase: exige endpoint novo, verificação de assinatura para dois provedores distintos (Resend e Meta), deduplicação e ordenação de eventos — dimensionada como trabalho à parte, não uma extensão pontual do que já existe.
+
+**Etapa 31 (conteúdo do comprovante) — não resolvida, decisão de produto:** exige decidir entre comprovante resumido e cópia integral do briefing antes de qualquer mudança de código; é uma escolha de conteúdo/produto, não uma correção técnica.
 
 ### Etapa 24 — Declarar `maxDuration` das funções na Vercel `[NOVO]`
 

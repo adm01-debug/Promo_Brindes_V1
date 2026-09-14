@@ -1,7 +1,7 @@
 import { RequestValidationError, type NormalizedQuotePayload } from './contracts.js';
 
 const CANONICAL_CATALOG_URL = 'https://doufsxqlfjyuvxuezpln.supabase.co';
-const REQUEST_TIMEOUT_MS = 5_000;
+export const REQUEST_TIMEOUT_MS = 5_000;
 
 interface CatalogRow {
   id?: string;

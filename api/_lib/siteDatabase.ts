@@ -3,7 +3,7 @@ import type { LeadKind, NormalizedLeadPayload } from './contracts.js';
 
 // Allowlist exata: por definição, o catálogo canônico não pode receber escritas do site.
 const SITE_DATABASE_PROJECT = 'xlzmclcjdncjfdrjxclt';
-const REQUEST_TIMEOUT_MS = 10_000;
+export const REQUEST_TIMEOUT_MS = 10_000;
 
 export class SiteDatabaseError extends Error {
   constructor(message: string, readonly code = 'database_unavailable', readonly status = 503) {

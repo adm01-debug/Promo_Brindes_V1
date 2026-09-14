@@ -1,6 +1,7 @@
 const CANONICAL_PROJECT_ID = 'doufsxqlfjyuvxuezpln';
 const SUPABASE_URL = `https://${CANONICAL_PROJECT_ID}.supabase.co`;
 const FALLBACK_SITE_URL = 'https://promo-brindes-v1.vercel.app';
+export const REQUEST_TIMEOUT_MS = 8_000;
 
 interface VercelRequest {
   method?: string;
@@ -82,7 +83,7 @@ async function fetchAllProducts(resource: string, apiKey: string): Promise<Produ
       offset: String(offset),
     });
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8_000);
+    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     let catalogResponse: Response;
     try {
       catalogResponse = await fetch(`${SUPABASE_URL}/rest/v1/${resource}?${params.toString()}`, {

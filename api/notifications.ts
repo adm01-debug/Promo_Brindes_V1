@@ -3,7 +3,16 @@ import { getSiteDatabaseConfig } from './_lib/siteDatabase.js';
 import type { ApiRequest, ApiResponse } from './_lib/leadHandler.js';
 
 const BATCH_SIZE = 10;
-const REQUEST_TIMEOUT_MS = 20_000;
+// Orçamento total da invocação, com folga sobre o maxDuration de 30s
+// declarado em vercel.json para esta rota (Etapa 24). MIN_TIME_PER_JOB_MS é
+// uma estimativa conservadora do provedor mais lento mais rede; usada tanto
+// para não pedir mais jobs do que cabe no tempo restante (Etapa 25) quanto
+// para decidir quando parar de tentar mais um dentro de um lote já
+// reivindicado.
+// Exportadas para que tests/api/maxDuration.test.ts confirme que cabem sob o
+// maxDuration declarado em vercel.json (Etapa 24) sem duplicar o número.
+export const OVERALL_TIME_BUDGET_MS = 25_000;
+export const MIN_TIME_PER_JOB_MS = 8_000;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 interface NotificationItem { name: string; sku: string; quantity: number; colorName?: string | null }
@@ -235,22 +244,34 @@ export async function deliverQuoteConfirmationsNow(requestId: string, whatsappRe
   const configured = configuredChannels();
   const requested = configured.filter((channel) => channel === 'email' || whatsappRequested);
   if (!requested.length) return result;
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 7_000);
-  try {
-    for (const channel of requested) {
+
+  // Cada canal roda em paralelo com seu próprio orçamento de 7s (Etapa 26):
+  // um e-mail lento não pode consumir o tempo do WhatsApp até zero, como
+  // acontecia com um único AbortController compartilhado entre os dois.
+  async function deliverChannel(channel: 'email' | 'whatsapp'): Promise<'sent' | 'pending'> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 7_000);
+    try {
       const raw = await rpc<unknown>('claim_site_quote_notification', { p_request_id: requestId, p_channel: channel }, controller.signal);
-      if (!raw) continue;
+      if (!raw) return 'pending';
       const job = parseJobs([raw])[0];
-      if (!job) continue;
+      if (!job) return 'pending';
       const outcome = await deliverJob(job, controller.signal);
-      if (channel === 'email') result.email = outcome === 'delivered' ? 'sent' : 'pending';
-      else result.whatsapp = outcome === 'delivered' ? 'sent' : 'pending';
+      return outcome === 'delivered' ? 'sent' : 'pending';
+    } catch {
+      // O protocolo já existe; falha de mensagem em um canal nunca desfaz a
+      // solicitação nem afeta o orçamento do outro canal.
+      return 'pending';
+    } finally {
+      clearTimeout(timeout);
     }
-  } catch {
-    // O protocolo já existe; falha de mensagem nunca desfaz a solicitação.
-  } finally {
-    clearTimeout(timeout);
+  }
+
+  const settled = await Promise.allSettled(requested.map(async (channel) => ({ channel, status: await deliverChannel(channel) })));
+  for (const outcome of settled) {
+    if (outcome.status !== 'fulfilled') continue;
+    if (outcome.value.channel === 'email') result.email = outcome.value.status;
+    else result.whatsapp = outcome.value.status;
   }
   return result;
 }
@@ -274,24 +295,49 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     response.status(503).json({ error: 'notification_provider_not_configured' });
     return;
   }
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const deadline = Date.now() + OVERALL_TIME_BUDGET_MS;
+  let claimed = 0;
+  let delivered = 0;
+  let failed = 0;
+  let inconclusive = 0;
   try {
-    const jobs = parseJobs(await rpc<unknown>('claim_site_notification_deliveries', { p_channels: channels, p_batch_size: BATCH_SIZE }, controller.signal));
-    let delivered = 0;
-    let failed = 0;
-    let inconclusive = 0;
-    for (const job of jobs) {
-      const outcome = await deliverJob(job, controller.signal);
-      if (outcome === 'delivered') delivered += 1;
-      else if (outcome === 'failed') failed += 1;
-      else inconclusive += 1;
+    // Drena lotes sucessivos enquanto houver orçamento e backlog (Etapa 28),
+    // em vez de se limitar a um único lote de BATCH_SIZE por invocação.
+    while (Date.now() < deadline - MIN_TIME_PER_JOB_MS) {
+      const remainingMs = deadline - Date.now();
+      // Não pede mais jobs do que cabe no tempo restante (Etapa 25): pedir e
+      // depois abortar no meio deixaria jobs reivindicados sem tentativa
+      // alguma até a próxima janela de recuperação.
+      const batchSize = Math.max(1, Math.min(BATCH_SIZE, Math.floor(remainingMs / MIN_TIME_PER_JOB_MS)));
+      const claimController = new AbortController();
+      const claimTimeout = setTimeout(() => claimController.abort(), remainingMs);
+      let jobs: NotificationJob[];
+      try {
+        jobs = parseJobs(await rpc<unknown>('claim_site_notification_deliveries', { p_channels: channels, p_batch_size: batchSize }, claimController.signal));
+      } finally {
+        clearTimeout(claimTimeout);
+      }
+      if (!jobs.length) break;
+      claimed += jobs.length;
+      for (const job of jobs) {
+        if (Date.now() >= deadline - MIN_TIME_PER_JOB_MS) break;
+        const jobController = new AbortController();
+        const jobTimeout = setTimeout(() => jobController.abort(), Math.max(1_000, deadline - Date.now()));
+        try {
+          const outcome = await deliverJob(job, jobController.signal);
+          if (outcome === 'delivered') delivered += 1;
+          else if (outcome === 'failed') failed += 1;
+          else inconclusive += 1;
+        } finally {
+          clearTimeout(jobTimeout);
+        }
+      }
+      // Lote não cheio: a fila elegível provavelmente esgotou por agora.
+      if (jobs.length < batchSize) break;
     }
-    console.info('site_notifications_completed', { claimed: jobs.length, delivered, failed, inconclusive, channels });
-    response.status(200).json({ ok: true, claimed: jobs.length, delivered, failed, inconclusive });
+    console.info('site_notifications_completed', { claimed, delivered, failed, inconclusive, channels });
+    response.status(200).json({ ok: true, claimed, delivered, failed, inconclusive });
   } catch {
     response.status(503).json({ error: 'notification_delivery_unavailable' });
-  } finally {
-    clearTimeout(timeout);
   }
 }
