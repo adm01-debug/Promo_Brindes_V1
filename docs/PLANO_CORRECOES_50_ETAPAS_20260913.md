@@ -89,17 +89,19 @@ npm run typecheck
 
 ---
 
-### Etapa 5 — Endurecer o `tsconfig.app.json`
+### Etapa 5 — Endurecer os dois tsconfig — **concluída parcialmente em 14/09, com desvio registrado**
 
-**Evidência:** `tsconfig.app.json` tem `strict` mas não tem `noUnusedLocals`, `noUnusedParameters`, `noFallthroughCasesInSwitch` nem `noUncheckedIndexedAccess`. Ambos os projetos usam `skipLibCheck: true`.
+**Evidência:** nenhum dos dois tsconfig tinha `noUnusedLocals`, `noUnusedParameters`, `noFallthroughCasesInSwitch` nem `noUncheckedIndexedAccess`.
 
-**Entrega:** ativar as quatro flags nos dois projetos. `noUncheckedIndexedAccess` é a de maior impacto — o código faz acesso indexado em vários pontos (`body.messages?.[0]?.id` em `api/notifications.ts:139`, `header(...).split(',')[0]` em `api/_lib/leadHandler.ts:60`) onde o tipo atual mente sobre a possibilidade de `undefined`.
+**Desvio 1 — `noUnusedLocals`/`noUnusedParameters` não adotadas:** a Etapa 2 já configurou `@typescript-eslint/no-unused-vars` com `argsIgnorePattern`/`varsIgnorePattern: '^_'` cobrindo exatamente essa checagem, com suporte à convenção de descarte intencional que o compilador não reconheceria da mesma forma. Ativar as duas flags do `tsc` também criaria dois mecanismos concorrentes reportando a mesma classe de problema com regras de exceção diferentes. Decisão: ESLint é a única autoridade sobre variável não utilizada; as flags do compilador ficam de fora deliberadamente.
 
-**Aceite:** typecheck aprovado com as quatro flags.
+**Entrega efetivamente aplicada:** `noFallthroughCasesInSwitch: true` nos dois tsconfig. Testado: zero erros novos.
+
+**`noUncheckedIndexedAccess` — medida e adiada, não pulada:** aplicada temporariamente nos dois projetos para medir o impacto real antes de decidir. Resultado: **61 erros em 19 arquivos** (destaque: `tests/api/lead-requests.test.ts` 8, `src/components/CampaignFinder.tsx` 8, `src/lib/search.ts` 7, `CatalogPage.tsx` 4, `QuoteDrawer.tsx` 4). Confirma a suspeita original — `api/notifications.ts:139` e `api/_lib/leadHandler.ts:60`, citados como exemplo, estão dentro desse universo. Revertida nesta rodada; fica como etapa própria, com o volume real já conhecido em vez de estimado, evitando descobrir o tamanho do trabalho apenas ao começá-lo.
+
+**Aceite (revisado):** typecheck aprovado com `noFallthroughCasesInSwitch` nos dois projetos. `noUncheckedIndexedAccess` seguirá com o mesmo aceite (typecheck limpo) quando entrar como etapa dedicada, cada um dos 61 pontos corrigido individualmente — checagem, optional chaining ou asserção justificada, nunca `!` às cegas.
 
 **Verificação:** `npm run typecheck`.
-
-**Nota:** se `noUncheckedIndexedAccess` gerar volume alto, adotá-la em etapa separada. As outras três são baratas e devem entrar de imediato.
 
 ---
 
