@@ -40,7 +40,7 @@ export function CampaignFinder() {
       mood: selection.mood ?? 'nao-informado',
       choices: selectedCount,
     });
-    navigate(buildCampaignCatalogUrl(selection));
+    void navigate(buildCampaignCatalogUrl(selection));
   }
 
   return (

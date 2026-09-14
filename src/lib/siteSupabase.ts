@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { hasSiteAuthConfiguration, resolveSitePublishableKey, resolveSiteSupabaseUrl } from './siteSupabaseConfig';
+import { resolveSitePublishableKey, resolveSiteSupabaseUrl } from './siteSupabaseConfig';
 
 const configuredUrl = resolveSiteSupabaseUrl(import.meta.env.VITE_SITE_SUPABASE_URL);
 const configuredKey = resolveSitePublishableKey(import.meta.env.VITE_SITE_SUPABASE_PUBLISHABLE_KEY);

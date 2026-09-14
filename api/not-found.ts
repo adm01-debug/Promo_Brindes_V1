@@ -19,7 +19,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
   const canonicalUrl = `${configuredSiteOrigin()}/404`;
   const shell = await loadAppShell().catch(() => null);
   const html = shell
-    ? unavailableProductShell(shell, canonicalUrl, title, description, 404)
+    ? unavailableProductShell(shell, canonicalUrl, title, description)
     : emergencyPageShell(canonicalUrl, title, description);
   response.setHeader('Content-Type', 'text/html; charset=utf-8');
   response.setHeader('Cache-Control', 'no-store');

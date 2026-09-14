@@ -164,7 +164,7 @@ export function productMetadata(row: PublicProductRow): PublicPageMetadata {
 
 const DEFAULT_PRODUCT_DESCRIPTION = 'Brinde corporativo para personalizar a experiência da sua marca.';
 
-export function unavailableProductShell(shell: string, canonicalUrl: string, title: string, description: string, status: 404 | 503): string {
+export function unavailableProductShell(shell: string, canonicalUrl: string, title: string, description: string): string {
   return renderPageShell(shell, {
     title,
     description,

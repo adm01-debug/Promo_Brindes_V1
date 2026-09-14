@@ -2,14 +2,12 @@
 
 import crypto from 'node:crypto';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync, spawnSync } from 'node:child_process';
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = fs.realpathSync(path.resolve(SCRIPT_DIR, '..'));
-const CONFIG_PATH = path.join(PROJECT_ROOT, '.graphify.project.json');
 const LOCK_PATH = path.join(PROJECT_ROOT, '.graphify-work', 'build.lock');
 const COMMAND = process.argv[2] ?? 'help';
 const COMMAND_ARGS = process.argv.slice(3);

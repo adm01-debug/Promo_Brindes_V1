@@ -159,6 +159,9 @@ export default function CatalogPage() {
   useEffect(() => {
     const brief = occasionCampaign || campaignBriefFromSelection(campaignSelection);
     if (brief) cart.setCampaign(brief);
+    // campaignKey já estabiliza campaignSelection (mesmo padrão do useMemo de
+    // campaignFilters acima); campaignSelection é lido via closure.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [campaignKey, cart, occasionCampaign]);
 
   useEffect(() => {
@@ -232,6 +235,10 @@ export default function CatalogPage() {
 
   useEffect(() => {
     if (!mobileFiltersOpen) return;
+    // Captura o nó atual do gatilho: por ora ele não desmonta enquanto o
+    // diálogo está aberto, mas capturar evita depender dessa garantia e
+    // satisfaz a regra sem supressão.
+    const triggerButton = mobileTriggerRef.current;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     mobileCloseRef.current?.focus();
@@ -261,7 +268,7 @@ export default function CatalogPage() {
     return () => {
       document.body.style.overflow = previousOverflow;
       document.removeEventListener('keydown', handleKeyDown);
-      mobileTriggerRef.current?.focus();
+      triggerButton?.focus();
     };
   }, [mobileFiltersOpen]);
 
@@ -404,7 +411,7 @@ export default function CatalogPage() {
           </button>
 
           {mobileFiltersOpen && (
-            <div className="filter-drawer-backdrop" onMouseDown={(event) => {
+            <div className="filter-drawer-backdrop" role="presentation" onMouseDown={(event) => {
               if (event.target === event.currentTarget) setMobileFiltersOpen(false);
             }}>
               <div ref={mobileDialogRef} className="filter-drawer" role="dialog" aria-modal="true" aria-labelledby="mobile-filter-title">
@@ -525,7 +532,7 @@ export default function CatalogPage() {
               ))}
             </div>
             {comparison.length > 1 && (
-              <div className="compare-tray__table-wrap" tabIndex={0}>
+              <div className="compare-tray__table-wrap" role="region" tabIndex={0} aria-label="Tabela de comparação; deslize horizontalmente em telas pequenas">
                 <table>
                   <caption>Comparação de informações publicadas no catálogo</caption>
                   <thead><tr><th scope="col">Critério</th>{comparison.map((item) => <th scope="col" key={item.id}><Link to={`/produto/${item.slug}`}>{item.name}</Link></th>)}</tr></thead>

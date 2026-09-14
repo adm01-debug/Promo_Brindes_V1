@@ -48,7 +48,7 @@ function productResource(candidate?: string): 'v_site_products_public' | 'v_prod
 }
 
 function escapeXml(value: string): string {
-  return value.replace(/[<>&'\"]/g, (character) => ({
+  return value.replace(/[<>&'"]/g, (character) => ({
     '<': '&lt;',
     '>': '&gt;',
     '&': '&amp;',

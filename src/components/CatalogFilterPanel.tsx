@@ -79,6 +79,13 @@ export function CatalogFilterPanel({
       });
       return next;
     });
+    // selectedCategoryKey é a chave estável (join(',')) derivada de
+    // selectedCategoryIds, usada deliberadamente no lugar do array para não
+    // re-executar o efeito a cada render por mudança de referência. Incluir
+    // selectedCategoryIds aqui reintroduziria exatamente o loop que a chave
+    // existe para evitar; o efeito lê o array corrente via closure, e a chave
+    // garante que ele só roda quando o conteúdo realmente muda.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryById, selectedCategoryKey]);
 
   const normalizedCategorySearch = normalizeForSearch(categorySearch.trim());

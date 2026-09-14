@@ -58,7 +58,7 @@ describe('worker de comprovantes do orçamento', () => {
     configure();
     vi.stubEnv('RESEND_API_KEY', 're_synthetic_test_key');
     vi.stubEnv('SITE_EMAIL_FROM', 'Promo Brindes <atendimento@example.test>');
-    const fetchMock = vi.fn(async (url: string | URL, init?: RequestInit) => {
+    const fetchMock = vi.fn(async (url: string | URL, _init?: RequestInit) => {
       if (String(url).includes('/claim_site_notification_deliveries')) return new Response(JSON.stringify([emailJob]), { status: 200 });
       if (String(url) === 'https://api.resend.com/emails') return new Response('{"id":"email-provider-1"}', { status: 200 });
       if (String(url).includes('/finalize_site_notification_delivery')) return new Response('true', { status: 200 });

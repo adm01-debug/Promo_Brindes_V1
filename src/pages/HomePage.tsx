@@ -70,7 +70,7 @@ export default function HomePage() {
 
   const submitSearch = (query: string, suggestion = false) => {
     trackFunnelEvent('search_started', { source: 'home', query_length: query.length, suggestion });
-    navigate(query ? `/catalogo?q=${encodeURIComponent(query)}` : '/catalogo');
+    void navigate(query ? `/catalogo?q=${encodeURIComponent(query)}` : '/catalogo');
   };
 
   return (
@@ -88,7 +88,7 @@ export default function HomePage() {
       />
 
       <section className="hero" aria-labelledby="hero-title">
-        <picture className="hero__media" aria-hidden="true">
+        <picture className="hero__media">
           <source
             srcSet="/images/hero-gen-z-v2-640.webp 640w, /images/hero-gen-z-v2-828.webp 828w, /images/hero-gen-z-v2-1024.webp 1024w, /images/hero-gen-z-v2.webp 1672w"
             sizes="100vw"
@@ -146,7 +146,7 @@ export default function HomePage() {
             onSubmit={(query) => submitSearch(query)}
             onSelect={(suggestion) => {
               trackFunnelEvent('search_started', { source: 'home', query_length: suggestion.value.length, suggestion: true });
-              navigate(suggestion.kind === 'category' && suggestion.categoryId
+              void navigate(suggestion.kind === 'category' && suggestion.categoryId
                 ? `/catalogo?categoria=${suggestion.categoryId}&nome=${encodeURIComponent(suggestion.label)}`
                 : `/catalogo?q=${encodeURIComponent(suggestion.value)}`);
             }}
@@ -267,7 +267,7 @@ export default function HomePage() {
           {featured.loading && <ProductGridSkeleton />}
           {featured.error && <CatalogError message={featured.error} onRetry={() => setFeaturedRetryKey((key) => key + 1)} />}
           {!featured.loading && !featured.error && (
-            <div className="product-grid" tabIndex={0} aria-label="Destaques do catálogo; deslize horizontalmente em telas pequenas">
+            <div className="product-grid" role="region" tabIndex={0} aria-label="Destaques do catálogo; deslize horizontalmente em telas pequenas">
               {featured.data.products.map((product, index) => (
                 <ProductCard
                   key={product.id}
