@@ -12,6 +12,9 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
+  # O CodeQL consulta o workflow atual ao finalizar o upload do SARIF.
+  # Sem esta leitura, a análise termina mas o resultado não é publicado.
+  actions: read
   contents: read
   security-events: write
 
