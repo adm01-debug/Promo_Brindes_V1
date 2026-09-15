@@ -49,6 +49,14 @@ describe('Etapa 24: maxDuration em vercel.json cobre o pior caso real de cada ro
     expect(SITE_DATABASE_TIMEOUT_MS).toBeLessThan(maxDurationMs('api/contact-requests.ts'));
   });
 
+  it('api/notification-events-resend.ts (Etapa 30): apenas uma chamada de RPC (callSiteRpc)', () => {
+    expect(SITE_DATABASE_TIMEOUT_MS).toBeLessThan(maxDurationMs('api/notification-events-resend.ts'));
+  });
+
+  it('api/notification-events-whatsapp.ts (Etapa 30): chamadas de RPC por status rodam em paralelo (Promise.all)', () => {
+    expect(SITE_DATABASE_TIMEOUT_MS).toBeLessThan(maxDurationMs('api/notification-events-whatsapp.ts'));
+  });
+
   it('api/notifications.ts: orçamento total já inclui drenagem de múltiplos lotes (Etapa 28) e o sinal de saúde da fila (Etapa 29)', () => {
     expect(NOTIFICATIONS_BUDGET_MS).toBeLessThan(maxDurationMs('api/notifications.ts'));
   });
