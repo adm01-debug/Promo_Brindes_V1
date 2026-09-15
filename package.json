@@ -26,6 +26,7 @@
     "db:site:dry-run": "npm run db:site:guard && SUPABASE_WORKDIR=site-supabase npx supabase@latest db push --dry-run",
     "db:site:test": "SUPABASE_WORKDIR=site-supabase supabase test db",
     "db:site:stop": "SUPABASE_WORKDIR=site-supabase supabase stop",
+    "ledger:check": "node scripts/validate-closure-ledger.mjs",
     "graph:doctor": "node scripts/graphify.mjs doctor",
     "graph:build": "node scripts/graphify.mjs build",
     "graph:update": "node scripts/graphify.mjs update",
@@ -34,6 +35,8 @@
     "graph:query": "node scripts/graphify.mjs query",
     "graph:impact": "node scripts/graphify.mjs impact",
     "graph:tree": "node scripts/graphify.mjs tree",
+    "graph:benchmark": "node scripts/graphify.mjs benchmark",
+    "graph:compare": "node scripts/graphify.mjs compare",
     "test:graphify": "node --test tests/graphify-tools.node.mjs"
   },
   "dependencies": {

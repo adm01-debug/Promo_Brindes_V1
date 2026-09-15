@@ -45,6 +45,16 @@ jobs:
         run: |
           npm run graph:build
           npm run graph:check
+          npm run graph:benchmark
+      - name: Compare pull request base and head maps
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BASE_WORKTREE: ${{ runner.temp }}/promo-brindes-base
+        run: |
+          git worktree add --detach "$BASE_WORKTREE" "$BASE_SHA"
+          (cd "$BASE_WORKTREE" && node scripts/graphify.mjs build)
+          npm run graph:compare -- --base "$BASE_WORKTREE/graphify-out/graph.json" --head graphify-out/graph.json --output graphify-out/BASE_HEAD_REPORT.md
       - name: Upload safe local map
         if: success()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0

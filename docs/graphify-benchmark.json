@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    {
+      "id": "GR40-01",
+      "question": "Como uma pessoa envia um orçamento?",
+      "source": "src/pages/QuotePage.tsx",
+      "directSearch": "submitQuoteRequest"
+    },
+    {
+      "id": "GR40-02",
+      "question": "Como o site valida os dados de um orçamento?",
+      "source": "api/_lib/contracts.ts",
+      "directSearch": "normalizeLeadPayload"
+    },
+    {
+      "id": "GR40-03",
+      "question": "Como funcionam as confirmações por e-mail e WhatsApp?",
+      "source": "api/notifications.ts",
+      "directSearch": "deliverQuoteConfirmationsNow"
+    },
+    {
+      "id": "GR40-04",
+      "question": "Como a sessão do cliente é encerrada com segurança?",
+      "source": "src/context/CustomerAuthContext.tsx",
+      "directSearch": "signOut"
+    },
+    {
+      "id": "GR40-05",
+      "question": "Como funciona o filtro do catálogo?",
+      "source": "src/lib/useCatalogPageState.ts",
+      "directSearch": "useCatalogPageState"
+    },
+    {
+      "id": "GR40-06",
+      "question": "Como uma seleção compartilhada é aberta?",
+      "source": "src/pages/SharedSelectionPage.tsx",
+      "directSearch": "fetchPersistentSharedSelection"
+    },
+    {
+      "id": "GR40-07",
+      "question": "Como o site recebe eventos do Resend?",
+      "source": "api/notification-events-resend.ts",
+      "directSearch": "verifySvixSignature"
+    },
+    {
+      "id": "GR40-08",
+      "question": "Como o site retém e remove dados antigos?",
+      "source": "api/retention.ts",
+      "directSearch": "site_retention"
+    },
+    {
+      "id": "GR40-09",
+      "question": "Como o portal do cliente consulta seus orçamentos?",
+      "source": "src/lib/customerAccount.ts",
+      "directSearch": "fetchMyQuoteRequests"
+    },
+    {
+      "id": "GR40-10",
+      "question": "Como o Graphify gera o mapa técnico?",
+      "source": "scripts/graphify.mjs",
+      "directSearch": "function build"
+    }
+  ]
+}
