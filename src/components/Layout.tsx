@@ -1,7 +1,7 @@
 import { Menu, Search, ShoppingBag, UserRound, X } from 'lucide-react';
 import { type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useQuoteCart } from '../context/QuoteCartContext';
+import { useQuoteCart } from '../context/quoteCart';
 import { trackFunnelEvent } from '../lib/analytics';
 import { useCategories } from '../lib/hooks';
 import { hasSiteAuthConfiguration } from '../lib/siteSupabaseConfig';

@@ -2,7 +2,7 @@ import { ArrowRight, Copy, PackageOpen, ShieldCheck, ShoppingBag } from 'lucide-
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Seo } from '../components/Seo';
-import { useQuoteCart } from '../context/QuoteCartContext';
+import { useQuoteCart } from '../context/quoteCart';
 import { fetchProductsByIds } from '../lib/catalog';
 import { decodeSharedSelection, fetchPersistentSharedSelection, hydrateSharedSelectionDetails, isPersistentSharedSelectionToken, type SharedSelectionItem } from '../lib/sharedSelection';
 import { persistentSharedSelectionsEnabled } from '../lib/siteFeatureFlags';

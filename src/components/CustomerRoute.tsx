@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useCustomerAuth } from '../context/CustomerAuthContext';
+import { useCustomerAuth } from '../context/customerAuth';
 import { Seo } from './Seo';
 
 export function CustomerRoute({ children }: { children: ReactNode }) {

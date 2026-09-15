@@ -19,7 +19,7 @@ import { CatalogError, ProductGridSkeleton } from '../components/CatalogFeedback
 import { ProductCard } from '../components/ProductCard';
 import { ContextualFaq } from '../components/ContextualFaq';
 import { Seo } from '../components/Seo';
-import { useQuoteCart } from '../context/QuoteCartContext';
+import { useQuoteCart } from '../context/quoteCart';
 import { defaultQuoteQuantity } from '../lib/catalog';
 import { trackFunnelEvent } from '../lib/analytics';
 import { useCatalog, useCategories, useProduct } from '../lib/hooks';

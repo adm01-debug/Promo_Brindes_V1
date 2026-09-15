@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cartReducer } from './QuoteCartContext';
+import { cartReducer } from './quoteCartReducer';
 import { MAX_QUOTE_ITEMS, normalizeQuoteItems } from '../lib/quoteItems';
 import type { QuoteItem } from '../types';
 

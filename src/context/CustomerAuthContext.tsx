@@ -1,26 +1,7 @@
-import type { Session, User } from '@supabase/supabase-js';
-import { createContext, type ReactNode, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import type { Session } from '@supabase/supabase-js';
 import { hasSiteAuthConfiguration } from '../lib/siteSupabaseConfig';
-
-interface CustomerAuthValue {
-  configured: boolean;
-  loading: boolean;
-  session: Session | null;
-  user: User | null;
-  /**
-   * Incrementa a cada troca real de titular (login → outro login, ou
-   * qualquer sessão → deslogado), em qualquer aba. Não incrementa em
-   * refresh de token do mesmo titular, nem na primeira carga (anônimo →
-   * autenticado inicial). Componentes que guardam dados pessoais em estado
-   * local (formulários) devem observar este valor para se resetar — ver
-   * src/lib/personalDataReset.ts para o contrato completo.
-   */
-  identityEpoch: number;
-  claimHistory(): Promise<number>;
-  signOut(): Promise<void>;
-}
-
-const CustomerAuthContext = createContext<CustomerAuthValue | null>(null);
+import { CustomerAuthContext, type CustomerAuthValue } from './customerAuth';
 
 export function CustomerAuthProvider({ children }: { children: ReactNode }) {
   const configured = hasSiteAuthConfiguration();
@@ -84,10 +65,4 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
   }), [configured, loading, session, identityEpoch]);
 
   return <CustomerAuthContext.Provider value={value}>{children}</CustomerAuthContext.Provider>;
-}
-
-export function useCustomerAuth(): CustomerAuthValue {
-  const value = useContext(CustomerAuthContext);
-  if (!value) throw new Error('useCustomerAuth must be used inside CustomerAuthProvider');
-  return value;
 }

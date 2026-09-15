@@ -3,7 +3,7 @@ import { type FormEvent, type MouseEvent, useEffect, useRef, useState } from 're
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { CustomerRoute } from '../components/CustomerRoute';
 import { Seo } from '../components/Seo';
-import { useQuoteCart } from '../context/QuoteCartContext';
+import { useQuoteCart } from '../context/quoteCart';
 import { customerStatusLabel, customerStatusTone, fetchMyQuoteRequest, isProposalExpired, requestMyQuoteAdjustment, type CustomerProposal, type CustomerQuoteDetail } from '../lib/customerAccount';
 import { siteSupabase } from '../lib/siteSupabase';
 import { trackFunnelEvent } from '../lib/analytics';

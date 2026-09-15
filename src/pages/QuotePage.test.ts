@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { localDateInputValue } from './QuotePage';
+import { localDateInputValue } from '../lib/quoteCalendar';
 
 describe('data mínima do briefing', () => {
   it('usa o calendário comercial brasileiro em vez de converter o instante para UTC', () => {

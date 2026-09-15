@@ -34,7 +34,7 @@ import { fetchProductsByIds, sanitizeSearch } from '../lib/catalog';
 import { loadCatalogComparison, saveCatalogComparison } from '../lib/catalogComparison';
 import { normalizeCampaignBrief } from '../lib/campaignBrief';
 import { suggestSearchCorrection } from '../lib/search';
-import { useQuoteCart } from '../context/QuoteCartContext';
+import { useQuoteCart } from '../context/quoteCart';
 import type { CatalogProduct } from '../types';
 
 const quickSearches = ['camiseta', 'kit', 'squeeze', 'carregador', 'reciclado'];

@@ -1,7 +1,7 @@
 import { ArrowRight, Check, Copy, Minus, Plus, Share2, ShoppingBag, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useQuoteCart } from '../context/QuoteCartContext';
+import { useQuoteCart } from '../context/quoteCart';
 import { replaceBrokenProductImage } from '../lib/images';
 import { createPersistentSharedSelection, managedSharedSelectionTokens, revokePersistentSharedSelection, sharedSelectionUrl, MAX_SHARED_SELECTION_ITEMS } from '../lib/sharedSelection';
 import { trackFunnelEvent } from '../lib/analytics';

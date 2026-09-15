@@ -3,8 +3,8 @@ import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Seo } from '../components/Seo';
 import { ContextualFaq } from '../components/ContextualFaq';
-import { useQuoteCart } from '../context/QuoteCartContext';
-import { useCustomerAuth } from '../context/CustomerAuthContext';
+import { useQuoteCart } from '../context/quoteCart';
+import { useCustomerAuth } from '../context/customerAuth';
 import { buildQuotePayload, submitQuoteRequest } from '../lib/quoteRequest';
 import { trackFunnelEvent } from '../lib/analytics';
 import { ClientRequestError, clearSubmissionAttempt, getOrCreateSubmissionAttempt } from '../lib/http';
@@ -16,6 +16,7 @@ import { EMPTY_QUOTE_BRIEFING, getQuoteBriefingValidationError, normalizeQuoteBr
 import { clearQuoteRepeat, loadQuoteRepeat } from '../lib/quoteRepeat';
 import type { QuoteBriefingForm, QuoteContact } from '../types';
 import { quoteDecisionGroupsEnabled } from '../lib/siteFeatureFlags';
+import { localDateInputValue } from '../lib/quoteCalendar';
 
 function formatPhone(value: string): string {
   const digits = value.replace(/\D/g, '').slice(0, 11);
@@ -23,17 +24,6 @@ function formatPhone(value: string): string {
   if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
   if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
-}
-
-export function localDateInputValue(date = new Date()): string {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/Sao_Paulo',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).formatToParts(date);
-  const value = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-  return `${value.year}-${value.month}-${value.day}`;
 }
 
 function validate(contact: QuoteContact) {

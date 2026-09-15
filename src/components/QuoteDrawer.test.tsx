@@ -2,7 +2,8 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { useEffect } from 'react';
 import { QuoteDrawer } from './QuoteDrawer';
-import { QuoteCartProvider, useQuoteCart } from '../context/QuoteCartContext';
+import { QuoteCartProvider } from '../context/QuoteCartContext';
+import { useQuoteCart } from '../context/quoteCart';
 
 const STORAGE_KEY = 'promo-brindes:quote-selection:v1';
 
