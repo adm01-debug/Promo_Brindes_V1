@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { OVERALL_TIME_BUDGET_MS as NOTIFICATIONS_BUDGET_MS } from '../../api/notifications.js';
+import { TOTAL_TIME_BUDGET_MS as NOTIFICATIONS_BUDGET_MS } from '../../api/notifications.js';
 import { REQUEST_TIMEOUT_MS as SITE_DATABASE_TIMEOUT_MS } from '../../api/_lib/siteDatabase.js';
 import { REQUEST_TIMEOUT_MS as CATALOG_VALIDATION_TIMEOUT_MS } from '../../api/_lib/catalogValidation.js';
 import { TIMEOUT_MS as SHARED_SELECTIONS_TIMEOUT_MS } from '../../api/_lib/sharedSelections.js';
@@ -49,7 +49,7 @@ describe('Etapa 24: maxDuration em vercel.json cobre o pior caso real de cada ro
     expect(SITE_DATABASE_TIMEOUT_MS).toBeLessThan(maxDurationMs('api/contact-requests.ts'));
   });
 
-  it('api/notifications.ts: orçamento total já inclui a drenagem de múltiplos lotes (Etapa 28)', () => {
+  it('api/notifications.ts: orçamento total já inclui drenagem de múltiplos lotes (Etapa 28) e o sinal de saúde da fila (Etapa 29)', () => {
     expect(NOTIFICATIONS_BUDGET_MS).toBeLessThan(maxDurationMs('api/notifications.ts'));
   });
 

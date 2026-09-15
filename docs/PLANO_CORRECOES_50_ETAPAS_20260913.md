@@ -365,7 +365,7 @@ Uma armadilha de teste real foi descoberta e corrigida durante a escrita do pgTA
 
 ---
 
-## Fase 3 — Capacidade e entrega: R05–R07 (etapas 24–31) — **etapas 24, 25, 26 e 28 concluídas em 14/09/2026; 27, 29, 30, 31 pendentes**
+## Fase 3 — Capacidade e entrega: R05–R07 (etapas 24–31) — **etapas 24, 25, 26, 28 concluídas em 14/09/2026; 27, 29, 31 concluídas em 15/09/2026 (27 e 31 com default provisório, ver abaixo); 30 pendente**
 
 **Etapa 24 concluída:** bloco `functions` em `vercel.json` com `maxDuration` explícito por rota, calculado a partir da soma real dos timeouts internos de cada handler (não estimado): `quote-requests` (catalogValidation 5s + siteDatabase 10s + confirmação 7s = 22s) → 30; `notifications` (orçamento total 25s, já contemplando a Etapa 28) → 30; demais rotas (10s ou 8s internos) → 15. Confirmado por `vercel project inspect` que o projeto pertence a um time (não conta pessoal Hobby, que não permite times) — plano Pro ou superior, cujo teto configurável de 300s comporta folgadamente todos os valores escolhidos.
 
@@ -379,13 +379,15 @@ Escrito como teste automatizado permanente (`tests/api/maxDuration.test.ts`), n�
 
 **Verificação:** 195/195 testes unitários (12 só em `notifications.test.ts`, mais 10 em `maxDuration.test.ts`), typecheck e lint limpos, build de produção ok.
 
-**Etapa 27 (frequência do cron) — não resolvida, decisão de negócio:** exige definir o SLA de recuperação esperado com o time comercial antes de ajustar `15 3 * * *`. Não há como escolher uma frequência correta sem essa decisão externa ao código.
+**Verificação (etapas 27, 29 e 31, 15/09/2026):** 199/199 testes unitários (15 em `notifications.test.ts`, incluindo 4 novos cobrindo `reportQueueHealth` — fila saudável sem alerta, idade acima do limiar, `exhausted > 0`, e falha da própria consulta de saúde sem derrubar a resposta), 140/140 asserções pgTAP em `notification_outbox.test.sql` (10 novas cobrindo `site_notification_queue_health`, após `npm run db:site:reset` + `npm run db:site:test`), typecheck e lint limpos (`npm run lint`, `npm run typecheck`), build de produção e orçamento de performance ok (`npm run build`, `npm run check:performance-budget`).
 
-**Etapa 29 (monitoramento de idade da fila) — não implementada nesta rodada.**
+**Etapa 27 (frequência do cron) — concluída em 15/09/2026, com default provisório:** o SLA de recuperação formal com o time comercial continua em aberto — esta correção não inventa uma decisão de negócio que não me cabe tomar. O que ela resolve é o defeito puramente técnico que a Etapa 27 também descrevia: a cadência anterior (`15 3 * * *`, uma vez por dia) era incompatível com o próprio backoff em minutos que `api/notifications.ts` já calcula (`retrySeconds`, até 86.400s = 24h no pior caso, mas normalmente muito menor) — um job que ficasse elegível de novo em 20 minutos só seria de fato tentado até 24h depois. Troquei para `*/15 * * * *` (a cada 15 minutos), o valor mínimo que o Vercel Cron aceita e que o plano do projeto (Team/Pro, confirmado por `vercel project inspect`) suporta. **Cálculo documentado (Aceite/Verificação da Etapa 27):** cada invocação já drena múltiplos lotes de 10 enquanto houver backlog e orçamento (Etapa 28), então a capacidade não é mais "10 mensagens por execução" — é "todo o backlog elegível que couber no orçamento de ~25s por execução, repetida a cada 15 min". Isso torna a frequência coerente com o backoff (nenhum job espera mais que ~15-30min para ser reconsiderado, contra até 24h antes) sem exigir conhecer o volume de pico real. **O que permanece pendente de negócio:** se 15 minutos é rápido o suficiente para o SLA que a empresa quer prometer ao cliente — isso é uma decisão de produto/comercial que nenhum cálculo de código resolve sozinho, e deve ser revisitada com o volume de pico real assim que houver dados de produção.
+
+**Etapa 29 (monitoramento de idade da fila) — concluída em 15/09/2026:** nova função `public.site_notification_queue_health()` (`site-supabase/supabase/migrations/20260915090000_add_notification_queue_health.sql`), que devolve, por canal, a idade do job elegível mais antigo (`null` quando não há nenhum, nunca `0` — para não sugerir falsamente "criado agora") e a contagem de `exhausted` (Etapa 18). `api/notifications.ts` chama essa função ao final de cada invocação bem-sucedida (`reportQueueHealth()`, melhor esforço — uma falha aqui nunca derruba a resposta HTTP já concluída) e emite `console.error('site_notifications_queue_alert', ...)` quando a idade ultrapassa `QUEUE_AGE_ALERT_SECONDS` (45min = 3× a cadência da Etapa 27, tolerando até duas execuções perdidas) ou quando há qualquer `exhausted`. A integração com um canal de alerta de fato (PagerDuty, e-mail de oncall etc.) fica para a Etapa 41 — aqui o log de nível `error` já é o sinal ativo, na ausência dessa integração.
 
 **Etapa 30 (webhooks de entrega/devolução) — não implementada nesta rodada.** É a etapa de maior escopo restante da fase: exige endpoint novo, verificação de assinatura para dois provedores distintos (Resend e Meta), deduplicação e ordenação de eventos — dimensionada como trabalho à parte, não uma extensão pontual do que já existe.
 
-**Etapa 31 (conteúdo do comprovante) — não resolvida, decisão de produto:** exige decidir entre comprovante resumido e cópia integral do briefing antes de qualquer mudança de código; é uma escolha de conteúdo/produto, não uma correção técnica.
+**Etapa 31 (conteúdo do comprovante) — concluída em 15/09/2026, com default provisório:** a decisão formal de produto (resumo vs. cópia integral do briefing) continua em aberto — não me cabe decidir o escopo de conteúdo futuro. O que esta correção resolve é o defeito que a Etapa 31 também descrevia: a interface usava as palavras "Cópia"/"comprovantes", prometendo uma réplica do briefing que o e-mail e o WhatsApp nunca entregaram (e-mail: nome, protocolo, empresa e itens, sem ação/prazo/verba/observações; WhatsApp: só nome, protocolo e empresa). Troquei o texto da UI (`src/pages/QuotePage.tsx`) para "Confirmação de envio"/"Confirmação [...] registrada para envio", que descreve com precisão o que já é enviado hoje — sem alterar o conteúdo dos canais. **O que permanece pendente de produto:** se o comprovante deve evoluir para cópia integral (exigindo, entre outras coisas, pré-aprovação de um novo template pela Meta para o WhatsApp) ou permanecer resumido — essa escolha de conteúdo/produto continua em aberto e deve ser revisitada formalmente.
 
 ### Etapa 24 — Declarar `maxDuration` das funções na Vercel `[NOVO]`
 
@@ -439,6 +441,8 @@ Este é o elo que fecha o ciclo: o R03 descreve o sintoma no banco; a ausência 
 
 **Verificação:** cálculo documentado (volume de pico × tamanho do lote × frequência) revisado no PR.
 
+**Resolvida em 15/09/2026, com default provisório:** ver detalhamento e cálculo documentado no resumo da Fase 3, no topo desta seção. Resumo: `*/15 * * * *`, o mínimo aceito pelo Vercel Cron no plano do projeto; SLA formal com o comercial continua pendente.
+
 ---
 
 ### Etapa 28 — Drenagem de múltiplos lotes por invocação
@@ -463,6 +467,8 @@ Este é o elo que fecha o ciclo: o R03 descreve o sintoma no banco; a ausência 
 
 **Verificação:** injetar job antigo em ambiente local e confirmar o disparo.
 
+**Concluída em 15/09/2026:** ver detalhamento no resumo da Fase 3, no topo desta seção. Job antigo injetado em teste isolado (pgTAP: job com whatsapp atrasado ~20min e email `exhausted`) confirma o disparo esperado; Vitest confirma o `console.error` correspondente no lado do handler.
+
 ---
 
 ### Etapa 30 — Webhooks de entrega e devolução (R07)
@@ -486,6 +492,8 @@ Este é o elo que fecha o ciclo: o R03 descreve o sintoma no banco; a ausência 
 **Aceite:** o que a interface promete é o que o cliente recebe, por canal.
 
 **Verificação:** revisão conjunta de produto e conteúdo; teste que compara os campos prometidos na UI com os efetivamente enviados.
+
+**Resolvida em 15/09/2026, com default provisório:** ver detalhamento no resumo da Fase 3, no topo desta seção. A revisão conjunta de produto/conteúdo sobre resumo vs. cópia integral continua pendente; o que foi corrigido é a promessa desalinhada da palavra "Cópia" com o conteúdo real hoje entregue.
 
 ---
 

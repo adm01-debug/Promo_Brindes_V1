@@ -404,8 +404,8 @@ test('envio confirmado remove contato e consentimento do rascunho da aba', async
 
   await expect(page.getByRole('heading', { name: 'Sua solicitação chegou.' })).toBeVisible();
   await expect.poll(() => page.evaluate(() => sessionStorage.getItem('promo-brindes:quote-draft:v1'))).toBeNull();
-  await expect(page.getByText('Cópia por e-mail registrada para envio.')).toBeVisible();
-  await expect(page.getByText('Cópia pelo WhatsApp autorizada e registrada para envio.')).toBeVisible();
+  await expect(page.getByText('Confirmação por e-mail registrada para envio.')).toBeVisible();
+  await expect(page.getByText('Confirmação pelo WhatsApp autorizada e registrada para envio.')).toBeVisible();
   expect(submissions).toBe(1);
   expect(sentPayload).toMatchObject({ notificationPreferences: { emailCopy: true, whatsappCopy: true } });
 });

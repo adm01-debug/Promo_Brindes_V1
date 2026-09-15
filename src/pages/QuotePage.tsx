@@ -252,7 +252,15 @@ export default function QuotePage() {
         <h1>{success.mode === 'endpoint' ? 'Sua solicitação chegou.' : 'Seu e-mail está pronto.'}</h1>
         <p>{success.mode === 'endpoint' ? 'Nosso time de especialistas vai analisar os itens e entrar em contato pelos dados informados.' : 'Abrimos seu aplicativo de e-mail com a seleção preenchida. Revise a mensagem e toque em enviar para concluir.'}</p>
         {success.requestId && <span className="success-page__protocol">Protocolo: {success.requestId}</span>}
-        {success.mode === 'endpoint' && success.confirmations && <div className="success-page__confirmations" role="status"><strong>Seus comprovantes</strong><span>{success.confirmations.email === 'sent' ? 'Cópia enviada para o seu e-mail.' : 'Cópia por e-mail registrada para envio.'}</span>{success.confirmations.whatsapp !== 'not_requested' && <span>{success.confirmations.whatsapp === 'sent' ? 'Cópia enviada também pelo WhatsApp autorizado.' : 'Cópia pelo WhatsApp autorizada e registrada para envio.'}</span>}</div>}
+        {/* Etapa 31: "Cópia"/"comprovantes" prometia uma réplica do briefing;
+        o e-mail traz nome, protocolo e itens (sem ação/prazo/verba/
+        observações) e o WhatsApp traz só nome, protocolo e empresa — texto
+        alinhado ao que a Política de Privacidade já descreve (o protocolo
+        exibido acima é o comprovante imediato; e-mail/WhatsApp são
+        confirmações transacionais, não uma cópia do formulário). Decisão
+        provisória enquanto o produto não define formalmente entre resumo e
+        cópia integral (ver plano de correções, Etapa 31). */}
+        {success.mode === 'endpoint' && success.confirmations && <div className="success-page__confirmations" role="status"><strong>Confirmação de envio</strong><span>{success.confirmations.email === 'sent' ? 'Confirmação enviada para o seu e-mail.' : 'Confirmação por e-mail registrada para envio.'}</span>{success.confirmations.whatsapp !== 'not_requested' && <span>{success.confirmations.whatsapp === 'sent' ? 'Confirmação enviada também pelo WhatsApp autorizado.' : 'Confirmação pelo WhatsApp autorizada e registrada para envio.'}</span>}</div>}
         <div className="success-page__actions">
           {success.href && <a className="button button--green" href={success.href}><Mail size={18} /> Abrir e-mail novamente</a>}
           {success.mode === 'endpoint' && <Link className="button button--green" to="/entrar?next=/minha-conta">Acompanhar meus orçamentos</Link>}

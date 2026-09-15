@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import handler, { deliverQuoteConfirmationsNow } from '../../api/notifications.js';
+import handler, { deliverQuoteConfirmationsNow, QUEUE_AGE_ALERT_SECONDS } from '../../api/notifications.js';
 import type { ApiRequest, ApiResponse } from '../../api/_lib/leadHandler.js';
 
 function responseDouble() {
@@ -41,7 +41,7 @@ const emailJob = {
 const notMocked = () => new Response('{}', { status: 500 });
 
 describe('worker de comprovantes do orçamento', () => {
-  afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
+  afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
   it('recusa chamada sem o segredo agendado', async () => {
     configure();
@@ -285,5 +285,91 @@ describe('worker de comprovantes do orçamento', () => {
 
     expect(result.body).toEqual({ ok: true, claimed: 1, delivered: 1, failed: 0, inconclusive: 0 });
     expect(fetchMock.mock.calls.some(([url]) => String(url).includes('graph.facebook.com'))).toBe(false);
+  });
+});
+
+describe('Etapa 29: sinal de saúde da fila (reportQueueHealth, via handler)', () => {
+  afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+
+  function fetchMockWithQueueHealth(channels: unknown) {
+    return vi.fn(async (url: string | URL) => {
+      if (String(url).includes('/claim_site_notification_deliveries')) return new Response('[]', { status: 200 });
+      if (String(url).includes('/site_notification_queue_health')) return new Response(JSON.stringify(channels), { status: 200 });
+      return notMocked();
+    });
+  }
+
+  it('fila saudável: registra o snapshot em console.info e não soa alerta', async () => {
+    configure();
+    vi.stubEnv('RESEND_API_KEY', 're_synthetic_test_key');
+    vi.stubEnv('SITE_EMAIL_FROM', 'Promo Brindes <atendimento@example.test>');
+    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const channels = [
+      { channel: 'email', oldestEligibleAgeSeconds: 60, eligibleCount: 1, exhaustedCount: 0 },
+      { channel: 'whatsapp', oldestEligibleAgeSeconds: null, eligibleCount: 0, exhaustedCount: 0 },
+    ];
+    vi.stubGlobal('fetch', fetchMockWithQueueHealth(channels));
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+
+    expect(result.statusCode).toBe(200);
+    expect(infoSpy).toHaveBeenCalledWith('site_notifications_queue_health', { channels });
+    expect(errorSpy).not.toHaveBeenCalled();
+  });
+
+  it('job elegível mais velho que o limiar: soa alerta com o payload do canal afetado', async () => {
+    configure();
+    vi.stubEnv('RESEND_API_KEY', 're_synthetic_test_key');
+    vi.stubEnv('SITE_EMAIL_FROM', 'Promo Brindes <atendimento@example.test>');
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'info').mockImplementation(() => {});
+    const staleChannel = { channel: 'email', oldestEligibleAgeSeconds: QUEUE_AGE_ALERT_SECONDS + 1, eligibleCount: 3, exhaustedCount: 0 };
+    const channels = [staleChannel, { channel: 'whatsapp', oldestEligibleAgeSeconds: null, eligibleCount: 0, exhaustedCount: 0 }];
+    vi.stubGlobal('fetch', fetchMockWithQueueHealth(channels));
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+
+    expect(result.statusCode).toBe(200);
+    expect(errorSpy).toHaveBeenCalledWith('site_notifications_queue_alert', { ...staleChannel, ageAlertThresholdSeconds: QUEUE_AGE_ALERT_SECONDS });
+    expect(errorSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('job esgotado (exhausted > 0) soa alerta mesmo com idade dentro do limiar', async () => {
+    configure();
+    vi.stubEnv('RESEND_API_KEY', 're_synthetic_test_key');
+    vi.stubEnv('SITE_EMAIL_FROM', 'Promo Brindes <atendimento@example.test>');
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'info').mockImplementation(() => {});
+    const exhaustedChannel = { channel: 'whatsapp', oldestEligibleAgeSeconds: null, eligibleCount: 0, exhaustedCount: 2 };
+    const channels = [{ channel: 'email', oldestEligibleAgeSeconds: null, eligibleCount: 0, exhaustedCount: 0 }, exhaustedChannel];
+    vi.stubGlobal('fetch', fetchMockWithQueueHealth(channels));
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+
+    expect(result.statusCode).toBe(200);
+    expect(errorSpy).toHaveBeenCalledWith('site_notifications_queue_alert', { ...exhaustedChannel, ageAlertThresholdSeconds: QUEUE_AGE_ALERT_SECONDS });
+    expect(errorSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('falha ao consultar o sinal de saúde nunca derruba a resposta já concluída (melhor esforço)', async () => {
+    configure();
+    vi.stubEnv('RESEND_API_KEY', 're_synthetic_test_key');
+    vi.stubEnv('SITE_EMAIL_FROM', 'Promo Brindes <atendimento@example.test>');
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'info').mockImplementation(() => {});
+    // site_notification_queue_health cai no notMocked() (500) — rpc() lança,
+    // reportQueueHealth() absorve via try/catch.
+    const fetchMock = vi.fn(async (url: string | URL) => {
+      if (String(url).includes('/claim_site_notification_deliveries')) return new Response('[]', { status: 200 });
+      return notMocked();
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+
+    expect(result.statusCode).toBe(200);
+    expect(result.body).toEqual({ ok: true, claimed: 0, delivered: 0, failed: 0, inconclusive: 0 });
+    expect(errorSpy).not.toHaveBeenCalled();
   });
 });

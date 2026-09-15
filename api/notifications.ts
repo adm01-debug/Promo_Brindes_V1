@@ -13,6 +13,19 @@ const BATCH_SIZE = 10;
 // maxDuration declarado em vercel.json (Etapa 24) sem duplicar o número.
 export const OVERALL_TIME_BUDGET_MS = 25_000;
 export const MIN_TIME_PER_JOB_MS = 8_000;
+// Etapa 29: orçamento à parte para o sinal de saúde da fila, que roda depois
+// da entrega e nunca deve competir pelo tempo reservado a ela.
+export const QUEUE_HEALTH_TIMEOUT_MS = 3_000;
+// Soma dos dois: o pior caso real da invocação, usado por
+// tests/api/maxDuration.test.ts (Etapa 24) contra o maxDuration declarado em
+// vercel.json — o sinal de saúde da fila também precisa caber.
+export const TOTAL_TIME_BUDGET_MS = OVERALL_TIME_BUDGET_MS + QUEUE_HEALTH_TIMEOUT_MS;
+// Etapa 29: idade tolerável para um job elegível ainda não entregue antes de
+// um alerta ativo. Calibrada em 3x a cadência do cron (Etapa 27, 15 em 15
+// minutos) para tolerar até duas invocações perdidas sem soar o alarme por
+// uma única execução atrasada — mesmo racional de tolerância a ruído que
+// justifica o limite de 5 tentativas antes de "exhausted" (Etapa 18).
+export const QUEUE_AGE_ALERT_SECONDS = 45 * 60;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 interface NotificationItem { name: string; sku: string; quantity: number; colorName?: string | null }
@@ -233,6 +246,42 @@ async function deliverJob(job: NotificationJob, signal: AbortSignal): Promise<De
   return confirmed ? 'delivered' : 'inconclusive';
 }
 
+interface ChannelQueueHealth {
+  channel: 'email' | 'whatsapp';
+  oldestEligibleAgeSeconds: number | null;
+  eligibleCount: number;
+  exhaustedCount: number;
+}
+
+/** Etapa 29: sinal ativo de acúmulo ou job preso na fila, em vez de
+ * descoberta manual — o único sinal anterior (`site_notifications_completed`
+ * abaixo) só cobre o lote já processado na invocação atual, nunca o que
+ * ficou para trás. Melhor esforço: uma falha aqui nunca pode derrubar a
+ * resposta da invocação, cujo trabalho de entrega já terminou antes desta
+ * chamada. `console.error` funciona como o sinal em si — a integração com
+ * alerta de fato (PagerDuty, e-mail de oncall etc.) é escopo da Etapa 41. */
+async function reportQueueHealth(): Promise<void> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), QUEUE_HEALTH_TIMEOUT_MS);
+    let channels: ChannelQueueHealth[];
+    try {
+      channels = await rpc<ChannelQueueHealth[]>('site_notification_queue_health', {}, controller.signal);
+    } finally {
+      clearTimeout(timeout);
+    }
+    console.info('site_notifications_queue_health', { channels });
+    for (const health of channels) {
+      const stale = health.oldestEligibleAgeSeconds !== null && health.oldestEligibleAgeSeconds > QUEUE_AGE_ALERT_SECONDS;
+      if (stale || health.exhaustedCount > 0) {
+        console.error('site_notifications_queue_alert', { ...health, ageAlertThresholdSeconds: QUEUE_AGE_ALERT_SECONDS });
+      }
+    }
+  } catch {
+    // Melhor esforço — ver comentário acima.
+  }
+}
+
 export interface QuoteConfirmationResult {
   email: 'sent' | 'pending';
   whatsapp: 'sent' | 'pending' | 'not_requested';
@@ -336,6 +385,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       if (jobs.length < batchSize) break;
     }
     console.info('site_notifications_completed', { claimed, delivered, failed, inconclusive, channels });
+    await reportQueueHealth();
     response.status(200).json({ ok: true, claimed, delivered, failed, inconclusive });
   } catch {
     response.status(503).json({ error: 'notification_delivery_unavailable' });

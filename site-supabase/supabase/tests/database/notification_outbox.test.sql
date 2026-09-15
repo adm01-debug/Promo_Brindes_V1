@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(29);
+select plan(39);
 
 select has_column('site_private', 'notification_deliveries', 'next_attempt_at', 'fila possui agenda de nova tentativa');
 select has_column('site_private', 'notification_deliveries', 'lease_token', 'fila identifica a reivindicação ativa (R04)');
@@ -17,7 +17,7 @@ select ok(pg_catalog.has_function_privilege('service_role', 'public.claim_site_q
 select ok(
   (select bool_and(array_to_string(p.proconfig, ',') = 'search_path=""')
    from pg_catalog.pg_proc p join pg_catalog.pg_namespace n on n.oid = p.pronamespace
-   where (n.nspname = 'public' and p.proname in ('claim_site_notification_deliveries', 'claim_site_quote_notification', 'finalize_site_notification_delivery'))
+   where (n.nspname = 'public' and p.proname in ('claim_site_notification_deliveries', 'claim_site_quote_notification', 'finalize_site_notification_delivery', 'site_notification_queue_health'))
       or (n.nspname = 'site_private' and p.proname = 'enqueue_quote_confirmations')),
   'funções da fila fixam search_path vazio'
 );
@@ -224,6 +224,82 @@ select ok(
    )) is not null,
   'job recuperado recebe um lease_token novo'
 );
+
+-- Etapa 29: monitoramento de idade da fila. Cenário isolado — limpa o estado
+-- acumulado dos cenários acima (já avaliados; apagar depois não invalida
+-- assertions já registradas) para poder afirmar contagens exatas por canal,
+-- em vez de "ao menos 1".
+delete from site_private.notification_deliveries;
+
+select is(
+  (public.create_site_quote_request(
+    jsonb_build_object(
+      'source', 'site-promo-brindes', 'clientRequestId', 'notification-outbox-quote-3', 'submittedAt', now(),
+      'pageUrl', 'https://promo.test/orcamento',
+      'consent', jsonb_build_object('accepted', true, 'noticeVersion', '2026-09-08', 'acceptedAt', now()),
+      'contact', jsonb_build_object('name', 'Cliente Fila 3', 'company', 'Empresa Fila 3', 'email', 'fila3@example.test', 'phone', '(11) 97777-7777', 'city', '', 'deadline', '', 'notes', ''),
+      'items', jsonb_build_array(jsonb_build_object(
+        'productId', '33333333-3333-4333-8333-333333333333', 'key', '33333333-3333-4333-8333-333333333333::sem-cor',
+        'slug', 'produto-fila', 'name', 'Produto fila', 'sku', 'FILA-1', 'imageUrl', '/images/product-placeholder.svg',
+        'quantity', 100, 'minQuantity', 50
+      ))
+    ),
+    jsonb_build_object(
+      'requestHash', repeat('5', 64), 'identifierHash', repeat('6', 64),
+      'notificationPreferences', jsonb_build_object('emailCopy', true, 'whatsappCopy', true)
+    )
+  )) ->> 'duplicate',
+  'false',
+  'terceiro orçamento de teste foi criado (cenário de monitoramento)'
+);
+
+-- Envelhece o job de WhatsApp (ainda pending) para simular acúmulo real.
+alter table site_private.notification_deliveries disable trigger notification_deliveries_set_updated_at;
+update site_private.notification_deliveries
+set created_at = now() - interval '20 minutes', next_attempt_at = now() - interval '19 minutes'
+where channel = 'whatsapp';
+-- A mecânica de exaustão (5 tentativas) já é coberta acima; aqui só
+-- precisamos de um job exhausted real para testar a contagem por canal.
+update site_private.notification_deliveries
+set status = 'exhausted', lease_token = null
+where channel = 'email';
+alter table site_private.notification_deliveries enable trigger notification_deliveries_set_updated_at;
+
+create temporary table queue_health(payload jsonb);
+insert into queue_health select public.site_notification_queue_health();
+
+select is(
+  (select jsonb_array_length(payload) from queue_health),
+  2,
+  'devolve exatamente um objeto por canal (email, whatsapp), mesmo sem jobs elegíveis em um deles'
+);
+select is(
+  (select (job ->> 'exhaustedCount')::int from queue_health, lateral jsonb_array_elements(payload) job where job ->> 'channel' = 'email'),
+  1,
+  'conta job esgotado no canal correto'
+);
+select is(
+  (select (job ->> 'eligibleCount')::int from queue_health, lateral jsonb_array_elements(payload) job where job ->> 'channel' = 'email'),
+  0,
+  'job esgotado não é contado como elegível'
+);
+select is(
+  (select (job ->> 'eligibleCount')::int from queue_health, lateral jsonb_array_elements(payload) job where job ->> 'channel' = 'whatsapp'),
+  1,
+  'job pendente e vencido é contado como elegível'
+);
+select ok(
+  (select (job ->> 'oldestEligibleAgeSeconds')::int from queue_health, lateral jsonb_array_elements(payload) job where job ->> 'channel' = 'whatsapp') >= 1100,
+  'idade do job mais antigo reflete o envelhecimento real (~20 minutos)'
+);
+select is(
+  (select job -> 'oldestEligibleAgeSeconds' from queue_health, lateral jsonb_array_elements(payload) job where job ->> 'channel' = 'email'),
+  'null'::jsonb,
+  'sem jobs elegíveis, idade é null (não 0, que sugeriria um job recém-criado)'
+);
+select ok(not pg_catalog.has_function_privilege('anon', 'public.site_notification_queue_health()', 'execute'), 'anon não lê a saúde da fila');
+select ok(not pg_catalog.has_function_privilege('authenticated', 'public.site_notification_queue_health()', 'execute'), 'cliente autenticado não lê a saúde da fila');
+select ok(pg_catalog.has_function_privilege('service_role', 'public.site_notification_queue_health()', 'execute'), 'backend lê a saúde da fila');
 
 select * from finish();
 rollback;
