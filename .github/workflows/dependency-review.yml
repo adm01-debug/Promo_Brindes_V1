@@ -1,0 +1,22 @@
+name: Dependency review
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    # Em repositórios privados, a API da ação exige GitHub Advanced Security.
+    # O gate principal sempre executa npm audit; esta revisão complementar roda
+    # automaticamente quando o repositório público é compatível com a API.
+    if: github.event.repository.visibility == 'public'
+    name: Review dependency changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Block high-risk dependency changes
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
+        with:
+          fail-on-severity: high

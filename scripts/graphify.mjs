@@ -2,14 +2,12 @@
 
 import crypto from 'node:crypto';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync, spawnSync } from 'node:child_process';
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = fs.realpathSync(path.resolve(SCRIPT_DIR, '..'));
-const CONFIG_PATH = path.join(PROJECT_ROOT, '.graphify.project.json');
 const LOCK_PATH = path.join(PROJECT_ROOT, '.graphify-work', 'build.lock');
 const COMMAND = process.argv[2] ?? 'help';
 const COMMAND_ARGS = process.argv.slice(3);
@@ -19,6 +17,8 @@ const SAFE_GRAPH_FILES = new Set([
   'graph.html',
   'GRAPH_REPORT.md',
   'GRAPH_TREE.html',
+  'BASE_HEAD_REPORT.md',
+  'BENCHMARK.md',
   'manifest.json',
   '.graphify_analysis.json',
   'project-meta.json',
@@ -163,6 +163,106 @@ export function validateGraph(graph, root = PROJECT_ROOT) {
   }
   if (dangling > 0) throw new Error(`graph.json inválido: ${dangling} relação(ões) apontam para nós ausentes.`);
   return { nodes: graph.nodes.length, links: graph.links.length, directed: Boolean(graph.directed), selfLoops };
+}
+
+function graphNodeIds(graph) {
+  return new Set(graph.nodes.map((node) => node.id));
+}
+
+function graphEdges(graph) {
+  return new Set(graph.links.map((link) => {
+    const endpoints = graph.directed ? [link.source, link.target] : [link.source, link.target].sort();
+    return endpoints.join('\u0000');
+  }));
+}
+
+function graphSourceFiles(graph) {
+  return new Set(graph.nodes.map((node) => node.source_file).filter((value) => typeof value === 'string' && value));
+}
+
+function difference(left, right) {
+  return [...left].filter((value) => !right.has(value)).sort();
+}
+
+/**
+ * Comparação determinística de dois mapas estruturais. O resultado mede a
+ * mudança observada no grafo, não causalidade: grafos não direcionados não
+ * podem provar quais consumidores serão afetados por uma alteração.
+ */
+export function compareGraphStructures(baseGraph, headGraph) {
+  const base = validateGraph(baseGraph);
+  const head = validateGraph(headGraph);
+  const baseNodes = graphNodeIds(baseGraph);
+  const headNodes = graphNodeIds(headGraph);
+  const baseEdges = graphEdges(baseGraph);
+  const headEdges = graphEdges(headGraph);
+  const baseSources = graphSourceFiles(baseGraph);
+  const headSources = graphSourceFiles(headGraph);
+  return {
+    base,
+    head,
+    addedNodes: difference(headNodes, baseNodes),
+    removedNodes: difference(baseNodes, headNodes),
+    addedEdges: difference(headEdges, baseEdges),
+    removedEdges: difference(baseEdges, headEdges),
+    addedSources: difference(headSources, baseSources),
+    removedSources: difference(baseSources, headSources),
+  };
+}
+
+function graphComparisonMarkdown(comparison, { basePath, headPath }) {
+  const section = (title, values) => [
+    `## ${title}`,
+    '',
+    values.length ? values.map((value) => `- \`${value}\``).join('\n') : '_Nenhuma alteração._',
+    '',
+  ].join('\n');
+  return [
+    '# Relatório Graphify — base vs. head',
+    '',
+    `- Base: \`${basePath}\``,
+    `- Head: \`${headPath}\``,
+    `- Nós: ${comparison.base.nodes} → ${comparison.head.nodes}`,
+    `- Relações: ${comparison.base.links} → ${comparison.head.links}`,
+    `- Direção: ${comparison.head.directed ? 'direcionado' : 'não direcionado'}`,
+    '',
+    '> Limite: em um grafo não direcionado, estas diferenças revelam mudança estrutural; não demonstram impacto causal reverso.',
+    '',
+    section(`Arquivos adicionados (${comparison.addedSources.length})`, comparison.addedSources),
+    section(`Arquivos removidos (${comparison.removedSources.length})`, comparison.removedSources),
+    section(`Nós adicionados (${comparison.addedNodes.length})`, comparison.addedNodes.slice(0, 100)),
+    section(`Nós removidos (${comparison.removedNodes.length})`, comparison.removedNodes.slice(0, 100)),
+    section(`Relações adicionadas (${comparison.addedEdges.length})`, comparison.addedEdges.slice(0, 100)),
+    section(`Relações removidas (${comparison.removedEdges.length})`, comparison.removedEdges.slice(0, 100)),
+  ].join('\n');
+}
+
+function readGraphFile(candidate, label) {
+  if (!candidate) throw new Error(`Informe o arquivo ${label}.`);
+  const absolute = path.resolve(PROJECT_ROOT, candidate);
+  if (!fs.existsSync(absolute) || !fs.statSync(absolute).isFile()) throw new Error(`Arquivo ${label} inválido: ${candidate}`);
+  return { path: absolute, graph: JSON.parse(fs.readFileSync(absolute, 'utf8')) };
+}
+
+function argumentValue(name) {
+  const index = COMMAND_ARGS.indexOf(name);
+  if (index < 0 || !COMMAND_ARGS[index + 1] || COMMAND_ARGS[index + 1].startsWith('--')) return '';
+  return COMMAND_ARGS[index + 1];
+}
+
+function compare() {
+  const base = readGraphFile(argumentValue('--base'), '--base');
+  const head = readGraphFile(argumentValue('--head'), '--head');
+  const outputArgument = argumentValue('--output') || 'graphify-out/BASE_HEAD_REPORT.md';
+  const output = path.resolve(PROJECT_ROOT, outputArgument);
+  ensureWithinRoot(PROJECT_ROOT, output);
+  const comparison = compareGraphStructures(base.graph, head.graph);
+  fs.mkdirSync(path.dirname(output), { recursive: true });
+  fs.writeFileSync(output, graphComparisonMarkdown(comparison, {
+    basePath: path.relative(PROJECT_ROOT, base.path) || path.basename(base.path),
+    headPath: path.relative(PROJECT_ROOT, head.path) || path.basename(head.path),
+  }));
+  console.log(`Graphify: comparação criada em ${path.relative(PROJECT_ROOT, output)} — ${comparison.addedNodes.length} nó(s) e ${comparison.addedEdges.length} relação(ões) adicionados.`);
 }
 
 export function findSensitiveArtifacts(directory) {
@@ -335,6 +435,60 @@ export function normalizeQuery(raw) {
   return expanded.length ? `${text} ${expanded.join(' ')}` : text;
 }
 
+function readBenchmarkCases() {
+  const benchmarkPath = path.join(PROJECT_ROOT, 'docs', 'graphify-benchmark.json');
+  const data = JSON.parse(fs.readFileSync(benchmarkPath, 'utf8'));
+  if (data.schemaVersion !== 1 || !Array.isArray(data.cases) || data.cases.length !== 10) {
+    throw new Error('Benchmark Graphify inválido: são exigidos exatamente 10 cenários versionados.');
+  }
+  return data.cases.map((entry, index) => {
+    if (!entry || typeof entry !== 'object' || typeof entry.id !== 'string' || typeof entry.question !== 'string'
+      || typeof entry.source !== 'string' || typeof entry.directSearch !== 'string'
+      || !entry.question.trim() || (!entry.source.startsWith('src/') && !entry.source.startsWith('api/') && !entry.source.startsWith('scripts/') && !entry.source.startsWith('site-supabase/'))) {
+      throw new Error(`Benchmark Graphify inválido no cenário ${index + 1}.`);
+    }
+    return entry;
+  });
+}
+
+/** Avalia recuperação estrutural e a busca direta equivalente sem falsear causalidade. */
+export function evaluateGraphBenchmark(cases, runQuery, readSource) {
+  return cases.map((entry) => {
+    const graphOutput = runQuery(normalizeQuery(entry.question));
+    const graphFound = graphOutput.includes(`[src=${entry.source}`);
+    const sourceText = readSource(entry.source);
+    const directFound = sourceText.includes(entry.directSearch);
+    return { id: entry.id, source: entry.source, graphFound, directFound };
+  });
+}
+
+function benchmark() {
+  const config = readProjectConfig();
+  const graphPath = ensureGraphExists(config);
+  const cases = readBenchmarkCases();
+  const results = evaluateGraphBenchmark(
+    cases,
+    (question) => run(graphifyCommand(), ['query', question, '--budget', String(config.queryTokenBudget), '--graph', graphPath], { quiet: true }),
+    (source) => fs.readFileSync(path.join(PROJECT_ROOT, source), 'utf8'),
+  );
+  const failed = results.filter((result) => !result.graphFound || !result.directFound);
+  const output = path.join(graphDirectory(config), 'BENCHMARK.md');
+  const lines = [
+    '# Benchmark estrutural Graphify',
+    '',
+    '> Este benchmark mede se dez perguntas representativas recuperam o arquivo de implementação esperado e se a busca direta encontra o mesmo ponto. Não mede entendimento humano nem prova causalidade.',
+    '',
+    '| Cenário | Grafo | Busca direta | Fonte esperada |',
+    '| --- | --- | --- | --- |',
+    ...results.map((result) => `| ${result.id} | ${result.graphFound ? 'ok' : 'falhou'} | ${result.directFound ? 'ok' : 'falhou'} | \`${result.source}\` |`),
+    '',
+    `Resultado: ${results.length - failed.length}/${results.length} cenários recuperados nos dois métodos.`,
+  ];
+  fs.writeFileSync(output, `${lines.join('\n')}\n`);
+  if (failed.length) throw new Error(`Benchmark Graphify falhou: ${failed.map((result) => result.id).join(', ')}.`);
+  console.log(`Graphify: benchmark estrutural aprovado (${results.length}/${results.length}); relatório em ${path.relative(PROJECT_ROOT, output)}.`);
+}
+
 function query() {
   const config = readProjectConfig();
   const graphPath = ensureGraphExists(config);
@@ -416,7 +570,7 @@ function doctor() {
 }
 
 function help() {
-  console.log('Uso: node scripts/graphify.mjs <doctor|build|update|status|check|query|impact|tree> [texto]');
+  console.log('Uso: node scripts/graphify.mjs <doctor|build|update|status|check|query|impact|tree|benchmark|compare> [texto]');
   console.log('A automação é code-only, local e não acessa Supabase.');
 }
 
@@ -430,6 +584,8 @@ function main() {
     case 'query': return query();
     case 'impact': return impact();
     case 'tree': return tree();
+    case 'benchmark': return benchmark();
+    case 'compare': return compare();
     case 'help': return help();
     default: throw new Error(`Comando Graphify desconhecido: ${COMMAND}.`);
   }

@@ -209,7 +209,9 @@ describe('catálogo público', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     await fetchProductsByIds(ids, undefined, ids.length);
-    const requestUrl = new URL(String(fetchMock.mock.calls[0][0]));
+    const firstCall = fetchMock.mock.calls[0];
+    if (!firstCall) throw new Error('A consulta esperada ao catálogo não ocorreu.');
+    const requestUrl = new URL(String(firstCall[0]));
     expect(requestUrl.searchParams.get('limit')).toBe('50');
     expect(requestUrl.searchParams.get('id')).toContain(ids.at(-1)!);
   });

@@ -22,6 +22,8 @@ npm run graph:check           # status com código de erro em CI se não estiver
 npm run graph:query -- "como funciona o orçamento?"
 npm run graph:impact -- "QuotePage"
 npm run graph:tree            # atualiza a árvore HTML local
+npm run graph:benchmark       # testa 10 perguntas estruturais contra busca direta
+npm run graph:compare -- --base /caminho/base.json --head graphify-out/graph.json
 npm run test:graphify         # testes dos guardas do wrapper
 ```
 
@@ -42,6 +44,12 @@ Os termos do domínio em português recebem expansão controlada nas consultas: 
 5. Após uma alteração de engenharia, execute `npm run graph:build` antes da revisão ou deixe o CI executar o mesmo fluxo.
 
 O hook nativo do Graphify não é instalado por padrão: ele reconstrói em segundo plano após commits e torna o estado mais difícil de observar. A integração do repositório privilegia comandos explícitos e CI reproduzível. Se o time optar por instalá-lo, registre essa decisão, confira `graphify hook status` e use `GRAPHIFY_SKIP_HOOK=1` para uma desativação pontual.
+
+## Benchmark e relatório de pull request
+
+`docs/graphify-benchmark.json` contém dez perguntas representativas. `npm run graph:benchmark` exige que cada pergunta recupere, no mapa, o arquivo esperado e que a busca direta encontre o mesmo ponto de implementação. O resultado é salvo localmente em `graphify-out/BENCHMARK.md`.
+
+Em pull requests, o workflow também constrói o mapa da base em um worktree temporário e cria `graphify-out/BASE_HEAD_REPORT.md`. O relatório compara nós, relações e arquivos entre base e head; ele é publicado junto do artefato do workflow. É uma comparação estrutural — não afirma causalidade em um grafo não direcionado. As decisões arquiteturais vigentes estão em [Governança do fechamento](GOVERNANCA_FECHAMENTO.md).
 
 ## Recuperação
 

@@ -1,5 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, type CSSProperties, type ReactNode } from 'react';
-import { gsap } from 'gsap';
+import { useEffect, useMemo, useRef, type CSSProperties, type ReactNode } from 'react';
 
 import './FoldText.css';
 
@@ -113,45 +112,60 @@ export function FoldText({
     });
   }, [hinge, hingeConfig.origin, safePerspective, splitBy, text]);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
 
     const pieces = Array.from(root.querySelectorAll<HTMLElement>('.fold-text-piece'));
     if (!pieces.length) return;
 
+    // O texto já nasce legível no HTML e no CSS. GSAP é um aprimoramento
+    // decorativo: carregá-lo somente depois da pintura remove a biblioteca do
+    // caminho crítico e deixa o título íntegro em redes lentas ou se o chunk
+    // falhar. A preferência de movimento reduzido também não baixa o módulo.
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
-      gsap.set(pieces, { opacity: 1, rotateX: 0, rotateY: 0, '--fold-crease': 0 });
-      return () => gsap.killTweensOf(pieces);
+      return;
     }
 
-    const timeline = gsap.timeline();
-    timeline.fromTo(
-      pieces,
-      {
-        opacity: 0,
-        rotateX: hingeConfig.rotateX,
-        rotateY: hingeConfig.rotateY,
-        '--fold-crease': safeCrease,
-        transformOrigin: hingeConfig.origin,
-        willChange: 'transform, opacity',
-        force3D: true,
-      },
-      {
-        opacity: 1,
-        rotateX: 0,
-        rotateY: 0,
-        '--fold-crease': 0,
-        duration,
-        ease,
-        stagger,
-        clearProps: 'willChange',
-      },
-    );
+    let disposed = false;
+    let cleanupAnimation = () => {};
+    void import('gsap').then(({ gsap }) => {
+      if (disposed) return;
+      const timeline = gsap.timeline();
+      timeline.fromTo(
+        pieces,
+        {
+          opacity: 0,
+          rotateX: hingeConfig.rotateX,
+          rotateY: hingeConfig.rotateY,
+          '--fold-crease': safeCrease,
+          transformOrigin: hingeConfig.origin,
+          willChange: 'transform, opacity',
+          force3D: true,
+        },
+        {
+          opacity: 1,
+          rotateX: 0,
+          rotateY: 0,
+          '--fold-crease': 0,
+          duration,
+          ease,
+          stagger,
+          clearProps: 'willChange',
+        },
+      );
+      cleanupAnimation = () => {
+        timeline.kill();
+        gsap.killTweensOf(pieces);
+      };
+    }).catch(() => {
+      // A versão estática já visível é o fallback de produto para uma falha
+      // eventual do chunk de animação.
+    });
 
     return () => {
-      timeline.kill();
-      gsap.killTweensOf(pieces);
+      disposed = true;
+      cleanupAnimation();
     };
   }, [duration, ease, hingeConfig, safeCrease, stagger, text]);
 

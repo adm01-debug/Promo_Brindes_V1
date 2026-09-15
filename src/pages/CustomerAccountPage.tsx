@@ -3,7 +3,7 @@ import { type FormEvent, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { CustomerRoute } from '../components/CustomerRoute';
 import { Seo } from '../components/Seo';
-import { useCustomerAuth } from '../context/CustomerAuthContext';
+import { useCustomerAuth } from '../context/customerAuth';
 import { customerStatusLabel, customerStatusOptions, customerStatusTone, fetchMyQuoteRequests, type CustomerQuotePage, type CustomerQuoteStatus } from '../lib/customerAccount';
 import { trackFunnelEvent } from '../lib/analytics';
 import { replaceBrokenProductImage } from '../lib/images';

@@ -1,0 +1,12 @@
+# Normaliza terminação de linha independentemente da máquina/editor de origem.
+# O repositório é acessado a partir do Windows via \\wsl.localhost\ sobre um
+# volume ext4; sem isto, core.autocrlf local pode divergir entre ambientes.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.svg text eol=lf
+*.ico binary
+*.woff binary
+*.woff2 binary

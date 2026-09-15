@@ -14,7 +14,7 @@ describe('commemorativeDates', () => {
     const occasions = occasionsForYear(2027);
     expect(occasions).toHaveLength(commemorativeOccasions.length);
     expect(new Set(occasions.map((occasion) => occasion.id)).size).toBe(occasions.length);
-    expect(occasions.every((occasion, index) => index === 0 || occasion.date >= occasions[index - 1].date)).toBe(true);
+    expect(occasions.every((occasion, index) => index === 0 || occasion.date >= (occasions[index - 1]?.date || occasion.date))).toBe(true);
   });
 
   it('filtra por mês, público e busca sem exigir acentos', () => {
@@ -29,7 +29,7 @@ describe('commemorativeDates', () => {
 
   it('prioriza as próximas oportunidades sem esconder as datas anteriores', () => {
     const ordered = prioritizeUpcomingOccasions(occasionsForYear(2026), new Date(2026, 8, 10, 14));
-    expect(ordered[0].dateKey).toBe('2026-09-15');
+    expect(ordered[0]?.dateKey).toBe('2026-09-15');
     expect(ordered).toHaveLength(commemorativeOccasions.length);
     expect(ordered.at(-1)?.date.getTime()).toBeLessThan(Date.UTC(2026, 8, 10));
   });

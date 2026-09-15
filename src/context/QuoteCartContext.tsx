@@ -1,8 +1,6 @@
 import {
-  createContext,
   type ReactNode,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useReducer,
@@ -12,154 +10,14 @@ import { defaultQuoteQuantity } from '../lib/catalog';
 import { trackFunnelEvent } from '../lib/analytics';
 import { clampQuoteQuantity, MAX_QUOTE_ITEMS, normalizeQuoteItems } from '../lib/quoteItems';
 import { normalizeCampaignBrief } from '../lib/campaignBrief';
-import type { CampaignBrief, CatalogProduct, ProductColor, QuoteItem } from '../types';
+import type { CatalogProduct, ProductColor, QuoteItem } from '../types';
+import { QuoteCartContext, type QuoteCartValue } from './quoteCart';
+import { cartReducer, loadInitialQuoteCartState, type CartState } from './quoteCartReducer';
 
 const STORAGE_KEY = 'promo-brindes:quote-selection:v1';
 
-interface CartState {
-  items: QuoteItem[];
-  campaign?: CampaignBrief;
-  selectionTitle?: string;
-}
-
-type CartAction =
-  | { type: 'add'; item: QuoteItem }
-  | { type: 'remove'; key: string }
-  | { type: 'quantity'; key: string; quantity: number }
-  | { type: 'clear' }
-  | { type: 'reset' }
-  | { type: 'replace'; items: QuoteItem[] }
-  | { type: 'replace-selection'; items: QuoteItem[] }
-  | { type: 'restore-selection'; state: CartState }
-  | { type: 'restore'; item: QuoteItem; index: number }
-  | { type: 'campaign'; campaign?: CampaignBrief }
-  | { type: 'selection-title'; title?: string }
-  | { type: 'decision-group'; key: string; group: 'primary' | 'alternative' };
-
-const initialState: CartState = { items: [] };
-
-function loadInitialState(): CartState {
-  if (typeof window === 'undefined') return initialState;
-  try {
-    const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || '[]') as unknown;
-    if (Array.isArray(parsed)) return { items: normalizeQuoteItems(parsed) };
-    if (parsed && typeof parsed === 'object') {
-      const stored = parsed as { items?: unknown; campaign?: unknown; selectionTitle?: unknown };
-      return {
-        items: normalizeQuoteItems(stored.items),
-        campaign: normalizeCampaignBrief(stored.campaign),
-        selectionTitle: typeof stored.selectionTitle === 'string' ? stored.selectionTitle.trim().slice(0, 100) || undefined : undefined,
-      };
-    }
-    return initialState;
-  } catch {
-    return initialState;
-  }
-}
-
-export function cartReducer(state: CartState, action: CartAction): CartState {
-  switch (action.type) {
-    case 'add': {
-      const normalizedItem = normalizeQuoteItems([action.item])[0];
-      if (!normalizedItem) return state;
-      const existing = state.items.find((item) => item.key === normalizedItem.key);
-      if (!existing) return state.items.length >= MAX_QUOTE_ITEMS ? state : { ...state, items: [...state.items, normalizedItem] };
-      return {
-        ...state,
-        items: state.items.map((item) =>
-          item.key === normalizedItem.key
-            ? { ...item, quantity: Math.max(item.quantity, normalizedItem.quantity) }
-            : item,
-        ),
-      };
-    }
-    case 'remove':
-      return { ...state, items: state.items.filter((item) => item.key !== action.key) };
-    case 'quantity':
-      return {
-        ...state,
-        items: state.items.map((item) =>
-          item.key === action.key
-            ? { ...item, quantity: clampQuoteQuantity(action.quantity, item.minQuantity) }
-            : item,
-        ),
-      };
-    case 'clear':
-      return { ...state, items: [] };
-    case 'reset':
-      return initialState;
-    case 'replace':
-      return { ...state, items: normalizeQuoteItems(action.items) };
-    case 'replace-selection':
-      // Referências recebidas por link não transportam campanha, contato ou
-      // observações. Não deixar metadados de uma seleção anterior descrevendo
-      // os novos produtos.
-      return { items: normalizeQuoteItems(action.items) };
-    case 'restore-selection':
-      return {
-        items: normalizeQuoteItems(action.state.items),
-        campaign: normalizeCampaignBrief(action.state.campaign),
-        selectionTitle: action.state.selectionTitle?.trim().slice(0, 100) || undefined,
-      };
-    case 'restore': {
-      const restored = normalizeQuoteItems([action.item])[0];
-      if (!restored || state.items.some((item) => item.key === restored.key)) return state;
-      const index = Math.max(0, Math.min(action.index, state.items.length));
-      return { ...state, items: [...state.items.slice(0, index), restored, ...state.items.slice(index)].slice(0, MAX_QUOTE_ITEMS) };
-    }
-    case 'campaign':
-      if (JSON.stringify(state.campaign) === JSON.stringify(action.campaign)) return state;
-      return { ...state, campaign: action.campaign };
-    case 'selection-title': {
-      const title = action.title?.trim().slice(0, 100) || undefined;
-      return state.selectionTitle === title ? state : { ...state, selectionTitle: title };
-    }
-    case 'decision-group':
-      return {
-        ...state,
-        items: state.items.map((item) => {
-          if (item.key !== action.key) return item;
-          if (action.group === 'alternative') return { ...item, decisionGroup: 'alternative' };
-          const { decisionGroup: _decisionGroup, ...primaryItem } = item;
-          return primaryItem;
-        }),
-      };
-    default:
-      return state;
-  }
-}
-
-interface QuoteCartValue {
-  items: QuoteItem[];
-  campaign?: CampaignBrief;
-  selectionTitle?: string;
-  itemCount: number;
-  drawerOpen: boolean;
-  selectionLimitReached: boolean;
-  setDrawerOpen: (open: boolean) => void;
-  dismissSelectionLimit: () => void;
-  addProduct: (product: CatalogProduct, quantity?: number, color?: ProductColor) => void;
-  removeItem: (key: string) => void;
-  updateQuantity: (key: string, quantity: number) => void;
-  setItemDecisionGroup: (key: string, group: 'primary' | 'alternative') => void;
-  replaceItems: (items: QuoteItem[]) => void;
-  replaceSelection: (items: QuoteItem[]) => void;
-  setCampaign: (campaign?: CampaignBrief) => void;
-  setSelectionTitle: (title?: string) => void;
-  clear: () => void;
-  reset: () => void;
-  canUndoClear: boolean;
-  restoreLastClear: () => void;
-  dismissLastClear: () => void;
-  canUndoRemoval: boolean;
-  restoreLastRemoval: () => void;
-  dismissLastRemoval: () => void;
-}
-
-const QuoteCartContext = createContext<QuoteCartValue | null>(null);
-
 export function QuoteCartProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(cartReducer, undefined, loadInitialState);
+  const [state, dispatch] = useReducer(cartReducer, undefined, loadInitialQuoteCartState);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [lastCleared, setLastCleared] = useState<CartState | null>(null);
   const [lastRemoved, setLastRemoved] = useState<{ item: QuoteItem; index: number } | null>(null);
@@ -306,10 +164,4 @@ export function QuoteCartProvider({ children }: { children: ReactNode }) {
   );
 
   return <QuoteCartContext.Provider value={value}>{children}</QuoteCartContext.Provider>;
-}
-
-export function useQuoteCart(): QuoteCartValue {
-  const value = useContext(QuoteCartContext);
-  if (!value) throw new Error('useQuoteCart precisa estar dentro de QuoteCartProvider.');
-  return value;
 }

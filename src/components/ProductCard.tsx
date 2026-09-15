@@ -1,7 +1,7 @@
 import { ArrowUpRight, Check, GitCompareArrows, Layers3, Plus, Sparkles } from 'lucide-react';
 import { type RefCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuoteCart } from '../context/QuoteCartContext';
+import { useQuoteCart } from '../context/quoteCart';
 import { replaceBrokenProductImage } from '../lib/images';
 import { resolveProductBadge } from '../lib/productBadges';
 import type { CatalogProduct } from '../types';

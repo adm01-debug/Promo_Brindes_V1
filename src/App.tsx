@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useRef } from 'react';
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
@@ -31,7 +32,11 @@ function ScrollManager() {
   const previousPathname = useRef<string | null>(null);
   const positions = useRef(new Map<string, number>());
   useEffect(() => {
-    const savedPosition = positions.current.get(key);
+    // positions.current nunca é reatribuído (só mutado com set/delete), então
+    // capturá-lo aqui é equivalente a lê-lo no cleanup — mas satisfaz a regra,
+    // que não distingue esse Map estável de um ref de nó DOM reatribuível.
+    const positionsMap = positions.current;
+    const savedPosition = positionsMap.get(key);
     const pathChanged = previousPathname.current !== null && previousPathname.current !== pathname;
     // Atualizações locais de busca/filtro mudam a URL, mas não devem roubar foco
     // nem devolver a pessoa ao topo da mesma página.
@@ -49,9 +54,9 @@ function ScrollManager() {
     previousPathname.current = pathname;
     return () => {
       if (frame !== undefined) window.cancelAnimationFrame(frame);
-      positions.current.set(key, window.scrollY);
+      positionsMap.set(key, window.scrollY);
       // Mantém a memória de navegação curta sem crescer durante longas sessões.
-      if (positions.current.size > 40) positions.current.delete(positions.current.keys().next().value as string);
+      if (positionsMap.size > 40) positionsMap.delete(positionsMap.keys().next().value as string);
     };
   }, [key, pathname]);
   return null;
@@ -67,6 +72,7 @@ export default function App() {
       <QuoteCartProvider>
         <CustomerAuthProvider>
           <Analytics beforeSend={redactAnalyticsUrl} debug={false} />
+          <SpeedInsights />
           <ScrollManager />
           <AppErrorBoundary>
             <Layout>

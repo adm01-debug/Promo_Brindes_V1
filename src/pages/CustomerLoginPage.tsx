@@ -2,22 +2,13 @@ import { ArrowRight, CheckCircle2, Eye, EyeOff, KeyRound, LockKeyhole, Mail, Shi
 import { type FormEvent, useState } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { Seo } from '../components/Seo';
-import { useCustomerAuth } from '../context/CustomerAuthContext';
+import { useCustomerAuth } from '../context/customerAuth';
 import { sanitizeCustomerNextPath } from '../lib/customerAccount';
+import { customerAuthRedirect } from '../lib/customerAuthRedirect';
 import { siteSupabase } from '../lib/siteSupabase';
 import { trackFunnelEvent } from '../lib/analytics';
 
 type AccessMode = 'email' | 'password' | 'create' | 'recover';
-
-const CANONICAL_PUBLIC_ORIGIN = 'https://promo-brindes-v1.vercel.app';
-
-export function customerAuthRedirect(next: string): string {
-  // Auth não herda window.location.origin: previews e hosts inesperados não
-  // podem virar destino de magic-link ou recuperação de senha.
-  const url = new URL('/auth/confirm', CANONICAL_PUBLIC_ORIGIN);
-  url.searchParams.set('next', next);
-  return url.href;
-}
 
 function authMessage(message: string): string {
   const normalized = message.toLowerCase();
@@ -61,7 +52,7 @@ export default function CustomerLoginPage() {
         const result = await siteSupabase.auth.verifyOtp({ email: email.trim().toLowerCase(), token: code.trim(), type: 'email' });
         if (result.error) throw result.error;
         await auth.claimHistory();
-        navigate(next, { replace: true });
+        void navigate(next, { replace: true });
         return;
       }
       if (mode === 'email') {
@@ -78,7 +69,7 @@ export default function CustomerLoginPage() {
         const result = await siteSupabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
         if (result.error) throw result.error;
         await auth.claimHistory();
-        navigate(next, { replace: true });
+        void navigate(next, { replace: true });
         return;
       }
       if (mode === 'create') {
@@ -91,7 +82,7 @@ export default function CustomerLoginPage() {
         setMessage(result.data.session ? 'Acesso criado. Abrindo seus orçamentos…' : 'Conta criada. Confirme o link enviado ao seu e-mail.');
         if (result.data.session) {
           await auth.claimHistory();
-          navigate(next, { replace: true });
+          void navigate(next, { replace: true });
         }
         return;
       }

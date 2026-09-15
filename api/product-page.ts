@@ -43,7 +43,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
   if (!validProductIdentifier(identifier)) {
     const shell = await loadAppShell().catch(() => null);
     const html = shell
-      ? unavailableProductShell(shell, canonicalUrl, 'Produto não encontrado | Promo Brindes', 'Não encontramos este produto. Continue explorando o catálogo da Promo Brindes.', 404)
+      ? unavailableProductShell(shell, canonicalUrl, 'Produto não encontrado | Promo Brindes', 'Não encontramos este produto. Continue explorando o catálogo da Promo Brindes.')
       : emergencyPageShell(canonicalUrl, 'Produto não encontrado | Promo Brindes', 'Não encontramos este produto. Continue explorando o catálogo da Promo Brindes.');
     response.setHeader('Content-Type', 'text/html; charset=utf-8');
     response.setHeader('Cache-Control', 'no-store');
@@ -56,7 +56,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
     if (!product) {
       response.setHeader('Content-Type', 'text/html; charset=utf-8');
       response.setHeader('Cache-Control', 'no-store');
-      response.status(404).send(request.method === 'HEAD' ? '' : unavailableProductShell(shell, canonicalUrl, 'Produto não encontrado | Promo Brindes', 'Não encontramos este produto. Continue explorando o catálogo da Promo Brindes.', 404));
+      response.status(404).send(request.method === 'HEAD' ? '' : unavailableProductShell(shell, canonicalUrl, 'Produto não encontrado | Promo Brindes', 'Não encontramos este produto. Continue explorando o catálogo da Promo Brindes.'));
       return;
     }
     const metadata = productMetadata(product);
@@ -69,7 +69,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
     const title = status === 400 ? 'Produto não encontrado | Promo Brindes' : 'Produto temporariamente indisponível | Promo Brindes';
     const description = status === 400 ? 'Não encontramos este produto. Continue explorando o catálogo da Promo Brindes.' : 'Não foi possível consultar este produto agora. Tente novamente em instantes.';
     const html = shell
-      ? unavailableProductShell(shell, canonicalUrl, title, description, status === 400 ? 404 : 503)
+      ? unavailableProductShell(shell, canonicalUrl, title, description)
       : emergencyPageShell(canonicalUrl, title, description);
     response.setHeader('Content-Type', 'text/html; charset=utf-8');
     response.setHeader('Cache-Control', 'no-store');

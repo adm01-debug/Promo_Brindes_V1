@@ -2,7 +2,7 @@ import { CheckCircle2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Seo } from '../components/Seo';
-import { useCustomerAuth } from '../context/CustomerAuthContext';
+import { useCustomerAuth } from '../context/customerAuth';
 import { sanitizeCustomerNextPath } from '../lib/customerAccount';
 
 export default function AuthConfirmPage() {

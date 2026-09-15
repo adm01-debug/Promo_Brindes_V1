@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { customerAuthRedirect } from './CustomerLoginPage';
+import { customerAuthRedirect } from '../lib/customerAuthRedirect';
 
 describe('redirects da Área do Cliente', () => {
   it('mantém links de autenticação na origem pública canônica', () => {

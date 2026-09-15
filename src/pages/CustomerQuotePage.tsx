@@ -1,9 +1,9 @@
-import { ArrowLeft, CalendarDays, Check, Download, MessageCircleMore, PackageOpen, RefreshCw, Send } from 'lucide-react';
+import { ArrowLeft, Check, Download, MessageCircleMore, PackageOpen, RefreshCw, Send } from 'lucide-react';
 import { type FormEvent, type MouseEvent, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { CustomerRoute } from '../components/CustomerRoute';
 import { Seo } from '../components/Seo';
-import { useQuoteCart } from '../context/QuoteCartContext';
+import { useQuoteCart } from '../context/quoteCart';
 import { customerStatusLabel, customerStatusTone, fetchMyQuoteRequest, isProposalExpired, requestMyQuoteAdjustment, type CustomerProposal, type CustomerQuoteDetail } from '../lib/customerAccount';
 import { siteSupabase } from '../lib/siteSupabase';
 import { trackFunnelEvent } from '../lib/analytics';
@@ -68,6 +68,7 @@ function QuoteContent() {
       if (!focusable.length) return;
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
+      if (!first || !last) return;
       if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
         last.focus();
@@ -92,7 +93,7 @@ function QuoteContent() {
       cart.setSelectionTitle(quote.briefing?.actionName);
       saveQuoteRepeat({ quoteId: quote.id, campaign: normalizeCampaignBrief(quote.campaign), briefing: normalizeQuoteBriefing(quote.briefing) });
       trackFunnelEvent('customer_quote_repeated', { item_count: reconciledItems.length });
-      navigate(`/orcamento?repetir=${encodeURIComponent(quote.id)}`);
+      void navigate(`/orcamento?repetir=${encodeURIComponent(quote.id)}`);
     } catch {
       setRepeatError('Não conseguimos conferir os produtos atuais. Tente novamente antes de substituir sua seleção.');
     } finally {

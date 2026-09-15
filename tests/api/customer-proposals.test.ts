@@ -41,7 +41,9 @@ describe('download autenticado de propostas', () => {
     await proposalHandler(request(), response);
     expect(result.statusCode).toBe(200);
     expect(result.body).toEqual({ url: 'https://xlzmclcjdncjfdrjxclt.supabase.co/storage/v1/object/sign/customer-proposals/cliente/proposta.pdf?token=ok' });
-    expect(JSON.parse(String(fetchMock.mock.calls[1][1].body))).toEqual({ expiresIn: 60 });
+    const signedUrlCall = fetchMock.mock.calls[1];
+    if (!signedUrlCall) throw new Error('A assinatura de URL esperada não ocorreu.');
+    expect(JSON.parse(String((signedUrlCall[1] as RequestInit).body))).toEqual({ expiresIn: 60 });
   });
 
   it('rejeita origem, sessão e identificador inválidos antes do banco', async () => {

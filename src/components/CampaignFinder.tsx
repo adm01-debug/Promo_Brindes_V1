@@ -24,10 +24,13 @@ export function CampaignFinder() {
   const [selection, setSelection] = useState<CampaignSelection>({});
   const [stepIndex, setStepIndex] = useState(0);
   const step = steps[stepIndex];
+  if (!step) throw new Error('Etapa de briefing inválida.');
   const selectedCount = campaignSelectionCount(selection);
 
   function select(value: string) {
-    setSelection((current) => ({ ...current, [step.key]: value }));
+    const currentStep = steps[stepIndex];
+    if (!currentStep) return;
+    setSelection((current) => ({ ...current, [currentStep.key]: value }));
     if (stepIndex < steps.length - 1) setStepIndex((current) => current + 1);
   }
 
@@ -40,7 +43,7 @@ export function CampaignFinder() {
       mood: selection.mood ?? 'nao-informado',
       choices: selectedCount,
     });
-    navigate(buildCampaignCatalogUrl(selection));
+    void navigate(buildCampaignCatalogUrl(selection));
   }
 
   return (
@@ -61,7 +64,7 @@ export function CampaignFinder() {
                 type="button"
                 className={`${index === stepIndex ? 'is-current' : ''} ${selection[item.key] ? 'is-complete' : ''}`}
                 onClick={() => setStepIndex(index)}
-                aria-label={`Ir para etapa ${index + 1}: ${item.eyebrow.split(' / ')[1].toLocaleLowerCase('pt-BR')}`}
+                aria-label={`Ir para etapa ${index + 1}: ${(item.eyebrow.split(' / ')[1] || item.eyebrow).toLocaleLowerCase('pt-BR')}`}
               >
                 {selection[item.key] ? <Check size={13} /> : index + 1}
               </button>

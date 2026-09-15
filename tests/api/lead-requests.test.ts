@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import contactHandler from '../../api/contact-requests.js';
 import quoteHandler from '../../api/quote-requests.js';
 import type { ApiRequest, ApiResponse } from '../../api/_lib/leadHandler.js';
@@ -68,17 +68,19 @@ function configureSiteDatabase() {
 }
 
 function catalogResponse() {
+  const quoteItem = quotePayload.items[0];
+  if (!quoteItem) throw new Error('Fixture de orçamento sem item.');
   return new Response(JSON.stringify([{
-    id: quotePayload.items[0].productId,
-    slug: quotePayload.items[0].slug,
-    name: quotePayload.items[0].name,
-    sku: quotePayload.items[0].sku,
-    min_quantity: quotePayload.items[0].minQuantity,
+    id: quoteItem.productId,
+    slug: quoteItem.slug,
+    name: quoteItem.name,
+    sku: quoteItem.sku,
+    min_quantity: quoteItem.minQuantity,
     primary_image_url: 'https://catalogo-canonico.test/mochila-validada.webp',
     color_swatches: [{
-      variant_id: quotePayload.items[0].variantId,
-      color_name: quotePayload.items[0].colorName,
-      color_hex: quotePayload.items[0].colorHex,
+      variant_id: quoteItem.variantId,
+      color_name: quoteItem.colorName,
+      color_hex: quoteItem.colorHex,
       image_url: 'https://catalogo-canonico.test/mochila-verde.webp',
     }],
   }]), { status: 200 });
@@ -91,6 +93,13 @@ function quoteFetchMock(rpcBody: string) {
 }
 
 describe('APIs de leads isoladas', () => {
+  // O contrato rejeita submissões com mais de sete dias. Congelar o relógio
+  // mantém estes cenários determinísticos, sem enfraquecer a regra em produção.
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-09-08T12:00:00.000Z'));
+  });
+
   afterEach(() => {
     vi.useRealTimers();
     vi.unstubAllEnvs();
@@ -250,6 +259,41 @@ describe('APIs de leads isoladas', () => {
     await quoteHandler(request(quotePayload, { headers: { 'content-type': 'application/json', origin: 'https://www.promobrindes.com.br', 'idempotency-key': 'outra-chave' } }), response);
     expect(result.statusCode).toBe(409);
     expect(result.body).toMatchObject({ error: 'idempotency_key_mismatch' });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('aceita o instante exatamente no limite retroativo permitido', async () => {
+    configureSiteDatabase();
+    const fetchMock = vi.fn().mockResolvedValue(new Response('{"requestId":"lead-boundary","duplicate":false}', { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    const submittedAt = '2026-09-01T12:00:00.000Z';
+
+    await contactHandler(request({
+      ...contactPayload,
+      submittedAt,
+      consent: { ...contactPayload.consent, acceptedAt: submittedAt },
+    }), response);
+
+    expect(result.statusCode).toBe(201);
+    expect(fetchMock).toHaveBeenCalledOnce();
+  });
+
+  it('rejeita instante anterior ao limite retroativo antes de acessar o banco', async () => {
+    configureSiteDatabase();
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    const submittedAt = '2026-09-01T11:59:59.999Z';
+
+    await contactHandler(request({
+      ...contactPayload,
+      submittedAt,
+      consent: { ...contactPayload.consent, acceptedAt: submittedAt },
+    }), response);
+
+    expect(result.statusCode).toBe(400);
+    expect(result.body).toMatchObject({ error: 'invalid_request' });
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
@@ -421,5 +465,23 @@ describe('APIs de leads isoladas', () => {
     expect(result.statusCode).toBe(400);
     expect(result.body).toMatchObject({ error: 'invalid_request' });
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('registra um 500 inesperado com correlação e sem dados pessoais', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { result, response } = responseDouble();
+    const headers = new Proxy({}, {
+      get() { throw new TypeError('falha com ana@empresa.com.br'); },
+    }) as ApiRequest['headers'];
+
+    await contactHandler(request(contactPayload, { headers }), response);
+
+    expect(result.statusCode).toBe(500);
+    const correlationId = result.headers.get('X-Request-Id');
+    expect(correlationId).toMatch(/^[0-9a-f-]{36}$/i);
+    expect(errorSpy).toHaveBeenCalledWith('site_lead_request_failed', {
+      kind: 'contact', correlationId, errorClass: 'TypeError',
+    });
+    expect(JSON.stringify(errorSpy.mock.calls)).not.toContain('ana@empresa.com.br');
   });
 });

@@ -2,7 +2,7 @@ import { getSiteDatabaseConfig } from './_lib/siteDatabase.js';
 import type { ApiRequest, ApiResponse } from './_lib/leadHandler.js';
 
 const PROPOSAL_BUCKET = 'customer-proposals';
-const REQUEST_TIMEOUT_MS = 10_000;
+export const REQUEST_TIMEOUT_MS = 10_000;
 const MAX_PROPOSAL_BODY_BYTES = 4 * 1024;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 

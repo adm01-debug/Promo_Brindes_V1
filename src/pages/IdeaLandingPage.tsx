@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { CatalogError, ProductGridSkeleton } from '../components/CatalogFeedback';
 import { ContextualFaq } from '../components/ContextualFaq';

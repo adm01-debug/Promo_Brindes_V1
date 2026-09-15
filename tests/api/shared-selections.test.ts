@@ -75,7 +75,9 @@ describe('links persistentes de seleção', () => {
     const valid = responseDouble();
     await handler(request({ action: 'revoke', token, managementToken: manager }), valid.response);
     expect(valid.result.statusCode).toBe(200);
-    expect(JSON.parse(String(fetchMock.mock.calls[0][1].body)).p_management_token_hash).toMatch(/^[0-9a-f]{64}$/);
+    const revokeCall = fetchMock.mock.calls[0];
+    if (!revokeCall) throw new Error('A revogação esperada não ocorreu.');
+    expect(JSON.parse(String((revokeCall[1] as RequestInit).body)).p_management_token_hash).toMatch(/^[0-9a-f]{64}$/);
 
     const invalid = responseDouble();
     await handler(request({ action: 'create', items: [{ ...item, id: 'not-a-uuid' }] }), invalid.response);

@@ -61,7 +61,9 @@ describe('sharedSelection', () => {
     expect(created.url).toContain(`s=${token}`);
     expect(managedSharedSelectionToken(token)).toBe(managementToken);
     expect(managedSharedSelectionTokens()).toEqual([token]);
-    expect(JSON.stringify(fetchMock.mock.calls[0][1])).not.toContain('Garrafa');
+    const createCall = fetchMock.mock.calls[0];
+    if (!createCall) throw new Error('A criação persistente esperada não ocorreu.');
+    expect(JSON.stringify(createCall[1])).not.toContain('Garrafa');
 
     await expect(fetchPersistentSharedSelection(token)).resolves.toEqual({ items: [{ id: item.productId, q: 25, v: 'azul' }], expiresAt: '2026-10-11T12:00:00.000Z' });
     await expect(revokePersistentSharedSelection(token)).resolves.toBe(true);
@@ -98,7 +100,9 @@ describe('sharedSelection', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     await expect(createPersistentSharedSelection(references)).resolves.toMatchObject({ token });
-    const request = JSON.parse(String(fetchMock.mock.calls[0][1].body));
+    const createCall = fetchMock.mock.calls[0];
+    if (!createCall) throw new Error('A criação persistente esperada não ocorreu.');
+    const request = JSON.parse(String((createCall[1] as RequestInit).body));
     expect(request.items).toHaveLength(MAX_SHARED_SELECTION_ITEMS);
     expect(request.items[0].v).toHaveLength(96);
   });

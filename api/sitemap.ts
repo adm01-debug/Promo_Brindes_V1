@@ -1,6 +1,7 @@
 const CANONICAL_PROJECT_ID = 'doufsxqlfjyuvxuezpln';
 const SUPABASE_URL = `https://${CANONICAL_PROJECT_ID}.supabase.co`;
 const FALLBACK_SITE_URL = 'https://promo-brindes-v1.vercel.app';
+export const REQUEST_TIMEOUT_MS = 8_000;
 
 interface VercelRequest {
   method?: string;
@@ -33,7 +34,9 @@ function publicApiKey(candidate?: string): string {
   const parts = value.split('.');
   if (parts.length === 3) {
     try {
-      const encoded = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+      const tokenPayload = parts[1];
+      if (!tokenPayload) return '';
+      const encoded = tokenPayload.replace(/-/g, '+').replace(/_/g, '/');
       const payload = JSON.parse(atob(encoded.padEnd(Math.ceil(encoded.length / 4) * 4, '='))) as { role?: string };
       if (payload.role !== 'anon') return '';
     } catch {
@@ -48,7 +51,7 @@ function productResource(candidate?: string): 'v_site_products_public' | 'v_prod
 }
 
 function escapeXml(value: string): string {
-  return value.replace(/[<>&'\"]/g, (character) => ({
+  return value.replace(/[<>&'"]/g, (character) => ({
     '<': '&lt;',
     '>': '&gt;',
     '&': '&amp;',
@@ -82,7 +85,7 @@ async function fetchAllProducts(resource: string, apiKey: string): Promise<Produ
       offset: String(offset),
     });
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8_000);
+    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     let catalogResponse: Response;
     try {
       catalogResponse = await fetch(`${SUPABASE_URL}/rest/v1/${resource}?${params.toString()}`, {

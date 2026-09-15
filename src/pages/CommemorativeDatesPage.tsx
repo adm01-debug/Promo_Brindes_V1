@@ -108,7 +108,7 @@ function CalendarGrid({ year, month, occasions, onOpen }: { year: number; month:
 function OccasionCard({ occasion, favorite, onFavorite, onOpen }: { occasion: DatedOccasion; favorite: boolean; onFavorite: () => void; onOpen: () => void }) {
   return (
     <article className={`commemorative-card commemorative-card--${occasion.kind}`}>
-      <div className="commemorative-card__date"><strong>{String(occasion.date.getUTCDate()).padStart(2, '0')}</strong><span>{monthNames[occasion.date.getUTCMonth()].slice(0, 3)}</span></div>
+      <div className="commemorative-card__date"><strong>{String(occasion.date.getUTCDate()).padStart(2, '0')}</strong><span>{(monthNames[occasion.date.getUTCMonth()] || '').slice(0, 3)}</span></div>
       <div className="commemorative-card__content">
         <div className="commemorative-card__meta"><span>{kindLabels[occasion.kind]}</span><span><Clock3 size={14} /> {planningLabel(occasion)}</span></div>
         <h2>{occasion.name}</h2>
@@ -125,6 +125,12 @@ function OccasionCard({ occasion, favorite, onFavorite, onOpen }: { occasion: Da
 
 export default function CommemorativeDatesPage() {
   const now = new Date();
+  // Chave estável de granularidade diária: prioritizeUpcomingOccasions e
+  // nextOccasion truncam `now` para o dia internamente, então esta chave capta
+  // exatamente a precisão de que precisam, sem recalcular a cada render (now
+  // é um objeto novo sempre) nem ficar presa por até um ano (currentYear sozinho
+  // não refletiria a virada do dia).
+  const today = now.toDateString();
   const currentYear = now.getFullYear();
   const availableYears = [currentYear, currentYear + 1];
   const [params, setParams] = useSearchParams();
@@ -147,8 +153,14 @@ export default function CommemorativeDatesPage() {
 
   const allOccasions = useMemo(() => occasionsForYear(year), [year]);
   const results = useMemo(() => filterOccasions(allOccasions, { month, audience, query }), [allOccasions, audience, month, query]);
-  const prioritizedResults = useMemo(() => prioritizeUpcomingOccasions(results, now), [results, currentYear]);
-  const next = useMemo(() => nextOccasion(now), [currentYear]);
+  // today (toDateString) é a chave estável derivada de `now` na granularidade
+  // que prioritizeUpcomingOccasions/nextOccasion realmente usam (dia). `now` é
+  // um Date novo a cada render; incluí-lo aqui anularia a memoização por
+  // completo, recalculando em toda renderização.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const prioritizedResults = useMemo(() => prioritizeUpcomingOccasions(results, now), [results, today]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const next = useMemo(() => nextOccasion(now), [today]);
   const selected = allOccasions.find((occasion) => occasion.id === params.get('data')) || null;
   const favoriteOccasions = allOccasions.filter((occasion) => favorites.has(occasion.id));
   const monthCounts = useMemo(() => {
@@ -183,6 +195,7 @@ export default function CommemorativeDatesPage() {
       if (!focusable.length) return;
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
+      if (!first || !last) return;
       if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     }
@@ -192,7 +205,12 @@ export default function CommemorativeDatesPage() {
       window.removeEventListener('keydown', handleKeyboard);
       returnFocusRef.current?.focus();
     };
-  // closeDetail only reads the latest URLSearchParams and is intentionally recreated.
+  // closeDetail é recriada a cada render, mas só limpa o parâmetro `data` da
+  // URL — não lê nem captura `selected`, então é seguro chamá-la via closure
+  // sem incluí-la aqui. O corpo do efeito só verifica a presença de `selected`
+  // (guard no início); nunca lê seu conteúdo, então o id já é suficiente para
+  // saber quando reabrir o painel — incluir o objeto inteiro dispararia o
+  // efeito por qualquer mudança de referência, não só por troca de ocasião.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected?.id]);
 

@@ -74,6 +74,8 @@ describe('tarefa de retenção', () => {
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
     expect(result.statusCode).toBe(503);
     expect(fetchMock.mock.calls).toHaveLength(2);
-    expect(String(fetchMock.mock.calls[1][0])).toContain('/storage/v1/object/customer-proposals');
+    const storageCall = fetchMock.mock.calls[1];
+    if (!storageCall) throw new Error('A exclusão de Storage esperada não ocorreu.');
+    expect(String(storageCall[0])).toContain('/storage/v1/object/customer-proposals');
   });
 });

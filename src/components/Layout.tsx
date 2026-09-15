@@ -1,7 +1,7 @@
 import { Menu, Search, ShoppingBag, UserRound, X } from 'lucide-react';
 import { type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useQuoteCart } from '../context/QuoteCartContext';
+import { useQuoteCart } from '../context/quoteCart';
 import { trackFunnelEvent } from '../lib/analytics';
 import { useCategories } from '../lib/hooks';
 import { hasSiteAuthConfiguration } from '../lib/siteSupabaseConfig';
@@ -53,6 +53,12 @@ export function Layout({ children }: { children: ReactNode }) {
   useEffect(() => {
     setMenuOpen(false);
     setSearch(catalogParams.get('q') || '');
+    // catalogParams é recomputado a cada render (new URLSearchParams nunca é
+    // referencialmente estável); location.search é a string da qual ele deriva
+    // por completo, e já está na lista. Incluir catalogParams faria este efeito
+    // rodar a cada render do Layout, fechando o menu e resetando a busca sem
+    // relação com navegação real.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname, location.search]);
 
   useEffect(() => {
@@ -72,6 +78,7 @@ export function Layout({ children }: { children: ReactNode }) {
       if (!focusable.length) return;
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
+      if (!first || !last) return;
       if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
         last.focus();
@@ -92,7 +99,7 @@ export function Layout({ children }: { children: ReactNode }) {
     event.preventDefault();
     const value = search.trim();
     trackFunnelEvent('search_started', { source: 'header', query_length: value.length, suggestion: false });
-    navigate(value ? `/catalogo?q=${encodeURIComponent(value)}` : '/catalogo');
+    void navigate(value ? `/catalogo?q=${encodeURIComponent(value)}` : '/catalogo');
   };
 
   return (
@@ -123,10 +130,10 @@ export function Layout({ children }: { children: ReactNode }) {
             placeholder="Camiseta, kit, squeeze, tech…"
             categories={categories.data}
             onChange={setSearch}
-            onSubmit={(value) => { trackFunnelEvent('search_started', { source: 'header', query_length: value.length, suggestion: false }); navigate(value ? `/catalogo?q=${encodeURIComponent(value)}` : '/catalogo'); }}
+            onSubmit={(value) => { trackFunnelEvent('search_started', { source: 'header', query_length: value.length, suggestion: false }); void navigate(value ? `/catalogo?q=${encodeURIComponent(value)}` : '/catalogo'); }}
             onSelect={(suggestion) => {
               trackFunnelEvent('search_started', { source: 'header', query_length: suggestion.value.length, suggestion: true });
-              navigate(suggestion.kind === 'category' && suggestion.categoryId ? `/catalogo?categoria=${suggestion.categoryId}&nome=${encodeURIComponent(suggestion.label)}` : `/catalogo?q=${encodeURIComponent(suggestion.value)}`);
+              void navigate(suggestion.kind === 'category' && suggestion.categoryId ? `/catalogo?categoria=${suggestion.categoryId}&nome=${encodeURIComponent(suggestion.label)}` : `/catalogo?q=${encodeURIComponent(suggestion.value)}`);
             }}
           />
           <button className="selection-button" type="button" onClick={() => cart.setDrawerOpen(true)} aria-label={`Abrir seleção com ${cart.itemCount} produtos`}>

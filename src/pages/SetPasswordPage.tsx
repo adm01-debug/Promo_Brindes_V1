@@ -2,7 +2,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Seo } from '../components/Seo';
-import { useCustomerAuth } from '../context/CustomerAuthContext';
+import { useCustomerAuth } from '../context/customerAuth';
 import { siteSupabase } from '../lib/siteSupabase';
 
 export default function SetPasswordPage() {

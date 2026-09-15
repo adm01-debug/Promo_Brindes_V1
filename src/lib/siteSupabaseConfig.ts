@@ -21,7 +21,9 @@ export function resolveSitePublishableKey(candidate?: string): string {
   const parts = value.split('.');
   if (parts.length !== 3) return '';
   try {
-    const encoded = parts[1].replaceAll('-', '+').replaceAll('_', '/');
+    const tokenPayload = parts[1];
+    if (!tokenPayload) return '';
+    const encoded = tokenPayload.replaceAll('-', '+').replaceAll('_', '/');
     const payload = JSON.parse(atob(encoded.padEnd(Math.ceil(encoded.length / 4) * 4, '='))) as { role?: string; ref?: string };
     return payload.role === 'anon' && (!payload.ref || payload.ref === SITE_PROJECT_ID) ? value : '';
   } catch {

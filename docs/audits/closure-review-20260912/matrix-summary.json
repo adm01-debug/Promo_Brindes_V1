@@ -1,0 +1,105 @@
+{
+  "commit": "f20df4452f0d70f295154b0ba8bd9af8f8be64dd",
+  "referencias": 230,
+  "fontesDePlanos": 4,
+  "referenciasSobrepostas": true,
+  "contagens": {
+    "UX": {
+      "I": 41,
+      "P": 50,
+      "N": 5,
+      "E": 4,
+      "A": 0
+    },
+    "LK": {
+      "I": 12,
+      "P": 26,
+      "N": 5,
+      "E": 7,
+      "A": 0
+    },
+    "GR": {
+      "I": 18,
+      "P": 26,
+      "N": 2,
+      "E": 0,
+      "A": 4
+    },
+    "AC": {
+      "I": 23,
+      "P": 7,
+      "N": 0,
+      "E": 0,
+      "A": 0
+    }
+  },
+  "total": {
+    "I": 94,
+    "P": 109,
+    "N": 12,
+    "E": 11,
+    "A": 4
+  },
+  "mudancasDeEstado": [
+    {
+      "id": "UX03",
+      "antes": "P",
+      "depois": "I"
+    },
+    {
+      "id": "UX10",
+      "antes": "P",
+      "depois": "I"
+    },
+    {
+      "id": "UX45",
+      "antes": "P",
+      "depois": "I"
+    },
+    {
+      "id": "UX46",
+      "antes": "P",
+      "depois": "I"
+    },
+    {
+      "id": "UX63",
+      "antes": "P",
+      "depois": "I"
+    },
+    {
+      "id": "UX68",
+      "antes": "N",
+      "depois": "P"
+    },
+    {
+      "id": "UX69",
+      "antes": "N",
+      "depois": "P"
+    },
+    {
+      "id": "UX78",
+      "antes": "P",
+      "depois": "I"
+    },
+    {
+      "id": "LK45",
+      "antes": "N",
+      "depois": "P"
+    },
+    {
+      "id": "AC22",
+      "antes": "P",
+      "depois": "I"
+    },
+    {
+      "id": "AC23",
+      "antes": "P",
+      "depois": "I"
+    }
+  ],
+  "limites": [
+    "I significa implementação técnica no escopo da linha, não certificação de toda a jornada.",
+    "Não foi recuperada a lista literal de 50 etapas de catálogos nem a de 50 etapas de datas.",
+    "Aceites externos não são concluídos por testes simulados."
+  ]
+}

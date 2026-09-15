@@ -3,7 +3,7 @@ import type { LeadKind, NormalizedLeadPayload } from './contracts.js';
 
 // Allowlist exata: por definição, o catálogo canônico não pode receber escritas do site.
 const SITE_DATABASE_PROJECT = 'xlzmclcjdncjfdrjxclt';
-const REQUEST_TIMEOUT_MS = 10_000;
+export const REQUEST_TIMEOUT_MS = 10_000;
 
 export class SiteDatabaseError extends Error {
   constructor(message: string, readonly code = 'database_unavailable', readonly status = 503) {
@@ -109,4 +109,17 @@ export async function persistLead(kind: LeadKind, payload: NormalizedLeadPayload
 export function assertSafeSiteDatabaseConfiguration(): boolean {
   getSiteDatabaseConfig();
   return true;
+}
+
+/** Chamada de RPC genérica ao banco do site (Etapa 30: webhooks de provedor). */
+export async function callSiteRpc<T>(name: string, body: Record<string, unknown>, signal: AbortSignal): Promise<T> {
+  const config = getSiteDatabaseConfig();
+  const response = await fetch(`${config.url}/rest/v1/rpc/${name}`, {
+    method: 'POST',
+    headers: { apikey: config.secretKey, Authorization: `Bearer ${config.secretKey}`, 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify(body),
+    signal,
+  });
+  if (!response.ok) throw new SiteDatabaseError(`site_rpc_${name}_failed`, 'database_unavailable', 502);
+  return response.json() as Promise<T>;
 }

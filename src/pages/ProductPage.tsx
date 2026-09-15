@@ -19,7 +19,7 @@ import { CatalogError, ProductGridSkeleton } from '../components/CatalogFeedback
 import { ProductCard } from '../components/ProductCard';
 import { ContextualFaq } from '../components/ContextualFaq';
 import { Seo } from '../components/Seo';
-import { useQuoteCart } from '../context/QuoteCartContext';
+import { useQuoteCart } from '../context/quoteCart';
 import { defaultQuoteQuantity } from '../lib/catalog';
 import { trackFunnelEvent } from '../lib/analytics';
 import { useCatalog, useCategories, useProduct } from '../lib/hooks';
@@ -103,6 +103,7 @@ export default function ProductPage() {
       if (!focusable.length) return;
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
+      if (!first || !last) return;
       if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     };

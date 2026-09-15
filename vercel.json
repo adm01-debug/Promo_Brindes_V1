@@ -2,8 +2,22 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "crons": [
     { "path": "/api/retention", "schedule": "0 3 * * *" },
-    { "path": "/api/notifications", "schedule": "15 3 * * *" }
+    { "path": "/api/notifications", "schedule": "*/15 * * * *" }
   ],
+  "functions": {
+    "api/quote-requests.ts": { "maxDuration": 30 },
+    "api/notifications.ts": { "maxDuration": 30 },
+    "api/notification-events-resend.ts": { "maxDuration": 15 },
+    "api/notification-events-whatsapp.ts": { "maxDuration": 15 },
+    "api/contact-requests.ts": { "maxDuration": 15 },
+    "api/retention.ts": { "maxDuration": 15 },
+    "api/customer-proposals.ts": { "maxDuration": 15 },
+    "api/sitemap.ts": { "maxDuration": 15 },
+    "api/product-page.ts": { "maxDuration": 15 },
+    "api/site-page.ts": { "maxDuration": 15 },
+    "api/shared-selections.ts": { "maxDuration": 15 },
+    "api/not-found.ts": { "maxDuration": 15 }
+  },
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
     { "source": "/", "destination": "/index.html" },

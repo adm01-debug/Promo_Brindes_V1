@@ -2,6 +2,7 @@ import { normalizeLeadPayload, RequestValidationError, type LeadKind } from './c
 import { reconcileQuoteItems } from './catalogValidation.js';
 import { persistLead, SiteDatabaseError } from './siteDatabase.js';
 import { deliverQuoteConfirmationsNow } from '../notifications.js';
+import { createCorrelationId, errorClass, logServerError } from './observability.js';
 
 export interface ApiRequest {
   method?: string;
@@ -74,9 +75,11 @@ function validateOrigin(request: ApiRequest): void {
 }
 
 export async function handleLeadRequest(kind: LeadKind, request: ApiRequest, response: ApiResponse) {
+  const correlationId = createCorrelationId();
   response.setHeader('Cache-Control', 'no-store');
   response.setHeader('Content-Type', 'application/json; charset=utf-8');
   response.setHeader('X-Content-Type-Options', 'nosniff');
+  response.setHeader('X-Request-Id', correlationId);
   if (request.method !== 'POST') {
     response.setHeader('Allow', 'POST');
     response.status(405).json({ error: 'method_not_allowed', message: 'Método não permitido.' });
@@ -106,10 +109,11 @@ export async function handleLeadRequest(kind: LeadKind, request: ApiRequest, res
       userAgent: header(request, 'user-agent'),
       origin: header(request, 'origin'),
     });
+    console.info('site_lead_request_persisted', { kind, requestId: result.requestId, duplicate: result.duplicate, correlationId });
     const confirmations = payload.source === 'site-promo-brindes'
       ? result.duplicate
         ? { email: 'pending' as const, whatsapp: payload.notificationPreferences.whatsappCopy ? 'pending' as const : 'not_requested' as const }
-        : await deliverQuoteConfirmationsNow(result.requestId, payload.notificationPreferences.whatsappCopy)
+        : await deliverQuoteConfirmationsNow(result.requestId, payload.notificationPreferences.whatsappCopy, correlationId)
       : undefined;
     response.status(result.duplicate ? 200 : 201).json({
       ...result,
@@ -120,6 +124,7 @@ export async function handleLeadRequest(kind: LeadKind, request: ApiRequest, res
       response.status(error.status).json({ error: error.code, message: error.message });
       return;
     }
+    logServerError('site_lead_request_failed', { kind, correlationId, errorClass: errorClass(error) });
     response.status(500).json({ error: 'internal_error', message: 'Não conseguimos processar sua solicitação.' });
   }
 }

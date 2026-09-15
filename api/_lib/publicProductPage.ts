@@ -6,7 +6,7 @@ const FALLBACK_SITE_URL = 'https://promo-brindes-v1.vercel.app';
 const PRODUCT_FIELDS = 'id,name,sku,slug,short_description,description,ai_summary,ai_description,primary_image_url,primary_image_fallback_url,set_image_url,og_image_url,images';
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,198}[a-z0-9])?$/i;
-const NETWORK_TIMEOUT_MS = 8_000;
+export const NETWORK_TIMEOUT_MS = 8_000;
 
 export interface PublicProductRow {
   id: string;
@@ -36,7 +36,9 @@ function publicApiKey(candidate?: string): string {
   const parts = value.split('.');
   if (parts.length === 3) {
     try {
-      const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(parts[1].length / 4) * 4, '='))) as { role?: string };
+      const tokenPayload = parts[1];
+      if (!tokenPayload) return '';
+      const payload = JSON.parse(atob(tokenPayload.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(tokenPayload.length / 4) * 4, '='))) as { role?: string };
       return payload.role === 'anon' ? value : '';
     } catch {
       return '';
@@ -164,7 +166,7 @@ export function productMetadata(row: PublicProductRow): PublicPageMetadata {
 
 const DEFAULT_PRODUCT_DESCRIPTION = 'Brinde corporativo para personalizar a experiência da sua marca.';
 
-export function unavailableProductShell(shell: string, canonicalUrl: string, title: string, description: string, status: 404 | 503): string {
+export function unavailableProductShell(shell: string, canonicalUrl: string, title: string, description: string): string {
   return renderPageShell(shell, {
     title,
     description,

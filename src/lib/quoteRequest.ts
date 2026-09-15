@@ -84,13 +84,13 @@ function confirmationResult(value: unknown): Extract<SubmitResult, { mode: 'endp
   return { email, whatsapp };
 }
 
-export async function submitQuoteRequest(payload: QuoteRequestPayload): Promise<SubmitResult> {
+export async function submitQuoteRequest(payload: QuoteRequestPayload, signal?: AbortSignal): Promise<SubmitResult> {
   const endpoint = import.meta.env.VITE_QUOTE_REQUEST_ENDPOINT?.trim();
   if (!endpoint) {
     const email = import.meta.env.VITE_CONTACT_EMAIL?.trim() || DEFAULT_CONTACT_EMAIL;
     return { mode: 'email', href: buildEmailHref(payload, email) };
   }
-  const data = await postJson(endpoint, payload, 'orçamento', payload.clientRequestId);
+  const data = await postJson(endpoint, payload, 'orçamento', payload.clientRequestId, signal);
   return {
     mode: 'endpoint',
     requestId: data.requestId,
