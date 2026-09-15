@@ -7,6 +7,8 @@
   "functions": {
     "api/quote-requests.ts": { "maxDuration": 30 },
     "api/notifications.ts": { "maxDuration": 30 },
+    "api/notification-events-resend.ts": { "maxDuration": 15 },
+    "api/notification-events-whatsapp.ts": { "maxDuration": 15 },
     "api/contact-requests.ts": { "maxDuration": 15 },
     "api/retention.ts": { "maxDuration": 15 },
     "api/customer-proposals.ts": { "maxDuration": 15 },
