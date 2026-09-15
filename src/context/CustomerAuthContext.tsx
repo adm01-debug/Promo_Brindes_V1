@@ -1,6 +1,7 @@
 import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { hasSiteAuthConfiguration } from '../lib/siteSupabaseConfig';
+import { reportClientError } from '../lib/clientObservability';
 import { CustomerAuthContext, type CustomerAuthValue } from './customerAuth';
 
 export function CustomerAuthProvider({ children }: { children: ReactNode }) {
@@ -37,7 +38,12 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       });
       unsubscribe = () => subscription.subscription.unsubscribe();
-    }).catch(() => { if (active) setLoading(false); });
+    }).catch((error: unknown) => {
+      // A área do cliente continua opcional se o carregamento do SDK falhar,
+      // mas a falha não pode desaparecer sem telemetria (Etapa 39).
+      reportClientError(error);
+      if (active) setLoading(false);
+    });
     return () => {
       active = false;
       unsubscribe();

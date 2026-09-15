@@ -108,7 +108,7 @@ function CalendarGrid({ year, month, occasions, onOpen }: { year: number; month:
 function OccasionCard({ occasion, favorite, onFavorite, onOpen }: { occasion: DatedOccasion; favorite: boolean; onFavorite: () => void; onOpen: () => void }) {
   return (
     <article className={`commemorative-card commemorative-card--${occasion.kind}`}>
-      <div className="commemorative-card__date"><strong>{String(occasion.date.getUTCDate()).padStart(2, '0')}</strong><span>{monthNames[occasion.date.getUTCMonth()].slice(0, 3)}</span></div>
+      <div className="commemorative-card__date"><strong>{String(occasion.date.getUTCDate()).padStart(2, '0')}</strong><span>{(monthNames[occasion.date.getUTCMonth()] || '').slice(0, 3)}</span></div>
       <div className="commemorative-card__content">
         <div className="commemorative-card__meta"><span>{kindLabels[occasion.kind]}</span><span><Clock3 size={14} /> {planningLabel(occasion)}</span></div>
         <h2>{occasion.name}</h2>
@@ -195,6 +195,7 @@ export default function CommemorativeDatesPage() {
       if (!focusable.length) return;
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
+      if (!first || !last) return;
       if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     }

@@ -129,6 +129,24 @@ test('headline principal usa Fold Text sem perder acessibilidade', async ({ page
   expect(glitchAnimation).toBe('none');
 });
 
+test('rotas públicas essenciais não introduzem violações automáticas de acessibilidade', async ({ page }) => {
+  const routes = [
+    ['/', 'Sua campanha merece um brinde que ninguém esquece.'],
+    ['/catalogo', 'Sua seleção começa aqui.'],
+    ['/catalogos', 'Catálogos para tirar seu briefing do branco'],
+    ['/datas-comemorativas', 'Marque a data. Deixe sua marca.'],
+    ['/contato', 'Uma boa ideia começa com um bom briefing.'],
+    ['/entrar', /Acesso em configuração|Seus briefings/],
+  ] as const;
+
+  for (const [path, heading] of routes) {
+    await page.goto(path);
+    await expect(page.getByRole('heading', { name: heading })).toBeVisible();
+    const result = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
+    expect(result.violations, `Violações em ${path}`).toEqual([]);
+  }
+});
+
 test('manifesto transforma as frases da marca em uma narrativa com próximo passo', async ({ page }) => {
   await page.goto('/');
 
@@ -309,7 +327,9 @@ test('briefing tech espera a taxonomia antes de consultar produtos', async ({ pa
   releaseCategories();
   await expect(page.getByText('1 produto encontrado')).toBeVisible();
   expect(productRequests).toHaveLength(1);
-  expect(new URL(productRequests[0]).searchParams.get('and')).toContain(rootCategoryId);
+  const productRequest = productRequests[0];
+  if (!productRequest) throw new Error('A consulta esperada do catálogo não ocorreu.');
+  expect(new URL(productRequest).searchParams.get('and')).toContain(rootCategoryId);
 });
 
 test('briefing tech falha fechado quando a taxonomia está indisponível', async ({ page }) => {

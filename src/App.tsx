@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useRef } from 'react';
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
@@ -71,6 +72,7 @@ export default function App() {
       <QuoteCartProvider>
         <CustomerAuthProvider>
           <Analytics beforeSend={redactAnalyticsUrl} debug={false} />
+          <SpeedInsights />
           <ScrollManager />
           <AppErrorBoundary>
             <Layout>

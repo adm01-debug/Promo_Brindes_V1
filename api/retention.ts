@@ -1,6 +1,8 @@
 import { timingSafeEqual } from 'node:crypto';
 import { getSiteDatabaseConfig } from './_lib/siteDatabase.js';
 import type { ApiRequest, ApiResponse } from './_lib/leadHandler.js';
+import { errorClass, logServerError, logServerWarning } from './_lib/observability.js';
+import { sendOperationalAlert } from './_lib/operationalAlerts.js';
 
 export const REQUEST_TIMEOUT_MS = 10_000;
 const RETENTION_BATCH_SIZE = 100;
@@ -109,7 +111,10 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       notificationsDeleted: Number(finalized.notificationsDeleted || 0),
     });
     response.status(200).json({ ok: true });
-  } catch {
+  } catch (error) {
+    logServerError('site_retention_failed', { errorClass: errorClass(error) });
+    const alerted = await sendOperationalAlert('retention_cron_failed', { errorClass: errorClass(error) });
+    if (process.env.OPERATIONS_ALERT_WEBHOOK_URL?.trim() && !alerted) logServerWarning('site_retention_failure_alert_delivery_failed', {});
     response.status(503).json({ error: 'retention_unavailable' });
   } finally {
     if (timeout) clearTimeout(timeout);

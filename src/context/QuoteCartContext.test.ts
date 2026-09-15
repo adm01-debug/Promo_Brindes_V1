@@ -24,12 +24,12 @@ describe('seleção para orçamento', () => {
 
   it('respeita a quantidade mínima do item', () => {
     const state = cartReducer({ items: [item] }, { type: 'quantity', key: item.key, quantity: 1 });
-    expect(state.items[0].quantity).toBe(50);
+    expect(state.items[0]?.quantity).toBe(50);
   });
 
   it('limita quantidades acidentalmente excessivas', () => {
     const state = cartReducer({ items: [item] }, { type: 'quantity', key: item.key, quantity: 2_000_000 });
-    expect(state.items[0].quantity).toBe(999_999);
+    expect(state.items[0]?.quantity).toBe(999_999);
   });
 
   it('remove uma linha sem afetar as demais', () => {

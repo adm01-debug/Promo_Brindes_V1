@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { reportClientError } from '../lib/clientObservability';
 
 interface Props {
   children: ReactNode;
@@ -16,7 +17,11 @@ export class AppErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error('Falha inesperada na interface pública.', error, info.componentStack);
+    // O stack completo pode conter texto de dados renderizados. No console e
+    // no coletor registramos apenas classe e rota; o detalhe fica no ambiente
+    // de desenvolvimento, onde o React já o apresenta ao desenvolvedor.
+    console.error('site_frontend_error', { errorClass: error.name || 'Error', route: window.location.pathname, component: info.componentStack?.split('\n')[1]?.trim() || null });
+    reportClientError(error);
   }
 
   render() {

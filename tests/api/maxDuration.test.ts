@@ -37,6 +37,7 @@ describe('Etapa 24: maxDuration em vercel.json cobre o pior caso real de cada ro
   function maxDurationMs(path: string): number {
     const entry = functions[path];
     expect(entry, `vercel.json não declara functions["${path}"]`).toBeDefined();
+    if (!entry) throw new Error(`Função ${path} não declarada.`);
     return entry.maxDuration * 1_000;
   }
 

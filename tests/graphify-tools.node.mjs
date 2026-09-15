@@ -48,7 +48,9 @@ test('varredura bloqueia famílias adicionais de token antes do upload', () => {
   try {
     const githubToken = `ghp_${'abcdefghijklmnopqrstuvwxyz123456'}`;
     const vercelToken = `vercel_token_${'abcdefghijklmnopqrstuvwxyz'}`;
-    const awsKey = `AKIA${'ABCDEFGHIJKLMNOP'}`;
+    // Constrói a assinatura apenas em runtime: é uma fixture para validar o
+    // detector, não uma credencial que deva parecer exposta ao scanner.
+    const awsKey = `${['A', 'K', 'I', 'A'].join('')}${'ABCDEFGHIJKLMNOP'}`;
     fs.writeFileSync(`${directory}/artifact.txt`, `${githubToken} ${vercelToken} AWS=${awsKey}`);
     const kinds = findSensitiveArtifacts(directory).map((finding) => finding.kind);
     assert.deepEqual(kinds.sort(), ['AWS access key', 'GitHub token', 'Vercel token']);

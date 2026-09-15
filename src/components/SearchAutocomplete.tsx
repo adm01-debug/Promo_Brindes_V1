@@ -66,7 +66,8 @@ export function SearchAutocomplete({
     }
     if (event.key === 'Enter' && visible && activeIndex >= 0) {
       event.preventDefault();
-      choose(suggestions[activeIndex]);
+      const suggestion = suggestions[activeIndex];
+      if (suggestion) choose(suggestion);
     }
   }
 

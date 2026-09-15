@@ -82,7 +82,9 @@ describe('HTML inicial de fichas de produto', () => {
     expect(result.headers.get('Cache-Control')).toBe('no-store');
     expect(result.body).toContain('noindex,nofollow');
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/index\.html$/);
+    const firstCall = fetchMock.mock.calls[0];
+    if (!firstCall) throw new Error('A leitura de index esperada não ocorreu.');
+    expect(String(firstCall[0])).toMatch(/\/index\.html$/);
   });
 
   it('preserva 404 real quando o item ativo não existe', async () => {

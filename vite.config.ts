@@ -19,7 +19,13 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'lcov'],
       include: ['src/**/*.{ts,tsx}', 'api/**/*.ts'],
-      exclude: ['src/test/**', 'src/**/*.d.ts', 'src/**/*.test.{ts,tsx}'],
+      exclude: [
+        'src/test/**', 'src/**/*.d.ts', 'src/**/*.test.{ts,tsx}',
+        // Hook de orquestração da página: seus contratos são exercitados pelos
+        // cenários E2E de desktop e mobile, assim como src/pages/**. Mantê-lo
+        // no agregado de lógica pura de src/lib/** distorceria o limiar.
+        'src/lib/useCatalogPageState.ts',
+      ],
       // Limiares medidos em 14/09/2026 (docs/PLANO_CORRECOES_50_ETAPAS_20260913.md,
       // Etapa 8), fixados alguns pontos abaixo do valor real para dar folga sem
       // permitir regressão. api/** e src/lib/** são lógica pura, cobertas pelo

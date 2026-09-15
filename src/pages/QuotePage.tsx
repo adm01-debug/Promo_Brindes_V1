@@ -202,6 +202,11 @@ export default function QuotePage() {
       requestAttemptRef.current = attempt;
       const payload = buildQuotePayload(contact, cart.items, undefined, attempt.submittedAt, attempt.id, cart.campaign, normalizeQuoteBriefing(briefing));
       const result = await submitQuoteRequest(payload, controller.signal);
+      // Alguns intermediários de rede/testes podem concluir uma resposta que
+      // já estava em trânsito quando AbortController recebeu abort(). Não
+      // basta depender da rejeição do fetch: uma resposta tardia nunca pode
+      // transformar o briefing do próximo titular em confirmação de sucesso.
+      if (controller.signal.aborted) return;
       if (result.mode === 'endpoint') {
         trackFunnelEvent('quote_submitted', { item_count: cart.items.length, has_deadline: Boolean(contact.deadline) });
         requestAttemptRef.current = null;

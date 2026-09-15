@@ -3,6 +3,7 @@
     "composite": true,
     "skipLibCheck": true,
     "strict": true,
+    "noUncheckedIndexedAccess": true,
     "noFallthroughCasesInSwitch": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",

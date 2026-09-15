@@ -36,7 +36,9 @@ function publicApiKey(candidate?: string): string {
   const parts = value.split('.');
   if (parts.length === 3) {
     try {
-      const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(parts[1].length / 4) * 4, '='))) as { role?: string };
+      const tokenPayload = parts[1];
+      if (!tokenPayload) return '';
+      const payload = JSON.parse(atob(tokenPayload.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(tokenPayload.length / 4) * 4, '='))) as { role?: string };
       return payload.role === 'anon' ? value : '';
     } catch {
       return '';

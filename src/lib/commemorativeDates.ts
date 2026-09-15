@@ -299,7 +299,9 @@ export function prioritizeUpcomingOccasions(occasions: DatedOccasion[], now = ne
 export function nextOccasion(now = new Date()): DatedOccasion {
   const today = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
   const thisYear = occasionsForYear(today.getUTCFullYear());
-  return thisYear.find((occasion) => occasion.date >= today) || occasionsForYear(today.getUTCFullYear() + 1)[0];
+  const next = thisYear.find((occasion) => occasion.date >= today) || occasionsForYear(today.getUTCFullYear() + 1)[0];
+  if (!next) throw new Error('Agenda de datas comemorativas indisponível.');
+  return next;
 }
 
 export function planningDate(occasion: DatedOccasion): Date {

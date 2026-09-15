@@ -119,19 +119,19 @@ export function buildCatalogSearchGroups(input: string): string[][] {
 function editDistance(left: string, right: string): number {
   const previous = Array.from({ length: right.length + 1 }, (_, index) => index);
   for (let leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
-    let diagonal = previous[0];
+    let diagonal = previous[0] ?? 0;
     previous[0] = leftIndex;
     for (let rightIndex = 1; rightIndex <= right.length; rightIndex += 1) {
-      const saved = previous[rightIndex];
+      const saved = previous[rightIndex] ?? 0;
       previous[rightIndex] = Math.min(
-        previous[rightIndex] + 1,
-        previous[rightIndex - 1] + 1,
-        diagonal + (left[leftIndex - 1] === right[rightIndex - 1] ? 0 : 1),
+        (previous[rightIndex] ?? Number.POSITIVE_INFINITY) + 1,
+        (previous[rightIndex - 1] ?? Number.POSITIVE_INFINITY) + 1,
+        diagonal + ((left[leftIndex - 1] ?? '') === (right[rightIndex - 1] ?? '') ? 0 : 1),
       );
       diagonal = saved;
     }
   }
-  return previous[right.length];
+  return previous[right.length] ?? right.length;
 }
 
 /**
@@ -146,8 +146,10 @@ export function suggestSearchCorrection(input: string): string | null {
     .filter(({ candidate, distance }) => distance > 0 && distance <= (candidate.length >= 7 ? 2 : 1))
     .sort((left, right) => left.distance - right.distance || left.candidate.localeCompare(right.candidate, 'pt-BR'));
   if (!candidates.length) return null;
-  if (candidates.length > 1 && candidates[0].distance === candidates[1].distance) return null;
-  return candidates[0].candidate;
+  const first = candidates[0];
+  const second = candidates[1];
+  if (!first || (second && first.distance === second.distance)) return null;
+  return first.candidate;
 }
 
 export function buildSearchSuggestions(input: string, categories: Category[], limit = 6): SearchSuggestion[] {

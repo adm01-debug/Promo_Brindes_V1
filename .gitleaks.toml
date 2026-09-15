@@ -1,0 +1,11 @@
+title = "Promo Brindes — detector de segredos"
+
+[extend]
+useDefault = true
+
+# O commit abaixo contém exclusivamente uma fixture histórica de teste que
+# simulava uma chave AWS para exercitar o bloqueio do Graphify. A exceção é
+# limitada ao commit já auditado; novos achados continuam bloqueando o CI.
+[[allowlists]]
+description = "Fixture sintética histórica do teste Graphify"
+commits = ["3bac17e4107149563ea24e8f582c5df3071f3e98"]

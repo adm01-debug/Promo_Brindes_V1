@@ -1,6 +1,8 @@
 import { timingSafeEqual } from 'node:crypto';
 import { getSiteDatabaseConfig } from './_lib/siteDatabase.js';
 import type { ApiRequest, ApiResponse } from './_lib/leadHandler.js';
+import { errorClass, logServerError, logServerWarning } from './_lib/observability.js';
+import { OPERATIONAL_ALERT_TIMEOUT_MS, sendOperationalAlert } from './_lib/operationalAlerts.js';
 
 const BATCH_SIZE = 10;
 // Orçamento total da invocação, com folga sobre o maxDuration de 30s
@@ -19,7 +21,7 @@ export const QUEUE_HEALTH_TIMEOUT_MS = 3_000;
 // Soma dos dois: o pior caso real da invocação, usado por
 // tests/api/maxDuration.test.ts (Etapa 24) contra o maxDuration declarado em
 // vercel.json — o sinal de saúde da fila também precisa caber.
-export const TOTAL_TIME_BUDGET_MS = OVERALL_TIME_BUDGET_MS + QUEUE_HEALTH_TIMEOUT_MS;
+export const TOTAL_TIME_BUDGET_MS = OVERALL_TIME_BUDGET_MS + QUEUE_HEALTH_TIMEOUT_MS + OPERATIONAL_ALERT_TIMEOUT_MS;
 // Etapa 29: idade tolerável para um job elegível ainda não entregue antes de
 // um alerta ativo. Calibrada em 3x a cadência do cron (Etapa 27, 15 em 15
 // minutos) para tolerar até duas invocações perdidas sem soar o alarme por
@@ -221,7 +223,9 @@ async function recordProviderAcceptance(job: NotificationJob, delivery: { provid
     await rpc<boolean>('record_site_notification_provider_acceptance', {
       p_delivery_id: job.id, p_lease_token: job.leaseToken, p_provider: delivery.provider, p_provider_message_id: delivery.id,
     }, signal);
-  } catch { /* melhor esforço; ver comentário acima */ }
+  } catch (error) {
+    logServerWarning('site_notification_provider_acceptance_unconfirmed', { requestId: job.requestId, channel: job.channel, errorClass: errorClass(error) });
+  }
 }
 
 async function deliverJob(job: NotificationJob, signal: AbortSignal): Promise<DeliveryOutcome> {
@@ -275,10 +279,21 @@ async function reportQueueHealth(): Promise<void> {
       const stale = health.oldestEligibleAgeSeconds !== null && health.oldestEligibleAgeSeconds > QUEUE_AGE_ALERT_SECONDS;
       if (stale || health.exhaustedCount > 0) {
         console.error('site_notifications_queue_alert', { ...health, ageAlertThresholdSeconds: QUEUE_AGE_ALERT_SECONDS });
+        const alerted = await sendOperationalAlert('notification_queue_alert', {
+          channel: health.channel,
+          oldestEligibleAgeSeconds: health.oldestEligibleAgeSeconds,
+          eligibleCount: health.eligibleCount,
+          exhaustedCount: health.exhaustedCount,
+          ageAlertThresholdSeconds: QUEUE_AGE_ALERT_SECONDS,
+        });
+        if (process.env.OPERATIONS_ALERT_WEBHOOK_URL?.trim() && !alerted) {
+          logServerWarning('site_notifications_queue_alert_delivery_failed', { channel: health.channel });
+        }
       }
     }
-  } catch {
+  } catch (error) {
     // Melhor esforço — ver comentário acima.
+    logServerWarning('site_notifications_queue_health_unavailable', { errorClass: errorClass(error) });
   }
 }
 
@@ -287,7 +302,7 @@ export interface QuoteConfirmationResult {
   whatsapp: 'sent' | 'pending' | 'not_requested';
 }
 
-export async function deliverQuoteConfirmationsNow(requestId: string, whatsappRequested: boolean): Promise<QuoteConfirmationResult> {
+export async function deliverQuoteConfirmationsNow(requestId: string, whatsappRequested: boolean, correlationId?: string): Promise<QuoteConfirmationResult> {
   const result: QuoteConfirmationResult = { email: 'pending', whatsapp: whatsappRequested ? 'pending' : 'not_requested' };
   if (!UUID_PATTERN.test(requestId)) return result;
   const configured = configuredChannels();
@@ -307,9 +322,10 @@ export async function deliverQuoteConfirmationsNow(requestId: string, whatsappRe
       if (!job) return 'pending';
       const outcome = await deliverJob(job, controller.signal);
       return outcome === 'delivered' ? 'sent' : 'pending';
-    } catch {
+    } catch (error) {
       // O protocolo já existe; falha de mensagem em um canal nunca desfaz a
       // solicitação nem afeta o orçamento do outro canal.
+      logServerWarning('site_quote_confirmation_pending', { requestId, channel, correlationId: correlationId || null, errorClass: errorClass(error) });
       return 'pending';
     } finally {
       clearTimeout(timeout);
@@ -322,6 +338,7 @@ export async function deliverQuoteConfirmationsNow(requestId: string, whatsappRe
     if (outcome.value.channel === 'email') result.email = outcome.value.status;
     else result.whatsapp = outcome.value.status;
   }
+  console.info('site_quote_confirmations_completed', { requestId, correlationId: correlationId || null, email: result.email, whatsapp: result.whatsapp });
   return result;
 }
 
@@ -377,6 +394,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
           if (outcome === 'delivered') delivered += 1;
           else if (outcome === 'failed') failed += 1;
           else inconclusive += 1;
+          console.info('site_notification_delivery_processed', { requestId: job.requestId, channel: job.channel, attempt: job.attempt, outcome });
         } finally {
           clearTimeout(jobTimeout);
         }
@@ -387,7 +405,10 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     console.info('site_notifications_completed', { claimed, delivered, failed, inconclusive, channels });
     await reportQueueHealth();
     response.status(200).json({ ok: true, claimed, delivered, failed, inconclusive });
-  } catch {
+  } catch (error) {
+    logServerError('site_notifications_failed', { errorClass: errorClass(error), claimed, delivered, failed, inconclusive, channels });
+    const alerted = await sendOperationalAlert('notification_cron_failed', { errorClass: errorClass(error), claimed, delivered, failed, inconclusive, channels });
+    if (process.env.OPERATIONS_ALERT_WEBHOOK_URL?.trim() && !alerted) logServerWarning('site_notifications_failure_alert_delivery_failed', {});
     response.status(503).json({ error: 'notification_delivery_unavailable' });
   }
 }
