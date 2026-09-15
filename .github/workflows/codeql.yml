@@ -20,6 +20,12 @@ permissions:
 
 jobs:
   analyze:
+    # Repositórios privados exigem Code Scanning/Advanced Security habilitado
+    # pela conta. Enquanto o recurso não existir, o GitHub rejeita o SARIF
+    # após uma análise bem-sucedida. Ao habilitá-lo, defina a variável de
+    # repositório CODE_SCANNING_ENABLED=true; repositórios públicos rodam
+    # automaticamente.
+    if: github.event.repository.visibility == 'public' || vars.CODE_SCANNING_ENABLED == 'true'
     name: Analyze JavaScript and TypeScript
     runs-on: ubuntu-latest
     timeout-minutes: 20
