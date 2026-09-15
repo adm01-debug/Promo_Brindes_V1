@@ -8,6 +8,10 @@ permissions:
 
 jobs:
   review:
+    # Em repositórios privados, a API da ação exige GitHub Advanced Security.
+    # O gate principal sempre executa npm audit; esta revisão complementar roda
+    # automaticamente quando o repositório público é compatível com a API.
+    if: github.event.repository.visibility == 'public'
     name: Review dependency changes
     runs-on: ubuntu-latest
     timeout-minutes: 10
