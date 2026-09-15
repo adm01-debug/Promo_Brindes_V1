@@ -1,0 +1,1094 @@
+<title>Fechamento Promo Brindes V1</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --paper: #F7F8FA;
+    --surface: #FFFFFF;
+    --surface-sunk: #EFF2F6;
+    --ink: #171A21;
+    --ink-soft: #5A6273;
+    --ink-faint: #838C9D;
+    --rule: #DDE1E8;
+    --rule-strong: #C3CAD6;
+    --accent: #1F4B8F;
+    --accent-soft: #E6ECF7;
+    --crit: #A8321E;
+    --crit-soft: #FAEDE9;
+    --block: #8A5A00;
+    --block-soft: #FBF2DF;
+    --ok: #1F6B4A;
+    --shadow: 0 1px 2px rgba(23, 26, 33, .06), 0 8px 24px -16px rgba(23, 26, 33, .18);
+    --sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #12151B;
+      --surface: #191D25;
+      --surface-sunk: #0D1015;
+      --ink: #E8EBF0;
+      --ink-soft: #9AA3B4;
+      --ink-faint: #737D8F;
+      --rule: #2A303B;
+      --rule-strong: #3B4453;
+      --accent: #7BA3E0;
+      --accent-soft: #1B2534;
+      --crit: #E08A76;
+      --crit-soft: #2B1C18;
+      --block: #D9A93F;
+      --block-soft: #29220F;
+      --ok: #5FB68C;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px -16px rgba(0, 0, 0, .7);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #12151B;
+    --surface: #191D25;
+    --surface-sunk: #0D1015;
+    --ink: #E8EBF0;
+    --ink-soft: #9AA3B4;
+    --ink-faint: #737D8F;
+    --rule: #2A303B;
+    --rule-strong: #3B4453;
+    --accent: #7BA3E0;
+    --accent-soft: #1B2534;
+    --crit: #E08A76;
+    --crit-soft: #2B1C18;
+    --block: #D9A93F;
+    --block-soft: #29220F;
+    --ok: #5FB68C;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px -16px rgba(0, 0, 0, .7);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  code, .mono { font-family: var(--mono); font-size: .88em; }
+  code {
+    background: var(--surface-sunk);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: .08em .34em;
+    word-break: break-word;
+  }
+  h1, h2, h3 { font-family: var(--serif); font-weight: 600; text-wrap: balance; margin: 0; }
+
+  /* ---------- shell ---------- */
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding-inline: 20px;
+    padding-block: 0 72px;
+  }
+  .masthead {
+    border-bottom: 1px solid var(--rule);
+    padding-block: 40px 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+  }
+  h1 { font-size: clamp(28px, 4.6vw, 42px); line-height: 1.12; letter-spacing: -.015em; max-width: 22ch; }
+  .standfirst { color: var(--ink-soft); max-width: 66ch; font-size: 16px; }
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 28px;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .meta-row b { font-weight: 500; color: var(--ink); font-family: var(--mono); font-size: 12.5px; }
+
+  /* ---------- counts ---------- */
+  .counts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    margin-block: 32px;
+  }
+  .count { background: var(--surface); padding: 16px 18px; }
+  .count dt {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .count dd {
+    margin: 4px 0 0;
+    font-family: var(--serif);
+    font-size: 30px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .count dd span { font-size: 13px; font-family: var(--sans); color: var(--ink-soft); margin-left: 5px; }
+
+  /* ---------- the one bold moment ---------- */
+  .gate {
+    background: var(--block-soft);
+    border: 1px solid color-mix(in srgb, var(--block) 34%, transparent);
+    border-left: 4px solid var(--block);
+    padding: 22px 24px;
+    margin-block: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .gate-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--block);
+    font-weight: 500;
+  }
+  .gate h2 { font-size: 21px; max-width: 40ch; }
+  .gate p { margin: 0; max-width: 68ch; color: var(--ink); }
+
+  /* ---------- phase overview ---------- */
+  .overview { margin-block: 44px; }
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    border-bottom: 1px solid var(--rule-strong);
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+  }
+  .sec-head h2 { font-size: 19px; }
+  .sec-head .hint { font-size: 12.5px; color: var(--ink-faint); margin-left: auto; }
+  .tablewrap { overflow-x: auto; border: 1px solid var(--rule); }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; background: var(--surface); }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--rule); font-size: 13.5px; vertical-align: top; }
+  th {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 500;
+    background: var(--surface-sunk);
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  /* ---------- layout with rail ---------- */
+  .cols { display: grid; grid-template-columns: 1fr; gap: 40px; margin-top: 12px; }
+  @media (min-width: 900px) {
+    .cols { grid-template-columns: 196px minmax(0, 1fr); gap: 48px; align-items: start; }
+    .rail { position: sticky; top: 20px; }
+  }
+  .rail nav { display: flex; flex-direction: column; gap: 1px; border: 1px solid var(--rule); background: var(--rule); }
+  .rail a {
+    background: var(--surface);
+    padding: 9px 12px;
+    text-decoration: none;
+    color: var(--ink);
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    align-items: baseline;
+  }
+  .rail a:hover { background: var(--accent-soft); color: var(--accent); }
+  .rail a .r { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+  .rail a:hover .r { color: var(--accent); }
+
+  /* ---------- filters ---------- */
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 26px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .filters .flabel {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-right: 4px;
+  }
+  .chip {
+    font: inherit;
+    font-size: 12.5px;
+    background: var(--surface);
+    color: var(--ink-soft);
+    border: 1px solid var(--rule-strong);
+    padding: 5px 12px;
+    cursor: pointer;
+    border-radius: 100px;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+  .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--paper); }
+  :root[data-theme="dark"] .chip[aria-pressed="true"],
+  .chip[aria-pressed="true"] { color: #fff; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .chip[aria-pressed="true"] { color: #11141A; }
+  }
+  :root[data-theme="dark"] .chip[aria-pressed="true"] { color: #11141A; }
+  .chip:focus-visible, .rail a:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .tally { font-size: 12.5px; color: var(--ink-faint); margin-left: auto; font-variant-numeric: tabular-nums; }
+
+  /* ---------- phases + steps ---------- */
+  .phase { margin-bottom: 52px; scroll-margin-top: 16px; }
+  .phase-head { margin-bottom: 6px; }
+  .phase-kicker {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .phase-head h2 { font-size: 24px; margin-top: 4px; letter-spacing: -.01em; }
+  .phase-note {
+    color: var(--ink-soft);
+    font-size: 14px;
+    max-width: 68ch;
+    margin: 10px 0 24px;
+    padding-left: 14px;
+    border-left: 2px solid var(--rule-strong);
+  }
+  .steps { display: flex; flex-direction: column; gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+  .step { background: var(--surface); padding: 20px 22px; }
+  .step-head { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; margin-bottom: 14px; }
+  .step-num {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-faint);
+    border: 1px solid var(--rule-strong);
+    padding: 1px 7px;
+    flex: none;
+  }
+  .step-head h3 { font-size: 17px; line-height: 1.3; flex: 1 1 16ch; min-width: 0; }
+  .tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    flex: none;
+    border: 1px solid;
+  }
+  .tag-new { color: var(--crit); background: var(--crit-soft); border-color: color-mix(in srgb, var(--crit) 38%, transparent); }
+  .tag-def { color: var(--accent); background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 30%, transparent); }
+  .tag-gate { color: var(--block); background: var(--block-soft); border-color: color-mix(in srgb, var(--block) 38%, transparent); }
+
+  .step dl { margin: 0; display: grid; gap: 11px; }
+  .step dl > div { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 14px; align-items: baseline; }
+  @media (max-width: 620px) { .step dl > div { grid-template-columns: 1fr; gap: 3px; } }
+  .step dt {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding-top: 3px;
+  }
+  .step dd { margin: 0; max-width: 70ch; }
+  .step dd.verify { font-family: var(--mono); font-size: 12.5px; color: var(--ink-soft); }
+  .step .flag {
+    margin-top: 12px;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    background: var(--surface-sunk);
+    border-left: 2px solid var(--rule-strong);
+    padding: 9px 13px;
+    max-width: 70ch;
+  }
+  .step .flag b { color: var(--ink); font-weight: 600; }
+  .step .flag.warn { border-left-color: var(--block); }
+
+  .empty { background: var(--surface); border: 1px dashed var(--rule-strong); padding: 28px; text-align: center; color: var(--ink-faint); font-size: 14px; }
+
+  /* ---------- closing ---------- */
+  .closing { margin-top: 60px; border-top: 1px solid var(--rule-strong); padding-top: 32px; display: grid; gap: 34px; }
+  @media (min-width: 760px) { .closing { grid-template-columns: 1fr 1fr; gap: 44px; } }
+  .closing h2 { font-size: 18px; margin-bottom: 12px; }
+  .closing p, .closing li { color: var(--ink-soft); font-size: 14px; max-width: 60ch; }
+  .closing ol { margin: 0; padding-left: 20px; display: grid; gap: 10px; }
+  .closing ol li::marker { font-family: var(--mono); font-size: 12px; color: var(--crit); }
+  .closing ol b { color: var(--ink); font-weight: 600; }
+  .disclaimer {
+    margin-top: 40px;
+    padding: 18px 20px;
+    border: 1px solid var(--rule);
+    background: var(--surface);
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    max-width: 74ch;
+  }
+  .disclaimer b { color: var(--ink); }
+  @media (prefers-reduced-motion: no-preference) { .chip, .rail a { transition: background-color .12s, color .12s, border-color .12s; } }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="eyebrow">
+      <span>Plano de engenharia</span>
+      <span>13 / 09 / 2026</span>
+      <span class="mono">f20df44</span>
+    </div>
+    <h1>Fechamento do Promo&nbsp;Brindes&nbsp;V1</h1>
+    <p class="standfirst">Cinquenta etapas de correção e melhoria derivadas de inspeção direta do código, ordenadas por dependência técnica. Cada etapa cita a evidência que a motiva, o aceite que a encerra e o comando que a verifica.</p>
+    <div class="meta-row">
+      <span>Commit auditado <b>f20df4452f0d70f295154b0ba8bd9af8f8be64dd</b></span>
+      <span>Base documental <b>REVISAO_FECHAMENTO_PLANOS_20260912.md</b></span>
+    </div>
+  </header>
+
+  <dl class="counts">
+    <div class="count"><dt>Etapas</dt><dd>50</dd></div>
+    <div class="count"><dt>Fases</dt><dd>8</dd></div>
+    <div class="count"><dt>Achados novos</dt><dd>3</dd></div>
+    <div class="count"><dt>Defeitos em aberto</dt><dd>8 <span>R01–R08</span></dd></div>
+    <div class="count"><dt>Linhas TS/TSX</dt><dd>11.658</dd></div>
+  </dl>
+
+  <section class="gate">
+    <span class="gate-label">Restrição operacional</span>
+    <h2>Não configure Resend nem Meta antes de encerrar as Fases 2 e 3.</h2>
+    <p>A fila de notificações trata retorno falso do banco como sucesso (R01), não identifica a tentativa na finalização (R04) e não envia chave de idempotência ao WhatsApp (R02). Sobre esse contrato, o cenário de retomada envia <strong>a mesma mensagem duas vezes ao cliente final</strong> — comportamento já reproduzido localmente contra provedor simulado. As credenciais são o último passo da sequência, não o primeiro.</p>
+  </section>
+
+  <section class="overview">
+    <div class="sec-head">
+      <h2>Sequenciamento</h2>
+      <span class="hint">Ordem por dependência técnica, não por esforço</span>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th scope="col">Fase</th><th scope="col">Etapas</th><th scope="col">Tema</th><th scope="col">O que bloqueia</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="num">0</td><td class="num">1–8</td><td>Rede de proteção</td><td>Todas as demais</td></tr>
+          <tr><td class="num">1</td><td class="num">9–13</td><td>Sessão e dados pessoais (R08)</td><td>Nada — risco ativo em produção</td></tr>
+          <tr><td class="num">2</td><td class="num">14–23</td><td>Integridade da fila (R01–R04)</td><td>Ativação de provedores</td></tr>
+          <tr><td class="num">3</td><td class="num">24–31</td><td>Capacidade e entrega (R05–R07)</td><td>Ativação de provedores</td></tr>
+          <tr><td class="num">4</td><td class="num">32–37</td><td>Performance</td><td>Nada</td></tr>
+          <tr><td class="num">5</td><td class="num">38–42</td><td>Observabilidade</td><td>Aceite operacional</td></tr>
+          <tr><td class="num">6</td><td class="num">43–47</td><td>Qualidade e dependências</td><td>Nada</td></tr>
+          <tr><td class="num">7</td><td class="num">48–50</td><td>Dívida estrutural e governança</td><td>Nada</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="cols">
+    <aside class="rail">
+      <nav aria-label="Fases">
+        <a href="#fase-0">Rede de proteção <span class="r">1–8</span></a>
+        <a href="#fase-1">Sessão <span class="r">9–13</span></a>
+        <a href="#fase-2">Fila <span class="r">14–23</span></a>
+        <a href="#fase-3">Entrega <span class="r">24–31</span></a>
+        <a href="#fase-4">Performance <span class="r">32–37</span></a>
+        <a href="#fase-5">Observabilidade <span class="r">38–42</span></a>
+        <a href="#fase-6">Qualidade <span class="r">43–47</span></a>
+        <a href="#fase-7">Governança <span class="r">48–50</span></a>
+      </nav>
+    </aside>
+
+    <main>
+      <div class="filters">
+        <span class="flabel">Filtrar</span>
+        <button class="chip" type="button" data-filter="all" aria-pressed="true">Todas</button>
+        <button class="chip" type="button" data-filter="gate" aria-pressed="false">Bloqueiam provedores</button>
+        <button class="chip" type="button" data-filter="new" aria-pressed="false">Achados novos</button>
+        <button class="chip" type="button" data-filter="defect" aria-pressed="false">Ligadas a R01–R08</button>
+        <span class="tally" id="tally">50 de 50 etapas</span>
+      </div>
+
+      <p class="empty" id="empty" hidden>Nenhuma etapa neste filtro.</p>
+
+      <!-- ================= FASE 0 ================= -->
+      <section class="phase" id="fase-0">
+        <div class="phase-head">
+          <span class="phase-kicker">Fase 0 · Etapas 1–8</span>
+          <h2>Rede de proteção</h2>
+        </div>
+        <p class="phase-note">Sem linter, sem <code>strict</code> no backend e sem cobertura, toda correção seguinte é aplicada às cegas. Esta fase não altera comportamento de produto.</p>
+        <div class="steps">
+
+          <article class="step" data-phase="0">
+            <div class="step-head"><span class="step-num">01</span><h3>Versionar os artefatos de auditoria pendentes</h3></div>
+            <dl>
+              <div><dt>Evidência</dt><dd>Oito arquivos não rastreados em <code>docs/</code> e <code>docs/audits/closure-review-20260912/</code>. Nenhuma regra do <code>.gitignore</code> os cobre — nunca foram adicionados.</dd></div>
+              <div><dt>Entrega</dt><dd>Commit dos oito arquivos. Varredura prévia confirmou ausência de credencial real: o único match é o placeholder <code>sb_secret_${'x'.repeat(40)}</code> em <code>notifications.mjs:26</code>.</dd></div>
+              <div><dt>Aceite</dt><dd>Árvore limpa; a matriz de 230 referências passa a ter histórico versionado.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">git status --porcelain | wc -l → 0</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="0">
+            <div class="step-head"><span class="step-num">02</span><h3>Introduzir ESLint 9 com flat config</h3></div>
+            <dl>
+              <div><dt>Evidência</dt><dd>Não existe <code>eslint.config.js</code>, <code>.eslintrc*</code>, <code>biome.json</code> nem script <code>lint</code>. São 11.658 linhas de TS/TSX sem análise estática além do compilador.</dd></div>
+              <div><dt>Entrega</dt><dd><code>typescript-eslint</code> type-aware mais <code>react-hooks</code>, <code>react-refresh</code> e <code>jsx-a11y</code>. Como <em>error</em>: <code>no-floating-promises</code>, <code>no-misused-promises</code>, <code>await-thenable</code>, <code>exhaustive-deps</code>, <code>rules-of-hooks</code>.</dd></div>
+              <div><dt>Aceite</dt><dd>Cobre <code>src</code>, <code>api</code>, <code>scripts</code>, <code>tests</code>, <code>e2e</code>. Violações existentes são corrigidas, não silenciadas por <code>ignorePatterns</code>.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">npm run lint</dd></div>
+            </dl>
+            <p class="flag"><b>Risco:</b> <code>no-floating-promises</code> deve acusar os <code>void import(...)</code> em <code>CustomerAuthContext.tsx:29</code> e <code>:41</code>. São intencionais — o <code>void</code> satisfaz a regra sem mudar comportamento.</p>
+          </article>
+
+          <article class="step" data-phase="0" data-flag="new">
+            <div class="step-head"><span class="step-num">03</span><h3>Reativar as três supressões órfãs de <code>exhaustive-deps</code></h3><span class="tag tag-new">Novo</span></div>
+            <dl>
+              <div><dt>Evidência</dt><dd>Três <code>// eslint-disable-next-line react-hooks/exhaustive-deps</code> em <code>CommemorativeDatesPage.tsx:196</code>, <code>QuoteDrawer.tsx:35</code> e <code>CatalogPage.tsx:98</code> — <strong>sem ESLint instalado</strong>. São comentários mortos: suprimem uma regra que nunca rodou. As dependências desses efeitos nunca foram validadas por ferramenta alguma.</dd></div>
+              <div><dt>Entrega</dt><dd>Com a Etapa 2 ativa, reavaliar cada supressão: corrigir o array de dependências, ou mantê-la <strong>com comentário justificando</strong> por que a omissão é deliberada.</dd></div>
+              <div><dt>Aceite</dt><dd>Zero supressões sem justificativa escrita.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">grep -rn 'eslint-disable' src/ api/</dd></div>
+            </dl>
+            <p class="flag warn"><b>Maior risco latente da fase.</b> Um <code>useEffect</code> com dependências incorretas em <code>CatalogPage</code> — a maior página do projeto, 552 linhas — pode produzir estado obsoleto em filtros, e nunca houve verificação automática.</p>
+          </article>
+
+          <article class="step" data-phase="0" data-flag="new">
+            <div class="step-head"><span class="step-num">04</span><h3>Ativar <code>strict</code> no <code>tsconfig.node.json</code></h3><span class="tag tag-new">Novo</span></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>tsconfig.app.json:11</code> declara <code>"strict": true</code>. O <code>tsconfig.node.json</code> <strong>não declara <code>strict</code></strong> — confirmado por <code>tsc --showConfig</code>, que não emite a flag. Esse projeto cobre <code>api/**/*.ts</code>, <code>tests/api/**</code>, <code>e2e/**</code> e os dois arquivos de config.</dd></div>
+              <div><dt>Consequência</dt><dd>Todo o backend serverless — sete endpoints públicos e sete módulos em <code>api/_lib/</code> — compila com <code>strictNullChecks</code> desligado. O código que valida payloads de clientes anônimos é justamente o de garantia de tipos mais fraca do projeto.</dd></div>
+              <div><dt>Entrega</dt><dd>Adicionar <code>"strict": true</code> e corrigir os erros resultantes. Correção real, não <code>as</code> nem <code>!</code>.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">npx tsc -p tsconfig.node.json --showConfig | grep '"strict"'<br>npm run typecheck</dd></div>
+            </dl>
+            <p class="flag warn"><b>Executar isoladamente,</b> em commit próprio, antes de qualquer mudança de comportamento no backend — senão os erros de tipo se misturam aos defeitos funcionais das Fases 2 e 3.</p>
+          </article>
+
+          <article class="step" data-phase="0">
+            <div class="step-head"><span class="step-num">05</span><h3>Endurecer o <code>tsconfig.app.json</code></h3></div>
+            <dl>
+              <div><dt>Evidência</dt><dd>Tem <code>strict</code>, mas não <code>noUnusedLocals</code>, <code>noUnusedParameters</code>, <code>noFallthroughCasesInSwitch</code> nem <code>noUncheckedIndexedAccess</code>. Ambos os projetos usam <code>skipLibCheck: true</code>.</dd></div>
+              <div><dt>Entrega</dt><dd>Ativar as quatro nos dois projetos. <code>noUncheckedIndexedAccess</code> é a de maior impacto: há acesso indexado em <code>notifications.ts:139</code> (<code>body.messages?.[0]?.id</code>) e <code>leadHandler.ts:60</code> (<code>split(',')[0]</code>) onde o tipo atual mente sobre a possibilidade de <code>undefined</code>.</dd></div>
+              <div><dt>Aceite</dt><dd>Typecheck aprovado com as quatro flags.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">npm run typecheck</dd></div>
+            </dl>
+            <p class="flag">Se <code>noUncheckedIndexedAccess</code> gerar volume alto, adotá-la em etapa separada. As outras três são baratas.</p>
+          </article>
+
+          <article class="step" data-phase="0">
+            <div class="step-head"><span class="step-num">06</span><h3>Prettier e <code>.editorconfig</code></h3></div>
+            <dl>
+              <div><dt>Evidência</dt><dd>Nenhum formatador. O projeto é editado do Windows via <code>\\wsl.localhost\</code> sobre repositório em ext4, com <code>core.autocrlf=input</code> e <code>core.ignorecase=true</code>.</dd></div>
+              <div><dt>Entrega</dt><dd><code>.prettierrc</code>, <code>.editorconfig</code> com <code>end_of_line = lf</code> e <code>.gitattributes</code> com <code>* text=auto eol=lf</code>, fixando a normalização independentemente da máquina.</dd></div>
+              <div><dt>Aceite</dt><dd>Nenhum arquivo muda de line ending ao ser editado pelo Windows.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">npx prettier --check . &amp;&amp; git diff --stat</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="0">
+            <div class="step-head"><span class="step-num">07</span><h3>Incluir lint no <code>check</code> e no CI</h3></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>check</code> é <code>typecheck &amp;&amp; test &amp;&amp; build &amp;&amp; check:performance-budget &amp;&amp; test:e2e</code>. Não há lint. O <code>quality.yml</code> roda <code>npm run check</code> e herda a lacuna.</dd></div>
+              <div><dt>Entrega</dt><dd><code>npm run lint</code> como <strong>primeiro</strong> passo — falha em segundos, antes dos ~6 minutos de E2E. Somar <code>prettier --check</code>.</dd></div>
+              <div><dt>Aceite</dt><dd>PR com violação de lint reprova no Quality gate.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">branch com erro deliberado reprova o check</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="0">
+            <div class="step-head"><span class="step-num">08</span><h3>Configurar cobertura com limiar</h3></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>vite.config.ts:13-18</code> define o bloco <code>test</code> sem <code>coverage</code>. São 180 testes Vitest aprovados sem medição alguma — não se sabe o que as 11.658 linhas realmente exercitam.</dd></div>
+              <div><dt>Entrega</dt><dd><code>@vitest/coverage-v8</code>, relatórios <code>text</code> e <code>lcov</code>, limiares calibrados <strong>pela medição real</strong>: medir, fixar no valor obtido menos margem, subir a cada etapa. Cobrir <code>src/**</code> e <code>api/**</code>.</dd></div>
+              <div><dt>Aceite</dt><dd>Reprova abaixo do limiar; número medido registrado no PR.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">npm run test -- --coverage</dd></div>
+            </dl>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- ================= FASE 1 ================= -->
+      <section class="phase" id="fase-1">
+        <div class="phase-head">
+          <span class="phase-kicker">Fase 1 · Etapas 9–13</span>
+          <h2>Sessão e dados pessoais</h2>
+        </div>
+        <p class="phase-note">Risco ativo, sem dependência externa: em navegador compartilhado, dados de contato do titular anterior permanecem no formulário após logout e são regravados no storage.</p>
+        <div class="steps">
+
+          <article class="step" data-phase="1" data-flag="defect">
+            <div class="step-head"><span class="step-num">09</span><h3>Contrato único de limpeza de dados pessoais</h3><span class="tag tag-def">R08</span></div>
+            <dl>
+              <div><dt>Evidência</dt><dd>Limpeza dispersa: <code>CustomerAuthContext.tsx:65-66</code> no <code>signOut</code>; <code>:41</code> em troca de titular; <code>QuotePage.tsx:94-95</code> e <code>:104-105</code> para <code>clearSubmissionAttempt</code>. Nenhum ponto limpa o estado React.</dd></div>
+              <div><dt>Entrega</dt><dd><code>src/lib/personalDataReset.ts</code> enumerando explicitamente o que invalidar: rascunho, tentativa, contexto de repetição, consentimento e estados React ativos. A seleção anônima é preservada <strong>por contrato documentado</strong>, não por omissão.</dd></div>
+              <div><dt>Aceite</dt><dd>Um único módulo define o conjunto; novo campo pessoal exige alterá-lo.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">teste que percorre o contrato e falha se uma chave pessoal não estiver contemplada</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="1" data-flag="defect">
+            <div class="step-head"><span class="step-num">10</span><h3>Expor troca de titular como evento no contexto</h3><span class="tag tag-def">R08</span></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>CustomerAuthContext.tsx:37-46</code> detecta a troca comparando <code>sessionUserId.current</code>, mas reage internamente — importa <code>quoteDraft</code> na linha 41 e não notifica consumidor algum. Componentes montados não sabem que o titular mudou.</dd></div>
+              <div><dt>Entrega</dt><dd>Acrescentar ao <code>CustomerAuthValue</code> um <code>identityEpoch</code> que muda a cada troca ou logout. Consumidores reagem por <code>useEffect</code> sobre esse valor.</dd></div>
+              <div><dt>Aceite</dt><dd>Qualquer componente assina a troca sem acoplar-se ao storage.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">teste do contexto simulando onAuthStateChange A→B</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="1" data-flag="defect">
+            <div class="step-head"><span class="step-num">11</span><h3>Resetar os estados do QuotePage no logout</h3><span class="tag tag-def">R08 · raiz</span></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>QuotePage.tsx:55</code> e <code>:56-59</code> inicializam <code>contact</code> e <code>briefing</code> via <code>useState(savedDraft.contact)</code> — lidos <strong>uma única vez</strong> na montagem. O <code>signOut</code> limpa o storage, mas os estados React permanecem. Em seguida <code>:89</code> (<code>saveQuoteDraft({ contact, briefing })</code>, no efeito das linhas 84-90) <strong>regrava</strong> o contato anterior na primeira edição de qualquer campo.</dd></div>
+              <div><dt>Entrega</dt><dd>Efeito sobre o <code>identityEpoch</code> que reinicializa <code>contact</code>, <code>briefing</code>, <code>errors</code>, <code>briefingErrors</code>, <code>website</code> e <code>quantityDrafts</code>, aplicando o contrato da Etapa 9. A reinicialização deve ocorrer <strong>antes</strong> do efeito de gravação, para que o reset não dispare uma regravação do valor antigo.</dd></div>
+              <div><dt>Aceite</dt><dd>Após logout em outra aba, editar empresa não regrava e-mail nem consentimento. <code>privacyAccepted</code> volta a <code>false</code> — consentimento nunca é herdado entre titulares.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">docs/audits/closure-review-20260912/logout.mjs — deve deixar de reproduzir o defeito e virar regressão aprovada</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="1" data-flag="defect">
+            <div class="step-head"><span class="step-num">12</span><h3>Cancelar requisição em andamento no logout</h3><span class="tag tag-def">R08</span></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>QuotePage.tsx:70-71</code> mantém <code>submittingRef</code> e <code>requestAttemptRef</code>, mas não há <code>AbortController</code> no envio. Logout durante a submissão deixa a requisição concluir com dados do titular anterior.</dd></div>
+              <div><dt>Entrega</dt><dd><code>AbortController</code> no envio, abortado na troca de titular, com estado de UI próprio para o caso abortado — nem sucesso, nem erro de rede genérico.</dd></div>
+              <div><dt>Aceite</dt><dd>O formulário não exibe sucesso de uma submissão de outro titular.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">E2E com resposta atrasada e logout no intervalo</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="1">
+            <div class="step-head"><span class="step-num">13</span><h3>Regressões E2E de troca de sessão</h3></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>e2e/smoke.spec.ts</code> tem 38 testes e axe em duas rotas (linhas 378 e 600), mas nenhum cenário de logout multi-aba. O R08 escapou justamente por isso.</dd></div>
+              <div><dt>Entrega</dt><dd>Quatro cenários: logout em outra aba seguido de edição; troca direta A→B; edição após logout na mesma aba; término de requisição durante logout.</dd></div>
+              <div><dt>Aceite</dt><dd>Rodam em <code>desktop-chromium</code> e <code>mobile-chromium</code> e reprovam se a Etapa 11 for revertida.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">npm run test:e2e</dd></div>
+            </dl>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- ================= FASE 2 ================= -->
+      <section class="phase" id="fase-2">
+        <div class="phase-head">
+          <span class="phase-kicker">Fase 2 · Etapas 14–23</span>
+          <h2>Integridade da fila</h2>
+        </div>
+        <p class="phase-note"><strong>Bloqueia a configuração de credenciais reais.</strong> Ativar Resend ou Meta sobre a fila atual produz reenvio duplicado ao cliente final no cenário de retomada.</p>
+        <div class="steps">
+
+          <article class="step" data-phase="2" data-flag="gate defect">
+            <div class="step-head"><span class="step-num">14</span><h3>Validar o retorno booleano da finalização</h3><span class="tag tag-def">R01</span><span class="tag tag-gate">Bloqueia</span></div>
+            <dl>
+              <div><dt>Evidência</dt><dd>A migration <code>20260912170000…:147</code> retorna <code>v_updated = 1</code>. Em <code>api/notifications.ts:154</code>, <code>finalize()</code> chama <code>rpc&lt;boolean&gt;(...)</code> e <strong>descarta o valor</strong>. <code>deliverJob</code> (<code>:170-172</code>) retorna <code>true</code> incondicionalmente após um <code>finalize</code> que não lançou. Um <code>false</code> — nenhuma linha atualizada — é reportado como <code>sent</code>.</dd></div>
+              <div><dt>Entrega</dt><dd><code>finalize()</code> devolve o booleano; sucesso só com <code>true</code>. Um <code>false</code> é classificado como <strong>inconclusivo</strong> (Etapa 20), nunca como sucesso nem falha simples.</dd></div>
+              <div><dt>Aceite</dt><dd>Provedor aceita + RPC retorna <code>false</code> ⇒ o resultado <strong>não</strong> é <code>sent</code>.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">adaptar notifications.mjs para regressão em tests/api/notifications.test.ts</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="2" data-flag="gate defect">
+            <div class="step-head"><span class="step-num">15</span><h3>Emitir token de lease na reivindicação</h3><span class="tag tag-def">R04</span><span class="tag tag-gate">Bloqueia</span></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>claim_site_notification_deliveries</code> (linhas 74-80) incrementa <code>attempts</code> e devolve o job em <code>:81-102</code> sem qualquer identificador da reivindicação.</dd></div>
+              <div><dt>Entrega</dt><dd>Migration <strong>aditiva</strong> com <code>lease_token uuid</code>, gerado a cada claim e incluído no JSON. Aplicar também a <code>claim_site_quote_notification</code> (linha 151).</dd></div>
+              <div><dt>Aceite</dt><dd>Cada reivindicação produz token distinto, que trafega até o handler.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">pgTAP: duas reivindicações do mesmo job geram tokens diferentes</dd></div>
+            </dl>
+            <p class="flag">Migration exclusivamente aditiva no Supabase isolado do site (<code>xlzmclcjdncjfdrjxclt</code>). Nenhuma alteração no projeto canônico Promo Gifts.</p>
+          </article>
+
+          <article class="step" data-phase="2" data-flag="gate defect">
+            <div class="step-head"><span class="step-num">16</span><h3>Exigir o lease na finalização</h3><span class="tag tag-def">R04</span><span class="tag tag-gate">Bloqueia</span></div>
+            <dl>
+              <div><dt>Evidência</dt><dd>Linha 145: <code>where delivery.id = p_delivery_id and delivery.status = 'processing'</code>. Sem verificação de tentativa. A revisão reproduziu um trabalhador da tentativa 4 finalizando a reivindicação da tentativa 5.</dd></div>
+              <div><dt>Entrega</dt><dd><code>p_lease_token</code> obrigatório, comparado no <code>where</code>. Lease obsoleto retorna <code>false</code> sem escrever.</dd></div>
+              <div><dt>Aceite</dt><dd>Token divergente não altera a linha; o <code>false</code> é tratado conforme a Etapa 14.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">notification_outbox.test.sql, cenário de retorno tardio; reexecutar outbox.sql</dd></div>
+            </dl>
+            <p class="flag">Os timeouts atuais (7s e 20s) são menores que a janela de recuperação de 10 minutos, o que torna o cenário improvável no fluxo usual — mas o contrato do banco não o impede, e a <strong>Etapa 24</strong> mostra que a função pode ser morta pela plataforma antes de qualquer timeout interno.</p>
+          </article>
+
+          <article class="step" data-phase="2" data-flag="gate defect">
+            <div class="step-head"><span class="step-num">17</span><h3>Separar recuperação de <code>processing</code> do limite de tentativas</h3><span class="tag tag-def">R03</span><span class="tag tag-gate">Bloqueia</span></div>
+            <dl>
+              <div><dt>Evidência</dt><dd>Linha 66: <code>delivery.attempts &lt; 5</code> aplica-se ao predicado inteiro, incluindo o ramo de recuperação da linha 69 (<code>status = 'processing' and updated_at &lt;= now() - interval '10 minutes'</code>). Job em <code>processing</code> com 5 tentativas <strong>nunca</strong> é reavaliado: fica preso, sem estado terminal e sem alerta.</dd></div>
+              <div><dt>Entrega</dt><dd>Desmembrar o predicado — o limite governa apenas nova tentativa (<code>pending</code>/<code>failed</code>); <code>processing</code> expirado é sempre elegível a <strong>reconciliação</strong>, ainda que não a novo envio.</dd></div>
+              <div><dt>Aceite</dt><dd>Job com 5 tentativas e 20 minutos de inatividade é recuperado e atinge estado terminal ou de revisão.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">pgTAP reproduzindo o cenário descrito na revisão</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="2" data-flag="gate defect">
+            <div class="step-head"><span class="step-num">18</span><h3>Estado terminal para tentativa esgotada</h3><span class="tag tag-def">R03</span><span class="tag tag-gate">Bloqueia</span></div>
+            <dl>
+              <div><dt>Evidência</dt><dd>A tabela suporta <code>sent</code>, <code>failed</code>, <code>cancelled</code> (linha 127). Não há estado que signifique “esgotou as tentativas e requer decisão humana”.</dd></div>
+              <div><dt>Entrega</dt><dd>Estado <code>exhausted</code> (ou <code>needs_review</code>), atribuído quando a recuperação da Etapa 17 encontra job sem tentativas restantes. Sai da elegibilidade automática e entra no monitoramento da Etapa 29.</dd></div>
+              <div><dt>Aceite</dt><dd>Nenhum job permanece em <code>processing</code> por mais de uma janela de recuperação.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">pgTAP + consulta operacional retornando zero jobs presos</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="2" data-flag="gate defect">
+            <div class="step-head"><span class="step-num">19</span><h3>Chave de idempotência no WhatsApp</h3><span class="tag tag-def">R02</span><span class="tag tag-gate">Bloqueia</span></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>notifications.ts:102</code> envia <code>Idempotency-Key</code> ao Resend. O POST à Meta (<code>:125-137</code>) <strong>não tem equivalente</strong>. Com aceite da Meta e falha de finalização, o job volta a ser elegível e o mesmo destinatário recebe a mesma mensagem: a revisão observou duas submissões idênticas ao provedor simulado.</dd></div>
+              <div><dt>Entrega</dt><dd>Usar o mecanismo de deduplicação suportado pela Graph API na versão em uso, derivado de <code>requestId</code> + canal. Se a API não oferecer garantia adequada, a idempotência passa à Etapa 21 e isso deve ser <strong>registrado</strong> — não presumido.</dd></div>
+              <div><dt>Aceite</dt><dd>Retomada após aceite não produz segunda submissão ao transporte.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">cenário de notifications.mjs passa de duas submissões a uma</dd></div>
+            </dl>
+            <p class="flag warn"><b>Limite honesto:</b> confirmar a janela e as garantias reais de deduplicação de cada provedor antes de anunciar entrega única. A unicidade da linha na fila <strong>não</strong> prova entrega única.</p>
+          </article>
+
+          <article class="step" data-phase="2" data-flag="gate">
+            <div class="step-head"><span class="step-num">20</span><h3>Modelar o resultado inconclusivo</h3><span class="tag tag-gate">Bloqueia</span></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>deliverJob</code> (<code>:161-178</code>) tem dois desfechos booleanos. O comentário das linhas 174-175 reconhece o caso ambíguo — provedor recebeu, finalização falhou — mas o tipo não o representa, e o <code>catch</code> da linha 173 o colapsa em <code>false</code>, que significa “falhou”.</dd></div>
+              <div><dt>Entrega</dt><dd>União discriminada <code>delivered | failed | inconclusive</code>, preservando o <code>provider_message_id</code> no caso inconclusivo para permitir reconciliação.</dd></div>
+              <div><dt>Aceite</dt><dd>O caminho inconclusivo é distinguível nos logs e no banco, e não realimenta reenvio automático.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">testes de API cobrindo os três desfechos</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="2" data-flag="gate">
+            <div class="step-head"><span class="step-num">21</span><h3>Reconciliação por identificador do provedor</h3><span class="tag tag-gate">Bloqueia</span></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>sendEmail</code> (<code>:107</code>) e <code>sendWhatsApp</code> (<code>:141</code>) retornam o ID do provedor, persistido apenas quando <code>p_status = 'sent'</code> (migration, linha 139). No caminho inconclusivo, o ID é <strong>perdido</strong>.</dd></div>
+              <div><dt>Entrega</dt><dd>Persistir o ID assim que conhecido, antes da finalização. A recuperação da Etapa 17, ao encontrar job com ID registrado, reconcilia em vez de reenviar.</dd></div>
+              <div><dt>Aceite</dt><dd>Job interrompido após aceite do provedor é fechado por reconciliação, sem nova chamada ao transporte.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">pgTAP + teste de API do ciclo aceite → interrupção → recuperação</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="2" data-flag="gate">
+            <div class="step-head"><span class="step-num">22</span><h3>Matriz pgTAP de retomadas</h3><span class="tag tag-gate">Bloqueia</span></div>
+            <dl>
+              <div><dt>Evidência</dt><dd>118 testes pgTAP aprovados, 17 da fila, “sem matriz completa de retomadas” conforme a revisão.</dd></div>
+              <div><dt>Entrega</dt><dd>Cobrir interrupção antes do envio, depois do aceite e durante a finalização; lease obsoleto; tentativa esgotada em <code>processing</code>; concorrência entre dois trabalhadores sobre o mesmo job.</dd></div>
+              <div><dt>Aceite</dt><dd>Cada defeito R01–R04 tem ao menos um teste que reprova sem a respectiva correção.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">npm run db:site:test</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="2" data-flag="gate">
+            <div class="step-head"><span class="step-num">23</span><h3>Testes de API dos novos contratos</h3><span class="tag tag-gate">Bloqueia</span></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>tests/api/notifications.test.ts</code> existe; a revisão registra seis testes de notificações entre os 180 do Vitest — insuficiente para os contratos das Etapas 14–21.</dd></div>
+              <div><dt>Entrega</dt><dd>Cobrir boolean <code>false</code>, lease divergente, os três desfechos da Etapa 20 e o caminho de reconciliação. <code>fetch</code> inteiramente simulado, sem provedor real.</dd></div>
+              <div><dt>Aceite</dt><dd>A suíte reprova se qualquer correção da Fase 2 for revertida.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">npm run test</dd></div>
+            </dl>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- ================= FASE 3 ================= -->
+      <section class="phase" id="fase-3">
+        <div class="phase-head">
+          <span class="phase-kicker">Fase 3 · Etapas 24–31</span>
+          <h2>Capacidade e entrega</h2>
+        </div>
+        <p class="phase-note">Também bloqueia a ativação de provedores. Define quanto a fila aguenta, em quanto tempo recupera, e o que o cliente efetivamente recebe.</p>
+        <div class="steps">
+
+          <article class="step" data-phase="3" data-flag="new gate">
+            <div class="step-head"><span class="step-num">24</span><h3>Declarar <code>maxDuration</code> das funções na Vercel</h3><span class="tag tag-new">Novo</span><span class="tag tag-gate">Bloqueia</span></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>vercel.json</code> <strong>não possui bloco <code>functions</code></strong> — verificado nas 84 linhas do arquivo. Todas as funções usam o <code>maxDuration</code> padrão da plataforma. Enquanto isso, <code>api/notifications.ts:6</code> declara <code>REQUEST_TIMEOUT_MS = 20_000</code> e o aplica em <code>:231</code>.</dd></div>
+              <div><dt>Consequência</dt><dd>O AbortController de 20 segundos <strong>nunca chega a disparar</strong> se o padrão da plataforma for menor. A invocação é encerrada primeiro, sem executar o <code>finally</code> da linha 244 e sem finalizar os jobs já reivindicados. Esses jobs ficam em <code>processing</code> — e, ao atingirem a quinta tentativa, tornam-se exatamente os jobs irrecuperáveis do R03.</dd></div>
+              <div><dt>Entrega</dt><dd>Bloco <code>functions</code> com <code>maxDuration</code> explícito por rota, com folga sobre o timeout interno de cada handler (<code>notifications</code> 20s; <code>retention</code>, <code>customer-proposals</code> e <code>siteDatabase</code> 10s; <code>sitemap</code> e <code>publicProductPage</code> 8s). Confirmar o teto real do plano contratado e, se inferior a 20s, <strong>reduzir o timeout interno</strong> — nunca deixar o interno maior que o da plataforma.</dd></div>
+              <div><dt>Aceite</dt><dd>Para todo handler, <code>timeout interno &lt; maxDuration declarado</code>, com a relação registrada em comentário.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">teste que lê vercel.json e as constantes de api/** e reprova se algum interno ≥ declarado</dd></div>
+            </dl>
+            <p class="flag warn"><b>Elo que fecha o ciclo.</b> O R03 descreve o sintoma no banco; a ausência de <code>maxDuration</code> é um dos mecanismos que o produz em produção. A revisão de 12/09 não registrou este ponto.</p>
+          </article>
+
+          <article class="step" data-phase="3" data-flag="gate defect">
+            <div class="step-head"><span class="step-num">25</span><h3>Orçamento de tempo por job, não por lote</h3><span class="tag tag-def">R05</span><span class="tag tag-gate">Bloqueia</span></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>:230-239</code> cria <strong>um</strong> <code>AbortController</code> para todo o lote e itera sequencialmente sobre até dez jobs (<code>BATCH_SIZE = 10</code>, linha 5). Os últimos herdam um sinal possivelmente já abortado.</dd></div>
+              <div><dt>Entrega</dt><dd>Orçamento por job, derivado do tempo restante do lote. Job que não couber <strong>não é reivindicado</strong>, em vez de reivindicado e abortado.</dd></div>
+              <div><dt>Aceite</dt><dd>Nenhum job é marcado como falha por um sinal abortado que nunca teve chance de usar.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">teste com transporte lento confirmando parada limpa</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="3" data-flag="gate">
+            <div class="step-head"><span class="step-num">26</span><h3>Timeout por canal na confirmação imediata</h3><span class="tag tag-gate">Bloqueia</span></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>deliverQuoteConfirmationsNow</code> (<code>:191-192</code>) cria um <code>AbortController</code> de 7 segundos e o compartilha pelo laço sequencial das linhas 194-202, que percorre até dois canais. Se o e-mail consumir 6 segundos, o WhatsApp fica com 1.</dd></div>
+              <div><dt>Entrega</dt><dd>Orçamento por canal, ou paralelização com <code>Promise.allSettled</code> sob orçamento individual.</dd></div>
+              <div><dt>Aceite</dt><dd>Lentidão do e-mail não converte o WhatsApp em <code>pending</code> por falta de tempo.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">teste com e-mail lento e WhatsApp rápido, ambos sent</dd></div>
+            </dl>
+            <p class="flag">Os 7s precisam caber no <code>maxDuration</code> de <code>/api/quote-requests</code> (Etapa 24): a função é chamada de forma síncrona em <code>leadHandler.ts:112</code>, dentro da requisição do cliente.</p>
+          </article>
+
+          <article class="step" data-phase="3" data-flag="gate defect">
+            <div class="step-head"><span class="step-num">27</span><h3>Frequência do cron compatível com o SLA</h3><span class="tag tag-def">R05</span><span class="tag tag-gate">Bloqueia</span></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>vercel.json:5</code> agenda <code>/api/notifications</code> em <code>15 3 * * *</code> — uma vez por dia. Com lote de 10 e sem drenagem, cem mensagens acumuladas exigem dez dias. O backoff de <code>:153</code> calcula elegibilidade em minutos, mas não existe agendamento em minutos que a honre.</dd></div>
+              <div><dt>Entrega</dt><dd>Definir o SLA com o negócio e ajustar a frequência. A cadência precisa ser coerente com o backoff — senão o cálculo de <code>retrySeconds</code> é decorativo.</dd></div>
+              <div><dt>Aceite</dt><dd>SLA escrito; frequência compatível com o pico; nenhuma comunicação promete recuperação mais rápida do que a configuração entrega.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">cálculo documentado (pico × lote × frequência) revisado no PR</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="3" data-flag="gate defect">
+            <div class="step-head"><span class="step-num">28</span><h3>Drenagem de múltiplos lotes por invocação</h3><span class="tag tag-def">R05</span><span class="tag tag-gate">Bloqueia</span></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>:233</code> reivindica <strong>um</strong> lote e o laço <code>:236-239</code> o processa. Não há repetição enquanto houver backlog e tempo.</dd></div>
+              <div><dt>Entrega</dt><dd>Laço externo drenando lotes sucessivos enquanto houver orçamento (Etapa 25) e jobs elegíveis, com teto por invocação.</dd></div>
+              <div><dt>Aceite</dt><dd>Invocação única esvazia backlog dentro do orçamento, em vez de parar em dez mensagens.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">teste com 25 jobs pendentes drenados em uma invocação</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="3" data-flag="gate defect">
+            <div class="step-head"><span class="step-num">29</span><h3>Monitoramento de idade da fila</h3><span class="tag tag-def">R05</span><span class="tag tag-gate">Bloqueia</span></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>:240</code> registra <code>site_notifications_completed</code> com contagens do lote. Não há métrica da <strong>idade</strong> do item mais antigo nem alerta de acúmulo. Com cron diário, um acúmulo passa dias despercebido.</dd></div>
+              <div><dt>Entrega</dt><dd>Idade do job mais antigo por canal; contagem em <code>exhausted</code> (Etapa 18); alerta ao ultrapassar o SLA da Etapa 27. Sem conteúdo pessoal — manter o padrão da linha 240, que registra apenas contagens e canais.</dd></div>
+              <div><dt>Aceite</dt><dd>Acúmulo ou job preso gera alerta ativo, não descoberta manual.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">injetar job antigo em ambiente local e confirmar o disparo</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="3" data-flag="gate defect">
+            <div class="step-head"><span class="step-num">30</span><h3>Webhooks de entrega e devolução</h3><span class="tag tag-def">R07</span><span class="tag tag-gate">Bloqueia</span></div>
+            <dl>
+              <div><dt>Evidência</dt><dd>Onze endpoints em <code>api/</code>; <strong>nenhum</strong> é webhook de provedor. HTTP aceito com ID (<code>:106</code>, <code>:140</code>) resulta em <code>sent</code>. Não há estado de entregue nem devolvido, e o aceite de bounce do LK45 não é satisfeito.</dd></div>
+              <div><dt>Entrega</dt><dd>Webhook com <strong>validação de assinatura</strong>, deduplicação e ordenação de eventos; estados distintos de aceite, entrega, devolução e reclamação. Endpoint sem verificação de assinatura é superfície de abuso e não deve ser publicado.</dd></div>
+              <div><dt>Aceite</dt><dd>Ciclo aceite → entrega → devolução refletido no banco e validado com destinatários controlados.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">testes de API com payloads assinados válidos e inválidos</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="3" data-flag="gate defect">
+            <div class="step-head"><span class="step-num">31</span><h3>Definir o conteúdo do comprovante</h3><span class="tag tag-def">R06</span><span class="tag tag-gate">Bloqueia</span></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>:92-99</code> monta e-mail com nome, empresa, protocolo, itens, quantidades e cores — <strong>sem</strong> ação, prazo, verba, observações e contexto. <code>:132-134</code> envia ao template da Meta apenas nome, protocolo e empresa; a lista de produtos não integra o payload. A interface, porém, sugere confirmação do briefing.</dd></div>
+              <div><dt>Entrega</dt><dd>Decidir entre comprovante resumido e cópia integral. Resumo ⇒ <strong>ajustar o texto da interface</strong>. Cópia ⇒ incluir os campos acordados ou oferecer acesso autenticado, com privacidade e versionamento.</dd></div>
+              <div><dt>Aceite</dt><dd>O que a interface promete é o que o cliente recebe, por canal.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">teste comparando campos prometidos na UI com os efetivamente enviados</dd></div>
+            </dl>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- ================= FASE 4 ================= -->
+      <section class="phase" id="fase-4">
+        <div class="phase-head">
+          <span class="phase-kicker">Fase 4 · Etapas 32–37</span>
+          <h2>Performance</h2>
+        </div>
+        <p class="phase-note">O bundle de entrada tem 362.565 bytes contra um orçamento de 380 KiB — folga de 4,6%. Qualquer funcionalidade nova reprova o orçamento.</p>
+        <div class="steps">
+
+          <article class="step" data-phase="4">
+            <div class="step-head"><span class="step-num">32</span><h3>Carregar GSAP sob demanda</h3></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>gsap</code> está no bundle de entrada — <code>dist/assets/index-COB8q88v.js</code> contém a biblioteca. É usada <strong>exclusivamente</strong> por <code>src/components/FoldText.tsx</code> (linhas 2, 124, 125, 128, 154), um efeito tipográfico decorativo. Todo visitante baixa a biblioteca de animação no caminho crítico, inclusive quem nunca vê o componente.</dd></div>
+              <div><dt>Entrega</dt><dd>Importar GSAP dinamicamente dentro de <code>FoldText</code>, com fallback estático sem animação enquanto carrega — e permanentemente sob <code>prefers-reduced-motion</code>.</dd></div>
+              <div><dt>Aceite</dt><dd>GSAP sai do chunk de entrada; o texto renderiza legível antes de a animação carregar.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">npm run build &amp;&amp; grep -l gsap dist/assets/index-*.js → vazio</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="4">
+            <div class="step-head"><span class="step-num">33</span><h3>Recuperar folga no bundle de entrada</h3></div>
+            <dl>
+              <div><dt>Evidência</dt><dd>362.565 bytes contra orçamento de 380 KiB em <code>check-performance-budget.mjs:29</code>. O chunk <code>createLucideIcon-9-Lt1dDQ.js</code> soma 41.409 bytes.</dd></div>
+              <div><dt>Entrega</dt><dd>Após a Etapa 32, analisar a composição do chunk e mover o não crítico para carregamento por rota. Meta: folga mínima de 20%.</dd></div>
+              <div><dt>Aceite</dt><dd>Entrada abaixo de 300 KiB brutos, com o orçamento reduzido na mesma medida para travar o ganho.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">npm run build &amp;&amp; npm run check:performance-budget</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="4">
+            <div class="step-head"><span class="step-num">34</span><h3>Medir o orçamento em bytes comprimidos</h3></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>check-performance-budget.mjs:10</code> usa <code>stat().size</code> — bytes <strong>brutos</strong>. O navegador transfere Brotli. O orçamento mede uma grandeza que ninguém baixa, superestimando o peso real e mascarando regressões de compressibilidade.</dd></div>
+              <div><dt>Entrega</dt><dd>Medir também o tamanho Brotli e aplicar orçamentos separados para bruto (custo de parse) e comprimido (custo de rede).</dd></div>
+              <div><dt>Aceite</dt><dd>O script informa e limita as duas grandezas.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">npm run check:performance-budget exibe ambas</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="4">
+            <div class="step-head"><span class="step-num">35</span><h3>Revisar o peso do CSS</h3></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>index-CdAS_n0j.css</code> tem 161.237 bytes contra orçamento de 180 KiB (<code>:27</code>) — folga de 10%. Todo o CSS vem de um único <code>src/styles.css</code>, apesar de <code>cssCodeSplit: true</code> em <code>vite.config.ts:11</code>.</dd></div>
+              <div><dt>Entrega</dt><dd>Identificar regras não utilizadas e avaliar divisão por rota, aproveitando o <code>cssCodeSplit</code> já ativo.</dd></div>
+              <div><dt>Aceite</dt><dd>CSS crítico reduzido sem regressão visual nos quatro projetos Playwright.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">npm run test:e2e &amp;&amp; npm run test:e2e:cross-browser</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="4">
+            <div class="step-head"><span class="step-num">36</span><h3>Verificar o tree-shaking do lucide-react</h3></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>lucide-react</code> está fixado em <code>1.23.0</code> — exato, sem <code>^</code>, único caso no <code>package.json</code> — e produz chunk de 41.409 bytes.</dd></div>
+              <div><dt>Entrega</dt><dd>Auditar pontos de importação e garantir importação nomeada por ícone. Documentar o motivo da fixação: se for defeito conhecido da versão, registrar; se arbitrária, alinhar ao <code>^</code> das demais.</dd></div>
+              <div><dt>Aceite</dt><dd>O chunk contém apenas ícones referenciados; a fixação tem justificativa escrita.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">inspeção do chunk após build</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="4">
+            <div class="step-head"><span class="step-num">37</span><h3>Métricas de campo (Core Web Vitals)</h3></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>@vercel/analytics</code> está nas dependências e <code>check-performance-budget.mjs:26</code> afirma explicitamente que o orçamento “não substitui Core Web Vitals reais”. A revisão confirma ausência de medição de campo.</dd></div>
+              <div><dt>Entrega</dt><dd>Ativar coleta real e estabelecer linha de base de LCP, INP e CLS <strong>antes</strong> das Etapas 32–35, para que o ganho seja demonstrável.</dd></div>
+              <div><dt>Aceite</dt><dd>Painel com série histórica; ganhos visíveis em dados de campo.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">comparação antes/depois no painel</dd></div>
+            </dl>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- ================= FASE 5 ================= -->
+      <section class="phase" id="fase-5">
+        <div class="phase-head">
+          <span class="phase-kicker">Fase 5 · Etapas 38–42</span>
+          <h2>Observabilidade</h2>
+        </div>
+        <p class="phase-note">O endpoint que recebe todos os orçamentos do site devolve 500 sem registrar nada. Sem esta fase, não há aceite operacional possível.</p>
+        <div class="steps">
+
+          <article class="step" data-phase="5">
+            <div class="step-head"><span class="step-num">38</span><h3>Erro 500 deixa de ser silencioso</h3></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>api/_lib/leadHandler.ts:118-124</code> — o <code>catch</code> final devolve <code>500 internal_error</code> <strong>sem nenhum log</strong>. Um erro não previsto no fluxo de captação de leads não deixa rastro algum. Este é o endpoint que recebe todos os orçamentos do site.</dd></div>
+              <div><dt>Entrega</dt><dd>Log estruturado antes de responder 500, com classe do erro, rota, timestamp e correlação — <strong>sem dados pessoais</strong>, seguindo o padrão já adotado em <code>notifications.ts:240</code>.</dd></div>
+              <div><dt>Aceite</dt><dd>Todo 500 produz exatamente uma entrada de log correlacionável à resposta.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">teste de API que força erro inesperado e confirma o log</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="5">
+            <div class="step-head"><span class="step-num">39</span><h3>Instrumentar os <code>catch</code> silenciosos</h3></div>
+            <dl>
+              <div><dt>Evidência</dt><dd>Vários blocos descartam o erro: <code>notifications.ts:167</code>, <code>:173-177</code>, <code>:203-205</code> (<code>catch { }</code> que engole toda falha da confirmação imediata) e <code>CustomerAuthContext.tsx:48</code>.</dd></div>
+              <div><dt>Entrega</dt><dd>Cada <code>catch</code> registra em nível apropriado. A decisão de <strong>não propagar</strong> é preservada — o que muda é deixar de perder a informação.</dd></div>
+              <div><dt>Aceite</dt><dd>Nenhum <code>catch</code> descarta erro sem log ou métrica.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">regra de lint no-empty com allowEmptyCatch: false + revisão dos comentários</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="5">
+            <div class="step-head"><span class="step-num">40</span><h3>Identificador de correlação fim a fim</h3></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>leadHandler.ts:97</code> já lê <code>idempotency-key</code> e <code>clientRequestId</code>, mas não existe correlação que atravesse requisição, persistência e fila de notificações.</dd></div>
+              <div><dt>Entrega</dt><dd>Propagar um identificador da requisição até os logs da fila, permitindo reconstruir o ciclo completo de um orçamento.</dd></div>
+              <div><dt>Aceite</dt><dd>Dado um protocolo, recupera-se toda a cadeia nos logs.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">exercício de rastreamento em ambiente local</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="5">
+            <div class="step-head"><span class="step-num">41</span><h3>Alertas do cron</h3></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>vercel.json:3-6</code> define dois crons. O handler devolve <code>503</code> (<code>notifications.ts:243</code>) em falha, mas nada alerta quando o cron falha repetidamente ou deixa de executar. A revisão aponta que o histórico de execução ainda precisa ser verificado.</dd></div>
+              <div><dt>Entrega</dt><dd>Alerta para falha consecutiva e para ausência de execução na janela esperada, cobrindo os dois crons.</dd></div>
+              <div><dt>Aceite</dt><dd>Cron que para de executar gera alerta em uma janela, não na auditoria seguinte.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">simular falha e confirmar o disparo</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="5">
+            <div class="step-head"><span class="step-num">42</span><h3>Relato de erros do frontend</h3></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>AppErrorBoundary.tsx:19</code> faz apenas <code>console.error</code>. Erro em produção fica no console do visitante e nunca chega à equipe.</dd></div>
+              <div><dt>Entrega</dt><dd>Encaminhar exceções a um coletor, com amostragem e sem dados pessoais. Respeitar o CSP vigente (<code>vercel.json:64</code>): o <code>connect-src</code> está restrito a três origens e precisará incluir o coletor escolhido.</dd></div>
+              <div><dt>Aceite</dt><dd>Erro de interface em produção gera evento consultável.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">erro deliberado em preview aparece no painel; CSP não bloqueia</dd></div>
+            </dl>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- ================= FASE 6 ================= -->
+      <section class="phase" id="fase-6">
+        <div class="phase-head">
+          <span class="phase-kicker">Fase 6 · Etapas 43–47</span>
+          <h2>Qualidade e dependências</h2>
+        </div>
+        <p class="phase-note"><code>npm audit</code> reporta zero vulnerabilidades e o CI já fixa actions por SHA — a postura de segurança é boa. Falta processo contínuo e análise de código.</p>
+        <div class="steps">
+
+          <article class="step" data-phase="6">
+            <div class="step-head"><span class="step-num">43</span><h3>Atualização escalonada de dependências</h3></div>
+            <dl>
+              <div><dt>Evidência</dt><dd>Zero vulnerabilidades, mas defasagem relevante: <code>typescript</code> 5.9.3 → 7.0.2 (duas majors), <code>vitest</code> 4.1.11 → 5.0.0, <code>jsdom</code> 29.1.1 → 30.0.1, <code>lucide-react</code> 1.23.0 → 1.45.0, <code>jest-dom</code> 6.9.1 → 7.0.1, <code>react</code>/<code>react-dom</code> 19.2.8 → 19.3.0, <code>vite</code> 8.2.2 → 8.3.0.</dd></div>
+              <div><dt>Entrega</dt><dd>Três ondas, cada uma em PR próprio: (a) patches e minors — React 19.3, Vite 8.3, <code>@types/*</code>; (b) majors de teste — Vitest 5, jsdom 30, jest-dom 7; (c) TypeScript 7, isoladamente.</dd></div>
+              <div><dt>Aceite</dt><dd>Cada onda passa <code>npm run check</code> completo antes da seguinte.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">npm run check por onda</dd></div>
+            </dl>
+            <p class="flag warn"><b>Ordem obrigatória:</b> TypeScript 7 <strong>depois</strong> da Etapa 4. Ativar <code>strict</code> e trocar de major ao mesmo tempo torna impossível atribuir cada erro à sua causa.</p>
+          </article>
+
+          <article class="step" data-phase="6">
+            <div class="step-head"><span class="step-num">44</span><h3>Atualização automatizada de dependências</h3></div>
+            <dl>
+              <div><dt>Evidência</dt><dd>Não há <code>.github/dependabot.yml</code> nem Renovate. As três defasagens de major indicam ausência de processo contínuo.</dd></div>
+              <div><dt>Entrega</dt><dd>Dependabot para <code>npm</code> e <code>github-actions</code>, agrupando patches e minors, com majors em PR individual.</dd></div>
+              <div><dt>Aceite</dt><dd>PRs automáticos com CI verde; nenhuma major entra sem revisão.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">primeiro ciclo semanal abre PRs corretamente agrupados</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="6">
+            <div class="step-head"><span class="step-num">45</span><h3>Análise estática de segurança no CI</h3></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>quality.yml</code> já faz o essencial — actions fixadas por SHA, <code>permissions: contents: read</code>, <code>npm audit --audit-level=high</code> e rejeição de sourcemaps em produção. Falta análise de código e revisão de dependências em PR.</dd></div>
+              <div><dt>Entrega</dt><dd>CodeQL para JS/TS e <code>dependency-review-action</code> nos PRs. Acrescentar <code>concurrency</code> a <code>database.yml</code> e <code>graphify.yml</code>, que hoje não o têm — apenas <code>quality.yml</code> o declara, e sem isso pushes seguidos desperdiçam execuções.</dd></div>
+              <div><dt>Aceite</dt><dd>PR com dependência vulnerável ou padrão inseguro reprova antes do merge.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">PR de teste com dependência vulnerável conhecida reprova</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="6">
+            <div class="step-head"><span class="step-num">46</span><h3>Resolver o check Supabase Preview</h3></div>
+            <dl>
+              <div><dt>Evidência</dt><dd>A revisão registra <code>validate</code>, <code>cross-browser</code>, <code>Migrations and pgTAP</code> e Graphify aprovados, mas <strong>Supabase Preview falhou</strong>, com causa atual não resolvida. Os três workflows do repositório estão verdes no HEAD — logo, o check que falha é da integração externa, fora de <code>.github/workflows/</code>.</dd></div>
+              <div><dt>Entrega</dt><dd>Diagnosticar a causa na integração Supabase↔GitHub e corrigi-la na origem.</dd></div>
+              <div><dt>Aceite</dt><dd>Check aprovado por execução real.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">gh pr checks em PR novo</dd></div>
+            </dl>
+            <p class="flag warn"><b>Restrição:</b> não alterar ledger de migrations para fabricar aprovação. Um check verde obtido por manipulação de histórico é pior que um check vermelho honesto.</p>
+          </article>
+
+          <article class="step" data-phase="6">
+            <div class="step-head"><span class="step-num">47</span><h3>Acessibilidade além do axe</h3></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>e2e/smoke.spec.ts</code> aplica <code>AxeBuilder</code> com <code>wcag2a</code> a <code>wcag22aa</code> em duas rotas (linhas 378 e 600). A revisão registra ausência de leitores de tela e dispositivos físicos.</dd></div>
+              <div><dt>Entrega</dt><dd>Estender o axe às rotas não cobertas e executar roteiro manual com NVDA ou VoiceOver nos fluxos de orçamento, login e seleção compartilhada. Somar <code>eslint-plugin-jsx-a11y</code> (Etapa 2).</dd></div>
+              <div><dt>Aceite</dt><dd>Roteiro manual documentado com achados e correções; rotas principais cobertas.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">npm run test:e2e + relatório do roteiro manual</dd></div>
+            </dl>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- ================= FASE 7 ================= -->
+      <section class="phase" id="fase-7">
+        <div class="phase-head">
+          <span class="phase-kicker">Fase 7 · Etapas 48–50</span>
+          <h2>Dívida estrutural e governança</h2>
+        </div>
+        <p class="phase-note">Reduzir a superfície dos módulos maiores e fixar uma fonte única de estado para o produto.</p>
+        <div class="steps">
+
+          <article class="step" data-phase="7">
+            <div class="step-head"><span class="step-num">48</span><h3>Decompor os módulos de maior superfície</h3></div>
+            <dl>
+              <div><dt>Evidência</dt><dd><code>src/pages/CatalogPage.tsx</code> tem 552 linhas e concentra uma das supressões órfãs (linha 98). Seguem <code>src/lib/catalog.ts</code> (492), <code>api/_lib/contracts.ts</code> (374) e <code>CommemorativeDatesPage.tsx</code> (340, também com supressão na linha 196).</dd></div>
+              <div><dt>Entrega</dt><dd>Extrair lógica de estado e filtragem de <code>CatalogPage</code> para hooks testáveis isoladamente. Decomposição orientada por testabilidade — cada extração se justifica por permitir um teste hoje impossível.</dd></div>
+              <div><dt>Aceite</dt><dd>Nenhuma página acima de 300 linhas; lógica extraída com cobertura própria; comportamento idêntico verificado por E2E.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">npm run test &amp;&amp; npm run test:e2e</dd></div>
+            </dl>
+            <p class="flag">Fazer <strong>depois</strong> da Etapa 3. Refatorar um efeito cujas dependências nunca foram validadas é reescrever sobre terreno não verificado.</p>
+          </article>
+
+          <article class="step" data-phase="7">
+            <div class="step-head"><span class="step-num">49</span><h3>Fechar as 12 referências ausentes por lotes coerentes</h3></div>
+            <dl>
+              <div><dt>Evidência</dt><dd>A revisão classifica 12 referências como ausentes, agrupadas em 11 linhas (UX65 e LK43 tratam do mesmo upload). Onze outras dependem de material, pesquisa ou operação externa.</dd></div>
+              <div><dt>Entrega</dt><dd>Três lotes por afinidade técnica, não por plano de origem: <strong>upload privado</strong> (UX65/LK43), reusando a política de retenção de <code>20260911130000_add_site_data_retention.sql</code>; <strong>composição de kits</strong> (LK27/28/29), com aritmética real (100 kits × 2 cadernos = 200 cadernos); <strong>continuidade</strong> (UX59/60), com propriedade por conta, versões e conflitos. UX34, UX84, LK10, GR40 e GR44 dependem de curadoria ou benchmark e seguem trilha separada.</dd></div>
+              <div><dt>Aceite</dt><dd>Cada lote entrega código, testes, ativação e evidência operacional. Nada é declarado pronto sem os quatro.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">atualização da matriz de 230 referências com evidência por linha</dd></div>
+            </dl>
+          </article>
+
+          <article class="step" data-phase="7">
+            <div class="step-head"><span class="step-num">50</span><h3>Governança do ledger de fechamento</h3></div>
+            <dl>
+              <div><dt>Evidência</dt><dd>O repositório acumula planos sobrepostos — UX 100, Lukka 50, Graphify 50, Área do Cliente 30 — e a revisão registra que as listas literais de 50 etapas de catálogos e de datas comemorativas <strong>não foram recuperadas no repositório</strong>. Alerta também contra calcular percentual global de produto pronto a partir de 230 referências com sobreposição.</dd></div>
+              <div><dt>Entrega</dt><dd>Consolidar a matriz como fonte única, com atualização obrigatória no PR que altera o estado de uma referência. Registrar decisão formal sobre os quatro desvios do Graphify (GR14 grafo não direcionado, GR24 vizinhança em vez de dependentes direcionais, GR26 reconstrução total, GR30 hooks não instalados): ou a alternativa é aceita como especificação vigente, ou a original entra no backlog.</dd></div>
+              <div><dt>Aceite</dt><dd>Estado de qualquer referência consultável sem reabrir auditoria completa; os quatro desvios com decisão registrada e datada.</dd></div>
+              <div><dt>Verificação</dt><dd class="verify">revisão trimestral confirmando que a matriz corresponde ao código</dd></div>
+            </dl>
+            <p class="flag">Deixá-los indefinidamente como “alternativa” mantém dívida sem dono.</p>
+          </article>
+
+        </div>
+      </section>
+
+      <div class="closing">
+        <section>
+          <h2>Três achados novos desta rodada</h2>
+          <ol>
+            <li><b>Etapa 4</b> — todo o backend serverless compila sem <code>strict</code>. O código que valida entrada de clientes anônimos é o de garantia de tipos mais fraca do projeto.</li>
+            <li><b>Etapa 24</b> — <code>maxDuration</code> não declarado contra um timeout interno de 20s. Fecha o ciclo causal do R03: explica <em>como</em> jobs chegam ao estado <code>processing</code> irrecuperável em produção.</li>
+            <li><b>Etapa 3</b> — três supressões de <code>exhaustive-deps</code> ativas sobre um linter inexistente. As dependências desses efeitos nunca foram verificadas por ferramenta alguma.</li>
+          </ol>
+        </section>
+        <section>
+          <h2>O que este plano não faz</h2>
+          <p>Não substitui pesquisa com compradores (UX20/91, LK02), não produz material autorizado (UX26/28, LK03/31–34/40), não configura credenciais de provedores e não demonstra recebimento real de mensagens.</p>
+          <p>Essas dependências são externas ao código e permanecem conforme registrado na revisão de 12/09. Mesmo após resolvê-las, as entregas ausentes da Etapa 49 continuam pendentes.</p>
+        </section>
+      </div>
+
+      <p class="disclaimer"><b>Nenhuma etapa deste plano foi executada.</b> Este documento é um plano derivado de inspeção do commit <code>f20df44</code>, não um relatório de execução. As citações <code>arquivo:linha</code> foram verificadas contra a árvore desse commit.</p>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
+    var steps = Array.prototype.slice.call(document.querySelectorAll('.step'));
+    var phases = Array.prototype.slice.call(document.querySelectorAll('.phase'));
+    var tally = document.getElementById('tally');
+    var empty = document.getElementById('empty');
+
+    function apply(filter) {
+      var shown = 0;
+      steps.forEach(function (step) {
+        var flags = (step.getAttribute('data-flag') || '').split(/\s+/);
+        var match = filter === 'all' || flags.indexOf(filter) !== -1;
+        step.hidden = !match;
+        if (match) shown++;
+      });
+      phases.forEach(function (phase) {
+        var any = Array.prototype.some.call(phase.querySelectorAll('.step'), function (s) { return !s.hidden; });
+        phase.hidden = !any;
+      });
+      tally.textContent = shown === steps.length
+        ? steps.length + ' de ' + steps.length + ' etapas'
+        : shown + ' de ' + steps.length + ' etapas';
+      empty.hidden = shown !== 0;
+    }
+
+    chips.forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        chips.forEach(function (other) { other.setAttribute('aria-pressed', String(other === chip)); });
+        apply(chip.getAttribute('data-filter'));
+      });
+    });
+  })();
+</script>

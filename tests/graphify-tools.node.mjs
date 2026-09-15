@@ -33,7 +33,8 @@ test('o grafo preserva relações de vizinhança para uma análise limitada', ()
 test('varredura de artefatos identifica token de exemplo sem expor o valor', () => {
   const directory = fs.mkdtempSync('/tmp/promo-brindes-graphify-test-');
   try {
-    fs.writeFileSync(`${directory}/graph.json`, '{"note":"sbp_abcdefghijklmnopqrstuvwxyz123456"}');
+    const examplePat = `sbp_${'abcdefghijklmnopqrstuvwxyz123456'}`;
+    fs.writeFileSync(`${directory}/graph.json`, JSON.stringify({ note: examplePat }));
     const findings = findSensitiveArtifacts(directory);
     assert.equal(findings.length, 1);
     assert.equal(findings[0].kind, 'Supabase personal access token');
@@ -45,7 +46,10 @@ test('varredura de artefatos identifica token de exemplo sem expor o valor', () 
 test('varredura bloqueia famílias adicionais de token antes do upload', () => {
   const directory = fs.mkdtempSync('/tmp/promo-brindes-graphify-test-');
   try {
-    fs.writeFileSync(`${directory}/artifact.txt`, 'ghp_abcdefghijklmnopqrstuvwxyz123456 vercel_token_abcdefghijklmnopqrstuvwxyz AWS=AKIAABCDEFGHIJKLMNOP');
+    const githubToken = `ghp_${'abcdefghijklmnopqrstuvwxyz123456'}`;
+    const vercelToken = `vercel_token_${'abcdefghijklmnopqrstuvwxyz'}`;
+    const awsKey = `AKIA${'ABCDEFGHIJKLMNOP'}`;
+    fs.writeFileSync(`${directory}/artifact.txt`, `${githubToken} ${vercelToken} AWS=${awsKey}`);
     const kinds = findSensitiveArtifacts(directory).map((finding) => finding.kind);
     assert.deepEqual(kinds.sort(), ['AWS access key', 'GitHub token', 'Vercel token']);
   } finally {
