@@ -27,6 +27,8 @@
     "test:timing-safe-secrets": "node --test tests/timing-safe-secret-comparisons.node.mjs",
     "db:site:generate-site-api-jwt": "node scripts/generate-site-api-jwt.mjs",
     "db:site:dictionary": "node scripts/generate-database-dictionary.mjs",
+    "db:site:schema-doc": "node scripts/generate-database-schema-doc.mjs",
+    "test:queue-concurrency": "node --test tests/queue-concurrency.node.mjs",
     "db:site:guard": "node scripts/validate-site-supabase-target.mjs",
     "db:site:reset": "SUPABASE_WORKDIR=site-supabase supabase db reset",
     "db:site:dry-run": "npm run db:site:guard && SUPABASE_WORKDIR=site-supabase npx supabase@latest db push --dry-run",

@@ -48,3 +48,10 @@ jobs:
             echo "::error::docs/DATABASE_DICTIONARY.md está desatualizado. Rode 'npm run db:site:dictionary' e commite o resultado.";
             exit 1;
           }
+      - name: Regenerate schema ERD and fail on drift (Etapa 48)
+        run: |
+          npm run db:site:schema-doc
+          git diff --exit-code -- docs/DATABASE_SCHEMA.md || {
+            echo "::error::docs/DATABASE_SCHEMA.md está desatualizado. Rode 'npm run db:site:schema-doc' e commite o resultado.";
+            exit 1;
+          }
