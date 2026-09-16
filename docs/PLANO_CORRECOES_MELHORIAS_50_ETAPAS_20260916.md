@@ -1147,6 +1147,36 @@ anterior, ou formalmente adiadas com justificativa registrada — nunca silencio
 ignoradas). 12 migrations novas, ~24 arquivos de teste novos/alterados, 0 aplicação em
 produção sem o runbook correspondente ser executado por quem tem acesso.
 
+### Pós-fechamento: CI verde (16/09/2026, mesma sessão)
+
+O workflow "Migrations and pgTAP" falhou no primeiro push do fechamento acima, na
+etapa `supabase start`: `DROP INDEX CONCURRENTLY cannot be executed within a pipeline`
+(SQLSTATE 25001). Reproduzido localmente com volumes Docker limpos — `supabase start`
+(seed inicial) pipelinea os statements de um arquivo de migration, e `CONCURRENTLY`
+não pode coexistir com outro statement no mesmo pipeline; `supabase db reset` (usado
+em todas as validações anteriores desta sessão) usa outro caminho de aplicação e nunca
+expôs o problema. Corrigido dividindo
+`20260916120000_add_queue_and_fk_indexes.sql` em 9 migrations, uma por statement.
+
+Consertar isso expôs mais dois problemas, corrigidos na sequência:
+- `scripts/generate-database-dictionary.mjs`/`generate-database-schema-doc.mjs`
+  quebravam ao extrair o JSON de `supabase db query` no runner do GitHub Actions —
+  o shape do resultado (array top-level vs. objeto `{rows,...}`) e a posição de
+  ruído do CLI (banner, aviso de versão) diferem do ambiente local. Extraído
+  `scripts/_lib/supabaseDbQuery.mjs` com um parser tolerante a ambos os shapes,
+  com 11 testes (`tests/supabase-db-query.node.mjs`).
+- Merge de `origin/main` trouxe `@eslint/js` 10.0.1 (Dependabot), cujo preset
+  `recommended` passou a incluir `preserve-caught-error`; corrigido em
+  `scripts/graphify.mjs` (erro relançado sem `cause`).
+
+Com essas três correções, "Isolated site database" (que cobre migrations, pgTAP,
+lint, e os três drift-checks de artefatos gerados) fica verde de ponta a ponta.
+Uma regressão pré-existente e não relacionada foi identificada mas **não corrigida**
+nesta sessão: `main` já excede o orçamento de bundle do frontend (317,8 KiB vs.
+limite de 300 KiB, confirmado em um worktree isolado de `origin/main` sem nenhuma
+mudança desta sessão) — fora do escopo do plano de banco de dados, requer
+investigação própria de qual dependência/chunk cresceu.
+
 ## O que este plano não faz
 
 - Não altera o frontend além do necessário para consumir contratos novos (protocolo,
