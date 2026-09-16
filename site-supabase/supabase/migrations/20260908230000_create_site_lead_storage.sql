@@ -1,4 +1,6 @@
 -- Banco exclusivo do Site Promo Brindes.
+-- Versão normalizada de 20260908 para 20260908230000 em 15/09/2026;
+-- somente o identificador do ledger mudou, sem reaplicação deste SQL.
 -- PROIBIDO aplicar no projeto canônico do catálogo: doufsxqlfjyuvxuezpln.
 -- O frontend não recebe acesso direto a nenhuma tabela deste schema.
 

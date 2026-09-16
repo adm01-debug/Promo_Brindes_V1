@@ -102,6 +102,6 @@ src/context/         estado persistente da seleção
 src/lib/             catálogo público e envio do briefing
 src/pages/           home, catálogo, produto, orçamento, Área do Cliente e institucionais
 docs/                estratégia e critérios de aceite
-supabase/migrations/  contrato do catálogo canônico (somente leitura)
-site-supabase/        migrations exclusivas do novo banco de leads do site
+docs/sql/canonical/   espelho somente-leitura do contrato do catálogo canônico (SSOT é Promo_Gifts_V4)
+site-supabase/        migrations exclusivas do banco isolado de leads/orçamentos do site
 ```

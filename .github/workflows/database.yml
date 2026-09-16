@@ -22,6 +22,8 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22.13.1
+      - name: Validate migration file names (guard contra o incidente de 15/09)
+        run: node scripts/validate-migration-names.mjs
       - name: Install locked Supabase CLI
         run: npm install --global supabase@2.115.0
       - name: Start local Supabase services

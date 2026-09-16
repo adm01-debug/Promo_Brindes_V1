@@ -507,7 +507,7 @@ Pontos de código consultados para explicar os achados:
 - `src/lib/catalogLibrary.ts`: dez coleções online e seus destinos.
 - `src/context/QuoteCartContext.tsx`: seleção, persistência e limpeza.
 - `api/_lib/leadHandler.ts`: persistência e resposta da solicitação.
-- `site-supabase/supabase/migrations/20260908_230000_create_site_lead_storage.sql`: estrutura preparada para auditoria de notificações futuras.
+- `site-supabase/supabase/migrations/20260908230000_create_site_lead_storage.sql`: estrutura preparada para auditoria de notificações futuras; o identificador histórico foi normalizado em 15/09/2026 sem reaplicação do SQL.
 - `vercel.json`: rotas que chegam ao aplicativo.
 
 Este trabalho produziu documentação e evidências locais. O aplicativo, o GitHub, a hospedagem e os bancos de dados não foram modificados.
