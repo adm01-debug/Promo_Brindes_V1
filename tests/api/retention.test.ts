@@ -78,4 +78,47 @@ describe('tarefa de retenção', () => {
     if (!storageCall) throw new Error('A exclusão de Storage esperada não ocorreu.');
     expect(String(storageCall[0])).toContain('/storage/v1/object/customer-proposals');
   });
+
+  // Etapa 33 do plano de correções: cenário de falha parcial que faltava — Storage
+  // removeu o arquivo, mas finalize_site_data_retention falhou antes de apagar os
+  // metadados. A próxima execução (replay) precisa concluir sem duplicar nem perder,
+  // mesmo com o objeto de Storage já ausente (a API de Storage trata 404 como
+  // sucesso para retry — comentário em api/retention.ts, removeProposalObjects).
+  it('Storage removeu mas finalize falhou: 503, sem tentar apagar Storage de novo na mesma execução', async () => {
+    configure();
+    const quoteId = '22222222-2222-4222-8222-222222222222';
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes('/get_site_data_retention_candidates')) {
+        return new Response(JSON.stringify({ quoteIds: [quoteId], storagePaths: ['cliente/proposta-2.pdf'] }), { status: 200 });
+      }
+      if (url.includes('/storage/v1/object/customer-proposals')) return new Response('[]', { status: 200 });
+      if (url.includes('/finalize_site_data_retention')) return new Response('{}', { status: 500 });
+      return new Response('{}', { status: 500 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+    expect(result.statusCode).toBe(503);
+    expect(fetchMock.mock.calls).toHaveLength(3);
+  });
+
+  it('replay depois da falha: Storage já ausente (404) é tratado como sucesso, finalize conclui — idempotente', async () => {
+    configure();
+    const quoteId = '22222222-2222-4222-8222-222222222222';
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes('/get_site_data_retention_candidates')) {
+        // Mesmo candidato da execução anterior: finalize nunca rodou, então a linha
+        // continua elegível — a fonte de verdade é o banco, não o Storage.
+        return new Response(JSON.stringify({ quoteIds: [quoteId], storagePaths: ['cliente/proposta-2.pdf'] }), { status: 200 });
+      }
+      if (url.includes('/storage/v1/object/customer-proposals')) return new Response('{"error":"not_found"}', { status: 404 });
+      if (url.includes('/finalize_site_data_retention')) return new Response(JSON.stringify({ quotesDeleted: 1, proposalDocumentsDeleted: 1 }), { status: 200 });
+      return new Response('{}', { status: 500 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+    expect(result.statusCode).toBe(200);
+    expect(fetchMock.mock.calls).toHaveLength(3);
+  });
 });

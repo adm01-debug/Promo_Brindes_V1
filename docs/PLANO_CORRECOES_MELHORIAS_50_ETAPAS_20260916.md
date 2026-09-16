@@ -486,10 +486,20 @@ provider_message_id is not null`. Antes, consulta de diagnóstico para garantir 
 duplicatas.
 
 **Checklist de conclusão.**
-- [ ] Consulta de duplicatas executada no remoto: zero linhas.
-- [ ] Índice criado; `record_site_notification_provider_acceptance` falha com 23505 em
-      duplicata e o teste cobre isso.
-- [ ] `limit 1` removido da busca (não é mais necessário).
+- [x] Consulta de duplicatas executada — no banco local antes de aplicar a constraint
+      (`do $$ ... raise exception ...` na própria migration); **não executada contra o
+      remoto** (a migration em si nunca foi aplicada em produção).
+- [x] Índice único criado (`notification_deliveries_provider_message_key`); testado em
+      `notification_queue_policy.test.sql`.
+- [x] **Decisão (16/09/2026): `limit 1` mantido, não removido.** Reconsiderado ao
+      revisar este item: `select ... into v_delivery_id` em PL/pgSQL não é `STRICT` —
+      sem `limit 1`, múltiplas linhas não gerariam erro, só escolheriam a última
+      processada silenciosamente (mesmo comportamento "arbitrário" que o diagnóstico
+      original queria evitar), então remover `limit 1` não muda o pior caso em nada;
+      ele só documenta a intenção (no máximo 1 resultado esperado) sem custo. Manter é
+      estritamente melhor ou igual a remover — o item do checklist partia da premissa
+      de que `limit 1` era o problema, mas o problema real já foi resolvido pelo
+      índice único, não pela remoção da cláusula.
 
 **Rollback/risco.** Se houver duplicata histórica, a criação falha — corrigir dados
 primeiro, nunca relaxar a unicidade.
@@ -640,9 +650,24 @@ ação do cliente`; teste vitest que lê as mensagens por regex dos arquivos SQL
 que cada uma está mapeada em `contracts.ts`.
 
 **Checklist de conclusão.**
-- [ ] Tabela completa (grep de `message = 'invalid_` cobre 100 %).
-- [ ] Teste de cobertura do mapeamento verde.
-- [ ] Nenhuma mensagem de erro contém dado pessoal (revisão manual).
+- [x] Tabela completa — **gap real encontrado em 16/09/2026**: `invalid_erasure_email`
+      (Etapa 32, escrita depois que esta etapa tinha fechado) nunca tinha sido
+      adicionada à tabela; corrigido.
+- [x] Teste de cobertura — **redesenhado do texto original**: o plano pedia um teste
+      verificando que "cada mensagem está mapeada em `contracts.ts`", mas a própria
+      tabela documenta que a maioria das mensagens `invalid_*` **deliberadamente não
+      tem** mapeamento TypeScript (são defesa em profundidade — a validação de
+      `api/_lib/contracts.ts` já barra esses casos antes de chegar à RPC; forçar um
+      mapeamento 1:1 seria testar um requisito que o próprio design rejeita).
+      Implementado o teste que o design real sustenta:
+      `scripts/validate-error-catalog.mjs`/`tests/validate-error-catalog.node.mjs`
+      (`npm run test:error-catalog`, também na CI via `database.yml`) — falha se
+      qualquer mensagem `message = '...'` ou `message = format('...'` de uma migration
+      não aparecer no catálogo, mapeada ou explicitamente "não mapeada" com o motivo.
+- [x] Nenhuma mensagem de erro contém dado pessoal — revisão manual da lista completa
+      de mensagens (16/09/2026): todas são tokens técnicos genéricos
+      (`invalid_quote_payload`, `rate_limit_exceeded` etc.), nenhuma interpola e-mail/
+      telefone/nome.
 
 **Depende de.** Etapa 21.
 
@@ -674,10 +699,16 @@ receber; duplicatas lógicas ("Ana@x.com" vs "ana@x.com") são possíveis via ou
 normalizado; `create_site_*` normalizam antes de gravar.
 
 **Checklist de conclusão.**
-- [ ] Funções com testes pgTAP para casos limítrofes (espaços, maiúsculas, +55, DDI
-      ausente).
-- [ ] `check` aplicado após backfill validado (zero violações).
-- [ ] TypeScript e SQL produzem o mesmo resultado (teste comparativo com fixtures).
+- [x] Funções com testes pgTAP para casos limítrofes (espaços, maiúsculas) — só para
+      e-mail; telefone/E.164 formalmente adiado, ver decisão abaixo.
+- [x] `check` aplicado após backfill validado (zero violações) — e-mail apenas.
+- [~] TypeScript e SQL produzem o mesmo resultado — verdadeiro só para e-mail
+      (`api/_lib/contracts.ts` já normaliza da mesma forma); não se aplica a telefone.
+
+**Decisão registrada (16/09/2026):** normalização de telefone para E.164 **adiada
+formalmente**, não implementada como meia-medida — ver
+`docs/DATABASE_FUNCTION_CONTRACTS.md`, seção "Decisão registrada — normalização de
+telefone, adiada". E-mail está 100% implementado.
 
 **Rollback/risco.** `check` só é adicionado depois do backfill; até lá, `not valid`.
 
@@ -811,9 +842,18 @@ table rate_limit_buckets set unlogged` (perda em crash é aceitável); autovacuu
 (`autovacuum_vacuum_scale_factor = 0.02`); purga de buckets antigos na retenção diária.
 
 **Checklist de conclusão.**
-- [ ] Regra de borda ativa e documentada com limiares.
-- [ ] Tabela `unlogged`; teste de carga (`autocannon` ou similar) mostra latência estável.
-- [ ] Buckets com `updated_at` > 24 h purgados pela retenção.
+- [ ] Regra de borda ativa e documentada com limiares — **adiada formalmente**, ver
+      decisão abaixo.
+- [~] Tabela `unlogged` ✅; teste de carga (`autocannon` ou similar) mostra latência
+      estável — não feito (o soak test da Etapa 38 mede a fila de notificações, não
+      o rate limit).
+- [x] Buckets com `updated_at` > 24 h purgados pela retenção.
+
+**Decisão registrada (16/09/2026):** camada de borda (Vercel Firewall) **adiada
+formalmente** — mudança de infraestrutura de produção que afeta todo o tráfego do
+domínio, fora do escopo apropriado de uma sessão de banco de dados sem revisão de
+tráfego real. Ver `docs/DATABASE_FUNCTION_CONTRACTS.md`, seção "Decisão registrada —
+rate limit de borda, adiada".
 
 **Rollback/risco.** `unlogged` não replica em réplica física — irrelevante para dado
 efêmero; documentar.
@@ -882,9 +922,22 @@ que simula falha após a remoção do arquivo e verifica que a próxima execuç�
 duplicar nem perder.
 
 **Checklist de conclusão.**
-- [ ] Índices criados; `explain` da seleção de candidatos usa índice.
-- [ ] Teste de falha parcial verde (idempotência da finalização).
-- [ ] `tests/api/retention.test.ts` cobre o cenário.
+- [x] Índices criados — full em vez de parcial (`where retention_until is not null`
+      seria idêntico a um índice completo, já que a coluna é `not null`; desvio
+      correto, não um bug). Lotes com `limit` já existiam. **`for update skip locked`
+      não implementado** — analisado nesta auditoria: `get_site_data_retention_candidates`
+      é uma leitura pura, sem estado de "reivindicado" (diferente da fila de
+      notificações); duas execuções concorrentes gerariam trabalho duplicado, não
+      corrupção — Storage tolera 404, `finalize_expired_site_data` apagando uma linha
+      já ausente é uma operação idempotente sem erro. Como retenção roda como 1 cron
+      diário (não um pool de workers concorrentes), o risco real é baixo; aceito sem
+      lock explícito por ora.
+- [x] Teste de falha parcial verde — **adicionado em 16/09/2026** (o teste existente só
+      cobria a direção oposta: Storage falha, banco não é tocado). Dois testes novos:
+      finalize falha depois do Storage já ter sido limpo (503, sem reprocessar
+      Storage na mesma chamada); replay da mesma execução com o objeto de Storage já
+      ausente (404 tratado como sucesso, `finalize` conclui, idempotente).
+- [x] `tests/api/retention.test.ts` cobre o cenário — mesmo arquivo, testes acima.
 
 **Depende de.** Etapa 16.
 
@@ -955,9 +1008,18 @@ clientes) e chama `claim_site_notification_deliveries` simultaneamente sobre 50 
 conjuntos disjuntos, soma igual ao total, nenhum job com dois `lease_token`.
 
 **Checklist de conclusão.**
-- [ ] Teste verde em 20 execuções consecutivas (sem flakiness).
-- [ ] Cenário de lease expirada com terceiro trabalhador coberto.
-- [ ] Cenário `exhausted` sob concorrência coberto.
+- [~] Teste verde em execuções consecutivas — confirmado em várias rodadas manuais
+      nesta sessão (não há loop automatizado de 20 execuções no CI, já que o teste
+      inteiro depende do stack local do Supabase e não roda em `npm run check`).
+- [x] Cenário de lease expirada sob concorrência coberto — **adicionado em
+      16/09/2026**: duas conexões disputam o mesmo job com lease expirada, só uma
+      recupera (attempts incrementa corretamente, lease_token novo). Não é
+      literalmente "terceiro trabalhador" (o texto original imaginava 3 conexões);
+      2 disputando pelo mesmo job já testa a exclusão mútua que importa.
+- [x] Cenário `exhausted` sob concorrência coberto — **adicionado em 16/09/2026**: duas
+      conexões concorrentes tentam reivindicar um job já no limite de tentativas com
+      lease expirada; nenhuma o reivindica como nova tentativa, ele termina em
+      `exhausted` sem erro em nenhuma das duas conexões.
 
 **Depende de.** Etapas 10 e 12.
 
@@ -1017,8 +1079,17 @@ autovacuum_analyze_scale_factor = 0.02)` nas duas tabelas; monitorar `n_dead_tup
 mensalmente (etapa 18).
 
 **Checklist de conclusão.**
-- [ ] Parâmetros aplicados por migration.
-- [ ] `pg_stat_user_tables.n_dead_tup` estável após uma semana.
+- [x] Parâmetros aplicados por migration — **gap encontrado e corrigido em
+      16/09/2026**: a migration original (`20260916180000`) aplicou `fillfactor=80` só
+      em `notification_deliveries`, deixando `rate_limit_buckets`/
+      `shared_selection_rate_limits` de fora sem nenhuma nota explicando por quê —
+      ambas fazem `insert ... on conflict do update` na mesma linha por
+      `identifier_hash` a cada requisição (mesmo padrão de update repetido que
+      justificou o fillfactor em `notification_deliveries`). Corrigido em
+      `20260916240000_add_rate_limit_fillfactor.sql`; testado em `storage_tuning.test.sql`.
+- [ ] `pg_stat_user_tables.n_dead_tup` estável após uma semana — inerentemente não
+      verificável numa sessão (requer monitoramento real de produção ao longo do
+      tempo).
 
 **Depende de.** Etapa 13.
 
