@@ -5,7 +5,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(15);
+select plan(20);
 
 select ok(not pg_catalog.has_function_privilege('anon', 'public.erase_customer_data(text)', 'execute'), 'anon não apaga dados de titular');
 select ok(not pg_catalog.has_function_privilege('authenticated', 'public.erase_customer_data(text)', 'execute'), 'authenticated não apaga dados de titular (operação administrativa)');
@@ -32,10 +32,24 @@ insert into site_private.proposal_documents (quote_request_id, version, title, s
 select id, 1, 'Proposta Fulano', 'fulano/proposta-1.pdf', now()
 from site_private.quote_requests where client_request_id = 'erasure-test-quote-1';
 
+-- customer_profiles: cobre o ramo da função que o teste original nunca exercitava —
+-- inclusive o fix de precedência de operador do idempotente (profile.verified_email
+-- !~ '^titular-...' em vez de <> v_email or (...), que causava reprocessamento).
+insert into auth.users (
+  instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at
+) values (
+  '00000000-0000-0000-0000-000000000000', 'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+  'authenticated', 'authenticated', 'fulano@example.test', '', now(), '{}'::jsonb, '{}'::jsonb, now(), now()
+);
+insert into site_private.customer_profiles (user_id, verified_email, display_name, company)
+values ('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'fulano@example.test', 'Fulano de Tal', 'Empresa Fulano');
+
 create temporary table erasure_result as select public.erase_customer_data('  Fulano@Example.TEST  ') as result;
 
 select is((select (result ->> 'quotesAnonymized')::integer from erasure_result), 1, 'anonimiza 1 quote_request (e-mail com espaço/maiúsculas normalizado na entrada)');
 select is((select (result ->> 'contactsAnonymized')::integer from erasure_result), 1, 'anonimiza 1 contact_request');
+select is((select (result ->> 'profilesAnonymized')::integer from erasure_result), 1, 'anonimiza 1 customer_profiles');
 select is((select (result ->> 'proposalDocumentsDeleted')::integer from erasure_result), 1, 'apaga 1 proposal_document');
 select is((select jsonb_array_length(result -> 'storagePathsToRemove') from erasure_result), 1, 'devolve 1 caminho de Storage para o chamador limpar');
 select is(
@@ -66,10 +80,29 @@ select is(
   'proposal_documents da linha foi apagado'
 );
 
+select is(
+  (select display_name from site_private.customer_profiles where user_id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'),
+  null,
+  'customer_profiles.display_name removido'
+);
+select is(
+  (select company from site_private.customer_profiles where user_id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'),
+  null,
+  'customer_profiles.company removido'
+);
+select ok(
+  (select verified_email from site_private.customer_profiles where user_id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd') ~ '^titular-[0-9a-f]{16}@erased\.invalid$',
+  'customer_profiles.verified_email substituído pelo marcador de titular apagado'
+);
+
 -- Idempotência: reexecutar para o mesmo e-mail não reprocessa linhas já anonimizadas.
 create temporary table erasure_result_2 as select public.erase_customer_data('fulano@example.test') as result;
 select is((select (result ->> 'quotesAnonymized')::integer from erasure_result_2), 0, 'segunda execução é idempotente: 0 quotes reprocessadas');
 select is((select (result ->> 'contactsAnonymized')::integer from erasure_result_2), 0, 'segunda execução é idempotente: 0 contacts reprocessados');
+select is(
+  (select (result ->> 'profilesAnonymized')::integer from erasure_result_2), 0,
+  'segunda execução é idempotente: 0 profiles reprocessados (cobre o fix de precedência do operador nesta sessão)'
+);
 
 select throws_like(
   $$ select public.erase_customer_data('nao-e-email') $$,

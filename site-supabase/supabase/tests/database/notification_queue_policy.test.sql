@@ -104,6 +104,11 @@ select lives_ok(
   'processing com lease_token e lease_expires_at é aceito'
 );
 
+-- Desde a migration 20260916220000, o trigger de transição da Etapa 9 pega este
+-- caso ANTES da constraint declarativa chegar a ser avaliada (processing -> pending
+-- não está na matriz de transições permitidas, e mesmo se estivesse, o lease_token
+-- não foi zerado) — a constraint continua existindo como defesa em profundidade,
+-- mas o erro que a sessão realmente vê agora vem do trigger.
 select throws_like(
   $$
     update site_private.notification_deliveries
@@ -111,7 +116,7 @@ select throws_like(
     where request_id = (select id from site_private.quote_requests where client_request_id = 'queue-policy-quote-1')
       and channel = 'whatsapp'
   $$,
-  '%notification_deliveries_lease_matches_status%',
+  '%lease_token deve ser zerado ao sair de processing%',
   'sair de processing sem limpar lease_token/lease_expires_at viola a invariante (Etapa 9)'
 );
 

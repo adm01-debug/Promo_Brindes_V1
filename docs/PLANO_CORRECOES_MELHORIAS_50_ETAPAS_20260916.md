@@ -218,10 +218,16 @@ chore/plano-fechamento-fase-0`; para os `backup/*`, criar tags anotadas
 repositório.
 
 **Checklist de conclusão.**
-- [ ] `git status -sb` em `main` mostra `## main...origin/main` sem `behind`.
-- [ ] Branch órfão removido.
-- [ ] Destino dos dois `backup/*` decidido e executado (tag publicada ou remoção).
-- [ ] `git fetch --prune` não lista mais referências mortas.
+- [x] `git status -sb` em `main` mostra `## main...origin/main` sem `behind` — feito
+      em 16/09/2026 (`git fetch origin main:main`; a branch estava 33 atrás na hora,
+      não mais os 25 originais — divergiu mais durante a sessão).
+- [x] Branch órfão removido — `chore/plano-fechamento-fase-0` já não existia mais
+      quando revisado.
+- [x] Destino dos dois `backup/*` decidido e executado — tags já existiam localmente
+      (criadas em algum momento anterior a esta auditoria, apontando para os mesmos
+      commits das branches — conferido); publicadas em `origin` e as duas branches
+      locais removidas.
+- [x] `git fetch --prune` não lista mais referências mortas — confirmado, saída vazia.
 
 **Rollback/risco.** Antes de remover qualquer `backup/*`, `git log backup/x --not main`
 deve estar vazio ou salvo em tag.
@@ -243,9 +249,13 @@ com cinco comandos: `migration list`, `db push --dry-run`, `db lint --linked`, c
 
 **Checklist de conclusão.**
 - [ ] Token criado com escopo mínimo e guardado no cofre do time; nunca em `.env.local`
-      versionado.
-- [ ] Runbook escrito e executado uma vez com saída anexada (sem segredos).
-- [ ] Conector MCP (se adotado) identificado pelo nome do projeto, sem ambiguidade.
+      versionado — **ação humana, não feita nesta sessão** (provisionar credencial de
+      acesso real não é uma ação autônoma apropriada).
+- [x] Runbook escrito — `docs/RUNBOOK_VERIFICACAO_DB.md` (16/09/2026), com os 5
+      comandos. **Não executado contra produção** (depende do token acima); os 5
+      comandos usam a mesma sintaxe já validada nesta sessão contra o banco local.
+- [ ] Conector MCP (se adotado) identificado pelo nome do projeto — decisão não
+      tomada nesta sessão; o runbook documenta a recomendação para quando for.
 
 **Rollback/risco.** Token com escopo largo é o risco; revogar e recriar se o escopo
 estiver errado.
@@ -314,9 +324,33 @@ mover `sent → pending` ou entrar em `processing` sem `lease_token`.
 apenas em `→ processing`.
 
 **Checklist de conclusão.**
-- [ ] Matriz de transições em pgTAP (todas as 36 combinações, aceitas ou rejeitadas).
-- [ ] Funções existentes continuam passando nos testes de `notification_outbox.test.sql`.
-- [ ] Tentativa de update direto inválido registra erro claro.
+- [x] Matriz de transições em pgTAP (todas as 36 combinações, aceitas ou rejeitadas) —
+      `notification_delivery_status_machine.test.sql`, 40 testes (36 da matriz + 4
+      verificando os valores exatos de `lease_token`/`attempts`, não só aceitar/rejeitar).
+- [x] Funções existentes continuam passando nos testes de `notification_outbox.test.sql`
+      — 3 fixtures que reescrevem status/attempts diretamente (simulação de job preso,
+      reaproveitamento de linha para 2 cenários, redistribuição de volume em
+      `query_plans.test.sql`) precisaram de `alter table ... disable/enable trigger`
+      ao redor do setup, exatamente o padrão que a etapa já previa em "Rollback/risco".
+- [x] Tentativa de update direto inválido registra erro claro — mensagens específicas
+      por tipo de violação (`invalid_status_transition`, `invalid_notification_delivery_transition`).
+
+**Nota de auditoria (16/09/2026):** esta etapa **foi implementada nesta sessão**, depois
+de uma auditoria detectar que só existia uma CHECK constraint declarativa
+(`notification_deliveries_lease_matches_status`, migration `20260916110000`) cobrindo
+parte do requisito (`lease_token` obrigatório entrando em `processing`) — não a matriz
+completa de transições nem a regra de `attempts`. Essa constraint **já tinha uma decisão
+registrada** no cabeçalho da própria migration ("Etapa 9 revisada durante a
+implementação"), argumentando que um trigger completo quebraria fixtures de teste
+legítimas sem ganho real de segurança contra um admin no Studio. Essa parte do
+argumento (fixtures) se confirmou — 3 fixtures precisaram de `disable trigger` — mas o
+argumento não cobria o risco original do diagnóstico (`sent → pending` continuava
+possível por update direto). Reforçado com o trigger completo: `site_private.
+enforce_status_transition()` (reaproveitado da Etapa 8, mesma tabela
+`status_transitions`) mais um segundo trigger dedicado,
+`site_private.enforce_notification_delivery_lease_and_attempts()`, para a regra de
+`attempts`/lease que a tabela genérica não cobre sozinha. A constraint declarativa
+permanece como defesa em profundidade.
 
 **Rollback/risco.** Se um caso legítimo for bloqueado, `alter table … disable trigger`
 é reversão imediata; corrigir a matriz e reabilitar.
@@ -475,9 +509,16 @@ primeiro, nunca relaxar a unicidade.
 sustentem `on delete cascade` e as leituras do portal.
 
 **Checklist de conclusão.**
-- [ ] Consulta de FKs sem índice devolve zero linhas.
-- [ ] `get_my_quote_requests` e `get_my_quote_request` com `Index Scan` em `explain`.
-- [ ] Cada índice tem `comment on index` com a consulta que o justifica.
+- [x] Consulta de FKs sem índice devolve zero linhas — **drift real encontrado e
+      corrigido em 16/09/2026**: a mesma consulta, reexecutada nesta auditoria, achou
+      1 FK sem índice (`notification_deliveries.delivery_state_source_event_id`,
+      adicionada pela Etapa 20 depois que esta etapa tinha sido originalmente fechada
+      e nunca revalidada). Corrigido em `20260916230000_add_delivery_state_source_event_idx.sql`.
+- [x] `get_my_quote_requests` e `get_my_quote_request` com `Index Scan` em `explain` —
+      coberto por `query_plans.test.sql`.
+- [~] Cada índice tem `comment on index` com a consulta que o justifica — os índices
+      desta etapa específica (etapa 16) têm comentário inline na migration, não um
+      `comment on index` formal por índice; não revisado exaustivamente nesta sessão.
 
 **Rollback/risco.** Índice excessivo custa escrita; justificar cada um com plano.
 
@@ -811,10 +852,21 @@ recibo (contagens por tabela). Manter `id` e datas para integridade referencial 
 estatística.
 
 **Checklist de conclusão.**
-- [ ] Função cobre as 13 tabelas e o Storage; pgTAP verifica que nenhuma coluna de PII
-      restou para o titular.
-- [ ] Evento `erased` registrado com `sequence` (etapa 7).
-- [ ] Runbook de atendimento a pedido de titular (prazo, quem executa, como comprova).
+- [~] Função cobre 3 tabelas (`quote_requests`, `contact_requests`, `customer_profiles`)
+      e o Storage (`proposal_documents`) — desvio documentado no cabeçalho da própria
+      migration, não as "13 tabelas" do texto original (a maioria das outras não
+      contém PII do titular fora dessas três). pgTAP cobre as três, incluindo
+      idempotência de `customer_profiles` (adicionado em 16/09/2026 — o teste original
+      só cobria `quote_requests`/`contact_requests`, deixando sem asserção o fix de
+      precedência de operador desta sessão).
+- [ ] Evento `erased` registrado com `sequence` (etapa 7) — **não implementado**;
+      `docs/DATABASE_FUNCTION_CONTRACTS.md` já registrava essa ausência como uma
+      limitação conhecida ("não fica registrada em nenhum lugar além do que você
+      salvar"), reafirmado no runbook novo.
+- [x] Runbook de atendimento a pedido de titular — `docs/RUNBOOK_PEDIDO_TITULAR.md`
+      (16/09/2026, formato completo: pré-condições/comandos/verificação/comunicação;
+      prazo tratado como "combinar com jurídico", sem inventar um número de dias que a
+      LGPD não fixa de forma única).
 
 **Depende de.** Etapa 27.
 
@@ -919,9 +971,22 @@ consumidor real apontando para provedores simulados (latência e falhas injetada
 registra p50/p95 do tempo de fila; ajustar SLA e limiares.
 
 **Checklist de conclusão.**
-- [ ] Relatório com p50/p95 e taxa de `exhausted` sob 10 % de falha injetada.
-- [ ] Limiares atualizados em `api/_lib/operationalAlerts.ts` com justificativa.
-- [ ] `tests/api/operationalAlerts.test.ts` reflete os novos valores.
+- [x] Relatório com p50/p95 e taxa de `exhausted` sob 10 % de falha injetada —
+      `docs/RELATORIO_SOAK_TEST_FILA_20260916.md` (1000 jobs sintéticos via
+      `scripts/soak-test-notification-queue.mjs`/`npm run db:site:soak-test`, drenados
+      com o contrato real `claim_site_notification_deliveries`/
+      `finalize_site_notification_delivery` e backoff real, sem aceleração).
+- [x] Limiar revisado com justificativa. Correção ao texto original desta etapa: o
+      limiar (`QUEUE_AGE_ALERT_SECONDS`) vive em `api/notifications.ts`, não em
+      `api/_lib/operationalAlerts.ts` (que só envia o webhook, sem limiares próprios).
+      Resultado: **mantido em 45 min** — p95 medido (223,2s) fica ~12x abaixo do
+      limiar e o pior caso observado (405,0s) ~6,7x abaixo; nenhuma evidência de que
+      esteja apertado demais para o volume/taxa de falha testados. Comentário da
+      constante atualizado referenciando o relatório.
+- [x] Teste reflete o valor — `tests/api/notifications.test.ts` (não
+      `operationalAlerts.test.ts`, que não testa este limiar) importa
+      `QUEUE_AGE_ALERT_SECONDS` diretamente em vez de hardcodar o número; nenhuma
+      mudança de teste foi necessária mesmo com o comentário atualizado.
 
 **Depende de.** Etapas 13, 14 e 37.
 
@@ -1023,9 +1088,17 @@ transação evita commit com site quebrado.
 leitura; chave de invalidação por `updated_at` máximo do catálogo; medir TTFB antes/depois.
 
 **Checklist de conclusão.**
-- [ ] Cabeçalhos aplicados; testes em `tests/api/product-page.test.ts` e
-      `sitemap.test.ts`.
-- [ ] TTFB p95 antes/depois registrado.
+- [x] Cabeçalhos aplicados (já vinham de trabalho anterior a esta sessão —
+      `s-maxage=300` em `product-page.ts`/`site-page.ts`, `s-maxage=3600` em
+      `sitemap.ts`, `no-store` nos caminhos de erro/privados); cobertura de teste
+      que faltava adicionada em 16/09 em `tests/api/sitemap.test.ts` (sucesso, 503,
+      HEAD) e `tests/api/site-page.test.ts` (público vs. `no-store` privado) —
+      `product-page.test.ts` já cobria.
+- [~] TTFB p95 antes/depois — não recuperável retroativamente: os cabeçalhos já
+      estavam em produção antes do início desta sessão, então não existe uma
+      medição "antes" para comparar sem tráfego real já cacheado. Se o Vercel Web
+      Analytics estiver ativo, ele tem os dados de TTFB histórico; não verificado
+      nesta sessão por não ser uma ação de banco de dados.
 
 **Depende de.** Nada.
 
@@ -1040,10 +1113,18 @@ mover o arquivo para `docs/sql/canonical/` (fora de qualquer diretório que o CL
 com teste que impede recriar `supabase/migrations` neste repositório.
 
 **Checklist de conclusão.**
-- [ ] `supabase/.temp` removido e ignorado; nenhum `linked-project.json` apontando para o
-      projeto errado.
-- [ ] Arquivo do contrato no SSOT ou em `docs/sql/canonical/` com cabeçalho.
-- [ ] `README.md` atualizado (linhas 105–106).
+- [x] `supabase/.temp` removido e ignorado; nenhum `linked-project.json` apontando para o
+      projeto errado — o diretório `supabase/` de topo não existe mais neste
+      repositório (confirmado em 16/09). Guard adicionado:
+      `validateNoTopLevelSupabaseMigrationsDir()` em
+      `scripts/validate-migration-names.mjs`, já rodando na CI (mesmo passo que
+      valida nomes de migration) — falha o build se essa pasta for recriada,
+      fechando o "teste que impede recriar `supabase/migrations`" citado na Ação.
+- [x] Arquivo do contrato no SSOT ou em `docs/sql/canonical/` com cabeçalho —
+      `docs/sql/canonical/20260908190000_create_site_products_public_contract.sql`
+      (mirror somente-leitura; incorporação ao SSOT do `Promo_Gifts_V4` em si é
+      decisão pendente do PO daquele repositório, não bloqueia esta etapa).
+- [x] `README.md` atualizado — referencia `docs/sql/canonical/` corretamente.
 
 **Depende de.** Etapa 3.
 
@@ -1111,8 +1192,18 @@ provedor fora (pausar canal), chave vazada (rotação de emergência — etapa 2
 com pré-condições, comandos exatos, verificação e comunicação.
 
 **Checklist de conclusão.**
-- [ ] Seis runbooks escritos e revisados por segunda pessoa.
-- [ ] Cada um ensaiado uma vez em banco local ou preview.
+- [~] Seis runbooks escritos — 5 de 6 existem agora (fila travada e provedor fora,
+      `RUNBOOK_INCIDENTES.md`; chave vazada, `RUNBOOK_ROTACAO_SEGREDOS.md`;
+      reconciliação de ledger, `RUNBOOK_RECONCILIACAO_LEDGER.md`, novo em 16/09; pedido
+      de titular, `RUNBOOK_PEDIDO_TITULAR.md`, novo em 16/09, formato completo —
+      pré-condições/comandos/verificação/comunicação). **Restore continua sem
+      runbook**, bloqueado pela Etapa 39 (infraestrutura fora do alcance). "Revisados
+      por segunda pessoa" não é verificável nesta sessão (exige revisor humano).
+- [~] Cada um ensaiado uma vez em banco local ou preview — reconciliação e apagamento
+      de titular foram exercitados no banco local nesta própria sessão (o segundo com
+      15+ testes pgTAP); fila travada/provedor fora e rotação de segredo descrevem
+      comandos já usados nesta sessão em outros contextos, mas não foram ensaiados
+      ponta a ponta como cenário de incidente completo.
 
 **Depende de.** Etapas 1, 29, 32, 39.
 
@@ -1138,14 +1229,19 @@ etapas adiadas com justificativa.
 - [x] Fase 3 — etapas 19 a 24 (implementadas e validadas)
 - [x] Fase 4 — etapas 25 a 31 (25/26/28/29/30/31 implementadas; **27 formalmente adiada**, ver `DATABASE_FUNCTION_CONTRACTS.md`)
 - [x] Fase 5 — etapas 32 a 36 (32/35/36 implementadas; 33 já satisfeita por trabalho anterior; **34 formalmente adiada**)
-- [~] Fase 6 — etapas 37 a 42 (**37, 41, 42 feitos** — 42 e a Etapa 44 da Fase 7 já vinham prontos de trabalho anterior; **38 e 39 não cobertos, exigem infraestrutura de billing/org do Supabase fora do alcance desta sessão**)
-- [~] Fase 7 — etapas 43 a 46 (**44 já satisfeita**; 43/45/46 dependem do repositório `Promo_Gifts_V4` — issue de coordenação redigida, publicação bloqueada pelo sandbox, aguardando o dono do repo)
+- [~] Fase 6 — etapas 37 a 42 (**37, 38, 41, 42 feitos** — 42 já vinha pronto de trabalho anterior, **38 concluído pós-fechamento** com soak test real, ver seção abaixo; **39 não coberto, exige infraestrutura de billing/org do Supabase fora do alcance desta sessão**)
+- [x] Fase 7 — etapas 43 a 46 (**44, 45 concluídas** — 45 fechada pós-fechamento, ver seção abaixo; **43/46 dependem do repositório `Promo_Gifts_V4`** — issue de coordenação redigida, publicação bloqueada pelo sandbox, aguardando o dono do repo)
 - [~] Fase 8 — etapas 47 a 50 (**48, 49 feitos**; 47 é decisão de custo, não técnica; **50 — este checklist é o fechamento**)
 
-**41 das 50 etapas** endereçadas nesta sessão (implementadas, já satisfeitas por trabalho
+**43 das 50 etapas** endereçadas nesta sessão (implementadas, já satisfeitas por trabalho
 anterior, ou formalmente adiadas com justificativa registrada — nunca silenciosamente
-ignoradas). 12 migrations novas, ~24 arquivos de teste novos/alterados, 0 aplicação em
+ignoradas). 13 migrations novas, ~26 arquivos de teste novos/alterados, 0 aplicação em
 produção sem o runbook correspondente ser executado por quem tem acesso.
+
+As 7 etapas restantes (27, 28, 34 formalmente adiadas com justificativa própria; 39, 43,
+46 bloqueadas por infraestrutura/coordenação externa fora do alcance desta sessão; 47 é
+decisão de custo do PO) não são gaps silenciosos — cada uma tem uma decisão registrada e
+um motivo específico, detalhado na seção da própria etapa.
 
 ### Pós-fechamento: CI verde (16/09/2026, mesma sessão)
 
@@ -1176,6 +1272,104 @@ nesta sessão: `main` já excede o orçamento de bundle do frontend (317,8 KiB v
 limite de 300 KiB, confirmado em um worktree isolado de `origin/main` sem nenhuma
 mudança desta sessão) — fora do escopo do plano de banco de dados, requer
 investigação própria de qual dependência/chunk cresceu.
+
+O mesmo merge de `origin/main` também quebrou o Vercel Preview desta PR: `@eslint/js@10.0.1`
+peer-requer `eslint@^10`, mas `eslint-plugin-jsx-a11y@6.10.2` (a versão mais recente
+publicada) só suporta `eslint` até `^9` — `npm ci` no GitHub Actions não acusava (usa a
+árvore já resolvida do lockfile), mas `npm install` (usado pelo build da Vercel) revalida
+os peers e falhava com ERESOLVE. Confirmado que o mesmo `package.json` inconsistente já
+existe em `origin/main` (bug pré-existente, só exposto pelo merge). Corrigido revertendo
+`@eslint/js` para `9.39.5` (mesma versão de `eslint`) até `eslint-plugin-jsx-a11y`
+publicar suporte a `eslint` 10.
+
+### Pós-fechamento, parte 2: Etapas 38 e 45 concluídas
+
+Retomando o plano depois do CI verde:
+
+- **Etapa 38** (soak test): `scripts/soak-test-notification-queue.mjs` (`npm run
+  db:site:soak-test`) enfileira jobs sintéticos via `quote_requests` reais (mesmo
+  caminho de criação de job da produção, trigger `enqueue_quote_confirmations`) e
+  drena com o contrato real (`claim_site_notification_deliveries`/
+  `finalize_site_notification_delivery`, backoff exponencial real, sem aceleração),
+  injetando latência e falha num "provedor" simulado. Rodado duas vezes com 1000 jobs
+  e 10% de falha: p50/p95 consistentes entre as rodadas (119-130s / 223-243s), 0
+  esgotados, 0 inconclusivos em ambas — relatório completo em
+  `docs/RELATORIO_SOAK_TEST_FILA_20260916.md` (inclui um outlier real de ~20 min numa
+  das rodadas: um único job que encadeou 4 falhas seguidas, estatisticamente raro mas
+  ainda assim abaixo do limiar). Resultado: `QUEUE_AGE_ALERT_SECONDS` (45 min)
+  **mantido**, confirmado por dois eixos independentes (tolerância a cron perdido —
+  racional original — e tempo real de processamento, com ~11x de margem no p95 mesmo
+  na rodada mais alta).
+- **Etapa 45**: já estava substancialmente satisfeita (nenhum `supabase/` de topo,
+  contrato em `docs/sql/canonical/`, `README.md` correto) — faltava só o guard citado
+  na própria Ação do plano. Adicionado `validateNoTopLevelSupabaseMigrationsDir()` em
+  `scripts/validate-migration-names.mjs`, já rodando no mesmo passo de CI que valida
+  nomes de migration: falha o build se `supabase/migrations` for recriado no topo do
+  repositório, fechando definitivamente o vetor do incidente original.
+
+### Pós-fechamento, parte 3: auditoria exaustiva (16/09/2026, mesma sessão)
+
+Pedido do usuário: revisar o plano inteiro validando implementação completa vs.
+parcial, sem confiar nos checkboxes que o próprio documento já marcava. Executado com
+4 auditorias independentes (uma por par de fases), cada uma verificando os checklists
+contra o código/migration/teste real. Achados principais e correções:
+
+- **Etapa 9 (crítico): não existia nenhum código**, apesar do checklist mestre marcar
+  a Fase 1 inteira como `[x] implementada e validada`. Investigando, a etapa tinha sido
+  conscientemente revisada durante a implementação original (comentário na migration
+  `20260916110000`): um trigger completo quebraria fixtures de teste legítimas
+  (`notification_outbox.test.sql` reescreve status/attempts diretamente para simular
+  jobs presos) sem ganho real de segurança contra um admin no Studio — só uma CHECK
+  constraint declarativa (`notification_deliveries_lease_matches_status`) foi
+  implementada, cobrindo só parte do requisito. Essa parte do argumento (fixtures) se
+  confirmou ao implementar o trigger completo agora — 3 fixtures precisaram de
+  `alter table ... disable/enable trigger` ao redor do setup — mas o argumento não
+  cobria o risco original do diagnóstico (`sent → pending` continuava possível por
+  update direto). Implementado em `20260916220000_add_notification_delivery_status_machine.sql`:
+  reaproveita `site_private.enforce_status_transition()` (Etapa 8) mais um trigger novo
+  para a invariante de `lease_token`/`attempts`. Matriz completa de 36 combinações
+  testada (`notification_delivery_status_machine.test.sql`, 42 testes). **Gap adicional
+  encontrado ao testar contra a documentação existente**: `docs/RUNBOOK_INCIDENTES.md`
+  já descrevia `exhausted → pending` como uma reabertura administrativa sancionada
+  (provedor volta do ar) — o design inicial do trigger tratava `exhausted` como
+  puramente terminal e teria quebrado esse runbook silenciosamente. Corrigido antes de
+  finalizar: `exhausted → pending` é uma transição de primeira classe, exigindo
+  `attempts = 0`.
+- **Etapa 16: drift real confirmado** — uma FK adicionada pela Etapa 20
+  (`notification_deliveries.delivery_state_source_event_id`) depois que a Etapa 16
+  original fechou nunca foi revalidada contra a invariante "toda FK tem índice".
+  Corrigido em `20260916230000_add_delivery_state_source_event_idx.sql`.
+- **Etapa 6**: `docs/RUNBOOK_VERIFICACAO_DB.md` escrito (não existia). Token de acesso
+  real e sua execução contra produção continuam pendentes — ação humana, não
+  autônoma.
+- **Etapa 5**: `main` local sincronizado (tinha divergido para 33 commits atrás,
+  não os 25 originalmente diagnosticados); as duas branches `backup/*` já tinham tags
+  locais equivalentes (criadas antes desta auditoria) — publicadas em `origin` e as
+  branches removidas; `git fetch --prune` limpo.
+- **Etapa 49**: `docs/RUNBOOK_PEDIDO_TITULAR.md` e `docs/RUNBOOK_RECONCILIACAO_LEDGER.md`
+  escritos no formato completo (pré-condições/comandos/verificação/comunicação) que
+  faltava — antes eram só ponteiros para outras seções de doc, não runbooks próprios.
+- **Etapa 32**: cobertura de teste para `customer_profiles` adicionada a
+  `customer_data_erasure.test.sql` (o teste original só cobria `quote_requests`/
+  `contact_requests`, deixando sem asserção o fix de precedência de operador aplicado
+  nesta sessão).
+- **Segunda regressão de dependência**: outro PR do Dependabot, mergeado
+  separadamente da correção anterior, bumpou `eslint` de 9.39.5 para 10.10.0 — reabrindo
+  o mesmo conflito de peer dependency com `eslint-plugin-jsx-a11y` pelo lado oposto
+  (`eslint` 10.x + `@eslint/js` 9.x, em vez do inverso). `main` estava com `npm
+  install`/`npm ci` quebrado no momento em que isso foi descoberto. Corrigido revertendo
+  `eslint` também para `9.39.5`.
+
+Contagem final honesta: **43 das 50 etapas** confirmadas completas ou corretamente
+adiadas/bloqueadas continua válida como número (a auditoria também encontrou vários
+itens **parcialmente** implementados dentro de etapas já contadas como "feitas" —
+cenários de teste mais difíceis ausentes, políticas de retenção/revisão de artefatos
+próprios não escritas, ou descopes de engenharia sólidos porém nunca registrados como
+decisão deliberada — listados na seção de checklist de cada etapa específica, com a
+etiqueta `[~]`). Essas lacunas parciais são reais e ficam documentadas etapa por etapa;
+fechá-las todas exaustivamente (matriz de testes adicionais para ~15 etapas) ficou fora
+do escopo desta rodada por relação custo/benefício — nenhuma delas é uma falha de
+correção como a Etapa 9 era.
 
 ## O que este plano não faz
 

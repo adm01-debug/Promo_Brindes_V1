@@ -168,8 +168,14 @@ select is(
 -- mais de 10 minutos, sem nunca finalizar. O trigger set_updated_at sobrescreve
 -- updated_at incondicionalmente em todo UPDATE; desabilita só para este setup.
 -- lease_expires_at no passado é o que a Etapa 10 usa para reconhecer o job como
--- preso (updated_at deixou de ter esse papel).
+-- preso (updated_at deixou de ter esse papel). Os dois triggers da Etapa 9
+-- (transição de status e invariante lease/attempts) também são desabilitados aqui:
+-- este é um fixture pulando direto para "5 tentativas esgotadas", não uma sequência
+-- real de reivindicações — exatamente o cenário que a própria Ação da Etapa 9 previu
+-- em "Rollback/risco" (disable trigger é a válvula de escape para fixtures deste tipo).
 alter table site_private.notification_deliveries disable trigger notification_deliveries_set_updated_at;
+alter table site_private.notification_deliveries disable trigger notification_deliveries_enforce_status_transition;
+alter table site_private.notification_deliveries disable trigger notification_deliveries_enforce_lease_and_attempts;
 update site_private.notification_deliveries delivery
 set status = 'processing', attempts = 5, lease_token = gen_random_uuid(),
     claimed_at = now() - interval '20 minutes', lease_expires_at = now() - interval '10 minutes',
@@ -177,6 +183,8 @@ set status = 'processing', attempts = 5, lease_token = gen_random_uuid(),
 from site_private.quote_requests request
 where request.id = delivery.request_id and request.client_request_id = 'notification-outbox-quote-2' and delivery.channel = 'email';
 alter table site_private.notification_deliveries enable trigger notification_deliveries_set_updated_at;
+alter table site_private.notification_deliveries enable trigger notification_deliveries_enforce_status_transition;
+alter table site_private.notification_deliveries enable trigger notification_deliveries_enforce_lease_and_attempts;
 
 create temporary table claimed_jobs_2(payload jsonb);
 insert into claimed_jobs_2 select public.claim_site_notification_deliveries(array['email'], 10);
@@ -201,8 +209,12 @@ select ok(
 );
 
 -- Mesmo cenário, mas com tentativas restantes: deve ser reclamado de novo
--- (nova tentativa), não terminalizado.
+-- (nova tentativa), não terminalizado. Reaproveita a mesma linha para um segundo
+-- cenário (exhausted -> processing de novo, attempts recuando de 5 para 3) —
+-- desabilita os dois triggers da Etapa 9 também, mesmo motivo do bloco acima.
 alter table site_private.notification_deliveries disable trigger notification_deliveries_set_updated_at;
+alter table site_private.notification_deliveries disable trigger notification_deliveries_enforce_status_transition;
+alter table site_private.notification_deliveries disable trigger notification_deliveries_enforce_lease_and_attempts;
 update site_private.notification_deliveries delivery
 set status = 'processing', attempts = 3, lease_token = gen_random_uuid(),
     claimed_at = now() - interval '20 minutes', lease_expires_at = now() - interval '10 minutes',
@@ -210,6 +222,8 @@ set status = 'processing', attempts = 3, lease_token = gen_random_uuid(),
 from site_private.quote_requests request
 where request.id = delivery.request_id and request.client_request_id = 'notification-outbox-quote-2' and delivery.channel = 'email';
 alter table site_private.notification_deliveries enable trigger notification_deliveries_set_updated_at;
+alter table site_private.notification_deliveries enable trigger notification_deliveries_enforce_status_transition;
+alter table site_private.notification_deliveries enable trigger notification_deliveries_enforce_lease_and_attempts;
 select is(
   (select delivery.status from site_private.notification_deliveries delivery
    join site_private.quote_requests request on request.id = delivery.request_id
