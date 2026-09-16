@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(27);
+select plan(30);
 
 select has_column('site_private', 'notification_deliveries', 'delivery_state', 'entrega ganha estado terminal pós-aceite (Etapa 30)');
 select has_column('site_private', 'notification_deliveries', 'bounce_reason', 'devolução guarda a categoria curta do provedor');
@@ -96,35 +96,60 @@ select is(
   'reentrega do mesmo provider_event_id é no-op'
 );
 
--- Um bounced atrasado, com provider_event_id novo, chega depois de um
--- delivered já aplicado: não deve regredir o estado terminal.
+-- Etapa 20 do plano de correções: um bounced atrasado, com provider_event_id
+-- novo, chega depois de um delivered já aplicado — soft bounce tardio, real
+-- em provedores de e-mail. Ao contrário do comportamento anterior, ISSO
+-- CORRIGE o estado (bounced ⊐ delivered), em vez de ser ignorado.
 select is(
   public.apply_site_notification_provider_event('resend', 'resend-msg-events-1', 'bounced', 'evt-bounced-1', now(), 'HardBounce') ->> 'applied',
-  'false',
-  'bounced após delivered já aplicado não é reaplicado'
-);
-select is(
-  public.apply_site_notification_provider_event('resend', 'resend-msg-events-1', 'bounced', 'evt-bounced-2', now(), 'HardBounce') ->> 'reason',
-  'delivery_state_already_set',
-  'motivo do não-reaplicação é o estado terminal já definido'
+  'true',
+  'bounced após delivered já aplicado É reaplicado (Etapa 20: bounced corrige delivered)'
 );
 select is(
   (select delivery.delivery_state from site_private.notification_deliveries delivery
    join site_private.quote_requests request on request.id = delivery.request_id
    where request.client_request_id = 'provider-events-quote-1' and delivery.channel = 'email'),
-  'delivered',
-  'delivery_state não regride de delivered para bounced'
+  'bounced',
+  'delivery_state passa de delivered para bounced (Etapa 20)'
 );
 select is(
   (select delivery.bounce_reason from site_private.notification_deliveries delivery
    join site_private.quote_requests request on request.id = delivery.request_id
    where request.client_request_id = 'provider-events-quote-1' and delivery.channel = 'email'),
+  'HardBounce',
+  'bounce_reason é gravado quando o bounced corrige o delivered anterior'
+);
+select isnt(
+  (select delivery.delivery_state_source_event_id from site_private.notification_deliveries delivery
+   join site_private.quote_requests request on request.id = delivery.request_id
+   where request.client_request_id = 'provider-events-quote-1' and delivery.channel = 'email'),
   null,
-  'bounce_reason não é gravado quando o bounced é ignorado'
+  'delivery_state_source_event_id rastreia qual evento determinou o estado atual (Etapa 20)'
 );
 
--- Reclamação é independente de delivery_state: uma mensagem entregue pode
--- ser reclamada depois, e ambos os campos coexistem.
+-- Depois que bounced venceu, nem um SEGUNDO bounced nem um delivered tardio
+-- devem mudar o estado de novo — bounced é terminal a partir daqui.
+select is(
+  public.apply_site_notification_provider_event('resend', 'resend-msg-events-1', 'bounced', 'evt-bounced-2', now(), 'SoftBounce') ->> 'reason',
+  'delivery_state_already_set',
+  'um segundo bounced não reaplica sobre um bounced já definido'
+);
+select is(
+  public.apply_site_notification_provider_event('resend', 'resend-msg-events-1', 'delivered', 'evt-delivered-late-1', now()) ->> 'reason',
+  'delivery_state_already_set',
+  'delivered nunca sobrescreve bounced — a precedência é assimétrica de propósito'
+);
+select is(
+  (select delivery.delivery_state from site_private.notification_deliveries delivery
+   join site_private.quote_requests request on request.id = delivery.request_id
+   where request.client_request_id = 'provider-events-quote-1' and delivery.channel = 'email'),
+  'bounced',
+  'delivery_state permanece bounced após as duas tentativas de sobrescrita'
+);
+
+-- Reclamação é independente de delivery_state: uma mensagem que voltou pode
+-- ainda assim gerar uma reclamação de spam registrada em algum momento antes
+-- do bounce, e ambos os campos coexistem.
 select is(
   public.apply_site_notification_provider_event('resend', 'resend-msg-events-1', 'complained', 'evt-complained-1', now()) ->> 'applied',
   'true',
@@ -141,8 +166,8 @@ select is(
   (select delivery.delivery_state from site_private.notification_deliveries delivery
    join site_private.quote_requests request on request.id = delivery.request_id
    where request.client_request_id = 'provider-events-quote-1' and delivery.channel = 'email'),
-  'delivered',
-  'delivery_state permanece delivered após a reclamação'
+  'bounced',
+  'delivery_state permanece bounced após a reclamação'
 );
 
 -- provider_message_id desconhecido: não aplica, mas grava o evento (para que

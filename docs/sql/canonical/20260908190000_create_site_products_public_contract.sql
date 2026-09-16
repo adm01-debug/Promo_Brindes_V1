@@ -1,7 +1,22 @@
 -- Contrato público mínimo do Site Promo Brindes.
--- Projeto-alvo canônico: doufsxqlfjyuvxuezpln
+-- Projeto-alvo canônico: doufsxqlfjyuvxuezpln (Promo_Gifts_V4 | Gestão de Produtos)
 --
--- IMPORTANTE: revisar e aplicar com uma identidade administrativa autorizada.
+-- ESPELHO SOMENTE-LEITURA — NÃO é uma migration ativa deste repositório.
+-- SSOT do schema canônico é o repositório Promo_Gifts_V4; movido de
+-- supabase/migrations/ para cá em 16/09/2026 (etapa 3/45 do plano de correções,
+-- docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260916.md) por dois motivos:
+--   1. `supabase/.temp/linked-project.json` deste repositório ficava vinculado ao
+--      projeto do SITE (xlzmclcjdncjfdrjxclt), não ao canônico — um `supabase db push`
+--      acidental a partir da raiz do repo poderia tentar aplicar este SQL no banco
+--      errado. Tirar o arquivo de qualquer pasta `migrations/` que o CLI reconheça
+--      elimina esse risco por construção.
+--   2. Verificação read-only em 16/09/2026 (`supabase migration list --project-ref
+--      doufsxqlfjyuvxuezpln`) confirmou que esta versão (20260908190000) NÃO consta no
+--      ledger de migrations do projeto canônico — o SQL foi aplicado manualmente (fora
+--      do CLI) e documentado em docs/DATABASE_PUBLIC_CONTRACT.md. Incorporar este
+--      arquivo ao histórico de migrations do Promo_Gifts_V4 é decisão do PO daquele
+--      repositório (issue de coordenação aberta em adm01-debug/Promo_Gifts_V4).
+--
 -- Esta migração não revoga a view legada: esse corte exige primeiro o inventário de
 -- dependências por pg_catalog descrito em docs/DATABASE_PUBLIC_CONTRACT.md.
 

@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(39);
+select plan(41);
 
 select has_column('site_private', 'notification_deliveries', 'next_attempt_at', 'fila possui agenda de nova tentativa');
 select has_column('site_private', 'notification_deliveries', 'lease_token', 'fila identifica a reivindicação ativa (R04)');
@@ -80,6 +80,13 @@ select isnt(
   null,
   'reivindicação inclui lease_token (R04)'
 );
+select ok(
+  (select delivery.claimed_at is not null and delivery.lease_expires_at > delivery.claimed_at
+   from site_private.notification_deliveries delivery
+   join site_private.quote_requests request on request.id = delivery.request_id
+   where request.client_request_id = 'notification-outbox-quote-1' and delivery.channel = 'email'),
+  'reivindicação grava claimed_at e lease_expires_at no futuro (Etapa 10)'
+);
 
 -- R04: um lease_token divergente (ex.: trabalhador antigo com reivindicação
 -- expirada) não pode finalizar a reivindicação ativa.
@@ -115,6 +122,13 @@ select is(
    where request.client_request_id = 'notification-outbox-quote-1' and delivery.channel = 'email'),
   'sent',
   'entrega finalizada permanece auditável'
+);
+select is(
+  (select delivery.lease_expires_at from site_private.notification_deliveries delivery
+   join site_private.quote_requests request on request.id = delivery.request_id
+   where request.client_request_id = 'notification-outbox-quote-1' and delivery.channel = 'email'),
+  null,
+  'finalização limpa lease_expires_at junto com lease_token (Etapa 10)'
 );
 select ok(
   not public.finalize_site_notification_delivery(
@@ -153,9 +167,13 @@ select is(
 -- Simula um worker que reivindicou e travou: 5 tentativas, processing há
 -- mais de 10 minutos, sem nunca finalizar. O trigger set_updated_at sobrescreve
 -- updated_at incondicionalmente em todo UPDATE; desabilita só para este setup.
+-- lease_expires_at no passado é o que a Etapa 10 usa para reconhecer o job como
+-- preso (updated_at deixou de ter esse papel).
 alter table site_private.notification_deliveries disable trigger notification_deliveries_set_updated_at;
 update site_private.notification_deliveries delivery
-set status = 'processing', attempts = 5, lease_token = gen_random_uuid(), updated_at = now() - interval '20 minutes'
+set status = 'processing', attempts = 5, lease_token = gen_random_uuid(),
+    claimed_at = now() - interval '20 minutes', lease_expires_at = now() - interval '10 minutes',
+    updated_at = now() - interval '20 minutes'
 from site_private.quote_requests request
 where request.id = delivery.request_id and request.client_request_id = 'notification-outbox-quote-2' and delivery.channel = 'email';
 alter table site_private.notification_deliveries enable trigger notification_deliveries_set_updated_at;
@@ -186,7 +204,9 @@ select ok(
 -- (nova tentativa), não terminalizado.
 alter table site_private.notification_deliveries disable trigger notification_deliveries_set_updated_at;
 update site_private.notification_deliveries delivery
-set status = 'processing', attempts = 3, lease_token = gen_random_uuid(), updated_at = now() - interval '20 minutes'
+set status = 'processing', attempts = 3, lease_token = gen_random_uuid(),
+    claimed_at = now() - interval '20 minutes', lease_expires_at = now() - interval '10 minutes',
+    updated_at = now() - interval '20 minutes'
 from site_private.quote_requests request
 where request.id = delivery.request_id and request.client_request_id = 'notification-outbox-quote-2' and delivery.channel = 'email';
 alter table site_private.notification_deliveries enable trigger notification_deliveries_set_updated_at;
@@ -261,7 +281,7 @@ where channel = 'whatsapp';
 -- A mecânica de exaustão (5 tentativas) já é coberta acima; aqui só
 -- precisamos de um job exhausted real para testar a contagem por canal.
 update site_private.notification_deliveries
-set status = 'exhausted', lease_token = null
+set status = 'exhausted', lease_token = null, lease_expires_at = null
 where channel = 'email';
 alter table site_private.notification_deliveries enable trigger notification_deliveries_set_updated_at;
 

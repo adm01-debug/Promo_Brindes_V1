@@ -24,7 +24,7 @@ A chave anônima também continua alcançando contratos legados mais amplos (`v_
 
 ## Rollout seguro
 
-A fase A foi concluída em 08/09/2026 com a migration `supabase/migrations/20260908_190000_create_site_products_public_contract.sql`. A validação por `pg_catalog` e pela API anônima confirmou:
+A fase A foi concluída em 08/09/2026 com a migration `20260908190000_create_site_products_public_contract.sql`, aplicada manualmente no projeto canônico. O arquivo é mantido neste repositório como espelho somente-leitura em `docs/sql/canonical/` (movido de `supabase/migrations/` em 16/09/2026 — ver cabeçalho do arquivo para o motivo). Verificação read-only em 16/09/2026 confirmou que esta versão não consta no ledger de migrations do `Promo_Gifts_V4`; a incorporação ao SSOT canônico é decisão pendente do PO daquele repositório (issue de coordenação aberta). A validação por `pg_catalog` e pela API anônima confirmou:
 
 - 36 colunas no contrato e zero campos proibidos;
 - 7.519 produtos ativos, com 7.519 IDs distintos;
