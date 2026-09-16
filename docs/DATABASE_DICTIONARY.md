@@ -4,6 +4,33 @@ Gerado por `npm run db:site:dictionary` a partir de `pg_description` no banco lo
 
 ## Tabelas
 
+### `site_private.admin_audit_log`
+
+Etapa 36: audita escritas em tabelas de negócio feitas por qualquer role além de site_api/service_role — ou seja, fora do caminho normal da API (Studio, SQL manual). Não registra o conteúdo da linha, só que uma escrita aconteceu, quem e quando.
+
+| Coluna | Tipo | Comentário |
+|---|---|---|
+| `id` | `bigint` | — |
+| `table_name` | `text` | — |
+| `operation` | `text` | — |
+| `row_id` | `text` | — |
+| `performed_by` | `text` | — |
+| `application_name` | `text` | — |
+| `occurred_at` | `timestamp with time zone` | — |
+
+### `site_private.admin_ddl_log`
+
+Etapa 36: DDL (create/alter/drop) fora do fluxo de migrations do CLI. Toda migration legítima também aparece aqui — não é um sinal de problema por si só, é o registro bruto para cruzar com o histórico de migrations quando precisar auditar.
+
+| Coluna | Tipo | Comentário |
+|---|---|---|
+| `id` | `bigint` | — |
+| `command_tag` | `text` | — |
+| `object_type` | `text` | — |
+| `schema_name` | `text` | — |
+| `performed_by` | `text` | — |
+| `occurred_at` | `timestamp with time zone` | — |
+
 ### `site_private.consent_receipts`
 
 _Sem comment on table — considerar adicionar um na próxima migration que tocar esta tabela._
