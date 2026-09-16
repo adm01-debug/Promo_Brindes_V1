@@ -302,7 +302,7 @@ function acquireLock(config) {
       fs.rmSync(LOCK_PATH, { force: true });
       return acquireLock(config);
     }
-    throw new Error('Outra geração Graphify está em andamento. Aguarde-a terminar; nenhum artefato foi alterado.');
+    throw new Error('Outra geração Graphify está em andamento. Aguarde-a terminar; nenhum artefato foi alterado.', { cause: error });
   }
   return workDirectory;
 }

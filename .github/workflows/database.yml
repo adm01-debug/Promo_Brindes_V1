@@ -22,6 +22,8 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22.13.1
+      - name: Validate migration file names (guard contra o incidente de 15/09)
+        run: node scripts/validate-migration-names.mjs
       - name: Install locked Supabase CLI
         run: npm install --global supabase@2.115.0
       - name: Start local Supabase services
@@ -30,5 +32,26 @@ jobs:
         run: SUPABASE_WORKDIR=site-supabase supabase db reset
       - name: Run database contracts
         run: SUPABASE_WORKDIR=site-supabase supabase test db
-      - name: Lint local database schema
-        run: SUPABASE_WORKDIR=site-supabase supabase db lint --local
+      - name: Lint local database schema (Etapa 31 — falha também em warning)
+        run: SUPABASE_WORKDIR=site-supabase supabase db lint --local --level warning --fail-on warning
+      - name: Regenerate TypeScript types and fail on drift (Etapa 21)
+        run: |
+          npm run db:site:types
+          git diff --exit-code -- src/types/site-database.types.ts || {
+            echo "::error::src/types/site-database.types.ts está desatualizado. Rode 'npm run db:site:types' e commite o resultado.";
+            exit 1;
+          }
+      - name: Regenerate data dictionary and fail on drift (Etapa 35)
+        run: |
+          npm run db:site:dictionary
+          git diff --exit-code -- docs/DATABASE_DICTIONARY.md || {
+            echo "::error::docs/DATABASE_DICTIONARY.md está desatualizado. Rode 'npm run db:site:dictionary' e commite o resultado.";
+            exit 1;
+          }
+      - name: Regenerate schema ERD and fail on drift (Etapa 48)
+        run: |
+          npm run db:site:schema-doc
+          git diff --exit-code -- docs/DATABASE_SCHEMA.md || {
+            echo "::error::docs/DATABASE_SCHEMA.md está desatualizado. Rode 'npm run db:site:schema-doc' e commite o resultado.";
+            exit 1;
+          }

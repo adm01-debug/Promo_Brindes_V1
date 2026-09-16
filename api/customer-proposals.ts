@@ -83,7 +83,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     const rpcResponse = await fetch(`${config.url}/rest/v1/rpc/get_my_proposal_document`, {
       method: 'POST',
-      headers: { apikey: config.secretKey, Authorization: authorization, 'Content-Type': 'application/json' },
+      headers: { apikey: config.serviceCredential, Authorization: authorization, 'Content-Type': 'application/json' },
       body: JSON.stringify({ p_proposal_id: proposalId }),
       signal: controller.signal,
     });
@@ -99,7 +99,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     const encodedPath = document.path.split('/').map(encodeURIComponent).join('/');
     const signedResponse = await fetch(`${config.url}/storage/v1/object/sign/${encodeURIComponent(document.bucket)}/${encodedPath}`, {
       method: 'POST',
-      headers: { apikey: config.secretKey, Authorization: `Bearer ${config.secretKey}`, 'Content-Type': 'application/json' },
+      headers: { apikey: config.serviceCredential, Authorization: `Bearer ${config.serviceCredential}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ expiresIn: 60 }),
       signal: controller.signal,
     });

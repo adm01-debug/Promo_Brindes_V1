@@ -51,7 +51,7 @@ async function rpc<T>(name: string, payload: Record<string, unknown>): Promise<T
   try {
     const response = await fetch(`${config.url}/rest/v1/rpc/${name}`, {
       method: 'POST',
-      headers: { apikey: config.secretKey, Authorization: `Bearer ${config.secretKey}`, 'Content-Type': 'application/json', Accept: 'application/json' },
+      headers: { apikey: config.serviceCredential, Authorization: `Bearer ${config.serviceCredential}`, 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify(payload),
       signal: controller.signal,
     });

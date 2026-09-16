@@ -3,16 +3,18 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(61);
+select plan(63);
 
 select is(
   (select count(*) from pg_catalog.pg_tables where schemaname = 'site_private'),
-  13::bigint,
-  'schema privado contém as treze tabelas planejadas (Etapa 30 acrescenta notification_provider_events)'
+  16::bigint,
+  'schema privado contém as dezesseis tabelas planejadas (Etapa 36 acrescenta admin_audit_log e admin_ddl_log)'
 );
 
 select has_table('site_private', 'shared_selections', 'seleções persistentes ficam no schema privado');
 select has_table('site_private', 'shared_selection_rate_limits', 'criação de links recebe rate limit próprio');
+select has_table('site_private', 'status_transitions', 'máquina de estados administrativa vive em tabela dedicada (Etapa 8)');
+select has_table('site_private', 'admin_audit_log', 'trilha de escrita administrativa vive em tabela dedicada (Etapa 36)');
 select ok(not pg_catalog.has_table_privilege('anon', 'site_private.shared_selections', 'select,insert,update,delete'), 'anon não lê nem altera links persistentes diretamente');
 select ok(pg_catalog.has_function_privilege('service_role', 'public.create_site_shared_selection(jsonb,text,text)', 'execute'), 'somente o backend cria links persistentes');
 select ok(not pg_catalog.has_function_privilege('anon', 'public.get_site_shared_selection(uuid)', 'execute'), 'anon não consulta links persistentes diretamente');

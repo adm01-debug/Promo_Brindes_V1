@@ -13,7 +13,14 @@ export class SiteDatabaseError extends Error {
 
 interface SiteDatabaseConfig {
   url: string;
-  secretKey: string;
+  /**
+   * Etapa 25 do plano de correções: SITE_SUPABASE_SERVICE_JWT (role site_api, privilégio
+   * mínimo — ver docs/RUNBOOK_SITE_API_CUTOVER.md) tem prioridade sobre
+   * SITE_SUPABASE_SECRET_KEY (service_role legado, todas as tabelas). As duas convivem
+   * durante o cutover; nenhum caller precisa saber qual das duas está em uso — só que é
+   * o que vai em apikey/Authorization.
+   */
+  serviceCredential: string;
   requestHashSalt: string;
 }
 
@@ -23,11 +30,29 @@ export interface RequestMetadata {
   origin: string;
 }
 
+const JWT_SHAPE = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/;
+
+function isValidServiceCredential(value: string): boolean {
+  if (value.startsWith('sb_secret_')) return true;
+  // JWT (Etapa 25): três segmentos base64url; decodifica o header e confirma que é o
+  // formato esperado, sem validar a assinatura aqui (isso é papel do gateway do
+  // Supabase — se o segredo estiver errado, a chamada volta 401 e falha de forma
+  // visível, não silenciosa).
+  if (!JWT_SHAPE.test(value)) return false;
+  try {
+    const headerSegment = value.split('.', 1)[0] ?? '';
+    const header = JSON.parse(Buffer.from(headerSegment, 'base64url').toString('utf8')) as { alg?: string; typ?: string };
+    return header.typ === 'JWT' && typeof header.alg === 'string';
+  } catch {
+    return false;
+  }
+}
+
 export function getSiteDatabaseConfig(): SiteDatabaseConfig {
   const rawUrl = process.env.SITE_SUPABASE_URL?.trim();
-  const secretKey = process.env.SITE_SUPABASE_SECRET_KEY?.trim();
+  const serviceCredential = process.env.SITE_SUPABASE_SERVICE_JWT?.trim() || process.env.SITE_SUPABASE_SECRET_KEY?.trim();
   const requestHashSalt = process.env.SITE_REQUEST_HASH_SALT?.trim();
-  if (!rawUrl || !secretKey || !requestHashSalt) {
+  if (!rawUrl || !serviceCredential || !requestHashSalt) {
     throw new SiteDatabaseError('O recebimento online ainda não está configurado.', 'backend_not_configured');
   }
   let url: URL;
@@ -40,10 +65,10 @@ export function getSiteDatabaseConfig(): SiteDatabaseConfig {
   if (url.protocol !== 'https:' || !projectHost || projectHost[1] !== SITE_DATABASE_PROJECT) {
     throw new SiteDatabaseError('Destino isolado do banco do site inválido.', 'unsafe_database_target');
   }
-  if (!secretKey.startsWith('sb_secret_') || requestHashSalt.length < 32) {
+  if (!isValidServiceCredential(serviceCredential) || requestHashSalt.length < 32) {
     throw new SiteDatabaseError('Credenciais server-side do site inválidas.', 'backend_misconfigured');
   }
-  return { url: url.origin, secretKey, requestHashSalt };
+  return { url: url.origin, serviceCredential, requestHashSalt };
 }
 
 function identifierHash(ip: string, salt: string): string {
@@ -64,8 +89,8 @@ export async function persistLead(kind: LeadKind, payload: NormalizedLeadPayload
     response = await fetch(`${config.url}/rest/v1/rpc/${rpcName}`, {
       method: 'POST',
       headers: {
-        apikey: config.secretKey,
-        Authorization: `Bearer ${config.secretKey}`,
+        apikey: config.serviceCredential,
+        Authorization: `Bearer ${config.serviceCredential}`,
         'Content-Type': 'application/json',
         Accept: 'application/json',
       },
@@ -116,7 +141,7 @@ export async function callSiteRpc<T>(name: string, body: Record<string, unknown>
   const config = getSiteDatabaseConfig();
   const response = await fetch(`${config.url}/rest/v1/rpc/${name}`, {
     method: 'POST',
-    headers: { apikey: config.secretKey, Authorization: `Bearer ${config.secretKey}`, 'Content-Type': 'application/json', Accept: 'application/json' },
+    headers: { apikey: config.serviceCredential, Authorization: `Bearer ${config.serviceCredential}`, 'Content-Type': 'application/json', Accept: 'application/json' },
     body: JSON.stringify(body),
     signal,
   });
