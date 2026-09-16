@@ -1,50 +1,54 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { extractFirstJsonObject } from '../scripts/_lib/supabaseDbQuery.mjs';
+import { extractRows } from '../scripts/_lib/supabaseDbQuery.mjs';
 
-// Guarda contra a regressão de CI de 16/09: `supabase db query` mistura o JSON com
-// texto do CLI (banner, aviso de atualização) na mesma stdout, e ONDE esse texto
-// aparece (antes ou depois do JSON) varia entre execução local (TTY) e o runner do
-// GitHub Actions (não-interativo) — indexOf('{') sozinho só cobre o caso "antes".
+// Guarda contra duas regressões de CI observadas em 16/09 ao rodar `supabase db
+// query --output-format json`:
+// 1. texto solto do CLI (banner de conexão) antes do JSON — `indexOf('{')` sozinho
+//    cobre isso, mas quebra se o texto vier DEPOIS do JSON (não reproduzia local).
+// 2. no runner do GitHub Actions, o aviso de nova versão do CLI também sai como um
+//    objeto JSON válido (não texto solto), e sua posição relativa ao objeto com
+//    "rows" varia entre chamadas — pegar só "o primeiro objeto JSON da string" não
+//    basta; é preciso achar o objeto que de fato tem "rows".
 
-test('extrai JSON quando não há texto extra', () => {
-  const raw = '{"rows":[{"a":1}]}';
-  assert.deepEqual(JSON.parse(extractFirstJsonObject(raw)), { rows: [{ a: 1 }] });
+test('extrai rows quando não há texto extra', () => {
+  assert.deepEqual(extractRows('{"rows":[{"a":1}]}'), [{ a: 1 }]);
 });
 
-test('ignora banner de conexão antes do JSON (caso local)', () => {
+test('ignora banner de conexão (texto solto) antes do JSON', () => {
   const raw = 'Connecting to local database...\n{"rows":[{"a":1}]}';
-  assert.deepEqual(JSON.parse(extractFirstJsonObject(raw)), { rows: [{ a: 1 }] });
+  assert.deepEqual(extractRows(raw), [{ a: 1 }]);
 });
 
-test('ignora aviso de nova versão do CLI depois do JSON (caso reproduzido no CI)', () => {
-  const raw = '{"rows":[{"a":1}]}\nA new version of Supabase CLI is available: v2.117.0\nWe recommend updating regularly...';
-  assert.deepEqual(JSON.parse(extractFirstJsonObject(raw)), { rows: [{ a: 1 }] });
+test('ignora objeto JSON de aviso de versão quando vem ANTES do objeto com rows', () => {
+  const raw = '{"level":"warn","message":"nova versão disponível"}\n{"rows":[{"a":1}]}';
+  assert.deepEqual(extractRows(raw), [{ a: 1 }]);
 });
 
-test('ignora texto antes e depois do JSON simultaneamente', () => {
-  const raw = 'Connecting to local database...\n{"rows":[{"a":1}]}\nA new version of Supabase CLI is available: v2.117.0';
-  assert.deepEqual(JSON.parse(extractFirstJsonObject(raw)), { rows: [{ a: 1 }] });
+test('ignora objeto JSON de aviso de versão quando vem DEPOIS do objeto com rows (caso do CI)', () => {
+  const raw = '{"rows":[{"a":1}]}\n{"level":"warn","message":"nova versão disponível"}';
+  assert.deepEqual(extractRows(raw), [{ a: 1 }]);
 });
 
-test('não se confunde com chaves dentro de strings (comentários de coluna, etc.)', () => {
-  const raw = '{"rows":[{"comment":"valores tipo {json} entre chaves"}]}\ntrailing noise { not json';
-  assert.deepEqual(JSON.parse(extractFirstJsonObject(raw)), {
-    rows: [{ comment: 'valores tipo {json} entre chaves' }],
-  });
+test('não se confunde com chaves dentro de strings (comentários de coluna etc.)', () => {
+  const raw = '{"rows":[{"comment":"valores tipo {json} entre chaves"}]}\n{"other":"noise { not balanced"}';
+  assert.deepEqual(extractRows(raw), [{ comment: 'valores tipo {json} entre chaves' }]);
 });
 
 test('não se confunde com chaves escapadas dentro de strings', () => {
-  const raw = String.raw`{"rows":[{"comment":"aspas \" e chave } escapada"}]}` + '\ntrailing { noise';
-  assert.deepEqual(JSON.parse(extractFirstJsonObject(raw)), {
-    rows: [{ comment: 'aspas " e chave } escapada' }],
-  });
+  const raw = String.raw`{"rows":[{"comment":"aspas \" e chave } escapada"}]}`;
+  assert.deepEqual(extractRows(raw), [{ comment: 'aspas " e chave } escapada' }]);
+});
+
+test('lança erro descritivo quando nenhum objeto tem "rows"', () => {
+  assert.throws(() => extractRows('{"level":"warn","message":"sem rows aqui"}'), /Nenhum objeto JSON com "rows"/);
 });
 
 test('lança erro descritivo quando não há JSON na saída', () => {
-  assert.throws(() => extractFirstJsonObject('só texto, sem chaves'), /Nenhum objeto JSON encontrado/);
+  assert.throws(() => extractRows('só texto, sem chaves'), /Nenhum objeto JSON com "rows"/);
 });
 
-test('lança erro descritivo quando as chaves não fecham', () => {
-  assert.throws(() => extractFirstJsonObject('{"rows": [{"a": 1}]'), /chaves não fecham/);
+test('ignora objeto JSON malformado (chaves não fecham) e segue procurando', () => {
+  const raw = '{"broken": [{"a": 1}]\n{"rows":[{"b":2}]}';
+  assert.deepEqual(extractRows(raw), [{ b: 2 }]);
 });
