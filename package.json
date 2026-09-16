@@ -30,6 +30,7 @@
     "db:site:dictionary": "node scripts/generate-database-dictionary.mjs",
     "db:site:schema-doc": "node scripts/generate-database-schema-doc.mjs",
     "test:queue-concurrency": "node --test tests/queue-concurrency.node.mjs",
+    "db:site:soak-test": "node scripts/soak-test-notification-queue.mjs",
     "db:site:guard": "node scripts/validate-site-supabase-target.mjs",
     "db:site:reset": "SUPABASE_WORKDIR=site-supabase supabase db reset",
     "db:site:dry-run": "npm run db:site:guard && SUPABASE_WORKDIR=site-supabase npx supabase@latest db push --dry-run",

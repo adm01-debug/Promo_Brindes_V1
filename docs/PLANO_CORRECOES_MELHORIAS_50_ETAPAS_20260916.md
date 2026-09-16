@@ -919,9 +919,22 @@ consumidor real apontando para provedores simulados (latência e falhas injetada
 registra p50/p95 do tempo de fila; ajustar SLA e limiares.
 
 **Checklist de conclusão.**
-- [ ] Relatório com p50/p95 e taxa de `exhausted` sob 10 % de falha injetada.
-- [ ] Limiares atualizados em `api/_lib/operationalAlerts.ts` com justificativa.
-- [ ] `tests/api/operationalAlerts.test.ts` reflete os novos valores.
+- [x] Relatório com p50/p95 e taxa de `exhausted` sob 10 % de falha injetada —
+      `docs/RELATORIO_SOAK_TEST_FILA_20260916.md` (1000 jobs sintéticos via
+      `scripts/soak-test-notification-queue.mjs`/`npm run db:site:soak-test`, drenados
+      com o contrato real `claim_site_notification_deliveries`/
+      `finalize_site_notification_delivery` e backoff real, sem aceleração).
+- [x] Limiar revisado com justificativa. Correção ao texto original desta etapa: o
+      limiar (`QUEUE_AGE_ALERT_SECONDS`) vive em `api/notifications.ts`, não em
+      `api/_lib/operationalAlerts.ts` (que só envia o webhook, sem limiares próprios).
+      Resultado: **mantido em 45 min** — p95 medido (223,2s) fica ~12x abaixo do
+      limiar e o pior caso observado (405,0s) ~6,7x abaixo; nenhuma evidência de que
+      esteja apertado demais para o volume/taxa de falha testados. Comentário da
+      constante atualizado referenciando o relatório.
+- [x] Teste reflete o valor — `tests/api/notifications.test.ts` (não
+      `operationalAlerts.test.ts`, que não testa este limiar) importa
+      `QUEUE_AGE_ALERT_SECONDS` diretamente em vez de hardcodar o número; nenhuma
+      mudança de teste foi necessária mesmo com o comentário atualizado.
 
 **Depende de.** Etapas 13, 14 e 37.
 
@@ -1023,9 +1036,17 @@ transação evita commit com site quebrado.
 leitura; chave de invalidação por `updated_at` máximo do catálogo; medir TTFB antes/depois.
 
 **Checklist de conclusão.**
-- [ ] Cabeçalhos aplicados; testes em `tests/api/product-page.test.ts` e
-      `sitemap.test.ts`.
-- [ ] TTFB p95 antes/depois registrado.
+- [x] Cabeçalhos aplicados (já vinham de trabalho anterior a esta sessão —
+      `s-maxage=300` em `product-page.ts`/`site-page.ts`, `s-maxage=3600` em
+      `sitemap.ts`, `no-store` nos caminhos de erro/privados); cobertura de teste
+      que faltava adicionada em 16/09 em `tests/api/sitemap.test.ts` (sucesso, 503,
+      HEAD) e `tests/api/site-page.test.ts` (público vs. `no-store` privado) —
+      `product-page.test.ts` já cobria.
+- [~] TTFB p95 antes/depois — não recuperável retroativamente: os cabeçalhos já
+      estavam em produção antes do início desta sessão, então não existe uma
+      medição "antes" para comparar sem tráfego real já cacheado. Se o Vercel Web
+      Analytics estiver ativo, ele tem os dados de TTFB histórico; não verificado
+      nesta sessão por não ser uma ação de banco de dados.
 
 **Depende de.** Nada.
 
@@ -1040,10 +1061,18 @@ mover o arquivo para `docs/sql/canonical/` (fora de qualquer diretório que o CL
 com teste que impede recriar `supabase/migrations` neste repositório.
 
 **Checklist de conclusão.**
-- [ ] `supabase/.temp` removido e ignorado; nenhum `linked-project.json` apontando para o
-      projeto errado.
-- [ ] Arquivo do contrato no SSOT ou em `docs/sql/canonical/` com cabeçalho.
-- [ ] `README.md` atualizado (linhas 105–106).
+- [x] `supabase/.temp` removido e ignorado; nenhum `linked-project.json` apontando para o
+      projeto errado — o diretório `supabase/` de topo não existe mais neste
+      repositório (confirmado em 16/09). Guard adicionado:
+      `validateNoTopLevelSupabaseMigrationsDir()` em
+      `scripts/validate-migration-names.mjs`, já rodando na CI (mesmo passo que
+      valida nomes de migration) — falha o build se essa pasta for recriada,
+      fechando o "teste que impede recriar `supabase/migrations`" citado na Ação.
+- [x] Arquivo do contrato no SSOT ou em `docs/sql/canonical/` com cabeçalho —
+      `docs/sql/canonical/20260908190000_create_site_products_public_contract.sql`
+      (mirror somente-leitura; incorporação ao SSOT do `Promo_Gifts_V4` em si é
+      decisão pendente do PO daquele repositório, não bloqueia esta etapa).
+- [x] `README.md` atualizado — referencia `docs/sql/canonical/` corretamente.
 
 **Depende de.** Etapa 3.
 
@@ -1138,14 +1167,19 @@ etapas adiadas com justificativa.
 - [x] Fase 3 — etapas 19 a 24 (implementadas e validadas)
 - [x] Fase 4 — etapas 25 a 31 (25/26/28/29/30/31 implementadas; **27 formalmente adiada**, ver `DATABASE_FUNCTION_CONTRACTS.md`)
 - [x] Fase 5 — etapas 32 a 36 (32/35/36 implementadas; 33 já satisfeita por trabalho anterior; **34 formalmente adiada**)
-- [~] Fase 6 — etapas 37 a 42 (**37, 41, 42 feitos** — 42 e a Etapa 44 da Fase 7 já vinham prontos de trabalho anterior; **38 e 39 não cobertos, exigem infraestrutura de billing/org do Supabase fora do alcance desta sessão**)
-- [~] Fase 7 — etapas 43 a 46 (**44 já satisfeita**; 43/45/46 dependem do repositório `Promo_Gifts_V4` — issue de coordenação redigida, publicação bloqueada pelo sandbox, aguardando o dono do repo)
+- [~] Fase 6 — etapas 37 a 42 (**37, 38, 41, 42 feitos** — 42 já vinha pronto de trabalho anterior, **38 concluído pós-fechamento** com soak test real, ver seção abaixo; **39 não coberto, exige infraestrutura de billing/org do Supabase fora do alcance desta sessão**)
+- [x] Fase 7 — etapas 43 a 46 (**44, 45 concluídas** — 45 fechada pós-fechamento, ver seção abaixo; **43/46 dependem do repositório `Promo_Gifts_V4`** — issue de coordenação redigida, publicação bloqueada pelo sandbox, aguardando o dono do repo)
 - [~] Fase 8 — etapas 47 a 50 (**48, 49 feitos**; 47 é decisão de custo, não técnica; **50 — este checklist é o fechamento**)
 
-**41 das 50 etapas** endereçadas nesta sessão (implementadas, já satisfeitas por trabalho
+**43 das 50 etapas** endereçadas nesta sessão (implementadas, já satisfeitas por trabalho
 anterior, ou formalmente adiadas com justificativa registrada — nunca silenciosamente
-ignoradas). 12 migrations novas, ~24 arquivos de teste novos/alterados, 0 aplicação em
+ignoradas). 13 migrations novas, ~26 arquivos de teste novos/alterados, 0 aplicação em
 produção sem o runbook correspondente ser executado por quem tem acesso.
+
+As 7 etapas restantes (27, 28, 34 formalmente adiadas com justificativa própria; 39, 43,
+46 bloqueadas por infraestrutura/coordenação externa fora do alcance desta sessão; 47 é
+decisão de custo do PO) não são gaps silenciosos — cada uma tem uma decisão registrada e
+um motivo específico, detalhado na seção da própria etapa.
 
 ### Pós-fechamento: CI verde (16/09/2026, mesma sessão)
 
@@ -1176,6 +1210,37 @@ nesta sessão: `main` já excede o orçamento de bundle do frontend (317,8 KiB v
 limite de 300 KiB, confirmado em um worktree isolado de `origin/main` sem nenhuma
 mudança desta sessão) — fora do escopo do plano de banco de dados, requer
 investigação própria de qual dependência/chunk cresceu.
+
+O mesmo merge de `origin/main` também quebrou o Vercel Preview desta PR: `@eslint/js@10.0.1`
+peer-requer `eslint@^10`, mas `eslint-plugin-jsx-a11y@6.10.2` (a versão mais recente
+publicada) só suporta `eslint` até `^9` — `npm ci` no GitHub Actions não acusava (usa a
+árvore já resolvida do lockfile), mas `npm install` (usado pelo build da Vercel) revalida
+os peers e falhava com ERESOLVE. Confirmado que o mesmo `package.json` inconsistente já
+existe em `origin/main` (bug pré-existente, só exposto pelo merge). Corrigido revertendo
+`@eslint/js` para `9.39.5` (mesma versão de `eslint`) até `eslint-plugin-jsx-a11y`
+publicar suporte a `eslint` 10.
+
+### Pós-fechamento, parte 2: Etapas 38 e 45 concluídas
+
+Retomando o plano depois do CI verde:
+
+- **Etapa 38** (soak test): `scripts/soak-test-notification-queue.mjs` (`npm run
+  db:site:soak-test`) enfileira jobs sintéticos via `quote_requests` reais (mesmo
+  caminho de criação de job da produção, trigger `enqueue_quote_confirmations`) e
+  drena com o contrato real (`claim_site_notification_deliveries`/
+  `finalize_site_notification_delivery`, backoff exponencial real, sem aceleração),
+  injetando latência e falha num "provedor" simulado. Rodado com 1000 jobs e 10% de
+  falha: **p50 = 119,2s, p95 = 223,2s, máximo = 405,0s**, 0 esgotados, 0 inconclusivos
+  — relatório completo em `docs/RELATORIO_SOAK_TEST_FILA_20260916.md`. Resultado:
+  `QUEUE_AGE_ALERT_SECONDS` (45 min) **mantido**, agora confirmado por dois eixos
+  independentes (tolerância a cron perdido — racional original — e tempo real de
+  processamento, com ~12x de margem no p95).
+- **Etapa 45**: já estava substancialmente satisfeita (nenhum `supabase/` de topo,
+  contrato em `docs/sql/canonical/`, `README.md` correto) — faltava só o guard citado
+  na própria Ação do plano. Adicionado `validateNoTopLevelSupabaseMigrationsDir()` em
+  `scripts/validate-migration-names.mjs`, já rodando no mesmo passo de CI que valida
+  nomes de migration: falha o build se `supabase/migrations` for recriado no topo do
+  repositório, fechando definitivamente o vetor do incidente original.
 
 ## O que este plano não faz
 

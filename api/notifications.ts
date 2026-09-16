@@ -27,6 +27,9 @@ export const TOTAL_TIME_BUDGET_MS = OVERALL_TIME_BUDGET_MS + QUEUE_HEALTH_TIMEOU
 // minutos) para tolerar até duas invocações perdidas sem soar o alarme por
 // uma única execução atrasada — mesmo racional de tolerância a ruído que
 // justifica o limite de 5 tentativas antes de "exhausted" (Etapa 18).
+// Etapa 38: confirmado por soak test (docs/RELATORIO_SOAK_TEST_FILA_20260916.md,
+// 1000 jobs sintéticos, 10% de falha injetada) — p95 real de tempo de fila ficou em
+// ~223s, mais de 12x abaixo deste limiar; mantido sem alteração.
 export const QUEUE_AGE_ALERT_SECONDS = 45 * 60;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 

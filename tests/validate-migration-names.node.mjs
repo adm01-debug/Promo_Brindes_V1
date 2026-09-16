@@ -4,6 +4,7 @@ import {
   isValidCalendarTimestamp,
   validateMigrationFileNames,
   validateMigrationDirsOnDisk,
+  validateNoTopLevelSupabaseMigrationsDir,
 } from '../scripts/validate-migration-names.mjs';
 
 test('aceita nomes de 14 dígitos em ordem estritamente crescente', () => {
@@ -70,5 +71,21 @@ test('ignora arquivos que não terminam em .sql e diretórios ausentes', () => {
 
 test('varredura real do repositório não acusa nenhum erro (guarda contra regressão)', () => {
   const errors = validateMigrationDirsOnDisk();
+  assert.deepEqual(errors, [], errors.join('\n'));
+});
+
+test('rejeita a existência de supabase/migrations no topo do repositório (Etapa 45)', () => {
+  const errors = validateNoTopLevelSupabaseMigrationsDir((dir) => dir === 'supabase/migrations');
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /link incoerente/);
+});
+
+test('não acusa nada quando supabase/migrations no topo não existe', () => {
+  const errors = validateNoTopLevelSupabaseMigrationsDir(() => false);
+  assert.deepEqual(errors, []);
+});
+
+test('varredura real do repositório confirma que supabase/migrations no topo não existe (guarda contra regressão)', () => {
+  const errors = validateNoTopLevelSupabaseMigrationsDir();
   assert.deepEqual(errors, [], errors.join('\n'));
 });

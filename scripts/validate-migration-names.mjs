@@ -1,4 +1,4 @@
-import { readdirSync } from 'node:fs';
+import { readdirSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
@@ -73,8 +73,27 @@ export function validateMigrationDirsOnDisk(dirs = MIGRATION_DIRS, readDir = rea
   });
 }
 
+const FORBIDDEN_TOP_LEVEL_MIGRATIONS_DIR = 'supabase/migrations';
+
+/**
+ * Etapa 45 do plano de correções: um `supabase/migrations` no topo do repositório foi
+ * o incidente original — `supabase/.temp/linked-project.json` apontava para o projeto
+ * do site enquanto a única migration ali era do canônico. O contrato do catálogo
+ * canônico vive em `docs/sql/canonical/` (espelho somente-leitura, fora de qualquer
+ * pasta que o CLI do Supabase reconheça); recriar essa pasta reintroduziria o link
+ * incoerente silenciosamente.
+ */
+export function validateNoTopLevelSupabaseMigrationsDir(exists = existsSync) {
+  if (exists(FORBIDDEN_TOP_LEVEL_MIGRATIONS_DIR)) {
+    return [
+      `${FORBIDDEN_TOP_LEVEL_MIGRATIONS_DIR} não deveria existir neste repositório — reintroduz o link incoerente do incidente pré-16/09 (ver Etapa 45 do plano de correções); o contrato do catálogo canônico vive em docs/sql/canonical/`,
+    ];
+  }
+  return [];
+}
+
 function runCli() {
-  const errors = validateMigrationDirsOnDisk();
+  const errors = [...validateMigrationDirsOnDisk(), ...validateNoTopLevelSupabaseMigrationsDir()];
   if (errors.length > 0) {
     console.error('Nomes de migration inválidos:');
     for (const error of errors) {

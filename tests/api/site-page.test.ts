@@ -36,11 +36,13 @@ describe('HTML inicial das páginas estáticas', () => {
     expect(catalog.result.statusCode).toBe(200);
     expect(catalog.result.body).toContain('<title>Catálogo de brindes | Promo Brindes</title>');
     expect(catalog.result.body).toContain('https://promo-brindes-v1.vercel.app/catalogo');
+    expect(catalog.result.headers.get('Cache-Control')).toBe('public, s-maxage=300, stale-while-revalidate=3600');
 
     const privatePage = responseDouble();
     await handler({ method: 'GET', query: { page: 'detalheOrcamento' } }, privatePage.response);
     expect(privatePage.result.statusCode).toBe(200);
     expect(privatePage.result.headers.get('X-Robots-Tag')).toContain('noindex');
+    expect(privatePage.result.headers.get('Cache-Control')).toBe('no-store');
     expect(privatePage.result.body).toContain('noindex,nofollow');
   });
 

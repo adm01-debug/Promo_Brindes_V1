@@ -79,5 +79,9 @@ específico, com `last_error_code` consistente entre as linhas.
 `oldestEligibleAgeSeconds` acima de 45 minutos (`QUEUE_AGE_ALERT_SECONDS` em
 `api/notifications.ts`) já dispara o alerta operacional configurado em
 `OPERATIONS_ALERT_WEBHOOK_URL` — calibrado como 3x a cadência do cron (15 min), para
-tolerar até duas invocações perdidas sem soar o alarme por um atraso isolado. Os dois
-runbooks acima são a resposta a esse alerta.
+tolerar até duas invocações perdidas sem soar o alarme por um atraso isolado. Confirmado
+por soak test (Etapa 38, `docs/RELATORIO_SOAK_TEST_FILA_20260916.md`): sob 1000 jobs
+sintéticos e 10% de falha injetada, o p95 real de tempo de fila (223,2s) fica ~12x
+abaixo deste limiar — o valor não é só uma tolerância de agendamento, também sobra
+margem larga sobre o tempo de processamento observado. Os dois runbooks acima são a
+resposta a esse alerta.
