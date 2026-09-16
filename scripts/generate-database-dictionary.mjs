@@ -1,7 +1,7 @@
-import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { runSupabaseDbQuery } from './_lib/supabaseDbQuery.mjs';
 
 // Etapa 35 do plano de correções: gera docs/DATABASE_DICTIONARY.md a partir dos
 // comentários reais do banco local (pg_description), não de memória — evita o
@@ -15,16 +15,7 @@ const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT_FILE = path.join(ROOT, 'docs', 'DATABASE_DICTIONARY.md');
 
 function query(sql) {
-  const raw = execFileSync('npx', ['supabase@2.115.0', 'db', 'query', '--local', '--output-format', 'json', sql], {
-    cwd: ROOT,
-    env: { ...process.env, SUPABASE_WORKDIR: 'site-supabase' },
-    encoding: 'utf8',
-  });
-  // A saída mistura "Connecting to local database..." (stderr, já separado por
-  // encoding: 'utf8' + stdio padrão) com um objeto JSON em stdout; extrai só o JSON.
-  const jsonStart = raw.indexOf('{');
-  const parsed = JSON.parse(raw.slice(jsonStart));
-  return parsed.rows;
+  return runSupabaseDbQuery(sql, { cwd: ROOT });
 }
 
 function main() {

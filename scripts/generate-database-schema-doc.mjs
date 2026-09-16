@@ -1,7 +1,7 @@
-import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { runSupabaseDbQuery } from './_lib/supabaseDbQuery.mjs';
 
 // Etapa 48 do plano de correções: gera docs/DATABASE_SCHEMA.md (ERD em Mermaid) a
 // partir de pg_constraint no banco local — mesma filosofia da Etapa 35 (gerado, não
@@ -11,13 +11,7 @@ const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT_FILE = path.join(ROOT, 'docs', 'DATABASE_SCHEMA.md');
 
 function query(sql) {
-  const raw = execFileSync('npx', ['supabase@2.115.0', 'db', 'query', '--local', '--output-format', 'json', sql], {
-    cwd: ROOT,
-    env: { ...process.env, SUPABASE_WORKDIR: 'site-supabase' },
-    encoding: 'utf8',
-  });
-  const jsonStart = raw.indexOf('{');
-  return JSON.parse(raw.slice(jsonStart)).rows;
+  return runSupabaseDbQuery(sql, { cwd: ROOT });
 }
 
 function sanitize(id) {
