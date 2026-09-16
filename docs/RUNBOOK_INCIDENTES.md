@@ -5,11 +5,10 @@
 original já têm runbook dedicado:
 
 - **Chave vazada / rotação de segredo** → `docs/RUNBOOK_ROTACAO_SEGREDOS.md`.
-- **Pedido de apagamento do titular** → seção "Atendimento a pedido de apagamento do
-  titular" em `docs/DATABASE_FUNCTION_CONTRACTS.md`.
-- **Reconciliação do ledger de migrations** → seção "Reprovisionamento" em
-  `docs/SITE_SUPABASE_SETUP.md` + o comando `npm run db:site:dry-run`.
+- **Pedido de apagamento do titular** → `docs/RUNBOOK_PEDIDO_TITULAR.md`.
+- **Reconciliação do ledger de migrations** → `docs/RUNBOOK_RECONCILIACAO_LEDGER.md`.
 - **Cutover para a role `site_api`** → `docs/RUNBOOK_SITE_API_CUTOVER.md`.
+- **Verificação em 5 comandos do banco remoto** → `docs/RUNBOOK_VERIFICACAO_DB.md`.
 - **Restore de backup** → não coberto (Etapa 39, requer infraestrutura de
   billing/org do Supabase fora do alcance desta sessão — ver
   `docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260916.md`).
@@ -65,10 +64,13 @@ específico, com `last_error_code` consistente entre as linhas.
    where status = 'exhausted' and channel = 'email' -- ou 'whatsapp'
      and updated_at > now() - interval '2 hours'; -- só o lote afetado pelo incidente, nunca sem filtro de tempo
    ```
-   Isto é um update administrativo direto — permitido pela máquina de estados (Etapa 9
-   é uma CHECK constraint sobre lease/status, não bloqueia `exhausted -> pending` em
-   si), mas fica registrado em `site_private.admin_audit_log` (Etapa 36) porque não
-   veio de uma RPC. Documente o incidente e o motivo do reset junto ao registro.
+   Isto é um update administrativo direto — `exhausted -> pending` é uma transição de
+   primeira classe na máquina de estados da Etapa 9 (`site_private.status_transitions`,
+   migration `20260916220000`), desde que `attempts` volte a `0` junto (exigido pelo
+   trigger `enforce_notification_delivery_lease_and_attempts`; qualquer outro valor é
+   rejeitado com erro claro). Fica registrado em `site_private.admin_audit_log`
+   (Etapa 36) porque não veio de uma RPC. Documente o incidente e o motivo do reset
+   junto ao registro.
 4. **Nunca** reenviar manualmente chamando o provedor direto por fora do worker — o
    mecanismo de reconciliação (R01/R02, `existingProviderMessageId`) existe
    justamente para não duplicar envio quando uma tentativa anterior já foi aceita pelo
@@ -80,8 +82,9 @@ específico, com `last_error_code` consistente entre as linhas.
 `api/notifications.ts`) já dispara o alerta operacional configurado em
 `OPERATIONS_ALERT_WEBHOOK_URL` — calibrado como 3x a cadência do cron (15 min), para
 tolerar até duas invocações perdidas sem soar o alarme por um atraso isolado. Confirmado
-por soak test (Etapa 38, `docs/RELATORIO_SOAK_TEST_FILA_20260916.md`): sob 1000 jobs
-sintéticos e 10% de falha injetada, o p95 real de tempo de fila (223,2s) fica ~12x
-abaixo deste limiar — o valor não é só uma tolerância de agendamento, também sobra
-margem larga sobre o tempo de processamento observado. Os dois runbooks acima são a
-resposta a esse alerta.
+por soak test (Etapa 38, `docs/RELATORIO_SOAK_TEST_FILA_20260916.md`, duas rodadas):
+sob 1000 jobs sintéticos e 10% de falha injetada, o p95 real de tempo de fila
+(223-243s conforme a rodada) fica ~11x abaixo deste limiar — o valor não é só uma
+tolerância de agendamento, também sobra margem larga sobre o tempo de processamento
+observado, mesmo no pior caso raro (~20 min, um job que encadeou 4 falhas seguidas). Os
+dois runbooks acima são a resposta a esse alerta.

@@ -25,7 +25,11 @@ from generate_series(1, 6000) g;
 
 -- Distribuição de regime permanente: ~99,7% sent (histórico), fração pequena elegível.
 -- Reaproveita as linhas 'email'/'pending' que o trigger enqueue_quote_confirmations já
--- criou automaticamente para cada quote_request acima.
+-- criou automaticamente para cada quote_request acima. Redistribuição direta de status
+-- para simular regime permanente (não uma sequência real de transições) — desabilita os
+-- dois triggers da Etapa 9 só para este setup, mesmo padrão de notification_outbox.test.sql.
+alter table site_private.notification_deliveries disable trigger notification_deliveries_enforce_status_transition;
+alter table site_private.notification_deliveries disable trigger notification_deliveries_enforce_lease_and_attempts;
 with numbered as (
   select delivery.id, row_number() over (order by delivery.id) as g
   from site_private.notification_deliveries delivery
@@ -48,6 +52,8 @@ set
   created_at = now() - interval '90 days' + (numbered.g % 7776000) * interval '1 second'
 from numbered
 where delivery.id = numbered.id;
+alter table site_private.notification_deliveries enable trigger notification_deliveries_enforce_status_transition;
+alter table site_private.notification_deliveries enable trigger notification_deliveries_enforce_lease_and_attempts;
 
 analyze site_private.notification_deliveries;
 

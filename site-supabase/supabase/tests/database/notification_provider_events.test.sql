@@ -54,10 +54,18 @@ select is(
   'orçamento de teste foi criado'
 );
 
+-- Fixture pula direto para "já entregue" (não simula a reivindicação real) para
+-- focar o teste na reconciliação de webhook, não na máquina de estados (Etapa 9,
+-- testada à parte em status_state_machine.test.sql); desabilita os dois triggers
+-- de transição só para este setup, mesmo padrão de notification_outbox.test.sql.
+alter table site_private.notification_deliveries disable trigger notification_deliveries_enforce_status_transition;
+alter table site_private.notification_deliveries disable trigger notification_deliveries_enforce_lease_and_attempts;
 update site_private.notification_deliveries delivery
 set status = 'sent', provider = 'resend', provider_message_id = 'resend-msg-events-1'
 from site_private.quote_requests request
 where request.id = delivery.request_id and request.client_request_id = 'provider-events-quote-1' and delivery.channel = 'email';
+alter table site_private.notification_deliveries enable trigger notification_deliveries_enforce_status_transition;
+alter table site_private.notification_deliveries enable trigger notification_deliveries_enforce_lease_and_attempts;
 
 select is(
   (select delivery.provider_message_id from site_private.notification_deliveries delivery
