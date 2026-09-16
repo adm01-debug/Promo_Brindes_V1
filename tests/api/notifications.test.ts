@@ -194,7 +194,7 @@ describe('worker de comprovantes do orçamento', () => {
     await expect(pending).resolves.toEqual({ email: 'sent', whatsapp: 'sent' });
   });
 
-  it('registra falha do provedor com backoff sem perder o job', async () => {
+  it('registra falha do provedor sem perder o job, sem calcular backoff no cliente', async () => {
     configure();
     vi.stubEnv('RESEND_API_KEY', 're_synthetic_test_key');
     vi.stubEnv('SITE_EMAIL_FROM', 'Promo Brindes <atendimento@example.test>');
@@ -210,7 +210,14 @@ describe('worker de comprovantes do orçamento', () => {
 
     expect(result.body).toEqual({ ok: true, claimed: 1, delivered: 0, failed: 1, inconclusive: 0 });
     const finalizeCall = fetchMock.mock.calls.find(([url]) => String(url).includes('/finalize_site_notification_delivery'));
-    expect(JSON.parse(String(finalizeCall?.[1]?.body))).toMatchObject({ p_lease_token: emailJob.leaseToken, p_status: 'failed', p_error_code: 'email_provider_503', p_retry_after_seconds: 1200 });
+    const finalizeBody = JSON.parse(String(finalizeCall?.[1]?.body));
+    expect(finalizeBody).toMatchObject({ p_lease_token: emailJob.leaseToken, p_status: 'failed', p_error_code: 'email_provider_503' });
+    // Backoff exponencial com jitter agora é responsabilidade exclusiva de
+    // site_private.next_retry_at (plano de correções, etapa 11): o worker não
+    // calcula mais um retrySeconds próprio, que sempre venceria o cálculo do
+    // banco por partir de uma base maior (300s contra 60s) e o deixaria morto
+    // na prática. A chave nem é enviada (undefined não serializa em JSON).
+    expect(finalizeBody).not.toHaveProperty('p_retry_after_seconds');
   });
 
   it('Etapa 28: drena um segundo lote quando o primeiro vem cheio', async () => {

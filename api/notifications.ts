@@ -191,11 +191,17 @@ function configuredChannels(): Array<'email' | 'whatsapp'> {
  * linha não foi atualizada (lease expirado ou status já mudou) e nunca deve
  * ser tratado como sucesso. */
 async function finalize(job: NotificationJob, status: 'sent' | 'failed', signal: AbortSignal, delivery?: { provider: string; id: string }, errorCode?: string): Promise<boolean> {
-  const retrySeconds = Math.min(86_400, 300 * (2 ** Math.max(0, job.attempt - 1)));
+  // O backoff exponencial com jitter agora é calculado no banco por
+  // site_private.next_retry_at (plano de correções, etapa 11): não enviamos
+  // mais um retrySeconds calculado aqui, que sempre venceria o cálculo do
+  // banco por ser maior (base de 300s contra 60s) e o deixaria morto na
+  // prática. p_retry_after_seconds fica reservado a um Retry-After real do
+  // provedor, que hoje nenhum dos dois captura — omitido (undefined não
+  // serializa em JSON.stringify), então a função usa o default do banco.
   return rpc<boolean>('finalize_site_notification_delivery', {
     p_delivery_id: job.id, p_lease_token: job.leaseToken, p_status: status, p_provider: delivery?.provider || null,
     p_provider_message_id: delivery?.id || null, p_error_code: errorCode?.slice(0, 120) || null,
-    p_retry_after_seconds: retrySeconds,
+    p_retry_after_seconds: undefined,
   }, signal);
 }
 
