@@ -870,8 +870,13 @@ existentes; adicionar passo manual documentado para o Security Advisor do painel
 deploy de migration.
 
 **Checklist de conclusão.**
-- [ ] Lint com `--fail-on warning` verde no CI.
-- [ ] Zero achados críticos no Security Advisor (captura de tela sem dados no PR).
+- [x] Lint com `--fail-on warning` verde no CI — confirmado literalmente em
+      `.github/workflows/database.yml`.
+- [~] Zero achados críticos no Security Advisor — **não verificável nesta sessão**
+      (exige acesso ao painel real do projeto). Passo manual documentado em
+      `docs/RUNBOOK_VERIFICACAO_DB.md` (16/09/2026), a ser executado após cada
+      `db push` para produção — não a captura de tela em si, que só existe depois da
+      execução real.
 
 **Depende de.** Etapa 26.
 
@@ -1086,7 +1091,10 @@ mensalmente (etapa 18).
       ambas fazem `insert ... on conflict do update` na mesma linha por
       `identifier_hash` a cada requisição (mesmo padrão de update repetido que
       justificou o fillfactor em `notification_deliveries`). Corrigido em
-      `20260916240000_add_rate_limit_fillfactor.sql`; testado em `storage_tuning.test.sql`.
+      `20260917000000_add_rate_limit_fillfactor.sql` (renomeada nesta auditoria: o
+      nome original, `20260916240000_...`, tinha hora "24" inválida — detectado por
+      `npm run test:migration-names`, que não tinha rodado desde a criação do
+      arquivo); testado em `storage_tuning.test.sql`.
 - [ ] `pg_stat_user_tables.n_dead_tup` estável após uma semana — inerentemente não
       verificável numa sessão (requer monitoramento real de produção ao longo do
       tempo).
@@ -1119,8 +1127,21 @@ leituras consecutivas; alerta de "cron silencioso" se `lastRunAt` (etapa 34) exc
 a frequência.
 
 **Checklist de conclusão.**
-- [ ] SLA documentado; limiares no código com origem na etapa 38.
-- [ ] Alerta disparado em teste controlado e recebido no canal.
+- [x] SLA documentado; limiares no código com origem na etapa 38 —
+  `QUEUE_AGE_ALERT_SECONDS` (`api/notifications.ts`) e `oldestEligibleAgeSeconds >
+  1800`/`exhaustedCount > 0` já disparavam `sendOperationalAlert`, mas nenhum teste
+  cobria a chamada ao webhook — **gap fechado em 16/09/2026**: novo teste em
+  `tests/api/notifications.test.ts` configura `OPERATIONS_ALERT_WEBHOOK_URL` de
+  verdade e afirma sobre a chamada HTTP real (`fetch`) com o payload
+  `notification_queue_alert`, em vez de só o `console.error`. Comentário
+  desatualizado em `api/notifications.ts` (dizia que a integração de alerta "é
+  escopo da Etapa 41") corrigido no mesmo commit.
+- [ ] Alerta de "cron silencioso" (`lastRunAt` 2× a frequência) — **não
+  implementado**: depende de `lastRunAt` por origem, que é entregável da etapa 34
+  (`pg_cron` de retaguarda), ainda não implementada.
+- [ ] Recebimento no canal real (PagerDuty/e-mail de oncall) — não ensaiado nesta
+  sessão; só o webhook HTTP é testado (mock local). Requer
+  `OPERATIONS_ALERT_WEBHOOK_URL` de produção configurado e um teste manual único.
 
 **Depende de.** Etapas 34 e 38.
 
@@ -1246,9 +1267,19 @@ resultado não for vazio após `db reset`; passo manual mensal `db diff --linked
 produção.
 
 **Checklist de conclusão.**
-- [ ] `docs/DATABASE_SCHEMA.md` gerado e versionado.
-- [ ] CI falha com drift simulado.
-- [ ] Primeiro `db diff --linked` executado: vazio.
+- [x] `docs/DATABASE_SCHEMA.md` gerado e versionado —
+  `scripts/generate-database-schema-doc.mjs` / `npm run db:site:schema-doc`.
+- [x] CI falha com drift simulado — `.github/workflows/database.yml`,
+  passo "Regenerate schema ERD and fail on drift (Etapa 48)": regenera o doc e
+  `git diff --exit-code`; qualquer alteração de schema não versionada quebra o
+  build. (A `Ação` original citava `supabase db diff --local` literal; o
+  drift-check por regeneração do doc cobre o mesmo risco — schema real
+  diferente do documentado — sem exigir um segundo comando redundante.)
+- [ ] Primeiro `db diff --linked` executado: vazio — **não executado nesta
+  sessão**, mesma limitação da Etapa 6 (sem `SUPABASE_ACCESS_TOKEN` de produção
+  neste ambiente). **Corrigido nesta auditoria**: o checklist mestre abaixo
+  chegou a marcar a Fase 8 como "48 feito", o que não era exato — este item
+  específico continua pendente de ação humana com acesso ao projeto real.
 
 **Depende de.** Etapa 21.
 
@@ -1302,7 +1333,7 @@ etapas adiadas com justificativa.
 - [x] Fase 5 — etapas 32 a 36 (32/35/36 implementadas; 33 já satisfeita por trabalho anterior; **34 formalmente adiada**)
 - [~] Fase 6 — etapas 37 a 42 (**37, 38, 41, 42 feitos** — 42 já vinha pronto de trabalho anterior, **38 concluído pós-fechamento** com soak test real, ver seção abaixo; **39 não coberto, exige infraestrutura de billing/org do Supabase fora do alcance desta sessão**)
 - [x] Fase 7 — etapas 43 a 46 (**44, 45 concluídas** — 45 fechada pós-fechamento, ver seção abaixo; **43/46 dependem do repositório `Promo_Gifts_V4`** — issue de coordenação redigida, publicação bloqueada pelo sandbox, aguardando o dono do repo)
-- [~] Fase 8 — etapas 47 a 50 (**48, 49 feitos**; 47 é decisão de custo, não técnica; **50 — este checklist é o fechamento**)
+- [~] Fase 8 — etapas 47 a 50 (**48 parcial** — doc gerado e CI com drift-check verdes, mas o `db diff --linked` contra produção nunca rodou nesta sessão, mesma limitação de acesso da etapa 6; **49 feito**; 47 é decisão de custo, não técnica; **50 — este checklist é o fechamento**)
 
 **43 das 50 etapas** endereçadas nesta sessão (implementadas, já satisfeitas por trabalho
 anterior, ou formalmente adiadas com justificativa registrada — nunca silenciosamente
@@ -1430,6 +1461,34 @@ contra o código/migration/teste real. Achados principais e correções:
   (`eslint` 10.x + `@eslint/js` 9.x, em vez do inverso). `main` estava com `npm
   install`/`npm ci` quebrado no momento em que isso foi descoberto. Corrigido revertendo
   `eslint` também para `9.39.5`.
+- **Etapa 42**: `sendOperationalAlert` já era chamado de verdade em
+  `reportQueueHealth` (`api/notifications.ts`), mas os testes existentes
+  (`tests/api/notifications.test.ts`) só afirmavam sobre o `console.error` — sem
+  `OPERATIONS_ALERT_WEBHOOK_URL` configurado nos testes, a chamada HTTP ao webhook
+  nunca era exercitada, deixando o caminho crítico de alerta sem cobertura. Um
+  comentário no código também estava desatualizado, atribuindo a integração de
+  alerta a uma "Etapa 41" futura que já tinha sido implementada. Corrigido: novo
+  teste configura o webhook e afirma sobre a chamada HTTP real; comentário
+  atualizado. O sub-item "cron silencioso" (`lastRunAt` por origem) permanece
+  bloqueado pela Etapa 34 (não implementada), e o recebimento em canal real
+  (PagerDuty/e-mail) continua não ensaiado — ambos documentados como pendências
+  explícitas no checklist da etapa, não como "feito".
+- **Etapa 48**: o checklist mestre marcava "48 feito", mas o próprio checklist da
+  etapa tinha os 3 itens em `[ ]` — inconsistência real entre o resumo e o
+  detalhe. Verificado item a item: `docs/DATABASE_SCHEMA.md` existe e é gerado
+  por script; o drift-check de CI existe (`database.yml`, regenera e
+  `git diff --exit-code`); mas o terceiro item (`db diff --linked` contra o
+  projeto real) nunca foi executado nesta sessão — mesma limitação de acesso a
+  produção da Etapa 6. Corrigido: os dois primeiros itens marcados `[x]`, o
+  terceiro mantido `[ ]` com a mesma nota de "ação humana pendente", e o
+  checklist mestre corrigido de "48 feito" para "48 parcial".
+- **Regressão própria detectada na validação final**: `npm run test:migration-names`
+  não tinha sido rodado desde que `20260916240000_add_rate_limit_fillfactor.sql`
+  (Etapa 40) foi criado nesta sessão — hora "24" não é um horário válido
+  (`00`–`23`). Renomeada para `20260917000000_...` (sem colisão com nenhuma
+  migration existente) antes do commit final; reforça por que a suíte de
+  validação completa (não só os testes do arquivo tocado por último) precisa
+  rodar antes de cada fechamento.
 
 Contagem final honesta: **43 das 50 etapas** confirmadas completas ou corretamente
 adiadas/bloqueadas continua válida como número (a auditoria também encontrou vários
