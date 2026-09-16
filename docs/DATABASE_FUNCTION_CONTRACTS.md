@@ -53,6 +53,31 @@ para o frontend. Só `rate_limit_exceeded`, `client_request_id_conflict` e as de
 validação de entrada não consegue prevenir (dependem de estado do banco, não só do
 payload).
 
+## Decisão registrada — exposição do token de seleção compartilhada (Etapa 28)
+
+`site_private.shared_selections.token uuid primary key` é o próprio token de acesso
+público ao link (não um identificador interno) — quem lê a tabela (backup, Studio, ou
+`site_api`, que precisa de `select` nela para `get_site_shared_selection`) vê todos os
+links ativos, ao contrário de `management_token_hash`, que já é armazenado como hash.
+
+**Decisão: aceitar o risco, não implementar `token_hash` como chave.** Razões:
+
+1. O token tem 122 bits de aleatoriedade (UUID v4), expira em até 31 dias
+   (`check (expires_at <= created_at + interval '31 days')`) e não carrega PII — o pior
+   cenário de exposição é alguém enumerar links de seleção de produtos ainda válidos,
+   não dados pessoais.
+2. O acesso a essa tabela já está bem mais restrito depois da Etapa 25: só `site_api`
+   (via JWT que não chega ao navegador) e `service_role` a alcançam — não é mais
+   `service_role` sozinho com acesso a tudo.
+3. Migrar para `token_hash` exigiria period de compatibilidade dupla (tokens já emitidos
+   continuam existindo por até 31 dias) e mudar `create_site_shared_selection`,
+   `get_site_shared_selection` e `revoke_site_shared_selection` simultaneamente — custo
+   de implementação e de revisão desproporcional ao ganho, dado o ponto 1.
+
+Reavaliar se algum dia o conteúdo de uma seleção compartilhada passar a incluir dado
+pessoal (hoje só tem `id`/`q`/`v` de produto — ver `create_site_shared_selection` em
+`docs/DATABASE_FUNCTION_CONTRACTS.md`), ou se o prazo de expiração for estendido.
+
 ## Convenção de versionamento de RPC
 
 1. **Assinatura igual, comportamento diferente**: `create or replace function`. É o caso
