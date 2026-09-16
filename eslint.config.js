@@ -96,7 +96,7 @@ export default tseslint.config(
 
   // --- Scripts Node soltos (.mjs) fora dos dois tsconfig do projeto ---
   {
-    files: ['scripts/**/*.mjs', 'tests/graphify-tools.node.mjs'],
+    files: ['scripts/**/*.mjs', 'tests/*.node.mjs'],
     languageOptions: { globals: globals.node, ecmaVersion: 2023, sourceType: 'module' },
   },
 

@@ -105,7 +105,7 @@ async function rpc<T>(name: string, body: Record<string, unknown>, signal: Abort
   const config = getSiteDatabaseConfig();
   const response = await fetch(`${config.url}/rest/v1/rpc/${name}`, {
     method: 'POST',
-    headers: { apikey: config.secretKey, Authorization: `Bearer ${config.secretKey}`, 'Content-Type': 'application/json', Accept: 'application/json' },
+    headers: { apikey: config.serviceCredential, Authorization: `Bearer ${config.serviceCredential}`, 'Content-Type': 'application/json', Accept: 'application/json' },
     body: JSON.stringify(body), signal,
   });
   if (!response.ok) throw new Error(`notification_${name}_failed`);

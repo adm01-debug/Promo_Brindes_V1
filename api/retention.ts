@@ -89,17 +89,17 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     const candidates = await rpc<{ quoteIds?: unknown; storagePaths?: unknown }>(
       config.url,
-      config.secretKey,
+      config.serviceCredential,
       'get_site_data_retention_candidates',
       { p_batch_size: RETENTION_BATCH_SIZE },
       controller.signal,
     );
     const quoteIds = stringArray(candidates.quoteIds, RETENTION_BATCH_SIZE, (value) => UUID_PATTERN.test(value));
     const storagePaths = stringArray(candidates.storagePaths, RETENTION_BATCH_SIZE * 20, safeStoragePath);
-    await removeProposalObjects(config.url, config.secretKey, storagePaths, controller.signal);
+    await removeProposalObjects(config.url, config.serviceCredential, storagePaths, controller.signal);
     const finalized = await rpc<Record<string, number>>(
       config.url,
-      config.secretKey,
+      config.serviceCredential,
       'finalize_site_data_retention',
       { p_quote_ids: quoteIds, p_storage_paths: storagePaths, p_batch_size: RETENTION_BATCH_SIZE },
       controller.signal,
