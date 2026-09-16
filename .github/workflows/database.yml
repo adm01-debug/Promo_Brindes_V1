@@ -41,3 +41,10 @@ jobs:
             echo "::error::src/types/site-database.types.ts está desatualizado. Rode 'npm run db:site:types' e commite o resultado.";
             exit 1;
           }
+      - name: Regenerate data dictionary and fail on drift (Etapa 35)
+        run: |
+          npm run db:site:dictionary
+          git diff --exit-code -- docs/DATABASE_DICTIONARY.md || {
+            echo "::error::docs/DATABASE_DICTIONARY.md está desatualizado. Rode 'npm run db:site:dictionary' e commite o resultado.";
+            exit 1;
+          }

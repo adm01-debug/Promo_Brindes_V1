@@ -53,6 +53,29 @@ para o frontend. Só `rate_limit_exceeded`, `client_request_id_conflict` e as de
 validação de entrada não consegue prevenir (dependem de estado do banco, não só do
 payload).
 
+## Decisão registrada — retaguarda pg_cron, adiada (Etapa 34)
+
+Avaliado e adiado, não implementado como meia-medida. `pg_cron` + `pg_net` estão
+disponíveis no projeto (confirmado em `pg_available_extensions`) mas não instalados.
+Implementar isto direito exige, além de agendar os dois jobs:
+
+1. **Lock advisory compartilhado** com o caminho da Vercel, para as duas origens nunca
+   rodarem ao mesmo tempo — sem isso, a "retaguarda" pode duplicar entregas em vez de
+   só cobrir uma falha real.
+2. **Réplica da lógica de negócio em SQL** (o job do `pg_cron` chamaria as mesmas RPCs,
+   mas via `pg_net` teria que reautenticar como `site_api`/`service_role` de dentro do
+   banco — gerenciar essa credencial dentro de uma configuração de `cron.job` é uma
+   superfície nova de exposição de segredo, não trivial).
+3. **`site_notification_queue_health` ganhar `lastRunAt` por origem**, para o alerta
+   (Etapa 42) saber diferenciar "cron da Vercel silencioso, retaguarda cobrindo" de
+   "as duas origens paradas".
+
+Dado o estágio atual do site (volume baixo, Vercel Cron é a origem primária e
+confiável), o retorno de implementar isso agora não compensa o risco de uma
+implementação apressada de lock/reautenticação — exatamente o tipo de atalho que este
+plano evita em outras etapas (ex.: Etapa 27). Fica como item de backlog explícito, não
+como um `cron.schedule` silenciosamente incompleto.
+
 ## Atendimento a pedido de apagamento do titular (Etapa 32)
 
 Não há painel administrativo neste projeto. Até que exista um, um pedido de
