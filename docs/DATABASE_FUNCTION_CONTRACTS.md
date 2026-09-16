@@ -53,6 +53,23 @@ para o frontend. Só `rate_limit_exceeded`, `client_request_id_conflict` e as de
 validação de entrada não consegue prevenir (dependem de estado do banco, não só do
 payload).
 
+## Atendimento a pedido de apagamento do titular (Etapa 32)
+
+Não há painel administrativo neste projeto. Até que exista um, um pedido de
+apagamento (LGPD art. 18) chegado por qualquer canal (e-mail, WhatsApp) é atendido
+manualmente:
+
+```sql
+select public.erase_customer_data('email-do-titular@exemplo.com');
+```
+
+Rodar autenticado como `service_role` (Studio > SQL Editor já roda dessa forma). A
+função devolve `storagePathsToRemove` — os PDFs de proposta associados foram apagados do
+banco, mas os objetos no bucket `customer-proposals` do Storage precisam ser removidos
+manualmente a partir dessa lista (`storage.buckets`, via Studio ou pela API do Storage).
+Guarde a saída da função como evidência de que o pedido foi atendido (data, e-mail,
+contagens) — ela não fica registrada em nenhum lugar além do que você salvar.
+
 ## Decisão registrada — PII em repouso, adiada (Etapa 27)
 
 O plano original previa "hash para busca + mascaramento nas funções `get_my_*`" como
