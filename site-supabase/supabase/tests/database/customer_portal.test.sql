@@ -60,7 +60,14 @@ insert into site_private.quote_requests (
   id, client_request_id, request_hash, source, contact_name, company, email, phone,
   client_submitted_at, request_metadata
 ) values
-  ('11111111-1111-4111-8111-111111111111', 'portal-test-ana-1', repeat('a', 64), 'site-promo-brindes', 'Ana', 'Empresa A', 'ANA@EMPRESA.TEST', '(11) 99999-9999', now(), '{"campaign":{"source":"finder","moment":"onboarding"},"briefing":{"actionName":"Boas-vindas","budgetRange":"51-100"},"origin":"https://www.promobrindes.com.br","userAgent":"privado"}'::jsonb),
+  -- Etapa 24 do plano de correções: quote_requests.email agora tem uma constraint
+  -- exigindo o valor já normalizado (trim + lower) na escrita, então este fixture não
+  -- pode mais testar "e-mail cru em maiúsculas foi persistido assim". O teste abaixo
+  -- continua validando o casamento por e-mail e a idempotência da reivindicação; o
+  -- ramo de comparação case-insensitive da própria função de reivindicação (para
+  -- linhas históricas anteriores à constraint, se existirem em produção) não é mais
+  -- alcançável a partir deste fixture, mas a função não foi alterada.
+  ('11111111-1111-4111-8111-111111111111', 'portal-test-ana-1', repeat('a', 64), 'site-promo-brindes', 'Ana', 'Empresa A', 'ana@empresa.test', '(11) 99999-9999', now(), '{"campaign":{"source":"finder","moment":"onboarding"},"briefing":{"actionName":"Boas-vindas","budgetRange":"51-100"},"origin":"https://www.promobrindes.com.br","userAgent":"privado"}'::jsonb),
   ('22222222-2222-4222-8222-222222222222', 'portal-test-ana-2', repeat('b', 64), 'site-promo-brindes', 'Ana', 'Empresa A', 'ana@empresa.test', '(11) 99999-9999', now(), '{}'::jsonb),
   ('33333333-3333-4333-8333-333333333333', 'portal-test-bia-1', repeat('c', 64), 'site-promo-brindes', 'Bia', 'Empresa B', 'bia@empresa.test', '(11) 98888-8888', now(), '{}'::jsonb);
 
