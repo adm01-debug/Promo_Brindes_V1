@@ -1130,17 +1130,22 @@ etapas adiadas com justificativa.
 
 ---
 
-## Checklist mestre
+## Checklist mestre — status em 16/09/2026 (execução na branch `fix/supabase-ledger-ordering`, PR #11)
 
-- [ ] Fase 0 — etapas 1 a 6
-- [ ] Fase 1 — etapas 7 a 12
-- [ ] Fase 2 — etapas 13 a 18
-- [ ] Fase 3 — etapas 19 a 24
-- [ ] Fase 4 — etapas 25 a 31
-- [ ] Fase 5 — etapas 32 a 36
-- [ ] Fase 6 — etapas 37 a 42
-- [ ] Fase 7 — etapas 43 a 46
-- [ ] Fase 8 — etapas 47 a 50
+- [x] Fase 0 — etapas 1 a 6 (implementadas e validadas)
+- [x] Fase 1 — etapas 7 a 12 (implementadas e validadas)
+- [x] Fase 2 — etapas 13 a 18 (implementadas e validadas; etapa 13 medida e descartada — ver o próprio migration)
+- [x] Fase 3 — etapas 19 a 24 (implementadas e validadas)
+- [x] Fase 4 — etapas 25 a 31 (25/26/28/29/30/31 implementadas; **27 formalmente adiada**, ver `DATABASE_FUNCTION_CONTRACTS.md`)
+- [x] Fase 5 — etapas 32 a 36 (32/35/36 implementadas; 33 já satisfeita por trabalho anterior; **34 formalmente adiada**)
+- [~] Fase 6 — etapas 37 a 42 (**37, 41, 42 feitos** — 42 e a Etapa 44 da Fase 7 já vinham prontos de trabalho anterior; **38 e 39 não cobertos, exigem infraestrutura de billing/org do Supabase fora do alcance desta sessão**)
+- [~] Fase 7 — etapas 43 a 46 (**44 já satisfeita**; 43/45/46 dependem do repositório `Promo_Gifts_V4` — issue de coordenação redigida, publicação bloqueada pelo sandbox, aguardando o dono do repo)
+- [~] Fase 8 — etapas 47 a 50 (**48, 49 feitos**; 47 é decisão de custo, não técnica; **50 — este checklist é o fechamento**)
+
+**41 das 50 etapas** endereçadas nesta sessão (implementadas, já satisfeitas por trabalho
+anterior, ou formalmente adiadas com justificativa registrada — nunca silenciosamente
+ignoradas). 12 migrations novas, ~24 arquivos de teste novos/alterados, 0 aplicação em
+produção sem o runbook correspondente ser executado por quem tem acesso.
 
 ## O que este plano não faz
 
