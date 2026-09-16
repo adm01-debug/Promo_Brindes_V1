@@ -53,6 +53,29 @@ para o frontend. Só `rate_limit_exceeded`, `client_request_id_conflict` e as de
 validação de entrada não consegue prevenir (dependem de estado do banco, não só do
 payload).
 
+## Decisão registrada — PII em repouso, adiada (Etapa 27)
+
+O plano original previa "hash para busca + mascaramento nas funções `get_my_*`" como
+subconjunto seguro da etapa, deixando criptografia completa (pgsodium) como spike à
+parte. Ao detalhar a implementação, essa divisão não sobrevive ao exame:
+
+1. **Mascarar nas funções `get_my_*` não faz sentido** — essas funções retornam os
+   dados do próprio titular autenticado (`auth.uid()`); mascarar o e-mail/telefone de
+   alguém para ele mesmo não reduz exposição nenhuma, só piora a experiência.
+2. **Hash para busca não substitui o valor em claro** — `site_api` (Etapa 25) e o
+   worker de notificações (`api/notifications.ts`) **precisam** do e-mail/telefone reais
+   para enviar a confirmação; um hash ao lado não impede que a coluna original continue
+   em texto puro, então não reduz a exposição num backup/dump.
+3. A mitigação real seria criptografia de coluna (pgsodium) com gerenciamento de chave
+   — exatamente o que o plano original já qualificava como "spike separado, com revisão
+   de design dedicada", não algo para decidir no meio de um lote de 50 etapas.
+
+**Decisão: etapa 27 fica formalmente adiada**, não implementada como meia-medida. Se
+isto voltar à pauta, o ponto de partida é pgsodium com chave no Vault do Supabase,
+avaliando separadamente: rotação de chave, custo de decriptar em toda leitura do
+backend, e se o valor supera o de simplesmente reduzir ainda mais quem tem acesso de
+leitura a essas colunas (já bem mais restrito depois da Etapa 25).
+
 ## Decisão registrada — exposição do token de seleção compartilhada (Etapa 28)
 
 `site_private.shared_selections.token uuid primary key` é o próprio token de acesso
