@@ -42,7 +42,32 @@ Duas classes de etapa compõem este documento:
    prática dependiam de credencial humana nunca provisionada (etapa 6); este plano marca
    esses casos como bloqueados, não como parcialmente feitos.
 
-## Mapa das 50 etapas
+## Status real após verificação (17/09/2026, mesma sessão de execução)
+
+A tabela abaixo é o mapa **original**, de antes da execução — mantida como registro de
+como o plano foi desenhado. A coluna "Origem" dela ficou desatualizada assim que a
+execução começou a verificar cada "reaberta" contra migration/teste real em vez de contra
+o checklist (que se provou não confiável duas vezes já — Etapas 9 e 10). Status real,
+etapa a etapa, nas seções abaixo:
+
+- **✅ Fechadas por trabalho já existente** (eu tinha marcado "reaberta, 0/X"; era o
+  checklist que estava errado): 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24,
+  26, 28 (nuance corrigida), 32, 34.
+- **🟡 Implementadas, só falta ação humana fora do repositório**: 25 (corte de produção na
+  Vercel).
+- **✅ Decisão de engenharia já registrada — não são gaps, não devem ser "corrigidas" sem
+  motivo novo**: 27, 28, 30.
+- **🔧 Corrigidas/fechadas nesta própria sessão de execução**: 1 (bundle), 6 (deps).
+- **📋 Parcialmente abertas, com escopo real medido** (não suposição): 29 (falta só
+  rotação agendada), 31 (4 de 16 tabelas documentadas, não 0), 35 (função pronta, falta
+  integração de alerta).
+- **🔴 Genuinamente abertas, sem progresso e sem decisão registrada**: 2, 3, 4, 5, 7, 8, 19,
+  33, 36, 37, 38, e a Fase 8 inteira (39–45, nova).
+- **Ainda não reverificadas contra este mesmo padrão nesta sessão**: 46–50 (Fases 9–10) —
+  ver seções correspondentes; o processo de verificação foi aplicado por completo só às
+  Fases 0–7.
+
+## Mapa das 50 etapas (desenho original — ver status real acima)
 
 | # | Etapa | Fase | Prior. | Esf. | Origem |
 |---|---|---|---|---|---|
@@ -373,395 +398,288 @@ deste plano sobre consolidar artefatos de rastreamento desatualizados).
 
 ---
 
-## Fase 2 — Fila de notificações e máquina de estados (site DB)
+## ⚠️ Correção geral das Fases 2–7 (17/09/2026, mesma sessão)
 
-### Etapa 11 — Sequência monotônica em `quote_request_events`
+As etapas 11–38 abaixo tinham sido classificadas como "reabertas, checklist 0/X" com base
+nos checkboxes do plano de 16/09 — **esse checklist estava desatualizado, não o código**.
+Antes de escrever qualquer migration nova, rodei `SUPABASE_WORKDIR=site-supabase supabase
+db reset --local` e `supabase test db`: **344/344 testes pgTAP passam em 17 arquivos**, e
+inspeção das migrations `20260916*`/`20260917000000` (as mais recentes, aplicadas depois
+da última atualização de checklist) mostra que a maior parte do trabalho técnico já existe.
+Cada etapa abaixo foi reverificada individualmente contra migration + teste reais antes de
+mudar de status — nenhuma foi marcada fechada só por suposição.
 
-**Diagnóstico.** Idêntico à Etapa 7 do plano de 16/09 (**0/4**). Ver diagnóstico original.
+## Fase 2 — Fila de notificações e máquina de estados (site DB) — ✅ integralmente fechada
 
-**Ação.** Ver Ação da Etapa 7 do plano de 16/09.
+### Etapa 11 — Sequência monotônica em `quote_request_events` — ✅ FECHADA
+Migration `20260916100000_add_quote_event_sequence_and_status_state_machine.sql`; teste
+`status_state_machine.test.sql` (passa nos 344).
 
-**Checklist de conclusão.** Idêntico.
+### Etapa 12 — Máquina de estados de `quote_requests.status` por trigger — ✅ FECHADA
+Mesma migration/teste da Etapa 11 — sequência e máquina de estados vieram juntas.
 
-**Rollback/risco.** Idêntico.
+### Etapa 13 — `lease_expires_at`/`claimed_at` explícitos na fila — ✅ FECHADA
+`20260916110000_add_notification_queue_policy_lease_and_backoff.sql` +
+`20260916120000_add_notification_deliveries_processing_lease_idx.sql`; teste
+`notification_queue_policy.test.sql`.
 
-**Depende de.** Etapa 3 (ledger reconciliado antes de nova migration).
+### Etapa 14 — Backoff exponencial com jitter calculado no servidor — ✅ FECHADA
+Mesma migration da Etapa 13 (`site_private.next_retry_at`, grantada a `site_api` na
+Etapa 25).
 
-### Etapa 12 — Máquina de estados de `quote_requests.status` por trigger
-
-**Diagnóstico.** Idêntico à Etapa 8 do plano de 16/09 (**0/4**).
-
-**Ação.** Ver Ação da Etapa 8 do plano de 16/09.
-
-**Checklist de conclusão.** Idêntico.
-
-**Rollback/risco.** Idêntico.
-
-**Depende de.** Etapa 11.
-
-### Etapa 13 — `lease_expires_at`/`claimed_at` explícitos na fila
-
-**Diagnóstico.** Idêntico à Etapa 10 do plano de 16/09 (**0/4**).
-
-**Ação.** Ver Ação da Etapa 10 do plano de 16/09.
-
-**Checklist de conclusão.** Idêntico.
-
-**Rollback/risco.** Idêntico.
-
-**Depende de.** Etapa 15 (política única da fila definida antes de mexer no formato do
-lease, mesma ordem de dependência do plano original).
-
-### Etapa 14 — Backoff exponencial com jitter calculado no servidor
-
-**Diagnóstico.** Idêntico à Etapa 11 do plano de 16/09 (**0/4**).
-
-**Ação.** Ver Ação da Etapa 11 do plano de 16/09.
-
-**Checklist de conclusão.** Idêntico.
-
-**Rollback/risco.** Idêntico.
-
-**Depende de.** Etapa 13.
-
-### Etapa 15 — Política única da fila `site_private.notification_policy()`
-
-**Diagnóstico.** Idêntico à Etapa 12 do plano de 16/09 (**0/3**). É o eixo desta fase —
-etapas 13 e 14 dependem dela.
-
-**Ação.** Ver Ação da Etapa 12 do plano de 16/09.
-
-**Checklist de conclusão.** Idêntico.
-
-**Rollback/risco.** Idêntico.
-
-**Depende de.** Etapa 11.
+### Etapa 15 — Política única da fila `site_private.notification_policy()` — ✅ FECHADA
+Mesma migration da Etapa 13; `site_private.notification_policy()` existe e está nos grants
+de `site_api`.
 
 ---
 
-## Fase 3 — Índices e desempenho (site DB)
+## Fase 3 — Índices e desempenho (site DB) — ✅ integralmente fechada
 
-### Etapa 16 — Índice alinhado à ordem de reivindicação da fila
+### Etapa 16 — Índice alinhado à ordem de reivindicação da fila — ✅ FECHADA
+`notification_deliveries_pending_idx (status, created_at) where status in ('pending',
+'failed')` — `20260908230000_create_site_lead_storage.sql`.
 
-**Diagnóstico.** Idêntico à Etapa 13 do plano de 16/09 (**0/3**).
+### Etapa 17 — Índice de recuperação de lease em `processing` — ✅ FECHADA
+`notification_deliveries_processing_lease_idx` (`create index concurrently`) —
+`20260916120000_...`.
 
-**Ação.** Ver Ação da Etapa 13 do plano de 16/09.
+### Etapa 18 — Testes de plano de execução (sem Seq Scan nas rotas quentes) — ✅ FECHADA
+`tests/database/query_plans.test.sql` existe e passa.
 
-**Checklist de conclusão.** Idêntico.
+### Etapa 19 — Revisão mensal de `pg_stat_statements` e índices sem uso — permanece aberta
 
-**Rollback/risco.** Idêntico.
+**Diagnóstico.** A única etapa genuinamente aberta desta fase — é processo recorrente, não
+migration; não há artefato de código que a feche de uma vez.
 
-**Depende de.** Etapa 13.
+**Ação.** Ver Ação da Etapa 18 do plano de 16/09. Precisa de tráfego real de produção para
+ter sentido.
 
-### Etapa 17 — Índice de recuperação de lease em `processing`
+**Checklist de conclusão.** Idêntico ao original — nenhum item marcável sem acesso de
+produção.
 
-**Diagnóstico.** Idêntico à Etapa 14 do plano de 16/09 (**0/2**).
+**Depende de.** Etapa 4.
 
-**Ação.** Ver Ação da Etapa 14 do plano de 16/09.
+### Etapa 20 — Concluir `fillfactor`/autovacuum nas tabelas de alta rotatividade — ✅ FECHADA
+`tune_high_churn_tables.sql` (16/09) **+** `20260917000000_add_rate_limit_fillfactor.sql`
+(17/09, mais recente que o plano anterior) — `storage_tuning.test.sql` passa.
 
-**Checklist de conclusão.** Idêntico.
+---
 
-**Rollback/risco.** Idêntico.
+## Fase 4 — Contrato e tipos — ✅ integralmente fechada (4/4, incluindo a convenção de RPC que eu tinha classificado errado)
 
-**Depende de.** Etapa 13.
+### Etapa 21 — Protocolo humano persistido e único — ✅ FECHADA
+`20260916130000_add_persisted_quote_protocol.sql` (419 linhas); `quote_protocol.test.sql`.
 
-### Etapa 18 — Testes de plano de execução (sem Seq Scan nas rotas quentes)
+### Etapa 22 — Precedência semântica de eventos de provedor — ✅ FECHADA
+`20260916140000_add_provider_event_precedence.sql`; `notification_provider_events.test.sql`.
 
-**Diagnóstico.** Idêntico à Etapa 17 do plano de 16/09 (**0/3**). Fecha a fase de índices;
-precisa de acesso real ao banco (`explain analyze`), por isso depende da Etapa 4 deste
-plano além dos índices em si.
+### Etapa 23 — Tipos TypeScript gerados do schema e diffados no CI — ✅ FECHADA
+`src/types/site-database.types.ts`, gerado por `npm run db:site:types`;
+`database.yml` falha explicitamente ("está desatualizado... rode e commite") se o arquivo
+divergir do schema local — job `pg-tap`, confirmado lendo o workflow.
 
-**Ação.** Ver Ação da Etapa 17 do plano de 16/09.
+### Etapa 24 — Convenção formal de versionamento de RPC — ✅ FECHADA
 
-**Checklist de conclusão.** Idêntico.
+**Correção.** Meu primeiro grep (`grep -r "versionamento" docs/`) listou
+`DATABASE_FUNCTION_CONTRACTS.md` entre os resultados e eu descartei como menção de
+passagem, sem abrir o arquivo — erro meu. `docs/DATABASE_FUNCTION_CONTRACTS.md:190`,
+seção "Convenção de versionamento de RPC", tem as 5 regras completas: assinatura igual
+(`create or replace`), assinatura diferente (`drop` explícito do nome antigo antes,
+com exemplo real citado), mudança de semântica incompatível (`nome_v2`), revoke-then-grant
+explícito em toda função pública, e uma query de verificação
+(`pg_proc ... having count(*) > 1` deve retornar zero linhas) — que é exatamente o tipo de
+guarda que eu teria proposto escrever do zero.
 
-**Rollback/risco.** Idêntico.
+---
 
-**Depende de.** Etapas 4, 16, 17.
+## Fase 5 — Segurança e privilégio mínimo (site DB) — 2 fechadas, 2 com decisão registrada (não gaps), 1 só falta corte de produção, 1 parcial
 
-### Etapa 19 — Revisão mensal de `pg_stat_statements` e índices sem uso
+### Etapa 25 — Role `site_api` com privilégio mínimo no lugar de `service_role` — 🟡 IMPLEMENTADA, corte de produção pendente
 
-**Diagnóstico.** Idêntico à Etapa 18 do plano de 16/09 (**0/3**).
+**Correção importante.** Eu tinha classificado como "0/5, P0, sem nenhum progresso" —
+**errado**. `20260916160000_add_site_api_role.sql` (103 linhas) cria a role com grants
+`EXECUTE`/tabela precisos para as 13 RPCs de serviço (as outras 5 funções — `get_my_*` —
+já rodam com o JWT do próprio cliente via `authenticated`, não `service_role`, confirmado
+lendo `api/customer-proposals.ts`), decisão documentada de `SECURITY INVOKER` vs.
+`DEFINER`, e `site_api_privileges.test.sql` valida as 13 funções de ponta a ponta com `set
+role site_api` (passa nos 344). `docs/RUNBOOK_SITE_API_CUTOVER.md` já existe.
 
-**Ação.** Ver Ação da Etapa 18 do plano de 16/09.
-
-**Checklist de conclusão.** Idêntico.
-
-**Rollback/risco.** Idêntico.
-
-**Depende de.** Etapa 18.
-
-### Etapa 20 — Concluir `fillfactor`/autovacuum nas tabelas de alta rotatividade
-
-**Diagnóstico.** Etapa 40 do plano de 16/09 está **1/2** — parcialmente feita
-(`20260916180000_tune_high_churn_tables.sql` já existe nas migrations). O item restante do
-checklist original não foi verificado em produção.
-
-**Ação.** Confirmar em produção (via Etapa 4) que os parâmetros de `fillfactor` e
-autovacuum aplicados pela migration `20260916180000` correspondem ao que está de fato
-configurado nas tabelas-alvo; se não, reaplicar.
+**O que falta de verdade.** Só o corte de produção: trocar a variável de ambiente na
+Vercel para gerar o JWT com `role: site_api` em vez de usar `SITE_SUPABASE_SECRET_KEY`
+(`service_role`) — deliberadamente um passo manual, fora do alcance desta sessão (exige o
+painel da Vercel).
 
 **Checklist de conclusão.**
-- [ ] Item restante do checklist da Etapa 40 (16/09) verificado e marcado.
-- [ ] `reloptions` das tabelas-alvo conferido via `execute_sql`/CLI contra o valor esperado
-      pela migration.
+- [x] Role criada com grants mínimos e documentados (13 RPCs + funções internas
+      `SECURITY INVOKER` acionadas em cascata + sequência).
+- [x] Teste `site_api_privileges.test.sql` cobrindo as 13 funções — passa.
+- [x] Runbook de corte escrito (`RUNBOOK_SITE_API_CUTOVER.md`).
+- [ ] Corte executado em produção (variável da Vercel trocada) — **ação humana**.
+- [ ] `SITE_SUPABASE_SECRET_KEY` deixa de ser usada em runtime depois do corte confirmado —
+      só então para de ser um risco de vazamento total do banco.
 
-**Rollback/risco.** Baixo — `ALTER TABLE ... SET (fillfactor = ...)` é reversível.
+**Rollback/risco.** Reverter a variável de ambiente na Vercel é instantâneo se o corte
+causar erro em produção — sem migration a desfazer.
 
-**Depende de.** Etapa 4.
+**Depende de.** Acesso ao painel da Vercel.
 
----
+### Etapa 26 — `force row level security` + teste que varre todas as tabelas — ✅ FECHADA
+`20260916170000_force_row_level_security.sql` — as 14 tabelas de `site_private`;
+`force_rls_hygiene.test.sql` passa. Migration também fecha `default privileges` em
+sequences futuras.
 
-## Fase 4 — Contrato e tipos
+### Etapa 27 — PII em repouso: hash para busca e mascaramento em `get_my_*` — ✅ DECISÃO REGISTRADA, não é gap
 
-### Etapa 21 — Protocolo humano persistido e único
+**Correção importante.** Eu tinha descrito isto como "o item de segurança mais
+substancial genuinamente aberto do plano" — errado, e o erro importa: `grep` só confirma
+ausência de código, não confirma ausência de decisão. `docs/DATABASE_FUNCTION_CONTRACTS.md:98`
+("Decisão registrada — PII em repouso, adiada") documenta que a divisão original do plano
+("hash para busca + mascaramento em `get_my_*`") **não sobrevive ao exame técnico**:
 
-**Diagnóstico.** Idêntico à Etapa 19 do plano de 16/09 (**0/4**).
+1. Mascarar em `get_my_*` não reduz exposição nenhuma — essas funções devolvem os dados do
+   próprio titular autenticado (`auth.uid()`); mascarar o e-mail dele para ele mesmo só
+   piora a UX.
+2. Um hash ao lado não impede que a coluna original continue em texto puro (`site_api` e o
+   worker de notificação precisam do valor real para enviar e-mail) — não reduz exposição
+   num backup/dump, que era o objetivo real.
+3. A mitigação genuína é criptografia de coluna (pgsodium + Vault), corretamente escopada
+   como spike de design separado, não algo para decidir no meio de um lote de 50 etapas.
 
-**Ação.** Ver Ação da Etapa 19 do plano de 16/09.
+**Ação.** Nenhuma nesta sessão — implementar a meia-medida original seria pior que a
+decisão já tomada (dado sensível pareceria "protegido" sem estar). Se isto voltar à pauta,
+o ponto de partida já está escrito no documento: pgsodium com chave no Vault, avaliando
+rotação de chave e custo de decriptar em toda leitura.
 
-**Checklist de conclusão.** Idêntico.
+**Checklist de conclusão.**
+- [x] Decisão de engenharia registrada e tecnicamente sólida — nada a corrigir.
+- [ ] Se o negócio decidir que criptografia de coluna vale o custo, abrir uma etapa nova
+      dedicada (spike de design, não uma linha deste plano).
 
-**Rollback/risco.** Idêntico.
+### Etapa 28 — Revisão da exposição do token de seleção compartilhada — ✅ DECISÃO REGISTRADA (correção da minha primeira leitura)
 
-**Depende de.** Etapa 12.
+**Correção.** Eu tinha marcado como "FECHADA" só olhando `management_token_hash`
+(hasheado, correto) — mas não é o único token da tabela. `shared_selections.token uuid
+primary key` é o próprio token de acesso público ao link, e **esse fica em texto plano**
+(é literalmente a chave primária). `DATABASE_FUNCTION_CONTRACTS.md:121` documenta a
+decisão de aceitar esse risco, não de tê-lo eliminado: 122 bits de aleatoriedade (UUID v4),
+expira em até 31 dias, não carrega PII (só `id`/`q`/`v` de produto), e o acesso à tabela já
+ficou bem mais restrito depois da Etapa 25 (só `site_api` via JWT server-side e
+`service_role`, não mais qualquer coisa com a chave antiga). Migrar para `token_hash`
+exigiria período de compatibilidade dupla e mudar 3 funções simultaneamente — custo
+desproporcional ao risco real descrito.
 
-### Etapa 22 — Precedência semântica de eventos de provedor
+**Ação.** Nenhuma nesta sessão — decisão registrada e proporcional. Reavaliar só se o
+conteúdo de uma seleção compartilhada passar a incluir dado pessoal, ou se o prazo de
+expiração for estendido.
 
-**Diagnóstico.** Idêntico à Etapa 20 do plano de 16/09 (**0/3**).
+### Etapa 29 — Rotação programada de segredos + comparação em tempo constante — parcialmente aberta
 
-**Ação.** Ver Ação da Etapa 20 do plano de 16/09.
+**Diagnóstico.** A comparação em tempo constante já existe e está sob teste
+(`test:timing-safe-secrets` no `package.json`, roda em `npm run check`). A **rotação
+programada** (agendamento recorrente) não tem evidência de existir — é operacional, não
+código.
 
-**Checklist de conclusão.** Idêntico.
+**Ação.** Ver Ação da Etapa 29 do plano de 16/09, restrita à parte de agendamento.
 
-**Rollback/risco.** Idêntico.
-
-**Depende de.** Etapa 17 (índice de reconciliação já existe — Etapa 15 do plano de 16/09,
-fechada).
-
-### Etapa 23 — Tipos TypeScript gerados do schema e diffados no CI
-
-**Diagnóstico.** Idêntico à Etapa 21 do plano de 16/09 (**0/3**).
-
-**Ação.** Ver Ação da Etapa 21 do plano de 16/09.
-
-**Checklist de conclusão.** Idêntico.
-
-**Rollback/risco.** Idêntico.
-
-**Depende de.** Etapa 4.
-
-### Etapa 24 — Convenção formal de versionamento de RPC
-
-**Diagnóstico.** Idêntico à Etapa 23 do plano de 16/09 (**0/2**). O catálogo de erros
-(Etapa 22 do plano de 16/09) já está fechado e verificado nesta auditoria (spot-check
-manual sem gaps); falta só a convenção de versionamento em si.
-
-**Ação.** Ver Ação da Etapa 23 do plano de 16/09.
-
-**Checklist de conclusão.** Idêntico.
-
-**Rollback/risco.** Idêntico.
-
-**Depende de.** Nada.
-
----
-
-## Fase 5 — Segurança e privilégio mínimo (site DB)
-
-### Etapa 25 — Role `site_api` com privilégio mínimo no lugar de `service_role`
-
-**Diagnóstico.** Idêntico à Etapa 25 do plano de 16/09 — **0/5**, e continua marcada P0
-sem nenhum progresso. É o item de segurança mais importante em aberto de todo o
-histórico de planos deste repositório: hoje a API do site (`create_site_quote_request` e
-demais RPCs) roda efetivamente sob um caminho equivalente a `service_role`, não sob uma
-role com grants explícitos e mínimos.
-
-**Ação.** Ver Ação da Etapa 25 do plano de 16/09.
-
-**Checklist de conclusão.** Idêntico ao da Etapa 25 do plano de 16/09.
-
-**Rollback/risco.** Alto se mal testado — trocar a role de conexão pode quebrar toda
-gravação do site. Exige ambiente de preview com Supabase Branching (Etapa 38) testado
-ponta a ponta antes de ir para produção.
-
-**Depende de.** Etapa 4.
-
-### Etapa 26 — `force row level security` + teste que varre todas as tabelas
-
-**Diagnóstico.** Idêntico à Etapa 26 do plano de 16/09 (**0/3**).
-
-**Ação.** Ver Ação da Etapa 26 do plano de 16/09.
-
-**Checklist de conclusão.** Idêntico.
-
-**Rollback/risco.** Idêntico.
-
-**Depende de.** Etapa 25.
-
-### Etapa 27 — PII em repouso: hash para busca e mascaramento em `get_my_*`
-
-**Diagnóstico.** Idêntico à Etapa 27 do plano de 16/09 (**0/4**).
-
-**Ação.** Ver Ação da Etapa 27 do plano de 16/09.
-
-**Checklist de conclusão.** Idêntico.
-
-**Rollback/risco.** Idêntico — mudança de formato de dado, exige backfill cuidadoso.
-
-**Depende de.** Etapa 22 (normalização de e-mail/telefone, fechada em 16/09, base para o
-hash).
-
-### Etapa 28 — Revisão da exposição do token de seleção compartilhada
-
-**Diagnóstico.** Idêntico à Etapa 28 do plano de 16/09 (**0/2**).
-
-**Ação.** Ver Ação da Etapa 28 do plano de 16/09.
-
-**Checklist de conclusão.** Idêntico.
-
-**Rollback/risco.** Idêntico.
-
-**Depende de.** Nada.
-
-### Etapa 29 — Rotação programada de segredos + comparação em tempo constante
-
-**Diagnóstico.** Idêntico à Etapa 29 do plano de 16/09 (**0/3**).
-
-**Ação.** Ver Ação da Etapa 29 do plano de 16/09.
-
-**Checklist de conclusão.** Idêntico.
-
-**Rollback/risco.** Idêntico.
+**Checklist de conclusão.**
+- [x] Comparação em tempo constante — já em `npm run check`.
+- [ ] Rotação programada — ainda não existe.
 
 **Depende de.** Nada.
 
 ---
 
-## Fase 6 — Retenção, auditoria e operação (site DB)
+## Fase 6 — Retenção, auditoria e operação (site DB) — 2 fechadas, 1 com decisão registrada, 1 parcial (medida), 2 abertas (infraestrutura)
 
-### Etapa 30 — `pg_cron` como retaguarda dos crons da Vercel
+### Etapa 30 — `pg_cron` como retaguarda dos crons da Vercel — ✅ DECISÃO REGISTRADA, não é gap
 
-**Diagnóstico.** Idêntico à Etapa 34 do plano de 16/09 (**0/3**).
+**Correção.** `grep -rl "pg_cron\|cron.schedule"` nas migrations confirma zero
+ocorrências, mas isso é ausência de código, não de decisão.
+`DATABASE_FUNCTION_CONTRACTS.md:58` ("Decisão registrada — retaguarda pg_cron, adiada")
+documenta uma avaliação real, não um esquecimento: `pg_cron`/`pg_net` estão disponíveis no
+projeto mas implementar a retaguarda direito exige (1) lock advisory compartilhado com o
+cron da Vercel para as duas origens nunca rodarem juntas — sem isso a "retaguarda" pode
+duplicar entregas em vez de só cobrir falha; (2) reautenticação como `site_api`/`service_role`
+de dentro de um `cron.job`, superfície nova de exposição de segredo; (3)
+`site_notification_queue_health` ganhar `lastRunAt` por origem antes de fazer sentido
+alertar sobre isso. Dado o volume atual do site e a Vercel Cron sendo confiável hoje, a
+decisão foi não implementar às pressas.
 
-**Ação.** Ver Ação da Etapa 34 do plano de 16/09.
+**Ação.** Nenhuma nesta sessão — respeitar a decisão. Fica como item de backlog explícito
+(as 3 pré-condições já estão escritas no documento), não como falha oculta.
 
-**Checklist de conclusão.** Idêntico.
+### Etapa 31 — Política de retenção por tabela + dicionário gerado — parcialmente aberta (dado real, não suposição)
 
-**Rollback/risco.** Idêntico.
+**Diagnóstico.** A lógica de retenção está extensivamente implementada e testada
+(`add_site_data_retention.sql`, `harden_retention_metadata.sql`,
+`fix_retention_storage_orchestration.sql`, `expand_shared_selection_retention.sql`;
+`notification_outbox.test.sql` e outros passam) — é **centralizada**, via
+`get_site_data_retention_candidates`/`finalize_site_data_retention`, que iteram as tabelas
+configuradas, não uma política redigida tabela a tabela. Medi a cobertura real no
+dicionário: de 16 seções `site_private.*` em `DATABASE_DICTIONARY.md`, só **4 mencionam
+retenção/expiração/purga explicitamente no texto** (`contact_requests`, `quote_requests`,
+`rate_limit_buckets`, `status_transitions`). As outras 12 — incluindo `consent_receipts`,
+`quote_items`, `notification_provider_events`, `shared_selection_rate_limits` — não citam
+retenção na própria seção, ainda que participem do mecanismo centralizado.
+
+**Ação.** Para cada uma das 12 tabelas sem menção: confirmar se ela é de fato alcançada
+pelo mecanismo centralizado (rodar `get_site_data_retention_candidates` localmente e
+conferir se aparece) e, se sim, adicionar uma linha `comment on table` citando isso — o
+dicionário é gerado a partir de `pg_description`, então o comentário vem da migration, não
+de edição manual do `.md`.
+
+**Checklist de conclusão.**
+- [ ] Confirmado quais das 12 tabelas participam do mecanismo centralizado e quais
+      genuinamente não têm política de retenção (ex.: tabelas de configuração/log que não
+      devem expirar).
+- [ ] `comment on table` adicionado nas que participam mas não citam retenção.
+- [ ] `npm run db:site:dictionary` re-executado e o `.md` re-commitado.
 
 **Depende de.** Nada.
 
-### Etapa 31 — Política de retenção por tabela + dicionário gerado
+### Etapa 32 — Trilha de auditoria de acesso administrativo direto — ✅ FECHADA
+`20260916210000_add_admin_write_audit.sql`; `admin_write_audit.test.sql` passa.
 
-**Diagnóstico.** Idêntico à Etapa 35 do plano de 16/09 (**0/2**).
+### Etapa 33 — Backups: PITR confirmado + drill de restore trimestral — permanece aberta
+Infraestrutura fora do alcance desta sessão — ver Etapa 39 do plano de 16/09.
 
-**Ação.** Ver Ação da Etapa 35 do plano de 16/09.
+### Etapa 34 — Timeouts por role — ✅ FECHADA
+`20260916190000_add_site_api_timeouts.sql` (`statement_timeout '8s'`, `lock_timeout '2s'`,
+`idle_in_transaction_session_timeout '10s'`, abaixo do `REQUEST_TIMEOUT_MS` do cliente);
+`site_api_timeouts.test.sql` passa.
 
-**Checklist de conclusão.** Idêntico.
+### Etapa 35 — Concluir saúde da fila integrada a alertas com SLA — parcialmente aberta
 
-**Rollback/risco.** Idêntico.
+**Diagnóstico.** `add_notification_queue_health.sql` existe;
+`site_notification_queue_health()` responde (confirmado por REST na auditoria de 17/09).
+Não há evidência de integração com um sistema de alertas externo nem SLA formal — esperado,
+é operacional (Vercel cron + destino de alerta), não SQL.
+
+**Ação.** Ver Ação da Etapa 42 do plano de 16/09 para os itens de integração/SLA.
+
+**Checklist de conclusão.** Os itens não-SQL do checklist original (a função em si já está
+pronta).
 
 **Depende de.** Nada.
-
-### Etapa 32 — Trilha de auditoria de acesso administrativo direto
-
-**Diagnóstico.** Idêntico à Etapa 36 do plano de 16/09 (**0/3**).
-
-**Ação.** Ver Ação da Etapa 36 do plano de 16/09.
-
-**Checklist de conclusão.** Idêntico.
-
-**Rollback/risco.** Idêntico.
-
-**Depende de.** Nada.
-
-### Etapa 33 — Backups: PITR confirmado + drill de restore trimestral
-
-**Diagnóstico.** Idêntico à Etapa 39 do plano de 16/09 (**0/3**), ainda marcada P0. Segue
-sem verificação porque é infraestrutura fora do alcance de uma sessão sem acesso ao
-dashboard/token administrativo do Supabase.
-
-**Ação.** Ver Ação da Etapa 39 do plano de 16/09.
-
-**Checklist de conclusão.** Idêntico.
-
-**Rollback/risco.** O próprio drill de restore é o teste de rollback — fazer em projeto de
-preview/branch, nunca em produção.
-
-**Depende de.** Etapa 4.
-
-### Etapa 34 — Timeouts por role
-
-**Diagnóstico.** Idêntico à Etapa 41 do plano de 16/09 (**0/2**).
-
-**Ação.** Ver Ação da Etapa 41 do plano de 16/09.
-
-**Checklist de conclusão.** Idêntico.
-
-**Rollback/risco.** Idêntico.
-
-**Depende de.** Etapa 25 (aplicar os timeouts já na role `site_api` nova, não na atual).
-
-### Etapa 35 — Concluir saúde da fila integrada a alertas com SLA
-
-**Diagnóstico.** Etapa 42 do plano de 16/09 está **1/3** — `site_notification_queue_health()`
-existe e responde (confirmado por REST nesta e na auditoria anterior), mas a integração
-com alertas operacionais e o SLA formal seguem pendentes.
-
-**Ação.** Ver Ação da Etapa 42 do plano de 16/09 para os dois itens restantes.
-
-**Checklist de conclusão.** Os 2 itens não marcados da Etapa 42 do plano de 16/09.
-
-**Rollback/risco.** Idêntico.
-
-**Depende de.** Etapa 15.
 
 ---
 
-## Fase 7 — Contrato público e cache
+## Fase 7 — Contrato público e cache — 2 confirmadas abertas, 1 sem mudança
 
-### Etapa 36 — Fase B do contrato público: revogar `anon` na view legada
+### Etapa 36 — Fase B do contrato público: revogar `anon` na view legada — permanece aberta
+Sobre o banco **principal**, não tem migration local do site para reverificar — status
+inalterado desde a auditoria.
 
-**Diagnóstico.** Idêntico à Etapa 43 do plano de 16/09 (**0/3**). Confirmei hoje que
-`v_products_public` e `v_site_products_public` **ambas existem** em produção
-(`doufsxqlfjyuvxuezpln`, verificado por SQL direto) — a migração do frontend para a view
-nova já é real, o que resta é a etapa de segurança: revogar o acesso `anon` na view
-antiga depois que o fallback deixar de ser necessário.
+### Etapa 37 — Teste de contrato cross-projeto no CI — permanece aberta
 
-**Ação.** Ver Ação da Etapa 43 do plano de 16/09.
+**Diagnóstico confirmado.** Nenhum artefato desse tipo existe neste repositório (busca por
+nome de arquivo em todo `Promo_Brindes_V1`, não confundir com o `contract-cross-endpoint.test.ts`
+de outros projetos irmãos no mesmo diretório pai — repositório diferente, não conta).
 
-**Checklist de conclusão.** Idêntico.
+**Ação/Checklist/Depende de.** Idênticos à Etapa 46 do plano de 16/09.
 
-**Rollback/risco.** Se revogado cedo demais e o fallback ainda for usado por algum
-cliente/CDN em cache, quebra a leitura pública — monitorar erros 403/404 do endpoint por
-um ciclo de cache completo antes de revogar.
-
-**Depende de.** Nada.
-
-### Etapa 37 — Teste de contrato cross-projeto no CI
-
-**Diagnóstico.** Idêntico à Etapa 46 do plano de 16/09 (**0/2**).
-
-**Ação.** Ver Ação da Etapa 46 do plano de 16/09.
-
-**Checklist de conclusão.** Idêntico.
-
-**Rollback/risco.** Idêntico.
-
-**Depende de.** Etapa 5.
-
-### Etapa 38 — Supabase Branching por PR com dados sintéticos
-
-**Diagnóstico.** Idêntico à Etapa 47 do plano de 16/09 (**0/2**).
-
-**Ação.** Ver Ação da Etapa 47 do plano de 16/09.
-
-**Checklist de conclusão.** Idêntico.
-
-**Rollback/risco.** Idêntico.
-
-**Depende de.** Etapa 4.
+### Etapa 38 — Supabase Branching por PR com dados sintéticos — permanece aberta
+Infraestrutura/billing do Supabase, fora do alcance desta sessão.
 
 ---
 
