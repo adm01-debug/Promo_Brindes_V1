@@ -690,23 +690,60 @@ migrations versionadas, testes pgTAP e CI de drift construída para o site (fase
 e nos planos anteriores) não existe aqui. Esta fase abre essa frente com os achados
 concretos da auditoria de hoje (via MCP `SUPABASE - GESTÃO DE PRODUTOS`).
 
-### Etapa 39 — Auditar as 105 funções `SECURITY DEFINER` executáveis por anon/authenticated
+### Etapa 39 — Auditar as 105 funções `SECURITY DEFINER` executáveis por anon/authenticated — 🔴 ACHADO CRÍTICO
 
-**Diagnóstico.** `get_advisors(type=security)` no projeto principal retorna
-`anon_security_definer_function_executable` (11 ocorrências) e
-`authenticated_security_definer_function_executable` (94 ocorrências) — 105 funções que
-rodam com privilégio do dono e podem ser chamadas por roles de baixo privilégio. Parte
-disso é desenho intencional (RPCs de leitura pública, análogas às `v_*_public`), mas 105 é
-grande o bastante para conter funções esquecidas com escopo maior do que deveriam ter.
+**🚨 `public.mcp_kv_get(p_secret text, p_key text)` — vazamento de segredo, ação humana urgente fora deste plano.**
+Extraí as 105 funções via `execute_sql` (11 com `anon`, 94 só `authenticated` — bate
+exatamente com o advisor). Ao classificar, `mcp_kv_get` se destacou pelo nome (parece
+backend de armazenamento de segredos para integrações MCP) e pela leitura do corpo via
+`pg_get_functiondef` confirmou um problema real: o "controle de acesso" é comparar
+`p_secret` contra **uma string fixa gravada em texto puro dentro da definição da
+função**, e a função está `grant execute ... to authenticated` — qualquer usuário logado
+do app, não só admin. Qualquer role com leitura em `pg_proc`/`information_schema.routines`
+(padrão do Postgres) lê essa string com o mesmo `pg_get_functiondef` que eu usei. Não
+consultei `public.mcp_kv` (seria explorar a falha, não auditá-la), mas o padrão de nome
+sugere segredos reais de integrações.
 
-**Ação.** Extrair a lista completa via `execute_sql` (`select p.proname, p.prosecdef,
-has_function_privilege('anon', p.oid, 'execute') from pg_proc p join pg_namespace n on
-n.oid = p.pronamespace where n.nspname = 'public' and p.prosecdef`), classificar cada uma
-em "leitura pública intencional" / "deveria exigir authenticated" / "não deveria ser
-SECURITY DEFINER" e tratar caso a caso.
+**Reportado ao usuário diretamente no chat desta sessão, fora do arquivo, por ser
+urgente e envolver rotação de credencial** — não é algo para esperar o resto do plano.
+
+**Diagnóstico geral (as outras 104 funções).** `get_advisors(type=security)` retorna
+`anon_security_definer_function_executable` (11) e
+`authenticated_security_definer_function_executable` (94). Classificação por amostra dos
+nomes/assinaturas (não li o corpo de todas as 105 — só de `mcp_kv_get`, por ser a única
+com nome/padrão que justificou a checagem):
+- As 11 com `anon`: login/rate-limit (`check_login_rate_limit`, `fn_check_login_allowed`),
+  catálogo público (`fn_global_search`, `fn_super_filtro*`, `get_catalog_bestseller_page`,
+  `get_sitemap_public`, `fn_product_active_for_rls` — provável helper de política RLS),
+  e ações por token público (`get_quote_token_public`, `submit_quote_response`) — todas
+  plausivelmente intencionais, no mesmo padrão das views `v_*_public`. `get_quote_token_public`
+  e `submit_quote_response` merecem uma segunda olhada (o corpo, não só a assinatura) para
+  confirmar que o token é rate-limited/não enumerável — mesmo padrão de cuidado que o
+  site já tem com `shared_selections`.
+- Das 94 só-`authenticated`: a maioria se agrupa em famílias claramente legítimas —
+  helpers de RLS/autorização (`is_admin_or_above`, `is_org_member`, `can_access_quote`,
+  etc. — padrão padrão do Postgres para evitar recursão de RLS), o módulo de revistas/
+  catálogo (`magazine_*`, 16 funções, concorrência otimista via `expected_edit_version`),
+  e dashboards/operação interna (`fn_get_reposicao_*`, `fn_rupture_*`,
+  `registrar_entrada_estoque`/`registrar_saida_estoque`, etc.). Nenhuma teve o corpo lido
+  nesta sessão — a classificação por nome é um primeiro filtro, não uma auditoria de
+  código completa.
+
+**Ação restante.**
+1. **Urgente, fora deste plano**: rotacionar o conteúdo de `mcp_kv` e corrigir o controle
+   de acesso de `mcp_kv_get` (tirar `authenticated`, restringir a `service_role`, não
+   comparar segredo como literal — usar Supabase Vault).
+2. Ler o corpo das ~15 funções de dashboard/admin interno (`fn_get_reposicao_*`,
+   `fn_rupture_*`, `registrar_*_estoque`, `fn_products_quality_dashboard`) para confirmar
+   que cada uma checa papel/role internamente (já que `authenticated` sozinho não deveria
+   bastar para dado operacional sensível) — não assumido nesta sessão, só a classificação
+   por nome foi feita.
+3. Ler `get_quote_token_public`/`submit_quote_response` para confirmar rate limit no token.
 
 **Checklist de conclusão.**
-- [ ] Planilha/tabela com as 105 funções, classificação e decisão por função.
+- [x] Lista completa das 105 extraída e classificada por nome/assinatura.
+- [ ] `mcp_kv_get` corrigido — **bloqueado em ação humana urgente** (rotação de segredo).
+- [ ] Corpo das funções de dashboard/admin interno revisado (não feito nesta sessão).
 - [ ] Funções fora do padrão esperado corrigidas (revogado `execute` de `anon` ou removido
       `SECURITY DEFINER`).
 - [ ] Contagem do advisor após a correção anexada ao PR (baseline: 11 anon + 94
@@ -840,21 +877,20 @@ baseline desta auditoria (8 `security_definer_view`, todos intencionais).
 
 **Depende de.** Etapa 39, 40, 41, 42 (baseline limpo antes de travar o gate).
 
-### Etapa 45 — Runbook de reconciliação para o projeto principal
+### Etapa 45 — Runbook de reconciliação para o projeto principal — ✅ FECHADA (17/09/2026)
 
-**Diagnóstico.** `docs/RUNBOOK_RECONCILIACAO_LEDGER.md` existe para o site; não há
-equivalente para o projeto principal, que tem seu próprio histórico de migrations (visível
-via `list_migrations` do MCP) totalmente fora do alcance operacional deste repositório.
-
-**Ação.** Runbook mínimo: como consultar `list_migrations`/`get_advisors` do projeto
-principal, a quem escalar uma mudança de schema necessária (dado que não há migrations
-locais), e como este repositório deve reagir se o schema do principal mudar de um jeito
-que quebre `v_products_public`/`v_site_products_public` (contrato consumido pelo site).
+`docs/RUNBOOK_BANCO_PRINCIPAL.md` criado: pré-condições (acesso ao gateway MCP, único
+canal disponível), verificação de saúde (contagem de tabelas, baseline de advisors),
+verificação do contrato público (`v_products_public`/`v_site_products_public`), fluxo
+para quando uma mudança de schema for necessária (feita fora deste repositório, dump de
+schema re-executado depois), e escalonamento explícito (sem acesso de escrita por design;
+documenta o que verificar e para quem escalar).
 
 **Checklist de conclusão.**
-- [ ] Runbook escrito com pré-condições, comandos, verificação e comunicação (mesmo padrão
-      dos runbooks do site).
-- [ ] Caminho de escalonamento explícito (quem tem acesso de escrita ao projeto principal).
+- [x] Runbook escrito com pré-condições, comandos, verificação e comunicação.
+- [x] Caminho de escalonamento explícito — sem acesso de escrita a partir deste
+      repositório, por desenho; correções (ex.: `mcp_kv_get`, Etapa 39) precisam de
+      alguém com acesso direto ao projeto.
 
 **Rollback/risco.** Nenhum — documentação.
 
@@ -909,26 +945,29 @@ precisa de teste de regressão para não quebrar o fluxo atual de carrinho singl
 
 **Depende de.** Nada.
 
-### Etapa 48 — Consolidar as matrizes de revisão quase-duplicadas
+### Etapa 48 — Matrizes de revisão: não são duplicatas, são um rastro de revisões — diagnóstico corrigido
 
-**Diagnóstico.** `docs/MATRIZ_FECHAMENTO_PLANOS_20260912.csv`,
-`MATRIZ_POS_MIGRATIONS_20260912.csv`, `MATRIZ_REVISAO_ATUAL_20260911.csv` e
-`MATRIZ_REVISAO_ATUAL_20260912.csv` têm **231 linhas cada** e datas de um dia de
-diferença — sinal de que a mesma varredura foi refeita/copiada em vez de atualizada num
-único arquivo versionado, com risco real de os quatro divergirem silenciosamente com o
-tempo (já podem divergir hoje; não comparei linha a linha nesta auditoria).
+**Correção.** Eu tinha suposto "quase-duplicadas" sem ter comparado — errado. `diff` real
+mostra que os 4 CSVs (231 linhas cada) têm **462 linhas diferentes cada par** (ou seja,
+toda linha mudou, não só algumas): cada arquivo é uma revisão completa com colunas de
+status próprias da rodada (`status_base_7104660`, `status_revisao`,
+`verificacao_nesta_rodada`, evidência textual por item) — é um rastro histórico legítimo
+de auditorias sucessivas de UX (`REVISAO_ATUAL_20260911` → `_20260912` →
+`POS_MIGRATIONS_20260912` → `FECHAMENTO_PLANOS_20260912`), não a mesma varredura
+copiada e esquecida.
 
-**Ação.** `diff` par a par dos quatro CSVs; se forem substancialmente iguais, manter só o
-mais recente e apontar os outros três para ele via redirect/nota no `docs/`; se
-divergirem, reconciliar em uma única fonte com histórico de mudança por commit (que já é o
-que o Git oferece — a duplicação de arquivo está competindo com o próprio controle de
-versão).
+**Ação revisada.** O ponto fraco real não é duplicação de conteúdo, é falta de uma
+convenção que diga qual arquivo é "o atual" sem ter que abrir os 4 e comparar timestamps
+do nome — isso sim vale a pena resolver, com esforço bem menor que uma consolidação:
 
 **Checklist de conclusão.**
-- [ ] `diff` dos 4 arquivos documentado.
-- [ ] Fonte única definida; os demais removidos ou explicitamente marcados como
-      históricos/congelados.
-- [ ] Convenção registrada para a próxima revisão não recriar o problema (atualizar o
+- [ ] Adicionar ao topo do CSV mais recente (`MATRIZ_FECHAMENTO_PLANOS_20260912.csv`, a
+      última da cadeia por enquanto) uma nota — ou um `docs/MATRIZ_INDEX.md` — dizendo
+      "esta é a revisão vigente; as anteriores são histórico, preservadas para
+      rastreabilidade, não editar".
+- [ ] Convenção registrada para a próxima revisão: nomear com a data e linkar da anterior
+      para a nova (não o contrário), para a cadeia ficar navegável sem precisar do
+      histórico do Git.
       arquivo existente, não copiar).
 
 **Rollback/risco.** Nenhum — reorganização de documentação, histórico preservado no Git.
