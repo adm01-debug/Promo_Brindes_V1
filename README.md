@@ -27,6 +27,15 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
+`npm audit --audit-level=high` roda no `Quality gate` (`.github/workflows/quality.yml`) e
+falha o build em vulnerabilidade `high`/`critical`. Se o gate falhar: rode
+`npm audit --audit-level=high` localmente para ver o relatório completo; prefira
+`npm update <pacote>` (ou `npm audit fix`) para a correção direta; se não houver correção
+disponível ainda, avalie se a dependência vulnerável está em um caminho de código
+realmente exercitado em produção (ex.: só em `devDependencies` de teste) — se sim e o risco
+for aceitável por prazo definido, documente a decisão e a data de revisão no PR em vez de
+silenciar o gate.
+
 ## Mapa técnico Graphify
 
 O repositório mantém um mapa estrutural local para apoiar revisão e investigação de dependências. Ele não é publicado com o site e não acessa nenhum banco de dados.

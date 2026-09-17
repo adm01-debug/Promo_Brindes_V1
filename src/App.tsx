@@ -6,9 +6,13 @@ import { Layout } from './components/Layout';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { QuoteCartProvider } from './context/QuoteCartContext';
 import { CustomerAuthProvider } from './context/CustomerAuthContext';
-import HomePage from './pages/HomePage';
 import { redactAnalyticsUrl } from './lib/analytics';
 
+// Etapa 1 do plano de 20260917: HomePage era a única rota carregada de forma
+// estática (import direto), arrastando QuoteDrawer/ConversationForm/
+// CampaignFinder/lógica de catálogo para o chunk de entrada e estourando o
+// orçamento de performance. Alinhada ao padrão lazy() de todas as outras rotas.
+const HomePage = lazy(() => import('./pages/HomePage'));
 const CatalogPage = lazy(() => import('./pages/CatalogPage'));
 const CatalogsPage = lazy(() => import('./pages/CatalogsPage'));
 const CommemorativeDatesPage = lazy(() => import('./pages/CommemorativeDatesPage'));
