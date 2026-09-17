@@ -24,6 +24,8 @@ jobs:
           node-version: 22.13.1
       - name: Validate migration file names (guard contra o incidente de 15/09)
         run: node scripts/validate-migration-names.mjs
+      - name: Validate error message catalog (Etapa 22)
+        run: node scripts/validate-error-catalog.mjs
       - name: Install locked Supabase CLI
         run: npm install --global supabase@2.115.0
       - name: Start local Supabase services

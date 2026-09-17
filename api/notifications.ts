@@ -273,8 +273,8 @@ interface ChannelQueueHealth {
  * abaixo) só cobre o lote já processado na invocação atual, nunca o que
  * ficou para trás. Melhor esforço: uma falha aqui nunca pode derrubar a
  * resposta da invocação, cujo trabalho de entrega já terminou antes desta
- * chamada. `console.error` funciona como o sinal em si — a integração com
- * alerta de fato (PagerDuty, e-mail de oncall etc.) é escopo da Etapa 41. */
+ * chamada. `console.error` funciona como o sinal mínimo (visível em log);
+ * `sendOperationalAlert` (Etapa 42) dispara o webhook quando configurado. */
 async function reportQueueHealth(): Promise<void> {
   try {
     const controller = new AbortController();

@@ -41,7 +41,9 @@ Todas usam `errcode = '22023'` (invalid_text_representation, reaproveitado como
 | `invalid_shared_selection_payload`, `invalid_shared_selection_item`, `duplicate_shared_selection_item` | `create_site_shared_selection` | `api/_lib/sharedSelections.ts` | ver arquivo |
 | `invalid_shared_selection_management_token` | `revoke_site_shared_selection` | `api/shared-selections.ts` | ver arquivo |
 | `invalid_retention_batch_size`, `invalid_retention_finalize_input` | `get_site_data_retention_candidates`, `finalize_site_data_retention` | Só chamado por `api/retention.ts` (cron), nunca por input de usuário | 500 |
-| `invalid_status_transition: <entity>.<de> -> <para> not allowed for <id>` (`format()`, prefixo fixo) | `site_private.enforce_status_transition` (Etapa 8) | Só dispara em update administrativo direto (Studio/SQL) — nunca alcançável pela API pública | n/a |
+| `invalid_erasure_email` | `erase_customer_data` (Etapa 32) | Só `service_role`, executado manualmente via Studio (`docs/RUNBOOK_PEDIDO_TITULAR.md`) — nunca alcançável pela API pública | n/a |
+| `invalid_status_transition: <entity>.<de> -> <para> not allowed for <id>` (`format()`, prefixo fixo) | `site_private.enforce_status_transition` (Etapa 8, reaproveitada por `notification_deliveries` na Etapa 9) | Só dispara em update administrativo direto (Studio/SQL) — nunca alcançável pela API pública | n/a |
+| `invalid_notification_delivery_transition: ...` (`format()`, prefixo fixo) | `site_private.enforce_notification_delivery_lease_and_attempts` (Etapa 9) | Idem — só update administrativo direto | n/a |
 | `invariant_violated: ...` (`format()`, prefixo fixo, `errcode 23505`/`23514`) | Blocos `do $$ ... $$` de pré-checagem em migrations (Etapas 15, 24) | Só roda durante `db push`, nunca em runtime de request | n/a |
 
 **Leitura honesta desta tabela**: a maioria das mensagens `invalid_*` de `create_site_*`
@@ -140,6 +142,50 @@ links ativos, ao contrário de `management_token_hash`, que já é armazenado co
 Reavaliar se algum dia o conteúdo de uma seleção compartilhada passar a incluir dado
 pessoal (hoje só tem `id`/`q`/`v` de produto — ver `create_site_shared_selection` em
 `docs/DATABASE_FUNCTION_CONTRACTS.md`), ou se o prazo de expiração for estendido.
+
+## Decisão registrada — normalização de telefone, adiada (Etapa 24)
+
+O plano original previa normalização canônica de e-mail **e** telefone (E.164) direto no
+banco. Ao implementar (`20260916150000_add_email_normalization.sql`), o escopo foi
+revisado: e-mail é seguro de normalizar em SQL puro (`trim` + `lower`, sem ambiguidade);
+telefone para E.164 de verdade exige inferir código de país, tratar números já
+formatados de jeitos diferentes, e uma biblioteca de parsing decente
+(`libphonenumber` ou equivalente) — que não existe hoje nem no TypeScript
+(`api/_lib/contracts.ts` guarda o telefone como veio, só valida formato). Implementar
+uma versão simplificada em PL/pgSQL sem essa garantia seria pior que não normalizar:
+criaria uma falsa sensação de dado limpo, e uma constraint baseada nela poderia
+rejeitar números legítimos.
+
+**Decisão: etapa 24 fica formalmente adiada quanto a telefone** (e-mail foi
+implementado por completo — `site_private.normalize_email`, constraint aplicada,
+`create_site_*` normalizam antes de gravar). Encontrada como gap de documentação numa
+auditoria em 16/09/2026: a decisão já estava correta e registrada no cabeçalho da
+migration, mas o texto do plano nunca foi atualizado para refletir o descope, dando a
+impressão de etapa 100% completa. Se isto voltar à pauta, o ponto de partida é escolher
+uma biblioteca de parsing (TypeScript, chamada antes da escrita — não PL/pgSQL) e
+decidir a suposição de país padrão para números sem DDI.
+
+## Decisão registrada — rate limit de borda, adiada (Etapa 30)
+
+O plano original previa duas camadas: uma regra de borda (Vercel Firewall/rate limit
+por IP/rota) como primeira linha, e a camada de banco (`rate_limit_buckets`) como
+segunda. Só a camada de banco foi implementada
+(`20260916180000_tune_high_churn_tables.sql`: `unlogged`, autovacuum agressivo; a purga
+por retenção já existia). A regra de borda nunca foi configurada nem documentada.
+
+**Decisão: etapa 30 fica formalmente adiada quanto à camada de borda.** Motivo
+encontrado numa auditoria em 16/09/2026 (não documentado antes): configurar Vercel
+Firewall é uma mudança de infraestrutura de produção (afeta todo o tráfego do domínio,
+não só este banco) que não deveria ser feita por uma sessão focada em banco de dados
+sem revisão de alguém com visão do tráfego real do site — limiares errados bloqueiam
+usuários legítimos, não é um `--dry-run` reversível como as migrations. A camada de
+banco sozinha já absorve o custo de um ataque melhor que nada (a tabela é `unlogged`,
+efêmera, com autovacuum agressivo), mas não impede que ele chegue ao banco. Também não
+implementado: teste de carga (`autocannon` ou equivalente) validando latência estável
+sob a camada de banco isolada — o soak test da Etapa 38 mede a fila de notificações,
+não o rate limit especificamente. Se isto voltar à pauta, o ponto de partida é a
+configuração de Firewall da Vercel com limiares baseados em tráfego real observado, não
+um chute.
 
 ## Convenção de versionamento de RPC
 

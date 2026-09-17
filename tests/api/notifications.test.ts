@@ -299,9 +299,10 @@ describe('Etapa 29: sinal de saúde da fila (reportQueueHealth, via handler)', (
   afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
   function fetchMockWithQueueHealth(channels: unknown) {
-    return vi.fn(async (url: string | URL) => {
+    return vi.fn(async (url: string | URL, _init?: RequestInit) => {
       if (String(url).includes('/claim_site_notification_deliveries')) return new Response('[]', { status: 200 });
       if (String(url).includes('/site_notification_queue_health')) return new Response(JSON.stringify(channels), { status: 200 });
+      if (String(url).includes('alertas.example.test')) return new Response('', { status: 202 });
       return notMocked();
     });
   }
@@ -340,6 +341,33 @@ describe('Etapa 29: sinal de saúde da fila (reportQueueHealth, via handler)', (
     expect(result.statusCode).toBe(200);
     expect(errorSpy).toHaveBeenCalledWith('site_notifications_queue_alert', { ...staleChannel, ageAlertThresholdSeconds: QUEUE_AGE_ALERT_SECONDS });
     expect(errorSpy).toHaveBeenCalledTimes(1);
+  });
+
+  // Etapa 42 do plano de correções: os dois testes acima só confirmavam o
+  // console.error — nunca que sendOperationalAlert (o webhook de fato) era chamado.
+  // Sem OPERATIONS_ALERT_WEBHOOK_URL configurado, sendOperationalAlert retorna false
+  // sem abrir conexão (api/_lib/operationalAlerts.ts) — este teste configura o
+  // webhook e verifica a chamada HTTP ponta a ponta.
+  it('job elegível mais velho que o limiar: dispara o webhook de alerta operacional configurado', async () => {
+    configure();
+    vi.stubEnv('RESEND_API_KEY', 're_synthetic_test_key');
+    vi.stubEnv('SITE_EMAIL_FROM', 'Promo Brindes <atendimento@example.test>');
+    vi.stubEnv('OPERATIONS_ALERT_WEBHOOK_URL', 'https://alertas.example.test/hook');
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'info').mockImplementation(() => {});
+    const staleChannel = { channel: 'email', oldestEligibleAgeSeconds: QUEUE_AGE_ALERT_SECONDS + 1, eligibleCount: 3, exhaustedCount: 0 };
+    const channels = [staleChannel, { channel: 'whatsapp', oldestEligibleAgeSeconds: null, eligibleCount: 0, exhaustedCount: 0 }];
+    const fetchMock = fetchMockWithQueueHealth(channels);
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+
+    expect(result.statusCode).toBe(200);
+    const alertCall = fetchMock.mock.calls.find(([url]) => String(url).includes('alertas.example.test'));
+    if (!alertCall) throw new Error('O webhook de alerta operacional não foi chamado.');
+    const [, init] = alertCall as [string, RequestInit];
+    expect(String(init.body)).toContain('notification_queue_alert');
+    expect(String(init.body)).toContain('"channel":"email"');
   });
 
   it('job esgotado (exhausted > 0) soa alerta mesmo com idade dentro do limiar', async () => {

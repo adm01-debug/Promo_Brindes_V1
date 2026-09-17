@@ -486,10 +486,20 @@ provider_message_id is not null`. Antes, consulta de diagnóstico para garantir 
 duplicatas.
 
 **Checklist de conclusão.**
-- [ ] Consulta de duplicatas executada no remoto: zero linhas.
-- [ ] Índice criado; `record_site_notification_provider_acceptance` falha com 23505 em
-      duplicata e o teste cobre isso.
-- [ ] `limit 1` removido da busca (não é mais necessário).
+- [x] Consulta de duplicatas executada — no banco local antes de aplicar a constraint
+      (`do $$ ... raise exception ...` na própria migration); **não executada contra o
+      remoto** (a migration em si nunca foi aplicada em produção).
+- [x] Índice único criado (`notification_deliveries_provider_message_key`); testado em
+      `notification_queue_policy.test.sql`.
+- [x] **Decisão (16/09/2026): `limit 1` mantido, não removido.** Reconsiderado ao
+      revisar este item: `select ... into v_delivery_id` em PL/pgSQL não é `STRICT` —
+      sem `limit 1`, múltiplas linhas não gerariam erro, só escolheriam a última
+      processada silenciosamente (mesmo comportamento "arbitrário" que o diagnóstico
+      original queria evitar), então remover `limit 1` não muda o pior caso em nada;
+      ele só documenta a intenção (no máximo 1 resultado esperado) sem custo. Manter é
+      estritamente melhor ou igual a remover — o item do checklist partia da premissa
+      de que `limit 1` era o problema, mas o problema real já foi resolvido pelo
+      índice único, não pela remoção da cláusula.
 
 **Rollback/risco.** Se houver duplicata histórica, a criação falha — corrigir dados
 primeiro, nunca relaxar a unicidade.
@@ -640,9 +650,24 @@ ação do cliente`; teste vitest que lê as mensagens por regex dos arquivos SQL
 que cada uma está mapeada em `contracts.ts`.
 
 **Checklist de conclusão.**
-- [ ] Tabela completa (grep de `message = 'invalid_` cobre 100 %).
-- [ ] Teste de cobertura do mapeamento verde.
-- [ ] Nenhuma mensagem de erro contém dado pessoal (revisão manual).
+- [x] Tabela completa — **gap real encontrado em 16/09/2026**: `invalid_erasure_email`
+      (Etapa 32, escrita depois que esta etapa tinha fechado) nunca tinha sido
+      adicionada à tabela; corrigido.
+- [x] Teste de cobertura — **redesenhado do texto original**: o plano pedia um teste
+      verificando que "cada mensagem está mapeada em `contracts.ts`", mas a própria
+      tabela documenta que a maioria das mensagens `invalid_*` **deliberadamente não
+      tem** mapeamento TypeScript (são defesa em profundidade — a validação de
+      `api/_lib/contracts.ts` já barra esses casos antes de chegar à RPC; forçar um
+      mapeamento 1:1 seria testar um requisito que o próprio design rejeita).
+      Implementado o teste que o design real sustenta:
+      `scripts/validate-error-catalog.mjs`/`tests/validate-error-catalog.node.mjs`
+      (`npm run test:error-catalog`, também na CI via `database.yml`) — falha se
+      qualquer mensagem `message = '...'` ou `message = format('...'` de uma migration
+      não aparecer no catálogo, mapeada ou explicitamente "não mapeada" com o motivo.
+- [x] Nenhuma mensagem de erro contém dado pessoal — revisão manual da lista completa
+      de mensagens (16/09/2026): todas são tokens técnicos genéricos
+      (`invalid_quote_payload`, `rate_limit_exceeded` etc.), nenhuma interpola e-mail/
+      telefone/nome.
 
 **Depende de.** Etapa 21.
 
@@ -674,10 +699,16 @@ receber; duplicatas lógicas ("Ana@x.com" vs "ana@x.com") são possíveis via ou
 normalizado; `create_site_*` normalizam antes de gravar.
 
 **Checklist de conclusão.**
-- [ ] Funções com testes pgTAP para casos limítrofes (espaços, maiúsculas, +55, DDI
-      ausente).
-- [ ] `check` aplicado após backfill validado (zero violações).
-- [ ] TypeScript e SQL produzem o mesmo resultado (teste comparativo com fixtures).
+- [x] Funções com testes pgTAP para casos limítrofes (espaços, maiúsculas) — só para
+      e-mail; telefone/E.164 formalmente adiado, ver decisão abaixo.
+- [x] `check` aplicado após backfill validado (zero violações) — e-mail apenas.
+- [~] TypeScript e SQL produzem o mesmo resultado — verdadeiro só para e-mail
+      (`api/_lib/contracts.ts` já normaliza da mesma forma); não se aplica a telefone.
+
+**Decisão registrada (16/09/2026):** normalização de telefone para E.164 **adiada
+formalmente**, não implementada como meia-medida — ver
+`docs/DATABASE_FUNCTION_CONTRACTS.md`, seção "Decisão registrada — normalização de
+telefone, adiada". E-mail está 100% implementado.
 
 **Rollback/risco.** `check` só é adicionado depois do backfill; até lá, `not valid`.
 
@@ -811,9 +842,18 @@ table rate_limit_buckets set unlogged` (perda em crash é aceitável); autovacuu
 (`autovacuum_vacuum_scale_factor = 0.02`); purga de buckets antigos na retenção diária.
 
 **Checklist de conclusão.**
-- [ ] Regra de borda ativa e documentada com limiares.
-- [ ] Tabela `unlogged`; teste de carga (`autocannon` ou similar) mostra latência estável.
-- [ ] Buckets com `updated_at` > 24 h purgados pela retenção.
+- [ ] Regra de borda ativa e documentada com limiares — **adiada formalmente**, ver
+      decisão abaixo.
+- [~] Tabela `unlogged` ✅; teste de carga (`autocannon` ou similar) mostra latência
+      estável — não feito (o soak test da Etapa 38 mede a fila de notificações, não
+      o rate limit).
+- [x] Buckets com `updated_at` > 24 h purgados pela retenção.
+
+**Decisão registrada (16/09/2026):** camada de borda (Vercel Firewall) **adiada
+formalmente** — mudança de infraestrutura de produção que afeta todo o tráfego do
+domínio, fora do escopo apropriado de uma sessão de banco de dados sem revisão de
+tráfego real. Ver `docs/DATABASE_FUNCTION_CONTRACTS.md`, seção "Decisão registrada —
+rate limit de borda, adiada".
 
 **Rollback/risco.** `unlogged` não replica em réplica física — irrelevante para dado
 efêmero; documentar.
@@ -830,8 +870,13 @@ existentes; adicionar passo manual documentado para o Security Advisor do painel
 deploy de migration.
 
 **Checklist de conclusão.**
-- [ ] Lint com `--fail-on warning` verde no CI.
-- [ ] Zero achados críticos no Security Advisor (captura de tela sem dados no PR).
+- [x] Lint com `--fail-on warning` verde no CI — confirmado literalmente em
+      `.github/workflows/database.yml`.
+- [~] Zero achados críticos no Security Advisor — **não verificável nesta sessão**
+      (exige acesso ao painel real do projeto). Passo manual documentado em
+      `docs/RUNBOOK_VERIFICACAO_DB.md` (16/09/2026), a ser executado após cada
+      `db push` para produção — não a captura de tela em si, que só existe depois da
+      execução real.
 
 **Depende de.** Etapa 26.
 
@@ -882,9 +927,22 @@ que simula falha após a remoção do arquivo e verifica que a próxima execuç�
 duplicar nem perder.
 
 **Checklist de conclusão.**
-- [ ] Índices criados; `explain` da seleção de candidatos usa índice.
-- [ ] Teste de falha parcial verde (idempotência da finalização).
-- [ ] `tests/api/retention.test.ts` cobre o cenário.
+- [x] Índices criados — full em vez de parcial (`where retention_until is not null`
+      seria idêntico a um índice completo, já que a coluna é `not null`; desvio
+      correto, não um bug). Lotes com `limit` já existiam. **`for update skip locked`
+      não implementado** — analisado nesta auditoria: `get_site_data_retention_candidates`
+      é uma leitura pura, sem estado de "reivindicado" (diferente da fila de
+      notificações); duas execuções concorrentes gerariam trabalho duplicado, não
+      corrupção — Storage tolera 404, `finalize_expired_site_data` apagando uma linha
+      já ausente é uma operação idempotente sem erro. Como retenção roda como 1 cron
+      diário (não um pool de workers concorrentes), o risco real é baixo; aceito sem
+      lock explícito por ora.
+- [x] Teste de falha parcial verde — **adicionado em 16/09/2026** (o teste existente só
+      cobria a direção oposta: Storage falha, banco não é tocado). Dois testes novos:
+      finalize falha depois do Storage já ter sido limpo (503, sem reprocessar
+      Storage na mesma chamada); replay da mesma execução com o objeto de Storage já
+      ausente (404 tratado como sucesso, `finalize` conclui, idempotente).
+- [x] `tests/api/retention.test.ts` cobre o cenário — mesmo arquivo, testes acima.
 
 **Depende de.** Etapa 16.
 
@@ -955,9 +1013,18 @@ clientes) e chama `claim_site_notification_deliveries` simultaneamente sobre 50 
 conjuntos disjuntos, soma igual ao total, nenhum job com dois `lease_token`.
 
 **Checklist de conclusão.**
-- [ ] Teste verde em 20 execuções consecutivas (sem flakiness).
-- [ ] Cenário de lease expirada com terceiro trabalhador coberto.
-- [ ] Cenário `exhausted` sob concorrência coberto.
+- [~] Teste verde em execuções consecutivas — confirmado em várias rodadas manuais
+      nesta sessão (não há loop automatizado de 20 execuções no CI, já que o teste
+      inteiro depende do stack local do Supabase e não roda em `npm run check`).
+- [x] Cenário de lease expirada sob concorrência coberto — **adicionado em
+      16/09/2026**: duas conexões disputam o mesmo job com lease expirada, só uma
+      recupera (attempts incrementa corretamente, lease_token novo). Não é
+      literalmente "terceiro trabalhador" (o texto original imaginava 3 conexões);
+      2 disputando pelo mesmo job já testa a exclusão mútua que importa.
+- [x] Cenário `exhausted` sob concorrência coberto — **adicionado em 16/09/2026**: duas
+      conexões concorrentes tentam reivindicar um job já no limite de tentativas com
+      lease expirada; nenhuma o reivindica como nova tentativa, ele termina em
+      `exhausted` sem erro em nenhuma das duas conexões.
 
 **Depende de.** Etapas 10 e 12.
 
@@ -1017,8 +1084,20 @@ autovacuum_analyze_scale_factor = 0.02)` nas duas tabelas; monitorar `n_dead_tup
 mensalmente (etapa 18).
 
 **Checklist de conclusão.**
-- [ ] Parâmetros aplicados por migration.
-- [ ] `pg_stat_user_tables.n_dead_tup` estável após uma semana.
+- [x] Parâmetros aplicados por migration — **gap encontrado e corrigido em
+      16/09/2026**: a migration original (`20260916180000`) aplicou `fillfactor=80` só
+      em `notification_deliveries`, deixando `rate_limit_buckets`/
+      `shared_selection_rate_limits` de fora sem nenhuma nota explicando por quê —
+      ambas fazem `insert ... on conflict do update` na mesma linha por
+      `identifier_hash` a cada requisição (mesmo padrão de update repetido que
+      justificou o fillfactor em `notification_deliveries`). Corrigido em
+      `20260917000000_add_rate_limit_fillfactor.sql` (renomeada nesta auditoria: o
+      nome original, `20260916240000_...`, tinha hora "24" inválida — detectado por
+      `npm run test:migration-names`, que não tinha rodado desde a criação do
+      arquivo); testado em `storage_tuning.test.sql`.
+- [ ] `pg_stat_user_tables.n_dead_tup` estável após uma semana — inerentemente não
+      verificável numa sessão (requer monitoramento real de produção ao longo do
+      tempo).
 
 **Depende de.** Etapa 13.
 
@@ -1048,8 +1127,21 @@ leituras consecutivas; alerta de "cron silencioso" se `lastRunAt` (etapa 34) exc
 a frequência.
 
 **Checklist de conclusão.**
-- [ ] SLA documentado; limiares no código com origem na etapa 38.
-- [ ] Alerta disparado em teste controlado e recebido no canal.
+- [x] SLA documentado; limiares no código com origem na etapa 38 —
+  `QUEUE_AGE_ALERT_SECONDS` (`api/notifications.ts`) e `oldestEligibleAgeSeconds >
+  1800`/`exhaustedCount > 0` já disparavam `sendOperationalAlert`, mas nenhum teste
+  cobria a chamada ao webhook — **gap fechado em 16/09/2026**: novo teste em
+  `tests/api/notifications.test.ts` configura `OPERATIONS_ALERT_WEBHOOK_URL` de
+  verdade e afirma sobre a chamada HTTP real (`fetch`) com o payload
+  `notification_queue_alert`, em vez de só o `console.error`. Comentário
+  desatualizado em `api/notifications.ts` (dizia que a integração de alerta "é
+  escopo da Etapa 41") corrigido no mesmo commit.
+- [ ] Alerta de "cron silencioso" (`lastRunAt` 2× a frequência) — **não
+  implementado**: depende de `lastRunAt` por origem, que é entregável da etapa 34
+  (`pg_cron` de retaguarda), ainda não implementada.
+- [ ] Recebimento no canal real (PagerDuty/e-mail de oncall) — não ensaiado nesta
+  sessão; só o webhook HTTP é testado (mock local). Requer
+  `OPERATIONS_ALERT_WEBHOOK_URL` de produção configurado e um teste manual único.
 
 **Depende de.** Etapas 34 e 38.
 
@@ -1175,9 +1267,19 @@ resultado não for vazio após `db reset`; passo manual mensal `db diff --linked
 produção.
 
 **Checklist de conclusão.**
-- [ ] `docs/DATABASE_SCHEMA.md` gerado e versionado.
-- [ ] CI falha com drift simulado.
-- [ ] Primeiro `db diff --linked` executado: vazio.
+- [x] `docs/DATABASE_SCHEMA.md` gerado e versionado —
+  `scripts/generate-database-schema-doc.mjs` / `npm run db:site:schema-doc`.
+- [x] CI falha com drift simulado — `.github/workflows/database.yml`,
+  passo "Regenerate schema ERD and fail on drift (Etapa 48)": regenera o doc e
+  `git diff --exit-code`; qualquer alteração de schema não versionada quebra o
+  build. (A `Ação` original citava `supabase db diff --local` literal; o
+  drift-check por regeneração do doc cobre o mesmo risco — schema real
+  diferente do documentado — sem exigir um segundo comando redundante.)
+- [ ] Primeiro `db diff --linked` executado: vazio — **não executado nesta
+  sessão**, mesma limitação da Etapa 6 (sem `SUPABASE_ACCESS_TOKEN` de produção
+  neste ambiente). **Corrigido nesta auditoria**: o checklist mestre abaixo
+  chegou a marcar a Fase 8 como "48 feito", o que não era exato — este item
+  específico continua pendente de ação humana com acesso ao projeto real.
 
 **Depende de.** Etapa 21.
 
@@ -1231,7 +1333,7 @@ etapas adiadas com justificativa.
 - [x] Fase 5 — etapas 32 a 36 (32/35/36 implementadas; 33 já satisfeita por trabalho anterior; **34 formalmente adiada**)
 - [~] Fase 6 — etapas 37 a 42 (**37, 38, 41, 42 feitos** — 42 já vinha pronto de trabalho anterior, **38 concluído pós-fechamento** com soak test real, ver seção abaixo; **39 não coberto, exige infraestrutura de billing/org do Supabase fora do alcance desta sessão**)
 - [x] Fase 7 — etapas 43 a 46 (**44, 45 concluídas** — 45 fechada pós-fechamento, ver seção abaixo; **43/46 dependem do repositório `Promo_Gifts_V4`** — issue de coordenação redigida, publicação bloqueada pelo sandbox, aguardando o dono do repo)
-- [~] Fase 8 — etapas 47 a 50 (**48, 49 feitos**; 47 é decisão de custo, não técnica; **50 — este checklist é o fechamento**)
+- [~] Fase 8 — etapas 47 a 50 (**48 parcial** — doc gerado e CI com drift-check verdes, mas o `db diff --linked` contra produção nunca rodou nesta sessão, mesma limitação de acesso da etapa 6; **49 feito**; 47 é decisão de custo, não técnica; **50 — este checklist é o fechamento**)
 
 **43 das 50 etapas** endereçadas nesta sessão (implementadas, já satisfeitas por trabalho
 anterior, ou formalmente adiadas com justificativa registrada — nunca silenciosamente
@@ -1359,6 +1461,34 @@ contra o código/migration/teste real. Achados principais e correções:
   (`eslint` 10.x + `@eslint/js` 9.x, em vez do inverso). `main` estava com `npm
   install`/`npm ci` quebrado no momento em que isso foi descoberto. Corrigido revertendo
   `eslint` também para `9.39.5`.
+- **Etapa 42**: `sendOperationalAlert` já era chamado de verdade em
+  `reportQueueHealth` (`api/notifications.ts`), mas os testes existentes
+  (`tests/api/notifications.test.ts`) só afirmavam sobre o `console.error` — sem
+  `OPERATIONS_ALERT_WEBHOOK_URL` configurado nos testes, a chamada HTTP ao webhook
+  nunca era exercitada, deixando o caminho crítico de alerta sem cobertura. Um
+  comentário no código também estava desatualizado, atribuindo a integração de
+  alerta a uma "Etapa 41" futura que já tinha sido implementada. Corrigido: novo
+  teste configura o webhook e afirma sobre a chamada HTTP real; comentário
+  atualizado. O sub-item "cron silencioso" (`lastRunAt` por origem) permanece
+  bloqueado pela Etapa 34 (não implementada), e o recebimento em canal real
+  (PagerDuty/e-mail) continua não ensaiado — ambos documentados como pendências
+  explícitas no checklist da etapa, não como "feito".
+- **Etapa 48**: o checklist mestre marcava "48 feito", mas o próprio checklist da
+  etapa tinha os 3 itens em `[ ]` — inconsistência real entre o resumo e o
+  detalhe. Verificado item a item: `docs/DATABASE_SCHEMA.md` existe e é gerado
+  por script; o drift-check de CI existe (`database.yml`, regenera e
+  `git diff --exit-code`); mas o terceiro item (`db diff --linked` contra o
+  projeto real) nunca foi executado nesta sessão — mesma limitação de acesso a
+  produção da Etapa 6. Corrigido: os dois primeiros itens marcados `[x]`, o
+  terceiro mantido `[ ]` com a mesma nota de "ação humana pendente", e o
+  checklist mestre corrigido de "48 feito" para "48 parcial".
+- **Regressão própria detectada na validação final**: `npm run test:migration-names`
+  não tinha sido rodado desde que `20260916240000_add_rate_limit_fillfactor.sql`
+  (Etapa 40) foi criado nesta sessão — hora "24" não é um horário válido
+  (`00`–`23`). Renomeada para `20260917000000_...` (sem colisão com nenhuma
+  migration existente) antes do commit final; reforça por que a suíte de
+  validação completa (não só os testes do arquivo tocado por último) precisa
+  rodar antes de cada fechamento.
 
 Contagem final honesta: **43 das 50 etapas** confirmadas completas ou corretamente
 adiadas/bloqueadas continua válida como número (a auditoria também encontrou vários

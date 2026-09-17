@@ -81,6 +81,24 @@ ou um crescimento muito fora do esperado). Tabelas atuais (16, `site-supabase/su
 `quote_request_events`, `quote_requests`, `rate_limit_buckets`,
 `shared_selection_rate_limits`, `shared_selections`, `status_transitions`.
 
+## Security Advisor (após todo deploy de migration, Etapa 31)
+
+`supabase db lint --local --level warning --fail-on warning` já roda na CI e falha o
+build (`.github/workflows/database.yml`), mas cobre só o schema em si (índices,
+funções sem `search_path`, etc.) — não os achados do Security Advisor do painel do
+Supabase, que também olha configuração de projeto (extensões desatualizadas, RLS
+desligada em alguma tabela que o lint local não veio a conhecer, chaves expostas).
+Depois de todo `supabase db push` para `xlzmclcjdncjfdrjxclt`:
+
+1. Dashboard do projeto > Advisors > Security Advisor.
+2. Confirme zero achados de severidade alta/crítica novos desde o deploy anterior.
+3. Se houver achado novo, decida antes do próximo deploy: corrigir (nova migration) ou
+   registrar como risco aceito com justificativa (mesmo padrão de
+   `docs/DATABASE_FUNCTION_CONTRACTS.md`).
+
+**Não ensaiado nesta sessão** — exige acesso ao painel do projeto real, que este
+ambiente não tem. Passo documentado, não executado.
+
 ## Conector MCP (opcional, não obrigatório)
 
 Se o time adotar um gateway MCP para este projeto, identificá-lo pelo nome do projeto
