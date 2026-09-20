@@ -1002,15 +1002,24 @@ parcial): "Persistência local e eventos existem; faltam métricas operacionais 
 de conflitos entre campanhas/dispositivos" — evidência em
 `src/context/QuoteCartContext.tsx`, `src/lib/analytics.ts`.
 
-**Ação.** Definir o comportamento esperado quando o mesmo carrinho é editado em duas abas/
-dispositivos (last-write-wins explícito vs. merge), instrumentar métricas operacionais
-(taxa de abandono, tamanho médio do carrinho) via `src/lib/analytics.ts`.
+**Por que não implementei nesta sessão.** As duas partes desta etapa (last-write-wins vs.
+merge entre dispositivos; quais métricas operacionais importam) são decisão de produto,
+não técnica — inventar um comportamento de resolução de conflito ou um conjunto de
+métricas sem alguém validar o UX seria exatamente o tipo de escopo que não me cabe decidir
+sozinho. Diferente das etapas de segurança/performance deste plano, aqui não há uma
+resposta "correta" verificável por teste sem essa decisão vir primeiro.
+
+**Ação.** Levar para quem decide produto: (1) duas abas/dispositivos editando o mesmo
+carrinho — avisar e deixar o usuário escolher, ou last-write-wins silencioso? (2) que
+métrica operacional é acionável (taxa de abandono por etapa do formulário? tamanho médio
+do carrinho na submissão?) — sem consumidor definido para o dado, instrumentar é trabalho
+descartável.
 
 **Checklist de conclusão.**
-- [ ] Comportamento de conflito definido e testado (`QuoteCartContext.test.ts` cobrindo o
-      cenário de dois dispositivos).
-- [ ] Métricas operacionais emitidas e visíveis no destino de analytics já usado pelo
-      projeto.
+- [ ] Decisão de produto sobre comportamento de conflito — não tomada nesta sessão.
+- [ ] Decisão de produto sobre quais métricas instrumentar — não tomada nesta sessão.
+- [ ] Comportamento de conflito implementado e testado, depois da decisão.
+- [ ] Métricas emitidas, depois da decisão.
 
 **Rollback/risco.** Baixo — mudança aditiva de instrumentação; a resolução de conflito
 precisa de teste de regressão para não quebrar o fluxo atual de carrinho single-device.
@@ -1072,25 +1081,32 @@ revisão por pares dos 5 runbooks existentes (checklist de revisor, não reescri
 
 **Depende de.** Etapa 33.
 
-### Etapa 50 — Encerramento: checklist mestre, merge do PR #13, tag de release
+### Etapa 50 — Encerramento: checklist mestre, merge do PR #14, tag de release
 
-**Diagnóstico.** Segue o mesmo padrão de encerramento da Etapa 50 do plano de 16/09,
-adaptado ao estado de hoje: PR #13 aberto e `MERGEABLE`, `Quality gate` vermelho (Etapa 1),
-`main` local à frente depois da Etapa 2.
+**Atualizado (20/09/2026).** PR #13 já mergeou (antes do fix do bundle chegar no branch —
+ver nota da Etapa 1/2). **PR #14** é o que carrega o trabalho real desta sessão:
+https://github.com/adm01-debug/Promo_Brindes_V1/pull/14 — `Quality gate`,
+`Isolated site database`, `Graphify structural map` e `cross-browser` todos verdes
+confirmados nesta sessão.
 
-**Ação.** Checklist mestre varrendo as 49 etapas anteriores (as reabertas herdam o status
-já rastreado nos planos de origem — não reconferir do zero, só confirmar que nada regrediu
-desde a citação); squash do branch; merge do PR #13; tag `v` com a data; atualizar
-`docs/SITE_SUPABASE_SETUP.md`/README de operações apontando para este plano como o
-registro vigente.
+**Ação.** Merge do PR #14 **não executado por mim** — é uma ação visível/de estado
+compartilhado (afeta `main` e o deploy da Vercel), do tipo que peço confirmação antes de
+fazer, mesmo com autorização geral para executar o plano. Deixado para decisão explícita.
 
 **Checklist de conclusão.**
-- [ ] Checklist mestre publicado (uma linha por etapa 1–49, com link do PR que fechou
-      cada uma).
-- [ ] `Quality gate`, `Isolated site database`, `Graphify structural map`, `CodeQL
-      security` e `Dependency review` verdes no commit de merge.
-- [ ] PR #13 mergeado, branch remoto removido.
-- [ ] Tag de release criada.
+- [x] Checklist mestre desta sessão: ver o sumário "Status real após verificação" no topo
+      deste arquivo — 1, 6, 9, 10, 11–24, 26, 28, 32, 34, 39 (parte), 40 (parte), 43
+      (parte), 45, 46 fechados ou avançados nesta execução; 2–5, 19, 29 (parte), 30, 31,
+      33, 35 (parte), 36–38, 41, 42, 44, 47, 49 permanecem abertos, a maioria por
+      dependerem de credencial/decisão humana, não de mais trabalho técnico possível
+      nesta sessão.
+- [ ] `Quality gate`, `Isolated site database`, `Graphify structural map` verdes no PR
+      #14 — confirmado nos checks do PR, não ainda no commit de merge em si.
+- [ ] `CodeQL security` e `Dependency review` — `CodeQL` passou; `Dependency review`
+      segue falhando por "Dependency graph" não habilitado no repositório (Settings →
+      Security → Code security) — não é sobre o código deste PR.
+- [ ] PR #14 mergeado, branch remoto removido — pendente de confirmação humana.
+- [ ] Tag de release criada — depois do merge.
 
 **Rollback/risco.** Reverter o merge é possível até haver deploy em produção depois dele;
 depois disso, seguir o runbook de restore (Etapa 49) se necessário.
