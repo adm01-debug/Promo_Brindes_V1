@@ -622,18 +622,40 @@ retenção/expiração/purga explicitamente no texto** (`contact_requests`, `quo
 `quote_items`, `notification_provider_events`, `shared_selection_rate_limits` — não citam
 retenção na própria seção, ainda que participem do mecanismo centralizado.
 
-**Ação.** Para cada uma das 12 tabelas sem menção: confirmar se ela é de fato alcançada
-pelo mecanismo centralizado (rodar `get_site_data_retention_candidates` localmente e
-conferir se aparece) e, se sim, adicionar uma linha `comment on table` citando isso — o
-dicionário é gerado a partir de `pg_description`, então o comentário vem da migration, não
-de edição manual do `.md`.
+**🐛 Achado crítico ao investigar (20/09/2026), corrigido.** Rastreei exatamente quais
+tabelas `finalize_expired_site_data` toca (leitura de
+`harden_retention_metadata.sql`, a versão vigente da função) e testei no banco local:
+`quote_items`, `quote_adjustment_requests`, `quote_request_events` e `consent_receipts`
+**cascateiam automaticamente via FK** quando o `quote_requests`/`contact_requests` pai é
+apagado (`on delete cascade` já presente) — não precisam de menção própria, o cascade já
+é a documentação correta. Mas `notification_provider_events.delivery_id` referenciava
+`notification_deliveries` **sem** `on delete cascade` — reproduzi no banco local e
+`finalize_expired_site_data` **falhava com violação de FK** sempre que a delivery sendo
+purgada tinha um evento de provedor associado (o caso comum: qualquer notificação que
+recebeu webhook de `delivered`/`bounced`/`complained`). Sem tratamento de exceção por
+linha, a falha abortava a transação inteira — nenhuma deleção do lote era aplicada,
+incluindo `contact_requests`/`rate_limit_buckets`/`shared_selections` que vêm depois no
+mesmo statement. Corrigido em
+`20260920100000_cascade_notification_provider_events_on_delivery_delete.sql`, com teste
+de regressão (`lives_ok` + confirmação de cascade) em `lead_storage.test.sql`. 346/346
+pgTAP local depois do fix.
+
+**Tabelas genuinamente sem política de retenção** (confirmado, não presumido):
+`admin_audit_log`, `admin_ddl_log` (trilhas de auditoria — retenção própria é decisão de
+compliance, não teto técnico), `customer_profiles` (ciclo de vida ligado a `auth.users`
+via cascade, não ao job de retenção do site), `notification_provider_events` (agora
+cascateia com a delivery, corrigido acima), `status_transitions` (tabela de configuração
+estática — transições válidas do state machine, nunca teve dado de titular, não deveria
+mesmo ter retenção).
 
 **Checklist de conclusão.**
-- [ ] Confirmado quais das 12 tabelas participam do mecanismo centralizado e quais
-      genuinamente não têm política de retenção (ex.: tabelas de configuração/log que não
-      devem expirar).
-- [ ] `comment on table` adicionado nas que participam mas não citam retenção.
-- [ ] `npm run db:site:dictionary` re-executado e o `.md` re-commitado.
+- [x] Confirmado quais das 12 tabelas participam do mecanismo centralizado (4 via cascade
+      de FK, já corretas) e quais genuinamente não têm política (5, listadas acima, com
+      razão específica cada uma).
+- [x] Bug de FK sem cascade encontrado e corrigido — valor real desta investigação.
+- [ ] `comment on table` nas 4 que cascateiam, citando explicitamente "retenção via
+      cascade do pai" — ainda não escrito (baixo risco, só clareza de documentação).
+- [ ] `npm run db:site:dictionary` re-executado depois desses comentários.
 
 **Depende de.** Nada.
 
