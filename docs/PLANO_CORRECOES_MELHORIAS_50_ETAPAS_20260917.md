@@ -756,24 +756,40 @@ revisar sem esse ambiente.
 **Depende de.** Nada, mas se beneficia de um ambiente de preview (análogo à Etapa 38, mas
 para o projeto principal).
 
-### Etapa 40 — Decidir o destino da extensão `pg_graphql`
+### Etapa 40 — Decidir o destino da extensão `pg_graphql` — SQL pronto, decisão de escopo pendente
 
-**Diagnóstico.** `pg_graphql_anon_table_exposed` (59) e
-`pg_graphql_authenticated_table_exposed` (457) somam 516 dos 623 avisos `WARN` de
-segurança do projeto principal — a maior fonte isolada de ruído/risco do advisor. Isso só
-existe porque a extensão `pg_graphql` está habilitada e expõe automaticamente qualquer
-tabela do schema `public` via `/graphql/v1`, independentemente de RLS estar correto (RLS
-ainda protege os dados, mas a superfície de descoberta do schema fica exposta).
+**Diagnóstico confirmado (20/09/2026).** `list_extensions` do MCP confirma
+`pg_graphql 1.5.11` instalada no schema `graphql`. `pg_graphql_anon_table_exposed` (59) +
+`pg_graphql_authenticated_table_exposed` (457) = 516 dos 623 `WARN` de segurança — maior
+fonte isolada de ruído do advisor. `grep -r graphql src api` neste repositório: zero
+ocorrências.
 
-**Ação.** Confirmar se o frontend (`src/`) ou algum edge function usa a API GraphQL do
-Supabase (`grep -r graphql src api` — nesta auditoria não encontrei nenhuma referência). Se
-não usa, desabilitar a extensão (`drop extension pg_graphql cascade` via migration, com
-cuidado de schema) elimina os 516 avisos de uma vez. Se usa, mapear exatamente quais
-tabelas precisam estar expostas e restringir via `@graphql({"totalCount": {"enabled":
-false}})`/permissões por role em vez de desabilitar.
+**Limite importante desta verificação, para não recomendar às cegas.** Este repositório
+(`Promo_Brindes_V1`) é só **um** consumidor do banco principal `doufsxqlfjyuvxuezpln` — o
+grep confirma que *este app* não usa GraphQL, mas não prova que **nenhum** consumidor usa
+(o sistema de gestão de produtos/catálogo em si, as 397 tabelas, claramente tem uma
+aplicação própria fora deste repositório — não teria como ter `magazine_*`,
+`fn_get_reposicao_*` etc. sem uma). Recomendar `drop extension pg_graphql cascade` sem
+confirmar com quem tem visão desse outro app seria a mesma classe de erro que já cometi
+duas vezes nesta sessão (agir sobre suposição em vez de verificação).
+
+**Ação.** SQL preparado, **não aplicado** — bloqueado pelo classificador de permissões do
+Claude Code (escrita em banco de produção compartilhado) e, mais importante, pela
+limitação de escopo acima: precisa de confirmação humana de que nenhum outro consumidor
+usa GraphQL antes de rodar.
+
+```sql
+-- docs/sql/canonical-principal/pendente_dropar_pg_graphql.sql (preparado, não criado
+-- como migration real — sem migrations locais para o banco principal, ver Etapa 43)
+-- CONFIRMAR COM O DONO DO APP DE GESTÃO DE PRODUTOS ANTES DE RODAR:
+drop extension if exists pg_graphql cascade;
+```
 
 **Checklist de conclusão.**
-- [ ] Uso real de GraphQL confirmado ou descartado (grep + revisão de edge functions).
+- [x] Uso confirmado como ausente **neste repositório** (grep, sem ocorrência).
+- [ ] Uso confirmado como ausente em **todos** os consumidores do banco principal — não
+      verificável a partir deste repositório sozinho.
+- [ ] SQL aplicado, depois da confirmação acima.
 - [ ] Decisão executada: extensão desabilitada, ou exposição restringida tabela a tabela.
 - [ ] Contagem do advisor de segurança caiu de 623 para o valor esperado após a mudança.
 
@@ -795,8 +811,15 @@ para verificar FK) e joins nessas colunas.
 com `explain (analyze, buffers)` nas consultas que fazem join por `quote_id`/`user_id`/
 `kit_id` nessas duas tabelas.
 
+**SQL pronto, não aplicado (20/09/2026).**
+`docs/sql/canonical-principal/pendente_indices_fk_kit.sql` — 4×
+`create index concurrently if not exists`. Bloqueado pelo classificador de permissões do
+Claude Code (escrita em banco de produção compartilhado); risco real da mudança em si é
+baixo (aditiva, `CONCURRENTLY`, reversível com `DROP INDEX`).
+
 **Checklist de conclusão.**
-- [ ] 4 índices criados via `CREATE INDEX CONCURRENTLY` (sem lock de escrita).
+- [x] SQL escrito e revisado.
+- [ ] 4 índices criados via `CREATE INDEX CONCURRENTLY` — pendente de execução manual.
 - [ ] `explain analyze` antes/depois anexado ao PR.
 - [ ] Advisor de performance sem esse achado após a mudança.
 
@@ -813,12 +836,25 @@ a tabela `public.system_settings` tem duas políticas permissivas para `authenti
 Postgres avalia as duas em toda leitura, custo desnecessário quando uma política única e
 bem desenhada bastaria.
 
-**Ação.** Revisar as definições das duas políticas (`select * from pg_policies where
-tablename = 'system_settings'`), consolidar em uma política por role/ação sem perder
-nenhuma regra de acesso que as duas juntas cobrem hoje.
+**Definições lidas (20/09/2026, via `pg_policies`):**
+- `system_settings_admin_all` — `ALL`, `{authenticated}`, `is_admin(auth.uid())`.
+- `system_settings_public_read_maintenance` — `SELECT`, `{anon,authenticated}`,
+  `key = 'maintenance_mode'`.
+
+**SQL pronto, não aplicado.** `docs/sql/canonical-principal/pendente_consolidar_policy_system_settings.sql`
+— divide a política `ALL` do admin em `INSERT`/`UPDATE`/`DELETE` (deixa de cobrir
+`SELECT`) e unifica o `SELECT` numa única política com `key = 'maintenance_mode' OR
+is_admin(auth.uid())` para `anon`+`authenticated`. Equivalência comportamental por
+(role, comando) documentada linha a linha no próprio arquivo SQL — `anon` continua vendo
+só a linha de manutenção (`is_admin` com `auth.uid()` nulo nunca concede nada extra a
+`anon`). Bloqueado pelo classificador de permissões **e**, à parte disso, é mudança de
+controle de acesso — deveria ter revisão humana antes de rodar de qualquer forma, não só
+a trava automática.
 
 **Checklist de conclusão.**
-- [ ] Definições das duas políticas atuais documentadas no PR antes da mudança.
+- [x] Definições das duas políticas atuais documentadas (acima e no arquivo SQL).
+- [x] SQL de consolidação escrito com equivalência comportamental justificada.
+- [ ] Revisão humana da equivalência antes de aplicar — é o item que mais importa aqui.
 - [ ] Política consolidada aplicada; teste confirmando que o conjunto de linhas visível
       para `authenticated` não mudou.
 - [ ] Advisor sem esse achado após a mudança.
@@ -844,12 +880,21 @@ etapa. Ação mínima e de alto valor: gerar um dump de schema somente-leitura
 `db:site:schema-doc` já existente, rodando sob demanda (não bloqueando CI ainda — isso é a
 Etapa 44).
 
+**Feito parcialmente (20/09/2026).** `docs/DATABASE_INVENTORY_PRINCIPAL.md` — 397 tabelas,
+RLS por tabela, linhas estimadas, com as 11 tabelas `_archive_`/`_bkp_` separadas como
+candidatas a revisão de retenção. **Não** inclui colunas/tipos/FKs (o `list_tables`
+verbose retornou 929 mil caracteres, grande demais para trazer ao contexto desta sessão
+de forma segura) — é inventário de tabelas, não schema completo.
+
 **Checklist de conclusão.**
-- [ ] Dump de schema somente-leitura gerado e versionado.
-- [ ] Script de geração documentado e repetível.
+- [x] Inventário de tabelas gerado e versionado (nomes, RLS, linhas).
+- [ ] Schema completo (colunas/tipos/FKs) — não gerado; precisaria de processamento fora
+      desta sessão de chat (o dump bruto excede o limite de contexto de uma resposta).
+- [x] Script de geração é manual via MCP, documentado no cabeçalho do arquivo — não é
+      repetível por CI (sem credencial do projeto principal no repositório).
 - [ ] Decisão registrada sobre se este banco algum dia terá migrations versionadas no
-      repositório ou se continuará gerenciado só pelo dashboard/Lovable — trade-off
-      explícito, não default por omissão.
+      repositório ou se continuará gerenciado só pelo dashboard/Lovable — ainda não
+      decidido, é decisão do dono do produto, não técnica.
 
 **Rollback/risco.** Nenhum — é só documentação/leitura.
 
@@ -868,14 +913,25 @@ schema local que dispare) chamando os mesmos advisors via MCP/API do Supabase e 
 (ou abrindo issue automaticamente) se o número de achados `ERROR` subir em relação ao
 baseline desta auditoria (8 `security_definer_view`, todos intencionais).
 
+**Bloqueio real, não só o classificador de permissões (20/09/2026).** Esse job precisaria
+de um `SUPABASE_ACCESS_TOKEN`/service key do projeto principal como secret do GitHub
+Actions — não existe hoje neste repositório (só uso o MCP, que não é algo que o runner do
+CI consiga chamar). Provisionar esse secret é a mesma classe de ação humana da Etapa 4
+(token do site) — não escrevi um workflow inerte só para existir; sem o secret, ele nunca
+rodaria de verdade, e um workflow que sempre falha por falta de credencial é pior que
+nenhum workflow.
+
 **Checklist de conclusão.**
+- [ ] Secret do projeto principal provisionado no GitHub Actions — ação humana, não feita.
 - [ ] Job agendado (ex.: diário) chamando `get_advisors` para o projeto principal.
-- [ ] Baseline de achados aceitos documentado (os 8 `ERROR` das views públicas).
+- [ ] Baseline de achados aceitos documentado (os 8 `ERROR` das views públicas — já
+      levantado nesta sessão, pronto para usar assim que o job existir).
 - [ ] Alerta configurado para qualquer achado novo de nível `ERROR`.
 
 **Rollback/risco.** Nenhum — só observabilidade.
 
-**Depende de.** Etapa 39, 40, 41, 42 (baseline limpo antes de travar o gate).
+**Depende de.** Secret provisionado; Etapas 39, 40, 41, 42 (baseline limpo antes de travar
+o gate — hoje ainda não estão aplicadas em produção).
 
 ### Etapa 45 — Runbook de reconciliação para o projeto principal — ✅ FECHADA (17/09/2026)
 
@@ -900,24 +956,40 @@ documenta o que verificar e para quem escalar).
 
 ## Fase 9 — Frontend/UX e testes
 
-### Etapa 46 — Fechar B01–B06 e a instabilidade WebKit B07
+### Etapa 46 — Fechar a instabilidade WebKit/Firefox — ✅ causa raiz encontrada e corrigida (20/09/2026)
 
-**Diagnóstico.** `docs/MATRIZ_REVISAO_ATUAL_20260912.csv`, item UX03: "B01-B06 e
-instabilidade WebKit B07 ainda não integram os gates permanentes" (estado `P`, parcial).
-`playwright.config.ts` já roda 4 projetos (`desktop-chromium`, `mobile-chromium`,
-`desktop-firefox`, `desktop-webkit`) — o WebKit já está no CI, mas com instabilidade
-conhecida e não resolvida.
+**Correção do diagnóstico.** Não era instabilidade específica do WebKit — reproduzi rodando
+`test:e2e:cross-browser` duas vezes (uma limpa, uma com falha) e o teste que falhou
+("sair encerra a sessão e o próximo briefing aberto começa limpo") falhou em
+**desktop-firefox e desktop-webkit ao mesmo tempo**, não só WebKit.
 
-**Ação.** Reproduzir a instabilidade do WebKit isoladamente (`npx playwright test
---project=desktop-webkit --repeat-each=5`), identificar se é *flakiness* genuína (timing/
-animação) ou incompatibilidade real de engine; corrigir a causa ou isolar com retry
-justificado (não silenciar sem entender).
+**Causa raiz real**: `CustomerAuthContext.signOut()` fazia `await
+siteSupabase.auth.signOut()` (round-trip de rede) **antes** de `await
+import('../lib/personalDataReset')` + `clearPersonalQuoteStorage()` — apesar do próprio
+comentário do código dizer que a limpeza local não deveria esperar o round-trip. Se
+alguém navega logo após clicar "Sair" (o teste faz `page.goto('/orcamento')` logo depois),
+a navegação encerra o contexto JS antes do `import()` dinâmico + limpeza pendentes
+rodarem — o e-mail do titular anterior fica no rascunho de orçamento da próxima sessão,
+em um navegador potencialmente compartilhado. Corrida genuína (por isso intermitente:
+passou limpo no CI do PR #14, falhou 2x numa rodada local minutos depois) — não WebKit-
+specific, os dois motores mais lentos que Chromium só expunham a janela de corrida com
+mais frequência.
+
+**Correção.** `src/context/CustomerAuthContext.tsx`: os dois `import()` dinâmicos rodam em
+paralelo (`Promise.all`), a limpeza local + `setIdentityEpoch` acontecem **antes** do
+`await siteSupabase.auth.signOut()`, não depois — alinha o código à intenção que já
+estava documentada no comentário.
 
 **Checklist de conclusão.**
-- [ ] B01–B06 identificados nominalmente (a matriz não lista o conteúdo, só o rótulo —
-      localizar no arquivo de origem citado, `docs/audits/plan-review-20260912/`).
-- [ ] Causa da instabilidade WebKit documentada.
-- [ ] Todos os cenários rodando nos 4 gates do CI sem `test.fixme`/skip.
+- [x] Causa raiz identificada — corrida de ordenação, não flakiness de engine.
+- [x] Corrigido em `CustomerAuthContext.tsx`.
+- [x] `--repeat-each=5` em desktop-firefox + desktop-webkit no teste específico: 10/10
+      passando (antes do fix, falhou em ambos os motores numa rodada normal).
+- [x] `npm run check` completo (inclui e2e chromium) verde.
+- [x] `test:e2e:cross-browser` (firefox+webkit) verde depois do fix.
+- [ ] B01–B06 da matriz de 12/09 — não localizei o conteúdo desses rótulos nesta sessão
+      (arquivo de origem `docs/audits/plan-review-20260912/` não revisado); item genuíno
+      restante, mas não bloqueia o fechamento da instabilidade em si.
 
 **Rollback/risco.** Nenhum — é fechamento de cobertura de teste.
 
