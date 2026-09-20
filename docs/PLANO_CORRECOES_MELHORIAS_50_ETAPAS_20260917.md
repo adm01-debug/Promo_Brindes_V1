@@ -616,11 +616,15 @@ decisão foi não implementar às pressas.
 `notification_outbox.test.sql` e outros passam) — é **centralizada**, via
 `get_site_data_retention_candidates`/`finalize_site_data_retention`, que iteram as tabelas
 configuradas, não uma política redigida tabela a tabela. Medi a cobertura real no
-dicionário: de 16 seções `site_private.*` em `DATABASE_DICTIONARY.md`, só **4 mencionam
+dicionário: de 16 seções `site_private.*` em `DATABASE_DICTIONARY.md`, só **3 mencionam
 retenção/expiração/purga explicitamente no texto** (`contact_requests`, `quote_requests`,
-`rate_limit_buckets`, `status_transitions`). As outras 12 — incluindo `consent_receipts`,
-`quote_items`, `notification_provider_events`, `shared_selection_rate_limits` — não citam
-retenção na própria seção, ainda que participem do mecanismo centralizado.
+`rate_limit_buckets`). *(Correção de 20/09/2026, achado do agente de auditoria de
+documentação: eu tinha incluído `status_transitions` nessa lista de 4 — errado, a seção
+dela em `DATABASE_DICTIONARY.md:264-273` não cita retenção/expiração/purga em lugar
+nenhum; ela pertence é ao grupo "não precisa de retenção" descrito mais abaixo, não ao
+grupo "documenta retenção".)* As outras 13 — incluindo `consent_receipts`, `quote_items`,
+`notification_provider_events`, `shared_selection_rate_limits` — não citam retenção na
+própria seção, ainda que algumas participem do mecanismo centralizado (ver abaixo quais).
 
 **🐛 Achado crítico ao investigar (20/09/2026), corrigido.** Rastreei exatamente quais
 tabelas `finalize_expired_site_data` toca (leitura de
@@ -636,9 +640,25 @@ recebeu webhook de `delivered`/`bounced`/`complained`). Sem tratamento de exceç
 linha, a falha abortava a transação inteira — nenhuma deleção do lote era aplicada,
 incluindo `contact_requests`/`rate_limit_buckets`/`shared_selections` que vêm depois no
 mesmo statement. Corrigido em
-`20260920100000_cascade_notification_provider_events_on_delivery_delete.sql`, com teste
-de regressão (`lives_ok` + confirmação de cascade) em `lead_storage.test.sql`. 346/346
-pgTAP local depois do fix.
+`20260920100000_cascade_notification_provider_events_on_delivery_delete.sql`.
+
+**Verificação adversarial (5 agentes, 20/09/2026), reforço do teste.** O primeiro teste de
+regressão só cobria o caso mínimo (1 evento `delivered`, 1 delivery de quote). Um agente
+dedicado atacou o fix com o cenário real de produção — 3 eventos na mesma delivery
+(`delivered`→`bounced`→`complained`, a precedência da Etapa 20) com
+`notification_deliveries.delivery_state_source_event_id` apontando de volta para um dos
+próprios eventos que seriam cascade-deletados (referência circular real, gravada sempre
+que `apply_site_notification_provider_event` aplica `delivered`/`bounced`) — e confirmou
+que o fix se sustenta mesmo nesse caso mais agressivo. Reforcei o teste em
+`lead_storage.test.sql` para cobrir exatamente isso, mais o cenário de `contact_requests`
+(que não tem delivery auto-criada por trigger). O mesmo agente também achou **outra FK do
+mesmo tipo**, ainda sem exploração ativa hoje:
+`notification_deliveries.delivery_state_source_event_id → notification_provider_events`
+também sem cascade — nada apaga essa tabela diretamente hoje (só via cascade a partir da
+delivery, caminho já testado), mas é frágil para uma rotina futura. Blindado
+preventivamente em `20260920110000_set_null_delivery_state_source_event_on_delete.sql`
+(`on delete set null`, não cascade — apagar o evento não deveria apagar a delivery
+inteira). 349/349 pgTAP local depois dos dois fixes e do teste reforçado.
 
 **Tabelas genuinamente sem política de retenção** (confirmado, não presumido):
 `admin_audit_log`, `admin_ddl_log` (trilhas de auditoria — retenção própria é decisão de
@@ -712,10 +732,10 @@ migrations versionadas, testes pgTAP e CI de drift construída para o site (fase
 e nos planos anteriores) não existe aqui. Esta fase abre essa frente com os achados
 concretos da auditoria de hoje (via MCP `SUPABASE - GESTÃO DE PRODUTOS`).
 
-### Etapa 39 — Auditar as 105 funções `SECURITY DEFINER` executáveis por anon/authenticated — 🔴 ACHADO CRÍTICO
+### Etapa 39 — Auditar as funções `SECURITY DEFINER` executáveis por anon/authenticated — 🔴 ACHADO CRÍTICO (ampliado em 20/09/2026)
 
-**🚨 `public.mcp_kv_get(p_secret text, p_key text)` — vazamento de segredo, ação humana urgente fora deste plano.**
-Extraí as 105 funções via `execute_sql` (11 com `anon`, 94 só `authenticated` — bate
+**🚨 `public.mcp_kv_get(p_secret text, p_key text)` — vazamento de segredo, ação humana urgente fora deste plano. Ainda ativo em produção (confirmado ao vivo em 20/09/2026).**
+Extraí as funções via `execute_sql` (11 com `anon`, 94 só `authenticated` — bate
 exatamente com o advisor). Ao classificar, `mcp_kv_get` se destacou pelo nome (parece
 backend de armazenamento de segredos para integrações MCP) e pela leitura do corpo via
 `pg_get_functiondef` confirmou um problema real: o "controle de acesso" é comparar
@@ -726,8 +746,25 @@ do app, não só admin. Qualquer role com leitura em `pg_proc`/`information_sche
 consultei `public.mcp_kv` (seria explorar a falha, não auditá-la), mas o padrão de nome
 sugere segredos reais de integrações.
 
+**Achado adicional (auditoria adversarial de 5 agentes, 20/09/2026): `public.mcp_kv_set(p_secret, p_key, p_value)` e `public.mcp_kv_try_lock(p_secret, p_key, p_ttl_seconds)` têm o MESMO literal hardcoded, idêntico nas 3 funções.**
+Hoje nenhuma das duas tem `execute` liberado para `anon`/`authenticated` (só grant direto,
+tipicamente `service_role`) — não são exploráveis pelo mesmo caminho que `mcp_kv_get`
+(que é o único com o grant indevido). Mas a rotação de segredo recomendada abaixo precisa
+cobrir as 3 funções ao mesmo tempo — rotacionar só `mcp_kv_get` deixa `mcp_kv_set`/
+`mcp_kv_try_lock` comparando contra o literal antigo potencialmente comprometido, e os 3
+pontos de leitura/escrita/lock ficam dessincronizados. `docs/sql/canonical-principal/URGENTE_revogar_mcp_kv_get.sql`
+já foi atualizado para revogar as 3.
+
 **Reportado ao usuário diretamente no chat desta sessão, fora do arquivo, por ser
 urgente e envolver rotação de credencial** — não é algo para esperar o resto do plano.
+
+**Correção de contagem (achado do mesmo agente adversarial):** a soma "11 + 94 = 105"
+bate exatamente com os dois contadores crus do advisor, mas **superestima o total de
+funções distintas** — 9 funções aparecem nas duas listas ao mesmo tempo (ex.:
+`get_catalog_bestseller_page`, `fn_global_search`, `fn_super_filtro`,
+`check_login_rate_limit`). O total real de funções `SECURITY DEFINER` distintas expostas
+a pelo menos um desses dois roles é **96**, não 105. Os números individuais (11 e 94)
+continuam corretos — só a soma como "total de funções" estava enganosa.
 
 **Diagnóstico geral (as outras 104 funções).** `get_advisors(type=security)` retorna
 `anon_security_definer_function_executable` (11) e
@@ -795,20 +832,21 @@ aplicação própria fora deste repositório — não teria como ter `magazine_*
 confirmar com quem tem visão desse outro app seria a mesma classe de erro que já cometi
 duas vezes nesta sessão (agir sobre suposição em vez de verificação).
 
-**Ação.** SQL preparado, **não aplicado** — bloqueado pelo classificador de permissões do
-Claude Code (escrita em banco de produção compartilhado) e, mais importante, pela
-limitação de escopo acima: precisa de confirmação humana de que nenhum outro consumidor
-usa GraphQL antes de rodar.
+**Ação.** SQL preparado em
+`docs/sql/canonical-principal/pendente_dropar_pg_graphql.sql`, **não aplicado** —
+bloqueado pelo classificador de permissões do Claude Code (escrita em banco de produção
+compartilhado) e, mais importante, pela limitação de escopo acima: precisa de confirmação
+humana de que nenhum outro consumidor usa GraphQL antes de rodar.
 
-```sql
--- docs/sql/canonical-principal/pendente_dropar_pg_graphql.sql (preparado, não criado
--- como migration real — sem migrations locais para o banco principal, ver Etapa 43)
--- CONFIRMAR COM O DONO DO APP DE GESTÃO DE PRODUTOS ANTES DE RODAR:
-drop extension if exists pg_graphql cascade;
-```
+*(Correção de 20/09/2026, achado do agente de auditoria de documentação: eu tinha citado
+esse caminho de arquivo dentro de um bloco de código como se ele já existisse, no mesmo
+estilo das Etapas 41/42 — mas só existia como texto no markdown, o arquivo real nunca
+tinha sido criado. Criado agora de verdade, para consistência com o padrão das outras
+etapas "SQL pronto, não aplicado".)*
 
 **Checklist de conclusão.**
 - [x] Uso confirmado como ausente **neste repositório** (grep, sem ocorrência).
+- [x] SQL escrito (`pendente_dropar_pg_graphql.sql`).
 - [ ] Uso confirmado como ausente em **todos** os consumidores do banco principal — não
       verificável a partir deste repositório sozinho.
 - [ ] SQL aplicado, depois da confirmação acima.
@@ -1125,8 +1163,17 @@ fazer, mesmo com autorização geral para executar o plano. Deixado para decisã
 - [ ] `Quality gate`, `Isolated site database`, `Graphify structural map` verdes no PR
       #14 — confirmado nos checks do PR, não ainda no commit de merge em si.
 - [ ] `CodeQL security` e `Dependency review` — `CodeQL` passou; `Dependency review`
-      segue falhando por "Dependency graph" não habilitado no repositório (Settings →
-      Security → Code security) — não é sobre o código deste PR.
+      segue falhando por "Dependency graph" não habilitado no repositório. Confirmado por
+      um agente adversarial (20/09/2026) por duas vias independentes (GraphQL
+      `hasVulnerabilityAlertsEnabled: false`; REST `dependency-graph/sbom` → 404 contra um
+      repo público de controle que retorna 200): **não existe endpoint de API para
+      habilitar isso num repositório pessoal** — é Settings → Security → Code security na
+      UI, ou política de organização/enterprise. Confirmado também que **não é required
+      check** em `main` (só `validate`/`Graphify`/`Migrations and pgTAP` bloqueiam merge),
+      então não trava nada — mas fica como gate permanentemente vermelho/inerte
+      ("security theater": quando ele realmente pegar algo um dia, vai passar
+      despercebido no meio do ruído esperado). Não é sobre o código deste PR; só o dono da
+      conta resolve, pela UI.
 - [ ] PR #14 mergeado, branch remoto removido — pendente de confirmação humana.
 - [ ] Tag de release criada — depois do merge.
 
