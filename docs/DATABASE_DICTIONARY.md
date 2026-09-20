@@ -1,6 +1,6 @@
 # Dicionário de dados — site_private (Etapa 35)
 
-Gerado por `npm run db:site:dictionary` a partir de `pg_description` no banco local, na versão do schema da migration mais recente (2026-09-17). Não editar à mão — a fonte de verdade é o comentário na migration (`comment on table`/`comment on column`); rode o script de novo depois de qualquer mudança de schema.
+Gerado por `npm run db:site:dictionary` a partir de `pg_description` no banco local, na versão do schema da migration mais recente (2026-09-20). Não editar à mão — a fonte de verdade é o comentário na migration (`comment on table`/`comment on column`); rode o script de novo depois de qualquer mudança de schema.
 
 ## Tabelas
 

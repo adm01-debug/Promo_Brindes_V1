@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(63);
+select plan(65);
 
 select is(
   (select count(*) from pg_catalog.pg_tables where schemaname = 'site_private'),
@@ -299,6 +299,34 @@ select is(
   (select count(*) from site_private.proposal_documents where id = '67676767-6767-4676-8676-676767676767'),
   1::bigint,
   'proposta de orçamento vigente permanece íntegra'
+);
+
+-- Regressão: notification_provider_events.delivery_id não tinha "on delete cascade"
+-- (migration 20260920100000). finalize_expired_site_data deleta notification_deliveries
+-- diretamente; sem cascade, qualquer delivery com um evento de provedor associado
+-- (o caso comum — delivered/bounced/complained) fazia a função inteira falhar com
+-- violação de FK, abortando a transação e travando o expurgo do lote inteiro.
+insert into site_private.quote_requests (
+  id, client_request_id, request_hash, source, contact_name, company, email, phone,
+  client_submitted_at, request_metadata, retention_until
+) values (
+  '58585858-5858-4585-8585-585858585858', 'expired-quote-with-provider-event-1', repeat('3', 64), 'site-promo-brindes',
+  'Quote com evento de provedor', 'Empresa evento', 'quote-evento@teste.com', '(11) 99999-9999',
+  now() - interval '25 months', '{}'::jsonb, now() - interval '1 minute'
+);
+insert into site_private.notification_provider_events (provider, provider_event_id, event_type, delivery_id, received_at)
+select 'resend', 'evt-regressao-cascade-1', 'delivered', id, now()
+from site_private.notification_deliveries where request_id = '58585858-5858-4585-8585-585858585858';
+
+select lives_ok(
+  $$ select public.finalize_site_data_retention(array['58585858-5858-4585-8585-585858585858']::uuid[], '{}'::text[], 10) $$,
+  'retenção não falha por violação de FK quando a delivery tem evento de provedor associado'
+);
+select is(
+  (select count(*) from site_private.notification_provider_events
+   where provider_event_id = 'evt-regressao-cascade-1'),
+  0::bigint,
+  'evento de provedor é removido em cascata junto com a delivery purgada'
 );
 
 insert into site_private.contact_requests (
