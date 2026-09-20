@@ -1040,18 +1040,43 @@ paralelo (`Promise.all`), a limpeza local + `setIdentityEpoch` acontecem **antes
 `await siteSupabase.auth.signOut()`, não depois — alinha o código à intenção que já
 estava documentada no comentário.
 
+**Segunda causa raiz encontrada pela auditoria adversarial (20/09/2026) — o fix do
+`signOut` estava correto, mas havia OUTRO bug real, independente.** Um agente rodou o
+mesmo teste com `--repeat-each=15` e achou **27% de falha em desktop-webkit** (e 2/2 em
+rodadas completas de `test:e2e:cross-browser`) — número bem diferente do "10/10" que eu
+tinha reportado (com `--repeat-each=5`, ~21% de chance de acertar 5/5 mesmo com 27% de
+falha real por execução — eu tive sorte na amostra pequena). Investiguei pessoalmente com
+reprodução isolada (script Playwright fora da suíte, variando cada fator): confirmei que
+**não tem nada a ver com `signOut`** — reproduz 100% das vezes em WebKit mesmo sem
+nenhuma sessão de auth envolvida, só com `page.goto → page.evaluate(semeia carrinho) →
+page.reload`. Causa real: o teste usa `page.evaluate()` (não `page.addInitScript()`, que o
+teste vizinho "logout em outra aba" usa e nunca falha) logo após um `page.goto()` sem
+esperar a página assentar — em WebKit, o efeito de escrita do `QuoteCartContext`
+(reescreve `localStorage` a cada mudança de `state`) corre contra esse `evaluate()` e
+apaga o que acabou de ser semeado. Confirmado: adicionar
+`await page.waitForLoadState('networkidle')` antes de cada seed elimina o problema
+(0/12 em teste isolado). Não dava para trocar para `addInitScript` (o próprio comentário
+do teste já explica por quê: reaplicaria os dados na segunda navegação, mascarando a
+limpeza real do signOut) — a correção certa era garantir o assentamento antes de escrever,
+não mudar a estratégia de seed.
+
 **Checklist de conclusão.**
-- [x] Causa raiz identificada — corrida de ordenação, não flakiness de engine.
-- [x] Corrigido em `CustomerAuthContext.tsx`.
-- [x] `--repeat-each=5` em desktop-firefox + desktop-webkit no teste específico: 10/10
-      passando (antes do fix, falhou em ambos os motores numa rodada normal).
-- [x] `npm run check` completo (inclui e2e chromium) verde.
-- [x] `test:e2e:cross-browser` (firefox+webkit) verde depois do fix.
+- [x] Causa raiz do `signOut` identificada e corrigida — corrida de ordenação, não
+      flakiness de engine (etapa original, confirmada correta por agente independente em
+      ~140 execuções).
+- [x] Segunda causa raiz (independente) identificada: `page.evaluate()` sem esperar a
+      página assentar, corrida real de teste (não de produto) exposta só em WebKit.
+- [x] Corrigido em `e2e/smoke.spec.ts` — `waitForLoadState('networkidle')` antes de cada
+      seed nesse teste.
+- [x] `--repeat-each=20` nos 4 motores (80 execuções): 80/80 passando — muito mais forte
+      que o "10/10" anterior.
+- [x] `npm run check` completo e `test:e2e:cross-browser` verdes depois do fix.
 - [ ] B01–B06 da matriz de 12/09 — não localizei o conteúdo desses rótulos nesta sessão
       (arquivo de origem `docs/audits/plan-review-20260912/` não revisado); item genuíno
       restante, mas não bloqueia o fechamento da instabilidade em si.
 
-**Rollback/risco.** Nenhum — é fechamento de cobertura de teste.
+**Rollback/risco.** Nenhum — é fechamento de cobertura de teste, sem mudança de código de
+produto.
 
 **Depende de.** Nada.
 
