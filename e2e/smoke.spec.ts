@@ -242,7 +242,12 @@ test('biblioteca de catálogos transforma contexto em coleções compartilhávei
   const newDrops = page.locator('.catalog-card').filter({ has: page.getByRole('heading', { name: 'Novos drops' }) });
   await newDrops.getByRole('button', { name: 'Compartilhar Novos drops' }).click();
   await expect(newDrops.getByRole('button', { name: 'Compartilhar Novos drops' })).toContainText('Link copiado');
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(/\/catalogo\?perfil=novos$/);
+  const sharedCatalogUrl = await page.evaluate(() => navigator.clipboard.readText());
+  expect(sharedCatalogUrl).toMatch(/\/catalogos\?colecao=novos-drops$/);
+  await page.goto(sharedCatalogUrl);
+  await waitForRoute(page);
+  await expect(page.locator('.catalog-featured').getByRole('heading', { name: 'Novos drops' })).toBeVisible();
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /\/catalogos\?colecao=novos-drops$/);
   await page.locator('.catalog-card').filter({ has: page.getByRole('heading', { name: 'Onboarding com cultura' }) }).getByRole('link', { name: /Explorar coleção/ }).click();
   await expect(page).toHaveURL(/\/catalogo\?momento=onboarding.*publico=colaboradores/);
   await expect(page).not.toHaveURL(/perfil=kits/);

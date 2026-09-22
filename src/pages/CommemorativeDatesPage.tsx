@@ -289,7 +289,12 @@ export default function CommemorativeDatesPage() {
 
   return (
     <>
-      <Seo title="Datas comemorativas para campanhas" description="Planeje campanhas de brindes por data, público e objetivo. Explore ideias, salve ocasiões e comece seu briefing com antecedência." path="/datas-comemorativas" jsonLd={jsonLd} />
+      <Seo
+        title={selected ? `${selected.name} ${year}` : 'Datas comemorativas para campanhas'}
+        description={selected?.description || 'Planeje campanhas de brindes por data, público e objetivo. Explore ideias, salve ocasiões e comece seu briefing com antecedência.'}
+        path={selected ? `/datas-comemorativas?ano=${year}&data=${encodeURIComponent(selected.id)}` : '/datas-comemorativas'}
+        jsonLd={jsonLd}
+      />
 
       <header className="dates-hero">
         <div className="container dates-hero__grid">

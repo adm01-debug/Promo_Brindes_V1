@@ -8,6 +8,7 @@ import { TIMEOUT_MS as SHARED_SELECTIONS_TIMEOUT_MS } from '../../api/_lib/share
 import { NETWORK_TIMEOUT_MS as PUBLIC_PRODUCT_PAGE_TIMEOUT_MS } from '../../api/_lib/publicProductPage.js';
 import { REQUEST_TIMEOUT_MS as RETENTION_TIMEOUT_MS } from '../../api/retention.js';
 import { REQUEST_TIMEOUT_MS as CUSTOMER_PROPOSALS_TIMEOUT_MS } from '../../api/customer-proposals.js';
+import { REQUEST_TIMEOUT_MS as BRIEFING_ASSETS_TIMEOUT_MS } from '../../api/briefing-assets.js';
 import { REQUEST_TIMEOUT_MS as SITEMAP_TIMEOUT_MS } from '../../api/sitemap.js';
 
 // deliverQuoteConfirmationsNow (api/notifications.ts): 7s por canal, mas os
@@ -68,6 +69,10 @@ describe('Etapa 24: maxDuration em vercel.json cobre o pior caso real de cada ro
 
   it('api/customer-proposals.ts', () => {
     expect(CUSTOMER_PROPOSALS_TIMEOUT_MS).toBeLessThan(maxDurationMs('api/customer-proposals.ts'));
+  });
+
+  it('api/briefing-assets.ts', () => {
+    expect(BRIEFING_ASSETS_TIMEOUT_MS).toBeLessThan(maxDurationMs('api/briefing-assets.ts'));
   });
 
   it('api/sitemap.ts', () => {

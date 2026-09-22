@@ -1,0 +1,60 @@
+const ASCII = new TextEncoder();
+
+const signatures: Record<string, (bytes: Uint8Array) => boolean> = {
+  'image/png': (bytes) => startsWith(bytes, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+  'image/jpeg': (bytes) => startsWith(bytes, [0xff, 0xd8, 0xff]),
+  'image/webp': (bytes) => startsWith(bytes, ASCII.encode('RIFF'))
+    && sliceEquals(bytes, 8, ASCII.encode('WEBP')),
+  'application/pdf': (bytes) => indexOf(bytes.subarray(0, 1024), ASCII.encode('%PDF-')) >= 0,
+};
+
+function startsWith(bytes: Uint8Array, expected: ArrayLike<number>): boolean {
+  return sliceEquals(bytes, 0, expected);
+}
+
+function sliceEquals(bytes: Uint8Array, offset: number, expected: ArrayLike<number>): boolean {
+  if (bytes.length < offset + expected.length) return false;
+  for (let index = 0; index < expected.length; index += 1) {
+    if (bytes[offset + index] !== expected[index]) return false;
+  }
+  return true;
+}
+
+function indexOf(bytes: Uint8Array, expected: ArrayLike<number>): number {
+  if (!expected.length || bytes.length < expected.length) return -1;
+  for (let offset = 0; offset <= bytes.length - expected.length; offset += 1) {
+    if (sliceEquals(bytes, offset, expected)) return offset;
+  }
+  return -1;
+}
+
+export function matchesDeclaredFileSignature(mimeType: string, bytes: Uint8Array): boolean {
+  return signatures[mimeType]?.(bytes) ?? false;
+}
+
+export async function readSignaturePrefix(response: Response, limit = 1024): Promise<Uint8Array> {
+  if (!response.body) return new Uint8Array();
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (total < limit) {
+      const result = await reader.read();
+      if (result.done) break;
+      const remaining = limit - total;
+      const chunk = result.value.subarray(0, remaining);
+      chunks.push(chunk);
+      total += chunk.length;
+      if (result.value.length > remaining) break;
+    }
+  } finally {
+    await reader.cancel().catch(() => undefined);
+  }
+  const prefix = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    prefix.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return prefix;
+}

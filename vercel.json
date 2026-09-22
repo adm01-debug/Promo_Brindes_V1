@@ -12,6 +12,7 @@
     "api/contact-requests.ts": { "maxDuration": 15 },
     "api/retention.ts": { "maxDuration": 15 },
     "api/customer-proposals.ts": { "maxDuration": 15 },
+    "api/briefing-assets.ts": { "maxDuration": 15 },
     "api/sitemap.ts": { "maxDuration": 15 },
     "api/product-page.ts": { "maxDuration": 15 },
     "api/site-page.ts": { "maxDuration": 15 },

@@ -28,6 +28,7 @@ export function SavedSelections() {
   const [notice, setNotice] = useState('');
   const [retryKey, setRetryKey] = useState(0);
   const [pendingAction, setPendingAction] = useState<{ type: 'restore' | 'delete'; selection: SavedSelection } | null>(null);
+  const [conflict, setConflict] = useState<{ stale: SavedSelection; latest: SavedSelection } | null>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
@@ -44,12 +45,12 @@ export function SavedSelections() {
   }, [showArchived, retryKey]);
 
   useEffect(() => {
-    if (!pendingAction) return;
+    if (!pendingAction && !conflict) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     cancelRef.current?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') { event.preventDefault(); setPendingAction(null); }
+      if (event.key === 'Escape') { event.preventDefault(); setPendingAction(null); setConflict(null); }
       if (event.key !== 'Tab') return;
       const focusable = dialogRef.current?.querySelectorAll<HTMLButtonElement>('button:not([disabled])');
       if (!focusable?.length) return;
@@ -65,7 +66,7 @@ export function SavedSelections() {
       document.body.style.overflow = previousOverflow;
       window.requestAnimationFrame(() => returnFocusRef.current?.focus());
     };
-  }, [pendingAction]);
+  }, [pendingAction, conflict]);
 
   async function reload() {
     const rows = await listMySelections(showArchived);
@@ -91,6 +92,54 @@ export function SavedSelections() {
     event.preventDefault();
     if (!cart.itemCount) return;
     void act(() => saveMySelection(title, cart.items, cart.campaign), 'Seleção salva na sua conta. Ela poderá ser aberta em outro dispositivo.');
+  }
+
+  async function updateSavedSelection(selection: SavedSelection, trigger?: HTMLElement) {
+    if (trigger) returnFocusRef.current = trigger;
+    setBusy(true);
+    setError('');
+    setNotice('');
+    try {
+      await saveMySelection(selection.title, cart.items, cart.campaign, selection);
+      await reload();
+      setConflict(null);
+      setNotice('Seleção atualizada na sua conta.');
+    } catch (failure) {
+      if (failure instanceof Error && failure.message === 'selection_version_conflict') {
+        try {
+          const rows = await listMySelections(true);
+          const latest = rows.find((item) => item.id === selection.id);
+          if (latest) {
+            setSelections(showArchived ? rows.filter((item) => item.archivedAt) : rows.filter((item) => !item.archivedAt));
+            setConflict({ stale: selection, latest });
+            return;
+          }
+        } catch {
+          // A mensagem genérica abaixo preserva o carrinho e permite nova tentativa.
+        }
+      }
+      setError(errorLabel(failure));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function resolveConflict(action: 'remote' | 'copy' | 'overwrite') {
+    const current = conflict;
+    if (!current) return;
+    setConflict(null);
+    if (action === 'remote') {
+      await restoreSelection(current.latest);
+      return;
+    }
+    if (action === 'overwrite') {
+      await updateSavedSelection(current.latest);
+      return;
+    }
+    await act(
+      () => saveMySelection(`${current.latest.title} — cópia`.slice(0, 100), cart.items, cart.campaign),
+      'As duas versões foram preservadas. A seleção deste navegador foi salva como uma nova cópia.',
+    );
   }
 
   function openConfirmation(type: 'restore' | 'delete', selection: SavedSelection, trigger: HTMLElement) {
@@ -143,7 +192,7 @@ export function SavedSelections() {
           <p>{selection.references.length} {selection.references.length === 1 ? 'produto' : 'produtos'} · Atualizada em {dateLabel(selection.updatedAt)}</p>
           <div className="saved-selections__actions">
             {!selection.archivedAt && <button type="button" disabled={busy} onClick={(event) => cart.itemCount ? openConfirmation('restore', selection, event.currentTarget) : void restoreSelection(selection)}>Retomar seleção <ArrowRight size={15} /></button>}
-            {!selection.archivedAt && cart.itemCount > 0 && <button type="button" disabled={busy} onClick={() => void act(() => saveMySelection(selection.title, cart.items, cart.campaign, selection), 'Seleção atualizada na sua conta.')}>Atualizar com a seleção atual</button>}
+            {!selection.archivedAt && cart.itemCount > 0 && <button type="button" disabled={busy} onClick={(event) => void updateSavedSelection(selection, event.currentTarget)}>Atualizar com a seleção atual</button>}
             <button type="button" disabled={busy} onClick={() => void act(() => setMySelectionArchived(selection, !selection.archivedAt), selection.archivedAt ? 'Seleção restaurada para a lista ativa.' : 'Seleção arquivada por até 90 dias.')}>
               {selection.archivedAt ? <RotateCcw size={15} /> : <Archive size={15} />}{selection.archivedAt ? 'Desarquivar' : 'Arquivar'}
             </button>
@@ -157,6 +206,23 @@ export function SavedSelections() {
           <h2 id="selection-confirm-title">{pendingAction.type === 'delete' ? 'Excluir esta seleção?' : 'Trocar a seleção atual?'}</h2>
           <p id="selection-confirm-description">{pendingAction.type === 'delete' ? 'A seleção salva será removida da sua conta. Os produtos que estão no carrinho deste navegador continuarão lá.' : 'Os produtos deste navegador serão substituídos pela seleção salva. Você pode salvá-los antes de continuar.'}</p>
           <div><button ref={cancelRef} type="button" onClick={() => setPendingAction(null)}>Cancelar</button><button type="button" onClick={() => void confirmAction()}>{pendingAction.type === 'delete' ? 'Excluir seleção' : 'Trocar seleção'}</button></div>
+        </div>
+      </div>}
+
+      {conflict && <div className="saved-selections__dialog-backdrop">
+        <div ref={dialogRef} className="saved-selections__dialog saved-selections__dialog--conflict" role="alertdialog" aria-modal="true" aria-labelledby="selection-conflict-title" aria-describedby="selection-conflict-description">
+          <h2 id="selection-conflict-title">Esta campanha mudou em outro dispositivo.</h2>
+          <p id="selection-conflict-description">Compare as versões e escolha conscientemente. Nenhuma delas será apagada sem sua decisão.</p>
+          <div className="saved-selections__conflict-compare">
+            <section aria-label="Versão deste navegador"><strong>Este navegador</strong><span>{cart.itemCount} {cart.itemCount === 1 ? 'produto' : 'produtos'}</span><small>Alterações sobre a versão {conflict.stale.version}</small></section>
+            <section aria-label="Versão salva na conta"><strong>Versão da conta</strong><span>{conflict.latest.references.length} {conflict.latest.references.length === 1 ? 'produto' : 'produtos'}</span><small>Atualizada em {dateLabel(conflict.latest.updatedAt)} · versão {conflict.latest.version}</small></section>
+          </div>
+          <div className="saved-selections__conflict-actions">
+            <button ref={cancelRef} type="button" onClick={() => setConflict(null)}>Decidir depois</button>
+            <button type="button" onClick={() => void resolveConflict('remote')}>Usar versão da conta</button>
+            <button type="button" onClick={() => void resolveConflict('copy')}>Preservar as duas</button>
+            <button type="button" className="button button--green" onClick={() => void resolveConflict('overwrite')}>Substituir pela deste navegador</button>
+          </div>
         </div>
       </div>}
     </section>

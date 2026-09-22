@@ -6154,6 +6154,14 @@ form.catalog-search > .search-suggestions.is-open { display: grid; pointer-event
 .saved-selections__dialog > div { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; }
 .saved-selections__dialog button { min-height: 44px; padding: 0 18px; border: 1.5px solid var(--ink); border-radius: 999px; background: #fff; font: inherit; font-weight: 800; cursor: pointer; }
 .saved-selections__dialog button:last-child { background: var(--acid); }
+.saved-selections__dialog--conflict { width: min(720px, 100%); }
+.saved-selections__dialog > .saved-selections__conflict-compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); justify-content: stretch; gap: 12px; margin-bottom: 22px; }
+.saved-selections__conflict-compare section { display: grid; gap: 5px; padding: 16px; border: 1.5px solid var(--ink); border-radius: 14px; background: var(--paper); }
+.saved-selections__conflict-compare strong { font-size: .76rem; text-transform: uppercase; letter-spacing: .04em; }
+.saved-selections__conflict-compare span { font-size: 1.25rem; font-weight: 850; }
+.saved-selections__conflict-compare small { color: #343646; line-height: 1.4; }
+.saved-selections__dialog > .saved-selections__conflict-actions { justify-content: flex-start; }
+.saved-selections__conflict-actions .button { margin-left: auto; }
 .saved-selections button:focus-visible, .saved-selections input:focus-visible, .saved-selections__dialog button:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
 .customer-dashboard__heading { display: flex; align-items: end; justify-content: space-between; gap: 30px; margin-bottom: 34px; }
 .customer-dashboard__heading h2 { margin: 10px 0 0; font-size: clamp(3rem, 6vw, 6rem); letter-spacing: -.075em; line-height: .9; }
@@ -6340,6 +6348,8 @@ form.catalog-search > .search-suggestions.is-open { display: grid; pointer-event
   .saved-selections__heading { align-items: flex-start; flex-direction: column; }
   .saved-selections__grid, .saved-selections__save { grid-template-columns: 1fr; }
   .saved-selections__save button { justify-self: start; }
+  .saved-selections__dialog > .saved-selections__conflict-compare { grid-template-columns: 1fr; }
+  .saved-selections__conflict-actions .button { margin-left: 0; }
   .customer-dashboard__filters, .customer-quote-grid { grid-template-columns: 1fr; }
   .customer-dashboard__filters form > div { grid-template-columns: auto 1fr; border-radius: 16px; }
   .customer-dashboard__filters form button { grid-column: 1 / -1; width: 100%; height: 44px; margin: 0; border-radius: 0 0 14px 14px; }

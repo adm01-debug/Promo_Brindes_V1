@@ -1,9 +1,10 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
-select plan(28);
+select plan(39);
 
 select has_table('site_private', 'customer_briefing_assets', 'metadados privados de arquivos existem');
+select has_column('site_private', 'customer_briefing_assets', 'verified_at', 'assinatura binária possui recibo de verificação');
 select has_table('site_private', 'storage_deletion_queue', 'fila de exclusão de Storage existe');
 select ok((select not public and file_size_limit = 10485760
   from storage.buckets where id = 'customer-briefing-assets'), 'bucket é privado e limitado a 10 MB');
@@ -11,10 +12,15 @@ select ok((select c.relrowsecurity and c.relforcerowsecurity from pg_catalog.pg_
   where c.oid = 'site_private.customer_briefing_assets'::regclass), 'arquivos têm RLS forçada');
 select ok((select c.relrowsecurity and c.relforcerowsecurity from pg_catalog.pg_class c
   where c.oid = 'site_private.storage_deletion_queue'::regclass), 'fila tem RLS forçada');
+select has_trigger('site_private', 'customer_briefing_assets', 'customer_briefing_assets_require_verification_on_insert', 'inserção direta também exige arquivo verificado');
 select ok(pg_catalog.has_function_privilege('authenticated', 'public.create_my_briefing_asset(text,text,integer,text)', 'execute'), 'titular cria metadado pelo RPC');
 select ok(not pg_catalog.has_function_privilege('anon', 'public.create_my_briefing_asset(text,text,integer,text)', 'execute'), 'anônimo não cria arquivo');
 select ok(not pg_catalog.has_function_privilege('service_role', 'public.create_my_briefing_asset(text,text,integer,text)', 'execute'), 'service_role não usa caminho do titular');
 select ok(pg_catalog.has_function_privilege('authenticated', 'public.list_my_briefing_assets()', 'execute'), 'titular lista seus arquivos');
+select ok(pg_catalog.has_function_privilege('authenticated', 'public.get_my_briefing_asset_verification(uuid)', 'execute'), 'titular consulta somente o próprio candidato');
+select ok(not pg_catalog.has_function_privilege('anon', 'public.get_my_briefing_asset_verification(uuid)', 'execute'), 'anônimo não consulta candidato de verificação');
+select ok(pg_catalog.has_function_privilege('site_api', 'public.confirm_site_briefing_asset_verification(uuid,text,text,integer)', 'execute'), 'API limitada confirma a inspeção');
+select ok(not pg_catalog.has_function_privilege('authenticated', 'public.confirm_site_briefing_asset_verification(uuid,text,text,integer)', 'execute'), 'cliente não confirma a própria inspeção');
 select ok(pg_catalog.has_function_privilege('authenticated', 'public.owns_my_briefing_asset_path(text)', 'execute'), 'policy pode validar propriedade');
 select ok(not pg_catalog.has_function_privilege('service_role', 'public.list_my_selections(boolean)', 'execute'), 'drift de grant das seleções foi removido');
 select is((select count(*) from pg_catalog.pg_policy policy
@@ -35,6 +41,7 @@ select public.create_my_briefing_asset(' logo/primária.png ', 'image/png', 2048
 select ok((select result ->> 'id' from asset_a) ~ '^[0-9a-f-]{36}$', 'RPC devolve identificador opaco');
 select ok((select result ->> 'path' from asset_a) like 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/%', 'caminho nasce no namespace do titular');
 select is(jsonb_array_length(public.list_my_briefing_assets()), 1, 'titular lista o próprio arquivo');
+select is(public.get_my_briefing_asset_verification((select (result ->> 'id')::uuid from asset_a)) ->> 'verifiedAt', null, 'arquivo novo começa sem recibo');
 select ok(public.owns_my_briefing_asset_path((select result ->> 'path' from asset_a)), 'titular possui o caminho exato');
 
 set local request.jwt.claims = '{"sub":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","role":"authenticated"}';
@@ -54,6 +61,30 @@ insert into site_private.quote_requests (
 );
 
 set local request.jwt.claims = '{"sub":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","role":"authenticated"}';
+select throws_ok($sql$
+  insert into site_private.customer_briefing_assets (
+    id, customer_user_id, quote_request_id, kind, original_name, storage_path, mime_type, size_bytes
+  ) values (
+    'dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'reference', 'atalho.png',
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/dddddddd-dddd-4ddd-8ddd-dddddddddddd.png',
+    'image/png', 1024
+  )
+$sql$, 'P0001', 'briefing_asset_not_verified', 'inserção direta não contorna a inspeção');
+select throws_ok(
+  format('select public.attach_my_briefing_assets_to_quote(%L::uuid, array[%L::uuid])',
+    'cccccccc-cccc-4ccc-8ccc-cccccccccccc', (select result ->> 'id' from asset_a)),
+  'P0001', 'briefing_asset_not_verified', 'arquivo não inspecionado não pode entrar no briefing');
+
+insert into storage.objects (id, bucket_id, name, owner_id, metadata)
+select gen_random_uuid(), 'customer-briefing-assets', result ->> 'path',
+  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '{"size":2048,"mimetype":"image/png"}'::jsonb
+from asset_a;
+select ok(public.confirm_site_briefing_asset_verification(
+  (select (result ->> 'id')::uuid from asset_a),
+  (select result ->> 'path' from asset_a), 'image/png', 2048
+) is not null, 'API registra a inspeção somente após localizar o objeto esperado');
+select ok((public.list_my_briefing_assets() #>> '{0,verifiedAt}') is not null, 'titular recebe o estado verificado');
 select is(public.attach_my_briefing_assets_to_quote(
   'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
   array[(select (result ->> 'id')::uuid from asset_a)]

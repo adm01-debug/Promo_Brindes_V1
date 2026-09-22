@@ -39,6 +39,15 @@ export type Database = {
         Args: { p_channel: string; p_request_id: string }
         Returns: Json
       }
+      confirm_site_briefing_asset_verification: {
+        Args: {
+          p_id: string
+          p_mime_type: string
+          p_size_bytes: number
+          p_storage_path: string
+        }
+        Returns: string
+      }
       create_my_briefing_asset: {
         Args: {
           p_kind?: string
@@ -96,6 +105,10 @@ export type Database = {
       }
       get_briefing_asset_retention_candidates: {
         Args: { p_batch_size?: number }
+        Returns: Json
+      }
+      get_my_briefing_asset_verification: {
+        Args: { p_id: string }
         Returns: Json
       }
       get_my_proposal_document: {
@@ -365,6 +378,7 @@ export type Database = {
           size_bytes: number
           storage_bucket: string
           storage_path: string
+          verified_at: string | null
         }
         Insert: {
           created_at?: string
@@ -378,6 +392,7 @@ export type Database = {
           size_bytes: number
           storage_bucket?: string
           storage_path: string
+          verified_at?: string | null
         }
         Update: {
           created_at?: string
@@ -391,6 +406,7 @@ export type Database = {
           size_bytes?: number
           storage_bucket?: string
           storage_path?: string
+          verified_at?: string | null
         }
         Relationships: [
           {

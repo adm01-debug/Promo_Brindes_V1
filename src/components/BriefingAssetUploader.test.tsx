@@ -11,7 +11,7 @@ vi.mock('../lib/briefingAssets', () => ({
   briefingAssetValidationError: () => null, MAX_BRIEFING_ASSETS: 10,
 }));
 
-const asset: BriefingAsset = { id: 'asset-a', name: 'marca-privada-a.png', path: 'a/file.png', kind: 'logo', mimeType: 'image/png', sizeBytes: 100, quoteRequestId: null, createdAt: '', expiresAt: '' };
+const asset: BriefingAsset = { id: 'asset-a', name: 'marca-privada-a.png', path: 'a/file.png', kind: 'logo', mimeType: 'image/png', sizeBytes: 100, quoteRequestId: null, verifiedAt: '2026-09-22T12:00:00Z', createdAt: '', expiresAt: '' };
 
 describe('privacidade de anexos durante troca de sessão', () => {
   beforeEach(() => {
