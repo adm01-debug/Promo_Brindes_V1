@@ -814,6 +814,45 @@ test('área do cliente protege histórico e oferece autenticação acessível', 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });
 
+test('seleção salva explicitamente reaparece em outro navegador da mesma conta', async ({ page, browser }) => {
+  const user = { id: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', aud: 'authenticated', role: 'authenticated', email: 'selecao@empresa.com', email_confirmed_at: '2026-09-09T12:00:00Z', user_metadata: {}, app_metadata: {}, created_at: '2026-09-09T12:00:00Z' };
+  const savedId = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
+  const saved: Array<Record<string, unknown>> = [];
+  const secondContext = await browser.newContext();
+  const secondPage = await secondContext.newPage();
+  try {
+    await mockCatalog(secondPage);
+    for (const current of [page, secondPage]) {
+      await current.addInitScript(({ user, isFirst, initialProduct }) => {
+        localStorage.setItem('promo-brindes-customer-session', JSON.stringify({ access_token: 'header.payload.signature', refresh_token: 'refresh-token', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, token_type: 'bearer', user }));
+        if (isFirst) localStorage.setItem('promo-brindes:quote-selection:v1', JSON.stringify({ selectionTitle: 'Boas-vindas de outubro', items: [{ key: `${initialProduct.id}::sem-cor`, productId: initialProduct.id, slug: initialProduct.slug, name: initialProduct.name, sku: initialProduct.sku, imageUrl: initialProduct.primary_image_url, minQuantity: 50, quantity: 100 }] }));
+      }, { user, isFirst: current === page, initialProduct: product });
+      await current.route('**/auth/v1/user', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify(user) }));
+      await current.route('**/rest/v1/rpc/claim_my_quote_requests', (route) => route.fulfill({ contentType: 'application/json', body: '{"claimed":0}' }));
+      await current.route('**/rest/v1/rpc/get_my_quote_requests', (route) => route.fulfill({ contentType: 'application/json', body: '{"items":[],"total":0,"limit":12,"offset":0}' }));
+      await current.route('**/rest/v1/rpc/list_my_selections', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ items: saved }) }));
+      await current.route('**/rest/v1/rpc/save_my_selection', (route) => {
+        const payload = route.request().postDataJSON() as { p_title: string; p_references: unknown[]; p_campaign?: unknown };
+        saved.push({ id: savedId, title: payload.p_title, references: payload.p_references, campaign: payload.p_campaign || null, version: 1, archivedAt: null, createdAt: '2026-09-22T12:00:00Z', updatedAt: '2026-09-22T12:00:00Z' });
+        return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ id: savedId, version: 1 }) });
+      });
+    }
+
+    await page.goto('/minha-conta');
+    await page.getByRole('button', { name: 'Salvar na minha conta' }).click();
+    await expect(page.getByText('Seleção salva na sua conta. Ela poderá ser aberta em outro dispositivo.')).toBeVisible();
+    expect(saved).toHaveLength(1);
+    await secondPage.goto('/minha-conta');
+    await expect(secondPage.getByRole('heading', { name: 'Boas-vindas de outubro' })).toBeVisible();
+    await secondPage.getByRole('button', { name: /Retomar seleção/ }).click();
+    await expect(secondPage.getByText('Mochila Executiva Sustentável').first()).toBeVisible();
+    const persisted = await secondPage.evaluate(() => localStorage.getItem('promo-brindes:quote-selection:v1'));
+    expect(persisted).toContain(product.id);
+  } finally {
+    await secondContext.close();
+  }
+});
+
 test('histórico recupera de uma falha temporária sem exigir mudança de filtro', async ({ page }) => {
   const quoteId = '66666666-6666-4666-8666-666666666666';
   const user = { id: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', aud: 'authenticated', role: 'authenticated', email: 'recuperacao@empresa.com', email_confirmed_at: '2026-09-09T12:00:00Z', user_metadata: {}, app_metadata: {}, created_at: '2026-09-09T12:00:00Z' };
