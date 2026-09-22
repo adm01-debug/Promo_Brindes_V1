@@ -31,6 +31,8 @@ A validação remota confirmou saúde dos serviços, ledger de migrations reconc
 
 Em 22/09/2026, a migration `20260922210000_close_selection_and_asset_integrity_gaps.sql` foi aplicada exclusivamente ao projeto isolado após a guarda de destino e um dry-run que listou somente esse arquivo. O ledger local/remoto ficou alinhado até `20260922210000`, o lint remoto passou sem erros e o ensaio transacional de criar/ler/revogar uma seleção com fallback de cor passou com `ROLLBACK`, sem persistir dados sintéticos.
 
+Ainda em 22/09/2026, `20260922220000_verify_briefing_asset_content.sql` foi aplicada no mesmo projeto isolado após dry-run exclusivo. O dry-run posterior retornou `upToDate: true`, o ledger ficou alinhado até `20260922220000`, o lint remoto passou e uma inspeção somente leitura do schema confirmou `verified_at`, RPCs, triggers e grants da verificação binária. O projeto canônico do Promo Gifts não foi acessado por essa aplicação.
+
 ## Reprovisionamento — somente em recuperação controlada
 
 As etapas abaixo são um runbook de contingência. Não as execute no projeto canônico nem reaplique migrations já presentes no ledger remoto.
