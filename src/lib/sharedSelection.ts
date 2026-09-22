@@ -17,6 +17,10 @@ export interface SharedSelectionItem {
   id: string;
   q: number;
   v?: string;
+  k?: string;
+  kn?: string;
+  kq?: number;
+  ku?: number;
 }
 
 interface SharedSelectionPayload {
@@ -54,7 +58,16 @@ function normalizeSharedSelectionItems(value: unknown): SharedSelectionItem[] {
     const quantity = Number(candidate.q);
     if (!Number.isInteger(quantity) || quantity < 1 || quantity > 999_999) return;
     const variant = typeof candidate.v === 'string' && VARIANT_PATTERN.test(candidate.v) ? candidate.v : undefined;
-    result.set(`${id}:${variant || ''}`, { id, q: quantity, ...(variant ? { v: variant } : {}) });
+    const hasKit = ['k', 'kn', 'kq', 'ku'].some((field) => (candidate as Record<string, unknown>)[field] !== undefined);
+    const kit = hasKit && typeof candidate.k === 'string' && UUID_PATTERN.test(candidate.k)
+      && typeof candidate.kn === 'string' && candidate.kn.trim().length >= 1 && candidate.kn.trim().length <= 100
+      && Number.isInteger(candidate.kq) && Number(candidate.kq) >= 1 && Number(candidate.kq) <= 999_999
+      && Number.isInteger(candidate.ku) && Number(candidate.ku) >= 1 && Number(candidate.ku) <= 100
+      && quantity === Number(candidate.kq) * Number(candidate.ku)
+      ? { k: candidate.k, kn: candidate.kn.trim(), kq: Number(candidate.kq), ku: Number(candidate.ku) }
+      : undefined;
+    if (hasKit && !kit) return;
+    result.set(`${id}:${variant || ''}:${kit?.k || ''}`, { id, q: quantity, ...(variant ? { v: variant } : {}), ...kit });
   });
   return [...result.values()];
 }
@@ -63,11 +76,12 @@ function referencesFromQuoteItems(items: QuoteItem[]): SharedSelectionItem[] {
   const unique = new Map<string, SharedSelectionItem>();
   for (const item of normalizeQuoteItems(items)) {
     if (!UUID_PATTERN.test(item.productId)) continue;
-    const key = `${item.productId}:${item.variantId || ''}`;
+    const key = `${item.productId}:${item.variantId || ''}:${item.kitGroupId || ''}`;
     unique.set(key, {
       id: item.productId,
       q: clampQuoteQuantity(item.quantity, item.minQuantity),
       ...(item.variantId && VARIANT_PATTERN.test(item.variantId) ? { v: item.variantId } : {}),
+      ...(item.kitGroupId ? { k: item.kitGroupId, kn: item.kitName, kq: item.kitQuantity, ku: item.unitsPerKit } : {}),
     });
     if (unique.size >= MAX_SHARED_SELECTION_ITEMS) break;
   }
@@ -276,6 +290,7 @@ export function hydrateSharedSelectionDetails(payload: SharedSelectionItem[], pr
       ...(shared.v ? { variantId: shared.v } : color?.variantId ? { variantId: color.variantId } : {}),
       ...(color?.name ? { colorName: color.name, colorHex: color.hex } : {}),
       ...(variantUnavailable ? { variantUnavailable: true } : {}),
+      ...(shared.k ? { kitGroupId: shared.k, kitName: shared.kn, kitQuantity: shared.kq, unitsPerKit: shared.ku } : {}),
     }];
   }));
   return { items, unavailableProductReferences, unavailableVariantReferences };

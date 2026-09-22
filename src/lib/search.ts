@@ -11,19 +11,25 @@ const CONTEXT_WORDS = new Set([
 const PRICE_WORDS = new Set(['barato', 'barata', 'baratos', 'baratas', 'preco', 'precos', 'valor', 'valores']);
 
 const SYNONYM_GROUPS: string[][] = [
-  ['squeeze', 'garrafa', 'garrafinha'],
-  ['sacochila', 'mochila saco'],
-  ['powerbank', 'power bank', 'carregador portatil', 'carregador portátil'],
-  ['stanley', 'termico', 'térmico'],
+  ['squeeze', 'squeezes', 'garrafa', 'garrafas', 'garrafinha'],
+  ['sacochila', 'sacochilas', 'mochila saco'],
+  ['powerbank', 'powerbanks', 'power bank', 'carregador portatil', 'carregador portátil'],
+  ['stanley', 'termico', 'térmico', 'copo termico', 'copo térmico'],
   // Onboarding é uma intenção de campanha, não sinônimo de qualquer kit.
   // "Kit" continua pesquisável separadamente e pode ser combinado com a intenção.
   ['onboarding', 'boas vindas', 'boas-vindas', 'kit de onboarding', 'kit onboarding'],
   ['kit', 'kits', 'kit corporativo'],
-  ['ecologico', 'ecológico', 'sustentavel', 'sustentável', 'reciclado'],
-  ['caderno', 'moleskine', 'bloco de notas'],
-  ['cordao', 'cordão', 'lanyard'],
-  ['camiseta', 't shirt', 't-shirt'],
-  ['necessaire', 'nécessaire', 'estojo'],
+  ['ecologico', 'ecológico', 'ecologicos', 'sustentavel', 'sustentável', 'sustentaveis', 'reciclado'],
+  ['caderno', 'cadernos', 'moleskine', 'bloco de notas'],
+  ['cordao', 'cordão', 'cordoes', 'lanyard'],
+  ['camiseta', 'camisetas', 't shirt', 't-shirt'],
+  ['necessaire', 'nécessaire', 'necessaires', 'estojo'],
+  ['caneca', 'canecas', 'mug'],
+  ['ecobag', 'ecobags', 'sacola retornavel', 'sacola reutilizavel'],
+  ['fone', 'fones', 'headphone', 'earbuds'],
+  ['guarda chuva', 'guarda-chuva', 'sombrinha'],
+  ['chaveiro', 'chaveiros'],
+  ['gen z', 'geracao z', 'geração z', 'jovem', 'street', 'criativo'],
 ];
 
 const TYPO_CORRECTIONS = [

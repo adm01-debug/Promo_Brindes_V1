@@ -21,6 +21,21 @@ describe('sharedSelection', () => {
     expect(decodeSharedSelection(encoded)).toEqual([{ id: item.productId, q: 25, v: 'azul' }]);
   });
 
+  it('preserva a aritmética pública do kit sem expor dados do contato', () => {
+    const kitItem = { ...item, quantity: 100, kitGroupId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', kitName: 'Kit Cultura', kitQuantity: 50, unitsPerKit: 2 };
+    const secondKitItem = { ...kitItem, key: '22222222-2222-4222-8222-222222222222::sem-cor', productId: '22222222-2222-4222-8222-222222222222', slug: 'caderno', name: 'Caderno', sku: 'PB-2', variantId: undefined, colorName: undefined, colorHex: undefined, quantity: 50, unitsPerKit: 1 };
+    const encoded = encodeSharedSelection([kitItem, secondKitItem]);
+    expect(decodeSharedSelection(encoded)).toEqual([
+      { id: item.productId, q: 100, v: 'azul', k: kitItem.kitGroupId, kn: 'Kit Cultura', kq: 50, ku: 2 },
+      { id: secondKitItem.productId, q: 50, k: kitItem.kitGroupId, kn: 'Kit Cultura', kq: 50, ku: 1 },
+    ]);
+    expect(hydrateSharedSelectionDetails(decodeSharedSelection(encoded), [{
+      id: item.productId, name: 'Garrafa atual', sku: 'PB-1', slug: 'garrafa-atual', description: '', shortDescription: '', imageUrl: '/a.webp', images: ['/a.webp'], categoryId: null, mainCategoryId: null, brand: null, minQuantity: 10, isNew: false, isFeatured: false, isBestseller: false, isKit: false, allowsPersonalization: false, hasCommercialPackaging: false, colors: [{ variantId: 'azul', name: 'Azul', hex: '#0033aa' }], materials: [], dimensions: {},
+    }, {
+      id: secondKitItem.productId, name: 'Caderno atual', sku: 'PB-2', slug: 'caderno-atual', description: '', shortDescription: '', imageUrl: '/b.webp', images: ['/b.webp'], categoryId: null, mainCategoryId: null, brand: null, minQuantity: 10, isNew: false, isFeatured: false, isBestseller: false, isKit: false, allowsPersonalization: false, hasCommercialPackaging: false, colors: [], materials: [], dimensions: {},
+    }]).items[0]).toMatchObject({ kitName: 'Kit Cultura', kitQuantity: 50, unitsPerKit: 2, quantity: 100 });
+  });
+
   it('rejeita payloads inválidos e reidrata somente produtos publicados', () => {
     expect(decodeSharedSelection('%%')).toEqual([]);
     expect(hydrateSharedSelection([{ id: item.productId, q: 1, v: 'azul' }], [{

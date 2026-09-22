@@ -70,6 +70,24 @@ _Sem comment on table — considerar adicionar um na próxima migration que toca
 | `message` | `text` | Contexto opcional da conversa, limitado a 800 caracteres e retido no banco isolado do site. |
 | `preferred_channel` | `text` | Preferência opcional de retorno; não representa consentimento para disparo automático. |
 
+### `site_private.customer_briefing_assets`
+
+Logos e referências privadas do titular. Objetos ficam em bucket privado, expiram sem vínculo e acompanham a retenção do briefing após anexação.
+
+| Coluna | Tipo | Comentário |
+|---|---|---|
+| `id` | `uuid` | — |
+| `customer_user_id` | `uuid` | — |
+| `quote_request_id` | `uuid` | — |
+| `kind` | `text` | — |
+| `original_name` | `text` | — |
+| `storage_bucket` | `text` | — |
+| `storage_path` | `text` | — |
+| `mime_type` | `text` | — |
+| `size_bytes` | `integer` | — |
+| `created_at` | `timestamp with time zone` | — |
+| `expires_at` | `timestamp with time zone` | — |
+
 ### `site_private.customer_profiles`
 
 _Sem comment on table — considerar adicionar um na próxima migration que tocar esta tabela._
@@ -92,7 +110,7 @@ Rascunhos privados do titular, sem preço nem estoque. A FK apaga ao excluir a c
 | `id` | `uuid` | — |
 | `customer_user_id` | `uuid` | — |
 | `title` | `text` | — |
-| `product_references` | `jsonb` | Somente IDs públicos, quantidade, variante e grupo de decisão; dados do produto são reidratados do catálogo ao restaurar. |
+| `product_references` | `jsonb` | IDs públicos, quantidade, variante, decisão e, quando aplicável, grupo/nome/quantidade/unidades por kit. Sem preço nem estoque. |
 | `campaign` | `jsonb` | — |
 | `version` | `integer` | — |
 | `archived_at` | `timestamp with time zone` | — |
@@ -196,6 +214,10 @@ Snapshot do produto no instante do briefing; sem FK entre projetos Supabase.
 | `created_at` | `timestamp with time zone` | — |
 | `variant_id_snapshot` | `text` | Identificador publicado da variante selecionada, preservado no retrato do briefing. |
 | `decision_group_snapshot` | `text` | Indica se a referência foi enviada como principal ou alternativa; preserva a intenção no retrato do briefing. |
+| `kit_group_id` | `uuid` | Identificador do kit configurado pelo cliente; agrupa componentes no snapshot do briefing. |
+| `kit_name_snapshot` | `text` | — |
+| `kit_quantity_snapshot` | `integer` | Quantidade de kits usada na aritmética do componente. |
+| `units_per_kit_snapshot` | `integer` | Unidades deste componente por kit; quantity deve ser o produto dos dois campos. |
 
 ### `site_private.quote_request_events`
 
@@ -271,7 +293,7 @@ _Sem comment on table — considerar adicionar um na próxima migration que toca
 |---|---|---|
 | `token` | `uuid` | — |
 | `management_token_hash` | `text` | — |
-| `items` | `jsonb` | — |
+| `items` | `jsonb` | Referências públicas sem PII; preserva grupo, nome e multiplicadores de kit quando presentes. |
 | `expires_at` | `timestamp with time zone` | — |
 | `revoked_at` | `timestamp with time zone` | — |
 | `created_at` | `timestamp with time zone` | — |
@@ -287,31 +309,49 @@ Transições administrativas válidas por entidade (Etapa 8). Fonte única de ve
 | `from_status` | `text` | — |
 | `to_status` | `text` | — |
 
+### `site_private.storage_deletion_queue`
+
+Fila mínima de objetos privados para remoção pela Storage API; não contém conteúdo do arquivo.
+
+| Coluna | Tipo | Comentário |
+|---|---|---|
+| `bucket` | `text` | — |
+| `object_path` | `text` | — |
+| `queued_at` | `timestamp with time zone` | — |
+
 ## Funções públicas (`public`)
 
 | Função | Argumentos | Comentário |
 |---|---|---|
 | `apply_site_notification_provider_event` | `p_provider text, p_provider_message_id text, p_event_type text, p_provider_event_id text, p_occurred_at timestamp with time zone, p_bounce_reason text` | Aplica evento de webhook de forma idempotente (Etapa 30 do plano anterior). delivered só grava se delivery_state ainda for null; bounced grava se null OU se o estado atual for delivered — um bounce tardio corrige um delivered otimista (Etapa 20 do plano de correções). complained é independente e idempotente via coalesce. |
+| `attach_my_briefing_assets_to_quote` | `p_request_id uuid, p_asset_ids uuid[]` | — |
 | `claim_my_quote_requests` | `` | Associa solicitações sem titular somente após confirmação do e-mail da identidade autenticada. |
 | `claim_site_notification_deliveries` | `p_channels text[], p_batch_size integer` | Reivindica notificações com lease e protocolo persistido; terminaliza jobs esgotados com SKIP LOCKED para não bloquear workers simultâneos. |
 | `claim_site_quote_notification` | `p_request_id uuid, p_channel text` | Reivindicação síncrona imediata (não recupera processing preso). Lê limites de site_private.notification_policy() (Etapa 12) e expõe o protocolo persistido (Etapa 19). |
+| `create_my_briefing_asset` | `p_original_name text, p_mime_type text, p_size_bytes integer, p_kind text` | — |
 | `create_site_contact_request` | `p_payload jsonb, p_request_meta jsonb` | — |
 | `create_site_quote_request` | `p_payload jsonb, p_request_meta jsonb` | — |
 | `create_site_shared_selection` | `p_items jsonb, p_management_token_hash text, p_identifier_hash text` | — |
+| `delete_my_briefing_asset` | `p_id uuid` | — |
 | `delete_my_selection` | `p_id uuid, p_expected_version integer` | — |
 | `erase_customer_data` | `p_email text` | Etapa 32: apagamento de titular (LGPD art. 18). Anonimiza quote_requests/contact_requests/customer_profiles em vez de apagar (preserva id/datas/protocolo para integridade referencial e evidência de conformidade); apaga proposal_documents (o PDF pode conter PII no conteúdo, não só nos metadados) e devolve os caminhos de Storage para o chamador limpar. Idempotente: reexecutar para o mesmo e-mail não reprocessa linhas já anonimizadas. Não cobre texto livre (message de contact_requests/quote_adjustment_requests) — sem análise de conteúdo não dá para distinguir PII digitada de conteúdo legítimo. |
+| `finalize_briefing_asset_retention` | `p_storage_paths text[], p_batch_size integer` | — |
 | `finalize_site_data_retention` | `p_quote_ids uuid[], p_storage_paths text[], p_batch_size integer` | — |
 | `finalize_site_notification_delivery` | `p_delivery_id uuid, p_lease_token uuid, p_status text, p_provider text, p_provider_message_id text, p_error_code text, p_retry_after_seconds integer` | Finaliza uma tentativa previamente reivindicada; exige o lease_token da reivindicação ativa (R04). Backoff exponencial com jitter via site_private.next_retry_at (Etapa 11); p_retry_after_seconds é só um piso opcional do provedor. |
+| `get_briefing_asset_retention_candidates` | `p_batch_size integer` | — |
 | `get_my_proposal_document` | `p_proposal_id uuid` | Entrega o local de um documento somente ao cliente proprietário para assinatura server-side. |
 | `get_my_quote_request` | `p_request_id uuid` | Retorna detalhe e contexto de curadoria somente ao auth.uid() proprietário, sem metadados operacionais. |
 | `get_my_quote_requests` | `p_limit integer, p_offset integer, p_status text, p_search text` | Lista solicitações do auth.uid() com título de ação, miniaturas e última movimentação visível ao cliente. |
 | `get_site_data_retention_candidates` | `p_batch_size integer` | — |
 | `get_site_shared_selection` | `p_token uuid` | — |
+| `list_my_briefing_assets` | `` | — |
 | `list_my_selections` | `p_include_archived boolean` | — |
+| `owns_my_briefing_asset_path` | `p_path text` | — |
 | `purge_archived_customer_selections` | `p_batch_size integer` | — |
 | `record_site_notification_provider_acceptance` | `p_delivery_id uuid, p_lease_token uuid, p_provider text, p_provider_message_id text` | Registra o aceite do provedor antes da finalização, para reconciliação em caso de falha na etapa seguinte (R01, R02). |
 | `request_my_quote_adjustment` | `p_request_id uuid, p_message text, p_client_request_id text` | Registra um pedido de ajuste somente para o titular autenticado da solicitação, mantendo o texto no schema privado. |
 | `revoke_site_shared_selection` | `p_token uuid, p_management_token_hash text` | — |
+| `rls_auto_enable` | `` | Guarda DDL do banco isolado: novas tabelas no schema public nascem com RLS habilitada. Sem EXECUTE para roles da API. |
 | `save_my_selection` | `p_title text, p_references jsonb, p_campaign jsonb, p_id uuid, p_expected_version integer` | — |
 | `set_my_selection_archived` | `p_id uuid, p_expected_version integer, p_archived boolean` | — |
 | `site_notification_queue_health` | `` | Idade do job elegível mais antigo e contagem de exhausted por canal (Etapa 29); devolve só contagens e canais, sem conteúdo pessoal. |

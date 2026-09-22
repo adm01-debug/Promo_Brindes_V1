@@ -10,6 +10,10 @@ export interface SharedSelectionReference {
   id: string;
   q: number;
   v?: string;
+  k?: string;
+  kn?: string;
+  kq?: number;
+  ku?: number;
 }
 
 function hash(value: string) {
@@ -33,11 +37,22 @@ export function normalizeSharedSelectionReferences(value: unknown): SharedSelect
     const id = String(record.id || '');
     const quantity = Number(record.q);
     const variant = record.v == null ? undefined : String(record.v);
+    const hasKit = ['k', 'kn', 'kq', 'ku'].some((field) => record[field] !== undefined);
+    const kitGroupId = record.k == null ? undefined : String(record.k);
+    const kitName = record.kn == null ? undefined : String(record.kn).trim();
+    const kitQuantity = Number(record.kq);
+    const unitsPerKit = Number(record.ku);
     if (!UUID_PATTERN.test(id) || !Number.isInteger(quantity) || quantity < 1 || quantity > 999_999 || (variant && !VARIANT_PATTERN.test(variant))) {
       throw new SiteDatabaseError('Uma referência da seleção é inválida.', 'invalid_shared_selection', 400);
     }
-    const normalized = { id: id.toLowerCase(), q: quantity, ...(variant ? { v: variant } : {}) };
-    const key = `${normalized.id}:${normalized.v || ''}`;
+    if (hasKit && (!kitGroupId || !UUID_PATTERN.test(kitGroupId) || !kitName || kitName.length > 100
+      || !Number.isInteger(kitQuantity) || kitQuantity < 1 || kitQuantity > 999_999
+      || !Number.isInteger(unitsPerKit) || unitsPerKit < 1 || unitsPerKit > 100
+      || quantity !== kitQuantity * unitsPerKit)) {
+      throw new SiteDatabaseError('A composição de kit da seleção é inválida.', 'invalid_shared_selection', 400);
+    }
+    const normalized = { id: id.toLowerCase(), q: quantity, ...(variant ? { v: variant } : {}), ...(hasKit ? { k: kitGroupId!.toLowerCase(), kn: kitName!, kq: kitQuantity, ku: unitsPerKit } : {}) };
+    const key = `${normalized.id}:${normalized.v || ''}:${normalized.k || ''}`;
     if (unique.has(key)) throw new SiteDatabaseError('A seleção contém referências repetidas.', 'invalid_shared_selection', 400);
     unique.set(key, normalized);
   });

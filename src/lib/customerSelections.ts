@@ -10,6 +10,10 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3
 
 export interface SavedSelectionReference extends SharedSelectionItem {
   d?: 'alternative';
+  k?: string;
+  kn?: string;
+  kq?: number;
+  ku?: number;
 }
 
 export interface SavedSelection {
@@ -33,6 +37,7 @@ export function referencesFromCart(items: QuoteItem[]): SavedSelectionReference[
     q: item.quantity,
     ...(item.variantId ? { v: item.variantId } : {}),
     ...(item.decisionGroup === 'alternative' ? { d: 'alternative' as const } : {}),
+    ...(item.kitGroupId ? { k: item.kitGroupId, kn: item.kitName, kq: item.kitQuantity, ku: item.unitsPerKit } : {}),
   }));
 }
 
@@ -44,11 +49,18 @@ function parseReferences(value: unknown): SavedSelectionReference[] {
       || !Number.isInteger(item.q) || Number(item.q) < 1 || Number(item.q) > 999_999
       || (item.v !== undefined && typeof item.v !== 'string')
       || (item.d !== undefined && item.d !== 'alternative')) throw new Error('invalid_saved_selection');
+    const hasKit = ['k', 'kn', 'kq', 'ku'].some((field) => item[field] !== undefined);
+    if (hasKit && (typeof item.k !== 'string' || !UUID_PATTERN.test(item.k)
+      || typeof item.kn !== 'string' || item.kn.length < 1 || item.kn.length > 100
+      || !Number.isInteger(item.kq) || Number(item.kq) < 1 || Number(item.kq) > 999_999
+      || !Number.isInteger(item.ku) || Number(item.ku) < 1 || Number(item.ku) > 100
+      || Number(item.q) !== Number(item.kq) * Number(item.ku))) throw new Error('invalid_saved_selection');
     return {
       id: item.id,
       q: Number(item.q),
       ...(typeof item.v === 'string' ? { v: item.v } : {}),
       ...(item.d === 'alternative' ? { d: 'alternative' as const } : {}),
+      ...(hasKit ? { k: String(item.k), kn: String(item.kn), kq: Number(item.kq), ku: Number(item.ku) } : {}),
     };
   });
 }
@@ -133,13 +145,24 @@ export async function deleteMySelection(selection: SavedSelection): Promise<void
 
 export async function hydrateMySelection(selection: SavedSelection, signal?: AbortSignal): Promise<QuoteItem[]> {
   const products = await fetchProductsByIds(selection.references.map((item) => item.id), signal, selection.references.length);
+  const productsById = new Map(products.map((product) => [product.id, product]));
+  if (selection.references.some((reference) => {
+    const product = productsById.get(reference.id);
+    return product && reference.q < product.minQuantity;
+  })) throw new Error('selection_catalog_changed');
   const hydration = hydrateSharedSelectionDetails(selection.references, products);
   if (hydration.unavailableProductReferences.length || hydration.unavailableVariantReferences.length) {
     throw new Error('selection_catalog_changed');
   }
-  const priorities = new Map(selection.references.map((item) => [`${item.id}:${item.v || ''}`, item.d]));
+  const priorities = new Map(selection.references.map((item) => [`${item.id}:${item.v || ''}`, item]));
   return hydration.items.map((item) => ({
     ...item,
-    ...(priorities.get(`${item.productId}:${item.variantId || ''}`) === 'alternative' ? { decisionGroup: 'alternative' as const } : {}),
+    ...(priorities.get(`${item.productId}:${item.variantId || ''}`)?.d === 'alternative' ? { decisionGroup: 'alternative' as const } : {}),
+    ...(priorities.get(`${item.productId}:${item.variantId || ''}`)?.k ? {
+      kitGroupId: priorities.get(`${item.productId}:${item.variantId || ''}`)!.k,
+      kitName: priorities.get(`${item.productId}:${item.variantId || ''}`)!.kn,
+      kitQuantity: priorities.get(`${item.productId}:${item.variantId || ''}`)!.kq,
+      unitsPerKit: priorities.get(`${item.productId}:${item.variantId || ''}`)!.ku,
+    } : {}),
   }));
 }

@@ -48,7 +48,7 @@ export function buildQuotePayload(
 export function buildEmailHref(payload: QuoteRequestPayload, email = DEFAULT_CONTACT_EMAIL): string {
   const itemLines = payload.items.map(
     (item, index) =>
-      `${index + 1}. ${item.name} — cód. ${item.sku} — ${item.quantity.toLocaleString('pt-BR')} un.${item.colorName ? ` — cor: ${item.colorName}` : ''}${item.decisionGroup ? ` — prioridade: ${item.decisionGroup === 'alternative' ? 'alternativa' : 'principal'}` : ''}`,
+      `${index + 1}. ${item.name} — cód. ${item.sku} — ${item.quantity.toLocaleString('pt-BR')} un.${item.kitGroupId ? ` — ${item.kitName}: ${item.kitQuantity} kits × ${item.unitsPerKit} un.` : ''}${item.colorName ? ` — cor: ${item.colorName}` : ''}${item.decisionGroup ? ` — prioridade: ${item.decisionGroup === 'alternative' ? 'alternativa' : 'principal'}` : ''}`,
   );
   const body = [
     'Olá, time de especialistas da Promo Brindes!',

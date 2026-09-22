@@ -13,6 +13,7 @@ export interface QuoteCartValue {
   addProduct: (product: CatalogProduct, quantity?: number, color?: ProductColor) => void;
   removeItem: (key: string) => void;
   updateQuantity: (key: string, quantity: number) => void;
+  updateKitQuantity: (kitGroupId: string, quantity: number) => void;
   setItemDecisionGroup: (key: string, group: 'primary' | 'alternative') => void;
   replaceItems: (items: QuoteItem[]) => void;
   replaceSelection: (items: QuoteItem[]) => void;

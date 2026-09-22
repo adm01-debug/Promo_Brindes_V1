@@ -14,6 +14,7 @@ export interface FunnelEventMap {
   catalog_collection_opened: { catalog_id: string; format: 'online' | 'pdf' | 'digital' };
   catalog_collection_shared: { catalog_id: string; format: 'online' | 'pdf' | 'digital' };
   catalog_briefing_started: { source: 'library' };
+  kit_composition_added: { component_count: number; kit_quantity: number };
   briefing_started: { item_count: number };
   quote_submitted: { item_count: number; has_deadline: boolean };
   quote_submission_failed: { item_count: number; reason: 'network' | 'rate_limited' | 'conflict' | 'validation' | 'unknown' };
@@ -49,6 +50,7 @@ const ALLOWED_PROPERTIES: { [Name in FunnelEventName]: ReadonlyArray<keyof Funne
   catalog_collection_opened: ['catalog_id', 'format'],
   catalog_collection_shared: ['catalog_id', 'format'],
   catalog_briefing_started: ['source'],
+  kit_composition_added: ['component_count', 'kit_quantity'],
   briefing_started: ['item_count'],
   quote_submitted: ['item_count', 'has_deadline'],
   quote_submission_failed: ['item_count', 'reason'],
@@ -82,7 +84,7 @@ function safeProperties<Name extends FunnelEventName>(name: Name, properties: Fu
 }
 
 const PUBLIC_ANALYTICS_PATHS = new Set([
-  '/', '/catalogo', '/catalogos', '/datas-comemorativas', '/orcamento',
+  '/', '/catalogo', '/catalogos', '/montar-kit', '/datas-comemorativas', '/orcamento',
   '/selecoes/compartilhada', '/sobre', '/contato', '/privacidade',
   '/entrar', '/auth/confirm', '/definir-senha', '/minha-conta',
 ]);

@@ -134,6 +134,7 @@ test('rotas públicas essenciais não introduzem violações automáticas de ace
     ['/', 'Sua campanha merece um brinde que ninguém esquece.'],
     ['/catalogo', 'Sua seleção começa aqui.'],
     ['/catalogos', 'Catálogos para tirar seu briefing do branco'],
+    ['/montar-kit', 'Monte um kit que faça sentido.'],
     ['/datas-comemorativas', 'Marque a data. Deixe sua marca.'],
     ['/contato', 'Uma boa ideia começa com um bom briefing.'],
     ['/entrar', /Acesso em configuração|Seus briefings/],
@@ -145,6 +146,33 @@ test('rotas públicas essenciais não introduzem violações automáticas de ace
     const result = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
     expect(result.violations, `Violações em ${path}`).toEqual([]);
   }
+});
+
+test('montador de kits preserva componentes e calcula a quantidade completa', async ({ page }) => {
+  const products = [
+    product,
+    { ...product, id: 'b74ae6e5-b462-4c9e-8108-663f7fd11e71', slug: 'garrafa-termica', sku: 'GA-10', name: 'Garrafa térmica', min_quantity: 60 },
+    { ...product, id: 'c74ae6e5-b462-4c9e-8108-663f7fd11e72', slug: 'caderno-capa-dura', sku: 'CA-20', name: 'Caderno capa dura', min_quantity: 30 },
+  ];
+  await page.unroute(/\/rest\/v1\/v_(?:site_)?products_public\?/);
+  await page.route(/\/rest\/v1\/v_(?:site_)?products_public\?/, (route) => route.fulfill({
+    contentType: 'application/json',
+    headers: { 'content-range': '0-2/3' },
+    body: JSON.stringify(products),
+  }));
+
+  await page.goto('/montar-kit');
+  await page.getByRole('button', { name: /2 itens Dupla essencial/ }).click();
+  await page.locator('.kit-product-grid > button').filter({ hasText: product.name }).click();
+  await page.locator('.kit-product-grid > button').filter({ hasText: 'Garrafa térmica' }).click();
+  await page.getByLabel(`Unidades por kit de ${product.name}`).fill('2');
+
+  await expect(page.getByText('Composição pronta para revisar')).toBeVisible();
+  await expect(page.getByText('mínimo calculado: 60 kits')).toBeVisible();
+  await expect(page.locator('.kit-builder-summary')).toContainText('300');
+  await page.getByRole('button', { name: /Levar para o briefing/ }).click();
+  await expect(page.getByText('2 itens · 300 unidades estimadas')).toBeVisible();
+  await expect(page.getByText('Minha composição · 100 kits × 2 un.')).toBeVisible();
 });
 
 test('manifesto transforma as frases da marca em uma narrativa com próximo passo', async ({ page }) => {
@@ -846,8 +874,8 @@ test('seleção salva explicitamente reaparece em outro navegador da mesma conta
     await expect(secondPage.getByRole('heading', { name: 'Boas-vindas de outubro' })).toBeVisible();
     await secondPage.getByRole('button', { name: /Retomar seleção/ }).click();
     await expect(secondPage.getByText('Mochila Executiva Sustentável').first()).toBeVisible();
-    const persisted = await secondPage.evaluate(() => localStorage.getItem('promo-brindes:quote-selection:v1'));
-    expect(persisted).toContain(product.id);
+    await expect.poll(() => secondPage.evaluate(() => localStorage.getItem('promo-brindes:quote-selection:v1')))
+      .toContain(product.id);
   } finally {
     await secondContext.close();
   }
@@ -1040,8 +1068,8 @@ test('navegação de catálogo por query fecha menu e reposiciona resultados', a
   await page.goto('/catalogo');
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   await page.getByRole('button', { name: 'Abrir menu' }).click();
-  await page.getByRole('navigation', { name: 'Navegação móvel' }).getByRole('link', { name: 'Kits' }).click();
-  await expect(page).toHaveURL(/perfil=kits/);
+  await page.getByRole('navigation', { name: 'Navegação móvel' }).getByRole('link', { name: 'Novos drops' }).click();
+  await expect(page).toHaveURL(/perfil=novos/);
   await expect(page.getByRole('navigation', { name: 'Navegação móvel' })).toBeHidden();
   await expect(page.locator('#catalog-results-title')).toBeInViewport();
 });

@@ -26,6 +26,10 @@ export default defineConfig({
     target: 'es2022',
     sourcemap: process.env.VITE_BUILD_SOURCEMAP === 'true',
     cssCodeSplit: true,
+    // O manifest permite distinguir o JavaScript inicial dos chunks lazy no
+    // quality gate. Somar todas as rotas como se fossem um único download
+    // penaliza funcionalidades isoladas e não representa a navegação real.
+    manifest: true,
   },
   test: {
     environment: 'jsdom',

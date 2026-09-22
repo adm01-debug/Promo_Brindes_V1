@@ -15,6 +15,10 @@ export interface NormalizedQuoteItem {
   colorName?: string;
   colorHex?: string;
   decisionGroup: 'primary' | 'alternative';
+  kitGroupId?: string;
+  kitName?: string;
+  kitQuantity?: number;
+  unitsPerKit?: number;
 }
 
 interface NormalizedConsent {
@@ -302,6 +306,19 @@ function quoteItem(value: unknown, index: number): NormalizedQuoteItem {
   const quantity = integer(item.quantity, `items[${index}].quantity`, 1, 999_999);
   const minQuantity = integer(item.minQuantity, `items[${index}].minQuantity`, 1, 999_999);
   if (quantity < minQuantity) throw new RequestValidationError(`A quantidade do produto ${index + 1} está abaixo do mínimo.`);
+  const hasKit = ['kitGroupId', 'kitName', 'kitQuantity', 'unitsPerKit'].some((field) => item[field] !== undefined);
+  let kit: Pick<NormalizedQuoteItem, 'kitGroupId' | 'kitName' | 'kitQuantity' | 'unitsPerKit'> = {};
+  if (hasKit) {
+    const kitGroupId = text(item.kitGroupId, `items[${index}].kitGroupId`, 36, 36);
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(kitGroupId)) {
+      throw new RequestValidationError(`A composição do produto ${index + 1} é inválida.`);
+    }
+    const kitName = text(item.kitName, `items[${index}].kitName`, 1, 100);
+    const kitQuantity = integer(item.kitQuantity, `items[${index}].kitQuantity`, 1, 999_999);
+    const unitsPerKit = integer(item.unitsPerKit, `items[${index}].unitsPerKit`, 1, 100);
+    if (quantity !== kitQuantity * unitsPerKit) throw new RequestValidationError(`A aritmética do kit no produto ${index + 1} é inválida.`);
+    kit = { kitGroupId, kitName, kitQuantity, unitsPerKit };
+  }
   return {
     key: text(item.key, `items[${index}].key`, 1, 220),
     productId,
@@ -315,6 +332,7 @@ function quoteItem(value: unknown, index: number): NormalizedQuoteItem {
     colorName: text(item.colorName, `items[${index}].colorName`, 0, 120, true) || undefined,
     colorHex: colorHex(item.colorHex, `items[${index}].colorHex`) || undefined,
     decisionGroup: optionalEnum(item.decisionGroup, `items[${index}].decisionGroup`, ['primary', 'alternative'] as const) || 'primary',
+    ...kit,
   };
 }
 
@@ -354,6 +372,19 @@ export function normalizeLeadPayload(kind: LeadKind, body: unknown): NormalizedL
   if (normalizedBriefing?.eventDate && normalizedDeadline && normalizedDeadline > normalizedBriefing.eventDate) {
     throw new RequestValidationError('A data de recebimento não pode ficar depois da data do evento.');
   }
+  const items = payload.items.map(quoteItem);
+  const kitGroups = new Map<string, { name: string; quantity: number; count: number }>();
+  for (const item of items) {
+    if (!item.kitGroupId) continue;
+    const group = kitGroups.get(item.kitGroupId);
+    if (group && (group.name !== item.kitName || group.quantity !== item.kitQuantity)) {
+      throw new RequestValidationError('Os componentes do kit precisam usar o mesmo nome e a mesma quantidade de conjuntos.');
+    }
+    kitGroups.set(item.kitGroupId, { name: item.kitName!, quantity: item.kitQuantity!, count: (group?.count || 0) + 1 });
+  }
+  if (Array.from(kitGroups.values()).some((group) => group.count < 2)) {
+    throw new RequestValidationError('Cada kit precisa ter pelo menos dois componentes.');
+  }
   return {
     ...common,
     source: 'site-promo-brindes',
@@ -366,7 +397,7 @@ export function normalizeLeadPayload(kind: LeadKind, body: unknown): NormalizedL
       deadline: normalizedDeadline,
       notes: text(contact.notes, 'observações', 0, 800, true),
     },
-    items: payload.items.map(quoteItem),
+    items,
     campaign: campaignBrief(payload.campaign),
     briefing: normalizedBriefing,
     notificationPreferences: notificationPreferences(payload.notificationPreferences),

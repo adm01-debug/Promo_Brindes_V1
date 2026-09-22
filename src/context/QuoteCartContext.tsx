@@ -131,6 +131,7 @@ export function QuoteCartProvider({ children }: { children: ReactNode }) {
         dispatch({ type: 'remove', key });
       },
       updateQuantity: (key, quantity) => dispatch({ type: 'quantity', key, quantity }),
+      updateKitQuantity: (kitGroupId, quantity) => dispatch({ type: 'kit-quantity', kitGroupId, quantity }),
       setItemDecisionGroup: (key, group) => dispatch({ type: 'decision-group', key, group }),
       replaceItems: (items) => dispatch({ type: 'replace', items }),
       replaceSelection: (items) => dispatch({ type: 'replace-selection', items }),

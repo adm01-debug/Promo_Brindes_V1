@@ -7,6 +7,7 @@ import { sendOperationalAlert } from './_lib/operationalAlerts.js';
 export const REQUEST_TIMEOUT_MS = 10_000;
 const RETENTION_BATCH_SIZE = 100;
 const PROPOSAL_BUCKET = 'customer-proposals';
+const BRIEFING_ASSET_BUCKET = 'customer-briefing-assets';
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function header(request: ApiRequest, name: string): string {
@@ -47,9 +48,10 @@ async function rpc<T>(baseUrl: string, secretKey: string, name: string, body: Re
   return result.json() as Promise<T>;
 }
 
-async function removeProposalObjects(baseUrl: string, secretKey: string, paths: string[], signal: AbortSignal): Promise<void> {
+async function removeStorageObjects(baseUrl: string, secretKey: string, bucket: string, paths: string[], signal: AbortSignal): Promise<void> {
   if (!paths.length) return;
-  const result = await fetch(`${baseUrl}/storage/v1/object/${PROPOSAL_BUCKET}`, {
+  if (![PROPOSAL_BUCKET, BRIEFING_ASSET_BUCKET].includes(bucket)) throw new Error('unsafe_storage_bucket');
+  const result = await fetch(`${baseUrl}/storage/v1/object/${encodeURIComponent(bucket)}`, {
     method: 'DELETE',
     headers: {
       apikey: secretKey,
@@ -62,6 +64,18 @@ async function removeProposalObjects(baseUrl: string, secretKey: string, paths: 
   // A API de Storage é a autoridade para apagar blobs. Uma repetição após uma
   // falha de rede pode encontrar um objeto já removido; 404 é seguro para retry.
   if (!result.ok && result.status !== 404) throw new Error('storage_delete_failed');
+}
+
+function briefingAssetPaths(value: unknown): string[] {
+  if (!Array.isArray(value) || value.length > RETENTION_BATCH_SIZE) throw new Error('invalid_retention_candidates');
+  return Array.from(new Set(value.map((item) => {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) throw new Error('invalid_retention_candidates');
+    const record = item as { bucket?: unknown; path?: unknown };
+    if (record.bucket !== BRIEFING_ASSET_BUCKET || typeof record.path !== 'string' || !safeStoragePath(record.path)) {
+      throw new Error('invalid_retention_candidates');
+    }
+    return record.path;
+  })));
 }
 
 export default async function handler(request: ApiRequest, response: ApiResponse) {
@@ -97,7 +111,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     const quoteIds = stringArray(candidates.quoteIds, RETENTION_BATCH_SIZE, (value) => UUID_PATTERN.test(value));
     const storagePaths = stringArray(candidates.storagePaths, RETENTION_BATCH_SIZE * 20, safeStoragePath);
     if (storagePaths.length && !config.storageDeleteCredential) throw new Error('storage_delete_credential_not_configured');
-    await removeProposalObjects(config.url, config.storageDeleteCredential || '', storagePaths, controller.signal);
+    await removeStorageObjects(config.url, config.storageDeleteCredential || '', PROPOSAL_BUCKET, storagePaths, controller.signal);
     const finalized = await rpc<Record<string, number>>(
       config.url,
       config.serviceCredential,
@@ -112,12 +126,30 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       { p_batch_size: RETENTION_BATCH_SIZE },
       controller.signal,
     );
+    const briefingCandidates = await rpc<{ objects?: unknown }>(
+      config.url,
+      config.serviceCredential,
+      'get_briefing_asset_retention_candidates',
+      { p_batch_size: RETENTION_BATCH_SIZE },
+      controller.signal,
+    );
+    const assetPaths = briefingAssetPaths(briefingCandidates.objects);
+    if (assetPaths.length && !config.storageDeleteCredential) throw new Error('storage_delete_credential_not_configured');
+    await removeStorageObjects(config.url, config.storageDeleteCredential || '', BRIEFING_ASSET_BUCKET, assetPaths, controller.signal);
+    const briefingAssetsFinalized = await rpc<number>(
+      config.url,
+      config.serviceCredential,
+      'finalize_briefing_asset_retention',
+      { p_storage_paths: assetPaths, p_batch_size: RETENTION_BATCH_SIZE },
+      controller.signal,
+    );
     console.info('site_retention_completed', {
       quotesDeleted: Number(finalized.quotesDeleted || 0),
       proposalDocumentsDeleted: Number(finalized.proposalDocumentsDeleted || 0),
       contactsDeleted: Number(finalized.contactsDeleted || 0),
       notificationsDeleted: Number(finalized.notificationsDeleted || 0),
       archivedSelectionsDeleted: Number(archivedSelectionsDeleted || 0),
+      briefingAssetsFinalized: Number(briefingAssetsFinalized || 0),
     });
     response.status(200).json({ ok: true });
   } catch (error) {
