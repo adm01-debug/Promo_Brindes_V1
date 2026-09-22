@@ -31,6 +31,8 @@ Código funcional auditado: `ef97fc75e4109b90e5b25d14d9418d6557bb4640`.
 - `npm run test:e2e:cross-browser`: Firefox e WebKit executados; skips são condicionais documentadas de projeto/viewport.
 - `npm run db:site:test`: 458 asserções pgTAP em 23 arquivos.
 - `npm run db:site:lint`: nenhum erro ou aviso de schema.
+- Supabase isolado: dry-run listou somente `20260922210000_close_selection_and_asset_integrity_gaps.sql`; push concluído; ledger local/remoto alinhado até `20260922210000`; lint remoto sem erros.
+- Ensaio remoto transacional: criar, ler com fallback de cor, revogar e confirmar indisponibilidade retornou `true`; a transação terminou com `ROLLBACK`, sem deixar registros sintéticos.
 - `npm audit --audit-level=moderate`: zero vulnerabilidades conhecidas reportadas.
 - `git diff --check`: sem erro de whitespace.
 
@@ -55,4 +57,4 @@ Código funcional auditado: `ef97fc75e4109b90e5b25d14d9418d6557bb4640`.
 
 ## Critério de encerramento
 
-A auditoria técnica fecha os gaps reproduzíveis listados acima somente quando código, migration, CI, Supabase isolado e produção estiverem reconciliados. O relatório final deve registrar separadamente: SHA/PR, ledger remoto, checks do GitHub, deployment Vercel e smoke HTTP. Nenhuma passagem local, isoladamente, autoriza declarar o sistema inteiro “perfeito” ou os aceites externos concluídos.
+A migration e o Supabase isolado estão reconciliados. O encerramento desta rodada ainda depende da reconciliação do código no GitHub, dos checks do PR, do deployment Vercel e do smoke HTTP, que devem ser registrados separadamente. Nenhuma passagem local, isoladamente, autoriza declarar o sistema inteiro “perfeito” ou os aceites externos concluídos.
