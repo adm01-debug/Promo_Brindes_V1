@@ -1291,14 +1291,20 @@ p {
 }
 
 @media print {
+  @page { size: A4; margin: 14mm; }
   .utility-bar, .site-header, .site-footer, .mobile-selection-fab, .quote-print-button, .quote-faq-wrap, .compare-tray, .quote-item__remove, .quote-section-heading > button, .add-more-link, .quote-submit { display: none !important; }
   body { color: #000; background: #fff; }
+  main, .quote-layout, .quote-items, .quote-items__list { display: block !important; width: 100% !important; max-width: none !important; }
   .quote-page__header, .quote-items { background: #fff; border-color: #aaa; box-shadow: none; }
   .quote-form-section { display: none !important; }
   .quote-print-identity { display: flex !important; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 24px; color: #000; font-size: 10pt; font-weight: 700; }
   .quote-print-identity img { width: 125px; height: auto; object-fit: contain; }
   .quote-layout { padding-block: 20px; }
-  .quote-item, .quote-form-section { break-inside: avoid; }
+  .quote-page__header, .quote-section-heading, .quote-item, .quote-item__main, .quote-item__quantity { break-inside: avoid; page-break-inside: avoid; }
+  .quote-item { grid-template-columns: 28mm minmax(0, 1fr) auto; gap: 5mm; min-height: 34mm; }
+  .quote-item__image { width: 28mm; height: 28mm; }
+  .quote-item__image img { width: 100%; height: 100%; object-fit: contain; }
+  .quote-item a[href]::after { content: none !important; }
   a { color: #000; text-decoration: none; }
 }
 

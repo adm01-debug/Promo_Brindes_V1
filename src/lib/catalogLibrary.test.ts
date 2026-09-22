@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { catalogCollections, catalogFormatLabel, filterCatalogCollections } from './catalogLibrary';
+import { catalogCollections, catalogFormatLabel, filterCatalogCollections, publicCatalogCollections } from './catalogLibrary';
+import { catalogEditorialEntries, catalogEditorialIssues, isCatalogEditorialEntryPublic } from '../../shared/catalogEditorial';
 
 describe('biblioteca de catálogos', () => {
   it('combina tema e busca sem depender de acentos', () => {
@@ -19,5 +20,18 @@ describe('biblioteca de catálogos', () => {
     expect(catalogFormatLabel('online')).toBe('Coleção online');
     expect(catalogFormatLabel('pdf')).toBe('Catálogo em PDF');
     expect(catalogFormatLabel('digital')).toBe('Revista digital');
+  });
+
+  it('exige responsável, revisão vigente e janela de publicação para cada coleção', () => {
+    expect(catalogEditorialIssues()).toEqual([]);
+    expect(publicCatalogCollections()).toHaveLength(catalogCollections.length);
+    expect(isCatalogEditorialEntryPublic({
+      ...catalogEditorialEntries['novos-drops'],
+      status: 'draft',
+    }, new Date('2026-09-22T12:00:00.000Z'))).toBe(false);
+    expect(isCatalogEditorialEntryPublic({
+      ...catalogEditorialEntries['novos-drops'],
+      expiresAt: '2026-09-01',
+    }, new Date('2026-09-22T12:00:00.000Z'))).toBe(false);
   });
 });

@@ -1,11 +1,12 @@
 import { normalizeSearchText } from './search';
 import type { CatalogQuery } from './catalog';
+import { catalogEditorialEntries, isCatalogEditorialEntryPublic, type CatalogEditorialId } from '../../shared/catalogEditorial';
 
 export type CatalogCollectionFormat = 'online' | 'pdf' | 'digital';
 export type CatalogCollectionTheme = 'people' | 'events' | 'impact' | 'products';
 
 export interface CatalogCollection {
-  id: string;
+  id: CatalogEditorialId;
   title: string;
   eyebrow: string;
   description: string;
@@ -22,6 +23,10 @@ export interface CatalogCollection {
   coverQuery: CatalogQuery;
 }
 
+function editorial(id: CatalogEditorialId) {
+  return { id, title: catalogEditorialEntries[id].title, description: catalogEditorialEntries[id].description };
+}
+
 export const catalogThemeOptions: Array<{ id: 'all' | CatalogCollectionTheme; label: string }> = [
   { id: 'all', label: 'Todos' },
   { id: 'people', label: 'Pessoas & cultura' },
@@ -32,10 +37,8 @@ export const catalogThemeOptions: Array<{ id: 'all' | CatalogCollectionTheme; la
 
 export const catalogCollections: CatalogCollection[] = [
   {
-    id: 'onboarding-com-cultura',
-    title: 'Onboarding com cultura',
+    ...editorial('onboarding-com-cultura'),
     eyebrow: 'People experience',
-    description: 'Boas-vindas que apresentam a empresa antes mesmo da primeira reunião.',
     format: 'online',
     theme: 'people',
     href: '/catalogo?momento=onboarding&publico=colaboradores',
@@ -46,10 +49,8 @@ export const catalogCollections: CatalogCollection[] = [
     coverQuery: { pageSize: 1, sort: 'curated' },
   },
   {
-    id: 'eventos-que-continuam',
-    title: 'Eventos que continuam',
+    ...editorial('eventos-que-continuam'),
     eyebrow: 'Live marketing',
-    description: 'Produtos úteis e compartilháveis para a experiência continuar depois do credenciamento.',
     format: 'online',
     theme: 'events',
     href: '/catalogo?momento=evento&publico=publico-evento',
@@ -59,10 +60,8 @@ export const catalogCollections: CatalogCollection[] = [
     coverQuery: { search: 'copo', pageSize: 1, sort: 'curated' },
   },
   {
-    id: 'reconhecimento-com-desejo',
-    title: 'Reconhecimento com desejo',
+    ...editorial('reconhecimento-com-desejo'),
     eyebrow: 'Employer branding',
-    description: 'Presentes à altura de metas, marcos de carreira e conquistas que merecem memória.',
     format: 'online',
     theme: 'people',
     href: '/catalogo?momento=reconhecimento&publico=colaboradores&clima=premium',
@@ -72,10 +71,8 @@ export const catalogCollections: CatalogCollection[] = [
     coverQuery: { search: 'mochila', pageSize: 1, sort: 'curated' },
   },
   {
-    id: 'relacionamento-que-fica',
-    title: 'Relacionamento que fica',
+    ...editorial('relacionamento-que-fica'),
     eyebrow: 'Brand love',
-    description: 'Ideias para clientes e parceiros levarem a sua marca para a rotina.',
     format: 'online',
     theme: 'impact',
     href: '/catalogo?momento=relacionamento&publico=clientes',
@@ -85,10 +82,8 @@ export const catalogCollections: CatalogCollection[] = [
     coverQuery: { search: 'garrafa', pageSize: 1, sort: 'curated' },
   },
   {
-    id: 'novos-drops',
-    title: 'Novos drops',
+    ...editorial('novos-drops'),
     eyebrow: 'Radar de novidades',
-    description: 'Lançamentos e achados recentes para quem quer fugir do briefing previsível.',
     format: 'online',
     theme: 'products',
     href: '/catalogo?perfil=novos',
@@ -98,10 +93,8 @@ export const catalogCollections: CatalogCollection[] = [
     coverQuery: { profile: 'new', pageSize: 1, sort: 'newest' },
   },
   {
-    id: 'escolhas-de-menor-impacto',
-    title: 'Escolhas de menor impacto',
+    ...editorial('escolhas-de-menor-impacto'),
     eyebrow: 'Sustentabilidade',
-    description: 'Materiais e ideias para alinhar utilidade, mensagem e escolhas mais conscientes.',
     format: 'online',
     theme: 'impact',
     href: '/catalogo?clima=sustentavel',
@@ -112,10 +105,8 @@ export const catalogCollections: CatalogCollection[] = [
     coverQuery: { search: 'reciclado', pageSize: 1, sort: 'curated' },
   },
   {
-    id: 'tech-que-resolve',
-    title: 'Tech que resolve',
+    ...editorial('tech-que-resolve'),
     eyebrow: 'Utilidade primeiro',
-    description: 'Tecnologia para mesa, mobilidade e rotina — com função antes do efeito.',
     format: 'online',
     theme: 'products',
     href: '/catalogo?clima=tech',
@@ -125,10 +116,8 @@ export const catalogCollections: CatalogCollection[] = [
     coverQuery: { search: 'carregador', pageSize: 1, sort: 'curated' },
   },
   {
-    id: 'celebracoes-com-significado',
-    title: 'Celebrações com significado',
+    ...editorial('celebracoes-com-significado'),
     eyebrow: 'Calendário afetivo',
-    description: 'Datas especiais, encerramentos de ciclo e encontros que pedem algo além do protocolo.',
     format: 'online',
     theme: 'events',
     href: '/catalogo?momento=sazonal&clima=afetivo',
@@ -138,10 +127,8 @@ export const catalogCollections: CatalogCollection[] = [
     coverQuery: { search: 'caneca', pageSize: 1, sort: 'curated' },
   },
   {
-    id: 'kits-prontos-para-combinar',
-    title: 'Kits prontos para combinar',
+    ...editorial('kits-prontos-para-combinar'),
     eyebrow: 'Mix & match',
-    description: 'Pontos de partida para compor experiências com diferentes produtos e embalagens.',
     format: 'online',
     theme: 'products',
     href: '/montar-kit',
@@ -151,10 +138,8 @@ export const catalogCollections: CatalogCollection[] = [
     coverQuery: { profile: 'kits', pageSize: 1, sort: 'curated' },
   },
   {
-    id: 'sua-marca-em-cena',
-    title: 'Sua marca em cena',
+    ...editorial('sua-marca-em-cena'),
     eyebrow: 'Personalização',
-    description: 'Produtos com potencial para receber a identidade da campanha e circular de verdade.',
     format: 'online',
     theme: 'impact',
     href: '/catalogo?personalizavel=1',
@@ -164,6 +149,10 @@ export const catalogCollections: CatalogCollection[] = [
     coverQuery: { personalizable: true, pageSize: 1, sort: 'curated' },
   },
 ];
+
+export function publicCatalogCollections(now = new Date()): CatalogCollection[] {
+  return catalogCollections.filter((collection) => isCatalogEditorialEntryPublic(catalogEditorialEntries[collection.id], now));
+}
 
 export function filterCatalogCollections(
   collections: CatalogCollection[],

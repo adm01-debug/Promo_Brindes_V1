@@ -3,18 +3,7 @@ export interface CuratedPagePreview {
   description: string;
 }
 
-export const catalogPreviews: Record<string, CuratedPagePreview> = {
-  'onboarding-com-cultura': { title: 'Onboarding com cultura', description: 'Boas-vindas que apresentam a empresa antes mesmo da primeira reunião.' },
-  'eventos-que-continuam': { title: 'Eventos que continuam', description: 'Produtos úteis e compartilháveis para a experiência continuar depois do credenciamento.' },
-  'reconhecimento-com-desejo': { title: 'Reconhecimento com desejo', description: 'Presentes à altura de metas, marcos de carreira e conquistas que merecem memória.' },
-  'relacionamento-que-fica': { title: 'Relacionamento que fica', description: 'Ideias para clientes e parceiros levarem a sua marca para a rotina.' },
-  'novos-drops': { title: 'Novos drops', description: 'Lançamentos e achados recentes para quem quer fugir do briefing previsível.' },
-  'escolhas-de-menor-impacto': { title: 'Escolhas de menor impacto', description: 'Materiais e ideias para alinhar utilidade, mensagem e escolhas mais conscientes.' },
-  'tech-que-resolve': { title: 'Tech que resolve', description: 'Tecnologia para mesa, mobilidade e rotina — com função antes do efeito.' },
-  'celebracoes-com-significado': { title: 'Celebrações com significado', description: 'Datas especiais, encerramentos de ciclo e encontros que pedem algo além do protocolo.' },
-  'kits-prontos-para-combinar': { title: 'Kits prontos para combinar', description: 'Pontos de partida para compor experiências com diferentes produtos e embalagens.' },
-  'sua-marca-em-cena': { title: 'Sua marca em cena', description: 'Produtos com potencial para receber a identidade da campanha e circular de verdade.' },
-};
+export const catalogPreviews: Record<string, CuratedPagePreview> = publicCatalogEditorialEntries();
 
 export const occasionPreviews: Record<string, CuratedPagePreview> = {
   'ano-novo': { title: 'Ano Novo', description: 'Comece o ciclo com uma lembrança útil, otimista e alinhada à cultura da marca.' },
@@ -51,3 +40,4 @@ export const occasionPreviews: Record<string, CuratedPagePreview> = {
   natal: { title: 'Natal', description: 'Encerre o ano com uma experiência afetiva que reconhece e aproxima.' },
   confraternizacao: { title: 'Confraternização de fim de ano', description: 'Celebre resultados e relações com um kit que traduz a cultura da empresa.' },
 };
+import { publicCatalogEditorialEntries } from '../../shared/catalogEditorial.js';
