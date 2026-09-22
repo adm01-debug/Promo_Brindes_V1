@@ -27,9 +27,15 @@ function request(body: unknown, overrides: Partial<ApiRequest> = {}): ApiRequest
   };
 }
 
+// isoInstant() (api/_lib/contracts.ts) rejeita submittedAt/acceptedAt com mais
+// de 7 dias de idade em relação ao Date.now() real — um instante fixo aqui
+// vira bomba-relógio (passa a falhar sozinho uma semana depois, sem nenhuma
+// mudança de código). Calculado relativo a "agora" para nunca expirar.
+const RECENT_INSTANT = new Date(Date.now() - 60_000).toISOString();
+
 const common = {
-  consent: { accepted: true, noticeVersion: '2026-09-08', acceptedAt: '2026-09-08T12:00:00.000Z' },
-  submittedAt: '2026-09-08T12:00:00.000Z',
+  consent: { accepted: true, noticeVersion: '2026-09-08', acceptedAt: RECENT_INSTANT },
+  submittedAt: RECENT_INSTANT,
   pageUrl: 'https://www.promobrindes.com.br/',
 };
 
