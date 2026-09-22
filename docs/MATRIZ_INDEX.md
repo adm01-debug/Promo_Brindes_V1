@@ -2,7 +2,7 @@
 
 Fonte vigente dos 230 requisitos: [matriz de fechamento](MATRIZ_FECHAMENTO_PLANOS_20260912.csv). A data no nome é a origem do arquivo, não a data da última revisão.
 
-Última execução complementar: [22/09/2026](EXECUCAO_COMPLEMENTAR_20260922.md), com código-base auditado `25be22f768a6714aa04e0ccff06b0f556a7b8b7c`.
+Última execução complementar: [22/09/2026](EXECUCAO_COMPLEMENTAR_20260922.md), com código funcional auditado `ef97fc75e4109b90e5b25d14d9418d6557bb4640`. A validação independente está consolidada na [auditoria dos cinco especialistas](AUDITORIA_5_ESPECIALISTAS_20260922.md).
 
 ## Como ler
 

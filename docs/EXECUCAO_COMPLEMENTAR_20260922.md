@@ -2,7 +2,7 @@
 
 ## Resultado e escopo
 
-Base publicada da rodada anterior: `91653abaecd574722c6534ef271b7c078c8d8a47`, PR #24. Código desta rodada: `25be22f768a6714aa04e0ccff06b0f556a7b8b7c`.
+Base publicada da rodada anterior: `91653abaecd574722c6534ef271b7c078c8d8a47`, PR #24. Código funcional auditado nesta rodada: `ef97fc75e4109b90e5b25d14d9418d6557bb4640`.
 
 **O conjunto integral dos planos não está certificado como concluído.** Há critérios técnicos, editoriais e operacionais restantes, discriminados em [MATRIZ_INDEX.md](MATRIZ_INDEX.md). A resposta anterior que declarou conclusão integral foi ampla demais. Esta execução corrige funcionalidades reproduzíveis e atualiza 37 referências da matriz; não promove automaticamente todas as linhas para I.
 
@@ -27,17 +27,22 @@ Todo trabalho ocorre no Promo_Brindes_V1 e no Supabase isolado `xlzmclcjdncjfdrj
 
 ## Validação executada
 
-- `npm run check`: lint, TypeScript, 289 testes Vitest/API, contratos Node, build e orçamento de assets aprovados; Chromium 86 aprovados e 4 skips por projeto/viewport.
-- `npm run test:coverage`: limiares configurados aprovados; cobertura agregada de linhas 52,42%, não 100% de regras/UI.
+- `npm run check`: lint, TypeScript, 296 testes Vitest/API, contratos Node, build e orçamento de assets aprovados; Chromium 86 aprovados e 4 skips por projeto/viewport.
+- `npm run test:coverage`: limiares configurados aprovados; cobertura agregada de linhas 52,88% e 47,93% de statements, não 100% de regras/UI.
 - `npm run test:e2e:cross-browser`: Firefox/WebKit com 80 aprovados e 10 skips por configuração; não são dispositivos físicos.
-- `npm audit --audit-level=high`: zero vulnerabilidades reportadas.
-- `npm run db:site:test`: 441 asserções em 22 arquivos aprovadas; lint local sem erros.
+- `npm audit --audit-level=moderate`: zero vulnerabilidades reportadas.
+- `npm run db:site:test`: 458 asserções em 23 arquivos aprovadas; lint local sem erros ou avisos.
 - `npm run test:graphify`: 11 testes aprovados; benchmark estrutural 10/10, sem pretensão de precisão semântica universal.
 - `npm run ledger:check`: 230 referências e testes do validador; fontes e IDs conferidos.
 - Migration `20260922200000_preserve_shared_selection_priorities.sql` aditiva, aplicada localmente e no banco isolado após dry-run que listou somente essa migration.
+- Migration `20260922210000_close_selection_and_asset_integrity_gaps.sql` validada por reset, pgTAP e lint local; sua aplicação remota e a reconciliação do ledger são registradas na auditoria dos cinco especialistas.
 - Dicionário regenerado via catálogo PostgreSQL local; nenhuma alteração de dados no sistema interno.
 
 Os testes de provedores usam simulações. Este relatório não comprova recebimento de e-mail/WhatsApp, entrevistas, dispositivos físicos ou restauração de produção. Resultados finais de CI, merge e deployment são rastreáveis pelo PR desta rodada; não inferir publicação a partir de um teste local.
+
+## Auditoria posterior com cinco especialistas
+
+A revisão independente de banco, segurança, frontend/acessibilidade, contratos e CI encontrou e corrigiu gaps adicionais em sessão, kits, cores sem `variant_id`, limites numéricos, rate limit e metadados de upload. O inventário, as correções e as limitações residuais estão em [AUDITORIA_5_ESPECIALISTAS_20260922.md](AUDITORIA_5_ESPECIALISTAS_20260922.md).
 
 ## Dependências restantes
 
