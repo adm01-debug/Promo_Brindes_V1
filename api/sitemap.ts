@@ -19,8 +19,21 @@ interface ProductSitemapRow {
 }
 
 const MAX_SITEMAP_URLS = 50_000;
-const STATIC_URL_COUNT = 11;
-const MAX_PRODUCT_URLS = MAX_SITEMAP_URLS - STATIC_URL_COUNT;
+const STATIC_PAGES = [
+  { path: '/', changeFrequency: 'weekly', priority: '1.0' },
+  { path: '/catalogo', changeFrequency: 'daily', priority: '0.9' },
+  { path: '/catalogos', changeFrequency: 'weekly', priority: '0.8' },
+  { path: '/montar-kit', changeFrequency: 'weekly', priority: '0.8' },
+  { path: '/datas-comemorativas', changeFrequency: 'monthly', priority: '0.8' },
+  { path: '/sobre', changeFrequency: 'monthly', priority: '0.6' },
+  { path: '/contato', changeFrequency: 'monthly', priority: '0.6' },
+  { path: '/privacidade', changeFrequency: 'yearly', priority: '0.2' },
+  { path: '/ideias/onboarding', changeFrequency: 'monthly', priority: '0.7' },
+  { path: '/ideias/eventos', changeFrequency: 'monthly', priority: '0.7' },
+  { path: '/ideias/clientes-vip', changeFrequency: 'monthly', priority: '0.7' },
+  { path: '/ideias/sustentaveis', changeFrequency: 'monthly', priority: '0.7' },
+] as const;
+const MAX_PRODUCT_URLS = MAX_SITEMAP_URLS - STATIC_PAGES.length;
 
 class CatalogHttpError extends Error {
   constructor(readonly status: number) {
@@ -145,19 +158,8 @@ export default async function handler(request: VercelRequest, response: VercelRe
     return;
   }
 
-  const staticEntries = [
-    urlEntry(`${siteUrl}/`, 'weekly', '1.0'),
-    urlEntry(`${siteUrl}/catalogo`, 'daily', '0.9'),
-    urlEntry(`${siteUrl}/catalogos`, 'weekly', '0.8'),
-    urlEntry(`${siteUrl}/datas-comemorativas`, 'monthly', '0.8'),
-    urlEntry(`${siteUrl}/sobre`, 'monthly', '0.6'),
-    urlEntry(`${siteUrl}/contato`, 'monthly', '0.6'),
-    urlEntry(`${siteUrl}/privacidade`, 'yearly', '0.2'),
-    urlEntry(`${siteUrl}/ideias/onboarding`, 'monthly', '0.7'),
-    urlEntry(`${siteUrl}/ideias/eventos`, 'monthly', '0.7'),
-    urlEntry(`${siteUrl}/ideias/clientes-vip`, 'monthly', '0.7'),
-    urlEntry(`${siteUrl}/ideias/sustentaveis`, 'monthly', '0.7'),
-  ];
+  const staticEntries = STATIC_PAGES.map((page) =>
+    urlEntry(`${siteUrl}${page.path}`, page.changeFrequency, page.priority));
   const seenSlugs = new Set<string>();
   const productEntries = products.flatMap((product) => {
     const slug = product.slug?.trim();

@@ -23,6 +23,7 @@
     { "source": "/", "destination": "/index.html" },
     { "source": "/catalogo", "destination": "/api/site-page?page=catalogo" },
     { "source": "/catalogos", "destination": "/api/site-page?page=catalogos" },
+    { "source": "/montar-kit", "destination": "/api/site-page?page=montarKit" },
     { "source": "/datas-comemorativas", "destination": "/api/site-page?page=datas" },
     { "source": "/produto/:identifier", "destination": "/api/product-page" },
     { "source": "/orcamento", "destination": "/api/site-page?page=orcamento" },
