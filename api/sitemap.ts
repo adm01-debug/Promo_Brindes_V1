@@ -1,3 +1,6 @@
+import { currentCampaignYear } from '../shared/campaignYears.js';
+import { catalogPreviews, occasionPreviews } from './_lib/curatedPagePreviews.js';
+
 const CANONICAL_PROJECT_ID = 'doufsxqlfjyuvxuezpln';
 const SUPABASE_URL = `https://${CANONICAL_PROJECT_ID}.supabase.co`;
 const FALLBACK_SITE_URL = 'https://promo-brindes-v1.vercel.app';
@@ -161,7 +164,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
 
   const staticEntries = STATIC_PAGES.map((page) =>
     urlEntry(`${siteUrl}${page.path}`, page.changeFrequency, page.priority));
-  const currentYear = new Date().getUTCFullYear();
+  const currentYear = currentCampaignYear();
   const curatedEntries = [
     ...Object.keys(catalogPreviews).map((id) =>
       urlEntry(`${siteUrl}/catalogos?colecao=${encodeURIComponent(id)}`, 'monthly', '0.7')),
@@ -188,4 +191,3 @@ export default async function handler(request: VercelRequest, response: VercelRe
   response.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
   response.status(200).send(request.method === 'HEAD' ? '' : xml);
 }
-import { catalogPreviews, occasionPreviews } from './_lib/curatedPagePreviews.js';

@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import handler from '../../api/sitemap.js';
+import { currentCampaignYear } from '../../shared/campaignYears.js';
 
 function responseDouble() {
   const result = { headers: new Map<string, string>(), statusCode: 0, body: '' };
@@ -15,6 +16,7 @@ function responseDouble() {
 
 describe('sitemap público', () => {
   afterEach(() => {
+    vi.useRealTimers();
     vi.unstubAllGlobals();
     vi.unstubAllEnvs();
   });
@@ -43,7 +45,7 @@ describe('sitemap público', () => {
     expect(result.body).toContain('<loc>https://promo-brindes-v1.vercel.app/montar-kit</loc>');
     expect(result.body).toContain('<loc>https://promo-brindes-v1.vercel.app/ideias/onboarding</loc>');
     expect(result.body).toContain('<loc>https://promo-brindes-v1.vercel.app/catalogos?colecao=onboarding-com-cultura</loc>');
-    expect(result.body).toContain(`/datas-comemorativas?ano=${new Date().getUTCFullYear()}&amp;data=dia-do-cliente`);
+    expect(result.body).toContain(`/datas-comemorativas?ano=${currentCampaignYear()}&amp;data=dia-do-cliente`);
     expect(result.body).not.toContain('www.promobrindes.com.br');
     expect(result.headers.get('Cache-Control')).toBe('public, s-maxage=3600, stale-while-revalidate=86400');
     expect(fetchMock).toHaveBeenCalledTimes(50);
@@ -51,6 +53,19 @@ describe('sitemap público', () => {
     const lastUrl = new URL(String(lastCall?.[0]));
     expect(lastUrl.searchParams.get('limit')).toBe('945');
     expect(lastUrl.searchParams.get('order')).toBe('created_at.desc.nullslast,id.asc');
+  });
+
+  it('mantém o ano das datas no fuso editorial durante a virada UTC', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-12-31T23:30:00-03:00'));
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('[]', { status: 200 })));
+    const { response, result } = responseDouble();
+
+    await handler({ method: 'GET' }, response);
+
+    expect(result.statusCode).toBe(200);
+    expect(result.body).toContain('/datas-comemorativas?ano=2026&amp;data=dia-do-cliente');
+    expect(result.body).not.toContain('/datas-comemorativas?ano=2027&amp;data=dia-do-cliente');
   });
 
   it('prioriza o host público configurado e remove a barra final', async () => {
