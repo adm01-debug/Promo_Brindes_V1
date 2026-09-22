@@ -57,4 +57,8 @@ Código funcional auditado: `ef97fc75e4109b90e5b25d14d9418d6557bb4640`.
 
 ## Critério de encerramento
 
-A migration e o Supabase isolado estão reconciliados. O encerramento desta rodada ainda depende da reconciliação do código no GitHub, dos checks do PR, do deployment Vercel e do smoke HTTP, que devem ser registrados separadamente. Nenhuma passagem local, isoladamente, autoriza declarar o sistema inteiro “perfeito” ou os aceites externos concluídos.
+A migration e o Supabase isolado estão reconciliados. A rodada foi encerrada pelo PR #26, mesclado em `main` no commit `1eb8e50fb475d22167ad0f8403811ce7e4242a92`. Quality Gate, Firefox/WebKit, pgTAP, CodeQL e Graphify passaram no PR e novamente em `main`; o deployment de produção da Vercel foi concluído.
+
+O smoke público pós-deploy confirmou `200` na home, catálogo, montador, produto real e sitemap; a rota inexistente retornou `404`; a API de seleção compartilhada retornou `404` contratual para token inexistente. O dry-run final do Supabase informou `upToDate: true`; consulta ao catálogo remoto confirmou as novas RPCs limitadas, a guarda de Storage e a remoção das assinaturas antigas sem rate limit.
+
+Os relatórios locais de revisão pertencentes ao usuário permaneceram fora dos commits. Nenhuma passagem técnica autoriza declarar os aceites externos concluídos: provedores adiados, inspeção binária, entrevistas, dispositivos físicos e ensaio de restore continuam explicitamente fora desta certificação.
