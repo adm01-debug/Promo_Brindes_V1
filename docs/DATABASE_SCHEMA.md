@@ -35,4 +35,4 @@ erDiagram
 
 ## Verificação de drift
 
-CI (`database.yml`) roda `supabase db diff --local` implicitamente via `db reset` a partir das migrations — se o schema real não corresponder ao que as migrations descrevem, `db reset` falha antes mesmo de chegar neste script. Este arquivo, por sua vez, falha o build se estiver desatualizado em relação ao que `db reset` produziu (mesmo padrão de `src/types/site-database.types.ts` e `docs/DATABASE_DICTIONARY.md`).
+CI (`database.yml`) executa `supabase db reset` para reconstruir o banco **local** a partir das migrations e compara este arquivo gerado, os tipos e o dicionário com o repositório. Isso detecta drift entre artefatos versionados e o schema local reconstruído; **não** executa `db diff` nem comprova paridade com o Supabase remoto. A paridade remota exige `migration list --linked`, `db push --dry-run` e inspeção de catálogo no projeto isolado.
