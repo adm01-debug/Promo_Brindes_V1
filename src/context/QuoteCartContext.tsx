@@ -134,6 +134,7 @@ export function QuoteCartProvider({ children }: { children: ReactNode }) {
       setItemDecisionGroup: (key, group) => dispatch({ type: 'decision-group', key, group }),
       replaceItems: (items) => dispatch({ type: 'replace', items }),
       replaceSelection: (items) => dispatch({ type: 'replace-selection', items }),
+      restoreSavedSelection: (items, campaign, title) => dispatch({ type: 'restore-saved-selection', items, campaign, title }),
       setCampaign: (campaign) => dispatch({ type: 'campaign', campaign: normalizeCampaignBrief(campaign) }),
       setSelectionTitle: (title) => dispatch({ type: 'selection-title', title }),
       clear: () => {

@@ -9,6 +9,7 @@ erDiagram
   consent_receipts
   contact_requests
   customer_profiles
+  customer_selections
   notification_deliveries
   notification_provider_events
   proposal_documents
@@ -23,6 +24,7 @@ erDiagram
   consent_receipts }o--|| contact_requests : references
   consent_receipts }o--|| quote_requests : references
   customer_profiles }o--|| users : references
+  customer_selections }o--|| users : references
   notification_deliveries }o--|| notification_provider_events : references
   notification_provider_events }o--|| notification_deliveries : references
   proposal_documents }o--|| quote_requests : references

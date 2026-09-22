@@ -2,6 +2,7 @@ import { ArrowRight, CalendarDays, LogOut, PackageOpen, Search, Sparkles } from 
 import { type FormEvent, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { CustomerRoute } from '../components/CustomerRoute';
+import { SavedSelections } from '../components/SavedSelections';
 import { Seo } from '../components/Seo';
 import { useCustomerAuth } from '../context/customerAuth';
 import { customerStatusLabel, customerStatusOptions, customerStatusTone, fetchMyQuoteRequests, type CustomerQuotePage, type CustomerQuoteStatus } from '../lib/customerAccount';
@@ -61,6 +62,7 @@ function AccountContent() {
       <header className="customer-dashboard-hero">
         <div className="container customer-dashboard-hero__inner"><div><span className="section-kicker">Área do Cliente</span><h1>Suas campanhas<br /><em>continuam daqui.</em></h1><p>Consulte briefings enviados, acompanhe o que já está disponível e reutilize boas escolhas.</p></div><div className="customer-dashboard-hero__account"><span>ACESSO VERIFICADO</span><strong>{auth.user?.email}</strong><button type="button" onClick={() => void auth.signOut()}><LogOut size={16} /> Sair</button></div></div>
       </header>
+      <SavedSelections key={`${auth.user?.id || ''}:${auth.identityEpoch}`} />
       <section className="customer-dashboard section" aria-labelledby="my-quotes-title">
         <div className="container">
           <div className="customer-dashboard__heading"><div><span className="section-kicker">Histórico</span><h2 id="my-quotes-title">Meus orçamentos</h2></div><Link className="button button--green" to="/catalogo">Criar novo briefing <ArrowRight size={17} /></Link></div>

@@ -1,20 +1,27 @@
 const SITE_PROJECT_ID = 'xlzmclcjdncjfdrjxclt';
+const INTERNAL_PROJECT_ID = 'doufsxqlfjyuvxuezpln';
 export const SITE_SUPABASE_URL = `https://${SITE_PROJECT_ID}.supabase.co`;
 
-export function resolveSiteSupabaseUrl(candidate?: string): string {
+export function resolveSiteSupabaseUrl(
+  candidate?: string,
+  deploymentEnv: string = import.meta.env.VITE_SITE_DEPLOYMENT_ENV || 'production',
+  previewProjectRef: string = import.meta.env.VITE_SITE_PREVIEW_PROJECT_REF || '',
+): string {
   const value = candidate?.trim();
-  if (!value) return SITE_SUPABASE_URL;
+  const expectedRef = deploymentEnv === 'preview' ? previewProjectRef.trim() : SITE_PROJECT_ID;
+  if (!/^[a-z0-9]{20}$/.test(expectedRef) || (deploymentEnv === 'preview' && [SITE_PROJECT_ID, INTERNAL_PROJECT_ID].includes(expectedRef))) return '';
+  if (!value) return deploymentEnv === 'preview' ? '' : SITE_SUPABASE_URL;
   try {
     const url = new URL(value);
-    if (url.protocol === 'https:' && url.hostname === `${SITE_PROJECT_ID}.supabase.co` && !url.username && !url.password) {
-      return SITE_SUPABASE_URL;
+    if (url.protocol === 'https:' && url.hostname === `${expectedRef}.supabase.co` && !url.username && !url.password) {
+      return url.origin;
     }
   } catch {
     return '';
   }
   return '';
 }
-export function resolveSitePublishableKey(candidate?: string): string {
+export function resolveSitePublishableKey(candidate?: string, expectedProjectRef: string = SITE_PROJECT_ID): string {
   const value = candidate?.trim() || '';
   if (!value || value.startsWith('sb_secret_')) return '';
   if (value.startsWith('sb_publishable_')) return value;
@@ -25,15 +32,16 @@ export function resolveSitePublishableKey(candidate?: string): string {
     if (!tokenPayload) return '';
     const encoded = tokenPayload.replaceAll('-', '+').replaceAll('_', '/');
     const payload = JSON.parse(atob(encoded.padEnd(Math.ceil(encoded.length / 4) * 4, '='))) as { role?: string; ref?: string };
-    return payload.role === 'anon' && (!payload.ref || payload.ref === SITE_PROJECT_ID) ? value : '';
+    return payload.role === 'anon' && (!payload.ref || payload.ref === expectedProjectRef) ? value : '';
   } catch {
     return '';
   }
 }
 
 export function hasSiteAuthConfiguration(): boolean {
+  const url = resolveSiteSupabaseUrl(import.meta.env.VITE_SITE_SUPABASE_URL);
+  const projectRef = url ? new URL(url).hostname.split('.')[0] : '';
   return Boolean(
-    resolveSiteSupabaseUrl(import.meta.env.VITE_SITE_SUPABASE_URL)
-    && resolveSitePublishableKey(import.meta.env.VITE_SITE_SUPABASE_PUBLISHABLE_KEY),
+    url && resolveSitePublishableKey(import.meta.env.VITE_SITE_SUPABASE_PUBLISHABLE_KEY, projectRef),
   );
 }

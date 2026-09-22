@@ -109,4 +109,16 @@ describe('seleção para orçamento', () => {
     const saved = { items: [item], campaign: { source: 'finder' as const, moment: 'onboarding' as const }, selectionTitle: 'Boas-vindas do time' };
     expect(cartReducer({ items: [] }, { type: 'restore-selection', state: saved })).toEqual(saved);
   });
+
+  it('retoma uma seleção da conta em uma única transição, sem misturar a campanha anterior', () => {
+    const restored = cartReducer(
+      { items: [item], campaign: { source: 'finder', moment: 'onboarding' }, selectionTitle: 'Antiga' },
+      { type: 'restore-saved-selection', items: [{ ...item, quantity: 250, decisionGroup: 'alternative' }], campaign: { source: 'finder', moment: 'evento' }, title: 'Feira de outubro' },
+    );
+    expect(restored).toMatchObject({
+      items: [{ ...item, quantity: 250, decisionGroup: 'alternative' }],
+      campaign: { source: 'finder', moment: 'evento' },
+      selectionTitle: 'Feira de outubro',
+    });
+  });
 });

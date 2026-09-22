@@ -51,6 +51,10 @@ export type Database = {
         }
         Returns: Json
       }
+      delete_my_selection: {
+        Args: { p_expected_version: number; p_id: string }
+        Returns: boolean
+      }
       erase_customer_data: { Args: { p_email: string }; Returns: Json }
       finalize_site_data_retention: {
         Args: {
@@ -91,6 +95,14 @@ export type Database = {
         Returns: Json
       }
       get_site_shared_selection: { Args: { p_token: string }; Returns: Json }
+      list_my_selections: {
+        Args: { p_include_archived?: boolean }
+        Returns: Json
+      }
+      purge_archived_customer_selections: {
+        Args: { p_batch_size?: number }
+        Returns: number
+      }
       record_site_notification_provider_acceptance: {
         Args: {
           p_delivery_id: string
@@ -110,6 +122,20 @@ export type Database = {
       }
       revoke_site_shared_selection: {
         Args: { p_management_token_hash: string; p_token: string }
+        Returns: Json
+      }
+      save_my_selection: {
+        Args: {
+          p_campaign?: Json
+          p_expected_version?: number
+          p_id?: string
+          p_references: Json
+          p_title: string
+        }
+        Returns: Json
+      }
+      set_my_selection_archived: {
+        Args: { p_archived: boolean; p_expected_version: number; p_id: string }
         Returns: Json
       }
       site_notification_queue_health: { Args: never; Returns: Json }
@@ -312,6 +338,42 @@ export type Database = {
           updated_at?: string
           user_id?: string
           verified_email?: string
+        }
+        Relationships: []
+      }
+      customer_selections: {
+        Row: {
+          archived_at: string | null
+          campaign: Json | null
+          created_at: string
+          customer_user_id: string
+          id: string
+          product_references: Json
+          title: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          archived_at?: string | null
+          campaign?: Json | null
+          created_at?: string
+          customer_user_id: string
+          id?: string
+          product_references: Json
+          title: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          archived_at?: string | null
+          campaign?: Json | null
+          created_at?: string
+          customer_user_id?: string
+          id?: string
+          product_references?: Json
+          title?: string
+          updated_at?: string
+          version?: number
         }
         Relationships: []
       }

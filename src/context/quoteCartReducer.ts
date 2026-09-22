@@ -18,6 +18,7 @@ export type CartAction =
   | { type: 'reset' }
   | { type: 'replace'; items: QuoteItem[] }
   | { type: 'replace-selection'; items: QuoteItem[] }
+  | { type: 'restore-saved-selection'; items: QuoteItem[]; campaign?: CampaignBrief; title?: string }
   | { type: 'restore-selection'; state: CartState }
   | { type: 'restore'; item: QuoteItem; index: number }
   | { type: 'campaign'; campaign?: CampaignBrief }
@@ -63,6 +64,11 @@ export function cartReducer(state: CartState, action: CartAction): CartState {
     case 'reset': return initialState;
     case 'replace': return { ...state, items: normalizeQuoteItems(action.items) };
     case 'replace-selection': return { items: normalizeQuoteItems(action.items) };
+    case 'restore-saved-selection': return {
+      items: normalizeQuoteItems(action.items),
+      campaign: normalizeCampaignBrief(action.campaign),
+      selectionTitle: action.title?.trim().slice(0, 100) || undefined,
+    };
     case 'restore-selection': return {
       items: normalizeQuoteItems(action.state.items),
       campaign: normalizeCampaignBrief(action.state.campaign),

@@ -61,6 +61,20 @@ describe('worker de comprovantes do orçamento', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it('Preview não envia mensagens reais mesmo se herdar credenciais dos provedores', async () => {
+    configure();
+    vi.stubEnv('VERCEL_ENV', 'preview');
+    vi.stubEnv('RESEND_API_KEY', 're_synthetic_test_key');
+    vi.stubEnv('SITE_EMAIL_FROM', 'Promo Brindes <atendimento@example.test>');
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    await expect(deliverQuoteConfirmationsNow(emailJob.requestId, false)).resolves.toEqual({ email: 'pending', whatsapp: 'not_requested' });
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+    expect(result.statusCode).toBe(503);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('envia e-mail transacional escapado e finaliza a entrega', async () => {
     configure();
     vi.stubEnv('RESEND_API_KEY', 're_synthetic_test_key');

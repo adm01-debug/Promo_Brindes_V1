@@ -83,6 +83,22 @@ _Sem comment on table — considerar adicionar um na próxima migration que toca
 | `created_at` | `timestamp with time zone` | — |
 | `updated_at` | `timestamp with time zone` | — |
 
+### `site_private.customer_selections`
+
+Rascunhos privados do titular, sem preço nem estoque. A FK apaga ao excluir a conta; pedido de apagamento do titular remove via trigger do perfil; arquivados são purgados após 90 dias.
+
+| Coluna | Tipo | Comentário |
+|---|---|---|
+| `id` | `uuid` | — |
+| `customer_user_id` | `uuid` | — |
+| `title` | `text` | — |
+| `product_references` | `jsonb` | Somente IDs públicos, quantidade, variante e grupo de decisão; dados do produto são reidratados do catálogo ao restaurar. |
+| `campaign` | `jsonb` | — |
+| `version` | `integer` | — |
+| `archived_at` | `timestamp with time zone` | — |
+| `created_at` | `timestamp with time zone` | — |
+| `updated_at` | `timestamp with time zone` | — |
+
 ### `site_private.notification_deliveries`
 
 Auditoria de entregas futuras. WhatsApp exige consentimento específico antes da criação do registro. Etapa 40: fillfactor 80 deixa espaço para HOT updates nos vários updates por linha (claim, aceite, finalização, webhook); autovacuum mais agressivo que o padrão (20%) evita acúmulo de tuplas mortas.
@@ -282,6 +298,7 @@ Transições administrativas válidas por entidade (Etapa 8). Fonte única de ve
 | `create_site_contact_request` | `p_payload jsonb, p_request_meta jsonb` | — |
 | `create_site_quote_request` | `p_payload jsonb, p_request_meta jsonb` | — |
 | `create_site_shared_selection` | `p_items jsonb, p_management_token_hash text, p_identifier_hash text` | — |
+| `delete_my_selection` | `p_id uuid, p_expected_version integer` | — |
 | `erase_customer_data` | `p_email text` | Etapa 32: apagamento de titular (LGPD art. 18). Anonimiza quote_requests/contact_requests/customer_profiles em vez de apagar (preserva id/datas/protocolo para integridade referencial e evidência de conformidade); apaga proposal_documents (o PDF pode conter PII no conteúdo, não só nos metadados) e devolve os caminhos de Storage para o chamador limpar. Idempotente: reexecutar para o mesmo e-mail não reprocessa linhas já anonimizadas. Não cobre texto livre (message de contact_requests/quote_adjustment_requests) — sem análise de conteúdo não dá para distinguir PII digitada de conteúdo legítimo. |
 | `finalize_site_data_retention` | `p_quote_ids uuid[], p_storage_paths text[], p_batch_size integer` | — |
 | `finalize_site_notification_delivery` | `p_delivery_id uuid, p_lease_token uuid, p_status text, p_provider text, p_provider_message_id text, p_error_code text, p_retry_after_seconds integer` | Finaliza uma tentativa previamente reivindicada; exige o lease_token da reivindicação ativa (R04). Backoff exponencial com jitter via site_private.next_retry_at (Etapa 11); p_retry_after_seconds é só um piso opcional do provedor. |
@@ -290,7 +307,11 @@ Transições administrativas válidas por entidade (Etapa 8). Fonte única de ve
 | `get_my_quote_requests` | `p_limit integer, p_offset integer, p_status text, p_search text` | Lista solicitações do auth.uid() com título de ação, miniaturas e última movimentação visível ao cliente. |
 | `get_site_data_retention_candidates` | `p_batch_size integer` | — |
 | `get_site_shared_selection` | `p_token uuid` | — |
+| `list_my_selections` | `p_include_archived boolean` | — |
+| `purge_archived_customer_selections` | `p_batch_size integer` | — |
 | `record_site_notification_provider_acceptance` | `p_delivery_id uuid, p_lease_token uuid, p_provider text, p_provider_message_id text` | Registra o aceite do provedor antes da finalização, para reconciliação em caso de falha na etapa seguinte (R01, R02). |
 | `request_my_quote_adjustment` | `p_request_id uuid, p_message text, p_client_request_id text` | Registra um pedido de ajuste somente para o titular autenticado da solicitação, mantendo o texto no schema privado. |
 | `revoke_site_shared_selection` | `p_token uuid, p_management_token_hash text` | — |
+| `save_my_selection` | `p_title text, p_references jsonb, p_campaign jsonb, p_id uuid, p_expected_version integer` | — |
+| `set_my_selection_archived` | `p_id uuid, p_expected_version integer, p_archived boolean` | — |
 | `site_notification_queue_health` | `` | Idade do job elegível mais antigo e contagem de exhausted por canal (Etapa 29); devolve só contagens e canais, sem conteúdo pessoal. |

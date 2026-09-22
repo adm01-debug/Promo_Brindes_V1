@@ -42,13 +42,14 @@ describe('tarefa de retenção', () => {
       }
       if (url.includes('/storage/v1/object/customer-proposals')) return new Response('[]', { status: 200 });
       if (url.includes('/finalize_site_data_retention')) return new Response(JSON.stringify({ quotesDeleted: 1, proposalDocumentsDeleted: 1 }), { status: 200 });
+      if (url.includes('/purge_archived_customer_selections')) return new Response('0', { status: 200 });
       return new Response('{}', { status: 500 });
     });
     vi.stubGlobal('fetch', fetchMock);
     const { result, response } = responseDouble();
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
     expect(result.statusCode).toBe(200);
-    expect(fetchMock.mock.calls).toHaveLength(3);
+    expect(fetchMock.mock.calls).toHaveLength(4);
     const [candidatesUrl, candidatesInit] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(candidatesUrl).toBe('https://xlzmclcjdncjfdrjxclt.supabase.co/rest/v1/rpc/get_site_data_retention_candidates');
     expect(candidatesInit.headers).toMatchObject({ apikey: expect.stringMatching(/^sb_secret_/) });
@@ -59,6 +60,7 @@ describe('tarefa de retenção', () => {
     const [finalizeUrl, finalizeInit] = fetchMock.mock.calls[2] as [string, RequestInit];
     expect(finalizeUrl).toBe('https://xlzmclcjdncjfdrjxclt.supabase.co/rest/v1/rpc/finalize_site_data_retention');
     expect(finalizeInit.body).toBe(`{"p_quote_ids":["${quoteId}"],"p_storage_paths":["cliente/proposta.pdf"],"p_batch_size":100}`);
+    expect(String(fetchMock.mock.calls[3]?.[0])).toContain('/purge_archived_customer_selections');
   });
 
   it('usa a role limitada para RPC e a chave de Storage separada ao migrar a autenticação', async () => {
@@ -72,6 +74,7 @@ describe('tarefa de retenção', () => {
       }
       if (url.includes('/storage/v1/object/customer-proposals')) return new Response('[]', { status: 200 });
       if (url.includes('/finalize_site_data_retention')) return new Response('{}', { status: 200 });
+      if (url.includes('/purge_archived_customer_selections')) return new Response('0', { status: 200 });
       return new Response('{}', { status: 500 });
     });
     vi.stubGlobal('fetch', fetchMock);
@@ -84,6 +87,7 @@ describe('tarefa de retenção', () => {
     expect(rpcHeaders).toMatchObject({ Authorization: `Bearer ${serviceJwt}` });
     expect(storageHeaders).toMatchObject({ Authorization: `Bearer ${storageSecret}`, apikey: storageSecret });
     expect((fetchMock.mock.calls[2]?.[1] as RequestInit).headers).toMatchObject({ Authorization: `Bearer ${serviceJwt}` });
+    expect((fetchMock.mock.calls[3]?.[1] as RequestInit).headers).toMatchObject({ Authorization: `Bearer ${serviceJwt}` });
   });
 
   it('não finaliza metadados quando falta credencial para apagar um blob existente', async () => {
@@ -152,12 +156,13 @@ describe('tarefa de retenção', () => {
       }
       if (url.includes('/storage/v1/object/customer-proposals')) return new Response('{"error":"not_found"}', { status: 404 });
       if (url.includes('/finalize_site_data_retention')) return new Response(JSON.stringify({ quotesDeleted: 1, proposalDocumentsDeleted: 1 }), { status: 200 });
+      if (url.includes('/purge_archived_customer_selections')) return new Response('0', { status: 200 });
       return new Response('{}', { status: 500 });
     });
     vi.stubGlobal('fetch', fetchMock);
     const { result, response } = responseDouble();
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
     expect(result.statusCode).toBe(200);
-    expect(fetchMock.mock.calls).toHaveLength(3);
+    expect(fetchMock.mock.calls).toHaveLength(4);
   });
 });
