@@ -1112,3 +1112,52 @@ test('navegação de catálogo por query fecha menu e reposiciona resultados', a
   await expect(page.getByRole('navigation', { name: 'Navegação móvel' })).toBeHidden();
   await expect(page.locator('#catalog-results-title')).toBeInViewport();
 });
+
+test('voltar ao catálogo restaura a leitura mesmo após conteúdo assíncrono', async ({ page }) => {
+  await page.goto('/catalogo');
+  await expect(page.locator('.product-card')).toHaveCount(1);
+  await page.evaluate(() => {
+    document.documentElement.style.scrollBehavior = 'auto';
+    const spacer = document.createElement('div');
+    spacer.id = 'scroll-restoration-fixture';
+    spacer.style.height = '1400px';
+    document.querySelector('main')?.append(spacer);
+    window.scrollTo(0, 900);
+  });
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(500);
+  const saved = await page.evaluate(() => window.scrollY);
+  expect(saved).toBeGreaterThan(500);
+  await page.getByRole('link', { name: /Mochila Executiva Sustentável/i }).first().evaluate((element: HTMLElement) => element.click());
+  await expect(page.getByRole('heading', { name: product.name })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole('heading', { name: 'Sua seleção começa aqui.' })).toBeVisible();
+  await expect.poll(() => page.evaluate(() => window.scrollY), { timeout: 2_000 }).toBeGreaterThan(saved - 10);
+});
+
+test('impressão mantém a seleção legível e gera PDF paginado', async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.includes('chromium'), 'Geração de PDF é validada pelo motor Chromium.');
+  await page.addInitScript(({ product }) => {
+    localStorage.setItem('promo-brindes:quote-selection:v1', JSON.stringify({ items: Array.from({ length: 8 }, (_, index) => ({
+      key: `${product.id}-${index}::sem-cor`, productId: `${product.id.slice(0, -1)}${index}`,
+      slug: product.slug, name: `${product.name} ${index + 1}`, sku: `${product.sku}-${index + 1}`,
+      imageUrl: product.primary_image_url, quantity: 100 + index * 10, minQuantity: 50,
+    })) }));
+  }, { product });
+  await page.goto('/orcamento');
+  await expect(page.locator('.quote-item')).toHaveCount(8);
+  await page.emulateMedia({ media: 'print' });
+  await expect(page.locator('.quote-print-identity')).toBeVisible();
+  await expect(page.locator('.quote-form-section')).toBeHidden();
+  await expect(page.locator('.quote-print-button')).toBeHidden();
+  await expect(page.locator('.quote-item').first()).toBeVisible();
+  const printLayout = await page.locator('.quote-item').first().evaluate((element) => ({
+    breakInside: getComputedStyle(element).breakInside,
+    columns: getComputedStyle(element).gridTemplateColumns,
+  }));
+  expect(printLayout.breakInside).toBe('avoid');
+  expect(printLayout.columns.split(' ').length).toBeGreaterThanOrEqual(3);
+  const pdf = await page.pdf({ format: 'A4', printBackground: true });
+  const pageObjects = pdf.toString('latin1').match(/\/Type\s*\/Page\b/g) || [];
+  expect(pdf.byteLength).toBeGreaterThan(20_000);
+  expect(pageObjects.length).toBeGreaterThanOrEqual(2);
+});

@@ -4,7 +4,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { Seo } from '../components/Seo';
 import { trackFunnelEvent } from '../lib/analytics';
 import {
-  catalogCollections,
+  publicCatalogCollections,
   catalogFormatLabel,
   catalogThemeOptions,
   filterCatalogCollections,
@@ -16,6 +16,7 @@ import { replaceBrokenProductImage } from '../lib/images';
 
 type CatalogThemeFilter = 'all' | CatalogCollectionTheme;
 type ShareState = 'idle' | 'copied' | 'shared' | 'error';
+const catalogCollections = publicCatalogCollections();
 
 function validTheme(value: string | null): CatalogThemeFilter {
   return catalogThemeOptions.some((option) => option.id === value) ? value as CatalogThemeFilter : 'all';

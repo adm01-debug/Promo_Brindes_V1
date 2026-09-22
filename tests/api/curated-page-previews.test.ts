@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { catalogPreviews, occasionPreviews } from '../../api/_lib/curatedPagePreviews.js';
+import { catalogEditorialEntries } from '../../shared/catalogEditorial.js';
 
 function idsFromArraySource(path: string, declaration: string): string[] {
   const source = readFileSync(join(process.cwd(), path), 'utf8');
@@ -14,7 +15,7 @@ function idsFromArraySource(path: string, declaration: string): string[] {
 describe('previews das rotas editoriais', () => {
   it('mantém todas as coleções públicas sincronizadas com a biblioteca', () => {
     expect(Object.keys(catalogPreviews).sort()).toEqual(
-      idsFromArraySource('src/lib/catalogLibrary.ts', 'export const catalogCollections').sort(),
+      Object.keys(catalogEditorialEntries).sort(),
     );
   });
 

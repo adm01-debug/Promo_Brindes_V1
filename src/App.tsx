@@ -7,6 +7,7 @@ import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { QuoteCartProvider } from './context/QuoteCartContext';
 import { CustomerAuthProvider } from './context/CustomerAuthContext';
 import { redactAnalyticsUrl } from './lib/analytics';
+import { browserScrollRestorationAdapter, restoreScrollPosition } from './lib/scrollRestoration';
 
 // Etapa 1 do plano de 20260917: HomePage era a única rota carregada de forma
 // estática (import direto), arrastando QuoteDrawer/ConversationForm/
@@ -45,8 +46,17 @@ function ScrollManager() {
     const pathChanged = previousPathname.current !== null && previousPathname.current !== pathname;
     // Atualizações locais de busca/filtro mudam a URL, mas não devem roubar foco
     // nem devolver a pessoa ao topo da mesma página.
+    let cancelRestoration: (() => void) | undefined;
     if (previousPathname.current === null || pathChanged) {
-      window.scrollTo({ top: savedPosition ?? 0, behavior: 'auto' });
+      if (savedPosition === undefined) window.scrollTo({ top: 0, behavior: 'auto' });
+      else cancelRestoration = restoreScrollPosition(savedPosition, browserScrollRestorationAdapter());
+    }
+    const cancelOnIntent = () => cancelRestoration?.();
+    if (cancelRestoration) {
+      window.addEventListener('wheel', cancelOnIntent, { passive: true, once: true });
+      window.addEventListener('touchstart', cancelOnIntent, { passive: true, once: true });
+      window.addEventListener('pointerdown', cancelOnIntent, { passive: true, once: true });
+      window.addEventListener('keydown', cancelOnIntent, { once: true });
     }
     let frame: number | undefined;
     if (initialRender.current) {
@@ -58,6 +68,11 @@ function ScrollManager() {
     }
     previousPathname.current = pathname;
     return () => {
+      cancelRestoration?.();
+      window.removeEventListener('wheel', cancelOnIntent);
+      window.removeEventListener('touchstart', cancelOnIntent);
+      window.removeEventListener('pointerdown', cancelOnIntent);
+      window.removeEventListener('keydown', cancelOnIntent);
       if (frame !== undefined) window.cancelAnimationFrame(frame);
       positionsMap.set(key, window.scrollY);
       // Mantém a memória de navegação curta sem crescer durante longas sessões.

@@ -2,7 +2,9 @@
 
 Fonte vigente dos 230 requisitos: [matriz de fechamento](MATRIZ_FECHAMENTO_PLANOS_20260912.csv). A data no nome é a origem do arquivo, não a data da última revisão.
 
-Última execução técnica: [22/09/2026](EXECUCAO_FECHAMENTO_TECNICO_20260922.md), com código funcional auditado `fabb52bc0acbbe8146da7c0ceabada13316991db`. A rodada complementar anterior está em [EXECUCAO_COMPLEMENTAR_20260922.md](EXECUCAO_COMPLEMENTAR_20260922.md) e a validação independente em [AUDITORIA_5_ESPECIALISTAS_20260922.md](AUDITORIA_5_ESPECIALISTAS_20260922.md).
+Última execução técnica: [navegação, impressão e governança editorial de 22/09/2026](EXECUCAO_VALIDACOES_UX_EDITORIAL_20260922.md), com código funcional `909b1eff043a45690a8b08f3b0f55d1dd624474f`. O [fechamento técnico anterior](EXECUCAO_FECHAMENTO_TECNICO_20260922.md), a [rodada complementar](EXECUCAO_COMPLEMENTAR_20260922.md) e a [validação independente](AUDITORIA_5_ESPECIALISTAS_20260922.md) permanecem como evidências históricas.
+
+Distribuição vigente: **118 I / 100 P / 1 N / 11 E**. A contagem não é um percentual de qualidade: cada linha conserva seu próprio critério e dependências externas não viram implementação por decreto.
 
 ## Como ler
 
@@ -19,7 +21,7 @@ Cada linha mantém sua própria versão auditada. Linhas não reavaliadas conser
 | Frente | Situação e critério restante |
 | --- | --- |
 | Integrações adiadas | Usuário adiou JWT de role limitada, Resend, WhatsApp, webhooks e alertas. Não afirmar envio de cópias em produção. |
-| Catálogos editoriais | UX84 permanece ausente: publicação/revisão/validade de PDFs e revistas ainda não tem fluxo operacional. A biblioteca de coleções online não equivale a isso. Materiais aprovados precisam ser localizados. |
+| Catálogos editoriais | UX84 passou de ausente para parcial: publicação, revisão, validade e retirada já governam biblioteca, preview e sitemap. PDFs/revistas reais, autorizados e seu controle de arquivo ainda precisam ser localizados e operados. |
 | Conteúdo visual e cases | LK10 e os aceites de fotos, bastidores, cases e prova social precisam de acervo identificado, direitos e associação com as páginas. O usuário confirmou que tem materiais, mas não forneceu sua localização. |
 | Previews e indexação | Coleções e datas têm HTML inicial, canonical e entradas curadas no sitemap. A imagem social ainda é compartilhada e cache/renderização nos canais e indexação exigem validação externa. |
 | Campanhas | Biblioteca, versionamento, arquivo e resolução guiada de concorrência existem. A continuidade é explícita por seleções salvas; o carrinho local não é sincronizado automaticamente em segundo plano. |
