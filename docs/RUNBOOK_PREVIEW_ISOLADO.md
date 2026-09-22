@@ -13,6 +13,6 @@ O Preview da Vercel não pode ler/escrever o banco **de produção do site** (`x
 
 ## Condição de publicação
 
-Enquanto a Vercel mantiver `SITE_SUPABASE_URL`, `VITE_SITE_SUPABASE_URL` e `SITE_SUPABASE_SECRET_KEY` compartilhadas entre Production e Preview, o Preview é **somente leitura do catálogo público**. Não marcar isolamento ponta a ponta como validado. Não remover a guarda para “fazer o formulário funcionar”.
+Em 22/09/2026, `SITE_SUPABASE_URL`, `VITE_SITE_SUPABASE_URL`, `SITE_SUPABASE_SECRET_KEY`, `VITE_SITE_SUPABASE_PUBLISHABLE_KEY`, `SITE_REQUEST_HASH_SALT` e `SITE_PUBLIC_ORIGIN` foram restringidas a **Production** na Vercel. Novos deploys Preview, sem substitutas próprias, são somente leitura do catálogo público e não acessam a conta nem registram pedidos. A alteração de escopo não revoga variáveis já incorporadas a deploys antigos; tratar sua desativação/rotação como ação operacional separada. Não marcar isolamento ponta a ponta como validado sem o ensaio autenticado. Não remover a guarda para “fazer o formulário funcionar”.
 
 Para um Preview permanente, decidir explicitamente custo, retenção e dono da branch/projeto isolado; só depois automatizar a rotação das variáveis e a CSP específica. A integração GitHub do Supabase pode criar branches efêmeras por PR, mas isso não injeta automaticamente URL, chaves e ref no runtime Vercel.
