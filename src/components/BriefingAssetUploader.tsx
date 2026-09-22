@@ -26,6 +26,8 @@ export function BriefingAssetUploader({ value, onChange, contactEmail }: {
   const auth = useCustomerAuth();
   const inputRef = useRef<HTMLInputElement>(null);
   const sessionGeneration = useRef(0);
+  const identityKeyRef = useRef<string | undefined>(undefined);
+  const selectedAssetIdsRef = useRef(value);
   const [assets, setAssets] = useState<BriefingAsset[]>([]);
   const [kind, setKind] = useState<BriefingAssetKind>('logo');
   const [loading, setLoading] = useState(false);
@@ -33,12 +35,20 @@ export function BriefingAssetUploader({ value, onChange, contactEmail }: {
   const accountEmail = auth.user?.email?.trim().toLowerCase() || '';
   const normalizedContactEmail = contactEmail.trim().toLowerCase();
   const emailMismatch = Boolean(accountEmail && normalizedContactEmail && accountEmail !== normalizedContactEmail);
+  selectedAssetIdsRef.current = value;
 
   useEffect(() => {
+    const identityKey = auth.user ? `${auth.user.id}:${auth.identityEpoch}` : `anonymous:${auth.identityEpoch}`;
+    const identityChanged = identityKeyRef.current !== undefined && identityKeyRef.current !== identityKey;
+    identityKeyRef.current = identityKey;
+    const selectedForThisSession = identityChanged ? [] : [...selectedAssetIdsRef.current];
     sessionGeneration.current += 1;
     setAssets([]);
     setError('');
-    onChange([]);
+    if (identityChanged || !auth.user) {
+      selectedAssetIdsRef.current = [];
+      onChange([]);
+    }
     if (!auth.user) {
       setLoading(false);
       return;
@@ -50,7 +60,9 @@ export function BriefingAssetUploader({ value, onChange, contactEmail }: {
         if (!active) return;
         setAssets(items);
         const available = new Set(items.filter((item) => !item.quoteRequestId).map((item) => item.id));
-        onChange(value.filter((id) => available.has(id)));
+        const availableSelection = selectedForThisSession.filter((id) => available.has(id));
+        selectedAssetIdsRef.current = availableSelection;
+        onChange(availableSelection);
       })
       .catch((reason: unknown) => { if (active) setError(reason instanceof Error ? reason.message : 'Não foi possível carregar seus arquivos.'); })
       .finally(() => { if (active) setLoading(false); });
@@ -73,7 +85,7 @@ export function BriefingAssetUploader({ value, onChange, contactEmail }: {
       const asset = await uploadMyBriefingAsset(file, kind);
       if (generation !== sessionGeneration.current) return;
       setAssets((current) => [asset, ...current]);
-      onChange([...new Set([...value, asset.id])]);
+      onChange([...new Set([...selectedAssetIdsRef.current, asset.id])]);
     } catch (reason) {
       if (generation === sessionGeneration.current) setError(reason instanceof Error ? reason.message : 'Não foi possível enviar o arquivo.');
     } finally {
@@ -89,7 +101,7 @@ export function BriefingAssetUploader({ value, onChange, contactEmail }: {
       await deleteMyBriefingAsset(asset);
       if (generation !== sessionGeneration.current) return;
       setAssets((current) => current.filter((item) => item.id !== asset.id));
-      onChange(value.filter((id) => id !== asset.id));
+      onChange(selectedAssetIdsRef.current.filter((id) => id !== asset.id));
     } catch (reason) {
       if (generation === sessionGeneration.current) setError(reason instanceof Error ? reason.message : 'Não foi possível remover o arquivo.');
     } finally {

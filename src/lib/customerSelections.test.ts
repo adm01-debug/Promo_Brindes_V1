@@ -26,6 +26,12 @@ describe('seleções privadas da conta', () => {
     expect(JSON.stringify(referencesFromCart([product]))).not.toContain('Garrafa');
   });
 
+  it('preserva o nome da cor quando o catálogo não fornece variantId', () => {
+    expect(referencesFromCart([{ ...product, variantId: undefined, colorName: 'Azul petróleo' }])).toEqual([
+      { id: product.productId, q: 100, c: 'Azul petróleo', d: 'alternative' },
+    ]);
+  });
+
   it('lista, cria e atualiza usando a versão recebida do servidor', async () => {
     rpc.mockResolvedValueOnce({ data: { items: [saved] }, error: null })
       .mockResolvedValueOnce({ data: { id: saved.id, version: 1 }, error: null })

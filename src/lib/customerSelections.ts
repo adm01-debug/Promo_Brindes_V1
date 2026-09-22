@@ -2,7 +2,7 @@ import type { CampaignBrief, QuoteItem } from '../types';
 import type { Json } from '../types/site-database.types';
 import { normalizeCampaignBrief } from './campaignBrief';
 import { fetchProductsByIds } from './catalog';
-import { normalizeQuoteItems } from './quoteItems';
+import { normalizePublicLabel, normalizeQuoteItemsForTransmission } from './quoteItems';
 import { hydrateSharedSelectionDetails, type SharedSelectionItem } from './sharedSelection';
 import { siteSupabase } from './siteSupabase';
 
@@ -32,10 +32,11 @@ function record(value: unknown): Record<string, unknown> | null {
 }
 
 export function referencesFromCart(items: QuoteItem[]): SavedSelectionReference[] {
-  return normalizeQuoteItems(items).map((item) => ({
+  return normalizeQuoteItemsForTransmission(items).map((item) => ({
     id: item.productId,
     q: item.quantity,
     ...(item.variantId ? { v: item.variantId } : {}),
+    ...(!item.variantId && item.colorName ? { c: normalizePublicLabel(item.colorName, 100)! } : {}),
     ...(item.decisionGroup === 'alternative' ? { d: 'alternative' as const } : {}),
     ...(item.kitGroupId ? { k: item.kitGroupId, kn: item.kitName, kq: item.kitQuantity, ku: item.unitsPerKit } : {}),
   }));
@@ -48,6 +49,7 @@ function parseReferences(value: unknown): SavedSelectionReference[] {
     if (!item || typeof item.id !== 'string' || !UUID_PATTERN.test(item.id)
       || !Number.isInteger(item.q) || Number(item.q) < 1 || Number(item.q) > 999_999
       || (item.v !== undefined && typeof item.v !== 'string')
+      || (item.c !== undefined && (typeof item.c !== 'string' || !normalizePublicLabel(item.c, 100) || item.v !== undefined))
       || (item.d !== undefined && item.d !== 'alternative')) throw new Error('invalid_saved_selection');
     const hasKit = ['k', 'kn', 'kq', 'ku'].some((field) => item[field] !== undefined);
     if (hasKit && (typeof item.k !== 'string' || !UUID_PATTERN.test(item.k)
@@ -59,6 +61,7 @@ function parseReferences(value: unknown): SavedSelectionReference[] {
       id: item.id,
       q: Number(item.q),
       ...(typeof item.v === 'string' ? { v: item.v } : {}),
+      ...(typeof item.c === 'string' ? { c: normalizePublicLabel(item.c, 100)! } : {}),
       ...(item.d === 'alternative' ? { d: 'alternative' as const } : {}),
       ...(hasKit ? { k: String(item.k), kn: String(item.kn), kq: Number(item.kq), ku: Number(item.ku) } : {}),
     };
@@ -154,15 +157,16 @@ export async function hydrateMySelection(selection: SavedSelection, signal?: Abo
   if (hydration.unavailableProductReferences.length || hydration.unavailableVariantReferences.length || hydration.invalidKitReferences.length) {
     throw new Error('selection_catalog_changed');
   }
-  const priorities = new Map(selection.references.map((item) => [`${item.id}:${item.v || ''}`, item]));
+  const referenceKey = (productId: string, variantOrColor?: string) => `${productId}:${variantOrColor?.toLocaleLowerCase('pt-BR') || ''}`;
+  const priorities = new Map(selection.references.map((item) => [referenceKey(item.id, item.v || item.c), item]));
   return hydration.items.map((item) => ({
     ...item,
-    ...(priorities.get(`${item.productId}:${item.variantId || ''}`)?.d === 'alternative' ? { decisionGroup: 'alternative' as const } : {}),
-    ...(priorities.get(`${item.productId}:${item.variantId || ''}`)?.k ? {
-      kitGroupId: priorities.get(`${item.productId}:${item.variantId || ''}`)!.k,
-      kitName: priorities.get(`${item.productId}:${item.variantId || ''}`)!.kn,
-      kitQuantity: priorities.get(`${item.productId}:${item.variantId || ''}`)!.kq,
-      unitsPerKit: priorities.get(`${item.productId}:${item.variantId || ''}`)!.ku,
+    ...(priorities.get(referenceKey(item.productId, item.variantId || item.colorName))?.d === 'alternative' ? { decisionGroup: 'alternative' as const } : {}),
+    ...(priorities.get(referenceKey(item.productId, item.variantId || item.colorName))?.k ? {
+      kitGroupId: priorities.get(referenceKey(item.productId, item.variantId || item.colorName))!.k,
+      kitName: priorities.get(referenceKey(item.productId, item.variantId || item.colorName))!.kn,
+      kitQuantity: priorities.get(referenceKey(item.productId, item.variantId || item.colorName))!.kq,
+      unitsPerKit: priorities.get(referenceKey(item.productId, item.variantId || item.colorName))!.ku,
     } : {}),
   }));
 }

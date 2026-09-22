@@ -149,18 +149,22 @@ export function QuoteDrawer() {
     }
   }
 
-  function updateItemQuantity(key: string, quantity: number) {
+  function updateItemQuantity(item: typeof cart.items[number], quantity: number) {
     setQuantityDrafts((drafts) => {
-      const { [key]: _draft, ...remaining } = drafts;
+      const { [item.key]: _draft, ...remaining } = drafts;
       return remaining;
     });
-    cart.updateQuantity(key, quantity);
+    if (item.kitGroupId && item.kitQuantity && item.unitsPerKit) cart.updateKitQuantity(item.kitGroupId, quantity);
+    else cart.updateQuantity(item.key, quantity);
   }
 
-  function commitQuantityDraft(key: string, minimum: number) {
-    const draft = quantityDrafts[key];
+  function commitQuantityDraft(item: typeof cart.items[number]) {
+    const draft = quantityDrafts[item.key];
     if (draft === undefined) return;
-    updateItemQuantity(key, draft ? Number(draft) : minimum);
+    const minimum = item.kitGroupId && item.unitsPerKit
+      ? Math.ceil(item.minQuantity / item.unitsPerKit)
+      : item.minQuantity;
+    updateItemQuantity(item, draft ? Number(draft) : minimum);
   }
 
   if (!cart.drawerOpen) return null;
@@ -209,7 +213,7 @@ export function QuoteDrawer() {
               <input value={cart.selectionTitle || ''} maxLength={100} placeholder="Ex.: Boas-vindas do time 2026" onChange={(event) => cart.setSelectionTitle(event.target.value)} />
               <small>Use um nome interno da campanha; evite nomes de pessoas, e-mails ou dados sensíveis.</small>
             </label>
-            <div className="quote-drawer__share"><div><strong>Compartilhar referências</strong><span>{persistentSharedSelectionsEnabled ? 'Quem tiver o link verá produtos, alternativas e nomes dos kits. Válido por 30 dias e revogável neste dispositivo.' : 'Quem tiver o link verá produtos, quantidades, variantes, alternativas e nomes dos kits.'}</span></div><div className="quote-drawer__share-actions"><button type="button" className="text-button" disabled={shareState === 'preparing'} onClick={() => void shareSelection()}><Share2 size={16} /> {shareState === 'preparing' ? 'Preparando link…' : shareState === 'shared' ? 'Compartilhado' : shareState === 'copied' ? <><Check size={15} /> Link copiado</> : shareState === 'limited' ? `Máximo de ${MAX_SHARED_SELECTION_ITEMS} itens` : shareState === 'error' ? <><Copy size={15} /> Tentar copiar</> : 'Compartilhar'}</button>{managedShareTokens.map((token, index) => <button key={token} type="button" className="text-button text-button--danger" onClick={() => void revokeShare(token)}>Revogar link {managedShareTokens.length > 1 ? index + 1 : ''}</button>)}</div><span className="sr-only" role="status" aria-live="polite">{shareState === 'preparing' ? 'Preparando link de referências.' : shareState === 'copied' ? 'Link da seleção copiado.' : shareState === 'shared' ? 'Seleção compartilhada.' : shareState === 'limited' ? `O compartilhamento é limitado a ${MAX_SHARED_SELECTION_ITEMS} itens.` : shareState === 'error' ? 'Não foi possível compartilhar agora.' : ''}</span></div>
+            <div className="quote-drawer__share"><div><strong>Compartilhar referências</strong><span>Quem tiver o link verá produtos, quantidades, variantes, alternativas e nomes dos kits.{persistentSharedSelectionsEnabled ? ' Válido por 30 dias e revogável neste dispositivo.' : ''}</span></div><div className="quote-drawer__share-actions"><button type="button" className="text-button" disabled={shareState === 'preparing'} onClick={() => void shareSelection()}><Share2 size={16} /> {shareState === 'preparing' ? 'Preparando link…' : shareState === 'shared' ? 'Compartilhado' : shareState === 'copied' ? <><Check size={15} /> Link copiado</> : shareState === 'limited' ? `Máximo de ${MAX_SHARED_SELECTION_ITEMS} itens` : shareState === 'error' ? <><Copy size={15} /> Tentar copiar</> : 'Compartilhar'}</button>{managedShareTokens.map((token, index) => <button key={token} type="button" className="text-button text-button--danger" onClick={() => void revokeShare(token)}>Revogar link {managedShareTokens.length > 1 ? index + 1 : ''}</button>)}</div><span className="sr-only" role="status" aria-live="polite">{shareState === 'preparing' ? 'Preparando link de referências.' : shareState === 'copied' ? 'Link da seleção copiado.' : shareState === 'shared' ? 'Seleção compartilhada.' : shareState === 'limited' ? `O compartilhamento é limitado a ${MAX_SHARED_SELECTION_ITEMS} itens.` : shareState === 'error' ? 'Não foi possível compartilhar agora.' : ''}</span></div>
             <div className="quote-drawer__items">
               {cart.items.map((item) => (
                 <article className="drawer-item" key={item.key}>
@@ -230,22 +234,23 @@ export function QuoteDrawer() {
                         <option value="alternative">Alternativa</option>
                       </select>
                     </label>}
-                    <div className="quantity-control quantity-control--small" aria-label={`Quantidade de ${item.name}`}>
-                      <button type="button" onClick={() => updateItemQuantity(item.key, item.quantity - 1)} aria-label="Diminuir quantidade"><Minus size={15} /></button>
+                    <div className="quantity-control quantity-control--small" aria-label={`${item.kitGroupId ? 'Quantidade de kits' : 'Quantidade'} de ${item.name}`}>
+                      <button type="button" onClick={() => updateItemQuantity(item, (item.kitQuantity || item.quantity) - 1)} aria-label={item.kitGroupId ? 'Diminuir quantidade de kits' : 'Diminuir quantidade'}><Minus size={15} /></button>
                       <input
-                        aria-label={`Quantidade desejada de ${item.name}`}
+                        aria-label={`${item.kitGroupId ? 'Quantidade de kits' : 'Quantidade desejada'} de ${item.name}`}
                         inputMode="numeric"
-                        min={item.minQuantity}
+                        min={item.kitGroupId && item.unitsPerKit ? Math.ceil(item.minQuantity / item.unitsPerKit) : item.minQuantity}
                         max="999999"
                         type="number"
-                        value={quantityDrafts[item.key] ?? item.quantity}
+                        value={quantityDrafts[item.key] ?? item.kitQuantity ?? item.quantity}
                         onFocus={(event) => event.currentTarget.select()}
                         onChange={(event) => setQuantityDrafts((drafts) => ({ ...drafts, [item.key]: event.target.value.replace(/\D/g, '') }))}
-                        onBlur={() => commitQuantityDraft(item.key, item.minQuantity)}
+                        onBlur={() => commitQuantityDraft(item)}
                         onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); }}
                       />
-                      <button type="button" onClick={() => updateItemQuantity(item.key, item.quantity + 1)} aria-label="Aumentar quantidade"><Plus size={15} /></button>
+                      <button type="button" onClick={() => updateItemQuantity(item, (item.kitQuantity || item.quantity) + 1)} aria-label={item.kitGroupId ? 'Aumentar quantidade de kits' : 'Aumentar quantidade'}><Plus size={15} /></button>
                     </div>
+                    {item.kitGroupId && item.kitQuantity && item.unitsPerKit && <small>{item.kitQuantity.toLocaleString('pt-BR')} kits × {item.unitsPerKit} = {item.quantity.toLocaleString('pt-BR')} un.</small>}
                   </div>
                   <button className="drawer-item__remove" type="button" onClick={() => cart.removeItem(item.key)} aria-label={`Remover ${item.name}`}>
                     <Trash2 size={17} />

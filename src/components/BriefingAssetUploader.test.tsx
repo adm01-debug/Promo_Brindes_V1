@@ -47,4 +47,18 @@ describe('privacidade de anexos durante troca de sessão', () => {
     expect(await screen.findByText(asset.name)).toBeVisible();
     expect(onChange).toHaveBeenLastCalledWith([asset.id]);
   });
+
+  it('não restaura anexos da sessão anterior após renovar a mesma conta', async () => {
+    vi.mocked(listMyBriefingAssets).mockResolvedValue([asset]);
+    const onChange = vi.fn();
+    const ui = () => <MemoryRouter><BriefingAssetUploader value={[asset.id]} onChange={onChange} contactEmail="" /></MemoryRouter>;
+    const view = render(ui());
+    await waitFor(() => expect(onChange).toHaveBeenLastCalledWith([asset.id]));
+
+    auth.identityEpoch += 1;
+    view.rerender(ui());
+
+    await waitFor(() => expect(listMyBriefingAssets).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(onChange).toHaveBeenLastCalledWith([]));
+  });
 });

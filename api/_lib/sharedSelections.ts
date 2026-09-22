@@ -3,6 +3,7 @@ import { getSiteDatabaseConfig, SiteDatabaseError, type RequestMetadata } from '
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const VARIANT_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,99}$/;
+const UNSAFE_DISPLAY_CODE_POINTS = new Set([0x200b, 0x200e, 0x200f, 0x2060, 0xfeff]);
 export const TIMEOUT_MS = 10_000;
 const MAX_SHARED_SELECTION_ITEMS = 50;
 
@@ -10,6 +11,7 @@ export interface SharedSelectionReference {
   id: string;
   q: number;
   v?: string;
+  c?: string;
   d?: 'alternative';
   k?: string;
   kn?: string;
@@ -23,6 +25,15 @@ function hash(value: string) {
 
 function identifierHash(ip: string, salt: string) {
   return createHmac('sha256', salt).update(ip || 'unknown').digest('hex');
+}
+
+function hasUnsafeDisplayControls(value: string): boolean {
+  return Array.from(value).some((character) => {
+    const point = character.codePointAt(0) || 0;
+    return point <= 0x1f || (point >= 0x7f && point <= 0x9f)
+      || (point >= 0x202a && point <= 0x202e) || (point >= 0x2066 && point <= 0x2069)
+      || UNSAFE_DISPLAY_CODE_POINTS.has(point);
+  });
 }
 
 export function normalizeSharedSelectionReferences(value: unknown): SharedSelectionReference[] {
@@ -40,21 +51,24 @@ export function normalizeSharedSelectionReferences(value: unknown): SharedSelect
     const variant = record.v == null ? undefined : String(record.v);
     const hasKit = ['k', 'kn', 'kq', 'ku'].some((field) => record[field] !== undefined);
     const kitGroupId = record.k == null ? undefined : String(record.k);
-    const kitName = record.kn == null ? undefined : String(record.kn).trim();
+    const colorName = record.c == null ? undefined : String(record.c).trim().normalize('NFC');
+    const kitName = record.kn == null ? undefined : String(record.kn).trim().normalize('NFC');
     const kitQuantity = Number(record.kq);
     const unitsPerKit = Number(record.ku);
     if (!UUID_PATTERN.test(id) || !Number.isInteger(quantity) || quantity < 1 || quantity > 999_999 || (variant && !VARIANT_PATTERN.test(variant))
+      || (colorName !== undefined && (!colorName || colorName.length > 100 || hasUnsafeDisplayControls(colorName)))
+      || (variant !== undefined && colorName !== undefined)
       || (record.d !== undefined && record.d !== 'alternative')) {
       throw new SiteDatabaseError('Uma referência da seleção é inválida.', 'invalid_shared_selection', 400);
     }
-    if (hasKit && (!kitGroupId || !UUID_PATTERN.test(kitGroupId) || !kitName || kitName.length > 100
+    if (hasKit && (!kitGroupId || !UUID_PATTERN.test(kitGroupId) || !kitName || kitName.length > 100 || hasUnsafeDisplayControls(kitName)
       || !Number.isInteger(kitQuantity) || kitQuantity < 1 || kitQuantity > 999_999
       || !Number.isInteger(unitsPerKit) || unitsPerKit < 1 || unitsPerKit > 100
       || quantity !== kitQuantity * unitsPerKit)) {
       throw new SiteDatabaseError('A composição de kit da seleção é inválida.', 'invalid_shared_selection', 400);
     }
-    const normalized = { id: id.toLowerCase(), q: quantity, ...(variant ? { v: variant } : {}), ...(record.d === 'alternative' ? { d: 'alternative' as const } : {}), ...(hasKit ? { k: kitGroupId!.toLowerCase(), kn: kitName!, kq: kitQuantity, ku: unitsPerKit } : {}) };
-    const key = `${normalized.id}:${normalized.v || ''}`;
+    const normalized: SharedSelectionReference = { id: id.toLowerCase(), q: quantity, ...(variant ? { v: variant } : colorName ? { c: colorName } : {}), ...(record.d === 'alternative' ? { d: 'alternative' as const } : {}), ...(hasKit ? { k: kitGroupId!.toLowerCase(), kn: kitName!, kq: kitQuantity, ku: unitsPerKit } : {}) };
+    const key = `${normalized.id}:${normalized.v || normalized.c || ''}`;
     if (unique.has(key)) throw new SiteDatabaseError('A seleção contém referências repetidas.', 'invalid_shared_selection', 400);
     unique.set(key, normalized);
   });
@@ -85,7 +99,7 @@ async function rpc<T>(name: string, payload: Record<string, unknown>): Promise<T
     const result = await response.json().catch(() => null) as T | { message?: string } | null;
     if (!response.ok) {
       if ((result as { message?: string } | null)?.message?.includes('shared_selection_rate_limit_exceeded')) {
-        throw new SiteDatabaseError('Muitos links criados em pouco tempo. Aguarde alguns minutos.', 'shared_selection_rate_limited', 429);
+        throw new SiteDatabaseError('Muitas tentativas em pouco tempo. Aguarde alguns minutos.', 'shared_selection_rate_limited', 429);
       }
       throw new SiteDatabaseError('Não conseguimos preparar este link agora.', 'shared_selection_unavailable');
     }
@@ -113,22 +127,28 @@ export async function createSharedSelection(items: unknown, metadata: RequestMet
   return { token: result.token, managementToken, expiresAt: result.expiresAt };
 }
 
-export async function readSharedSelection(token: string) {
+export async function readSharedSelection(token: string, metadata: RequestMetadata) {
   if (!UUID_PATTERN.test(token)) throw new SiteDatabaseError('Este link não é válido.', 'invalid_shared_selection', 400);
-  const result = await rpc<{ items?: unknown; expiresAt?: string } | null>('get_site_shared_selection', { p_token: token });
+  const config = getSiteDatabaseConfig();
+  const result = await rpc<{ items?: unknown; expiresAt?: string } | null>('get_site_shared_selection', {
+    p_token: token,
+    p_identifier_hash: identifierHash(`${metadata.ip}:read`, config.requestHashSalt),
+  });
   if (!result) return null;
   const items = normalizeSharedSelectionReferences(result.items);
   if (!result.expiresAt || Number.isNaN(Date.parse(result.expiresAt))) throw new SiteDatabaseError('Este link não está disponível.', 'invalid_shared_selection_response');
   return { items, expiresAt: result.expiresAt };
 }
 
-export async function revokeSharedSelection(token: string, managementToken: string) {
+export async function revokeSharedSelection(token: string, managementToken: string, metadata: RequestMetadata) {
   if (!UUID_PATTERN.test(token) || !UUID_PATTERN.test(managementToken)) {
     throw new SiteDatabaseError('Não foi possível confirmar a propriedade deste link.', 'invalid_shared_selection_management_token', 400);
   }
+  const config = getSiteDatabaseConfig();
   const result = await rpc<{ revoked?: boolean }>('revoke_site_shared_selection', {
     p_token: token,
     p_management_token_hash: hash(managementToken),
+    p_identifier_hash: identifierHash(`${metadata.ip}:revoke`, config.requestHashSalt),
   });
   return Boolean(result.revoked);
 }
