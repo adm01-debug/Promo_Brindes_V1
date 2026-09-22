@@ -14,6 +14,7 @@ export type CartAction =
   | { type: 'add'; item: QuoteItem }
   | { type: 'remove'; key: string }
   | { type: 'quantity'; key: string; quantity: number }
+  | { type: 'kit-quantity'; kitGroupId: string; quantity: number }
   | { type: 'clear' }
   | { type: 'reset' }
   | { type: 'replace'; items: QuoteItem[] }
@@ -58,8 +59,29 @@ export function cartReducer(state: CartState, action: CartAction): CartState {
         items: state.items.map((item) => item.key === normalizedItem.key ? { ...item, quantity: Math.max(item.quantity, normalizedItem.quantity) } : item),
       };
     }
-    case 'remove': return { ...state, items: state.items.filter((item) => item.key !== action.key) };
+    case 'remove': {
+      const removed = state.items.find((item) => item.key === action.key);
+      const remaining = state.items.filter((item) => item.key !== action.key);
+      if (!removed?.kitGroupId || remaining.filter((item) => item.kitGroupId === removed.kitGroupId).length !== 1) {
+        return { ...state, items: remaining };
+      }
+      return { ...state, items: remaining.map((item) => {
+        if (item.kitGroupId !== removed.kitGroupId) return item;
+        const { kitGroupId: _group, kitName: _name, kitQuantity: _quantity, unitsPerKit: _units, ...standalone } = item;
+        return standalone;
+      }) };
+    }
     case 'quantity': return { ...state, items: state.items.map((item) => item.key === action.key ? { ...item, quantity: clampQuoteQuantity(action.quantity, item.minQuantity) } : item) };
+    case 'kit-quantity': {
+      const components = state.items.filter((item) => item.kitGroupId === action.kitGroupId && item.unitsPerKit);
+      if (!components.length) return state;
+      const minimum = components.reduce((value, item) => Math.max(value, Math.ceil(item.minQuantity / (item.unitsPerKit || 1))), 1);
+      const maximum = components.reduce((value, item) => Math.min(value, Math.floor(999_999 / (item.unitsPerKit || 1))), 999_999);
+      const kitQuantity = Math.max(minimum, Math.min(maximum, Math.round(action.quantity) || minimum));
+      return { ...state, items: state.items.map((item) => item.kitGroupId === action.kitGroupId && item.unitsPerKit
+        ? { ...item, kitQuantity, quantity: kitQuantity * item.unitsPerKit }
+        : item) };
+    }
     case 'clear': return { ...state, items: [] };
     case 'reset': return initialState;
     case 'replace': return { ...state, items: normalizeQuoteItems(action.items) };

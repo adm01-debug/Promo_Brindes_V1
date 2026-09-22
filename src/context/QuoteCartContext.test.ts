@@ -91,6 +91,25 @@ describe('seleção para orçamento', () => {
     expect(normalizeQuoteItems(values)).toHaveLength(MAX_QUOTE_ITEMS);
   });
 
+  it('atualiza todos os componentes de um kit sem quebrar a aritmética', () => {
+    const group = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    const first = { ...item, kitGroupId: group, kitName: 'Kit', kitQuantity: 100, unitsPerKit: 2, quantity: 200, minQuantity: 50 };
+    const second = { ...item, key: `${item.productId}::azul`, colorName: 'Azul', kitGroupId: group, kitName: 'Kit', kitQuantity: 100, unitsPerKit: 1, quantity: 100, minQuantity: 120 };
+    const updated = cartReducer({ items: [first, second] }, { type: 'kit-quantity', kitGroupId: group, quantity: 80 });
+    expect(updated.items.map((current) => current.kitQuantity)).toEqual([120, 120]);
+    expect(updated.items.map((current) => current.quantity)).toEqual([240, 120]);
+  });
+
+  it('ao remover um dos dois componentes, converte o item restante em referência avulsa', () => {
+    const group = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    const first = { ...item, kitGroupId: group, kitName: 'Kit', kitQuantity: 100, unitsPerKit: 1 };
+    const second = { ...item, key: '22222222-2222-4222-8222-222222222222::azul', productId: '22222222-2222-4222-8222-222222222222', kitGroupId: group, kitName: 'Kit', kitQuantity: 100, unitsPerKit: 1 };
+    const updated = cartReducer({ items: [first, second] }, { type: 'remove', key: first.key });
+    expect(updated.items).toHaveLength(1);
+    expect(updated.items[0]).toMatchObject({ key: second.key, productId: second.productId, quantity: second.quantity });
+    expect(updated.items[0]).not.toHaveProperty('kitGroupId');
+  });
+
   it('substitui o moodboard por um orçamento anterior normalizado', () => {
     const previous = { ...item, quantity: 250 };
     expect(cartReducer({ items: [] }, { type: 'replace', items: [previous] }).items).toEqual([previous]);

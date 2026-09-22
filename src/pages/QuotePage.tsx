@@ -3,6 +3,7 @@ import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Seo } from '../components/Seo';
 import { ContextualFaq } from '../components/ContextualFaq';
+import { BriefingAssetUploader } from '../components/BriefingAssetUploader';
 import { useQuoteCart } from '../context/quoteCart';
 import { useCustomerAuth } from '../context/customerAuth';
 import { buildQuotePayload, submitQuoteRequest } from '../lib/quoteRequest';
@@ -17,6 +18,7 @@ import { clearQuoteRepeat, loadQuoteRepeat } from '../lib/quoteRepeat';
 import type { QuoteBriefingForm, QuoteContact } from '../types';
 import { quoteDecisionGroupsEnabled } from '../lib/siteFeatureFlags';
 import { localDateInputValue } from '../lib/quoteCalendar';
+import { attachMyBriefingAssetsToQuote } from '../lib/briefingAssets';
 
 function formatPhone(value: string): string {
   const digits = value.replace(/\D/g, '').slice(0, 11);
@@ -54,7 +56,8 @@ export default function QuotePage() {
   const [submitError, setSubmitError] = useState('');
   const [draftNotice, setDraftNotice] = useState('');
   const [quantityDrafts, setQuantityDrafts] = useState<Record<string, string>>({});
-  const [success, setSuccess] = useState<{ mode: 'endpoint' | 'email'; href?: string; requestId?: string; confirmations?: { email: 'sent' | 'pending'; whatsapp: 'sent' | 'pending' | 'not_requested' } } | null>(null);
+  const [briefingAssetIds, setBriefingAssetIds] = useState<string[]>([]);
+  const [success, setSuccess] = useState<{ mode: 'endpoint' | 'email'; href?: string; requestId?: string; confirmations?: { email: 'sent' | 'pending'; whatsapp: 'sent' | 'pending' | 'not_requested' }; assets?: { status: 'attached' | 'pending'; count: number } } | null>(null);
   const [website, setWebsite] = useState('');
   const formRef = useRef<HTMLFormElement>(null);
   const availabilityNoticeRef = useRef<HTMLDivElement>(null);
@@ -93,6 +96,7 @@ export default function QuotePage() {
     setBriefingErrors({});
     setWebsite('');
     setQuantityDrafts({});
+    setBriefingAssetIds([]);
     setSubmitError('');
     setSending(false);
     submittingRef.current = false;
@@ -151,6 +155,14 @@ export default function QuotePage() {
     cart.updateQuantity(key, nextQuantity);
   }
 
+  function kitQuantityBounds(groupId: string) {
+    const components = cart.items.filter((item) => item.kitGroupId === groupId && item.unitsPerKit);
+    return {
+      minimum: components.reduce((value, item) => Math.max(value, Math.ceil(item.minQuantity / (item.unitsPerKit || 1))), 1),
+      maximum: components.reduce((value, item) => Math.min(value, Math.floor(999_999 / (item.unitsPerKit || 1))), 999_999),
+    };
+  }
+
   function discardDraft() {
     clearQuoteDraft();
     setContact(EMPTY_QUOTE_CONTACT);
@@ -192,6 +204,11 @@ export default function QuotePage() {
       return;
     }
     if (!cart.items.length) return;
+    if (briefingAssetIds.length && auth.user?.email?.trim().toLowerCase() !== contact.email.trim().toLowerCase()) {
+      setSubmitError('Use o mesmo e-mail da conta para vincular os arquivos privados a este briefing.');
+      formRef.current?.querySelector<HTMLElement>('[name="email"]')?.focus();
+      return;
+    }
     submittingRef.current = true;
     setSending(true);
     setSubmitError('');
@@ -209,9 +226,21 @@ export default function QuotePage() {
       if (controller.signal.aborted) return;
       if (result.mode === 'endpoint') {
         trackFunnelEvent('quote_submitted', { item_count: cart.items.length, has_deadline: Boolean(contact.deadline) });
+        let assets: { status: 'attached' | 'pending'; count: number } | undefined;
+        if (result.requestId && briefingAssetIds.length && auth.user) {
+          try {
+            await auth.claimHistory();
+            const count = await attachMyBriefingAssetsToQuote(result.requestId, briefingAssetIds);
+            assets = { status: 'attached', count };
+          } catch {
+            // O orçamento já foi persistido. Uma falha de vínculo de arquivo não
+            // pode transformar sucesso em retry e criar uma tentativa duplicada.
+            assets = { status: 'pending', count: briefingAssetIds.length };
+          }
+        }
         requestAttemptRef.current = null;
         clearSubmissionAttempt('promo-brindes:quote-attempt');
-        setSuccess({ mode: 'endpoint', requestId: result.requestId, confirmations: result.confirmations });
+        setSuccess({ mode: 'endpoint', requestId: result.requestId, confirmations: result.confirmations, assets });
         cart.reset();
         clearQuoteDraft();
         clearQuoteRepeat();
@@ -231,10 +260,21 @@ export default function QuotePage() {
         : 'unknown';
       trackFunnelEvent('quote_submission_failed', { item_count: cart.items.length, reason });
       setSubmitError(error instanceof Error ? error.message : 'Não conseguimos enviar sua solicitação.');
-    } finally {
+      } finally {
       if (submitAbortControllerRef.current === controller) submitAbortControllerRef.current = null;
       submittingRef.current = false;
       setSending(false);
+    }
+  }
+
+  async function retryAssetAttachment() {
+    if (!success?.requestId || !briefingAssetIds.length) return;
+    try {
+      await auth.claimHistory();
+      const count = await attachMyBriefingAssetsToQuote(success.requestId, briefingAssetIds);
+      setSuccess((current) => current ? { ...current, assets: { status: 'attached', count } } : current);
+    } catch {
+      setSuccess((current) => current ? { ...current, assets: { status: 'pending', count: briefingAssetIds.length } } : current);
     }
   }
 
@@ -256,6 +296,7 @@ export default function QuotePage() {
         provisória enquanto o produto não define formalmente entre resumo e
         cópia integral (ver plano de correções, Etapa 31). */}
         {success.mode === 'endpoint' && success.confirmations && <div className="success-page__confirmations" role="status"><strong>Confirmação de envio</strong><span>{success.confirmations.email === 'sent' ? 'Confirmação enviada para o seu e-mail.' : 'Confirmação por e-mail registrada para envio.'}</span>{success.confirmations.whatsapp !== 'not_requested' && <span>{success.confirmations.whatsapp === 'sent' ? 'Confirmação enviada também pelo WhatsApp autorizado.' : 'Confirmação pelo WhatsApp autorizada e registrada para envio.'}</span>}</div>}
+        {success.assets && <div className={`success-page__confirmations ${success.assets.status === 'pending' ? 'success-page__confirmations--warning' : ''}`} role="status"><strong>{success.assets.status === 'attached' ? 'Arquivos protegidos vinculados' : 'Orçamento recebido; vínculo dos arquivos pendente'}</strong><span>{success.assets.status === 'attached' ? `${success.assets.count} ${success.assets.count === 1 ? 'arquivo acompanha' : 'arquivos acompanham'} este briefing.` : 'Os arquivos continuam privados na sua conta. Tente vinculá-los novamente sem reenviar o orçamento.'}</span>{success.assets.status === 'pending' && <button type="button" className="text-button" onClick={() => void retryAssetAttachment()}>Tentar vincular novamente</button>}</div>}
         <div className="success-page__actions">
           {success.href && <a className="button button--green" href={success.href}><Mail size={18} /> Abrir e-mail novamente</a>}
           {success.mode === 'endpoint' && <Link className="button button--green" to="/entrar?next=/minha-conta">Acompanhar meus orçamentos</Link>}
@@ -302,8 +343,8 @@ export default function QuotePage() {
             {cart.items.map((item) => (
               <article className="quote-item" key={item.key}>
                 <Link className="quote-item__image" to={`/produto/${item.slug}`} aria-label={`Abrir ${item.name}`}><img src={item.imageUrl} alt="" width="130" height="130" referrerPolicy="no-referrer" onError={replaceBrokenProductImage} /></Link>
-                <div className="quote-item__main"><Link to={`/produto/${item.slug}`}>{item.name}</Link><p>Cód. {item.sku}</p>{item.colorName && <span className="quote-item__color"><i style={{ backgroundColor: item.colorHex }} /> {item.colorName}</span>}{item.productUnavailable && <span className="quote-item__unavailable">Produto não publicado. Escolha outra opção no catálogo.</span>}{item.variantUnavailable && !item.productUnavailable && <span className="quote-item__unavailable">Cor não publicada. Escolha uma opção atual.</span>}{quoteDecisionGroupsEnabled && <label className="quote-item__decision"><span>Como considerar</span><select aria-label={`Como considerar ${item.name}`} value={item.decisionGroup || 'primary'} onChange={(event) => cart.setItemDecisionGroup(item.key, event.target.value as 'primary' | 'alternative')}><option value="primary">Referência principal</option><option value="alternative">Alternativa para comparar</option></select></label>}</div>
-                <div className="quote-item__quantity"><label htmlFor={`quantity-${item.key}`}>Quantidade</label><div className="quantity-control quantity-control--small"><button type="button" onClick={() => adjustItemQuantity(item.key, item.quantity, item.minQuantity, -10)} aria-label="Diminuir quantidade"><Minus size={15} /></button><input id={`quantity-${item.key}`} type="number" min={item.minQuantity} max="999999" inputMode="numeric" value={quantityDrafts[item.key] ?? item.quantity} onFocus={(event) => event.currentTarget.select()} onChange={(event) => setQuantityDrafts((drafts) => ({ ...drafts, [item.key]: event.target.value.replace(/\D/g, '') }))} onBlur={() => commitItemQuantity(item.key, item.minQuantity)} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); }} /><button type="button" onClick={() => adjustItemQuantity(item.key, item.quantity, item.minQuantity, 10)} aria-label="Aumentar quantidade"><Plus size={15} /></button></div>{item.minQuantity > 1 && <small>Mín. {item.minQuantity}</small>}</div>
+                <div className="quote-item__main"><Link to={`/produto/${item.slug}`}>{item.name}</Link><p>Cód. {item.sku}</p>{item.kitGroupId && <span className="quote-item__kit">{item.kitName} · {item.kitQuantity?.toLocaleString('pt-BR')} kits × {item.unitsPerKit} un.</span>}{item.colorName && <span className="quote-item__color"><i style={{ backgroundColor: item.colorHex }} /> {item.colorName}</span>}{item.productUnavailable && <span className="quote-item__unavailable">Produto não publicado. Escolha outra opção no catálogo.</span>}{item.variantUnavailable && !item.productUnavailable && <span className="quote-item__unavailable">Cor não publicada. Escolha uma opção atual.</span>}{quoteDecisionGroupsEnabled && <label className="quote-item__decision"><span>Como considerar</span><select aria-label={`Como considerar ${item.name}`} value={item.decisionGroup || 'primary'} onChange={(event) => cart.setItemDecisionGroup(item.key, event.target.value as 'primary' | 'alternative')}><option value="primary">Referência principal</option><option value="alternative">Alternativa para comparar</option></select></label>}</div>
+                {item.kitGroupId && item.kitQuantity && item.unitsPerKit ? (() => { const bounds = kitQuantityBounds(item.kitGroupId); return <div className="quote-item__quantity"><label htmlFor={`kit-quantity-${item.key}`}>Kits</label><div className="quantity-control quantity-control--small"><button type="button" onClick={() => cart.updateKitQuantity(item.kitGroupId!, item.kitQuantity! - 10)} aria-label="Diminuir quantidade de kits"><Minus size={15} /></button><input id={`kit-quantity-${item.key}`} type="number" min={bounds.minimum} max={bounds.maximum} inputMode="numeric" value={item.kitQuantity} onFocus={(event) => event.currentTarget.select()} onChange={(event) => cart.updateKitQuantity(item.kitGroupId!, Number(event.target.value))} /><button type="button" onClick={() => cart.updateKitQuantity(item.kitGroupId!, item.kitQuantity! + 10)} aria-label="Aumentar quantidade de kits"><Plus size={15} /></button></div><small>{item.kitQuantity.toLocaleString('pt-BR')} × {item.unitsPerKit} = {item.quantity.toLocaleString('pt-BR')} un.</small></div>; })() : <div className="quote-item__quantity"><label htmlFor={`quantity-${item.key}`}>Quantidade</label><div className="quantity-control quantity-control--small"><button type="button" onClick={() => adjustItemQuantity(item.key, item.quantity, item.minQuantity, -10)} aria-label="Diminuir quantidade"><Minus size={15} /></button><input id={`quantity-${item.key}`} type="number" min={item.minQuantity} max="999999" inputMode="numeric" value={quantityDrafts[item.key] ?? item.quantity} onFocus={(event) => event.currentTarget.select()} onChange={(event) => setQuantityDrafts((drafts) => ({ ...drafts, [item.key]: event.target.value.replace(/\D/g, '') }))} onBlur={() => commitItemQuantity(item.key, item.minQuantity)} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); }} /><button type="button" onClick={() => adjustItemQuantity(item.key, item.quantity, item.minQuantity, 10)} aria-label="Aumentar quantidade"><Plus size={15} /></button></div>{item.minQuantity > 1 && <small>Mín. {item.minQuantity}</small>}</div>}
                 <button className="quote-item__remove" type="button" onClick={() => cart.removeItem(item.key)} aria-label={`Remover ${item.name}`}><Trash2 size={18} /></button>
               </article>
             ))}
@@ -331,7 +372,8 @@ export default function QuotePage() {
               <div className="form-field"><label htmlFor="budgetScope">Investimento considerado <span>opcional</span></label><select id="budgetScope" name="budgetScope" value={briefing.budgetScope} onChange={(event) => updateBriefing('budgetScope', event.target.value as QuoteBriefingForm['budgetScope'])} aria-invalid={Boolean(briefingErrors.budgetScope)} aria-describedby={briefingErrors.budgetScope ? 'budget-scope-error' : undefined}><option value="">Prefiro conversar sobre isso</option>{Object.entries(quoteBriefingLabels.budgetScope).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>{briefingErrors.budgetScope && <span id="budget-scope-error" className="field-error">{briefingErrors.budgetScope}</span>}</div>
               <div className="form-field"><label htmlFor="budgetRange">Faixa de investimento <span>opcional</span></label><select id="budgetRange" name="budgetRange" value={briefing.budgetRange} onChange={(event) => updateBriefing('budgetRange', event.target.value as QuoteBriefingForm['budgetRange'])} aria-invalid={Boolean(briefingErrors.budgetRange)} aria-describedby={briefingErrors.budgetRange ? 'budget-range-error' : undefined}><option value="">Prefiro conversar sobre isso</option>{Object.entries(quoteBriefingLabels.budgetRange).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select>{briefingErrors.budgetRange && <span id="budget-range-error" className="field-error">{briefingErrors.budgetRange}</span>}</div>
               <div className="form-field"><label htmlFor="responseChannel">Como prefere continuar a conversa? <span>opcional</span></label><select id="responseChannel" name="responseChannel" value={briefing.responseChannel} onChange={(event) => updateBriefing('responseChannel', event.target.value as QuoteBriefingForm['responseChannel'])}><option value="">Sem preferência</option>{Object.entries(quoteBriefingLabels.responseChannel).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
-              <div className="form-field form-field--wide"><label htmlFor="brandAssetStatus">Identidade visual <span>opcional</span></label><select id="brandAssetStatus" name="brandAssetStatus" value={briefing.brandAssetStatus} onChange={(event) => updateBriefing('brandAssetStatus', event.target.value as QuoteBriefingForm['brandAssetStatus'])}><option value="">Conte para a gente em que ponto está</option>{Object.entries(quoteBriefingLabels.brandAssetStatus).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select><small>Não envie arquivos sensíveis pelo formulário. Se necessário, nosso time de especialistas combinará um canal seguro para receber sua marca.</small></div>
+              <div className="form-field form-field--wide"><label htmlFor="brandAssetStatus">Identidade visual <span>opcional</span></label><select id="brandAssetStatus" name="brandAssetStatus" value={briefing.brandAssetStatus} onChange={(event) => updateBriefing('brandAssetStatus', event.target.value as QuoteBriefingForm['brandAssetStatus'])}><option value="">Conte para a gente em que ponto está</option>{Object.entries(quoteBriefingLabels.brandAssetStatus).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select><small>Se estiver conectado à sua conta, você pode anexar logo e referências no espaço privado abaixo.</small></div>
+              <div className="form-field form-field--wide"><BriefingAssetUploader value={briefingAssetIds} onChange={setBriefingAssetIds} contactEmail={contact.email} /></div>
               <div className="form-field form-field--wide"><label htmlFor="notes">Qual é a ideia da ação? <span>opcional</span></label><textarea id="notes" name="notes" rows={5} maxLength={800} placeholder="Ex.: onboarding para 300 pessoas, visual mais street, preferência por materiais reciclados, logo em uma cor…" value={contact.notes} onChange={(event) => updateField('notes', event.target.value)} /><small className="char-count">{contact.notes.length}/800</small></div>
             </div>
             <label className={`privacy-check ${errors.privacyAccepted ? 'has-error' : ''}`}><input name="privacyAccepted" type="checkbox" checked={contact.privacyAccepted} onChange={(event) => updateField('privacyAccepted', event.target.checked)} aria-invalid={Boolean(errors.privacyAccepted)} aria-describedby={errors.privacyAccepted ? 'privacy-error' : undefined} /><span><ShieldCheck size={20} /></span><span>Li o <Link to="/privacidade" target="_blank">aviso de privacidade</Link> e autorizo o contato da Promo Brindes sobre esta solicitação. *</span></label>

@@ -37,4 +37,10 @@ describe('revalidação de itens históricos', () => {
       variantUnavailable: true, productUnavailable: true,
     });
   });
+
+  it('não restaura um kit unitário ou com metadados divergentes como composição válida', () => {
+    const kit = { kitGroupId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', kitName: 'Kit', kitQuantity: 40, unitsPerKit: 1 };
+    const [standalone] = normalizeQuoteItems([{ ...item, quantity: 40, ...kit }]);
+    expect(standalone).not.toHaveProperty('kitGroupId');
+  });
 });

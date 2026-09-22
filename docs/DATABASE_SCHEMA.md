@@ -8,6 +8,7 @@ erDiagram
   admin_ddl_log
   consent_receipts
   contact_requests
+  customer_briefing_assets
   customer_profiles
   customer_selections
   notification_deliveries
@@ -21,8 +22,11 @@ erDiagram
   shared_selection_rate_limits
   shared_selections
   status_transitions
+  storage_deletion_queue
   consent_receipts }o--|| contact_requests : references
   consent_receipts }o--|| quote_requests : references
+  customer_briefing_assets }o--|| users : references
+  customer_briefing_assets }o--|| quote_requests : references
   customer_profiles }o--|| users : references
   customer_selections }o--|| users : references
   notification_deliveries }o--|| notification_provider_events : references

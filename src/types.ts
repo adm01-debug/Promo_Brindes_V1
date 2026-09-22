@@ -60,6 +60,11 @@ export interface QuoteItem {
   productUnavailable?: boolean;
   /** Referência principal ou alternativa para facilitar a decisão comercial. */
   decisionGroup?: 'primary' | 'alternative';
+  /** Composição criada pelo cliente; quantity = kitQuantity × unitsPerKit. */
+  kitGroupId?: string;
+  kitName?: string;
+  kitQuantity?: number;
+  unitsPerKit?: number;
 }
 
 export type CampaignMoment = 'onboarding' | 'evento' | 'relacionamento' | 'reconhecimento' | 'sazonal';

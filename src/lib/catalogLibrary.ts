@@ -144,7 +144,7 @@ export const catalogCollections: CatalogCollection[] = [
     description: 'Pontos de partida para compor experiências com diferentes produtos e embalagens.',
     format: 'online',
     theme: 'products',
-    href: '/catalogo?perfil=kits',
+    href: '/montar-kit',
     tags: ['Kits', 'Embalagem', 'Composições'],
     palette: { background: '#f4e4bf', accent: '#ff6b5f', ink: '#121511' },
     edition: 'Seleção viva',

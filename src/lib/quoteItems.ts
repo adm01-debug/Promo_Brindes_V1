@@ -5,6 +5,7 @@ const MAX_QUANTITY = 999_999;
 const PRODUCT_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SLUG_PATTERN = /^[a-z0-9-]{1,200}$/i;
 const VARIANT_ID_PATTERN = /^[a-z0-9][a-z0-9._:-]{0,99}$/i;
+const KIT_GROUP_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function requiredText(value: unknown, maxLength: number): string | null {
   if (typeof value !== 'string') return null;
@@ -51,6 +52,16 @@ export function normalizeQuoteItems(values: unknown): QuoteItem[] {
       ? colorHexCandidate
       : undefined;
     const decisionGroup = raw.decisionGroup === 'alternative' ? 'alternative' : 'primary';
+    const kitGroupId = optionalText(raw.kitGroupId, 36);
+    const kitName = optionalText(raw.kitName, 100);
+    const kitQuantity = Number(raw.kitQuantity);
+    const unitsPerKit = Number(raw.unitsPerKit);
+    const hasValidKit = Boolean(
+      kitGroupId && KIT_GROUP_PATTERN.test(kitGroupId) && kitName
+      && Number.isInteger(kitQuantity) && kitQuantity >= 1 && kitQuantity <= MAX_QUANTITY
+      && Number.isInteger(unitsPerKit) && unitsPerKit >= 1 && unitsPerKit <= 100
+      && quantity === kitQuantity * unitsPerKit,
+    );
     // Duas variantes podem ter o mesmo nome comercial de cor. Quando a origem
     // publicar um identificador, ele é a chave estável; registros antigos seguem
     // compatíveis com a chave por cor.
@@ -71,13 +82,27 @@ export function normalizeQuoteItems(values: unknown): QuoteItem[] {
       ...(raw.variantUnavailable && variantId ? { variantUnavailable: true } : {}),
       ...(raw.productUnavailable ? { productUnavailable: true } : {}),
       ...(decisionGroup === 'alternative' ? { decisionGroup } : {}),
+      ...(hasValidKit ? { kitGroupId, kitName, kitQuantity, unitsPerKit } : {}),
     };
     const existing = normalized.get(key);
     normalized.set(key, existing ? { ...item, quantity: Math.max(existing.quantity, item.quantity) } : item);
     if (normalized.size >= MAX_QUOTE_ITEMS) break;
   }
 
-  return [...normalized.values()];
+  const items = [...normalized.values()];
+  const kitGroups = new Map<string, QuoteItem[]>();
+  for (const item of items) {
+    if (!item.kitGroupId) continue;
+    kitGroups.set(item.kitGroupId, [...(kitGroups.get(item.kitGroupId) || []), item]);
+  }
+  const invalidGroups = new Set([...kitGroups.entries()]
+    .filter(([, group]) => group.length < 2 || group.some((item) => item.kitName !== group[0]?.kitName || item.kitQuantity !== group[0]?.kitQuantity))
+    .map(([groupId]) => groupId));
+  return items.map((item) => {
+    if (!item.kitGroupId || !invalidGroups.has(item.kitGroupId)) return item;
+    const { kitGroupId: _group, kitName: _name, kitQuantity: _quantity, unitsPerKit: _units, ...standalone } = item;
+    return standalone;
+  });
 }
 
 /**

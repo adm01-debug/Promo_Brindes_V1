@@ -26,6 +26,10 @@ export type Database = {
         }
         Returns: Json
       }
+      attach_my_briefing_assets_to_quote: {
+        Args: { p_asset_ids: string[]; p_request_id: string }
+        Returns: number
+      }
       claim_my_quote_requests: { Args: never; Returns: Json }
       claim_site_notification_deliveries: {
         Args: { p_batch_size?: number; p_channels: string[] }
@@ -33,6 +37,15 @@ export type Database = {
       }
       claim_site_quote_notification: {
         Args: { p_channel: string; p_request_id: string }
+        Returns: Json
+      }
+      create_my_briefing_asset: {
+        Args: {
+          p_kind?: string
+          p_mime_type: string
+          p_original_name: string
+          p_size_bytes: number
+        }
         Returns: Json
       }
       create_site_contact_request: {
@@ -51,11 +64,16 @@ export type Database = {
         }
         Returns: Json
       }
+      delete_my_briefing_asset: { Args: { p_id: string }; Returns: boolean }
       delete_my_selection: {
         Args: { p_expected_version: number; p_id: string }
         Returns: boolean
       }
       erase_customer_data: { Args: { p_email: string }; Returns: Json }
+      finalize_briefing_asset_retention: {
+        Args: { p_batch_size?: number; p_storage_paths: string[] }
+        Returns: number
+      }
       finalize_site_data_retention: {
         Args: {
           p_batch_size?: number
@@ -76,6 +94,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      get_briefing_asset_retention_candidates: {
+        Args: { p_batch_size?: number }
+        Returns: Json
+      }
       get_my_proposal_document: {
         Args: { p_proposal_id: string }
         Returns: Json
@@ -95,9 +117,14 @@ export type Database = {
         Returns: Json
       }
       get_site_shared_selection: { Args: { p_token: string }; Returns: Json }
+      list_my_briefing_assets: { Args: never; Returns: Json }
       list_my_selections: {
         Args: { p_include_archived?: boolean }
         Returns: Json
+      }
+      owns_my_briefing_asset_path: {
+        Args: { p_path: string }
+        Returns: boolean
       }
       purge_archived_customer_selections: {
         Args: { p_batch_size?: number }
@@ -313,6 +340,56 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      customer_briefing_assets: {
+        Row: {
+          created_at: string
+          customer_user_id: string
+          expires_at: string
+          id: string
+          kind: string
+          mime_type: string
+          original_name: string
+          quote_request_id: string | null
+          size_bytes: number
+          storage_bucket: string
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          customer_user_id: string
+          expires_at?: string
+          id?: string
+          kind: string
+          mime_type: string
+          original_name: string
+          quote_request_id?: string | null
+          size_bytes: number
+          storage_bucket?: string
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          customer_user_id?: string
+          expires_at?: string
+          id?: string
+          kind?: string
+          mime_type?: string
+          original_name?: string
+          quote_request_id?: string | null
+          size_bytes?: number
+          storage_bucket?: string
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_briefing_assets_quote_request_id_fkey"
+            columns: ["quote_request_id"]
+            isOneToOne: false
+            referencedRelation: "quote_requests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       customer_profiles: {
         Row: {
@@ -595,6 +672,9 @@ export type Database = {
           id: string
           image_url_snapshot: string | null
           item_key: string
+          kit_group_id: string | null
+          kit_name_snapshot: string | null
+          kit_quantity_snapshot: number | null
           minimum_quantity_snapshot: number
           position: number
           product_name_snapshot: string
@@ -603,6 +683,7 @@ export type Database = {
           quote_request_id: string
           sku_snapshot: string
           source_product_id: string
+          units_per_kit_snapshot: number | null
           variant_id_snapshot: string | null
         }
         Insert: {
@@ -613,6 +694,9 @@ export type Database = {
           id?: string
           image_url_snapshot?: string | null
           item_key: string
+          kit_group_id?: string | null
+          kit_name_snapshot?: string | null
+          kit_quantity_snapshot?: number | null
           minimum_quantity_snapshot: number
           position: number
           product_name_snapshot: string
@@ -621,6 +705,7 @@ export type Database = {
           quote_request_id: string
           sku_snapshot: string
           source_product_id: string
+          units_per_kit_snapshot?: number | null
           variant_id_snapshot?: string | null
         }
         Update: {
@@ -631,6 +716,9 @@ export type Database = {
           id?: string
           image_url_snapshot?: string | null
           item_key?: string
+          kit_group_id?: string | null
+          kit_name_snapshot?: string | null
+          kit_quantity_snapshot?: number | null
           minimum_quantity_snapshot?: number
           position?: number
           product_name_snapshot?: string
@@ -639,6 +727,7 @@ export type Database = {
           quote_request_id?: string
           sku_snapshot?: string
           source_product_id?: string
+          units_per_kit_snapshot?: number | null
           variant_id_snapshot?: string | null
         }
         Relationships: [
@@ -854,6 +943,24 @@ export type Database = {
           entity?: string
           from_status?: string
           to_status?: string
+        }
+        Relationships: []
+      }
+      storage_deletion_queue: {
+        Row: {
+          bucket: string
+          object_path: string
+          queued_at: string
+        }
+        Insert: {
+          bucket: string
+          object_path: string
+          queued_at?: string
+        }
+        Update: {
+          bucket?: string
+          object_path?: string
+          queued_at?: string
         }
         Relationships: []
       }

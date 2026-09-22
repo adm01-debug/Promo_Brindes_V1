@@ -5,6 +5,14 @@ import type { ApiRequest, ApiResponse } from '../../api/_lib/leadHandler.js';
 const token = '11111111-1111-4111-8111-111111111111';
 const manager = '22222222-2222-4222-8222-222222222222';
 const item = { id: '33333333-3333-4333-8333-333333333333', q: 100, v: 'blue' };
+const kitItem = {
+  id: '33333333-3333-4333-8333-333333333333',
+  q: 120,
+  k: '44444444-4444-4444-8444-444444444444',
+  kn: 'Kit boas-vindas',
+  kq: 60,
+  ku: 2,
+};
 
 function responseDouble() {
   const result = { headers: new Map<string, string>(), statusCode: 0, body: undefined as unknown };
@@ -52,6 +60,22 @@ describe('links persistentes de seleção', () => {
     expect(sent.p_management_token_hash).toMatch(/^[0-9a-f]{64}$/);
     expect(sent.p_identifier_hash).toMatch(/^[0-9a-f]{64}$/);
     expect(JSON.stringify(sent)).not.toContain('contact');
+  });
+
+  it('preserva a composição do kit e rejeita aritmética adulterada', async () => {
+    configure();
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ token, expiresAt: '2026-10-11T12:00:00.000Z' }), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const valid = responseDouble();
+    await handler(request({ action: 'create', items: [kitItem] }), valid.response);
+    expect(valid.result.statusCode).toBe(201);
+    const sent = JSON.parse(String((fetchMock.mock.calls[0]?.[1] as RequestInit).body));
+    expect(sent.p_items).toEqual([kitItem]);
+
+    const invalid = responseDouble();
+    await handler(request({ action: 'create', items: [{ ...kitItem, q: 119 }] }), invalid.response);
+    expect(invalid.result.statusCode).toBe(400);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it('lê somente referências públicas e trata ausência como 404', async () => {

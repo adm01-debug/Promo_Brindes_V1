@@ -148,6 +148,55 @@ describe('APIs de leads isoladas', () => {
     expect(sent.p_payload.items[0].imageUrl).toBe('https://catalogo-canonico.test/mochila-verde.webp');
   });
 
+  it('preserva a composição do kit e rejeita aritmética adulterada', async () => {
+    configureSiteDatabase();
+    const kit = {
+      kitGroupId: '44444444-4444-4444-8444-444444444444',
+      kitName: 'Kit boas-vindas',
+      kitQuantity: 50,
+      unitsPerKit: 2,
+    };
+    const secondItem = {
+      ...quotePayload.items[0],
+      key: '22222222-2222-4222-8222-222222222222::sem-cor',
+      productId: '22222222-2222-4222-8222-222222222222',
+      slug: 'garrafa',
+      name: 'Garrafa',
+      sku: 'GA-10',
+      imageUrl: 'https://cdn.example.test/garrafa.webp',
+      quantity: 50,
+      minQuantity: 50,
+      variantId: undefined,
+      colorName: undefined,
+      colorHex: undefined,
+      ...kit,
+      unitsPerKit: 1,
+    };
+    const fetchMock = vi.fn(async (url: string | URL, _init?: RequestInit) => String(url).includes('/v_site_products_public')
+      ? new Response(JSON.stringify([
+        JSON.parse(await catalogResponse().text())[0],
+        { id: secondItem.productId, slug: secondItem.slug, name: secondItem.name, sku: secondItem.sku, min_quantity: 50, primary_image_url: secondItem.imageUrl, color_swatches: [] },
+      ]), { status: 200 })
+      : new Response('{"requestId":"quote-kit","duplicate":false}', { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const valid = responseDouble();
+    await quoteHandler(request({ ...quotePayload, items: [{ ...quotePayload.items[0], quantity: 100, ...kit }, secondItem] }), valid.response);
+    expect(valid.result.statusCode).toBe(201);
+    const rpcCall = fetchMock.mock.calls.find(([url]) => String(url).includes('/create_site_quote_request'));
+    expect(JSON.parse(String(rpcCall?.[1]?.body)).p_payload.items[0]).toMatchObject(kit);
+
+    const invalid = responseDouble();
+    await quoteHandler(request({ ...quotePayload, items: [{ ...quotePayload.items[0], quantity: 99, ...kit }] }), invalid.response);
+    expect(invalid.result.statusCode).toBe(400);
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('/create_site_quote_request'))).toHaveLength(1);
+
+    const incomplete = responseDouble();
+    await quoteHandler(request({ ...quotePayload, items: [{ ...quotePayload.items[0], quantity: 100, ...kit }] }), incomplete.response);
+    expect(incomplete.result.statusCode).toBe(400);
+    expect(incomplete.result.body).toMatchObject({ error: 'invalid_request' });
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('/create_site_quote_request'))).toHaveLength(1);
+  });
+
   it('mantém no briefing produto publicado com mínimo ainda não confirmado', async () => {
     configureSiteDatabase();
     const fetchMock = vi.fn(async (url: string | URL, _init?: RequestInit) => String(url).includes('/v_site_products_public')

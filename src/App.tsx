@@ -29,6 +29,7 @@ const AuthConfirmPage = lazy(() => import('./pages/AuthConfirmPage'));
 const SetPasswordPage = lazy(() => import('./pages/SetPasswordPage'));
 const SharedSelectionPage = lazy(() => import('./pages/SharedSelectionPage'));
 const IdeaLandingPage = lazy(() => import('./pages/IdeaLandingPage'));
+const KitBuilderPage = lazy(() => import('./pages/KitBuilderPage'));
 
 function ScrollManager() {
   const { key, pathname } = useLocation();
@@ -85,6 +86,7 @@ export default function App() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/catalogo" element={<CatalogPage />} />
                 <Route path="/catalogos" element={<CatalogsPage />} />
+                <Route path="/montar-kit" element={<KitBuilderPage />} />
                 <Route path="/datas-comemorativas" element={<CommemorativeDatesPage />} />
                 <Route path="/produto/:identifier" element={<ProductPage />} />
                 <Route path="/orcamento" element={<QuotePage />} />

@@ -12,7 +12,7 @@ const navItems = [
   { to: '/catalogo', label: 'Radar de produtos' },
   { to: '/catalogos', label: 'Catálogos' },
   { to: '/datas-comemorativas', label: 'Datas comemorativas' },
-  { to: '/catalogo?perfil=kits', label: 'Kits', catalogQuery: true },
+  { to: '/montar-kit', label: 'Monte seu kit' },
   { to: '/catalogo?perfil=novos', label: 'Novos drops', catalogQuery: true },
   { to: '/sobre', label: 'Como funciona' },
   { to: '/contato', label: 'Fale com a gente' },
@@ -178,7 +178,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <Link to="/catalogo">Radar completo</Link>
             <Link to="/catalogos">Catálogos por campanha</Link>
             <Link to="/datas-comemorativas">Datas comemorativas</Link>
-            <Link to="/catalogo?perfil=kits">Kits</Link>
+            <Link to="/montar-kit">Monte seu kit</Link>
             <Link to="/catalogo?perfil=novos">Novos drops</Link>
             <Link to="/orcamento">Minha seleção</Link>
             {customerAreaEnabled && <Link to="/minha-conta">Meus orçamentos</Link>}

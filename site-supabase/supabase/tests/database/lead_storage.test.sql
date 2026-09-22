@@ -7,8 +7,8 @@ select plan(68);
 
 select is(
   (select count(*) from pg_catalog.pg_tables where schemaname = 'site_private'),
-  17::bigint,
-  'schema privado contém as dezessete tabelas planejadas, incluindo customer_selections'
+  19::bigint,
+  'schema privado contém as dezenove tabelas planejadas, incluindo seleções e arquivos de briefing'
 );
 
 select has_table('site_private', 'shared_selections', 'seleções persistentes ficam no schema privado');
