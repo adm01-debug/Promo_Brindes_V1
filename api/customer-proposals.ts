@@ -1,5 +1,6 @@
 import { getSiteDatabaseConfig } from './_lib/siteDatabase.js';
 import type { ApiRequest, ApiResponse } from './_lib/leadHandler.js';
+import { allowedSiteOrigins } from './_lib/siteOrigin.js';
 
 const PROPOSAL_BUCKET = 'customer-proposals';
 export const REQUEST_TIMEOUT_MS = 10_000;
@@ -12,10 +13,7 @@ function header(request: ApiRequest, name: string): string {
 }
 
 function hasAllowedOrigin(request: ApiRequest): boolean {
-  const primaryOrigin = process.env.SITE_PUBLIC_ORIGIN?.trim();
-  const deploymentHost = process.env.VERCEL_URL?.trim();
-  const allowedOrigins = new Set([primaryOrigin, deploymentHost ? `https://${deploymentHost}` : ''].filter(Boolean));
-  return allowedOrigins.has(header(request, 'origin'));
+  return allowedSiteOrigins().has(header(request, 'origin'));
 }
 
 function proposalPayload(request: ApiRequest): { proposalId?: string; error?: 'unsupported_media_type' | 'payload_too_large' | 'invalid_proposal' } {
@@ -97,9 +95,13 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       return;
     }
     const encodedPath = document.path.split('/').map(encodeURIComponent).join('/');
+    // O JWT site_api só acessa RPCs; Storage exige uma credencial própria.
+    // Se ela estiver ausente, falhamos fechado em vez de quebrar silenciosamente
+    // a leitura de propostas após o corte do privilégio mínimo.
+    if (!config.storageDeleteCredential) throw new Error('proposal_storage_credential_missing');
     const signedResponse = await fetch(`${config.url}/storage/v1/object/sign/${encodeURIComponent(document.bucket)}/${encodedPath}`, {
       method: 'POST',
-      headers: { apikey: config.serviceCredential, Authorization: `Bearer ${config.serviceCredential}`, 'Content-Type': 'application/json' },
+      headers: { apikey: config.storageDeleteCredential, Authorization: `Bearer ${config.storageDeleteCredential}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ expiresIn: 60 }),
       signal: controller.signal,
     });

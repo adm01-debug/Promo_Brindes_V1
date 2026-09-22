@@ -120,8 +120,8 @@ export async function fetchMyQuoteRequests(options: {
   const { data, error } = await requireClient().rpc('get_my_quote_requests', {
     p_limit: options.limit ?? 20,
     p_offset: options.offset ?? 0,
-    p_status: options.status || null,
-    p_search: options.search?.trim().slice(0, 80) || null,
+    p_status: options.status || undefined,
+    p_search: options.search?.trim().slice(0, 80) || undefined,
   });
   if (error) rpcError(error);
   const result = data as Partial<CustomerQuotePage> | null;
@@ -137,7 +137,7 @@ export async function fetchMyQuoteRequest(id: string): Promise<CustomerQuoteDeta
   if (!UUID_PATTERN.test(id)) return null;
   const { data, error } = await requireClient().rpc('get_my_quote_request', { p_request_id: id });
   if (error) rpcError(error);
-  return data && typeof data === 'object' ? data as CustomerQuoteDetail : null;
+  return data && typeof data === 'object' && !Array.isArray(data) ? data as unknown as CustomerQuoteDetail : null;
 }
 
 export async function requestMyQuoteAdjustment(requestId: string, message: string, clientRequestId: string): Promise<{ id: string; createdAt: string }> {

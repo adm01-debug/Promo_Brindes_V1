@@ -1,3 +1,5 @@
+import { allowedSiteOrigins } from './siteOrigin.js';
+
 export type LeadKind = 'quote' | 'contact';
 
 export interface NormalizedQuoteItem {
@@ -135,9 +137,7 @@ function pageUrl(value: unknown): string {
   if (!normalized) return '';
   try {
     const parsed = new URL(normalized);
-    const configuredOrigin = process.env.SITE_PUBLIC_ORIGIN?.trim();
-    const allowedOrigin = configuredOrigin ? new URL(configuredOrigin).origin : '';
-    if (!allowedOrigin || !['http:', 'https:'].includes(parsed.protocol) || parsed.origin !== allowedOrigin) throw new Error();
+    if (!['http:', 'https:'].includes(parsed.protocol) || !allowedSiteOrigins().has(parsed.origin)) throw new Error();
     parsed.username = '';
     parsed.password = '';
     parsed.hash = '';

@@ -16,6 +16,7 @@ export interface QuoteCartValue {
   setItemDecisionGroup: (key: string, group: 'primary' | 'alternative') => void;
   replaceItems: (items: QuoteItem[]) => void;
   replaceSelection: (items: QuoteItem[]) => void;
+  restoreSavedSelection: (items: QuoteItem[], campaign?: CampaignBrief, title?: string) => void;
   setCampaign: (campaign?: CampaignBrief) => void;
   setSelectionTitle: (title?: string) => void;
   clear: () => void;

@@ -105,11 +105,19 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       { p_quote_ids: quoteIds, p_storage_paths: storagePaths, p_batch_size: RETENTION_BATCH_SIZE },
       controller.signal,
     );
+    const archivedSelectionsDeleted = await rpc<number>(
+      config.url,
+      config.serviceCredential,
+      'purge_archived_customer_selections',
+      { p_batch_size: RETENTION_BATCH_SIZE },
+      controller.signal,
+    );
     console.info('site_retention_completed', {
       quotesDeleted: Number(finalized.quotesDeleted || 0),
       proposalDocumentsDeleted: Number(finalized.proposalDocumentsDeleted || 0),
       contactsDeleted: Number(finalized.contactsDeleted || 0),
       notificationsDeleted: Number(finalized.notificationsDeleted || 0),
+      archivedSelectionsDeleted: Number(archivedSelectionsDeleted || 0),
     });
     response.status(200).json({ ok: true });
   } catch (error) {

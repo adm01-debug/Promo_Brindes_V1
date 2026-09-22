@@ -3,6 +3,11 @@ import react from '@vitejs/plugin-react';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig({
+  // Vercel não prefixa VERCEL_ENV com VITE_. Expomos somente o nome do ambiente,
+  // nunca as credenciais, para impedir que um Preview use o banco de produção.
+  define: {
+    'import.meta.env.VITE_SITE_DEPLOYMENT_ENV': JSON.stringify(process.env.VERCEL_ENV === 'preview' ? 'preview' : 'production'),
+  },
   plugins: [
     react(),
     // Etapa 1 do plano de 20260917: só gera o relatório quando pedido

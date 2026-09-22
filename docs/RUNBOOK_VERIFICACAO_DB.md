@@ -16,10 +16,9 @@ time — nunca em `.env.local` versionado, nunca colado em chat/issue.
 export SUPABASE_ACCESS_TOKEN='<token de escopo mínimo, do cofre do time>'
 ```
 
-**Este runbook nunca foi executado contra produção nesta sessão** — token de acesso
-real não está disponível neste ambiente. Os 5 comandos abaixo estão prontos para rodar
-assim que o token existir; a saída de uma primeira execução deve ser anexada aqui (ou a
-um registro equivalente) como evidência, sem incluir o token em si.
+O acesso administrativo deve ser conferido antes de executar os comandos, sem
+copiar tokens para documentação ou logs. Consultas anteriores reconciliaram o
+ledger remoto; resultados históricos não substituem uma nova execução após deploy.
 
 ## 1. Migrations aplicadas vs. locais
 
@@ -74,9 +73,10 @@ SUPABASE_WORKDIR=site-supabase supabase db query --linked "
 
 Contagem aproximada (via `pg_stat_user_tables`, sem `count(*)` completo em todas as
 tabelas — mais barato e suficiente para detectar uma tabela vazia que deveria ter dados,
-ou um crescimento muito fora do esperado). Tabelas atuais (16, `site-supabase/supabase/migrations/`):
+ou um crescimento muito fora do esperado). Após aplicar a migration de seleções,
+o total esperado será 17 tabelas (`site-supabase/supabase/migrations/`):
 `admin_audit_log`, `admin_ddl_log`, `consent_receipts`, `contact_requests`,
-`customer_profiles`, `notification_deliveries`, `notification_provider_events`,
+`customer_profiles`, `customer_selections`, `notification_deliveries`, `notification_provider_events`,
 `proposal_documents`, `quote_adjustment_requests`, `quote_items`,
 `quote_request_events`, `quote_requests`, `rate_limit_buckets`,
 `shared_selection_rate_limits`, `shared_selections`, `status_transitions`.

@@ -16,4 +16,14 @@ describe('configuração pública da Área do Cliente', () => {
     const wrong = btoa(JSON.stringify({ role: 'service_role', ref: 'xlzmclcjdncjfdrjxclt' }));
     expect(resolveSitePublishableKey(`header.${wrong}.signature`)).toBe('');
   });
+
+  it('em Preview recusa o banco de produção e o banco interno, inclusive sem configuração explícita', () => {
+    const previewRef = 'unkaeotwziynruktxizp';
+    expect(resolveSiteSupabaseUrl('https://xlzmclcjdncjfdrjxclt.supabase.co', 'preview', previewRef)).toBe('');
+    expect(resolveSiteSupabaseUrl('https://doufsxqlfjyuvxuezpln.supabase.co', 'preview', previewRef)).toBe('');
+    expect(resolveSiteSupabaseUrl(undefined, 'preview', previewRef)).toBe('');
+    expect(resolveSiteSupabaseUrl('https://xlzmclcjdncjfdrjxclt.supabase.co', 'preview', '')).toBe('');
+    expect(resolveSiteSupabaseUrl('https://unkaeotwziynruktxizp.supabase.co', 'preview', previewRef))
+      .toBe('https://unkaeotwziynruktxizp.supabase.co');
+  });
 });

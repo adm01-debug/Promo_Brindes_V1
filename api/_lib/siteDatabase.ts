@@ -3,6 +3,7 @@ import type { LeadKind, NormalizedLeadPayload } from './contracts.js';
 
 // Allowlist exata: por definição, o catálogo canônico não pode receber escritas do site.
 const SITE_DATABASE_PROJECT = 'xlzmclcjdncjfdrjxclt';
+const INTERNAL_DATABASE_PROJECT = 'doufsxqlfjyuvxuezpln';
 export const REQUEST_TIMEOUT_MS = 10_000;
 
 export class SiteDatabaseError extends Error {
@@ -65,7 +66,15 @@ export function getSiteDatabaseConfig(): SiteDatabaseConfig {
     throw new SiteDatabaseError('Configuração do banco do site inválida.', 'backend_misconfigured');
   }
   const projectHost = /^([a-z0-9]{20})\.supabase\.co$/.exec(url.hostname);
-  if (url.protocol !== 'https:' || !projectHost || projectHost[1] !== SITE_DATABASE_PROJECT) {
+  const isPreview = process.env.VERCEL_ENV === 'preview';
+  const expectedProject = isPreview
+    ? process.env.SITE_PREVIEW_SUPABASE_PROJECT_REF?.trim()
+    : SITE_DATABASE_PROJECT;
+  if (url.protocol !== 'https:' || !projectHost || !expectedProject
+    || !/^[a-z0-9]{20}$/.test(expectedProject)
+    || (isPreview && [SITE_DATABASE_PROJECT, INTERNAL_DATABASE_PROJECT].includes(expectedProject))
+    || projectHost[1] !== expectedProject
+    || url.username || url.password || url.pathname !== '/' || url.search || url.hash) {
     throw new SiteDatabaseError('Destino isolado do banco do site inválido.', 'unsafe_database_target');
   }
   if (!isValidServiceCredential(serviceCredential)

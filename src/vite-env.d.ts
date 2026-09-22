@@ -11,6 +11,8 @@ interface ImportMetaEnv {
   readonly VITE_PERSISTENT_SHARED_SELECTIONS_ENABLED?: string;
   readonly VITE_SITE_SUPABASE_URL?: string;
   readonly VITE_SITE_SUPABASE_PUBLISHABLE_KEY?: string;
+  readonly VITE_SITE_PREVIEW_PROJECT_REF?: string;
+  readonly VITE_SITE_DEPLOYMENT_ENV?: 'preview' | 'production';
 }
 
 interface ImportMeta {

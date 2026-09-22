@@ -88,9 +88,12 @@ describe('links persistentes de seleção', () => {
     expect(foreign.result.statusCode).toBe(403);
   });
 
-  it('aceita somente o deployment Vercel atual além do domínio público configurado', async () => {
+  it('aceita somente o deployment Vercel atual em Preview, nunca o domínio de produção', async () => {
     configure();
+    vi.stubEnv('VERCEL_ENV', 'preview');
     vi.stubEnv('VERCEL_URL', 'promo-brindes-v1-preview-abc-juca1.vercel.app');
+    vi.stubEnv('SITE_PREVIEW_SUPABASE_PROJECT_REF', 'unkaeotwziynruktxizp');
+    vi.stubEnv('SITE_SUPABASE_URL', 'https://unkaeotwziynruktxizp.supabase.co');
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ items: [item], expiresAt: '2026-10-11T12:00:00.000Z' }), { status: 200 })));
     const allowed = responseDouble();
     await handler(request({ action: 'read', token }, { headers: { origin: 'https://promo-brindes-v1-preview-abc-juca1.vercel.app', 'content-type': 'application/json' } }), allowed.response);
@@ -99,6 +102,10 @@ describe('links persistentes de seleção', () => {
     const denied = responseDouble();
     await handler(request({ action: 'read', token }, { headers: { origin: 'https://promo-brindes-v1-preview-other.vercel.app', 'content-type': 'application/json' } }), denied.response);
     expect(denied.result.statusCode).toBe(403);
+
+    const production = responseDouble();
+    await handler(request({ action: 'read', token }), production.response);
+    expect(production.result.statusCode).toBe(403);
   });
 
   it('exige JSON e limita o payload antes de consultar o banco', async () => {

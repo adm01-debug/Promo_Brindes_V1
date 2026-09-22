@@ -192,6 +192,37 @@ describe('APIs de leads isoladas', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it('Preview falha fechado quando recebe as variáveis de produção do site', async () => {
+    configureSiteDatabase();
+    vi.stubEnv('VERCEL_ENV', 'preview');
+    vi.stubEnv('VERCEL_URL', 'promo-brindes-v1-preview-abc-juca1.vercel.app');
+    vi.stubEnv('SITE_PREVIEW_SUPABASE_PROJECT_REF', 'unkaeotwziynruktxizp');
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    await contactHandler(request({ ...contactPayload, pageUrl: 'https://promo-brindes-v1-preview-abc-juca1.vercel.app/contato' }, { headers: { origin: 'https://promo-brindes-v1-preview-abc-juca1.vercel.app', 'content-type': 'application/json' } }), response);
+    expect(result.statusCode).toBe(503);
+    expect(result.body).toMatchObject({ error: 'unsafe_database_target' });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('Preview só aceita projeto isolado explicitamente nomeado', async () => {
+    configureSiteDatabase();
+    vi.stubEnv('VERCEL_ENV', 'preview');
+    vi.stubEnv('VERCEL_URL', 'promo-brindes-v1-preview-abc-juca1.vercel.app');
+    vi.stubEnv('SITE_PREVIEW_SUPABASE_PROJECT_REF', 'unkaeotwziynruktxizp');
+    vi.stubEnv('SITE_SUPABASE_URL', 'https://unkaeotwziynruktxizp.supabase.co');
+    const fetchMock = vi.fn().mockResolvedValue(new Response('{"requestId":"lead-preview","duplicate":false}', { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    await contactHandler(request({ ...contactPayload, pageUrl: 'https://promo-brindes-v1-preview-abc-juca1.vercel.app/contato' }, { headers: { origin: 'https://promo-brindes-v1-preview-abc-juca1.vercel.app', 'content-type': 'application/json' } }), response);
+    expect(result.statusCode).toBe(201);
+    expect(fetchMock.mock.calls[0]?.[0]).toContain('unkaeotwziynruktxizp.supabase.co');
+    const forbidden = responseDouble();
+    await contactHandler(request(contactPayload), forbidden.response);
+    expect(forbidden.result.statusCode).toBe(403);
+  });
+
   it('recusa um projeto Supabase diferente do destino isolado aprovado', async () => {
     configureSiteDatabase();
     vi.stubEnv('SITE_SUPABASE_URL', 'https://zyxwvutsrqponmlkjihg.supabase.co');

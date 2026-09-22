@@ -1,6 +1,7 @@
 import type { ApiRequest, ApiResponse } from './_lib/leadHandler.js';
 import { createSharedSelection, readSharedSelection, revokeSharedSelection } from './_lib/sharedSelections.js';
 import { SiteDatabaseError } from './_lib/siteDatabase.js';
+import { allowedSiteOrigins } from './_lib/siteOrigin.js';
 
 const MAX_SHARED_SELECTION_BODY_BYTES = 16 * 1024;
 
@@ -38,9 +39,7 @@ function body(request: ApiRequest): Record<string, unknown> {
 }
 
 function requireOrigin(request: ApiRequest) {
-  const primaryOrigin = process.env.SITE_PUBLIC_ORIGIN?.trim();
-  const deploymentHost = process.env.VERCEL_URL?.trim();
-  const allowedOrigins = new Set([primaryOrigin, deploymentHost ? `https://${deploymentHost}` : ''].filter(Boolean));
+  const allowedOrigins = allowedSiteOrigins();
   if (!allowedOrigins.size || !allowedOrigins.has(header(request, 'origin'))) {
     throw new SiteDatabaseError('Origem não autorizada.', 'origin_not_allowed', 403);
   }

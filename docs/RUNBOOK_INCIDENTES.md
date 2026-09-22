@@ -9,9 +9,9 @@ original já têm runbook dedicado:
 - **Reconciliação do ledger de migrations** → `docs/RUNBOOK_RECONCILIACAO_LEDGER.md`.
 - **Cutover para a role `site_api`** → `docs/RUNBOOK_SITE_API_CUTOVER.md`.
 - **Verificação em 5 comandos do banco remoto** → `docs/RUNBOOK_VERIFICACAO_DB.md`.
-- **Restore de backup** → não coberto (Etapa 39, requer infraestrutura de
-  billing/org do Supabase fora do alcance desta sessão — ver
-  `docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260916.md`).
+- **Restore de backup** → `docs/RUNBOOK_RESTORE_SITE.md` documenta o ensaio seguro.
+  A restauração real, os alvos RPO/RTO e o custo do destino ainda precisam de
+  aprovação operacional; runbook não é prova de recuperação executada.
 
 ## Fila travada (jobs não saem de `pending`/`processing`)
 

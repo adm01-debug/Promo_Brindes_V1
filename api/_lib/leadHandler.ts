@@ -3,6 +3,7 @@ import { reconcileQuoteItems } from './catalogValidation.js';
 import { persistLead, SiteDatabaseError } from './siteDatabase.js';
 import { deliverQuoteConfirmationsNow } from '../notifications.js';
 import { createCorrelationId, errorClass, logServerError } from './observability.js';
+import { allowedSiteOrigins } from './siteOrigin.js';
 
 export interface ApiRequest {
   method?: string;
@@ -65,11 +66,11 @@ function requestIp(request: ApiRequest): string {
 
 function validateOrigin(request: ApiRequest): void {
   const origin = header(request, 'origin');
-  const allowedOrigin = process.env.SITE_PUBLIC_ORIGIN?.trim();
-  if (!allowedOrigin) {
+  const allowedOrigins = allowedSiteOrigins();
+  if (!allowedOrigins.size) {
     throw new RequestValidationError('O recebimento online ainda não está configurado.', 503, 'origin_not_configured');
   }
-  if (!origin || origin !== allowedOrigin) {
+  if (!allowedOrigins.has(origin)) {
     throw new RequestValidationError('Origem não autorizada.', 403, 'origin_not_allowed');
   }
 }

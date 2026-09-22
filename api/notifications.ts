@@ -209,6 +209,9 @@ async function sendWhatsApp(job: NotificationJob, signal: AbortSignal): Promise<
 }
 
 function configuredChannels(): Array<'email' | 'whatsapp'> {
+  // Deploys de Preview nunca disparam mensagens reais, mesmo que herdem
+  // acidentalmente credenciais de produção na Vercel.
+  if (process.env.VERCEL_ENV === 'preview') return [];
   const channels: Array<'email' | 'whatsapp'> = [];
   if (process.env.RESEND_API_KEY?.trim() && process.env.SITE_EMAIL_FROM?.trim()) channels.push('email');
   if (process.env.WHATSAPP_ACCESS_TOKEN?.trim() && process.env.WHATSAPP_PHONE_NUMBER_ID?.trim()

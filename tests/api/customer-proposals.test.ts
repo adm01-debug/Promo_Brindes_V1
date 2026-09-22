@@ -46,6 +46,22 @@ describe('download autenticado de propostas', () => {
     expect(JSON.parse(String((signedUrlCall[1] as RequestInit).body))).toEqual({ expiresIn: 60 });
   });
 
+  it('usa o JWT limitado no RPC e a credencial de Storage somente para a assinatura', async () => {
+    configure();
+    const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
+    const siteApiJwt = `${header}.e30.signature`;
+    vi.stubEnv('SITE_SUPABASE_SERVICE_JWT', siteApiJwt);
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ bucket: 'customer-proposals', path: 'cliente/proposta.pdf' }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ signedURL: '/object/sign/customer-proposals/cliente/proposta.pdf?token=ok' }), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const current = responseDouble();
+    await proposalHandler(request(), current.response);
+    expect(current.result.statusCode).toBe(200);
+    expect((fetchMock.mock.calls[0]?.[1] as RequestInit).headers).toMatchObject({ apikey: siteApiJwt });
+    expect((fetchMock.mock.calls[1]?.[1] as RequestInit).headers).toMatchObject({ apikey: `sb_secret_${'x'.repeat(40)}` });
+  });
+
   it('rejeita origem, sessão e identificador inválidos antes do banco', async () => {
     configure();
     const fetchMock = vi.fn();
@@ -62,14 +78,22 @@ describe('download autenticado de propostas', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('aceita o deployment Vercel corrente e bloqueia corpo inválido antes do banco', async () => {
+  it('aceita o deployment Vercel Preview isolado e bloqueia corpo inválido antes do banco', async () => {
     configure();
+    vi.stubEnv('VERCEL_ENV', 'preview');
     vi.stubEnv('VERCEL_URL', 'promo-brindes-v1-preview-abc-juca1.vercel.app');
+    vi.stubEnv('SITE_PREVIEW_SUPABASE_PROJECT_REF', 'unkaeotwziynruktxizp');
+    vi.stubEnv('SITE_SUPABASE_URL', 'https://unkaeotwziynruktxizp.supabase.co');
     const fetchMock = vi.fn().mockResolvedValue(new Response('null', { status: 200 }));
     vi.stubGlobal('fetch', fetchMock);
     const preview = responseDouble();
     await proposalHandler(request({ headers: { origin: 'https://promo-brindes-v1-preview-abc-juca1.vercel.app', authorization: `Bearer ${'a'.repeat(40)}`, 'content-type': 'application/json' } }), preview.response);
     expect(preview.result.statusCode).toBe(404);
+
+    const production = responseDouble();
+    await proposalHandler(request(), production.response);
+    expect(production.result.statusCode).toBe(403);
+    vi.stubEnv('VERCEL_ENV', 'production');
 
     const unsupported = responseDouble();
     await proposalHandler(request({ headers: { origin: 'https://promo-brindes-v1.vercel.app', authorization: `Bearer ${'a'.repeat(40)}`, 'content-type': 'text/plain' } }), unsupported.response);
