@@ -1,6 +1,7 @@
 import { fallbackPageShell, renderPageShell, type PublicPageMetadata } from './_lib/pageShell.js';
 import { configuredSiteOrigin, loadAppShell } from './_lib/publicProductPage.js';
 import { catalogPreviews, occasionPreviews } from './_lib/curatedPagePreviews.js';
+import { normalizeCampaignYear } from '../shared/campaignYears.js';
 
 interface VercelRequest {
   method?: string;
@@ -64,9 +65,7 @@ function pageFrom(request: VercelRequest): StaticPage | null {
     };
   }
   if (page === 'datas') {
-    const requestedYear = Number(queryValue(request, 'ano'));
-    const year = Number.isInteger(requestedYear) && requestedYear >= 2020 && requestedYear <= 2100
-      ? requestedYear : new Date().getUTCFullYear();
+    const year = normalizeCampaignYear(queryValue(request, 'ano'));
     const occasionId = queryValue(request, 'data');
     const occasion = occasionPreviews[occasionId];
     if (occasion) return {

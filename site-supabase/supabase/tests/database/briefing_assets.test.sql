@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
-select plan(39);
+select plan(44);
 
 select has_table('site_private', 'customer_briefing_assets', 'metadados privados de arquivos existem');
 select has_column('site_private', 'customer_briefing_assets', 'verified_at', 'assinatura binária possui recibo de verificação');
@@ -22,6 +22,8 @@ select ok(not pg_catalog.has_function_privilege('anon', 'public.get_my_briefing_
 select ok(pg_catalog.has_function_privilege('site_api', 'public.confirm_site_briefing_asset_verification(uuid,text,text,integer)', 'execute'), 'API limitada confirma a inspeção');
 select ok(not pg_catalog.has_function_privilege('authenticated', 'public.confirm_site_briefing_asset_verification(uuid,text,text,integer)', 'execute'), 'cliente não confirma a própria inspeção');
 select ok(pg_catalog.has_function_privilege('authenticated', 'public.owns_my_briefing_asset_path(text)', 'execute'), 'policy pode validar propriedade');
+select has_function('public', 'can_delete_my_unverified_briefing_asset_path', array['text'], 'exclusão direta possui guarda de imutabilidade');
+select ok(pg_catalog.has_function_privilege('authenticated', 'public.can_delete_my_unverified_briefing_asset_path(text)', 'execute'), 'titular pode avaliar a policy de exclusão pré-verificação');
 select ok(not pg_catalog.has_function_privilege('service_role', 'public.list_my_selections(boolean)', 'execute'), 'drift de grant das seleções foi removido');
 select is((select count(*) from pg_catalog.pg_policy policy
   where policy.polrelid = 'storage.objects'::regclass
@@ -43,6 +45,7 @@ select ok((select result ->> 'path' from asset_a) like 'aaaaaaaa-aaaa-4aaa-8aaa-
 select is(jsonb_array_length(public.list_my_briefing_assets()), 1, 'titular lista o próprio arquivo');
 select is(public.get_my_briefing_asset_verification((select (result ->> 'id')::uuid from asset_a)) ->> 'verifiedAt', null, 'arquivo novo começa sem recibo');
 select ok(public.owns_my_briefing_asset_path((select result ->> 'path' from asset_a)), 'titular possui o caminho exato');
+select ok(public.can_delete_my_unverified_briefing_asset_path((select result ->> 'path' from asset_a)), 'titular pode limpar objeto ainda não verificado');
 
 set local request.jwt.claims = '{"sub":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","role":"authenticated"}';
 select is(jsonb_array_length(public.list_my_briefing_assets()), 0, 'outra conta não vê o arquivo');
@@ -85,6 +88,10 @@ select ok(public.confirm_site_briefing_asset_verification(
   (select result ->> 'path' from asset_a), 'image/png', 2048
 ) is not null, 'API registra a inspeção somente após localizar o objeto esperado');
 select ok((public.list_my_briefing_assets() #>> '{0,verifiedAt}') is not null, 'titular recebe o estado verificado');
+select ok(not public.matches_my_briefing_asset_upload(
+  (select result ->> 'path' from asset_a), '{"size":2048,"mimetype":"image/png"}'
+), 'caminho verificado não aceita substituição com os mesmos metadados');
+select ok(not public.can_delete_my_unverified_briefing_asset_path((select result ->> 'path' from asset_a)), 'objeto verificado não pode ser removido diretamente pelo titular');
 select is(public.attach_my_briefing_assets_to_quote(
   'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
   array[(select (result ->> 'id')::uuid from asset_a)]

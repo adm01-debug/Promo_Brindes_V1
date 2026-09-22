@@ -53,6 +53,15 @@ async function removeRejectedAsset(baseUrl: string, secret: string, authorizatio
   }).catch(() => undefined);
 }
 
+async function readStoredSignature(baseUrl: string, credential: string, path: string, signal: AbortSignal): Promise<Uint8Array | null> {
+  const encodedPath = path.split('/').map(encodeURIComponent).join('/');
+  const object = await fetch(`${baseUrl}/storage/v1/object/authenticated/${encodeURIComponent(BUCKET)}/${encodedPath}`, {
+    headers: { apikey: credential, Authorization: `Bearer ${credential}`, Range: 'bytes=0-1023' },
+    signal,
+  });
+  return object.ok ? readSignaturePrefix(object) : null;
+}
+
 export default async function handler(request: ApiRequest, response: ApiResponse) {
   response.setHeader('Cache-Control', 'no-store');
   response.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -101,16 +110,11 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       return;
     }
 
-    const encodedPath = candidate.path.split('/').map(encodeURIComponent).join('/');
-    const object = await fetch(`${config.url}/storage/v1/object/authenticated/${encodeURIComponent(BUCKET)}/${encodedPath}`, {
-      headers: { apikey: config.storageDeleteCredential, Authorization: `Bearer ${config.storageDeleteCredential}`, Range: 'bytes=0-1023' },
-      signal: controller.signal,
-    });
-    if (!object.ok) {
+    const prefix = await readStoredSignature(config.url, config.storageDeleteCredential, candidate.path, controller.signal);
+    if (!prefix) {
       response.status(409).json({ error: 'briefing_asset_upload_incomplete', message: 'A transferência ainda não foi confirmada. Tente enviar novamente.' });
       return;
     }
-    const prefix = await readSignaturePrefix(object);
     if (!matchesDeclaredFileSignature(candidate.mimeType, prefix)) {
       await removeRejectedAsset(config.url, config.storageDeleteCredential, authorization, candidate.path, assetId, controller.signal);
       response.status(422).json({ error: 'briefing_asset_signature_mismatch', message: 'O conteúdo do arquivo não corresponde ao formato informado.' });
@@ -127,6 +131,15 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     });
     const verifiedAt = await confirmed.json().catch(() => null) as string | null;
     if (!confirmed.ok || typeof verifiedAt !== 'string' || Number.isNaN(Date.parse(verifiedAt))) throw new Error('verification_confirmation_failed');
+
+    // A confirmação torna o objeto imutável para o titular. Uma segunda leitura
+    // fecha a janela entre a primeira inspeção e esse bloqueio (TOCTOU).
+    const lockedPrefix = await readStoredSignature(config.url, config.storageDeleteCredential, candidate.path, controller.signal);
+    if (!lockedPrefix || !matchesDeclaredFileSignature(candidate.mimeType, lockedPrefix)) {
+      await removeRejectedAsset(config.url, config.storageDeleteCredential, authorization, candidate.path, assetId, controller.signal);
+      response.status(422).json({ error: 'briefing_asset_signature_mismatch', message: 'O arquivo mudou durante a verificação e foi descartado.' });
+      return;
+    }
     response.status(200).json({ verifiedAt });
   } catch {
     response.status(503).json({ error: 'briefing_asset_verification_unavailable', message: 'Não conseguimos verificar o arquivo agora. Ele não foi anexado.' });

@@ -51,6 +51,8 @@ test('consulta em português expande termos do domínio sem executar conteúdo',
   const expanded = normalizeQuery('Quero montar um orçamento pelo carrinho');
   assert.match(expanded, /quote request/);
   assert.match(expanded, /quote cart/);
+  assert.match(normalizeQuery('Como valida os dados?'), /normalizeLeadPayload contracts/);
+  assert.match(normalizeQuery('Como retém dados antigos?'), /retention site_retention/);
   assert.throws(() => normalizeQuery(''), /Informe uma pergunta/);
   assert.throws(() => normalizeQuery('x'.repeat(501)), /máximo de 500/);
 });

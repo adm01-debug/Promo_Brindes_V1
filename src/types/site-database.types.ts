@@ -30,6 +30,10 @@ export type Database = {
         Args: { p_asset_ids: string[]; p_request_id: string }
         Returns: number
       }
+      can_delete_my_unverified_briefing_asset_path: {
+        Args: { p_path: string }
+        Returns: boolean
+      }
       claim_my_quote_requests: { Args: never; Returns: Json }
       claim_site_notification_deliveries: {
         Args: { p_batch_size?: number; p_channels: string[] }

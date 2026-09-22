@@ -129,10 +129,9 @@ export async function uploadMyBriefingAsset(file: File, kind: BriefingAssetKind)
 
 export async function deleteMyBriefingAsset(asset: BriefingAsset): Promise<void> {
   if (asset.quoteRequestId) throw new Error('Este arquivo já faz parte de um briefing e não pode ser removido por aqui.');
-  const supabase = client();
-  const removed = await supabase.storage.from(BRIEFING_ASSET_BUCKET).remove([asset.path]);
-  if (removed.error) throw new Error('Não foi possível remover o arquivo do armazenamento.');
-  const { error } = await supabase.rpc('delete_my_briefing_asset', { p_id: asset.id });
+  // A remoção do registro revoga o caminho imediatamente e enfileira o blob.
+  // Objetos verificados permanecem imutáveis via RLS até essa exclusão lógica.
+  const { error } = await client().rpc('delete_my_briefing_asset', { p_id: asset.id });
   if (error) throw rpcError(error.message);
 }
 

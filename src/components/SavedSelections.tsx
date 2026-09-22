@@ -133,6 +133,10 @@ export function SavedSelections() {
       return;
     }
     if (action === 'overwrite') {
+      if (current.latest.archivedAt) {
+        setError('A seleção foi arquivada em outro dispositivo. Preserve as duas versões ou desarquive a seleção antes de substituí-la.');
+        return;
+      }
       await updateSavedSelection(current.latest);
       return;
     }
@@ -215,13 +219,13 @@ export function SavedSelections() {
           <p id="selection-conflict-description">Compare as versões e escolha conscientemente. Nenhuma delas será apagada sem sua decisão.</p>
           <div className="saved-selections__conflict-compare">
             <section aria-label="Versão deste navegador"><strong>Este navegador</strong><span>{cart.itemCount} {cart.itemCount === 1 ? 'produto' : 'produtos'}</span><small>Alterações sobre a versão {conflict.stale.version}</small></section>
-            <section aria-label="Versão salva na conta"><strong>Versão da conta</strong><span>{conflict.latest.references.length} {conflict.latest.references.length === 1 ? 'produto' : 'produtos'}</span><small>Atualizada em {dateLabel(conflict.latest.updatedAt)} · versão {conflict.latest.version}</small></section>
+            <section aria-label="Versão salva na conta"><strong>Versão da conta</strong><span>{conflict.latest.references.length} {conflict.latest.references.length === 1 ? 'produto' : 'produtos'}</span><small>{conflict.latest.archivedAt ? 'Arquivada' : 'Atualizada'} em {dateLabel(conflict.latest.updatedAt)} · versão {conflict.latest.version}</small></section>
           </div>
           <div className="saved-selections__conflict-actions">
             <button ref={cancelRef} type="button" onClick={() => setConflict(null)}>Decidir depois</button>
             <button type="button" onClick={() => void resolveConflict('remote')}>Usar versão da conta</button>
             <button type="button" onClick={() => void resolveConflict('copy')}>Preservar as duas</button>
-            <button type="button" className="button button--green" onClick={() => void resolveConflict('overwrite')}>Substituir pela deste navegador</button>
+            {!conflict.latest.archivedAt && <button type="button" className="button button--green" onClick={() => void resolveConflict('overwrite')}>Substituir pela deste navegador</button>}
           </div>
         </div>
       </div>}

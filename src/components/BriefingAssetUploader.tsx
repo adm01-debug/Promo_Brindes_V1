@@ -126,15 +126,16 @@ export function BriefingAssetUploader({ value, onChange, contactEmail }: {
       {error && <div className="field-error" role="alert">{error}</div>}
       {assets.length > 0 && <ul className="briefing-assets__list">
         {assets.map((asset) => {
-          const available = !asset.quoteRequestId && Boolean(asset.verifiedAt);
+          const selectable = !asset.quoteRequestId && Boolean(asset.verifiedAt);
+          const removable = !asset.quoteRequestId;
           const selected = value.includes(asset.id);
           return <li key={asset.id} className={selected ? 'is-selected' : ''}>
             <label>
-              <input type="checkbox" checked={selected} disabled={!available || emailMismatch} onChange={(event) => onChange(event.target.checked ? [...new Set([...value, asset.id])] : value.filter((id) => id !== asset.id))} />
+              <input type="checkbox" checked={selected} disabled={!selectable || emailMismatch} onChange={(event) => onChange(event.target.checked ? [...new Set([...value, asset.id])] : value.filter((id) => id !== asset.id))} />
               {asset.mimeType === 'application/pdf' ? <FileText aria-hidden="true" /> : <FileImage aria-hidden="true" />}
               <span><strong>{asset.name}</strong><small>{fileSize(asset.sizeBytes)} · {asset.kind === 'logo' ? 'Logo' : 'Referência'}{asset.quoteRequestId ? ' · já enviado' : !asset.verifiedAt ? ' · reenvie para validar' : ''}</small></span>
             </label>
-            {available && <button type="button" aria-label={`Remover ${asset.name}`} onClick={() => void remove(asset)} disabled={loading}><Trash2 /></button>}
+            {removable && <button type="button" aria-label={`Remover ${asset.name}`} onClick={() => void remove(asset)} disabled={loading}><Trash2 /></button>}
           </li>;
         })}
       </ul>}

@@ -25,7 +25,7 @@ function responseDouble() {
 }
 
 describe('HTML inicial das páginas estáticas', () => {
-  afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
+  afterEach(() => { vi.useRealTimers(); vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
 
   it('entrega metadados específicos para catálogo e não indexa o detalhe privado', async () => {
     vi.stubEnv('VITE_PUBLIC_URL', 'https://promo-brindes-v1.vercel.app');
@@ -89,6 +89,21 @@ describe('HTML inicial das páginas estáticas', () => {
     expect(occasion.result.statusCode).toBe(200);
     expect(occasion.result.body).toContain('<title>Dia do Cliente 2027 | Promo Brindes</title>');
     expect(occasion.result.body).toContain('/datas-comemorativas?ano=2027&amp;data=dia-do-cliente');
+  });
+
+  it('normaliza no HTML inicial um ano que a agenda da interface não suporta', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-09-22T12:00:00-03:00'));
+    vi.stubEnv('VITE_PUBLIC_URL', 'https://promo-brindes-v1.vercel.app');
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(appShell, { status: 200 })));
+    const occasion = responseDouble();
+
+    await handler({ method: 'GET', query: { page: 'datas', ano: '2030', data: 'pascoa' } }, occasion.response);
+
+    expect(occasion.result.statusCode).toBe(200);
+    expect(occasion.result.body).toContain('<title>Páscoa 2026 | Promo Brindes</title>');
+    expect(occasion.result.body).toContain('/datas-comemorativas?ano=2026&amp;data=pascoa');
+    expect(occasion.result.body).not.toContain('ano=2030');
   });
 
   it('não transforma HTML de autenticação de terceiro em página estática', async () => {

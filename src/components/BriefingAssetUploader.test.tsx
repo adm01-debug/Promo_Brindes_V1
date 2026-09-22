@@ -2,7 +2,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BriefingAssetUploader } from './BriefingAssetUploader';
-import { listMyBriefingAssets, uploadMyBriefingAsset, type BriefingAsset } from '../lib/briefingAssets';
+import { deleteMyBriefingAsset, listMyBriefingAssets, uploadMyBriefingAsset, type BriefingAsset } from '../lib/briefingAssets';
 
 const auth = vi.hoisted(() => ({ user: { id: 'customer-a', email: 'a@example.test' } as { id: string; email: string } | null, identityEpoch: 0 }));
 vi.mock('../context/customerAuth', () => ({ useCustomerAuth: () => auth }));
@@ -60,5 +60,20 @@ describe('privacidade de anexos durante troca de sessão', () => {
 
     await waitFor(() => expect(listMyBriefingAssets).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(onChange).toHaveBeenLastCalledWith([]));
+  });
+
+  it('mantém arquivo antigo não verificado indisponível para seleção, mas permite removê-lo', async () => {
+    const pending = { ...asset, id: 'asset-pendente', verifiedAt: null };
+    vi.mocked(listMyBriefingAssets).mockResolvedValue([pending]);
+    vi.mocked(deleteMyBriefingAsset).mockResolvedValue();
+    const onChange = vi.fn();
+    render(<MemoryRouter><BriefingAssetUploader value={[]} onChange={onChange} contactEmail="" /></MemoryRouter>);
+
+    expect(await screen.findByText(pending.name)).toBeVisible();
+    expect(screen.getByRole('checkbox')).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: `Remover ${pending.name}` }));
+
+    await waitFor(() => expect(deleteMyBriefingAsset).toHaveBeenCalledWith(pending));
+    await waitFor(() => expect(screen.queryByText(pending.name)).not.toBeInTheDocument());
   });
 });
