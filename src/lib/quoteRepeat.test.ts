@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { clearQuoteRepeat, loadQuoteRepeat, saveQuoteRepeat } from './quoteRepeat';
+import { clearPersonalQuoteStorage } from './personalDataReset';
 
 describe('repetição de orçamento', () => {
   it('preserva apenas contexto de campanha e briefing por uma janela curta', () => {
@@ -11,5 +12,14 @@ describe('repetição de orçamento', () => {
     expect(loadQuoteRepeat('quote-1')).toBeNull();
     clearQuoteRepeat();
     vi.useRealTimers();
+  });
+
+  it('não restaura briefing do titular anterior após a limpeza de sessão', () => {
+    saveQuoteRepeat({ quoteId: 'quote-previous-account', briefing: { actionName: 'Campanha confidencial' } });
+    expect(loadQuoteRepeat('quote-previous-account')?.briefing?.actionName).toBe('Campanha confidencial');
+
+    clearPersonalQuoteStorage();
+
+    expect(loadQuoteRepeat('quote-previous-account')).toBeNull();
   });
 });

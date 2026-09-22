@@ -1,8 +1,20 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    // Etapa 1 do plano de 20260917: só gera o relatório quando pedido
+    // explicitamente (ANALYZE=1), para não pagar o custo em todo build de CI.
+    process.env.ANALYZE === '1' &&
+      visualizer({
+        filename: 'dist/stats.html',
+        gzipSize: true,
+        brotliSize: true,
+        template: 'treemap',
+      }),
+  ],
   server: { host: true, port: 4174 },
   preview: { host: true, port: 4175 },
   build: {

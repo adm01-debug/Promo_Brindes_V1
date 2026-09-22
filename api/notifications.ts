@@ -76,6 +76,26 @@ function safeText(value: unknown, max: number): string {
   return typeof value === 'string' ? value.replace(/[\r\n]+/g, ' ').trim().slice(0, max) : '';
 }
 
+class ProviderDeliveryError extends Error {
+  constructor(code: string, readonly retryAfterSeconds: number | null) {
+    super(code);
+  }
+}
+
+function retryAfterSeconds(response: Response): number | null {
+  if (response.status !== 429 && response.status !== 503) return null;
+  const value = response.headers.get('Retry-After')?.trim();
+  if (!value || value.length > 128) return null;
+  let seconds: number;
+  if (/^\d{1,10}$/.test(value)) seconds = Number(value);
+  else {
+    const date = Date.parse(value);
+    if (!Number.isFinite(date)) return null;
+    seconds = Math.ceil((date - Date.now()) / 1_000);
+  }
+  return Math.min(86_400, Math.max(0, seconds));
+}
+
 function parseJobs(value: unknown): NotificationJob[] {
   if (!Array.isArray(value) || value.length > BATCH_SIZE) throw new Error('invalid_notification_jobs');
   return value.map((raw) => {
@@ -146,7 +166,9 @@ async function sendEmail(job: NotificationJob, signal: AbortSignal): Promise<{ p
     body: JSON.stringify({ from, to: [job.recipientEmail], subject: `Recebemos sua solicitação #${job.protocol} | Promo Brindes`, text, html: emailHtml }),
   });
   const body = await response.json().catch(() => ({})) as { id?: unknown };
-  if (!response.ok || typeof body.id !== 'string') throw new Error(`email_provider_${response.status || 'invalid_response'}`);
+  if (!response.ok || typeof body.id !== 'string') {
+    throw new ProviderDeliveryError(`email_provider_${response.status || 'invalid_response'}`, retryAfterSeconds(response));
+  }
   return { provider: 'resend', id: body.id.slice(0, 240) };
 }
 
@@ -180,7 +202,9 @@ async function sendWhatsApp(job: NotificationJob, signal: AbortSignal): Promise<
   });
   const body = await response.json().catch(() => ({})) as { messages?: Array<{ id?: unknown }> };
   const id = body.messages?.[0]?.id;
-  if (!response.ok || typeof id !== 'string') throw new Error(`whatsapp_provider_${response.status || 'invalid_response'}`);
+  if (!response.ok || typeof id !== 'string') {
+    throw new ProviderDeliveryError(`whatsapp_provider_${response.status || 'invalid_response'}`, retryAfterSeconds(response));
+  }
   return { provider: 'meta-whatsapp-cloud', id: id.slice(0, 240) };
 }
 
@@ -195,18 +219,17 @@ function configuredChannels(): Array<'email' | 'whatsapp'> {
 /** Finaliza e devolve o boolean real do banco (R01): `false` significa que a
  * linha não foi atualizada (lease expirado ou status já mudou) e nunca deve
  * ser tratado como sucesso. */
-async function finalize(job: NotificationJob, status: 'sent' | 'failed', signal: AbortSignal, delivery?: { provider: string; id: string }, errorCode?: string): Promise<boolean> {
+async function finalize(job: NotificationJob, status: 'sent' | 'failed', signal: AbortSignal, delivery?: { provider: string; id: string }, errorCode?: string, providerRetryAfter?: number | null): Promise<boolean> {
   // O backoff exponencial com jitter agora é calculado no banco por
   // site_private.next_retry_at (plano de correções, etapa 11): não enviamos
   // mais um retrySeconds calculado aqui, que sempre venceria o cálculo do
   // banco por ser maior (base de 300s contra 60s) e o deixaria morto na
-  // prática. p_retry_after_seconds fica reservado a um Retry-After real do
-  // provedor, que hoje nenhum dos dois captura — omitido (undefined não
-  // serializa em JSON.stringify), então a função usa o default do banco.
+  // prática. p_retry_after_seconds só recebe um Retry-After válido do
+  // provedor; sem esse header, a função usa apenas a política do banco.
   return rpc<boolean>('finalize_site_notification_delivery', {
     p_delivery_id: job.id, p_lease_token: job.leaseToken, p_status: status, p_provider: delivery?.provider || null,
     p_provider_message_id: delivery?.id || null, p_error_code: errorCode?.slice(0, 120) || null,
-    p_retry_after_seconds: undefined,
+    p_retry_after_seconds: providerRetryAfter ?? undefined,
   }, signal);
 }
 
@@ -214,9 +237,9 @@ async function finalize(job: NotificationJob, status: 'sent' | 'failed', signal:
  * escapar como exceção — o chamador só precisa saber se a finalização foi
  * confirmada (R01): tanto um `throw` quanto um `false` explícito significam
  * "não confirmado", tratados da mesma forma pelo chamador. */
-async function tryFinalize(job: NotificationJob, status: 'sent' | 'failed', signal: AbortSignal, delivery?: { provider: string; id: string }, errorCode?: string): Promise<boolean> {
+async function tryFinalize(job: NotificationJob, status: 'sent' | 'failed', signal: AbortSignal, delivery?: { provider: string; id: string }, errorCode?: string, providerRetryAfter?: number | null): Promise<boolean> {
   try {
-    return await finalize(job, status, signal, delivery, errorCode);
+    return await finalize(job, status, signal, delivery, errorCode, providerRetryAfter);
   } catch {
     return false;
   }
@@ -252,7 +275,8 @@ async function deliverJob(job: NotificationJob, signal: AbortSignal): Promise<De
     delivery = job.channel === 'email' ? await sendEmail(job, signal) : await sendWhatsApp(job, signal);
   } catch (error) {
     const code = error instanceof Error ? error.message : 'provider_error';
-    const confirmed = await tryFinalize(job, 'failed', signal, undefined, code);
+    const confirmed = await tryFinalize(job, 'failed', signal, undefined, code,
+      error instanceof ProviderDeliveryError ? error.retryAfterSeconds : null);
     return confirmed ? 'failed' : 'inconclusive';
   }
 

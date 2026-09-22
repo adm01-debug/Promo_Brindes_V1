@@ -58,15 +58,26 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
     user: session?.user ?? null,
     claimHistory: async () => (await import('../lib/customerAccount')).claimMyQuoteRequests(),
     signOut: async () => {
-      const { siteSupabase } = await import('../lib/siteSupabase');
-      if (siteSupabase) await siteSupabase.auth.signOut();
       // Não deixa dados de contato preenchidos por uma conta em um navegador
       // compartilhado. onAuthStateChange também vai disparar e repetir esta
-      // limpeza (e incrementar identityEpoch de novo) — redundante e inofensivo;
-      // esta chamada direta cobre a própria aba sem esperar o round-trip.
-      const { clearPersonalQuoteStorage } = await import('../lib/personalDataReset');
+      // limpeza (e incrementar identityEpoch de novo) — redundante e inofensivo.
+      //
+      // A limpeza local roda ANTES do round-trip de rede ao Supabase, não
+      // depois — o comentário original já dizia essa intenção, mas o código
+      // esperava `await siteSupabase.auth.signOut()` primeiro. Se quem chama
+      // navegar (ou o teste fizer `page.goto`) logo após o clique, a
+      // navegação encerra o contexto JS e o `import()` + limpeza pendentes
+      // depois do await de rede nunca chegavam a rodar — e-mail/telefone do
+      // titular anterior ficavam no rascunho da próxima sessão. Reproduzido
+      // em e2e/smoke.spec.ts ("sair encerra a sessão..."), intermitente
+      // (corrida, não falha determinística — por isso não aparecia sempre).
+      const [{ siteSupabase }, { clearPersonalQuoteStorage }] = await Promise.all([
+        import('../lib/siteSupabase'),
+        import('../lib/personalDataReset'),
+      ]);
       clearPersonalQuoteStorage();
       setIdentityEpoch((epoch) => epoch + 1);
+      if (siteSupabase) await siteSupabase.auth.signOut();
     },
   }), [configured, loading, session, identityEpoch]);
 

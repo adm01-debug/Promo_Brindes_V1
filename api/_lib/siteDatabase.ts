@@ -21,6 +21,8 @@ interface SiteDatabaseConfig {
    * o que vai em apikey/Authorization.
    */
   serviceCredential: string;
+  /** A Storage API exige uma credencial própria para exclusão de propostas. */
+  storageDeleteCredential: string | null;
   requestHashSalt: string;
 }
 
@@ -51,6 +53,7 @@ function isValidServiceCredential(value: string): boolean {
 export function getSiteDatabaseConfig(): SiteDatabaseConfig {
   const rawUrl = process.env.SITE_SUPABASE_URL?.trim();
   const serviceCredential = process.env.SITE_SUPABASE_SERVICE_JWT?.trim() || process.env.SITE_SUPABASE_SECRET_KEY?.trim();
+  const storageDeleteCredential = process.env.SITE_SUPABASE_SECRET_KEY?.trim() || null;
   const requestHashSalt = process.env.SITE_REQUEST_HASH_SALT?.trim();
   if (!rawUrl || !serviceCredential || !requestHashSalt) {
     throw new SiteDatabaseError('O recebimento online ainda não está configurado.', 'backend_not_configured');
@@ -65,10 +68,12 @@ export function getSiteDatabaseConfig(): SiteDatabaseConfig {
   if (url.protocol !== 'https:' || !projectHost || projectHost[1] !== SITE_DATABASE_PROJECT) {
     throw new SiteDatabaseError('Destino isolado do banco do site inválido.', 'unsafe_database_target');
   }
-  if (!isValidServiceCredential(serviceCredential) || requestHashSalt.length < 32) {
+  if (!isValidServiceCredential(serviceCredential)
+    || (storageDeleteCredential !== null && !storageDeleteCredential.startsWith('sb_secret_'))
+    || requestHashSalt.length < 32) {
     throw new SiteDatabaseError('Credenciais server-side do site inválidas.', 'backend_misconfigured');
   }
-  return { url: url.origin, serviceCredential, requestHashSalt };
+  return { url: url.origin, serviceCredential, storageDeleteCredential, requestHashSalt };
 }
 
 function identifierHash(ip: string, salt: string): string {

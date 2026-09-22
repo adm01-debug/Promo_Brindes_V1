@@ -1,4 +1,4 @@
-import { writeFileSync } from 'node:fs';
+import { writeFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { runSupabaseDbQuery } from './_lib/supabaseDbQuery.mjs';
@@ -13,6 +13,21 @@ import { runSupabaseDbQuery } from './_lib/supabaseDbQuery.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT_FILE = path.join(ROOT, 'docs', 'DATABASE_DICTIONARY.md');
+const MIGRATIONS_DIR = path.join(ROOT, 'site-supabase', 'supabase', 'migrations');
+
+// Achado da execução do plano de 20260917: usar `new Date()` aqui fazia o check de
+// drift do CI (database.yml, Etapa 35) falhar em qualquer dia diferente do commit
+// anterior, mesmo sem nenhuma mudança real de schema — a única coisa que mudava era o
+// texto "gerado em DD/MM". A data do arquivo de migration mais recente é determinística
+// (só muda quando o schema muda de verdade) e continua respondendo "a partir de que
+// estado do banco isto foi gerado", que é a pergunta que a frase original tentava
+// responder.
+function latestMigrationDate() {
+  const files = readdirSync(MIGRATIONS_DIR).filter((f) => /^\d{14}_.+\.sql$/.test(f));
+  const latest = files.sort().at(-1);
+  const stamp = latest.slice(0, 8); // YYYYMMDD
+  return `${stamp.slice(0, 4)}-${stamp.slice(4, 6)}-${stamp.slice(6, 8)}`;
+}
 
 function query(sql) {
   return runSupabaseDbQuery(sql, { cwd: ROOT });
@@ -52,7 +67,7 @@ function main() {
   const lines = [
     '# Dicionário de dados — site_private (Etapa 35)',
     '',
-    `Gerado por \`npm run db:site:dictionary\` a partir de \`pg_description\` no banco local em ${new Date().toISOString().slice(0, 10)}. Não editar à mão — a fonte de verdade é o comentário na migration (\`comment on table\`/\`comment on column\`); rode o script de novo depois de qualquer mudança de schema.`,
+    `Gerado por \`npm run db:site:dictionary\` a partir de \`pg_description\` no banco local, na versão do schema da migration mais recente (${latestMigrationDate()}). Não editar à mão — a fonte de verdade é o comentário na migration (\`comment on table\`/\`comment on column\`); rode o script de novo depois de qualquer mudança de schema.`,
     '',
     '## Tabelas',
     '',

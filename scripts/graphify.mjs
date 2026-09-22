@@ -426,6 +426,9 @@ export function normalizeQuery(raw) {
     login: 'auth customer',
     busca: 'search',
     filtros: 'filters catalog',
+    'e-mail': 'email notification',
+    whatsapp: 'whatsapp notification',
+    confirma: 'deliver quote confirmations',
     seleção: 'shared selection',
     selecao: 'shared selection',
   };

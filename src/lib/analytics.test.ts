@@ -23,6 +23,12 @@ describe('instrumentação segura', () => {
     expect(redactAnalyticsUrl({ type: 'pageview', url: 'https://promo.test/selecoes/compartilhada?s=segredo' })).toMatchObject({
       url: 'https://promo.test/selecoes/compartilhada',
     });
+    expect(redactAnalyticsUrl({ type: 'pageview', url: 'https://promo.test/produto/bolsa-personalizada-123' })).toMatchObject({
+      url: 'https://promo.test/produto/:identifier',
+    });
+    expect(redactAnalyticsUrl({ type: 'pageview', url: 'https://promo.test/interno/cliente@empresa.test' })).toMatchObject({
+      url: 'https://promo.test/rota-nao-listada',
+    });
   });
 
   it('emite somente propriedades agregadas do contrato fechado', () => {

@@ -61,6 +61,45 @@ describe('tarefa de retenção', () => {
     expect(finalizeInit.body).toBe(`{"p_quote_ids":["${quoteId}"],"p_storage_paths":["cliente/proposta.pdf"],"p_batch_size":100}`);
   });
 
+  it('usa a role limitada para RPC e a chave de Storage separada ao migrar a autenticação', async () => {
+    configure();
+    const serviceJwt = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${Buffer.from(JSON.stringify({ role: 'site_api', ref: 'xlzmclcjdncjfdrjxclt' })).toString('base64url')}.c2lnbmF0dXJl`;
+    vi.stubEnv('SITE_SUPABASE_SERVICE_JWT', serviceJwt);
+    const storageSecret = process.env.SITE_SUPABASE_SECRET_KEY;
+    const fetchMock = vi.fn(async (url: string, _init?: RequestInit) => {
+      if (url.includes('/get_site_data_retention_candidates')) {
+        return new Response(JSON.stringify({ quoteIds: [], storagePaths: ['cliente/proposta.pdf'] }), { status: 200 });
+      }
+      if (url.includes('/storage/v1/object/customer-proposals')) return new Response('[]', { status: 200 });
+      if (url.includes('/finalize_site_data_retention')) return new Response('{}', { status: 200 });
+      return new Response('{}', { status: 500 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+
+    expect(result.statusCode).toBe(200);
+    const rpcHeaders = (fetchMock.mock.calls[0]?.[1] as RequestInit).headers;
+    const storageHeaders = (fetchMock.mock.calls[1]?.[1] as RequestInit).headers;
+    expect(rpcHeaders).toMatchObject({ Authorization: `Bearer ${serviceJwt}` });
+    expect(storageHeaders).toMatchObject({ Authorization: `Bearer ${storageSecret}`, apikey: storageSecret });
+    expect((fetchMock.mock.calls[2]?.[1] as RequestInit).headers).toMatchObject({ Authorization: `Bearer ${serviceJwt}` });
+  });
+
+  it('não finaliza metadados quando falta credencial para apagar um blob existente', async () => {
+    configure();
+    const serviceJwt = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${Buffer.from(JSON.stringify({ role: 'site_api', ref: 'xlzmclcjdncjfdrjxclt' })).toString('base64url')}.c2lnbmF0dXJl`;
+    vi.stubEnv('SITE_SUPABASE_SERVICE_JWT', serviceJwt);
+    vi.stubEnv('SITE_SUPABASE_SECRET_KEY', '');
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ quoteIds: [], storagePaths: ['cliente/proposta.pdf'] }), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+
+    expect(result.statusCode).toBe(503);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it('falha fechada e não remove metadados quando a Storage API falha', async () => {
     configure();
     const fetchMock = vi.fn(async (url: string, _init?: RequestInit) => {
