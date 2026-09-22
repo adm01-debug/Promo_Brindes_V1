@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { execFileSync } from 'node:child_process';
+import { execFile, execFileSync, spawn } from 'node:child_process';
+import { promisify } from 'node:util';
 
 // Etapa 37 do plano de correções: testa concorrência real da fila — dois "workers"
 // reivindicando ao mesmo tempo devem obter conjuntos DISJUNTOS de jobs (for update
@@ -14,13 +15,74 @@ import { execFileSync } from 'node:child_process';
 
 const DB_URL = 'postgresql://postgres:postgres@127.0.0.1:56322/postgres';
 const QUOTE_COUNT = 50;
+const execFileAsync = promisify(execFile);
+const fixturePrefixes = [];
+const CLAIM_SQL = `select 'CLAIM:' || coalesce(string_agg(payload ->> 'id', ','), '')
+  from jsonb_array_elements(public.claim_site_notification_deliveries(array['email'], 25)) as payload;`;
 
 function psql(sql) {
   return execFileSync('psql', [DB_URL, '-At', '-c', sql], { encoding: 'utf8' }).trim();
 }
 
+test.after(() => {
+  for (const prefix of fixturePrefixes) {
+    psql(`
+      delete from site_private.notification_deliveries
+      where request_id in (select id from site_private.quote_requests where client_request_id like '${prefix}%');
+      delete from site_private.quote_requests where client_request_id like '${prefix}%';
+    `);
+  }
+});
+
+/** Mantém as linhas reivindicadas bloqueadas até o segundo worker concluir. */
+async function firstClaimWithOpenTransaction() {
+  const child = spawn('psql', [DB_URL, '-X', '-q', '-A', '-t', '-v', 'ON_ERROR_STOP=1'], {
+    stdio: ['pipe', 'pipe', 'pipe'],
+  });
+  let stderr = '';
+  let stdout = '';
+  child.stderr.setEncoding('utf8');
+  child.stderr.on('data', (chunk) => { stderr += chunk; });
+  const closed = new Promise((resolve) => child.on('close', (code) => resolve(code)));
+  const ready = new Promise((resolve, reject) => {
+    child.on('error', reject);
+    child.on('close', (code) => reject(new Error(`primeiro worker encerrou antes da disputa: ${code} ${stderr}`)));
+    child.stdout.setEncoding('utf8');
+    child.stdout.on('data', (chunk) => {
+      stdout += chunk;
+      const line = stdout.split('\n').find((value) => value.startsWith('CLAIM:'));
+      if (line !== undefined) resolve(line.slice('CLAIM:'.length).trim());
+    });
+  });
+  child.stdin.write(`BEGIN;\n${CLAIM_SQL}\n`);
+  const ids = await ready;
+  return {
+    ids,
+    async commit() {
+      child.stdin.end('COMMIT;\n');
+      assert.equal(await closed, 0, `primeiro worker terminou com erro: ${stderr}`);
+    },
+    isOpen: () => child.exitCode === null,
+  };
+}
+
+async function overlappingClaims() {
+  const first = await firstClaimWithOpenTransaction();
+  try {
+    const { stdout } = await execFileAsync('psql', [DB_URL, '-X', '-q', '-A', '-t', '-v', 'ON_ERROR_STOP=1', '-c', CLAIM_SQL], {
+      encoding: 'utf8',
+      timeout: 5_000,
+    });
+    assert.ok(first.isOpen(), 'o segundo worker terminou enquanto a transação do primeiro ainda mantinha os locks');
+    return [first.ids, stdout.trim().replace(/^CLAIM:/, '')];
+  } finally {
+    await first.commit();
+  }
+}
+
 test('duas reivindicações concorrentes da fila obtêm conjuntos disjuntos de jobs', { timeout: 30_000 }, async () => {
   const runId = Date.now().toString(36);
+  fixturePrefixes.push(`concurrency-${runId}-`);
 
   // Fixture: 50 quote_requests, cada uma gera 1 job 'email' pendente via o trigger
   // enqueue_quote_confirmations já existente (nenhuma dependência de mock).
@@ -37,28 +99,13 @@ test('duas reivindicações concorrentes da fila obtêm conjuntos disjuntos de j
   `));
   assert.equal(totalPending, QUOTE_COUNT, 'pré-condição: a fixture criou exatamente 50 jobs pendentes');
 
-  // Duas conexões psql reais, disparadas ao mesmo tempo (Promise.all, não sequencial).
-  // Cada uma reivindica 25 (o máximo de notification_policy().batch_max) — as duas
-  // juntas cobrem exatamente os 50 da fixture, então disputam linhas de verdade em
-  // vez de cada uma ter uma metade garantida sem conflito.
-  const claim = () => new Promise((resolve, reject) => {
-    try {
-      const out = execFileSync('psql', [DB_URL, '-At', '-c', `
-        select string_agg(payload ->> 'id', ',')
-        from jsonb_array_elements(public.claim_site_notification_deliveries(array['email'], 25)) as payload;
-      `], { encoding: 'utf8' });
-      resolve(out.trim());
-    } catch (error) {
-      reject(error);
-    }
-  });
-
-  const [resultA, resultB] = await Promise.all([claim(), claim()]);
+  // O primeiro worker deixa a transação aberta depois do claim; o segundo só
+  // começa nesse instante. Portanto as duas sessões se sobrepõem de fato.
+  const [resultA, resultB] = await overlappingClaims();
   const idsA = resultA ? resultA.split(',').filter(Boolean) : [];
   const idsB = resultB ? resultB.split(',').filter(Boolean) : [];
 
-  assert.ok(idsA.length + idsB.length > 0, 'pelo menos uma das duas reivindicações obteve jobs');
-  assert.ok(idsA.length + idsB.length <= QUOTE_COUNT, 'as duas juntas nunca reivindicam mais jobs do que existem');
+  assert.equal(idsA.length + idsB.length, QUOTE_COUNT, 'as duas reivindicações cobrem exatamente os 50 jobs da fixture');
 
   const setA = new Set(idsA);
   const overlap = idsB.filter((id) => setA.has(id));
@@ -75,6 +122,7 @@ test('duas reivindicações concorrentes da fila obtêm conjuntos disjuntos de j
 
 test('recuperação de lease expirada: duas conexões disputam o MESMO job preso, só uma vence', { timeout: 30_000 }, async () => {
   const runId = Date.now().toString(36);
+  fixturePrefixes.push(`lease-recovery-${runId}-`);
 
   // Fixture: 1 quote_request, reivindicada normalmente uma vez (attempts 0 -> 1),
   // depois a lease é retroagida para o passado sem tocar status/attempts (nenhum
@@ -97,19 +145,7 @@ test('recuperação de lease expirada: duas conexões disputam o MESMO job preso
   const attemptsBeforeRecovery = Number(psql(`select attempts from site_private.notification_deliveries where id = '${firstClaimIds}'::uuid;`));
   assert.equal(attemptsBeforeRecovery, 1, 'pré-condição: job preso está na 1ª tentativa antes da recuperação');
 
-  const claim = () => new Promise((resolve, reject) => {
-    try {
-      const out = execFileSync('psql', [DB_URL, '-At', '-c', `
-        select string_agg(payload ->> 'id', ',')
-        from jsonb_array_elements(public.claim_site_notification_deliveries(array['email'], 25)) as payload;
-      `], { encoding: 'utf8' });
-      resolve(out.trim());
-    } catch (error) {
-      reject(error);
-    }
-  });
-
-  const [resultA, resultB] = await Promise.all([claim(), claim()]);
+  const [resultA, resultB] = await overlappingClaims();
   const idsA = resultA ? resultA.split(',').filter(Boolean) : [];
   const idsB = resultB ? resultB.split(',').filter(Boolean) : [];
 
@@ -127,6 +163,7 @@ test('recuperação de lease expirada: duas conexões disputam o MESMO job preso
 
 test('exhausted sob concorrência: duas conexões terminalizam o mesmo job preso, nenhuma o reivindica como novo', { timeout: 30_000 }, async () => {
   const runId = Date.now().toString(36);
+  fixturePrefixes.push(`exhausted-concurrency-${runId}-`);
 
   // Fixture: job já no limite de tentativas (5) e com lease expirada — housekeeping
   // de claim_site_notification_deliveries deveria terminalizá-lo como 'exhausted' em
@@ -153,19 +190,7 @@ test('exhausted sob concorrência: duas conexões terminalizam o mesmo job preso
   psql(`alter table site_private.notification_deliveries enable trigger notification_deliveries_enforce_status_transition;`);
   psql(`alter table site_private.notification_deliveries enable trigger notification_deliveries_enforce_lease_and_attempts;`);
 
-  const claim = () => new Promise((resolve, reject) => {
-    try {
-      const out = execFileSync('psql', [DB_URL, '-At', '-c', `
-        select string_agg(payload ->> 'id', ',')
-        from jsonb_array_elements(public.claim_site_notification_deliveries(array['email'], 25)) as payload;
-      `], { encoding: 'utf8' });
-      resolve(out.trim());
-    } catch (error) {
-      reject(error);
-    }
-  });
-
-  const [resultA, resultB] = await Promise.all([claim(), claim()]);
+  const [resultA, resultB] = await overlappingClaims();
   const idsA = resultA ? resultA.split(',').filter(Boolean) : [];
   const idsB = resultB ? resultB.split(',').filter(Boolean) : [];
 

@@ -220,6 +220,51 @@ describe('worker de comprovantes do orçamento', () => {
     expect(finalizeBody).not.toHaveProperty('p_retry_after_seconds');
   });
 
+  it('respeita Retry-After numérico do provedor sem substituir o backoff do banco', async () => {
+    configure();
+    vi.stubEnv('RESEND_API_KEY', 're_synthetic_test_key');
+    vi.stubEnv('SITE_EMAIL_FROM', 'Promo Brindes <atendimento@example.test>');
+    const fetchMock = vi.fn(async (url: string | URL, _init?: RequestInit) => {
+      if (String(url).includes('/claim_site_quote_notification')) return new Response(JSON.stringify(emailJob), { status: 200 });
+      if (String(url) === 'https://api.resend.com/emails') {
+        return new Response('{"message":"too many requests"}', { status: 429, headers: { 'Retry-After': '120' } });
+      }
+      if (String(url).includes('/finalize_site_notification_delivery')) return new Response('true', { status: 200 });
+      return notMocked();
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(deliverQuoteConfirmationsNow(emailJob.requestId, false)).resolves.toEqual({ email: 'pending', whatsapp: 'not_requested' });
+    const finalizeCall = fetchMock.mock.calls.find(([url]) => String(url).includes('/finalize_site_notification_delivery'));
+    expect(JSON.parse(String(finalizeCall?.[1]?.body))).toMatchObject({
+      p_status: 'failed', p_error_code: 'email_provider_429', p_retry_after_seconds: 120,
+    });
+  });
+
+  it('aceita Retry-After por data HTTP do WhatsApp, limitado a um dia', async () => {
+    configure();
+    vi.stubEnv('WHATSAPP_ACCESS_TOKEN', 'meta-synthetic-token');
+    vi.stubEnv('WHATSAPP_PHONE_NUMBER_ID', '1234567890');
+    vi.stubEnv('WHATSAPP_QUOTE_TEMPLATE', 'confirmacao_orcamento');
+    vi.stubEnv('WHATSAPP_GRAPH_API_VERSION', 'v23.0');
+    const later = new Date(Date.now() + 2 * 86_400_000).toUTCString();
+    const fetchMock = vi.fn(async (url: string | URL, _init?: RequestInit) => {
+      if (String(url).includes('/claim_site_quote_notification')) return new Response(JSON.stringify({ ...emailJob, channel: 'whatsapp' }), { status: 200 });
+      if (String(url).includes('graph.facebook.com')) {
+        return new Response('{"error":"overloaded"}', { status: 503, headers: { 'Retry-After': later } });
+      }
+      if (String(url).includes('/finalize_site_notification_delivery')) return new Response('true', { status: 200 });
+      return notMocked();
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(deliverQuoteConfirmationsNow(emailJob.requestId, true)).resolves.toEqual({ email: 'pending', whatsapp: 'pending' });
+    const finalizeCall = fetchMock.mock.calls.find(([url]) => String(url).includes('/finalize_site_notification_delivery'));
+    expect(JSON.parse(String(finalizeCall?.[1]?.body))).toMatchObject({
+      p_status: 'failed', p_error_code: 'whatsapp_provider_503', p_retry_after_seconds: 86_400,
+    });
+  });
+
   it('Etapa 28: drena um segundo lote quando o primeiro vem cheio', async () => {
     configure();
     vi.stubEnv('RESEND_API_KEY', 're_synthetic_test_key');

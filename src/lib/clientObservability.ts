@@ -1,4 +1,5 @@
 import { track } from '@vercel/analytics';
+import { redactAnalyticsPathname } from './analytics';
 
 function errorClass(error: unknown): string {
   return error instanceof Error && error.name ? error.name.slice(0, 80) : 'UnknownError';
@@ -10,7 +11,7 @@ export function reportClientError(error: unknown): void {
   try {
     track('frontend_error', {
       error_class: errorClass(error),
-      route: window.location.pathname.slice(0, 180),
+      route: redactAnalyticsPathname(window.location.pathname),
     });
   } catch {
     // Telemetria nunca pode produzir uma segunda falha na interface.

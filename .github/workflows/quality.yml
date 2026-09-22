@@ -44,6 +44,8 @@ jobs:
           sudo rm -rf /var/lib/apt/lists/*
           npx playwright install --with-deps chromium
       - run: npm run check
+      - name: Enforce unit and API coverage thresholds
+        run: npm run test:coverage
       - run: npm audit --audit-level=high
       - name: Reject production sourcemaps
         run: test -z "$(find dist -type f -name '*.map' -print -quit)"

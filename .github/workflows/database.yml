@@ -34,6 +34,8 @@ jobs:
         run: SUPABASE_WORKDIR=site-supabase supabase db reset
       - name: Run database contracts
         run: SUPABASE_WORKDIR=site-supabase supabase test db
+      - name: Run concurrent queue workers against separate database sessions
+        run: npm run test:queue-concurrency
       - name: Lint local database schema (Etapa 31 — falha também em warning)
         run: SUPABASE_WORKDIR=site-supabase supabase db lint --local --level warning --fail-on warning
       - name: Regenerate TypeScript types and fail on drift (Etapa 21)
