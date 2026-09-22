@@ -33,7 +33,8 @@ const STATIC_PAGES = [
   { path: '/ideias/clientes-vip', changeFrequency: 'monthly', priority: '0.7' },
   { path: '/ideias/sustentaveis', changeFrequency: 'monthly', priority: '0.7' },
 ] as const;
-const MAX_PRODUCT_URLS = MAX_SITEMAP_URLS - STATIC_PAGES.length;
+const CURATED_URL_COUNT = Object.keys(catalogPreviews).length + Object.keys(occasionPreviews).length;
+const MAX_PRODUCT_URLS = MAX_SITEMAP_URLS - STATIC_PAGES.length - CURATED_URL_COUNT;
 
 class CatalogHttpError extends Error {
   constructor(readonly status: number) {
@@ -160,6 +161,13 @@ export default async function handler(request: VercelRequest, response: VercelRe
 
   const staticEntries = STATIC_PAGES.map((page) =>
     urlEntry(`${siteUrl}${page.path}`, page.changeFrequency, page.priority));
+  const currentYear = new Date().getUTCFullYear();
+  const curatedEntries = [
+    ...Object.keys(catalogPreviews).map((id) =>
+      urlEntry(`${siteUrl}/catalogos?colecao=${encodeURIComponent(id)}`, 'monthly', '0.7')),
+    ...Object.keys(occasionPreviews).map((id) =>
+      urlEntry(`${siteUrl}/datas-comemorativas?ano=${currentYear}&data=${encodeURIComponent(id)}`, 'yearly', '0.6')),
+  ];
   const seenSlugs = new Set<string>();
   const productEntries = products.flatMap((product) => {
     const slug = product.slug?.trim();
@@ -171,6 +179,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     ...staticEntries,
+    ...curatedEntries,
     ...productEntries,
     '</urlset>',
   ].join('\n');
@@ -179,3 +188,4 @@ export default async function handler(request: VercelRequest, response: VercelRe
   response.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
   response.status(200).send(request.method === 'HEAD' ? '' : xml);
 }
+import { catalogPreviews, occasionPreviews } from './_lib/curatedPagePreviews.js';

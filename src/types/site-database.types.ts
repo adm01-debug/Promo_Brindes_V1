@@ -30,6 +30,10 @@ export type Database = {
         Args: { p_asset_ids: string[]; p_request_id: string }
         Returns: number
       }
+      can_delete_my_unverified_briefing_asset_path: {
+        Args: { p_path: string }
+        Returns: boolean
+      }
       claim_my_quote_requests: { Args: never; Returns: Json }
       claim_site_notification_deliveries: {
         Args: { p_batch_size?: number; p_channels: string[] }
@@ -38,6 +42,15 @@ export type Database = {
       claim_site_quote_notification: {
         Args: { p_channel: string; p_request_id: string }
         Returns: Json
+      }
+      confirm_site_briefing_asset_verification: {
+        Args: {
+          p_id: string
+          p_mime_type: string
+          p_size_bytes: number
+          p_storage_path: string
+        }
+        Returns: string
       }
       create_my_briefing_asset: {
         Args: {
@@ -96,6 +109,10 @@ export type Database = {
       }
       get_briefing_asset_retention_candidates: {
         Args: { p_batch_size?: number }
+        Returns: Json
+      }
+      get_my_briefing_asset_verification: {
+        Args: { p_id: string }
         Returns: Json
       }
       get_my_proposal_document: {
@@ -365,6 +382,7 @@ export type Database = {
           size_bytes: number
           storage_bucket: string
           storage_path: string
+          verified_at: string | null
         }
         Insert: {
           created_at?: string
@@ -378,6 +396,7 @@ export type Database = {
           size_bytes: number
           storage_bucket?: string
           storage_path: string
+          verified_at?: string | null
         }
         Update: {
           created_at?: string
@@ -391,6 +410,7 @@ export type Database = {
           size_bytes?: number
           storage_bucket?: string
           storage_path?: string
+          verified_at?: string | null
         }
         Relationships: [
           {

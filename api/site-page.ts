@@ -1,5 +1,7 @@
 import { fallbackPageShell, renderPageShell, type PublicPageMetadata } from './_lib/pageShell.js';
 import { configuredSiteOrigin, loadAppShell } from './_lib/publicProductPage.js';
+import { catalogPreviews, occasionPreviews } from './_lib/curatedPagePreviews.js';
+import { normalizeCampaignYear } from '../shared/campaignYears.js';
 
 interface VercelRequest {
   method?: string;
@@ -53,6 +55,25 @@ function queryValue(request: VercelRequest, key: string): string {
 function pageFrom(request: VercelRequest): StaticPage | null {
   const page = queryValue(request, 'page');
   if (page === 'ideia') return ideas[queryValue(request, 'topic')] || null;
+  if (page === 'catalogos') {
+    const collectionId = queryValue(request, 'colecao');
+    const collection = catalogPreviews[collectionId];
+    if (collection) return {
+      path: `/catalogos?colecao=${encodeURIComponent(collectionId)}`,
+      title: `${collection.title} | Catálogos Promo Brindes`,
+      description: collection.description,
+    };
+  }
+  if (page === 'datas') {
+    const year = normalizeCampaignYear(queryValue(request, 'ano'));
+    const occasionId = queryValue(request, 'data');
+    const occasion = occasionPreviews[occasionId];
+    if (occasion) return {
+      path: `/datas-comemorativas?ano=${year}&data=${encodeURIComponent(occasionId)}`,
+      title: `${occasion.title} ${year} | Promo Brindes`,
+      description: occasion.description,
+    };
+  }
   return pages[page] || null;
 }
 

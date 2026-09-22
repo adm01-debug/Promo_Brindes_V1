@@ -431,6 +431,10 @@ export function normalizeQuery(raw) {
     confirma: 'deliver quote confirmations',
     seleção: 'shared selection',
     selecao: 'shared selection',
+    valida: 'normalizeLeadPayload contracts',
+    retém: 'retention site_retention',
+    retem: 'retention site_retention',
+    'dados antigos': 'retention site_retention',
   };
   const expanded = Object.entries(aliases)
     .filter(([term]) => text.toLocaleLowerCase('pt-BR').includes(term))

@@ -2,7 +2,7 @@
 
 Fonte vigente dos 230 requisitos: [matriz de fechamento](MATRIZ_FECHAMENTO_PLANOS_20260912.csv). A data no nome é a origem do arquivo, não a data da última revisão.
 
-Última execução complementar: [22/09/2026](EXECUCAO_COMPLEMENTAR_20260922.md), com código funcional auditado `ef97fc75e4109b90e5b25d14d9418d6557bb4640`. A validação independente está consolidada na [auditoria dos cinco especialistas](AUDITORIA_5_ESPECIALISTAS_20260922.md).
+Última execução técnica: [22/09/2026](EXECUCAO_FECHAMENTO_TECNICO_20260922.md), com código funcional auditado `fabb52bc0acbbe8146da7c0ceabada13316991db`. A rodada complementar anterior está em [EXECUCAO_COMPLEMENTAR_20260922.md](EXECUCAO_COMPLEMENTAR_20260922.md) e a validação independente em [AUDITORIA_5_ESPECIALISTAS_20260922.md](AUDITORIA_5_ESPECIALISTAS_20260922.md).
 
 ## Como ler
 
@@ -21,8 +21,8 @@ Cada linha mantém sua própria versão auditada. Linhas não reavaliadas conser
 | Integrações adiadas | Usuário adiou JWT de role limitada, Resend, WhatsApp, webhooks e alertas. Não afirmar envio de cópias em produção. |
 | Catálogos editoriais | UX84 permanece ausente: publicação/revisão/validade de PDFs e revistas ainda não tem fluxo operacional. A biblioteca de coleções online não equivale a isso. Materiais aprovados precisam ser localizados. |
 | Conteúdo visual e cases | LK10 e os aceites de fotos, bastidores, cases e prova social precisam de acervo identificado, direitos e associação com as páginas. O usuário confirmou que tem materiais, mas não forneceu sua localização. |
-| Arquivos privados | Upload, titularidade e retenção existem; verificação server-side do conteúdo binário ainda falta. MIME e tamanho declarados não são inspeção de arquivo. |
-| Campanhas | Biblioteca/versionamento/arquivo existem; comparar e mesclar conflitos guiados continua pendente. O carrinho não sincroniza automaticamente. |
+| Previews e indexação | Coleções e datas têm HTML inicial, canonical e entradas curadas no sitemap. A imagem social ainda é compartilhada e cache/renderização nos canais e indexação exigem validação externa. |
+| Campanhas | Biblioteca, versionamento, arquivo e resolução guiada de concorrência existem. A continuidade é explícita por seleções salvas; o carrinho local não é sincronizado automaticamente em segundo plano. |
 | Graphify | Query/path/explain e benchmark estrutural disponíveis. Pass documental/semântico, precisão de aliases e recuperação adversarial completa continuam parciais. |
 | Produto e curadoria | Julgamento comercial de relevância, materiais/técnicas/múltiplos e diversidade precisam de dados aprovados; não inventar condições. |
 | Operação | Restore com RPO/RTO, publicação real de propostas e SLA/encaminhamento ao atendimento dependem de ensaios e responsáveis. |

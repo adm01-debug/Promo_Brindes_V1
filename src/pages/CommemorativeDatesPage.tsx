@@ -1,6 +1,7 @@
 import { ArrowRight, BellRing, Bookmark, BookmarkCheck, CalendarDays, Check, Clock3, Download, Gift, Grid3X3, HeartHandshake, Lightbulb, List, Search, Share2, Sparkles, Users, X } from 'lucide-react';
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { normalizeCampaignYear, supportedCampaignYears } from '../../shared/campaignYears';
 import { Seo } from '../components/Seo';
 import { trackFunnelEvent } from '../lib/analytics';
 import { occasionCatalogUrl } from '../lib/campaignBrief';
@@ -131,11 +132,10 @@ export default function CommemorativeDatesPage() {
   // é um objeto novo sempre) nem ficar presa por até um ano (currentYear sozinho
   // não refletiria a virada do dia).
   const today = now.toDateString();
-  const currentYear = now.getFullYear();
-  const availableYears = [currentYear, currentYear + 1];
+  const availableYears = supportedCampaignYears(now);
+  const currentYear = availableYears[0];
   const [params, setParams] = useSearchParams();
-  const paramYear = Number(params.get('ano'));
-  const year = availableYears.includes(paramYear) ? paramYear : currentYear;
+  const year = normalizeCampaignYear(params.get('ano'), now);
   const paramMonth = Number(params.get('mes'));
   const month = params.has('mes') && paramMonth >= 1 && paramMonth <= 12 ? paramMonth - 1 : null;
   const audienceParam = params.get('publico');
@@ -289,7 +289,12 @@ export default function CommemorativeDatesPage() {
 
   return (
     <>
-      <Seo title="Datas comemorativas para campanhas" description="Planeje campanhas de brindes por data, público e objetivo. Explore ideias, salve ocasiões e comece seu briefing com antecedência." path="/datas-comemorativas" jsonLd={jsonLd} />
+      <Seo
+        title={selected ? `${selected.name} ${year}` : 'Datas comemorativas para campanhas'}
+        description={selected?.description || 'Planeje campanhas de brindes por data, público e objetivo. Explore ideias, salve ocasiões e comece seu briefing com antecedência.'}
+        path={selected ? `/datas-comemorativas?ano=${year}&data=${encodeURIComponent(selected.id)}` : '/datas-comemorativas'}
+        jsonLd={jsonLd}
+      />
 
       <header className="dates-hero">
         <div className="container dates-hero__grid">

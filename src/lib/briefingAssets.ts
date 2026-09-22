@@ -15,6 +15,7 @@ export interface BriefingAsset {
   mimeType: string;
   sizeBytes: number;
   quoteRequestId: string | null;
+  verifiedAt: string | null;
   createdAt: string;
   expiresAt: string;
 }
@@ -52,9 +53,27 @@ function normalizeAsset(value: unknown): BriefingAsset | null {
     mimeType: typeof item.mimeType === 'string' ? item.mimeType : '',
     sizeBytes: Number(item.sizeBytes || 0),
     quoteRequestId: typeof item.quoteRequestId === 'string' ? item.quoteRequestId : null,
+    verifiedAt: typeof item.verifiedAt === 'string' ? item.verifiedAt : null,
     createdAt: typeof item.createdAt === 'string' ? item.createdAt : '',
     expiresAt: typeof item.expiresAt === 'string' ? item.expiresAt : '',
   };
+}
+
+async function verifyUploadedAsset(asset: BriefingAsset): Promise<BriefingAsset> {
+  const supabase = client();
+  const { data, error } = await supabase.auth.getSession();
+  const accessToken = data.session?.access_token;
+  if (error || !accessToken) throw new Error('Sua sessão expirou. Entre novamente.');
+  const response = await fetch('/api/briefing-assets', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ assetId: asset.id }),
+  });
+  const payload = await response.json().catch(() => ({})) as { verifiedAt?: unknown; message?: unknown };
+  if (!response.ok || typeof payload.verifiedAt !== 'string' || Number.isNaN(Date.parse(payload.verifiedAt))) {
+    throw new Error(typeof payload.message === 'string' ? payload.message : 'Não conseguimos verificar o conteúdo do arquivo.');
+  }
+  return { ...asset, verifiedAt: payload.verifiedAt };
 }
 
 export async function listMyBriefingAssets(): Promise<BriefingAsset[]> {
@@ -91,15 +110,28 @@ export async function uploadMyBriefingAsset(file: File, kind: BriefingAssetKind)
     }
     throw new Error('Não foi possível transferir o arquivo. Ele não foi anexado.');
   }
-  return asset;
+  try {
+    return await verifyUploadedAsset(asset);
+  } catch (error) {
+    try {
+      await supabase.storage.from(BRIEFING_ASSET_BUCKET).remove([asset.path]);
+    } catch {
+      // A reserva expira automaticamente; esta limpeza é apenas compensatória.
+    }
+    try {
+      await supabase.rpc('delete_my_briefing_asset', { p_id: asset.id });
+    } catch {
+      // Mantém o erro de verificação como causa principal para a pessoa usuária.
+    }
+    throw error;
+  }
 }
 
 export async function deleteMyBriefingAsset(asset: BriefingAsset): Promise<void> {
   if (asset.quoteRequestId) throw new Error('Este arquivo já faz parte de um briefing e não pode ser removido por aqui.');
-  const supabase = client();
-  const removed = await supabase.storage.from(BRIEFING_ASSET_BUCKET).remove([asset.path]);
-  if (removed.error) throw new Error('Não foi possível remover o arquivo do armazenamento.');
-  const { error } = await supabase.rpc('delete_my_briefing_asset', { p_id: asset.id });
+  // A remoção do registro revoga o caminho imediatamente e enfileira o blob.
+  // Objetos verificados permanecem imutáveis via RLS até essa exclusão lógica.
+  const { error } = await client().rpc('delete_my_briefing_asset', { p_id: asset.id });
   if (error) throw rpcError(error.message);
 }
 

@@ -112,6 +112,7 @@ export default function CatalogsPage() {
   const [params, setParams] = useSearchParams();
   const query = (params.get('q') || '').trim().slice(0, 80);
   const theme = validTheme(params.get('tema'));
+  const sharedCollection = catalogCollections.find((collection) => collection.id === params.get('colecao'));
   const [searchInput, setSearchInput] = useState(query);
   const [shareStates, setShareStates] = useState<Record<string, Exclude<ShareState, 'idle'>>>({});
   const [shareStatus, setShareStatus] = useState('');
@@ -122,13 +123,14 @@ export default function CatalogsPage() {
     () => filterCatalogCollections(catalogCollections, query, theme),
     [query, theme],
   );
-  const featured = !query && theme === 'all' ? catalogCollections.find((collection) => collection.featured) : undefined;
+  const featured = !query && theme === 'all' ? sharedCollection || catalogCollections.find((collection) => collection.featured) : undefined;
   const gridResults = featured ? results.filter((collection) => collection.id !== featured.id) : results;
 
   function updateParams(next: { q?: string | null; tema?: CatalogThemeFilter }) {
     const updated = new URLSearchParams(params);
     if (next.q !== undefined) next.q ? updated.set('q', next.q) : updated.delete('q');
     if (next.tema !== undefined) next.tema === 'all' ? updated.delete('tema') : updated.set('tema', next.tema);
+    updated.delete('colecao');
     updated.delete('page');
     setParams(updated, { replace: true });
   }
@@ -147,7 +149,7 @@ export default function CatalogsPage() {
   }
 
   async function shareCollection(collection: CatalogCollection) {
-    const url = new URL(collection.href, window.location.origin).href;
+    const url = new URL(`/catalogos?colecao=${encodeURIComponent(collection.id)}`, window.location.origin).href;
     let usedNativeShare = false;
     if (navigator.share) {
       try {
@@ -181,9 +183,9 @@ export default function CatalogsPage() {
   return (
     <>
       <Seo
-        title="Catálogos de brindes"
-        description="Explore catálogos e coleções de brindes corporativos por campanha, público e objetivo. Encontre referências e monte seu briefing."
-        path="/catalogos"
+        title={sharedCollection ? `${sharedCollection.title} | Catálogos` : 'Catálogos de brindes'}
+        description={sharedCollection?.description || 'Explore catálogos e coleções de brindes corporativos por campanha, público e objetivo. Encontre referências e monte seu briefing.'}
+        path={sharedCollection ? `/catalogos?colecao=${encodeURIComponent(sharedCollection.id)}` : '/catalogos'}
       />
 
       <header className="catalogs-hero" aria-labelledby="catalogs-title">

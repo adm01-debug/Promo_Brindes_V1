@@ -87,6 +87,7 @@ Logos e referências privadas do titular. Objetos ficam em bucket privado, expir
 | `size_bytes` | `integer` | — |
 | `created_at` | `timestamp with time zone` | — |
 | `expires_at` | `timestamp with time zone` | — |
+| `verified_at` | `timestamp with time zone` | Preenchido somente pela API do site após ler o blob privado e validar sua assinatura binária. |
 
 ### `site_private.customer_profiles`
 
@@ -325,9 +326,11 @@ Fila mínima de objetos privados para remoção pela Storage API; não contém c
 |---|---|---|
 | `apply_site_notification_provider_event` | `p_provider text, p_provider_message_id text, p_event_type text, p_provider_event_id text, p_occurred_at timestamp with time zone, p_bounce_reason text` | Aplica evento de webhook de forma idempotente (Etapa 30 do plano anterior). delivered só grava se delivery_state ainda for null; bounced grava se null OU se o estado atual for delivered — um bounce tardio corrige um delivered otimista (Etapa 20 do plano de correções). complained é independente e idempotente via coalesce. |
 | `attach_my_briefing_assets_to_quote` | `p_request_id uuid, p_asset_ids uuid[]` | — |
+| `can_delete_my_unverified_briefing_asset_path` | `p_path text` | Permite limpeza direta somente antes da verificação; depois dela a exclusão ocorre pela fila server-side. |
 | `claim_my_quote_requests` | `` | Associa solicitações sem titular somente após confirmação do e-mail da identidade autenticada. |
 | `claim_site_notification_deliveries` | `p_channels text[], p_batch_size integer` | Reivindica notificações com lease e protocolo persistido; terminaliza jobs esgotados com SKIP LOCKED para não bloquear workers simultâneos. |
 | `claim_site_quote_notification` | `p_request_id uuid, p_channel text` | Reivindicação síncrona imediata (não recupera processing preso). Lê limites de site_private.notification_policy() (Etapa 12) e expõe o protocolo persistido (Etapa 19). |
+| `confirm_site_briefing_asset_verification` | `p_id uuid, p_storage_path text, p_mime_type text, p_size_bytes integer` | — |
 | `create_my_briefing_asset` | `p_original_name text, p_mime_type text, p_size_bytes integer, p_kind text` | — |
 | `create_site_contact_request` | `p_payload jsonb, p_request_meta jsonb` | — |
 | `create_site_quote_request` | `p_payload jsonb, p_request_meta jsonb` | — |
@@ -339,6 +342,7 @@ Fila mínima de objetos privados para remoção pela Storage API; não contém c
 | `finalize_site_data_retention` | `p_quote_ids uuid[], p_storage_paths text[], p_batch_size integer` | — |
 | `finalize_site_notification_delivery` | `p_delivery_id uuid, p_lease_token uuid, p_status text, p_provider text, p_provider_message_id text, p_error_code text, p_retry_after_seconds integer` | Finaliza uma tentativa previamente reivindicada; exige o lease_token da reivindicação ativa (R04). Backoff exponencial com jitter via site_private.next_retry_at (Etapa 11); p_retry_after_seconds é só um piso opcional do provedor. |
 | `get_briefing_asset_retention_candidates` | `p_batch_size integer` | — |
+| `get_my_briefing_asset_verification` | `p_id uuid` | — |
 | `get_my_proposal_document` | `p_proposal_id uuid` | Entrega o local de um documento somente ao cliente proprietário para assinatura server-side. |
 | `get_my_quote_request` | `p_request_id uuid` | Retorna detalhe e contexto de curadoria somente ao auth.uid() proprietário, sem metadados operacionais. |
 | `get_my_quote_requests` | `p_limit integer, p_offset integer, p_status text, p_search text` | Lista solicitações do auth.uid() com título de ação, miniaturas e última movimentação visível ao cliente. |
@@ -346,7 +350,7 @@ Fila mínima de objetos privados para remoção pela Storage API; não contém c
 | `get_site_shared_selection` | `p_token uuid, p_identifier_hash text` | — |
 | `list_my_briefing_assets` | `` | — |
 | `list_my_selections` | `p_include_archived boolean` | — |
-| `matches_my_briefing_asset_upload` | `p_path text, p_metadata jsonb` | Confere proprietário, caminho, MIME e tamanho real registrado pelo Storage antes do insert. |
+| `matches_my_briefing_asset_upload` | `p_path text, p_metadata jsonb` | Autoriza apenas o primeiro upload de uma reserva ainda não verificada; conteúdo validado não pode ser substituído pelo titular. |
 | `owns_my_briefing_asset_path` | `p_path text` | — |
 | `purge_archived_customer_selections` | `p_batch_size integer` | — |
 | `record_site_notification_provider_acceptance` | `p_delivery_id uuid, p_lease_token uuid, p_provider text, p_provider_message_id text` | Registra o aceite do provedor antes da finalização, para reconciliação em caso de falha na etapa seguinte (R01, R02). |
