@@ -174,12 +174,38 @@ describe('links persistentes de seleção', () => {
     expect(unsupported.result.statusCode).toBe(415);
 
     const oversized = responseDouble();
-    await handler(request({ action: 'read', token, padding: 'x'.repeat(17 * 1024) }), oversized.response);
+    await handler(request({ action: 'read', token, padding: 'x'.repeat(33 * 1024) }), oversized.response);
     expect(oversized.result.statusCode).toBe(413);
     expect(fetchMock).not.toHaveBeenCalled();
 
     const spoofed = responseDouble();
     await handler(request({ action: 'read', token }, { headers: { origin: 'https://promo-brindes-v1.vercel.app', 'content-type': 'application/json-evil' } }), spoofed.response);
     expect(spoofed.result.statusCode).toBe(415);
+  });
+
+  it('aceita cinquenta referências válidas no pior envelope e limita leitura por identificador', async () => {
+    configure();
+    const references = Array.from({ length: 50 }, (_, index) => ({
+      id: `${String(index + 1).padStart(8, '0')}-1111-4111-8111-111111111111`,
+      q: 999_999,
+      c: `Cor ${index} ${'x'.repeat(90)}`.slice(0, 100),
+      k: `${String(Math.floor(index / 2) + 100).padStart(8, '0')}-2222-4222-8222-222222222222`,
+      kn: `Composição ${Math.floor(index / 2)} ${'y'.repeat(90)}`.slice(0, 100),
+      kq: 999_999,
+      ku: 1,
+    }));
+    expect(Buffer.byteLength(JSON.stringify({ action: 'create', items: references }))).toBeGreaterThan(16 * 1024);
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ token, expiresAt: '2030-01-01T00:00:00.000Z' })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ items: [item], expiresAt: '2030-01-01T00:00:00.000Z' })));
+    vi.stubGlobal('fetch', fetchMock);
+    const created = responseDouble();
+    await handler(request({ action: 'create', items: references }), created.response);
+    expect(created.result.statusCode).toBe(201);
+    const read = responseDouble();
+    await handler(request({ action: 'read', token }), read.response);
+    expect(read.result.statusCode).toBe(200);
+    const readPayload = JSON.parse(String((fetchMock.mock.calls[1]?.[1] as RequestInit).body));
+    expect(readPayload.p_identifier_hash).toMatch(/^[0-9a-f]{64}$/);
   });
 });

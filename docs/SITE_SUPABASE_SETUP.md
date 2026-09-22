@@ -29,6 +29,8 @@ As migrations `20260908230000_create_site_lead_storage.sql`, `20260909103000_loc
 
 A validação remota confirmou saúde dos serviços, ledger de migrations reconciliado, lint de schema sem erros, negação de acesso anônimo, bloqueio entre contas e persistência idempotente de contato e orçamento. O Auth usa a URL oficial, exige senha mínima de oito caracteres e preserva redirects preexistentes ao acrescentar os callbacks da Promo Brindes. O fluxo real de login, associação, listagem e detalhe passou na interface publicada; a conferência após a limpeza encontrou zero usuários, orçamentos ou rate limits sintéticos.
 
+Em 22/09/2026, a migration `20260922210000_close_selection_and_asset_integrity_gaps.sql` foi aplicada exclusivamente ao projeto isolado após a guarda de destino e um dry-run que listou somente esse arquivo. O ledger local/remoto ficou alinhado até `20260922210000`, o lint remoto passou sem erros e o ensaio transacional de criar/ler/revogar uma seleção com fallback de cor passou com `ROLLBACK`, sem persistir dados sintéticos.
+
 ## Reprovisionamento — somente em recuperação controlada
 
 As etapas abaixo são um runbook de contingência. Não as execute no projeto canônico nem reaplique migrations já presentes no ledger remoto.

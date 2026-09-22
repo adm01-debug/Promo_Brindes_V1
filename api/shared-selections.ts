@@ -3,7 +3,9 @@ import { createSharedSelection, readSharedSelection, revokeSharedSelection } fro
 import { SiteDatabaseError } from './_lib/siteDatabase.js';
 import { allowedSiteOrigins } from './_lib/siteOrigin.js';
 
-const MAX_SHARED_SELECTION_BODY_BYTES = 16 * 1024;
+// Cinquenta referências válidas com variantes e nomes de kit no limite ocupam
+// cerca de 18 KiB. A margem mantém o contrato público sem abrir payload irrestrito.
+const MAX_SHARED_SELECTION_BODY_BYTES = 32 * 1024;
 
 function header(request: ApiRequest, name: string): string {
   const value = request.headers[name] ?? request.headers[name.toLowerCase()];
@@ -64,12 +66,12 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       return;
     }
     if (action === 'read') {
-      const result = await readSharedSelection(String(payload.token || ''));
+      const result = await readSharedSelection(String(payload.token || ''), { ip: requestIp(request), userAgent: header(request, 'user-agent'), origin: header(request, 'origin') });
       response.status(result ? 200 : 404).json(result || { error: 'shared_selection_not_found', message: 'Esta seleção não está disponível.' });
       return;
     }
     if (action === 'revoke') {
-      const revoked = await revokeSharedSelection(String(payload.token || ''), String(payload.managementToken || ''));
+      const revoked = await revokeSharedSelection(String(payload.token || ''), String(payload.managementToken || ''), { ip: requestIp(request), userAgent: header(request, 'user-agent'), origin: header(request, 'origin') });
       response.status(revoked ? 200 : 404).json({ revoked });
       return;
     }

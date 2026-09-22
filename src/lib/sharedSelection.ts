@@ -1,5 +1,5 @@
 import type { CatalogProduct, QuoteItem } from '../types';
-import { clampQuoteQuantity, normalizeQuoteItems } from './quoteItems';
+import { clampQuoteQuantity, normalizePublicLabel, normalizeQuoteItems, normalizeQuoteItemsForTransmission } from './quoteItems';
 
 const VERSION = 2;
 // O moodboard aceita até 50 referências; o link persistente deve representar a
@@ -17,6 +17,8 @@ export interface SharedSelectionItem {
   id: string;
   q: number;
   v?: string;
+  /** Nome da cor legado, usado somente quando o fornecedor não publica variantId. */
+  c?: string;
   d?: 'alternative';
   k?: string;
   kn?: string;
@@ -53,37 +55,45 @@ export interface SharedSelectionHydration {
 function normalizeSharedSelectionItems(value: unknown): SharedSelectionItem[] {
   if (!Array.isArray(value) || value.length < 1 || value.length > MAX_SHARED_SELECTION_ITEMS) return [];
   const result = new Map<string, SharedSelectionItem>();
+  let invalid = false;
   value.forEach((item) => {
-    if (!item || typeof item !== 'object') return;
+    if (!item || typeof item !== 'object') { invalid = true; return; }
     const candidate = item as Partial<SharedSelectionItem>;
     const id = String(candidate.id || '');
-    if (!UUID_PATTERN.test(id) || (candidate.d !== undefined && candidate.d !== 'alternative')) return;
+    if (!UUID_PATTERN.test(id) || (candidate.d !== undefined && candidate.d !== 'alternative')) { invalid = true; return; }
     const quantity = Number(candidate.q);
-    if (!Number.isInteger(quantity) || quantity < 1 || quantity > 999_999) return;
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > 999_999) { invalid = true; return; }
     const variant = typeof candidate.v === 'string' && VARIANT_PATTERN.test(candidate.v) ? candidate.v : undefined;
+    if (candidate.v !== undefined && !variant) { invalid = true; return; }
+    const legacyColor = candidate.v === undefined ? normalizePublicLabel(candidate.c, 100) || undefined : undefined;
+    if (candidate.c !== undefined && !legacyColor) { invalid = true; return; }
     const hasKit = ['k', 'kn', 'kq', 'ku'].some((field) => (candidate as Record<string, unknown>)[field] !== undefined);
     const kit = hasKit && typeof candidate.k === 'string' && UUID_PATTERN.test(candidate.k)
-      && typeof candidate.kn === 'string' && candidate.kn.trim().length >= 1 && candidate.kn.trim().length <= 100
+      && typeof candidate.kn === 'string' && Boolean(normalizePublicLabel(candidate.kn, 100))
       && Number.isInteger(candidate.kq) && Number(candidate.kq) >= 1 && Number(candidate.kq) <= 999_999
       && Number.isInteger(candidate.ku) && Number(candidate.ku) >= 1 && Number(candidate.ku) <= 100
       && quantity === Number(candidate.kq) * Number(candidate.ku)
-      ? { k: candidate.k, kn: candidate.kn.trim(), kq: Number(candidate.kq), ku: Number(candidate.ku) }
+      ? { k: candidate.k, kn: normalizePublicLabel(candidate.kn, 100)!, kq: Number(candidate.kq), ku: Number(candidate.ku) }
       : undefined;
-    if (hasKit && !kit) return;
-    result.set(`${id}:${variant || ''}:${kit?.k || ''}`, { id, q: quantity, ...(variant ? { v: variant } : {}), ...(candidate.d === 'alternative' ? { d: 'alternative' as const } : {}), ...kit });
+    if (hasKit && !kit) { invalid = true; return; }
+    const key = `${id}:${variant || legacyColor || ''}:${kit?.k || ''}`;
+    if (result.has(key)) { invalid = true; return; }
+    result.set(key, { id, q: quantity, ...(variant ? { v: variant } : legacyColor ? { c: legacyColor } : {}), ...(candidate.d === 'alternative' ? { d: 'alternative' as const } : {}), ...kit });
   });
-  return [...result.values()];
+  return invalid || result.size !== value.length ? [] : [...result.values()];
 }
 
 function referencesFromQuoteItems(items: QuoteItem[]): SharedSelectionItem[] {
   const unique = new Map<string, SharedSelectionItem>();
-  for (const item of normalizeQuoteItems(items)) {
-    if (!UUID_PATTERN.test(item.productId)) continue;
-    const key = `${item.productId}:${item.variantId || ''}:${item.kitGroupId || ''}`;
+  const normalizedItems = normalizeQuoteItemsForTransmission(items);
+  for (const item of normalizedItems) {
+    if (!UUID_PATTERN.test(item.productId)) throw new Error('A seleção contém uma referência de produto inválida.');
+    const colorReference = item.variantId || normalizePublicLabel(item.colorName, 100) || '';
+    const key = `${item.productId}:${colorReference}:${item.kitGroupId || ''}`;
     unique.set(key, {
       id: item.productId,
       q: clampQuoteQuantity(item.quantity, item.minQuantity),
-      ...(item.variantId && VARIANT_PATTERN.test(item.variantId) ? { v: item.variantId } : {}),
+      ...(item.variantId && VARIANT_PATTERN.test(item.variantId) ? { v: item.variantId } : item.colorName ? { c: normalizePublicLabel(item.colorName, 100) || undefined } : {}),
       ...(item.decisionGroup === 'alternative' ? { d: 'alternative' as const } : {}),
       ...(item.kitGroupId ? { k: item.kitGroupId, kn: item.kitName, kq: item.kitQuantity, ku: item.unitsPerKit } : {}),
     });
@@ -283,11 +293,16 @@ export function hydrateSharedSelectionDetails(payload: SharedSelectionItem[], pr
       unavailableProductReferences.push(shared);
       return [];
     }
-    const color = shared.v ? product.colors.find((candidate) => candidate.variantId === shared.v) : undefined;
-    const variantUnavailable = Boolean(shared.v && !color);
+    const matchingColors = shared.v
+      ? product.colors.filter((candidate) => candidate.variantId === shared.v)
+      : shared.c
+        ? product.colors.filter((candidate) => candidate.name.localeCompare(shared.c!, 'pt-BR', { sensitivity: 'base' }) === 0)
+        : [];
+    const color = matchingColors.length === 1 ? matchingColors[0] : undefined;
+    const variantUnavailable = Boolean((shared.v || shared.c) && !color);
     if (variantUnavailable) unavailableVariantReferences.push(shared);
     return [{
-      key: `${product.id}::${shared.v ? `variante-${shared.v}` : color?.name?.toLocaleLowerCase('pt-BR') || 'sem-cor'}`,
+      key: `${product.id}::${shared.v ? `variante-${shared.v}` : shared.c ? shared.c.toLocaleLowerCase('pt-BR') : color?.name?.toLocaleLowerCase('pt-BR') || 'sem-cor'}`,
       productId: product.id,
       slug: product.slug,
       name: product.name,
@@ -296,7 +311,7 @@ export function hydrateSharedSelectionDetails(payload: SharedSelectionItem[], pr
       minQuantity: product.minQuantity,
       quantity: clampQuoteQuantity(shared.q, product.minQuantity),
       ...(shared.v ? { variantId: shared.v } : color?.variantId ? { variantId: color.variantId } : {}),
-      ...(color?.name ? { colorName: color.name, colorHex: color.hex } : {}),
+      ...(color?.name ? { colorName: color.name, colorHex: color.hex } : shared.c ? { colorName: shared.c } : {}),
       ...(variantUnavailable ? { variantUnavailable: true } : {}),
       ...(shared.d === 'alternative' ? { decisionGroup: 'alternative' as const } : {}),
       ...(shared.k ? { kitGroupId: shared.k, kitName: shared.kn, kitQuantity: shared.kq, unitsPerKit: shared.ku } : {}),
@@ -304,6 +319,7 @@ export function hydrateSharedSelectionDetails(payload: SharedSelectionItem[], pr
   }));
   const invalidKitReferences = payload.filter((reference) => reference.k && !items.some((item) =>
     item.productId === reference.id && (item.variantId || '') === (reference.v || '')
+    && (!reference.c || item.colorName?.localeCompare(reference.c, 'pt-BR', { sensitivity: 'base' }) === 0)
     && item.kitGroupId === reference.k && item.kitName === reference.kn
     && item.kitQuantity === reference.kq && item.unitsPerKit === reference.ku && item.quantity === reference.q));
   return { items, unavailableProductReferences, unavailableVariantReferences, invalidKitReferences };

@@ -1,6 +1,6 @@
 import type { CampaignBrief, QuoteBriefingDetails, QuoteContact, QuoteItem, QuoteRequestPayload } from '../types';
 import { createClientRequestId, postJson } from './http';
-import { normalizeQuoteItems } from './quoteItems';
+import { normalizeQuoteItemsForTransmission } from './quoteItems';
 import { normalizeQuoteBriefing, quoteBriefingSummary } from './quoteBriefing';
 import { campaignBriefLabels } from './campaignBrief';
 
@@ -33,7 +33,7 @@ export function buildQuotePayload(
   const normalizedBriefing = normalizeQuoteBriefing(briefing);
   return {
     contact: safeContact,
-    items: normalizeQuoteItems(items),
+    items: normalizeQuoteItemsForTransmission(items),
     ...(campaign ? { campaign } : {}),
     ...(normalizedBriefing ? { briefing: normalizedBriefing } : {}),
     consent: { accepted: contact.privacyAccepted, noticeVersion: '2026-09-08', acceptedAt: submittedAt },

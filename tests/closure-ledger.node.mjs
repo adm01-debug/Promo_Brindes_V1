@@ -19,6 +19,12 @@ test('fontes inexistentes e caminhos fora do site não passam como evidência', 
     assert.throws(() => validateLedger(changed), /fonte (ausente|fora)/);
   }
 });
+test('fonte atual que não existia no commit auditado não passa como evidência histórica', () => {
+  const changed = rows();
+  changed[0].fontes = 'docs/MATRIZ_INDEX.md';
+  changed[0].commit_auditado = '91653abaecd574722c6534ef271b7c078c8d8a47';
+  assert.throws(() => validateLedger(changed), /não existe no commit auditado/);
+});
 test('estado, ID duplicado e commit sem evidência são recusados', () => {
   for (const [field, value, pattern] of [['estado_revisado', 'DONE', /estado/], ['id', 'UX02', /duplicado/], ['commit_auditado', 'latest', /commit auditado/]]) {
     const changed = rows(); changed[0][field] = value;

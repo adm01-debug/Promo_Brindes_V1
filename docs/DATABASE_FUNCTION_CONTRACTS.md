@@ -40,6 +40,8 @@ Todas usam `errcode = '22023'` (invalid_text_representation, reaproveitado como
 | `invalid_retry_attempts`, `invalid_retry_jitter` | `site_private.next_retry_at` | Interno — só chamado por `finalize_site_notification_delivery`, nunca com input de usuário | n/a |
 | `invalid_shared_selection_payload`, `invalid_shared_selection_item`, `duplicate_shared_selection_item` | `create_site_shared_selection` | `api/_lib/sharedSelections.ts` | ver arquivo |
 | `invalid_shared_selection_management_token` | `revoke_site_shared_selection` | `api/shared-selections.ts` | ver arquivo |
+| `invalid_selection_reference_set` | `normalize_selection_references` | fronteira interna; wrappers convertem para o erro público do fluxo | não exposto diretamente |
+| `invalid_shared_selection_rate_limit` | `consume_shared_selection_action_limit` | `api/_lib/sharedSelections.ts` | erro de configuração; não expor detalhe |
 | `invalid_retention_batch_size`, `invalid_retention_finalize_input` | `get_site_data_retention_candidates`, `finalize_site_data_retention` | Só chamado por `api/retention.ts` (cron), nunca por input de usuário | 500 |
 | `invalid_erasure_email` | `erase_customer_data` (Etapa 32) | Só `service_role`, executado manualmente via Studio (`docs/RUNBOOK_PEDIDO_TITULAR.md`) — nunca alcançável pela API pública | n/a |
 | `invalid_selection_payload`, `invalid_selection_reference`, `duplicate_selection_reference`, `invalid_selection_version` | `save_my_selection` | Área do Cliente valida antes do envio; a RPC rejeita payload forjado | erro no rascunho |

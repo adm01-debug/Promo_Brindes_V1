@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeQuoteItems, reconcileHistoricalQuoteItems } from './quoteItems';
+import { normalizeQuoteItems, normalizeQuoteItemsForTransmission, reconcileHistoricalQuoteItems } from './quoteItems';
 import type { CatalogProduct, QuoteItem } from '../types';
 
 const item: QuoteItem = {
@@ -42,5 +42,16 @@ describe('revalidação de itens históricos', () => {
     const kit = { kitGroupId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', kitName: 'Kit', kitQuantity: 40, unitsPerKit: 1 };
     const [standalone] = normalizeQuoteItems([{ ...item, quantity: 40, ...kit }]);
     expect(standalone).not.toHaveProperty('kitGroupId');
+    expect(() => normalizeQuoteItemsForTransmission([{ ...item, quantity: 41, ...kit }])).toThrow('composição inválida');
+  });
+
+  it('recusa controles invisíveis em nomes públicos de kit', () => {
+    const kit = { kitGroupId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', kitName: 'Kit\u202Egpj.exe', kitQuantity: 40, unitsPerKit: 1 };
+    expect(() => normalizeQuoteItemsForTransmission([{ ...item, ...kit }, { ...item, productId: '22222222-2222-4222-8222-222222222222', key: 'second', ...kit }])).toThrow('composição inválida');
+  });
+
+  it('falha fechado quando a transmissão precisaria arredondar ou limitar quantidade', () => {
+    expect(() => normalizeQuoteItemsForTransmission([{ ...item, quantity: 10.5 }])).toThrow('itens inválidos');
+    expect(() => normalizeQuoteItemsForTransmission([{ ...item, quantity: 2_000_000 }])).toThrow('itens inválidos');
   });
 });

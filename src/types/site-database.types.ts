@@ -116,11 +116,18 @@ export type Database = {
         Args: { p_batch_size?: number }
         Returns: Json
       }
-      get_site_shared_selection: { Args: { p_token: string }; Returns: Json }
+      get_site_shared_selection: {
+        Args: { p_identifier_hash: string; p_token: string }
+        Returns: Json
+      }
       list_my_briefing_assets: { Args: never; Returns: Json }
       list_my_selections: {
         Args: { p_include_archived?: boolean }
         Returns: Json
+      }
+      matches_my_briefing_asset_upload: {
+        Args: { p_metadata: Json; p_path: string }
+        Returns: boolean
       }
       owns_my_briefing_asset_path: {
         Args: { p_path: string }
@@ -148,7 +155,11 @@ export type Database = {
         Returns: Json
       }
       revoke_site_shared_selection: {
-        Args: { p_management_token_hash: string; p_token: string }
+        Args: {
+          p_identifier_hash: string
+          p_management_token_hash: string
+          p_token: string
+        }
         Returns: Json
       }
       save_my_selection: {
@@ -978,6 +989,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      consume_shared_selection_action_limit: {
+        Args: { p_identifier_hash: string; p_limit: number }
+        Returns: undefined
+      }
       finalize_expired_site_data: {
         Args: {
           p_batch_size?: number
@@ -990,12 +1005,17 @@ export type Database = {
         Args: { p_batch_size?: number }
         Returns: Json
       }
+      has_unsafe_display_controls: {
+        Args: { p_value: string }
+        Returns: boolean
+      }
       mod11_check_digit: { Args: { p_digits: string }; Returns: string }
       next_retry_at: {
         Args: { p_attempts: number; p_jitter?: number; p_now?: string }
         Returns: string
       }
       normalize_email: { Args: { p_email: string }; Returns: string }
+      normalize_selection_references: { Args: { p_items: Json }; Returns: Json }
       notification_policy: {
         Args: never
         Returns: {

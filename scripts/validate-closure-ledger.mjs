@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ledgerPath = path.join(root, 'docs', 'MATRIZ_FECHAMENTO_PLANOS_20260912.csv');
@@ -36,6 +37,7 @@ export function validateLedger(rows, rootDirectory = root) {
     Array.from({ length: count }, (_, index) => `${prefix}${String(index + 1).padStart(2, '0')}`)));
   const ids = new Set();
   const canonicalRoot = fs.realpathSync(rootDirectory);
+  const verifiedCommitSources = new Set();
   for (const row of rows) {
   if (!/^(UX|LK|GR|AC)\d+$/.test(row.id || '')) throw new Error(`Ledger inválido: id ${row.id || '(vazio)'}.`);
   if (ids.has(row.id)) throw new Error(`Ledger inválido: id duplicado ${row.id}.`);
@@ -51,6 +53,15 @@ export function validateLedger(rows, rootDirectory = root) {
     if (!source || !resolved.startsWith(`${canonicalRoot}${path.sep}`)) throw new Error(`Ledger inválido: fonte fora do projeto em ${row.id}.`);
     if (!fs.existsSync(resolved)) throw new Error(`Ledger inválido: fonte ausente ${source} em ${row.id}.`);
     if (!fs.realpathSync(resolved).startsWith(`${canonicalRoot}${path.sep}`)) throw new Error(`Ledger inválido: fonte aponta para fora do projeto em ${row.id}.`);
+    const commitSource = `${row.commit_auditado}:${source}`;
+    if (!verifiedCommitSources.has(commitSource)) {
+      try {
+        execFileSync('git', ['cat-file', '-e', commitSource], { cwd: canonicalRoot, stdio: 'ignore' });
+      } catch {
+        throw new Error(`Ledger inválido: fonte ${source} não existe no commit auditado de ${row.id}.`);
+      }
+      verifiedCommitSources.add(commitSource);
+    }
   }
   }
   return { references: rows.length, uniqueIds: ids.size };

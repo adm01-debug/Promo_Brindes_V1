@@ -140,14 +140,14 @@ select public.create_site_shared_selection(
 ) as result;
 
 select lives_ok(
-  $$ select public.get_site_shared_selection((select (result ->> 'token')::uuid from site_api_shared_selection_result)) $$,
+  $$ select public.get_site_shared_selection((select (result ->> 'token')::uuid from site_api_shared_selection_result), repeat('3', 64)) $$,
   'site_api executa get_site_shared_selection'
 );
 
 select lives_ok(
   $$
     select public.revoke_site_shared_selection(
-      (select (result ->> 'token')::uuid from site_api_shared_selection_result), repeat('1', 64)
+      (select (result ->> 'token')::uuid from site_api_shared_selection_result), repeat('1', 64), repeat('4', 64)
     )
   $$,
   'site_api executa revoke_site_shared_selection'

@@ -11,11 +11,11 @@ select public.create_site_shared_selection(
 ) as result;
 
 select is(
-  public.get_site_shared_selection((select (result->>'token')::uuid from shared_result))->'items'->1->>'d',
+  public.get_site_shared_selection((select (result->>'token')::uuid from shared_result), repeat('1',64))->'items'->1->>'d',
   'alternative', 'criar e ler preserva prioridade alternativa'
 );
 select ok(
-  not ((public.get_site_shared_selection((select (result->>'token')::uuid from shared_result))->'items'->0) ? 'd'),
+  not ((public.get_site_shared_selection((select (result->>'token')::uuid from shared_result), repeat('2',64))->'items'->0) ? 'd'),
   'referência sem prioridade continua compatível como principal'
 );
 select throws_ok(

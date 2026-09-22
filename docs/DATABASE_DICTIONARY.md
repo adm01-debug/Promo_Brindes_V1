@@ -343,14 +343,15 @@ Fila mínima de objetos privados para remoção pela Storage API; não contém c
 | `get_my_quote_request` | `p_request_id uuid` | Retorna detalhe e contexto de curadoria somente ao auth.uid() proprietário, sem metadados operacionais. |
 | `get_my_quote_requests` | `p_limit integer, p_offset integer, p_status text, p_search text` | Lista solicitações do auth.uid() com título de ação, miniaturas e última movimentação visível ao cliente. |
 | `get_site_data_retention_candidates` | `p_batch_size integer` | — |
-| `get_site_shared_selection` | `p_token uuid` | — |
+| `get_site_shared_selection` | `p_token uuid, p_identifier_hash text` | — |
 | `list_my_briefing_assets` | `` | — |
 | `list_my_selections` | `p_include_archived boolean` | — |
+| `matches_my_briefing_asset_upload` | `p_path text, p_metadata jsonb` | Confere proprietário, caminho, MIME e tamanho real registrado pelo Storage antes do insert. |
 | `owns_my_briefing_asset_path` | `p_path text` | — |
 | `purge_archived_customer_selections` | `p_batch_size integer` | — |
 | `record_site_notification_provider_acceptance` | `p_delivery_id uuid, p_lease_token uuid, p_provider text, p_provider_message_id text` | Registra o aceite do provedor antes da finalização, para reconciliação em caso de falha na etapa seguinte (R01, R02). |
 | `request_my_quote_adjustment` | `p_request_id uuid, p_message text, p_client_request_id text` | Registra um pedido de ajuste somente para o titular autenticado da solicitação, mantendo o texto no schema privado. |
-| `revoke_site_shared_selection` | `p_token uuid, p_management_token_hash text` | — |
+| `revoke_site_shared_selection` | `p_token uuid, p_management_token_hash text, p_identifier_hash text` | — |
 | `rls_auto_enable` | `` | Guarda DDL do banco isolado: novas tabelas no schema public nascem com RLS habilitada. Sem EXECUTE para roles da API. |
 | `save_my_selection` | `p_title text, p_references jsonb, p_campaign jsonb, p_id uuid, p_expected_version integer` | — |
 | `set_my_selection_archived` | `p_id uuid, p_expected_version integer, p_archived boolean` | — |

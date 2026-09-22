@@ -162,8 +162,17 @@ test('montador de kits preserva componentes e calcula a quantidade completa', as
   }));
 
   await page.goto('/montar-kit');
+  if ((page.viewportSize()?.width || 0) > 980) {
+    const [configBox, summaryBox] = await Promise.all([
+      page.locator('.kit-builder__config').boundingBox(),
+      page.locator('.kit-builder-summary').boundingBox(),
+    ]);
+    expect(configBox && summaryBox && Math.abs(configBox.y - summaryBox.y) < 4).toBe(true);
+    expect(configBox && summaryBox && summaryBox.x > configBox.x).toBe(true);
+  }
   await page.getByRole('button', { name: /2 a 4 itens Composição flexível/ }).click();
   await page.locator('.kit-product-grid > button').filter({ hasText: product.name }).click();
+  await expect(page.getByRole('button', { name: 'Item de rotina: escolher produto' })).toBeFocused();
   await expect(page.getByRole('button', { name: /Levar para o briefing/ })).toBeDisabled();
   await page.locator('.kit-product-grid > button').filter({ hasText: 'Garrafa térmica' }).click();
   await expect(page.getByRole('button', { name: /Levar para o briefing/ })).toBeEnabled();
@@ -279,6 +288,8 @@ test('seleção compartilhada bloqueia kit quando o mínimo atual descaracteriza
   await page.goto(`/selecoes/compartilhada?s=${selection}`);
   await expect(page.getByRole('alert')).toContainText('A composição do kit precisa de revisão.');
   await expect(page.getByText('Alternativa para comparar')).toBeVisible();
+  await expect(page.getByText('Revise as referências sinalizadas e peça um link atualizado antes de duplicar esta seleção.')).toBeVisible();
+  await expect(page.getByText('Você pode duplicar esta base e ajustar quantidades antes de pedir uma proposta.')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Duplicar e ajustar' })).toBeDisabled();
 });
 

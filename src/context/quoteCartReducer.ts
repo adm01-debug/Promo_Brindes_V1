@@ -71,7 +71,13 @@ export function cartReducer(state: CartState, action: CartAction): CartState {
         return standalone;
       }) };
     }
-    case 'quantity': return { ...state, items: state.items.map((item) => item.key === action.key ? { ...item, quantity: clampQuoteQuantity(action.quantity, item.minQuantity) } : item) };
+    case 'quantity': {
+      const target = state.items.find((item) => item.key === action.key);
+      if (target?.kitGroupId && target.unitsPerKit) {
+        return cartReducer(state, { type: 'kit-quantity', kitGroupId: target.kitGroupId, quantity: action.quantity / target.unitsPerKit });
+      }
+      return { ...state, items: state.items.map((item) => item.key === action.key ? { ...item, quantity: clampQuoteQuantity(action.quantity, item.minQuantity) } : item) };
+    }
     case 'kit-quantity': {
       const components = state.items.filter((item) => item.kitGroupId === action.kitGroupId && item.unitsPerKit);
       if (!components.length) return state;

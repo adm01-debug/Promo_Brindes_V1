@@ -6,6 +6,16 @@ const PRODUCT_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-
 const SLUG_PATTERN = /^[a-z0-9-]{1,200}$/i;
 const VARIANT_ID_PATTERN = /^[a-z0-9][a-z0-9._:-]{0,99}$/i;
 const KIT_GROUP_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const UNSAFE_DISPLAY_CODE_POINTS = new Set([0x200b, 0x200e, 0x200f, 0x2060, 0xfeff]);
+
+function hasUnsafeDisplayControls(value: string): boolean {
+  return Array.from(value).some((character) => {
+    const point = character.codePointAt(0) || 0;
+    return point <= 0x1f || (point >= 0x7f && point <= 0x9f)
+      || (point >= 0x202a && point <= 0x202e) || (point >= 0x2066 && point <= 0x2069)
+      || UNSAFE_DISPLAY_CODE_POINTS.has(point);
+  });
+}
 
 function requiredText(value: unknown, maxLength: number): string | null {
   if (typeof value !== 'string') return null;
@@ -15,6 +25,11 @@ function requiredText(value: unknown, maxLength: number): string | null {
 
 function optionalText(value: unknown, maxLength: number): string | undefined {
   return requiredText(value, maxLength) || undefined;
+}
+
+export function normalizePublicLabel(value: unknown, maxLength = 100): string | null {
+  const normalized = requiredText(value, maxLength)?.normalize('NFC') || null;
+  return normalized && !hasUnsafeDisplayControls(normalized) ? normalized : null;
 }
 
 function safeImageUrl(value: unknown): string {
@@ -46,14 +61,14 @@ export function normalizeQuoteItems(values: unknown): QuoteItem[] {
     const quantity = clampQuoteQuantity(Number(raw.quantity), minQuantity);
     const variantIdCandidate = optionalText(raw.variantId, 100);
     const variantId = variantIdCandidate && VARIANT_ID_PATTERN.test(variantIdCandidate) ? variantIdCandidate : undefined;
-    const colorName = optionalText(raw.colorName, 100);
+    const colorName = normalizePublicLabel(raw.colorName, 100) || undefined;
     const colorHexCandidate = optionalText(raw.colorHex, 32);
     const colorHex = colorHexCandidate && /^(#[0-9a-f]{3,8}|[a-z]{3,20})$/i.test(colorHexCandidate)
       ? colorHexCandidate
       : undefined;
     const decisionGroup = raw.decisionGroup === 'alternative' ? 'alternative' : 'primary';
     const kitGroupId = optionalText(raw.kitGroupId, 36);
-    const kitName = optionalText(raw.kitName, 100);
+    const kitName = normalizePublicLabel(raw.kitName, 100) || undefined;
     const kitQuantity = Number(raw.kitQuantity);
     const unitsPerKit = Number(raw.unitsPerKit);
     const hasValidKit = Boolean(
@@ -103,6 +118,30 @@ export function normalizeQuoteItems(values: unknown): QuoteItem[] {
     const { kitGroupId: _group, kitName: _name, kitQuantity: _quantity, unitsPerKit: _units, ...standalone } = item;
     return standalone;
   });
+}
+
+/**
+ * Fronteira fail-closed para envio e compartilhamento. A restauração local pode
+ * recuperar referências avulsas de dados antigos, mas uma transmissão nunca deve
+ * apagar silenciosamente a identidade de um kit ou algum item inválido.
+ */
+export function normalizeQuoteItemsForTransmission(values: QuoteItem[]): QuoteItem[] {
+  const normalized = normalizeQuoteItems(values);
+  const inputKitCount = values.filter((item) => Boolean(item.kitGroupId || item.kitName || item.kitQuantity || item.unitsPerKit)).length;
+  const normalizedKitCount = normalized.filter((item) => Boolean(item.kitGroupId)).length;
+  const changedCriticalField = normalized.some((item, index) => {
+    const input = values[index];
+    return !input || input.productId !== item.productId || input.quantity !== item.quantity
+      || input.variantId !== item.variantId
+      || (input.colorName ? normalizePublicLabel(input.colorName, 100) || undefined : undefined) !== item.colorName
+      || (input.decisionGroup === 'alternative' ? 'alternative' : undefined) !== item.decisionGroup
+      || input.kitGroupId !== item.kitGroupId || input.kitName?.trim().normalize('NFC') !== item.kitName
+      || input.kitQuantity !== item.kitQuantity || input.unitsPerKit !== item.unitsPerKit;
+  });
+  if (normalized.length !== values.length || inputKitCount !== normalizedKitCount || changedCriticalField) {
+    throw new Error('A seleção contém itens inválidos, repetidos ou uma composição inválida. Revise antes de continuar.');
+  }
+  return normalized;
 }
 
 /**

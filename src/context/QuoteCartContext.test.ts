@@ -100,6 +100,15 @@ describe('seleção para orçamento', () => {
     expect(updated.items.map((current) => current.quantity)).toEqual([240, 120]);
   });
 
+  it('redireciona edição individual de componente para a quantidade inteira do kit', () => {
+    const group = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    const first = { ...item, kitGroupId: group, kitName: 'Kit', kitQuantity: 100, unitsPerKit: 2, quantity: 200, minQuantity: 50 };
+    const second = { ...item, key: '22222222-2222-4222-8222-222222222222::azul', productId: '22222222-2222-4222-8222-222222222222', kitGroupId: group, kitName: 'Kit', kitQuantity: 100, unitsPerKit: 1, quantity: 100, minQuantity: 50 };
+    const updated = cartReducer({ items: [first, second] }, { type: 'quantity', key: first.key, quantity: 202 });
+    expect(updated.items.map((current) => current.kitQuantity)).toEqual([101, 101]);
+    expect(updated.items.map((current) => current.quantity)).toEqual([202, 101]);
+  });
+
   it('ao remover um dos dois componentes, converte o item restante em referência avulsa', () => {
     const group = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
     const first = { ...item, kitGroupId: group, kitName: 'Kit', kitQuantity: 100, unitsPerKit: 1 };
