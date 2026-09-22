@@ -10,6 +10,7 @@ export interface SharedSelectionReference {
   id: string;
   q: number;
   v?: string;
+  d?: 'alternative';
   k?: string;
   kn?: string;
   kq?: number;
@@ -42,7 +43,8 @@ export function normalizeSharedSelectionReferences(value: unknown): SharedSelect
     const kitName = record.kn == null ? undefined : String(record.kn).trim();
     const kitQuantity = Number(record.kq);
     const unitsPerKit = Number(record.ku);
-    if (!UUID_PATTERN.test(id) || !Number.isInteger(quantity) || quantity < 1 || quantity > 999_999 || (variant && !VARIANT_PATTERN.test(variant))) {
+    if (!UUID_PATTERN.test(id) || !Number.isInteger(quantity) || quantity < 1 || quantity > 999_999 || (variant && !VARIANT_PATTERN.test(variant))
+      || (record.d !== undefined && record.d !== 'alternative')) {
       throw new SiteDatabaseError('Uma referência da seleção é inválida.', 'invalid_shared_selection', 400);
     }
     if (hasKit && (!kitGroupId || !UUID_PATTERN.test(kitGroupId) || !kitName || kitName.length > 100
@@ -51,12 +53,22 @@ export function normalizeSharedSelectionReferences(value: unknown): SharedSelect
       || quantity !== kitQuantity * unitsPerKit)) {
       throw new SiteDatabaseError('A composição de kit da seleção é inválida.', 'invalid_shared_selection', 400);
     }
-    const normalized = { id: id.toLowerCase(), q: quantity, ...(variant ? { v: variant } : {}), ...(hasKit ? { k: kitGroupId!.toLowerCase(), kn: kitName!, kq: kitQuantity, ku: unitsPerKit } : {}) };
-    const key = `${normalized.id}:${normalized.v || ''}:${normalized.k || ''}`;
+    const normalized = { id: id.toLowerCase(), q: quantity, ...(variant ? { v: variant } : {}), ...(record.d === 'alternative' ? { d: 'alternative' as const } : {}), ...(hasKit ? { k: kitGroupId!.toLowerCase(), kn: kitName!, kq: kitQuantity, ku: unitsPerKit } : {}) };
+    const key = `${normalized.id}:${normalized.v || ''}`;
     if (unique.has(key)) throw new SiteDatabaseError('A seleção contém referências repetidas.', 'invalid_shared_selection', 400);
     unique.set(key, normalized);
   });
-  return Array.from(unique.values());
+  const references = Array.from(unique.values());
+  const kits = new Map<string, SharedSelectionReference[]>();
+  for (const reference of references) {
+    if (reference.k) kits.set(reference.k, [...(kits.get(reference.k) || []), reference]);
+  }
+  for (const components of Array.from(kits.values())) {
+    if (components.length < 2 || components.some((component) => component.kn !== components[0]!.kn || component.kq !== components[0]!.kq)) {
+      throw new SiteDatabaseError('Revise os componentes e as quantidades do kit antes de compartilhar.', 'invalid_shared_selection', 400);
+    }
+  }
+  return references;
 }
 
 async function rpc<T>(name: string, payload: Record<string, unknown>): Promise<T> {

@@ -171,6 +171,32 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section id="drop-da-vez" className="featured-section section" aria-labelledby="featured-title">
+        <div className="container">
+          <div className="section-heading section-heading--split">
+            <div>
+              <span className="section-kicker">Curadoria viva · atualizada pelo catálogo</span>
+              <h2 id="featured-title"><GlitchText>Drop da vez.</GlitchText></h2>
+            </div>
+            <Link className="text-link" to="/catalogo?perfil=destaques">Abrir a seleção completa <ArrowRight size={17} /></Link>
+          </div>
+          {featured.loading && <ProductGridSkeleton />}
+          {featured.error && <CatalogError message={featured.error} onRetry={() => setFeaturedRetryKey((key) => key + 1)} />}
+          {!featured.loading && !featured.error && (
+            <div className="product-grid" role="region" tabIndex={0} aria-label="Destaques do catálogo; deslize horizontalmente em telas pequenas">
+              {featured.data.products.map((product, index) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  priority={index < 4}
+                  categoryName={categoryNameById.get(product.mainCategoryId || '')}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
       <CampaignFinder />
 
       <section className="catalog-shelf-teaser section" aria-labelledby="catalog-shelf-title">
@@ -252,32 +278,6 @@ export default function HomePage() {
                   </Link>
                 ))}
           </div>
-        </div>
-      </section>
-
-      <section id="drop-da-vez" className="featured-section section" aria-labelledby="featured-title">
-        <div className="container">
-          <div className="section-heading section-heading--split">
-            <div>
-              <span className="section-kicker">Curadoria viva · atualizada pelo catálogo</span>
-              <h2 id="featured-title"><GlitchText>Drop da vez.</GlitchText></h2>
-            </div>
-            <Link className="text-link" to="/catalogo?perfil=destaques">Abrir a seleção completa <ArrowRight size={17} /></Link>
-          </div>
-          {featured.loading && <ProductGridSkeleton />}
-          {featured.error && <CatalogError message={featured.error} onRetry={() => setFeaturedRetryKey((key) => key + 1)} />}
-          {!featured.loading && !featured.error && (
-            <div className="product-grid" role="region" tabIndex={0} aria-label="Destaques do catálogo; deslize horizontalmente em telas pequenas">
-              {featured.data.products.map((product, index) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  priority={index < 4}
-                  categoryName={categoryNameById.get(product.mainCategoryId || '')}
-                />
-              ))}
-            </div>
-          )}
         </div>
       </section>
 

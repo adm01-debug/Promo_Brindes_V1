@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { CatalogProduct } from '../types';
 import { createPersistentSharedSelection, decodeSharedSelection, encodeSharedSelection, fetchPersistentSharedSelection, hydrateSharedSelection, hydrateSharedSelectionDetails, managedSharedSelectionToken, managedSharedSelectionTokens, MAX_SHARED_SELECTION_ITEMS, revokePersistentSharedSelection, sharedSelectionUrl } from './sharedSelection';
 
 const item = {
@@ -9,6 +10,31 @@ const item = {
 };
 
 describe('sharedSelection', () => {
+  it('preserva prioridade alternativa no link e na seleção reconstruída', () => {
+    const references = decodeSharedSelection(encodeSharedSelection([{ ...item, decisionGroup: 'alternative' }]));
+    expect(references).toEqual([{ id: item.productId, q: 25, v: 'azul', d: 'alternative' }]);
+    const hydrated = hydrateSharedSelectionDetails(references, [{ ...item, id: item.productId, colors: [{ variantId: 'azul', name: 'Azul' }] } as unknown as CatalogProduct]);
+    expect(hydrated.items[0]?.decisionGroup).toBe('alternative');
+  });
+
+  it('aceita nomes Unicode e mantém links Latin-1 antigos legíveis', () => {
+    const first = { ...item, quantity: 100, kitGroupId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', kitName: 'Conexão 🎁 東京', kitQuantity: 100, unitsPerKit: 1 };
+    const second = { ...first, productId: '22222222-2222-4222-8222-222222222222', key: 'second' };
+    expect(decodeSharedSelection(encodeSharedSelection([first, second])).map((reference) => reference.kn)).toEqual([first.kitName, first.kitName]);
+    const legacy = btoa(JSON.stringify({ v: 1, i: [{ id: item.productId, q: 100, k: first.kitGroupId, kn: 'Conexão', kq: 100, ku: 1 }] }));
+    expect(decodeSharedSelection(legacy)[0]?.kn).toBe('Conexão');
+  });
+
+  it('sinaliza composição descaracterizada por novo mínimo ou componente removido', () => {
+    const references = [
+      { id: item.productId, q: 100, k: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', kn: 'Kit', kq: 100, ku: 1 },
+      { id: '22222222-2222-4222-8222-222222222222', q: 100, k: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', kn: 'Kit', kq: 100, ku: 1 },
+    ];
+    const products = references.map((reference) => ({ ...item, id: reference.id, minQuantity: 10, colors: [] }) as unknown as CatalogProduct);
+    expect(hydrateSharedSelectionDetails(references, products).invalidKitReferences).toEqual([]);
+    expect(hydrateSharedSelectionDetails(references, [{ ...products[0]!, minQuantity: 200 }, products[1]!]).invalidKitReferences).toHaveLength(2);
+    expect(hydrateSharedSelectionDetails(references, products.slice(0, 1)).invalidKitReferences).toHaveLength(2);
+  });
   afterEach(() => {
     vi.unstubAllGlobals();
     window.localStorage.clear();

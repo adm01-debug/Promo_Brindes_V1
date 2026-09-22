@@ -25,6 +25,7 @@ export function BriefingAssetUploader({ value, onChange, contactEmail }: {
 }) {
   const auth = useCustomerAuth();
   const inputRef = useRef<HTMLInputElement>(null);
+  const sessionGeneration = useRef(0);
   const [assets, setAssets] = useState<BriefingAsset[]>([]);
   const [kind, setKind] = useState<BriefingAssetKind>('logo');
   const [loading, setLoading] = useState(false);
@@ -34,9 +35,12 @@ export function BriefingAssetUploader({ value, onChange, contactEmail }: {
   const emailMismatch = Boolean(accountEmail && normalizedContactEmail && accountEmail !== normalizedContactEmail);
 
   useEffect(() => {
+    sessionGeneration.current += 1;
+    setAssets([]);
+    setError('');
+    onChange([]);
     if (!auth.user) {
-      setAssets([]);
-      onChange([]);
+      setLoading(false);
       return;
     }
     let active = true;
@@ -50,13 +54,14 @@ export function BriefingAssetUploader({ value, onChange, contactEmail }: {
       })
       .catch((reason: unknown) => { if (active) setError(reason instanceof Error ? reason.message : 'Não foi possível carregar seus arquivos.'); })
       .finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
+    return () => { active = false; sessionGeneration.current += 1; };
     // A troca de identidade é a fronteira de privacidade; mudanças de seleção não
     // devem refazer a consulta nem disputar com o upload em andamento.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auth.user?.id]);
+  }, [auth.user?.id, auth.identityEpoch]);
 
   async function upload(event: ChangeEvent<HTMLInputElement>) {
+    const generation = sessionGeneration.current;
     const file = event.target.files?.[0];
     event.target.value = '';
     if (!file) return;
@@ -66,26 +71,29 @@ export function BriefingAssetUploader({ value, onChange, contactEmail }: {
     setError('');
     try {
       const asset = await uploadMyBriefingAsset(file, kind);
+      if (generation !== sessionGeneration.current) return;
       setAssets((current) => [asset, ...current]);
       onChange([...new Set([...value, asset.id])]);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Não foi possível enviar o arquivo.');
+      if (generation === sessionGeneration.current) setError(reason instanceof Error ? reason.message : 'Não foi possível enviar o arquivo.');
     } finally {
-      setLoading(false);
+      if (generation === sessionGeneration.current) setLoading(false);
     }
   }
 
   async function remove(asset: BriefingAsset) {
+    const generation = sessionGeneration.current;
     setLoading(true);
     setError('');
     try {
       await deleteMyBriefingAsset(asset);
+      if (generation !== sessionGeneration.current) return;
       setAssets((current) => current.filter((item) => item.id !== asset.id));
       onChange(value.filter((id) => id !== asset.id));
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Não foi possível remover o arquivo.');
+      if (generation === sessionGeneration.current) setError(reason instanceof Error ? reason.message : 'Não foi possível remover o arquivo.');
     } finally {
-      setLoading(false);
+      if (generation === sessionGeneration.current) setLoading(false);
     }
   }
 
@@ -100,7 +108,7 @@ export function BriefingAssetUploader({ value, onChange, contactEmail }: {
       {emailMismatch && <div className="briefing-assets__warning" role="alert">Use no formulário o mesmo e-mail da conta ({accountEmail}) para vincular estes arquivos com segurança.</div>}
       <div className="briefing-assets__toolbar">
         <label><span>Tipo do arquivo</span><select value={kind} onChange={(event) => setKind(event.target.value as BriefingAssetKind)}><option value="logo">Logo da marca</option><option value="reference">Referência visual</option></select></label>
-        <input ref={inputRef} className="sr-only" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" onChange={(event) => void upload(event)} />
+        <input ref={inputRef} aria-label="Enviar logo ou referência" className="sr-only" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" onChange={(event) => void upload(event)} />
         <button type="button" className="button button--outline" onClick={() => inputRef.current?.click()} disabled={loading || assets.length >= MAX_BRIEFING_ASSETS || emailMismatch}>{loading ? <LoaderCircle className="is-spinning" /> : <Upload />} {loading ? 'Processando…' : 'Escolher arquivo'}</button>
       </div>
       {error && <div className="field-error" role="alert">{error}</div>}

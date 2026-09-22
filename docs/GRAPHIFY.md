@@ -20,6 +20,8 @@ npm run graph:update          # reconciliação segura (rebuild completo para es
 npm run graph:status          # atual, ausente, inválido ou defasado
 npm run graph:check           # status com código de erro em CI se não estiver atual
 npm run graph:query -- "como funciona o orçamento?"
+npm run graph:path -- "KitTemplate" "QuoteItem"
+npm run graph:explain -- "KitTemplate"
 npm run graph:impact -- "QuotePage"
 npm run graph:tree            # atualiza a árvore HTML local
 npm run graph:benchmark       # testa 10 perguntas estruturais contra busca direta
@@ -34,6 +36,8 @@ Após `graph:build`, abra localmente `graphify-out/graph.html` para comunidades 
 O Graphify 0.9.48 usado aqui emite o grafo estrutural como **não direcionado** no comando headless. Assim, `graph:impact` é uma vizinhança técnica para orientar leitura e testes; não prova causalidade reversa nem substitui busca no código, testes ou revisão. A relação exibida é evidência estrutural, não autorização para alterar banco, infraestrutura ou o projeto interno Promo Gifts.
 
 Os termos do domínio em português recebem expansão controlada nas consultas: por exemplo, `orçamento` acrescenta `quote request` e `carrinho` acrescenta `quote cart`. A consulta é passada como argumento literal, nunca para um shell.
+
+`graph:path` encontra o menor caminho estrutural e `graph:explain` lista relações com fonte, confiança e direção disponível. Ambos aceitam ID exato ou rótulo único; homônimos exigem ID para evitar escolher uma função arbitrária. Um caminho ausente é informado como ausente. Nenhum comando escreve no grafo ou infere implantação remota.
 
 ## Operação diária
 

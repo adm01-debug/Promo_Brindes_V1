@@ -315,7 +315,7 @@ export default function QuotePage() {
         <span className="section-kicker">Minha seleção</span>
         <h1>Sua seleção ainda está em branco.</h1>
         <p>Salve ao menos um produto. Depois você organiza quantidades, contexto e prazo em um único briefing.</p>
-        <Link className="button button--green button--large" to="/catalogo">Abrir radar <ArrowRight size={18} /></Link>
+        <Link className="button button--green button--large" to="/catalogo">Explorar catálogo <ArrowRight size={18} /></Link>
       </div>
     );
   }

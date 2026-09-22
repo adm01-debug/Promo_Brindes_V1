@@ -13,6 +13,7 @@ const kitItem = {
   kq: 60,
   ku: 2,
 };
+const secondKitItem = { ...kitItem, id: '55555555-5555-4555-8555-555555555555', q: 60, ku: 1 };
 
 function responseDouble() {
   const result = { headers: new Map<string, string>(), statusCode: 0, body: undefined as unknown };
@@ -67,15 +68,47 @@ describe('links persistentes de seleção', () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ token, expiresAt: '2026-10-11T12:00:00.000Z' }), { status: 200 }));
     vi.stubGlobal('fetch', fetchMock);
     const valid = responseDouble();
-    await handler(request({ action: 'create', items: [kitItem] }), valid.response);
+    await handler(request({ action: 'create', items: [kitItem, secondKitItem] }), valid.response);
     expect(valid.result.statusCode).toBe(201);
     const sent = JSON.parse(String((fetchMock.mock.calls[0]?.[1] as RequestInit).body));
-    expect(sent.p_items).toEqual([kitItem]);
+    expect(sent.p_items).toEqual([kitItem, secondKitItem]);
 
     const invalid = responseDouble();
     await handler(request({ action: 'create', items: [{ ...kitItem, q: 119 }] }), invalid.response);
     expect(invalid.result.statusCode).toBe(400);
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('preserva alternativas no envio e na leitura, sem incluir campos privados', async () => {
+    configure();
+    const alternative = { ...item, d: 'alternative' };
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ token, expiresAt: '2026-10-11T12:00:00.000Z' })))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ items: [alternative], expiresAt: '2026-10-11T12:00:00.000Z' })));
+    vi.stubGlobal('fetch', fetchMock);
+    const created = responseDouble();
+    await handler(request({ action: 'create', items: [{ ...alternative, contact: 'private@example.test' }] }), created.response);
+    expect(created.result.statusCode).toBe(201);
+    expect(JSON.parse(String((fetchMock.mock.calls[0]?.[1] as RequestInit).body)).p_items).toEqual([alternative]);
+    const read = responseDouble();
+    await handler(request({ action: 'read', token }), read.response);
+    expect(read.result.body).toMatchObject({ items: [alternative] });
+  });
+
+  it.each([
+    ['kit unitário', [kitItem]],
+    ['nome divergente', [kitItem, { ...secondKitItem, kn: 'Outro kit' }]],
+    ['quantidade divergente', [kitItem, { ...secondKitItem, q: 30, kq: 30 }]],
+    ['colisão avulso-kit', [kitItem, secondKitItem, { id: kitItem.id, q: 20 }]],
+    ['alternativa inválida', [{ ...item, d: 'urgent' }]],
+  ])('recusa %s antes de consultar o banco', async (_label, items) => {
+    configure();
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const invalid = responseDouble();
+    await handler(request({ action: 'create', items }), invalid.response);
+    expect(invalid.result.statusCode).toBe(400);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('lê somente referências públicas e trata ausência como 404', async () => {

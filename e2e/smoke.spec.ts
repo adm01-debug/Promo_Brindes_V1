@@ -162,9 +162,14 @@ test('montador de kits preserva componentes e calcula a quantidade completa', as
   }));
 
   await page.goto('/montar-kit');
-  await page.getByRole('button', { name: /2 itens Dupla essencial/ }).click();
+  await page.getByRole('button', { name: /2 a 4 itens Composição flexível/ }).click();
   await page.locator('.kit-product-grid > button').filter({ hasText: product.name }).click();
+  await expect(page.getByRole('button', { name: /Levar para o briefing/ })).toBeDisabled();
   await page.locator('.kit-product-grid > button').filter({ hasText: 'Garrafa térmica' }).click();
+  await expect(page.getByRole('button', { name: /Levar para o briefing/ })).toBeEnabled();
+  await page.locator('.kit-product-grid > button').filter({ hasText: 'Caderno capa dura' }).click();
+  await expect(page.getByText('3 componentes · mínimo calculado: 60 kits')).toBeVisible();
+  await page.getByRole('button', { name: 'Remover Caderno capa dura' }).click();
   await page.getByLabel(`Unidades por kit de ${product.name}`).fill('2');
 
   await expect(page.getByText('Composição pronta para revisar')).toBeVisible();
@@ -257,6 +262,23 @@ test('seleção compartilhada não perde variantes removidas nem permite duplica
   await expect(page.getByRole('alert')).toContainText('Esta seleção precisa de revisão.');
   await expect(page.getByText('Variante não publicada')).toHaveCount(2);
   await expect(page.getByText('300 unidades estimadas')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Duplicar e ajustar' })).toBeDisabled();
+});
+
+test('seleção compartilhada bloqueia kit quando o mínimo atual descaracteriza a composição', async ({ page }) => {
+  const second = { ...product, id: '22222222-2222-4222-8222-222222222222', name: 'Segundo componente', slug: 'segundo-componente' };
+  await page.unroute(/\/rest\/v1\/v_(?:site_)?products_public\?/);
+  await page.route(/\/rest\/v1\/v_(?:site_)?products_public\?/, (route) => route.fulfill({
+    contentType: 'application/json', headers: { 'content-range': '0-1/2' },
+    body: JSON.stringify([{ ...product, min_quantity: 200 }, second]),
+  }));
+  const kit = { k: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', kn: 'Conexão 🎁', kq: 100, ku: 1 };
+  const selection = Buffer.from(JSON.stringify({ v: 2, i: [
+    { id: product.id, q: 100, ...kit }, { id: second.id, q: 100, ...kit, d: 'alternative' },
+  ] })).toString('base64url');
+  await page.goto(`/selecoes/compartilhada?s=${selection}`);
+  await expect(page.getByRole('alert')).toContainText('A composição do kit precisa de revisão.');
+  await expect(page.getByText('Alternativa para comparar')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Duplicar e ajustar' })).toBeDisabled();
 });
 

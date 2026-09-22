@@ -6,7 +6,7 @@ import { useQuoteCart } from '../context/quoteCart';
 import { trackFunnelEvent } from '../lib/analytics';
 import { useCatalog } from '../lib/hooks';
 import { replaceBrokenProductImage } from '../lib/images';
-import { buildKitQuoteItems, kitTemplates, kitTotalUnits, mergeKitIntoSelection, minimumKitQuantity, type KitComponent } from '../lib/kitBuilder';
+import { buildKitQuoteItems, kitTemplates, kitTotalUnits, mergeKitIntoSelection, minimumKitQuantity, missingRequiredKitSlots, type KitComponent } from '../lib/kitBuilder';
 import type { CatalogProduct } from '../types';
 
 interface SelectedComponent { product: CatalogProduct; unitsPerKit: number; }
@@ -29,7 +29,8 @@ export default function KitBuilderPage() {
     return choice ? [{ slotId: slot.id, slotLabel: slot.label, ...choice }] : [];
   }), [selected, template]);
   const minimum = minimumKitQuantity(components);
-  const complete = components.length === template.slots.length;
+  const missingSlots = missingRequiredKitSlots(template, components);
+  const complete = components.length >= 2 && missingSlots.length === 0;
   const usedProducts = new Set(components.map((item) => item.product.id));
 
   function selectTemplate(id: string) {
@@ -48,7 +49,9 @@ export default function KitBuilderPage() {
     }
     setSelected((current) => ({ ...current, [activeSlotId]: { product, unitsPerKit: current[activeSlotId]?.unitsPerKit || 1 } }));
     const currentIndex = template.slots.findIndex((slot) => slot.id === activeSlotId);
-    const nextEmpty = template.slots.slice(currentIndex + 1).find((slot) => !selected[slot.id]) || template.slots.find((slot) => !selected[slot.id]);
+    const isEmpty = (slot: typeof template.slots[number]) => slot.id !== activeSlotId && !selected[slot.id];
+    const nextEmpty = template.slots.find((slot) => !slot.optional && isEmpty(slot))
+      || template.slots.slice(currentIndex + 1).find(isEmpty) || template.slots.find(isEmpty);
     if (nextEmpty) setActiveSlotId(nextEmpty.id);
     setError('');
   }
@@ -59,12 +62,12 @@ export default function KitBuilderPage() {
   }
 
   function addKitToBriefing() {
-    if (!complete) { setError('Escolha um produto para cada espaço da composição.'); return; }
+    if (!complete) { setError('Escolha um produto para cada espaço obrigatório da composição.'); return; }
     if (!kitName.trim()) { setError('Dê um nome para reconhecer esta composição.'); return; }
     if (kitQuantity < minimum) { setError(`A composição precisa de pelo menos ${minimum.toLocaleString('pt-BR')} kits para respeitar os mínimos dos componentes.`); return; }
     const items = buildKitQuoteItems({ id: crypto.randomUUID(), name: kitName, quantity: kitQuantity, components });
     const merged = mergeKitIntoSelection(cart.items, items);
-    if (!items.length || !merged) { setError('A composição ultrapassa o limite da seleção ou contém dados inconsistentes.'); return; }
+    if (!items.length || !merged) { setError('Confira as quantidades e os produtos: cada componente aceita até 999.999 unidades e não pode repetir um produto já salvo na seleção.'); return; }
     cart.replaceItems(merged);
     cart.setSelectionTitle(kitName);
     trackFunnelEvent('kit_composition_added', { component_count: items.length, kit_quantity: kitQuantity });
@@ -79,7 +82,7 @@ export default function KitBuilderPage() {
         <section className="kit-builder__config" aria-labelledby="kit-config-title">
           <div className="section-heading"><span className="section-kicker">01 · Estrutura</span><h2 id="kit-config-title">Comece pelo tamanho da experiência.</h2></div>
           <div className="kit-template-grid">
-            {kitTemplates.map((item) => <button key={item.id} type="button" className={item.id === template.id ? 'is-active' : ''} onClick={() => selectTemplate(item.id)} aria-pressed={item.id === template.id}><span>{item.slots.length} itens</span><strong>{item.name}</strong><small>{item.description}</small>{item.id === template.id && <Check aria-hidden="true" />}</button>)}
+            {kitTemplates.map((item) => <button key={item.id} type="button" className={item.id === template.id ? 'is-active' : ''} onClick={() => selectTemplate(item.id)} aria-pressed={item.id === template.id}><span>{item.slots.some((slot) => slot.optional) ? `${item.slots.filter((slot) => !slot.optional).length} a ${item.slots.length}` : item.slots.length} itens</span><strong>{item.name}</strong><small>{item.description}</small>{item.id === template.id && <Check aria-hidden="true" />}</button>)}
           </div>
           <div className="kit-builder__identity"><label>Nome da composição<input value={kitName} maxLength={100} onChange={(event) => setKitName(event.target.value)} /></label><label>Quantidade de kits<input type="number" min={minimum} max="999999" value={kitQuantity} onChange={(event) => setKitQuantity(Math.max(1, Math.min(999999, Number(event.target.value) || 1)))} /></label></div>
           <div className="kit-slots">
@@ -89,7 +92,7 @@ export default function KitBuilderPage() {
                 <button type="button" className="kit-slot__main" onClick={() => setActiveSlotId(slot.id)}>
                   <span>{String(index + 1).padStart(2, '0')}</span>
                   {choice ? <img src={choice.product.imageUrl} alt="" width="90" height="90" onError={replaceBrokenProductImage} referrerPolicy="no-referrer" /> : <PackagePlus aria-hidden="true" />}
-                  <div><small>{slot.label}</small><strong>{choice?.product.name || 'Escolher produto'}</strong>{choice && <em>Cód. {choice.product.sku} · mín. {choice.product.minQuantity.toLocaleString('pt-BR')}</em>}</div>
+                  <div><small>{slot.label}{slot.optional ? ' · opcional' : ''}</small><strong>{choice?.product.name || (slot.optional ? 'Adicionar se fizer sentido' : 'Escolher produto')}</strong>{choice && <em>Cód. {choice.product.sku} · mín. {choice.product.minQuantity.toLocaleString('pt-BR')}</em>}</div>
                 </button>
                 {choice && <div className="kit-slot__controls"><label><span>Un. por kit</span><input aria-label={`Unidades por kit de ${choice.product.name}`} type="number" min="1" max="100" value={choice.unitsPerKit} onChange={(event) => setSelected((current) => ({ ...current, [slot.id]: { ...choice, unitsPerKit: Math.max(1, Math.min(100, Number(event.target.value) || 1)) } }))} /></label><button type="button" onClick={() => { setSelected((current) => { const next = { ...current }; delete next[slot.id]; return next; }); setActiveSlotId(slot.id); }} aria-label={`Remover ${choice.product.name}`}><Trash2 /></button></div>}
               </article>;
@@ -99,7 +102,7 @@ export default function KitBuilderPage() {
 
         <section className="kit-builder__catalog" aria-labelledby="kit-catalog-title">
           <div className="section-heading"><span className="section-kicker">02 · Produtos reais</span><h2 id="kit-catalog-title">Escolha para “{template.slots.find((slot) => slot.id === activeSlotId)?.label}”.</h2></div>
-          <form className="kit-builder-search" role="search" onSubmit={submitSearch}><Search aria-hidden="true" /><input value={searchInput} onChange={(event) => setSearchInput(event.target.value)} placeholder="Busque caderno, garrafa, tech…" maxLength={80} /><button type="submit">Buscar</button></form>
+          <form className="kit-builder-search" role="search" onSubmit={submitSearch}><Search aria-hidden="true" /><input aria-label="Buscar produtos para o kit" value={searchInput} onChange={(event) => setSearchInput(event.target.value)} placeholder="Busque caderno, garrafa, tech…" maxLength={80} /><button type="submit">Buscar</button></form>
           {catalog.loading && <div className="kit-builder-state" role="status">Buscando referências…</div>}
           {catalog.error && <div className="kit-builder-state" role="alert">{catalog.error}</div>}
           {!catalog.loading && !catalog.error && <div className="kit-product-grid">{catalog.data.products.map((product) => <button key={product.id} type="button" disabled={usedProducts.has(product.id) && selected[activeSlotId]?.product.id !== product.id} onClick={() => chooseProduct(product)}><img src={product.imageUrl} alt="" width="150" height="150" loading="lazy" referrerPolicy="no-referrer" onError={replaceBrokenProductImage} /><span>Cód. {product.sku}</span><strong>{product.name}</strong><small>Mín. {product.minQuantity.toLocaleString('pt-BR')} un.</small><em><Plus /> Usar neste espaço</em></button>)}</div>}
@@ -107,7 +110,7 @@ export default function KitBuilderPage() {
         </section>
 
         <aside className="kit-builder-summary" aria-label="Resumo da composição">
-          <div><Sparkles aria-hidden="true" /><span><strong>{complete ? 'Composição pronta para revisar' : `${template.slots.length - components.length} espaços para completar`}</strong><small>{components.length} componentes · mínimo calculado: {minimum.toLocaleString('pt-BR')} kits</small></span></div>
+          <div><Sparkles aria-hidden="true" /><span><strong>{complete ? 'Composição pronta para revisar' : `${missingSlots.length} espaços obrigatórios para completar`}</strong><small>{components.length} componentes · mínimo calculado: {minimum.toLocaleString('pt-BR')} kits</small></span></div>
           <dl><div><dt>Kits</dt><dd>{kitQuantity.toLocaleString('pt-BR')}</dd></div><div><dt>Unidades totais</dt><dd>{kitTotalUnits(kitQuantity, components).toLocaleString('pt-BR')}</dd></div></dl>
           {kitQuantity < minimum && <p>Aumente para pelo menos {minimum.toLocaleString('pt-BR')} kits para respeitar todos os mínimos.</p>}
           {error && <p className="kit-builder-summary__error" role="alert">{error}</p>}
