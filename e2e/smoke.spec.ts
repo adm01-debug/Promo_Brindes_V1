@@ -890,6 +890,7 @@ test('histórico recupera de uma falha temporária sem exigir mudança de filtro
   }, { user });
   await page.route('**/auth/v1/user', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify(user) }));
   await page.route('**/rest/v1/rpc/claim_my_quote_requests', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ claimed: 0 }) }));
+  await page.route('**/rest/v1/rpc/list_my_selections', (route) => route.fulfill({ contentType: 'application/json', body: '{"items":[]}' }));
   await page.route('**/rest/v1/rpc/get_my_quote_requests', (route) => {
     listReads += 1;
     if (listReads === 1) return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ message: 'temporary_failure' }) });
@@ -897,7 +898,7 @@ test('histórico recupera de uma falha temporária sem exigir mudança de filtro
   });
 
   await page.goto('/minha-conta');
-  await expect(page.getByRole('alert')).toContainText('Não conseguimos carregar seus orçamentos agora.');
+  await expect(page.locator('.customer-results-state[role="alert"]')).toContainText('Não conseguimos carregar seus orçamentos agora.');
   await page.getByRole('button', { name: 'Tentar novamente' }).click();
   await expect(page.getByText('Empresa Recuperada').first()).toBeVisible();
   expect(listReads).toBe(2);
