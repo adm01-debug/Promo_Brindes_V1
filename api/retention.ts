@@ -96,7 +96,8 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     );
     const quoteIds = stringArray(candidates.quoteIds, RETENTION_BATCH_SIZE, (value) => UUID_PATTERN.test(value));
     const storagePaths = stringArray(candidates.storagePaths, RETENTION_BATCH_SIZE * 20, safeStoragePath);
-    await removeProposalObjects(config.url, config.serviceCredential, storagePaths, controller.signal);
+    if (storagePaths.length && !config.storageDeleteCredential) throw new Error('storage_delete_credential_not_configured');
+    await removeProposalObjects(config.url, config.storageDeleteCredential || '', storagePaths, controller.signal);
     const finalized = await rpc<Record<string, number>>(
       config.url,
       config.serviceCredential,

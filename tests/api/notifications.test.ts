@@ -173,7 +173,7 @@ describe('worker de comprovantes do orçamento', () => {
         await emailGate;
         return new Response('{"id":"email-immediate"}', { status: 200 });
       }
-      if (target.includes('graph.facebook.com')) {
+      if (new URL(target).hostname === 'graph.facebook.com') {
         whatsappAttempted = true;
         return new Response('{"messages":[{"id":"wamid-paralelo"}]}', { status: 200 });
       }
@@ -250,7 +250,7 @@ describe('worker de comprovantes do orçamento', () => {
     const later = new Date(Date.now() + 2 * 86_400_000).toUTCString();
     const fetchMock = vi.fn(async (url: string | URL, _init?: RequestInit) => {
       if (String(url).includes('/claim_site_quote_notification')) return new Response(JSON.stringify({ ...emailJob, channel: 'whatsapp' }), { status: 200 });
-      if (String(url).includes('graph.facebook.com')) {
+      if (new URL(String(url)).hostname === 'graph.facebook.com') {
         return new Response('{"error":"overloaded"}', { status: 503, headers: { 'Retry-After': later } });
       }
       if (String(url).includes('/finalize_site_notification_delivery')) return new Response('true', { status: 200 });
@@ -303,7 +303,7 @@ describe('worker de comprovantes do orçamento', () => {
     const whatsappJob = { ...emailJob, channel: 'whatsapp' };
     const fetchMock = vi.fn(async (url: string | URL, _init?: RequestInit) => {
       if (String(url).includes('/claim_site_notification_deliveries')) return new Response(JSON.stringify([whatsappJob]), { status: 200 });
-      if (String(url).includes('graph.facebook.com')) return new Response('{"messages":[{"id":"wamid-test"}]}', { status: 200 });
+      if (new URL(String(url)).hostname === 'graph.facebook.com') return new Response('{"messages":[{"id":"wamid-test"}]}', { status: 200 });
       if (String(url).includes('/record_site_notification_provider_acceptance')) return new Response('true', { status: 200 });
       if (String(url).includes('/finalize_site_notification_delivery')) return new Response('true', { status: 200 });
       return notMocked();
@@ -313,7 +313,7 @@ describe('worker de comprovantes do orçamento', () => {
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
 
     expect(result.body).toEqual({ ok: true, claimed: 1, delivered: 1, failed: 0, inconclusive: 0 });
-    const metaCall = fetchMock.mock.calls.find(([url]) => String(url).includes('graph.facebook.com'));
+    const metaCall = fetchMock.mock.calls.find(([url]) => new URL(String(url)).hostname === 'graph.facebook.com');
     const payload = JSON.parse(String(metaCall?.[1]?.body));
     expect(payload.to).toBe('5511999999999');
     expect(payload.template.name).toBe('confirmacao_orcamento');
@@ -336,7 +336,7 @@ describe('worker de comprovantes do orçamento', () => {
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
 
     expect(result.body).toEqual({ ok: true, claimed: 1, delivered: 1, failed: 0, inconclusive: 0 });
-    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('graph.facebook.com'))).toBe(false);
+    expect(fetchMock.mock.calls.some(([url]) => new URL(String(url)).hostname === 'graph.facebook.com')).toBe(false);
   });
 });
 
