@@ -42,30 +42,81 @@ Duas classes de etapa compõem este documento:
    prática dependiam de credencial humana nunca provisionada (etapa 6); este plano marca
    esses casos como bloqueados, não como parcialmente feitos.
 
-## Status real após verificação (17/09/2026, mesma sessão de execução)
+## Status real consolidado (atualizado em 22/09/2026)
 
-A tabela abaixo é o mapa **original**, de antes da execução — mantida como registro de
-como o plano foi desenhado. A coluna "Origem" dela ficou desatualizada assim que a
-execução começou a verificar cada "reaberta" contra migration/teste real em vez de contra
-o checklist (que se provou não confiável duas vezes já — Etapas 9 e 10). Status real,
-etapa a etapa, nas seções abaixo:
+A tabela mais abaixo é o mapa **original**, de antes da execução — mantida como registro
+de como o plano foi desenhado; a coluna "Origem" dela não reflete status. Este sumário
+substitui o de 17/09, que ficou para trás depois das rodadas de 17/09 e 20/09: não cobria
+as Fases 8–10 (39–50), ainda chamava a Fase 8 inteira de "sem progresso", dava a Etapa 6
+como fechada com o checklist dela vazio e a 35 como "falta integração de alerta" quando a
+integração já existia desde 16/09. Cada classificação abaixo foi reconferida em 22/09
+contra o repositório, o `git log` e o GitHub (`gh pr view`/`gh pr checks`), não contra os
+checkboxes, que já se mostraram não confiáveis quatro vezes (Etapas 9, 10, 6 e 46).
 
-- **✅ Fechadas por trabalho já existente** (eu tinha marcado "reaberta, 0/X"; era o
-  checklist que estava errado): 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24,
-  26, 28 (nuance corrigida), 32, 34.
-- **🟡 Implementadas, só falta ação humana fora do repositório**: 25 (corte de produção na
-  Vercel).
-- **✅ Decisão de engenharia já registrada — não são gaps, não devem ser "corrigidas" sem
-  motivo novo**: 27, 28, 30.
-- **🔧 Corrigidas/fechadas nesta própria sessão de execução**: 1 (bundle), 6 (deps).
-- **📋 Parcialmente abertas, com escopo real medido** (não suposição): 29 (falta só
-  rotação agendada), 31 (4 de 16 tabelas documentadas, não 0), 35 (função pronta, falta
-  integração de alerta).
-- **🔴 Genuinamente abertas, sem progresso e sem decisão registrada**: 2, 3, 4, 5, 7, 8, 19,
-  33, 36, 37, 38, e a Fase 8 inteira (39–45, nova).
-- **Ainda não reverificadas contra este mesmo padrão nesta sessão**: 46–50 (Fases 9–10) —
-  ver seções correspondentes; o processo de verificação foi aplicado por completo só às
-  Fases 0–7.
+**🚨 Urgente, fora do ritmo do plano (ação humana):**
+- **39** — `public.mcp_kv_get` compara segredo contra literal gravado na própria função e
+  está executável por `authenticated`; `mcp_kv_set`/`mcp_kv_try_lock` têm o mesmo literal.
+  Revogação das 3 pronta em `docs/sql/canonical-principal/URGENTE_revogar_mcp_kv_get.sql`,
+  **não aplicada**; rotação do conteúdo de `mcp_kv` pendente. Última confirmação de que
+  segue ativo em produção: 20/09 (não reverificado em 22/09 — o repositório não tem acesso
+  de leitura ao banco principal fora do MCP). Além disso, ainda falta a parte técnica da
+  etapa: ler o corpo das ~15 funções de dashboard/admin e de
+  `get_quote_token_public`/`submit_quote_response`.
+
+**✅ Fechadas (evidência no repositório/CI):**
+- 1 (bundle 318,3 → 275,6 KiB), 9, 10, 45.
+- 6 — as quatro dependências estão nas versões-alvo em `package.json` desde `ab4acde`
+  (17/09); o checklist da seção só foi marcado agora. Sem registro da revisão do changelog
+  do `react-router-dom` 7.18.4 (patch, risco baixo).
+- 11–18, 20–24, 26, 32, 34 — trabalho que já existia em migration + pgTAP (349/349 após os
+  fixes de 20/09).
+- 46 — instabilidade WebKit/Firefox com duas causas raiz independentes corrigidas (80/80
+  com `--repeat-each=20`). B01–B06 já estavam fechados pela matriz vigente de 12/09 e cada
+  um tem teste ativo no CI, conferido em 22/09. Os achados novos R01–R08 da mesma matriz
+  ficam fora desta etapa.
+
+**✅ Decisão de engenharia registrada — não são gaps:** 27, 28, 30.
+
+**🟢 Parte técnica feita, resta item pequeno ou operacional:**
+- 31 — bug de FK sem cascade (retenção abortava o lote inteiro) corrigido em 20/09 por duas
+  migrations. Faltam só o `comment on table` nas 4 tabelas que cascateiam e a regeneração do
+  dicionário (confirmado ausente em 22/09).
+- 35 — webhook de alerta já integrado e testado (`sendOperationalAlert`, commit `3eeb68d`,
+  16/09). Faltam o alerta de "cron silencioso" (depende de `lastRunAt` por origem, que
+  depende da Etapa 30, adiada por decisão) e um ensaio no canal real com
+  `OPERATIONS_ALERT_WEBHOOK_URL` de produção.
+- 29 — comparação em tempo constante no `npm run check`; rotação **programada** não existe
+  (`RUNBOOK_ROTACAO_SEGREDOS.md` não define periodicidade).
+- 43 — inventário de tabelas em `docs/DATABASE_INVENTORY_PRINCIPAL.md`; faltam o schema
+  completo (colunas/tipos/FKs) e a decisão do dono do produto sobre migrations versionadas.
+
+**🟡 Pronto no repositório, esperando ação humana fora dele:**
+- 25 — corte da Vercel para o JWT `site_api`.
+- 40, 41, 42 — SQL em `docs/sql/canonical-principal/pendente_*.sql`, não aplicado. 40
+  exige confirmar que nenhum outro consumidor do banco principal usa GraphQL; 42 exige
+  revisão humana da equivalência da política.
+- 50 — PR #14 aberto (`mergeStateStatus: UNSTABLE` em 22/09). Todos os checks obrigatórios
+  estão verdes no head `6801b30`; só `Dependency review` falha (dependency graph desabilitado
+  no repositório, não é check obrigatório). Merge e tag aguardam confirmação humana.
+
+**⏸️ Bloqueadas em credencial ou infraestrutura:**
+- 4 (token do projeto do site) — bloqueador raiz de 3, 19 e 33, e por tabela de 49.
+- 3 (ledger remoto), 19 (revisão mensal: `RUNBOOK_REVISAO_MENSAL_BANCO.md` existe, com um
+  único registro, local, de 16/09; falta rodar com tráfego de produção), 33 (PITR/drill),
+  49 (runbook de restore depende da 33; os demais runbooks existem, falta revisão por
+  pares), 44 (secret do banco principal no GitHub Actions), 38 (branching/billing).
+
+**🧭 Esperando decisão de produto/PO:** 5 (contrato canônico no `Promo_Gifts_V4`), 47
+(conflito do carrinho entre dispositivos e métricas operacionais).
+
+**🔴 Abertas, com trabalho possível a partir do repositório e sem progresso:**
+- 2 — PR #13 mergeou em 17/09, mas `main` local está de novo **9 commits atrás** de
+  `origin/main` em 22/09 (segunda reincidência, depois de 17/09) e a decisão de automatizar a sincronização
+  não foi registrada.
+- 7 (compatibilidade dos plugins com ESLint 10; segue em 9.39.5), 8 (avaliação do
+  TypeScript 7; segue em 5.9.3), 36 (Fase B do contrato público), 37 (teste de contrato
+  cross-projeto; nenhum artefato), 48 (nota/índice da matriz vigente; `docs/MATRIZ_INDEX.md`
+  não existe e o CSV não tem nota).
 
 ## Mapa das 50 etapas (desenho original — ver status real acima)
 
@@ -206,6 +257,12 @@ review, para o PR não ficar preso em `Quality gate` vermelho.
       verificação manual recorrente — a recorrência em <24h sugere que a segunda opção já
       falhou uma vez.
 
+**Atualização (22/09/2026).** PR #13 mergeou em 17/09 (`gh pr view 13`). O problema de
+fundo reincidiu: depois de `git fetch`, `main` local está **9 commits atrás** de
+`origin/main` (inclusive o próprio merge do #13). Os dois primeiros itens do checklist
+deixaram de valer para o PR #13 (já fechado) e passam a valer para o PR #14 (Etapa 50); o
+terceiro, a decisão de automatizar, segue sem registro.
+
 **Rollback/risco.** Nenhum; merge/rebase padrão. Conferir que não há conflito silencioso
 nas migrations do site (ordem de timestamp) ao mesclar.
 
@@ -285,7 +342,7 @@ decisão do PO, só então renomear/anotar o arquivo local.
 
 ## Fase 1 — Ferramental e dependências
 
-### Etapa 6 — Atualizar dependências menores
+### Etapa 6 — Atualizar dependências menores — ✅ FECHADA (aplicada em 17/09/2026, checklist marcado em 22/09/2026)
 
 **Diagnóstico.** `npm outdated` (17/09) mostra atualizações sem mudança de major:
 `@types/node` 26.5.1→26.6.1, `jsdom` 30.0.1→30.1.0, `lucide-react` 1.46.0→1.47.0,
@@ -297,9 +354,14 @@ completa (`npm run check`, `npm run test:e2e`), revisar changelog de `react-rout
 7.18.4 por qualquer mudança de comportamento de rota antes de mergear.
 
 **Checklist de conclusão.**
-- [ ] `npm outdated` sem essas quatro entradas.
-- [ ] `npm run check` e `npm run test:e2e` verdes.
-- [ ] Changelog do `react-router-dom` revisado, sem breaking change relevante ao app.
+- [x] As quatro nas versões-alvo — `package.json` e `node_modules` conferidos em 22/09
+      (`@types/node` 26.6.1, `jsdom` 30.1.0, `lucide-react` 1.47.0, `react-router-dom`
+      7.18.4), aplicadas no commit `ab4acde` (17/09) junto com a Etapa 1. O checklist não
+      tinha sido marcado na época.
+- [x] `npm run check` e `npm run test:e2e` verdes — mesma rodada registrada na Etapa 1, e
+      `validate`/`cross-browser` verdes no PR #14 (head `6801b30`).
+- [ ] Changelog do `react-router-dom` revisado — sem registro de que foi feito. Patch
+      version, risco baixo, mas não deve ser marcado sem a revisão.
 
 **Rollback/risco.** Baixo — patch/minor. Reverter o commit se algum teste E2E quebrar.
 
@@ -697,6 +759,15 @@ Infraestrutura fora do alcance desta sessão — ver Etapa 39 do plano de 16/09.
 Não há evidência de integração com um sistema de alertas externo nem SLA formal — esperado,
 é operacional (Vercel cron + destino de alerta), não SQL.
 
+*(Correção de 22/09/2026: a frase acima estava desatualizada já em 17/09. O commit
+`3eeb68d` (16/09, Etapa 42 do plano anterior) já liga a fila ao webhook:
+`reportQueueHealth` em `api/notifications.ts` chama `sendOperationalAlert` quando
+`OPERATIONS_ALERT_WEBHOOK_URL` está configurada, e `tests/api/notifications.test.ts` afirma
+sobre a chamada HTTP real. O SLA também está documentado lá. O que falta de fato são os
+dois itens abertos da Etapa 42 de 16/09: (1) alerta de "cron silencioso", que depende de
+`lastRunAt` por origem e, por isso, da Etapa 30, adiada por decisão; (2) ensaio único no
+canal real com a URL de produção configurada.)*
+
 **Ação.** Ver Ação da Etapa 42 do plano de 16/09 para os itens de integração/SLA.
 
 **Checklist de conclusão.** Os itens não-SQL do checklist original (a função em si já está
@@ -1016,7 +1087,7 @@ documenta o que verificar e para quem escalar).
 
 ## Fase 9 — Frontend/UX e testes
 
-### Etapa 46 — Fechar a instabilidade WebKit/Firefox — ✅ causa raiz encontrada e corrigida (20/09/2026)
+### Etapa 46 — Fechar a instabilidade WebKit/Firefox — ✅ FECHADA (instabilidade corrigida em 20/09/2026; B01–B06 conferidos em 22/09/2026)
 
 **Correção do diagnóstico.** Não era instabilidade específica do WebKit — reproduzi rodando
 `test:e2e:cross-browser` duas vezes (uma limpa, uma com falha) e o teste que falhou
@@ -1071,9 +1142,19 @@ não mudar a estratégia de seed.
 - [x] `--repeat-each=20` nos 4 motores (80 execuções): 80/80 passando — muito mais forte
       que o "10/10" anterior.
 - [x] `npm run check` completo e `test:e2e:cross-browser` verdes depois do fix.
-- [ ] B01–B06 da matriz de 12/09 — não localizei o conteúdo desses rótulos nesta sessão
-      (arquivo de origem `docs/audits/plan-review-20260912/` não revisado); item genuíno
-      restante, mas não bloqueia o fechamento da instabilidade em si.
+- [x] B01–B06 da matriz de 12/09 — já estavam fechados antes deste plano; a Etapa 46 os
+      herdou como "Parcial" de uma matriz anterior. Verificado em 22/09/2026: na matriz de
+      fechamento vigente (`MATRIZ_FECHAMENTO_PLANOS_20260912.csv`, linha UX03, estado
+      P → I) consta "Regressões B01–B07 incorporadas aos testes pertinentes". As
+      descrições estão em `docs/REVISAO_POS_MIGRATIONS_20260912.md:73-133` e a evidência em
+      `docs/REVISAO_FECHAMENTO_PLANOS_20260912.md:43-49`. Cada regressão ainda tem teste
+      ativo nas suítes que o CI roda: B01 `e2e/smoke.spec.ts:402`; B02
+      `tests/api/lead-requests.test.ts:151`; B03 `tests/api/lead-requests.test.ts:166`; B04
+      `e2e/smoke.spec.ts:925`; B05 `e2e/smoke.spec.ts:567`; B06
+      `src/lib/customerAccount.test.ts:19-21` (`isProposalExpired`); B07 `useLayoutEffect`
+      em `src/pages/ProductPage.tsx:64`, coberto pela suíte cruzada. O que a UX03 deixou
+      em aberto foram os achados **novos** R01–R08, "diagnosticados, ainda não corrigidos".
+      Eles não fazem parte desta etapa e não foram reverificados aqui.
 
 **Rollback/risco.** Nenhum — é fechamento de cobertura de teste, sem mudança de código de
 produto.
@@ -1179,12 +1260,11 @@ compartilhado (afeta `main` e o deploy da Vercel), do tipo que peço confirmaç�
 fazer, mesmo com autorização geral para executar o plano. Deixado para decisão explícita.
 
 **Checklist de conclusão.**
-- [x] Checklist mestre desta sessão: ver o sumário "Status real após verificação" no topo
-      deste arquivo — 1, 6, 9, 10, 11–24, 26, 28, 32, 34, 39 (parte), 40 (parte), 43
-      (parte), 45, 46 fechados ou avançados nesta execução; 2–5, 19, 29 (parte), 30, 31,
-      33, 35 (parte), 36–38, 41, 42, 44, 47, 49 permanecem abertos, a maioria por
-      dependerem de credencial/decisão humana, não de mais trabalho técnico possível
-      nesta sessão.
+- [x] Checklist mestre: ver o sumário "Status real consolidado" no topo deste arquivo
+      (atualizado em 22/09/2026, cobre as 50 etapas). A lista que estava aqui em 20/09
+      contava a 30 como aberta, mas ela é decisão registrada, e a 31 como aberta, mas a
+      parte técnica dela já foi fechada. O sumário é agora a única fonte do checklist
+      mestre, para as duas listas não divergirem de novo.
 - [ ] `Quality gate`, `Isolated site database`, `Graphify structural map` verdes no PR
       #14 — confirmado nos checks do PR, não ainda no commit de merge em si.
 - [ ] `CodeQL security` e `Dependency review` — `CodeQL` passou; `Dependency review`
