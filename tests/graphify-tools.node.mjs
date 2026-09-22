@@ -1,7 +1,37 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
-import { compareGraphStructures, evaluateGraphBenchmark, fingerprintEntries, findSensitiveArtifacts, normalizeQuery, validateGraph } from '../scripts/graphify.mjs';
+import { compareGraphStructures, evaluateGraphBenchmark, explainGraphNode, fingerprintEntries, findSensitiveArtifacts, normalizeQuery, resolveGraphNode, shortestGraphPath, validateGraph } from '../scripts/graphify.mjs';
+
+const navigationGraph = {
+  directed: false,
+  nodes: ['a', 'b', 'c', 'd'].map((id) => ({ id, label: id.toUpperCase(), source_file: `src/${id}.ts`, source_location: 'L1' })),
+  links: [{ source: 'a', target: 'b', relation: 'imports', confidence: 'EXTRACTED' }, { source: 'b', target: 'c', relation: 'calls' }],
+};
+
+test('path encontra menor caminho, identidade e nós desconectados sem inventar relações', () => {
+  assert.deepEqual(shortestGraphPath(navigationGraph, 'A', 'c').map((node) => node.id), ['a', 'b', 'c']);
+  assert.deepEqual(shortestGraphPath(navigationGraph, 'a', 'a').map((node) => node.id), ['a']);
+  assert.deepEqual(shortestGraphPath(navigationGraph, 'a', 'd'), []);
+  assert.deepEqual(shortestGraphPath({ ...navigationGraph, directed: true }, 'c', 'a'), []);
+});
+
+test('explain preserva fonte e confiança e identifica conexões de entrada', () => {
+  const result = explainGraphNode({ ...navigationGraph, directed: true }, 'B');
+  assert.equal(result.node.source_file, 'src/b.ts');
+  assert.deepEqual(result.connections.map((edge) => edge.direction), ['entrada', 'saída']);
+  assert.equal(result.connections[0].confidence, 'EXTRACTED');
+  assert.equal(result.connections[1].confidence, 'confiança não informada');
+});
+
+test('nomes ambíguos e símbolos ausentes não escolhem um resultado arbitrário', () => {
+  const graph = { ...navigationGraph, nodes: [...navigationGraph.nodes, { id: 'other-a', label: 'A' }] };
+  assert.throws(() => resolveGraphNode(graph, 'missing'), /não encontrado/);
+  // IDs são desambiguadores explícitos, mesmo quando há rótulos homônimos.
+  assert.equal(resolveGraphNode(graph, 'a').id, 'a');
+  graph.nodes.push({ id: 'x', label: 'same' }, { id: 'y', label: 'same' });
+  assert.throws(() => resolveGraphNode(graph, 'same'), /ambíguo/);
+});
 
 test('fingerprint muda ao mudar conteúdo e preserva ordem determinística', () => {
   const source = new Map([['src/b.ts', 'export const b = 2;'], ['src/a.ts', 'export const a = 1;']]);

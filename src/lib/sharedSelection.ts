@@ -1,7 +1,7 @@
 import type { CatalogProduct, QuoteItem } from '../types';
 import { clampQuoteQuantity, normalizeQuoteItems } from './quoteItems';
 
-const VERSION = 1;
+const VERSION = 2;
 // O moodboard aceita até 50 referências; o link persistente deve representar a
 // mesma seleção, sem cortar silenciosamente a parte final.
 export const MAX_SHARED_SELECTION_ITEMS = 50;
@@ -17,6 +17,7 @@ export interface SharedSelectionItem {
   id: string;
   q: number;
   v?: string;
+  d?: 'alternative';
   k?: string;
   kn?: string;
   kq?: number;
@@ -45,6 +46,8 @@ export interface SharedSelectionHydration {
   unavailableProductReferences: SharedSelectionItem[];
   /** Variantes que a pessoa referenciou, mas que não existem mais no produto publicado. */
   unavailableVariantReferences: SharedSelectionItem[];
+  /** Composições que perderiam sua identidade após mudanças no catálogo. */
+  invalidKitReferences: SharedSelectionItem[];
 }
 
 function normalizeSharedSelectionItems(value: unknown): SharedSelectionItem[] {
@@ -54,7 +57,7 @@ function normalizeSharedSelectionItems(value: unknown): SharedSelectionItem[] {
     if (!item || typeof item !== 'object') return;
     const candidate = item as Partial<SharedSelectionItem>;
     const id = String(candidate.id || '');
-    if (!UUID_PATTERN.test(id)) return;
+    if (!UUID_PATTERN.test(id) || (candidate.d !== undefined && candidate.d !== 'alternative')) return;
     const quantity = Number(candidate.q);
     if (!Number.isInteger(quantity) || quantity < 1 || quantity > 999_999) return;
     const variant = typeof candidate.v === 'string' && VARIANT_PATTERN.test(candidate.v) ? candidate.v : undefined;
@@ -67,7 +70,7 @@ function normalizeSharedSelectionItems(value: unknown): SharedSelectionItem[] {
       ? { k: candidate.k, kn: candidate.kn.trim(), kq: Number(candidate.kq), ku: Number(candidate.ku) }
       : undefined;
     if (hasKit && !kit) return;
-    result.set(`${id}:${variant || ''}:${kit?.k || ''}`, { id, q: quantity, ...(variant ? { v: variant } : {}), ...kit });
+    result.set(`${id}:${variant || ''}:${kit?.k || ''}`, { id, q: quantity, ...(variant ? { v: variant } : {}), ...(candidate.d === 'alternative' ? { d: 'alternative' as const } : {}), ...kit });
   });
   return [...result.values()];
 }
@@ -81,6 +84,7 @@ function referencesFromQuoteItems(items: QuoteItem[]): SharedSelectionItem[] {
       id: item.productId,
       q: clampQuoteQuantity(item.quantity, item.minQuantity),
       ...(item.variantId && VARIANT_PATTERN.test(item.variantId) ? { v: item.variantId } : {}),
+      ...(item.decisionGroup === 'alternative' ? { d: 'alternative' as const } : {}),
       ...(item.kitGroupId ? { k: item.kitGroupId, kn: item.kitName, kq: item.kitQuantity, ku: item.unitsPerKit } : {}),
     });
     if (unique.size >= MAX_SHARED_SELECTION_ITEMS) break;
@@ -89,7 +93,8 @@ function referencesFromQuoteItems(items: QuoteItem[]): SharedSelectionItem[] {
 }
 
 function toBase64Url(value: string): string {
-  return btoa(value).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
+  const bytes = new TextEncoder().encode(value);
+  return btoa(Array.from(bytes, (byte) => String.fromCharCode(byte)).join('')).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
 }
 
 function fromBase64Url(value: string): string | null {
@@ -102,8 +107,8 @@ function fromBase64Url(value: string): string | null {
 }
 
 /**
- * O link contém apenas IDs públicos, quantidade e variante. Não leva nome de
- * campanha, dados de contato, observações ou contexto que possam identificar alguém.
+ * O link contém referências, quantidades, variantes, prioridades e composição
+ * de kits (inclusive o nome escolhido). Não inclui contato nem o briefing.
  */
 export function encodeSharedSelection(items: QuoteItem[]): string | null {
   const references = referencesFromQuoteItems(items);
@@ -116,8 +121,11 @@ export function decodeSharedSelection(value: string | null): SharedSelectionItem
   const raw = fromBase64Url(value);
   if (!raw) return [];
   try {
-    const parsed = JSON.parse(raw) as Partial<SharedSelectionPayload>;
-    if (parsed.v !== VERSION) return [];
+    const version = (JSON.parse(raw) as { v?: number }).v;
+    if (version !== 1 && version !== VERSION) return [];
+    // v1 usava Latin-1 via btoa; v2 usa UTF-8 para nomes com emoji e acentos.
+    const text = version === 1 ? raw : new TextDecoder('utf-8', { fatal: true }).decode(Uint8Array.from(raw, (char) => char.charCodeAt(0)));
+    const parsed = JSON.parse(text) as Partial<SharedSelectionPayload>;
     return normalizeSharedSelectionItems(parsed.i);
   } catch {
     return [];
@@ -290,10 +298,15 @@ export function hydrateSharedSelectionDetails(payload: SharedSelectionItem[], pr
       ...(shared.v ? { variantId: shared.v } : color?.variantId ? { variantId: color.variantId } : {}),
       ...(color?.name ? { colorName: color.name, colorHex: color.hex } : {}),
       ...(variantUnavailable ? { variantUnavailable: true } : {}),
+      ...(shared.d === 'alternative' ? { decisionGroup: 'alternative' as const } : {}),
       ...(shared.k ? { kitGroupId: shared.k, kitName: shared.kn, kitQuantity: shared.kq, unitsPerKit: shared.ku } : {}),
     }];
   }));
-  return { items, unavailableProductReferences, unavailableVariantReferences };
+  const invalidKitReferences = payload.filter((reference) => reference.k && !items.some((item) =>
+    item.productId === reference.id && (item.variantId || '') === (reference.v || '')
+    && item.kitGroupId === reference.k && item.kitName === reference.kn
+    && item.kitQuantity === reference.kq && item.unitsPerKit === reference.ku && item.quantity === reference.q));
+  return { items, unavailableProductReferences, unavailableVariantReferences, invalidKitReferences };
 }
 
 /** Compatibilidade para consumidores que só precisam dos itens ainda publicados. */

@@ -1,7 +1,7 @@
 import type { CatalogProduct, QuoteItem } from '../types';
 import { MAX_QUOTE_ITEMS, normalizeQuoteItems } from './quoteItems';
 
-export interface KitSlotDefinition { id: string; label: string; }
+export interface KitSlotDefinition { id: string; label: string; optional?: boolean; }
 export interface KitTemplate { id: string; name: string; description: string; slots: KitSlotDefinition[]; }
 export interface KitComponent { slotId: string; slotLabel: string; product: CatalogProduct; unitsPerKit: number; }
 
@@ -10,8 +10,13 @@ export interface KitComponent { slotId: string; slotLabel: string; product: Cata
 export const kitTemplates: KitTemplate[] = [
   { id: 'essencial', name: 'Dupla essencial', description: 'Dois componentes para uma composição direta.', slots: [{ id: 'principal', label: 'Item principal' }, { id: 'apoio', label: 'Item complementar' }] },
   { id: 'experiencia', name: 'Trio de experiência', description: 'Três pontos de contato para ampliar a experiência.', slots: [{ id: 'principal', label: 'Item principal' }, { id: 'rotina', label: 'Item de rotina' }, { id: 'surpresa', label: 'Item surpresa' }] },
-  { id: 'completo', name: 'Composição completa', description: 'Quatro espaços para uma seleção mais ampla.', slots: [{ id: 'principal', label: 'Item principal' }, { id: 'rotina', label: 'Item de rotina' }, { id: 'apoio', label: 'Item complementar' }, { id: 'surpresa', label: 'Item surpresa' }] },
+  { id: 'completo', name: 'Composição flexível', description: 'Dois componentes essenciais e até dois extras opcionais.', slots: [{ id: 'principal', label: 'Item principal' }, { id: 'rotina', label: 'Item de rotina' }, { id: 'apoio', label: 'Item complementar', optional: true }, { id: 'surpresa', label: 'Item surpresa', optional: true }] },
 ];
+
+export function missingRequiredKitSlots(template: KitTemplate, components: KitComponent[]): KitSlotDefinition[] {
+  const filledSlots = new Set(components.map((component) => component.slotId));
+  return template.slots.filter((slot) => !slot.optional && !filledSlots.has(slot.id));
+}
 
 export function minimumKitQuantity(components: KitComponent[]): number {
   return components.reduce((minimum, component) => {
@@ -56,7 +61,11 @@ export function buildKitQuoteItems(options: {
     } satisfies QuoteItem];
   });
   if (items.length !== options.components.length) return [];
-  return normalizeQuoteItems(items);
+  const normalized = normalizeQuoteItems(items);
+  // A normalização pode limitar quantidades ou remover metadados inválidos.
+  // Nunca transformar uma composição inválida em itens avulsos silenciosamente.
+  return normalized.length === items.length && normalized.every((item) => item.kitGroupId === options.id)
+    ? normalized : [];
 }
 
 export function mergeKitIntoSelection(current: QuoteItem[], kitItems: QuoteItem[]): QuoteItem[] | null {

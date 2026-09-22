@@ -1,5 +1,7 @@
 # Plano de correções e melhorias — 50 etapas (fase seguinte)
 
+> Atualização de leitura em 22/09: este documento preserva o histórico do plano, incluindo bloqueios já resolvidos. O estado vigente e as pendências estão em [MATRIZ_INDEX.md](MATRIZ_INDEX.md) e [execução complementar](EXECUCAO_COMPLEMENTAR_20260922.md). Checklists históricos não certificam produção nem autorizam alterações no Promo Gifts interno.
+
 Data-base: 17/09/2026. Fonte: auditoria local ⇄ GitHub ⇄ Supabase executada nesta data
 (branch `fix/supabase-ledger-ordering`, PR #13; projeto do site `xlzmclcjdncjfdrjxclt`;
 projeto principal `doufsxqlfjyuvxuezpln`, acessado via MCP `SUPABASE - GESTÃO DE PRODUTOS`).

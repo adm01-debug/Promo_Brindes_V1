@@ -151,7 +151,7 @@ export async function hydrateMySelection(selection: SavedSelection, signal?: Abo
     return product && reference.q < product.minQuantity;
   })) throw new Error('selection_catalog_changed');
   const hydration = hydrateSharedSelectionDetails(selection.references, products);
-  if (hydration.unavailableProductReferences.length || hydration.unavailableVariantReferences.length) {
+  if (hydration.unavailableProductReferences.length || hydration.unavailableVariantReferences.length || hydration.invalidKitReferences.length) {
     throw new Error('selection_catalog_changed');
   }
   const priorities = new Map(selection.references.map((item) => [`${item.id}:${item.v || ''}`, item]));

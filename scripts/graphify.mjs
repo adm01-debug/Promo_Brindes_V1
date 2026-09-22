@@ -552,6 +552,76 @@ function impact() {
   }
 }
 
+export function resolveGraphNode(graph, subject) {
+  const query = String(subject || '').trim().toLocaleLowerCase('pt-BR');
+  if (!query || query.length > 500) throw new Error('Informe o ID ou nome exato de um nó.');
+  const exactId = graph.nodes.find((node) => String(node.id).toLocaleLowerCase('pt-BR') === query);
+  if (exactId) return exactId;
+  const matches = graph.nodes.filter((node) => String(node.label || '').toLocaleLowerCase('pt-BR') === query);
+  if (!matches.length) throw new Error(`Nó não encontrado: ${subject}. Consulte graph:query.`);
+  if (matches.length > 1) throw new Error(`Nome ambíguo: ${subject}. Use um ID: ${matches.map((node) => node.id).join(', ')}`);
+  return matches[0];
+}
+
+export function shortestGraphPath(graph, from, to) {
+  validateGraph(graph);
+  const source = resolveGraphNode(graph, from);
+  const target = resolveGraphNode(graph, to);
+  const adjacency = new Map(graph.nodes.map((node) => [node.id, []]));
+  for (const edge of graph.links) {
+    adjacency.get(edge.source).push(edge.target);
+    if (!graph.directed) adjacency.get(edge.target).push(edge.source);
+  }
+  const previous = new Map([[source.id, null]]);
+  const queue = [source.id];
+  for (let index = 0; index < queue.length && !previous.has(target.id); index += 1) {
+    for (const neighbor of adjacency.get(queue[index])) {
+      if (previous.has(neighbor)) continue;
+      previous.set(neighbor, queue[index]);
+      queue.push(neighbor);
+    }
+  }
+  if (!previous.has(target.id)) return [];
+  const ids = [];
+  for (let id = target.id; id !== null; id = previous.get(id)) ids.push(id);
+  const byId = new Map(graph.nodes.map((node) => [node.id, node]));
+  return ids.reverse().map((id) => byId.get(id));
+}
+
+export function explainGraphNode(graph, subject) {
+  validateGraph(graph);
+  const node = resolveGraphNode(graph, subject);
+  const byId = new Map(graph.nodes.map((entry) => [entry.id, entry]));
+  return {
+    node,
+    connections: graph.links.filter((edge) => edge.source === node.id || edge.target === node.id).map((edge) => ({
+      node: byId.get(edge.source === node.id ? edge.target : edge.source),
+      relation: edge.relation || 'relação não classificada',
+      confidence: edge.confidence || 'confiança não informada',
+      direction: !graph.directed ? 'vizinhança' : edge.source === node.id ? 'saída' : 'entrada',
+    })),
+  };
+}
+
+function inspectGraph(mode) {
+  const config = readProjectConfig();
+  const graph = JSON.parse(fs.readFileSync(ensureGraphExists(config), 'utf8'));
+  const location = (node) => `${node.label || node.id} — ${node.source_file || 'origem não informada'} ${node.source_location || ''}`.trim();
+  console.log('Mapa estrutural: relações não comprovam comportamento, causalidade ou publicação.');
+  if (mode === 'path') {
+    if (COMMAND_ARGS.length !== 2) throw new Error('Use graph:path -- "origem" "destino".');
+    const nodes = shortestGraphPath(graph, ...COMMAND_ARGS);
+    if (!nodes.length) { console.log('Não há caminho entre os nós no grafo atual.'); return; }
+    console.log(`${nodes.length - 1} salto(s):`);
+    nodes.forEach((node) => console.log(location(node)));
+    return;
+  }
+  const result = explainGraphNode(graph, COMMAND_ARGS.join(' '));
+  console.log(location(result.node));
+  result.connections.slice(0, 40).forEach((connection) => console.log(`- ${connection.direction}: ${connection.relation} [${connection.confidence}] — ${location(connection.node)}`));
+  if (result.connections.length > 40) console.log(`${result.connections.length - 40} conexões omitidas; consulte graph.json para a lista completa.`);
+}
+
 function tree() {
   const config = readProjectConfig();
   const graphPath = ensureGraphExists(config);
@@ -573,7 +643,7 @@ function doctor() {
 }
 
 function help() {
-  console.log('Uso: node scripts/graphify.mjs <doctor|build|update|status|check|query|impact|tree|benchmark|compare> [texto]');
+  console.log('Uso: node scripts/graphify.mjs <doctor|build|update|status|check|query|path|explain|impact|tree|benchmark|compare> [texto]');
   console.log('A automação é code-only, local e não acessa Supabase.');
 }
 
@@ -585,6 +655,8 @@ function main() {
     case 'status': return status();
     case 'check': return status({ strict: true });
     case 'query': return query();
+    case 'path': return inspectGraph('path');
+    case 'explain': return inspectGraph('explain');
     case 'impact': return impact();
     case 'tree': return tree();
     case 'benchmark': return benchmark();

@@ -293,7 +293,7 @@ _Sem comment on table — considerar adicionar um na próxima migration que toca
 |---|---|---|
 | `token` | `uuid` | — |
 | `management_token_hash` | `text` | — |
-| `items` | `jsonb` | Referências públicas sem PII; preserva grupo, nome e multiplicadores de kit quando presentes. |
+| `items` | `jsonb` | Referências compartilhadas por link; preserva prioridade, grupo, nome e multiplicadores de kit. Nomes escolhidos pelo cliente também ficam visíveis ao destinatário. |
 | `expires_at` | `timestamp with time zone` | — |
 | `revoked_at` | `timestamp with time zone` | — |
 | `created_at` | `timestamp with time zone` | — |

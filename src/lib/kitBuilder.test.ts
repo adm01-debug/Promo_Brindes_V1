@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { CatalogProduct } from '../types';
-import { buildKitQuoteItems, kitTotalUnits, mergeKitIntoSelection, minimumKitQuantity, type KitComponent } from './kitBuilder';
+import { buildKitQuoteItems, kitTemplates, kitTotalUnits, mergeKitIntoSelection, minimumKitQuantity, missingRequiredKitSlots, type KitComponent } from './kitBuilder';
 
 function product(id: string, name: string, minimum: number): CatalogProduct {
   return { id, name, sku: name, slug: name.toLowerCase(), description: '', shortDescription: '', imageUrl: '/x.png', images: [], categoryId: null, mainCategoryId: null, brand: null, minQuantity: minimum, isNew: false, isFeatured: false, isBestseller: false, isKit: false, allowsPersonalization: true, hasCommercialPackaging: false, colors: [], materials: [], dimensions: {} };
@@ -12,6 +12,19 @@ const components: KitComponent[] = [
 ];
 
 describe('composição de kits', () => {
+  it('permite omitir extras, mas exige os dois componentes obrigatórios', () => {
+    const template = kitTemplates.find((item) => item.id === 'completo')!;
+    expect(missingRequiredKitSlots(template, [])).toHaveLength(2);
+    expect(missingRequiredKitSlots(template, [{ ...components[0]!, slotId: 'apoio' }, { ...components[1]!, slotId: 'surpresa' }])).toHaveLength(2);
+    expect(missingRequiredKitSlots(template, [{ ...components[0]!, slotId: 'principal' }, { ...components[1]!, slotId: 'rotina' }])).toEqual([]);
+  });
+
+  it('recusa estouro de unidades sem degradar o kit para itens avulsos', () => {
+    expect(buildKitQuoteItems({ id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', name: 'Kit', quantity: 500_000, components })).toEqual([]);
+    const boundary = buildKitQuoteItems({ id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', name: 'Kit', quantity: 499_999, components });
+    expect(boundary).toHaveLength(2);
+    expect(boundary[0]).toMatchObject({ quantity: 999_998, kitQuantity: 499_999, unitsPerKit: 2 });
+  });
   it('calcula o mínimo pelo componente mais restritivo', () => {
     expect(minimumKitQuantity(components)).toBe(60);
     expect(kitTotalUnits(60, components)).toBe(180);
