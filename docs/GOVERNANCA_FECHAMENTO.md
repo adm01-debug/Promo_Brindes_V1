@@ -18,7 +18,7 @@ Uma entrega só pode mudar uma linha para `I` quando registra arquivos, teste ex
 
 Todo pull request que muda o estado de uma referência deve atualizar a mesma linha no CSV: `estado_revisado`, `natureza_pendencia`, `fontes`, `conclusao_e_aceite_restante`, `metodo` e `commit_auditado`. O autor também executa `npm run ledger:check` e inclui no PR os comandos de validação realmente rodados.
 
-O validador impede IDs duplicados, estados inválidos, linhas sem fontes e uma matriz com contagem diferente das 230 referências catalogadas. Ele não tenta inferir intenção de produto a partir de um diff; a responsabilidade de declarar a mudança de estado continua humana e revisável.
+O validador exige os 230 IDs exatos, estados válidos, evidências preenchidas, SHA auditado e fontes existentes dentro deste repositório. Ele não tenta inferir cumprimento funcional, publicação ou aceite humano a partir de um diff. O índice vigente e os limites da revisão estão em [MATRIZ_INDEX.md](MATRIZ_INDEX.md).
 
 ## Decisões Graphify — 15/09/2026
 

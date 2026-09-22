@@ -12,7 +12,7 @@ Alvo exclusivo: `xlzmclcjdncjfdrjxclt`. **Nunca** escolher o banco do Promo Gift
 ## Aceite do ensaio
 
 - Medir tempo entre início e clone pronto (RTO observado), e diferença entre último dado reconhecido e último recuperado (RPO observado). Comparar com os alvos aprovados.
-- Via `pg_catalog` no **clone**, verificar as 17 tabelas privadas esperadas, FORCE RLS em todas, funções/grants e ledger de migrations; validar contagens amostrais de pedidos, eventos, outbox, seleções e titulares. Não usar PostgREST/OpenAPI para certificar trigger, RLS ou grants.
+- Via `pg_catalog` no **clone**, comparar as tabelas privadas com o dicionário gerado da versão restaurada (19 na versão de 22/09), FORCE RLS em todas, funções/grants e ledger de migrations; validar contagens amostrais de pedidos, eventos, outbox, seleções, anexos e titulares. Não usar PostgREST/OpenAPI para certificar trigger, RLS ou grants.
 - Exercitar com **contas sintéticas** isolamento A/B, leitura do histórico, restauração de seleção, assinatura de PDF apenas se o objeto foi copiado separadamente, e recusa de uma origem/credencial de produção. Não enviar e-mail/WhatsApp reais.
 - Documentar lacunas, custo, evidência sanitizada, responsável e data do próximo ensaio. Só excluir o clone após confirmar que não é mais necessário para investigação e que não está conectado a nenhum serviço.
 
