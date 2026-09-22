@@ -1,4 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import handler from '../../api/site-page.js';
 
 const appShell = `<!doctype html><html><head>
@@ -54,6 +56,22 @@ describe('HTML inicial das páginas estáticas', () => {
     expect(result.statusCode).toBe(404);
     expect(result.body).toContain('Página não encontrada | Promo Brindes');
     expect(result.body).toContain('noindex,nofollow');
+  });
+
+  it('publica o montador de kits com rewrite e metadados indexáveis próprios', async () => {
+    vi.stubEnv('VITE_PUBLIC_URL', 'https://promo-brindes-v1.vercel.app');
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(appShell, { status: 200 })));
+    const config = JSON.parse(readFileSync(join(process.cwd(), 'vercel.json'), 'utf8')) as {
+      rewrites?: Array<{ source?: string; destination?: string }>;
+    };
+    expect(config.rewrites).toContainEqual({ source: '/montar-kit', destination: '/api/site-page?page=montarKit' });
+
+    const { result, response } = responseDouble();
+    await handler({ method: 'GET', query: { page: 'montarKit' } }, response);
+    expect(result.statusCode).toBe(200);
+    expect(result.headers.get('X-Robots-Tag')).toBeUndefined();
+    expect(result.body).toContain('<title>Monte seu kit de brindes | Promo Brindes</title>');
+    expect(result.body).toContain('https://promo-brindes-v1.vercel.app/montar-kit');
   });
 
   it('não transforma HTML de autenticação de terceiro em página estática', async () => {
