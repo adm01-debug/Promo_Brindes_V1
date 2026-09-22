@@ -1,6 +1,6 @@
 # Dicionário de dados — site_private (Etapa 35)
 
-Gerado por `npm run db:site:dictionary` a partir de `pg_description` no banco local, na versão do schema da migration mais recente (2026-09-20). Não editar à mão — a fonte de verdade é o comentário na migration (`comment on table`/`comment on column`); rode o script de novo depois de qualquer mudança de schema.
+Gerado por `npm run db:site:dictionary` a partir de `pg_description` no banco local, na versão do schema da migration mais recente (2026-09-22). Não editar à mão — a fonte de verdade é o comentário na migration (`comment on table`/`comment on column`); rode o script de novo depois de qualquer mudança de schema.
 
 ## Tabelas
 
@@ -277,7 +277,7 @@ Transições administrativas válidas por entidade (Etapa 8). Fonte única de ve
 |---|---|---|
 | `apply_site_notification_provider_event` | `p_provider text, p_provider_message_id text, p_event_type text, p_provider_event_id text, p_occurred_at timestamp with time zone, p_bounce_reason text` | Aplica evento de webhook de forma idempotente (Etapa 30 do plano anterior). delivered só grava se delivery_state ainda for null; bounced grava se null OU se o estado atual for delivered — um bounce tardio corrige um delivered otimista (Etapa 20 do plano de correções). complained é independente e idempotente via coalesce. |
 | `claim_my_quote_requests` | `` | Associa solicitações sem titular somente após confirmação do e-mail da identidade autenticada. |
-| `claim_site_notification_deliveries` | `p_channels text[], p_batch_size integer` | Reivindica lote da fila assíncrona; lê limites de site_private.notification_policy() (Etapa 12), grava lease_expires_at explícito (Etapa 10) e expõe o protocolo persistido (Etapa 19). |
+| `claim_site_notification_deliveries` | `p_channels text[], p_batch_size integer` | Reivindica notificações com lease e protocolo persistido; terminaliza jobs esgotados com SKIP LOCKED para não bloquear workers simultâneos. |
 | `claim_site_quote_notification` | `p_request_id uuid, p_channel text` | Reivindicação síncrona imediata (não recupera processing preso). Lê limites de site_private.notification_policy() (Etapa 12) e expõe o protocolo persistido (Etapa 19). |
 | `create_site_contact_request` | `p_payload jsonb, p_request_meta jsonb` | — |
 | `create_site_quote_request` | `p_payload jsonb, p_request_meta jsonb` | — |
