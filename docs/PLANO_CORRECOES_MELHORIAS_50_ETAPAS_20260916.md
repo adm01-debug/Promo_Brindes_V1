@@ -193,12 +193,16 @@ valida nomes.
 deve ser estritamente crescente e sem duplicata de prefixo. Adicionar como primeiro passo do
 job `pg-tap` e ao `npm run check`.
 
-**Checklist de conclusão.**
-- [ ] Script falha com mensagem clara para: sublinhado no timestamp, data inválida,
-      duplicata, arquivo fora do padrão.
-- [ ] Teste `tests/scripts/validate-migration-names.test.ts` cobrindo os quatro casos.
-- [ ] Passo adicionado ao `database.yml` antes de `supabase start`.
-- [ ] `npm run check` inclui o script.
+**Checklist de conclusão.** *(Atualizado em 17/09/2026 — checklist estava desatualizado em
+relação ao código; verificação real em `docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260917.md`,
+Etapa 10.)*
+- [x] Script falha com mensagem clara para: sublinhado no timestamp, data inválida,
+      duplicata, arquivo fora do padrão — `scripts/validate-migration-names.mjs`.
+- [x] Teste cobrindo os quatro casos (arquivo real é
+      `tests/validate-migration-names.node.mjs`, não o caminho originalmente previsto).
+- [x] Passo adicionado ao `database.yml` antes de `supabase start` — é o primeiro passo do
+      job `pg-tap`.
+- [x] `npm run check` inclui o script via `test:migration-names`.
 
 **Rollback/risco.** Nenhum; é verificação estática.
 

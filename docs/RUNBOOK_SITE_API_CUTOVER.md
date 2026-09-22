@@ -31,7 +31,7 @@ Confirme antes de prosseguir (`node -e` com o mesmo código de decodificação, 
 ## 2. Validar o token contra o projeto remoto (leitura, sem efeito)
 
 Antes de trocar qualquer variável de produção, confirme que o gateway aceita o token e
-que ele só alcança o que deveria:
+que ele alcança a RPC permitida:
 
 ```bash
 # Deve retornar 200 com a saúde da fila (site_api tem execute nesta função):
@@ -39,27 +39,32 @@ curl -s -o /dev/null -w "%{http_code}\n" -X POST \
   "https://xlzmclcjdncjfdrjxclt.supabase.co/rest/v1/rpc/site_notification_queue_health" \
   -H "apikey: <o token gerado>" -H "Authorization: Bearer <o token gerado>"
 
-# Deve retornar 401/403 (site_api não tem select em customer_profiles):
-curl -s -o /dev/null -w "%{http_code}\n" \
-  "https://xlzmclcjdncjfdrjxclt.supabase.co/rest/v1/customer_profiles?select=user_id&limit=1" \
-  -H "apikey: <o token gerado>" -H "Authorization: Bearer <o token gerado>"
 ```
 
-Se o primeiro não for 200 ou o segundo não for 401/403, **pare aqui** — não configure
-nada na Vercel ainda. Alguma coisa no grant ou na migration remota está diferente do que
-foi validado localmente.
+Um 404 em `customer_profiles` não prova falta de privilégios: a tabela pode não estar
+no schema exposto pela API. Confira o grant negativo diretamente no catálogo SQL do
+projeto isolado, com acesso administrativo de leitura:
+
+```sql
+select has_function_privilege(
+  'site_api', 'public.get_my_quote_requests(integer,integer,text,text)', 'execute'
+) as deve_ser_false;
+```
+
+Se a RPC permitida não retornar 200 ou o grant negativo for `true`, interrompa o
+cutover e confira a migration. Não use um endpoint inexistente como teste de negação.
 
 ## 3. Configurar na Vercel (ambiente de produção)
 
 1. Adicione `SITE_SUPABASE_SERVICE_JWT` (server-side, **nunca** prefixo `VITE_`) com o
    token gerado no passo 1.
-2. **Não remova `SITE_SUPABASE_SECRET_KEY` ainda** — mantenha as duas variáveis
-   configuradas neste momento.
-3. `api/_lib/siteDatabase.ts` precisa de uma mudança de código para preferir
-   `SITE_SUPABASE_SERVICE_JWT` quando presente, caindo para `SITE_SUPABASE_SECRET_KEY`
-   caso contrário — **isso ainda não foi implementado nesta sessão** (fica registrado
-   aqui como o próximo passo de código antes deste runbook poder ser executado de
-   verdade). Não prossiga para o passo 4 sem essa mudança revisada e mergeada.
+2. Mantenha `SITE_SUPABASE_SECRET_KEY`: `api/retention.ts` ainda precisa dela para
+   excluir objetos privados na Storage API. A role `site_api` não tem acesso ao schema
+   `storage`, por design. O código prefere o JWT novo nas RPCs e usa a chave secret
+   exclusivamente para apagar blobs de propostas. Se houver blobs e a chave faltar,
+   a retenção falha sem apagar os metadados.
+3. Valide separadamente leitura da RPC, operação de Storage no bucket autorizado e
+   negação fora desse escopo antes de classificar o cutover como concluído.
 
 ## 4. Deploy e observação
 
@@ -72,24 +77,21 @@ foi validado localmente.
 3. Envie um orçamento de teste real pelo site e confirme que ele chega, é enfileirado e
    entregue — o ciclo completo, não só a inserção.
 
-## 5. Rotação da `service_role`
+## 5. Rotação da chave secret
 
-Só depois do passo 4 estável por pelo menos 24h:
+O cutover das RPCs **não** encerra o uso da chave secret: a retenção ainda depende da
+Storage API. Portanto, não remova nem rotacione a chave sem configurar e validar uma
+credencial substituta com escopo apropriado para Storage. Depois disso:
 
-1. Remova `SITE_SUPABASE_SECRET_KEY` das variáveis da Vercel.
-2. No dashboard do Supabase, rotacione a `service_role` key (Settings > API). Isso
-   invalida qualquer cópia antiga da chave que possa ter vazado — o objetivo original
-   desta etapa.
-3. Confirme mais um ciclo do cron depois da rotação.
+1. Confirme que propostas antigas ainda são removidas e que as demais RPCs usam o JWT
+   limitado por pelo menos 24 horas de operação observada.
+2. Só após a substituição da credencial de Storage, remova a chave secret da Vercel e
+   coordene sua rotação no painel do Supabase.
+3. Confirme novamente a retenção e um ciclo do cron após a rotação.
 
 ## Rollback
 
-Em qualquer ponto antes do passo 5: reverta a variável da Vercel para
-`SITE_SUPABASE_SECRET_KEY` (ela nunca foi removida) e faça redeploy. A role `site_api`
-e seus grants continuam existindo no banco sem efeito colateral — não precisa reverter a
-migration.
-
-Depois do passo 5 (chave antiga já rotacionada): não há rollback para a chave antiga,
-porque ela não existe mais. Gere uma `service_role` key nova no dashboard e reconfigure
-`SITE_SUPABASE_SECRET_KEY` como estava, ou gere um novo JWT `site_api` (passo 1) se o
-problema for específico do token, não do mecanismo.
+Antes da rotação: remova `SITE_SUPABASE_SERVICE_JWT` e redeploy para voltar às RPCs com
+`SITE_SUPABASE_SECRET_KEY`. A role e seus grants podem permanecer no banco. Depois da
+rotação, use somente uma nova credencial emitida pelo projeto isolado; a antiga não
+volta a funcionar.

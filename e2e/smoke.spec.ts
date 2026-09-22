@@ -497,12 +497,22 @@ test('sair encerra a sessão e o próximo briefing aberto começa limpo', async 
   const user = customerAuthUser({ id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', email: 'saida-mesma-aba@empresa.com' });
   await mockCustomerAccountRoutes(page, user);
   await page.goto('/minha-conta');
+  // Achado de auditoria adversarial (20/09/2026): sem esperar a página assentar
+  // aqui, o efeito de escrita do QuoteCartContext (dispara a cada render em que
+  // `state` muda de referência) corre contra o próprio page.evaluate() abaixo em
+  // WebKit — reproduzido 100% das vezes isolando o cenário (goto → evaluate →
+  // reload, sem nenhum código de signOut envolvido) e 0% das vezes depois de
+  // aguardar `networkidle` antes de semear. Não é bug do CustomerAuthContext nem
+  // do signOut (ambos confirmados corretos em ~140 execuções); é o teste
+  // escrevendo no storage antes do primeiro mount do React assentar.
+  await page.waitForLoadState('networkidle');
   await page.evaluate(({ session, product }) => {
     localStorage.setItem('promo-brindes-customer-session', JSON.stringify(session));
     localStorage.setItem('promo-brindes:quote-selection:v1', JSON.stringify({ items: [{ key: `${product.id}::sem-cor`, productId: product.id, slug: product.slug, name: product.name, sku: product.sku, imageUrl: product.primary_image_url, quantity: 100, minQuantity: 50 }] }));
     sessionStorage.setItem('promo-brindes:quote-draft:v1', JSON.stringify({ contact: { name: 'Pessoa', company: 'Empresa', email: session.user.email, phone: '', city: '', deadline: '', notes: '', privacyAccepted: true, whatsappCopyAccepted: false }, updatedAt: new Date().toISOString() }));
   }, { session: synthenticCustomerSession(user), product });
   await page.reload();
+  await page.waitForLoadState('networkidle');
 
   await page.getByRole('button', { name: 'Sair', exact: true }).click();
   await expect.poll(() => page.evaluate(() => localStorage.getItem('promo-brindes-customer-session'))).toBeNull();

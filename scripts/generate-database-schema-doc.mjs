@@ -1,4 +1,4 @@
-import { writeFileSync } from 'node:fs';
+import { writeFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { runSupabaseDbQuery } from './_lib/supabaseDbQuery.mjs';
@@ -9,6 +9,17 @@ import { runSupabaseDbQuery } from './_lib/supabaseDbQuery.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT_FILE = path.join(ROOT, 'docs', 'DATABASE_SCHEMA.md');
+const MIGRATIONS_DIR = path.join(ROOT, 'site-supabase', 'supabase', 'migrations');
+
+// Mesmo achado e mesma correção do scripts/generate-database-dictionary.mjs (plano de
+// 20260917): `new Date()` fazia o check de drift do CI falhar em qualquer dia diferente
+// do commit anterior, mesmo sem mudança real de schema.
+function latestMigrationDate() {
+  const files = readdirSync(MIGRATIONS_DIR).filter((f) => /^\d{14}_.+\.sql$/.test(f));
+  const latest = files.sort().at(-1);
+  const stamp = latest.slice(0, 8);
+  return `${stamp.slice(0, 4)}-${stamp.slice(4, 6)}-${stamp.slice(6, 8)}`;
+}
 
 function query(sql) {
   return runSupabaseDbQuery(sql, { cwd: ROOT });
@@ -41,7 +52,7 @@ function main() {
   const lines = [
     '# Diagrama entidade-relacionamento — site_private (Etapa 48)',
     '',
-    `Gerado por \`npm run db:site:schema-doc\` a partir de \`pg_constraint\` no banco local em ${new Date().toISOString().slice(0, 10)}. Complementa \`docs/DATABASE_DICTIONARY.md\` (colunas e comentários) com as relações entre tabelas.`,
+    `Gerado por \`npm run db:site:schema-doc\` a partir de \`pg_constraint\` no banco local, na versão do schema da migration mais recente (${latestMigrationDate()}). Complementa \`docs/DATABASE_DICTIONARY.md\` (colunas e comentários) com as relações entre tabelas.`,
     '',
     '```mermaid',
     'erDiagram',

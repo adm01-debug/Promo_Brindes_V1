@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(63);
+select plan(68);
 
 select is(
   (select count(*) from pg_catalog.pg_tables where schemaname = 'site_private'),
@@ -300,6 +300,89 @@ select is(
   1::bigint,
   'proposta de orçamento vigente permanece íntegra'
 );
+
+-- Regressão: notification_provider_events.delivery_id não tinha "on delete cascade"
+-- (migration 20260920100000). finalize_expired_site_data deleta notification_deliveries
+-- diretamente; sem cascade, qualquer delivery com um evento de provedor associado
+-- (o caso comum — delivered/bounced/complained) fazia a função inteira falhar com
+-- violação de FK, abortando a transação e travando o expurgo do lote inteiro.
+--
+-- Cobertura reforçada após auditoria adversarial (múltiplo agente, plano de 20260917):
+-- o teste original só cobria 1 evento 'delivered' numa delivery de quote. Este bloco usa
+-- a RPC real apply_site_notification_provider_event (não INSERT manual) para reproduzir o
+-- caso mais realista de produção: múltiplos eventos (delivered → bounced, a precedência da
+-- Etapa 20) na mesma delivery, com notification_deliveries.delivery_state_source_event_id
+-- apontando de volta para um dos próprios eventos que serão cascade-deletados — a
+-- referência circular real que a função grava sempre que aplica delivered/bounced. Cobre
+-- também request_kind='contact', que não tem delivery auto-criada por trigger.
+insert into site_private.quote_requests (
+  id, client_request_id, request_hash, source, contact_name, company, email, phone,
+  client_submitted_at, request_metadata, retention_until
+) values (
+  '58585858-5858-4585-8585-585858585858', 'expired-quote-with-provider-event-1', repeat('3', 64), 'site-promo-brindes',
+  'Quote com evento de provedor', 'Empresa evento', 'quote-evento@teste.com', '(11) 99999-9999',
+  now() - interval '25 months', '{}'::jsonb, now() - interval '1 minute'
+);
+update site_private.notification_deliveries
+  set provider = 'resend', provider_message_id = 'msg-regressao-cascade-1'
+  where request_id = '58585858-5858-4585-8585-585858585858';
+
+-- delivered, depois bounced (sobrescreve por precedência — Etapa 20) e complained:
+-- 3 eventos de provedor na mesma delivery, e delivery_state_source_event_id termina
+-- apontando para o evento 'bounced' (referência circular real).
+select public.apply_site_notification_provider_event('resend', 'msg-regressao-cascade-1', 'delivered', 'evt-regressao-cascade-1', now() - interval '2 minutes', null);
+select public.apply_site_notification_provider_event('resend', 'msg-regressao-cascade-1', 'bounced', 'evt-regressao-cascade-2', now() - interval '1 minute', 'mailbox cheia');
+select public.apply_site_notification_provider_event('resend', 'msg-regressao-cascade-1', 'complained', 'evt-regressao-cascade-3', now());
+
+select is(
+  (select delivery_state_source_event_id is not null from site_private.notification_deliveries where request_id = '58585858-5858-4585-8585-585858585858'),
+  true,
+  'pré-condição: delivery_state_source_event_id aponta para um dos 3 eventos (referência circular real de produção)'
+);
+select is(
+  (select count(*) from site_private.notification_provider_events where delivery_id = (select id from site_private.notification_deliveries where request_id = '58585858-5858-4585-8585-585858585858')),
+  3::bigint,
+  'pré-condição: 3 eventos de provedor associados à mesma delivery (delivered+bounced+complained)'
+);
+
+insert into site_private.contact_requests (
+  client_request_id, request_hash, source, contact_name, email, phone,
+  client_submitted_at, request_metadata, retention_until
+) values (
+  'expired-contact-with-provider-event-1', repeat('4', 64), 'site-promo-brindes-contact', 'Contato com evento',
+  'contato-evento@teste.com', null, now() - interval '25 months', '{}'::jsonb, now() - interval '1 minute'
+);
+insert into site_private.notification_deliveries (request_kind, request_id, channel, audience, provider, provider_message_id)
+select 'contact', id, 'email', 'commercial_team', 'resend', 'msg-regressao-cascade-contact-1'
+from site_private.contact_requests where client_request_id = 'expired-contact-with-provider-event-1';
+select public.apply_site_notification_provider_event('resend', 'msg-regressao-cascade-contact-1', 'delivered', 'evt-regressao-cascade-contact-1', now());
+
+-- Uma única chamada: a limpeza de contact_requests dentro de finalize_expired_site_data
+-- roda incondicionalmente (não é filtrada por p_quote_ids), então o contato acima já é
+-- processado nesta mesma chamada — uma segunda chamada não encontraria mais nada e
+-- daria falso negativo no contactsDeleted. Resultado guardado numa tabela temporária
+-- para poder checar vários campos do mesmo retorno sem invocar a função de novo.
+create temp table regressao_cascade_resultado as
+  select public.finalize_site_data_retention(array['58585858-5858-4585-8585-585858585858']::uuid[], '{}'::text[], 10) as result;
+
+select is(
+  (select (result ->> 'quotesDeleted')::integer from regressao_cascade_resultado),
+  1,
+  'retenção remove o quote expirado com 3 eventos de provedor e referência circular, sem erro de FK'
+);
+select is(
+  (select (result ->> 'contactsDeleted')::integer from regressao_cascade_resultado),
+  1,
+  'a mesma chamada também remove o contato expirado com evento de provedor associado'
+);
+select is(
+  (select count(*) from site_private.notification_provider_events
+   where provider_event_id in ('evt-regressao-cascade-1', 'evt-regressao-cascade-2', 'evt-regressao-cascade-3', 'evt-regressao-cascade-contact-1')),
+  0::bigint,
+  'os 4 eventos de provedor (quote circular + contact) são removidos em cascata, nenhum órfão'
+);
+
+drop table regressao_cascade_resultado;
 
 insert into site_private.contact_requests (
   client_request_id, request_hash, source, contact_name, email, phone,

@@ -1,5 +1,6 @@
 import { clearQuoteDraft } from './quoteDraft';
 import { clearSubmissionAttempt } from './http';
+import { clearQuoteRepeat } from './quoteRepeat';
 
 const QUOTE_ATTEMPT_STORAGE_KEY = 'promo-brindes:quote-attempt';
 
@@ -20,4 +21,5 @@ const QUOTE_ATTEMPT_STORAGE_KEY = 'promo-brindes:quote-attempt';
 export function clearPersonalQuoteStorage(): void {
   clearQuoteDraft();
   clearSubmissionAttempt(QUOTE_ATTEMPT_STORAGE_KEY);
+  clearQuoteRepeat();
 }
