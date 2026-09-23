@@ -33,6 +33,8 @@ const common = {
   pageUrl: 'https://www.promobrindes.com.br/',
 };
 
+const REQUEST_ID = '99999999-9999-4999-8999-999999999999';
+
 const contactPayload = {
   ...common,
   source: 'site-promo-brindes-contact',
@@ -108,14 +110,14 @@ describe('APIs de leads isoladas', () => {
 
   it('registra contato normalizado pelo RPC server-side', async () => {
     configureSiteDatabase();
-    const fetchMock = vi.fn().mockResolvedValue(new Response('{"requestId":"lead-42","duplicate":false}', { status: 200 }));
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ requestId: REQUEST_ID, duplicate: false }), { status: 200 }));
     vi.stubGlobal('fetch', fetchMock);
     const { result, response } = responseDouble();
 
     await contactHandler(request(contactPayload), response);
 
     expect(result.statusCode).toBe(201);
-    expect(result.body).toEqual({ requestId: 'lead-42', duplicate: false });
+    expect(result.body).toEqual({ requestId: REQUEST_ID, duplicate: false });
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toBe('https://xlzmclcjdncjfdrjxclt.supabase.co/rest/v1/rpc/create_site_contact_request');
     expect(init.headers).toMatchObject({ apikey: expect.stringMatching(/^sb_secret_/) });
@@ -127,14 +129,30 @@ describe('APIs de leads isoladas', () => {
     expect(sent.p_request_meta).not.toHaveProperty('ip');
   });
 
+  it.each([
+    ['protocolo fora do formato UUID', { requestId: 'lead-42', duplicate: false }],
+    ['sinal de duplicidade que não é booleano', { requestId: REQUEST_ID, duplicate: 'false' }],
+    ['envelope que não é objeto', ['requestId', REQUEST_ID]],
+  ])('rejeita resposta malformada do banco: %s', async (_scenario, rpcResult) => {
+    configureSiteDatabase();
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify(rpcResult), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+
+    await contactHandler(request(contactPayload), response);
+
+    expect(result.statusCode).toBe(502);
+    expect(result.body).toMatchObject({ error: 'invalid_database_response' });
+  });
+
   it('persiste orçamento e devolve 200 em repetição idempotente', async () => {
     configureSiteDatabase();
-    vi.stubGlobal('fetch', quoteFetchMock('{"requestId":"quote-42","duplicate":true}'));
+    vi.stubGlobal('fetch', quoteFetchMock(JSON.stringify({ requestId: REQUEST_ID, duplicate: true })));
     const { result, response } = responseDouble();
     await quoteHandler(request(quotePayload, { headers: { 'content-type': 'application/json', origin: 'https://www.promobrindes.com.br', 'idempotency-key': 'quote-request-123' } }), response);
     expect(result.statusCode).toBe(200);
     expect(result.body).toEqual({
-      requestId: 'quote-42', duplicate: true,
+      requestId: REQUEST_ID, duplicate: true,
       confirmations: { email: 'pending', whatsapp: 'pending' },
     });
     const rpcCall = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.find(([url]) => String(url).includes('/create_site_quote_request'));
@@ -177,7 +195,7 @@ describe('APIs de leads isoladas', () => {
         JSON.parse(await catalogResponse().text())[0],
         { id: secondItem.productId, slug: secondItem.slug, name: secondItem.name, sku: secondItem.sku, min_quantity: 50, primary_image_url: secondItem.imageUrl, color_swatches: [] },
       ]), { status: 200 })
-      : new Response('{"requestId":"quote-kit","duplicate":false}', { status: 200 }));
+      : new Response(JSON.stringify({ requestId: REQUEST_ID, duplicate: false }), { status: 200 }));
     vi.stubGlobal('fetch', fetchMock);
     const valid = responseDouble();
     await quoteHandler(request({ ...quotePayload, items: [{ ...quotePayload.items[0], quantity: 100, ...kit }, secondItem] }), valid.response);
@@ -201,7 +219,7 @@ describe('APIs de leads isoladas', () => {
     configureSiteDatabase();
     const fetchMock = vi.fn(async (url: string | URL, _init?: RequestInit) => String(url).includes('/v_site_products_public')
       ? new Response(JSON.stringify([{ ...JSON.parse(await catalogResponse().text())[0], min_quantity: null }]), { status: 200 })
-      : new Response('{"requestId":"quote-minimum-pending","duplicate":false}', { status: 200 }));
+      : new Response(JSON.stringify({ requestId: REQUEST_ID, duplicate: false }), { status: 200 }));
     vi.stubGlobal('fetch', fetchMock);
     const { result, response } = responseDouble();
 
@@ -214,7 +232,7 @@ describe('APIs de leads isoladas', () => {
 
   it('recusa variante que não pertence ao produto publicado', async () => {
     configureSiteDatabase();
-    const fetchMock = quoteFetchMock('{"requestId":"should-not-write","duplicate":false}');
+    const fetchMock = quoteFetchMock(JSON.stringify({ requestId: REQUEST_ID, duplicate: false }));
     vi.stubGlobal('fetch', fetchMock);
     const { result, response } = responseDouble();
     const forgedVariant = {
@@ -261,7 +279,7 @@ describe('APIs de leads isoladas', () => {
     vi.stubEnv('VERCEL_URL', 'promo-brindes-v1-preview-abc-juca1.vercel.app');
     vi.stubEnv('SITE_PREVIEW_SUPABASE_PROJECT_REF', 'unkaeotwziynruktxizp');
     vi.stubEnv('SITE_SUPABASE_URL', 'https://unkaeotwziynruktxizp.supabase.co');
-    const fetchMock = vi.fn().mockResolvedValue(new Response('{"requestId":"lead-preview","duplicate":false}', { status: 200 }));
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ requestId: REQUEST_ID, duplicate: false }), { status: 200 }));
     vi.stubGlobal('fetch', fetchMock);
     const { result, response } = responseDouble();
     await contactHandler(request({ ...contactPayload, pageUrl: 'https://promo-brindes-v1-preview-abc-juca1.vercel.app/contato' }, { headers: { origin: 'https://promo-brindes-v1-preview-abc-juca1.vercel.app', 'content-type': 'application/json' } }), response);
@@ -286,7 +304,7 @@ describe('APIs de leads isoladas', () => {
 
   it('prioriza o IP assinado pela Vercel para o bucket de rate limit', async () => {
     configureSiteDatabase();
-    const fetchMock = quoteFetchMock('{"requestId":"quote-42","duplicate":false}');
+    const fetchMock = quoteFetchMock(JSON.stringify({ requestId: REQUEST_ID, duplicate: false }));
     vi.stubGlobal('fetch', fetchMock);
     const { response } = responseDouble();
     await quoteHandler(request(quotePayload, { headers: {
@@ -344,7 +362,7 @@ describe('APIs de leads isoladas', () => {
 
   it('aceita o instante exatamente no limite retroativo permitido', async () => {
     configureSiteDatabase();
-    const fetchMock = vi.fn().mockResolvedValue(new Response('{"requestId":"lead-boundary","duplicate":false}', { status: 200 }));
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ requestId: REQUEST_ID, duplicate: false }), { status: 200 }));
     vi.stubGlobal('fetch', fetchMock);
     const { result, response } = responseDouble();
     const submittedAt = '2026-09-01T12:00:00.000Z';
@@ -477,7 +495,7 @@ describe('APIs de leads isoladas', () => {
       consent: { ...quotePayload.consent, acceptedAt: now },
       contact: { ...quotePayload.contact, deadline: '2026-09-12' },
     };
-    const fetchMock = quoteFetchMock('{"requestId":"quote-calendar","duplicate":false}');
+    const fetchMock = quoteFetchMock(JSON.stringify({ requestId: REQUEST_ID, duplicate: false }));
     vi.stubGlobal('fetch', fetchMock);
     const result = responseDouble();
 

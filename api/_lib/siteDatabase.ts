@@ -5,6 +5,7 @@ import type { LeadKind, NormalizedLeadPayload } from './contracts.js';
 const SITE_DATABASE_PROJECT = 'xlzmclcjdncjfdrjxclt';
 const INTERNAL_DATABASE_PROJECT = 'doufsxqlfjyuvxuezpln';
 export const REQUEST_TIMEOUT_MS = 10_000;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export class SiteDatabaseError extends Error {
   constructor(message: string, readonly code = 'database_unavailable', readonly status = 503) {
@@ -93,6 +94,32 @@ function requestHash(payload: NormalizedLeadPayload): string {
   return createHash('sha256').update(JSON.stringify(payload)).digest('hex');
 }
 
+function record(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : null;
+}
+
+/**
+ * A resposta das RPCs de criação atravessa uma fronteira de confiança: mesmo
+ * com types gerados, PostgREST entrega JSON. Nunca permita que um formato
+ * inesperado vire protocolo de confirmação, URL de acompanhamento ou chave de
+ * uma entrega posterior.
+ */
+export function parseLeadPersistenceResponse(value: unknown): { requestId: string; duplicate: boolean } {
+  const result = record(value);
+  const requestId = result?.requestId;
+  if (typeof requestId !== 'string' || !UUID_PATTERN.test(requestId) || typeof result?.duplicate !== 'boolean') {
+    throw new SiteDatabaseError('O banco não devolveu um protocolo válido.', 'invalid_database_response', 502);
+  }
+  return { requestId, duplicate: result.duplicate };
+}
+
+function responseErrorDetail(value: unknown): string {
+  const result = record(value);
+  const message = typeof result?.message === 'string' ? result.message.slice(0, 160) : '';
+  const code = typeof result?.code === 'string' ? result.code.slice(0, 80) : '';
+  return `${message} ${code}`;
+}
+
 export async function persistLead(kind: LeadKind, payload: NormalizedLeadPayload, metadata: RequestMetadata) {
   const config = getSiteDatabaseConfig();
   const rpcName = kind === 'quote' ? 'create_site_quote_request' : 'create_site_contact_request';
@@ -130,9 +157,9 @@ export async function persistLead(kind: LeadKind, payload: NormalizedLeadPayload
     clearTimeout(timeout);
   }
 
-  const result = await response.json().catch(() => ({})) as { requestId?: string; duplicate?: boolean; message?: string; code?: string };
+  const result = await response.json().catch(() => null) as unknown;
   if (!response.ok) {
-    const detail = `${result.message || ''} ${result.code || ''}`;
+    const detail = responseErrorDetail(result);
     if (detail.includes('rate_limit_exceeded')) {
       throw new SiteDatabaseError('Muitas tentativas em pouco tempo. Aguarde alguns minutos.', 'rate_limit_exceeded', 429);
     }
@@ -141,8 +168,7 @@ export async function persistLead(kind: LeadKind, payload: NormalizedLeadPayload
     }
     throw new SiteDatabaseError('Não conseguimos registrar sua solicitação agora. Tente novamente.', 'database_unavailable');
   }
-  if (!result.requestId) throw new SiteDatabaseError('O banco não devolveu um protocolo válido.', 'invalid_database_response');
-  return { requestId: result.requestId, duplicate: Boolean(result.duplicate) };
+  return parseLeadPersistenceResponse(result);
 }
 
 export function assertSafeSiteDatabaseConfiguration(): boolean {
