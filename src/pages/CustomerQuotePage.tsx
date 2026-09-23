@@ -133,10 +133,12 @@ function QuoteContent() {
       const products = await fetchProductsByIds(sourceQuote.items.map((item) => item.productId), controller.signal, 50);
       if (controller.signal.aborted || currentContextRef.current !== operationContext) return;
       const reconciledItems = reconcileHistoricalQuoteItems(sourceQuote.items, products);
+      const campaign = normalizeCampaignBrief(sourceQuote.campaign);
+      const briefing = normalizeQuoteBriefing(sourceQuote.briefing);
       cart.replaceItems(reconciledItems);
-      cart.setCampaign(normalizeCampaignBrief(sourceQuote.campaign));
-      cart.setSelectionTitle(sourceQuote.briefing?.actionName);
-      saveQuoteRepeat({ quoteId: sourceQuote.id, campaign: normalizeCampaignBrief(sourceQuote.campaign), briefing: normalizeQuoteBriefing(sourceQuote.briefing) });
+      cart.setCampaign(campaign);
+      cart.setSelectionTitle(briefing?.actionName);
+      saveQuoteRepeat({ quoteId: sourceQuote.id, campaign, briefing });
       trackFunnelEvent('customer_quote_repeated', { item_count: reconciledItems.length });
       void navigate(`/orcamento?repetir=${encodeURIComponent(sourceQuote.id)}`);
     } catch {
@@ -215,13 +217,15 @@ function QuoteContent() {
   if (loading || quoteContextKey !== contextKey) return <div className="customer-state container" role="status">Carregando solicitação…</div>;
   if (error && !quote) return <div className="customer-state container"><span>SOLICITAÇÃO</span><h1>Não foi possível abrir.</h1><p>{error}</p><button className="button button--green" type="button" onClick={() => setRetryKey((current) => current + 1)}>Tentar novamente</button><Link className="button button--dark" to="/minha-conta">Voltar ao histórico</Link></div>;
   if (!quote) return <div className="customer-state container"><span>SOLICITAÇÃO</span><h1>Orçamento não encontrado.</h1><p>Ele pode pertencer a outro acesso ou não estar mais disponível.</p><Link className="button button--dark" to="/minha-conta">Voltar ao histórico</Link></div>;
-  const campaignContext = campaignBriefLabels(normalizeCampaignBrief(quote.campaign));
-  const briefingContext = quoteBriefingSummary(normalizeQuoteBriefing(quote.briefing));
+  const campaign = normalizeCampaignBrief(quote.campaign);
+  const briefing = normalizeQuoteBriefing(quote.briefing);
+  const campaignContext = campaignBriefLabels(campaign);
+  const briefingContext = quoteBriefingSummary(briefing);
   const curationContext = [...campaignContext, ...briefingContext];
 
   return <>
     <Seo title={`Orçamento ${quote.protocol}`} path={`/minha-conta/orcamentos/${quote.id}`} noIndex />
-    <header className="customer-quote-hero"><div className="container"><Link className="back-link" to="/minha-conta"><ArrowLeft size={17} /> Meus orçamentos</Link><div className="customer-quote-hero__meta"><span className={`customer-status customer-status--${customerStatusTone(quote.status)}`}>{customerStatusLabel(quote.status)}</span><span>Protocolo #{quote.protocol}</span></div><h1>{quote.briefing?.actionName || quote.company}</h1>{quote.briefing?.actionName && <p>{quote.company} · enviado em {dateLabel(quote.submittedAt)}</p>}{!quote.briefing?.actionName && <p>Enviado em {dateLabel(quote.submittedAt)}</p>}<button className="button button--green" type="button" onClick={repeatQuote}><RefreshCw size={17} /> Solicitar novamente</button></div></header>
+    <header className="customer-quote-hero"><div className="container"><Link className="back-link" to="/minha-conta"><ArrowLeft size={17} /> Meus orçamentos</Link><div className="customer-quote-hero__meta"><span className={`customer-status customer-status--${customerStatusTone(quote.status)}`}>{customerStatusLabel(quote.status)}</span><span>Protocolo #{quote.protocol}</span></div><h1>{briefing?.actionName || quote.company}</h1>{briefing?.actionName && <p>{quote.company} · enviado em {dateLabel(quote.submittedAt)}</p>}{!briefing?.actionName && <p>Enviado em {dateLabel(quote.submittedAt)}</p>}<button className="button button--green" type="button" onClick={repeatQuote}><RefreshCw size={17} /> Solicitar novamente</button></div></header>
     <div className="container customer-quote-layout">
       <div className="customer-quote-main">
         <section className="customer-detail-section" aria-labelledby="quote-products-title"><div className="customer-detail-section__heading"><span>01</span><div><h2 id="quote-products-title">Seleção enviada</h2><p>Retrato dos produtos e quantidades no momento do briefing.</p></div></div><div className="customer-detail-items">{quote.items.map((item) => <article key={item.key}><img src={item.imageUrl || '/images/product-placeholder.svg'} alt="" width="92" height="92" referrerPolicy="no-referrer" /><div><h3>{item.name}</h3><p>Cód. {item.sku}{item.colorName ? ` · ${item.colorName}` : ''}</p>{quoteDecisionGroupsEnabled && item.decisionGroup && <small className={item.decisionGroup === 'alternative' ? 'customer-item-priority is-alternative' : 'customer-item-priority'}>{item.decisionGroup === 'alternative' ? 'Alternativa para comparar' : 'Referência principal'}</small>}</div><strong>{item.quantity.toLocaleString('pt-BR')} un.</strong></article>)}</div></section>

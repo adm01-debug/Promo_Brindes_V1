@@ -2,7 +2,8 @@ import type { CatalogProduct, QuoteItem } from '../types';
 
 export const MAX_QUOTE_ITEMS = 50;
 const MAX_QUANTITY = 999_999;
-const PRODUCT_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/** UUIDs gerados pelo Postgres, compartilhado com a leitura do portal do cliente. */
+export const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const SLUG_PATTERN = /^[a-z0-9-]{1,200}$/i;
 const VARIANT_ID_PATTERN = /^[a-z0-9][a-z0-9._:-]{0,99}$/i;
 const KIT_GROUP_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -55,7 +56,7 @@ export function normalizeQuoteItems(values: unknown): QuoteItem[] {
     const slug = requiredText(raw.slug, 200);
     const name = requiredText(raw.name, 240);
     const sku = requiredText(raw.sku, 100);
-    if (!productId || !PRODUCT_ID_PATTERN.test(productId) || !slug || !SLUG_PATTERN.test(slug) || !name || !sku) continue;
+    if (!productId || !UUID_PATTERN.test(productId) || !slug || !SLUG_PATTERN.test(slug) || !name || !sku) continue;
 
     const minQuantity = clampQuoteQuantity(Number(raw.minQuantity), 1);
     const quantity = clampQuoteQuantity(Number(raw.quantity), minQuantity);
