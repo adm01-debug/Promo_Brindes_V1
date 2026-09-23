@@ -83,4 +83,16 @@ describe('favoritos de datas comemorativas por titular', () => {
     await waitFor(() => expect(view.container.querySelector('.saved-dates')).not.toHaveTextContent('Dia do Cliente'));
     expect(window.localStorage.getItem(accountKey('conta-b'))).toBe('[]');
   });
+
+  it('restaura a seleção e encerra o desfazer quando a remoção é rejeitada', async () => {
+    mocks.list.mockResolvedValue(['dia-do-cliente']);
+    mocks.save.mockRejectedValue(new Error('falha sintética'));
+
+    const view = render(page());
+    fireEvent.click(await screen.findByRole('button', { name: 'Remover Dia do Cliente em Minhas datas' }));
+
+    await screen.findByText('Não foi possível sincronizar esta alteração. Sua lista foi restaurada.');
+    expect(view.container.querySelector('.saved-dates')).toHaveTextContent('Dia do Cliente');
+    expect(screen.queryByRole('button', { name: 'Desfazer' })).not.toBeInTheDocument();
+  });
 });
