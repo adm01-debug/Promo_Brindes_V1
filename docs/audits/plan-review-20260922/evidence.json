@@ -1,0 +1,126 @@
+{
+  "auditDate": "2026-09-22",
+  "repository": "adm01-debug/Promo_Brindes_V1",
+  "scope": "read-only remote audit; local tests and audit artifacts",
+  "applicationHead": "7466b012380c10ecc62ba1cf72822f8f4ab12174",
+  "productionCommit": "e3bfb4be142752b89c3c12c6d70a256e8e286bc4",
+  "productionDeploymentId": 6501390447,
+  "pullRequest": { "number": 14, "state": "OPEN", "headMatchesLocal": true },
+  "isolatedProject": "xlzmclcjdncjfdrjxclt",
+  "migrationLedger": {
+    "localCount": 43,
+    "appliedCount": 41,
+    "remoteOnlyCount": 0,
+    "dryRunUpToDate": false,
+    "pending": [
+      "20260920100000_cascade_notification_provider_events_on_delivery_delete.sql",
+      "20260920110000_set_null_delivery_state_source_event_on_delete.sql"
+    ]
+  },
+  "remoteDatabase": {
+    "lintFindings": 0,
+    "sitePrivateTables": 16,
+    "rlsEnabledTables": 16,
+    "forceRlsTables": 16,
+    "notificationForeignKeysStillMissingDeleteActions": true,
+    "siteApi": {
+      "bypassRls": true,
+      "statementTimeout": "8s",
+      "lockTimeout": "2s",
+      "idleInTransactionTimeout": "10s",
+      "storageSchemaUsage": false,
+      "storageObjectSelect": false,
+      "storageObjectDelete": false
+    },
+    "queue": {
+      "email": { "eligible": 0, "exhausted": 0 },
+      "whatsapp": { "eligible": 0, "exhausted": 0 }
+    },
+    "backups": {
+      "completedPhysicalBackups": 8,
+      "latest": "2026-09-22T09:16:00.910Z",
+      "walgEnabled": true,
+      "pitrEnabled": false,
+      "restoreDrillExecutedThisAudit": false
+    },
+    "branches": ["main"]
+  },
+  "principalMetadataReadOnly": {
+    "project": "doufsxqlfjyuvxuezpln",
+    "publicRelations": 397,
+    "pgGraphqlVersion": "1.5.11",
+    "systemSettingsPolicyCount": 2,
+    "mcpKvGetAuthenticatedExecute": true,
+    "mcpKvGetSecurityDefiner": true,
+    "literalSecretComparisonDetectedIn": ["mcp_kv_get", "mcp_kv_set", "mcp_kv_try_lock"],
+    "secretValuesReturned": false,
+    "secretStoreContentRead": false
+  },
+  "localValidation": {
+    "check": "pass",
+    "vitest": { "files": 41, "passed": 241 },
+    "nodeContractsInCheck": 33,
+    "chromium": { "passed": 80, "skipped": 4 },
+    "firefoxWebkit": { "passed": 74, "skipped": 10 },
+    "pgtap": { "files": 17, "passed": 349 },
+    "databaseLintFindings": 0,
+    "npmAuditVulnerabilities": 0,
+    "coverageThresholds": "pass",
+    "coverageStatementsPercent": 46.28,
+    "coverageLinesPercent": 50.95,
+    "coverageRunsInDefaultCI": false,
+    "performanceBudget": "pass",
+    "entryKiB": 276.2,
+    "entryBrotliKiB": 75.0,
+    "graphifyToolTestsPassed": 8,
+    "graphifyNodes": 1483,
+    "graphifyEdges": 2916,
+    "graphifyBenchmarkPassed": 9,
+    "graphifyBenchmarkTotal": 10,
+    "graphifyBenchmarkFailure": "GR40-03",
+    "queryPlanExplainAssertions": 1,
+    "queryPlanFixtureAssertions": 2
+  },
+  "localReadOnlySimulations": {
+    "quoteRepeatSurvivesPersonalReset": true,
+    "privateIdentifierInErrorTelemetry": true,
+    "synchronousClaimsOverlap": false,
+    "siteApiQueueHealthSameCredentialHeadersHttp": 200,
+    "siteApiQueueHealthSeparateApiKeyHttp": 200,
+    "siteApiStorageReadHttp": 400,
+    "siteApiStorageReadError": "AccessDenied",
+    "siteApiStorageReadInnerStatus": 403
+  },
+  "ci": {
+    "qualityRun": 35721407804,
+    "databaseRun": 35721407740,
+    "graphifyRun": 35721407774,
+    "dependencyReviewRun": 35721407726,
+    "validate": "pass",
+    "crossBrowser": "pass",
+    "database": "pass",
+    "codeql": "pass",
+    "graphify": "pass",
+    "graphifyHeadSqlFilesIgnoredForMissingParser": 65,
+    "graphifyNodes": 1250,
+    "graphifyEdges": 2749,
+    "graphifyBenchmarkPassed": 10,
+    "dependencyReview": "failure: dependency graph not enabled",
+    "supabasePreview": "skipped",
+    "vercelPreview": "pass"
+  },
+  "productionProjectEnvironmentNamesNotListed": [
+    "RESEND_API_KEY", "SITE_EMAIL_FROM", "RESEND_WEBHOOK_SECRET",
+    "WHATSAPP_ACCESS_TOKEN", "WHATSAPP_PHONE_NUMBER_ID", "WHATSAPP_QUOTE_TEMPLATE",
+    "WHATSAPP_GRAPH_API_VERSION", "WHATSAPP_APP_SECRET", "WHATSAPP_WEBHOOK_VERIFY_TOKEN",
+    "OPERATIONS_ALERT_WEBHOOK_URL", "SITE_SUPABASE_SERVICE_JWT"
+  ],
+  "httpSmoke": { "knownRoutes200": 11, "unknownRoute404": true },
+  "recordedLegacyLedgerNotRecertified": {
+    "total": 230, "I": 100, "P": 109, "N": 10, "E": 11,
+    "missingSourcePaths": 0
+  },
+  "remoteWrites": 0,
+  "customerMessagesSent": 0,
+  "applicationFilesEdited": 0
+}
