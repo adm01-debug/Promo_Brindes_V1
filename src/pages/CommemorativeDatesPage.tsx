@@ -1,5 +1,5 @@
 import { ArrowRight, BellRing, Bookmark, BookmarkCheck, CalendarDays, Check, Clock3, Download, Gift, Grid3X3, HeartHandshake, Lightbulb, List, Search, Share2, Sparkles, Users, X } from 'lucide-react';
-import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { type FormEvent, type SetStateAction, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { normalizeCampaignYear, supportedCampaignYears } from '../../shared/campaignYears';
 import { Seo } from '../components/Seo';
@@ -28,6 +28,7 @@ type ShareState = 'idle' | 'copied' | 'shared' | 'error';
 const FAVORITES_KEY = 'promo-brindes:occasion-favorites:v1';
 const FAVORITES_PROMOTION_KEY = 'promo-brindes:occasion-favorites:account-promoted:';
 const FAVORITES_OWNER_KEY = 'promo-brindes:occasion-favorites:local-owner';
+const FAVORITES_ACCOUNT_CACHE_PREFIX = 'promo-brindes:occasion-favorites:account:';
 const kindLabels: Record<OccasionKind, string> = { relacionamento: 'Relacionamento', cultura: 'Pessoas & cultura', impacto: 'Causas & impacto', sazonal: 'Sazonal' };
 const audienceLabels: Record<OccasionAudience, string> = { clientes: 'Clientes & parceiros', colaboradores: 'Colaboradores', eventos: 'Eventos & comunidades', comunidade: 'Causas & impacto' };
 
@@ -55,13 +56,55 @@ function planningLabel(occasion: DatedOccasion) {
   return `Comece até ${formatDate(start)}`;
 }
 
-function loadFavorites() {
-  if (typeof window === 'undefined') return new Set<string>();
+type FavoriteOwner = 'anonymous' | `account:${string}`;
+
+function favoriteOwner(userId?: string): FavoriteOwner {
+  return userId ? `account:${userId}` : 'anonymous';
+}
+
+function favoriteCacheKey(owner: FavoriteOwner) {
+  return owner === 'anonymous' ? FAVORITES_KEY : `${FAVORITES_ACCOUNT_CACHE_PREFIX}${owner.slice('account:'.length)}`;
+}
+
+function parseFavorites(value: string | null) {
+  if (!value) return new Set<string>();
   try {
-    const value = JSON.parse(window.localStorage.getItem(FAVORITES_KEY) || '[]') as unknown;
-    return new Set(Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []);
+    const parsed = JSON.parse(value) as unknown;
+    return new Set(Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === 'string') : []);
   } catch {
     return new Set<string>();
+  }
+}
+
+/**
+ * O cache legado era único e identificado por uma chave de proprietário. A
+ * leitura faz a migração somente quando aquela chave pertence exatamente à
+ * conta atual; nunca transforma o cache de uma conta em cache de outra.
+ */
+function loadFavorites(owner: FavoriteOwner) {
+  if (typeof window === 'undefined') return new Set<string>();
+  try {
+    const cache = window.localStorage.getItem(favoriteCacheKey(owner));
+    if (cache !== null) return parseFavorites(cache);
+    const legacyOwner = window.localStorage.getItem(FAVORITES_OWNER_KEY);
+    const ownerId = owner === 'anonymous' ? 'anonymous' : owner.slice('account:'.length);
+    if ((owner === 'anonymous' && (!legacyOwner || legacyOwner === 'anonymous')) || legacyOwner === ownerId) {
+      return parseFavorites(window.localStorage.getItem(FAVORITES_KEY));
+    }
+    return new Set<string>();
+  } catch {
+    return new Set<string>();
+  }
+}
+
+function saveFavorites(owner: FavoriteOwner, favorites: Set<string>) {
+  window.localStorage.setItem(favoriteCacheKey(owner), JSON.stringify([...favorites]));
+  // Mantém compatibilidade de uma única vez para visitantes existentes. Contas
+  // passam a usar cache próprio; a marca legada só identifica o último estado
+  // antigo, nunca é usada para promover dados de outra conta.
+  if (owner === 'anonymous') {
+    window.localStorage.setItem(FAVORITES_KEY, JSON.stringify([...favorites]));
+    window.localStorage.setItem(FAVORITES_OWNER_KEY, 'anonymous');
   }
 }
 
@@ -151,8 +194,10 @@ export default function CommemorativeDatesPage() {
   const audience = occasionAudienceOptions.some((option) => option.id === audienceParam && option.id !== 'todos') ? audienceParam as OccasionAudience : null;
   const query = (params.get('q') || '').slice(0, 80);
   const view: CalendarView = params.get('visualizacao') === 'calendario' ? 'calendar' : 'list';
+  const initialFavoriteOwner = favoriteOwner(auth.user?.id);
   const [search, setSearch] = useState(query);
-  const [favorites, setFavorites] = useState(loadFavorites);
+  const [favoriteOwnerState, setFavoriteOwnerState] = useState<FavoriteOwner>(initialFavoriteOwner);
+  const [favorites, setFavorites] = useState(() => loadFavorites(initialFavoriteOwner));
   const [lastRemovedFavorite, setLastRemovedFavorite] = useState<DatedOccasion | null>(null);
   const [shareState, setShareState] = useState<ShareState>('idle');
   const [storageMessage, setStorageMessage] = useState('');
@@ -161,6 +206,8 @@ export default function CommemorativeDatesPage() {
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const favoriteSyncEpochRef = useRef(0);
   const favoriteMutationEpochRef = useRef(new Map<string, number>());
+  const favoriteOwnerRef = useRef<FavoriteOwner>(initialFavoriteOwner);
+  const favoritesRef = useRef(favorites);
 
   const allOccasions = useMemo(() => occasionsForYear(year), [year]);
   const results = useMemo(() => filterOccasions(allOccasions, { month, audience, query }), [allOccasions, audience, month, query]);
@@ -180,57 +227,87 @@ export default function CommemorativeDatesPage() {
     return monthNames.map((_, index) => filtered.filter((occasion) => occasion.date.getUTCMonth() === index).length);
   }, [allOccasions, audience, query]);
 
+  function replaceFavorites(update: SetStateAction<Set<string>>) {
+    setFavorites((current) => {
+      const next = typeof update === 'function' ? update(current) : update;
+      favoritesRef.current = next;
+      return next;
+    });
+  }
+
   useEffect(() => setSearch(query), [query]);
   useEffect(() => {
     try {
-      window.localStorage.setItem(FAVORITES_KEY, JSON.stringify([...favorites]));
-      if (auth.user?.id) window.localStorage.setItem(FAVORITES_OWNER_KEY, auth.user.id);
+      if (favoriteOwnerRef.current !== favoriteOwnerState) return;
+      saveFavorites(favoriteOwnerState, favorites);
     } catch {
       setStorageMessage('Seu navegador não permitiu salvar esta seleção neste dispositivo.');
     }
-  }, [auth.user?.id, favorites]);
+  }, [favoriteOwnerState, favorites]);
 
   useEffect(() => {
     const userId = auth.user?.id;
     const syncEpoch = ++favoriteSyncEpochRef.current;
     if (auth.loading) return;
+    const owner = favoriteOwner(userId);
+    const knownIds = new Set(occasionIds.split(',').filter(Boolean));
+    // Capturamos a lista anônima antes de trocar o dono de estado. Isso evita
+    // que o efeito de persistência a reatribua à conta e depois a descarte.
+    const anonymousFavorites = userId
+      ? new Set([...loadFavorites('anonymous')].filter((id) => knownIds.has(id)))
+      : new Set<string>();
+    favoriteOwnerRef.current = owner;
+    favoriteMutationEpochRef.current.clear();
+    setFavoriteOwnerState(owner);
+    setLastRemovedFavorite(null);
+    const cachedFavorites = new Set([...loadFavorites(owner)].filter((id) => knownIds.has(id)));
+    favoritesRef.current = cachedFavorites;
+    setFavorites(cachedFavorites);
+
     if (!userId) {
-      // Não mostrar nem promover o shortlist de outra conta no mesmo navegador.
-      const owner = window.localStorage.getItem(FAVORITES_OWNER_KEY);
-      setFavorites(!owner || owner === 'anonymous' ? loadFavorites() : new Set());
       return;
     }
 
     let active = true;
-    const knownIds = new Set(occasionIds.split(',').filter(Boolean));
     void listMyOccasionFavorites()
       .then(async (remote) => {
-        if (!active || favoriteSyncEpochRef.current !== syncEpoch) return;
+        if (!active || favoriteSyncEpochRef.current !== syncEpoch || favoriteOwnerRef.current !== owner) return;
         const remoteFavorites = new Set(remote.filter((id) => knownIds.has(id)));
         let merged = remoteFavorites;
         try {
-          const localOwner = window.localStorage.getItem(FAVORITES_OWNER_KEY);
           const shouldPromoteLocal = !window.localStorage.getItem(promotionKey(userId))
-            && (!localOwner || localOwner === 'anonymous');
+            && anonymousFavorites.size > 0;
           if (shouldPromoteLocal) {
-            const localOnly = [...loadFavorites()].filter((id) => knownIds.has(id) && !remoteFavorites.has(id));
+            const localOnly = [...anonymousFavorites].filter((id) => !remoteFavorites.has(id));
             if (localOnly.length) await Promise.all(localOnly.map((id) => setMyOccasionFavorite(id, true)));
-            if (!active || favoriteSyncEpochRef.current !== syncEpoch) return;
+            if (!active || favoriteSyncEpochRef.current !== syncEpoch || favoriteOwnerRef.current !== owner) return;
             merged = new Set([...remoteFavorites, ...localOnly]);
             window.localStorage.setItem(promotionKey(userId), '1');
           }
-          window.localStorage.setItem(FAVORITES_OWNER_KEY, userId);
         } catch {
-          // A lista local continua utilizável; não a substituímos por uma leitura parcial.
-          if (active && favoriteSyncEpochRef.current === syncEpoch) {
-            setStorageMessage('Não foi possível sincronizar suas datas agora. Elas continuam salvas neste dispositivo.');
+          if (active && favoriteSyncEpochRef.current === syncEpoch && favoriteOwnerRef.current === owner) {
+            // A fonte remota continua segura para esta conta. Não marcamos a
+            // promoção como concluída: uma tentativa posterior pode completá-la.
+            favoritesRef.current = remoteFavorites;
+            setFavorites(remoteFavorites);
+            setStorageMessage('Não foi possível sincronizar todas as suas datas agora. Tente novamente mais tarde.');
           }
           return;
         }
-        if (active && favoriteSyncEpochRef.current === syncEpoch) setFavorites(merged);
+        if (active && favoriteSyncEpochRef.current === syncEpoch && favoriteOwnerRef.current === owner) {
+          // Uma alteração manual durante a leitura não pode ser apagada pelo
+          // snapshot remoto antigo; ela será confirmada pela sua própria RPC.
+          const current = favoritesRef.current;
+          const currentMutation = [...favoriteMutationEpochRef.current.keys()].some((key) => key.startsWith(`${owner}:`));
+          const next = currentMutation ? new Set([...merged, ...current]) : merged;
+          favoritesRef.current = next;
+          setFavorites(next);
+        }
       })
       .catch(() => {
-        if (active && favoriteSyncEpochRef.current === syncEpoch) {
+        if (active && favoriteSyncEpochRef.current === syncEpoch && favoriteOwnerRef.current === owner) {
+          // O cache já foi filtrado pelo dono antes de chegar à tela. Nunca
+          // usamos o cache da conta anterior como fallback para esta conta.
           setStorageMessage('Não foi possível carregar suas datas salvas agora. Tente novamente mais tarde.');
         }
       });
@@ -300,8 +377,16 @@ export default function CommemorativeDatesPage() {
 
   function setFavorite(occasion: DatedOccasion, nextSaved: boolean, allowUndo = true) {
     setStorageMessage('');
-    const previouslySaved = favorites.has(occasion.id);
-    setFavorites((current) => {
+    const owner = favoriteOwner(auth.user?.id);
+    // Durante uma transição de sessão, o efeito de sincronização ainda pode
+    // não ter instalado o cache do próximo titular. Ignorar o clique é mais
+    // seguro do que registrar a intenção no dono anterior.
+    if (auth.loading || favoriteOwnerRef.current !== owner) {
+      setStorageMessage('Estamos atualizando suas datas salvas. Tente novamente em instantes.');
+      return;
+    }
+    const previouslySaved = favoritesRef.current.has(occasion.id);
+    replaceFavorites((current) => {
       const nextFavorites = new Set(current);
       nextSaved ? nextFavorites.add(occasion.id) : nextFavorites.delete(occasion.id);
       return nextFavorites;
@@ -309,24 +394,29 @@ export default function CommemorativeDatesPage() {
     setLastRemovedFavorite(!nextSaved && allowUndo ? occasion : null);
     trackFunnelEvent('occasion_saved', { occasion_id: occasion.id, saved: nextSaved });
 
-    if (!auth.user) {
-      try { window.localStorage.setItem(FAVORITES_OWNER_KEY, 'anonymous'); } catch { /* o fallback local já reporta a falha */ }
-      return;
-    }
-    const mutationEpoch = (favoriteMutationEpochRef.current.get(occasion.id) || 0) + 1;
-    favoriteMutationEpochRef.current.set(occasion.id, mutationEpoch);
-    void setMyOccasionFavorite(occasion.id, nextSaved).catch((error: unknown) => {
-      if (favoriteMutationEpochRef.current.get(occasion.id) !== mutationEpoch) return;
-      setFavorites((current) => {
+    if (!auth.user) return;
+    const mutationKey = `${owner}:${occasion.id}`;
+    const mutationEpoch = (favoriteMutationEpochRef.current.get(mutationKey) || 0) + 1;
+    const syncEpoch = favoriteSyncEpochRef.current;
+    favoriteMutationEpochRef.current.set(mutationKey, mutationEpoch);
+    void setMyOccasionFavorite(occasion.id, nextSaved)
+      .catch((error: unknown) => {
+        if (favoriteSyncEpochRef.current !== syncEpoch || favoriteOwnerRef.current !== owner || favoriteMutationEpochRef.current.get(mutationKey) !== mutationEpoch) return;
+        replaceFavorites((current) => {
         const restored = new Set(current);
         previouslySaved ? restored.add(occasion.id) : restored.delete(occasion.id);
         return restored;
+        });
+        setLastRemovedFavorite(null);
+        setStorageMessage(error instanceof Error && error.message === 'occasion_favorite_limit_reached'
+          ? 'Você já salvou o máximo de 100 datas na sua conta. Remova uma para adicionar outra.'
+          : 'Não foi possível sincronizar esta alteração. Sua lista foi restaurada.');
+      })
+      .finally(() => {
+        if (favoriteSyncEpochRef.current === syncEpoch && favoriteOwnerRef.current === owner && favoriteMutationEpochRef.current.get(mutationKey) === mutationEpoch) {
+          favoriteMutationEpochRef.current.delete(mutationKey);
+        }
       });
-      setLastRemovedFavorite(null);
-      setStorageMessage(error instanceof Error && error.message === 'occasion_favorite_limit_reached'
-        ? 'Você já salvou o máximo de 100 datas na sua conta. Remova uma para adicionar outra.'
-        : 'Não foi possível sincronizar esta alteração. Sua lista foi restaurada.');
-    });
   }
 
   function toggleFavorite(occasion: DatedOccasion) {

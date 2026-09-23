@@ -47,4 +47,15 @@ describe('catalog ranking', () => {
     ], anchor);
     expect(ranked.map((item) => item.id)).toEqual(['c', 'b']);
   });
+
+  it('mantém diversidade de material depois de priorizar afinidade dos relacionados', () => {
+    const anchor = product('anchor', { name: 'Base', mainCategoryId: 'categoria', materials: ['Outro'] });
+    const ranked = rankRelatedProducts([
+      product('a', { name: 'A', mainCategoryId: 'categoria', materials: ['Aço'] }),
+      product('b', { name: 'B', mainCategoryId: 'categoria', materials: ['Aço'] }),
+      product('c', { name: 'C', mainCategoryId: 'categoria', materials: ['Aço'] }),
+      product('d', { name: 'D', mainCategoryId: 'categoria', materials: ['Bambu'] }),
+    ], anchor);
+    expect(ranked.slice(0, 3).map((item) => item.materials[0])).toContain('Bambu');
+  });
 });
