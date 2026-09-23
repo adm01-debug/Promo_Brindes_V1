@@ -129,6 +129,15 @@ test('headline principal usa Fold Text sem perder acessibilidade', async ({ page
   expect(glitchAnimation).toBe('none');
 });
 
+test('categorias usam fotografia de produto publicado como ponto de descoberta', async ({ page }) => {
+  await page.goto('/');
+  const category = page.locator('.category-card--photo').first();
+  await expect(category).toBeVisible();
+  await expect(category.locator('img.category-card__photo')).toHaveAttribute('src', product.primary_image_url);
+  await expect(category.getByText('Ver produtos')).toBeVisible();
+  await expect(category).toHaveAttribute('href', new RegExp(`/catalogo\\?categoria=${rootCategoryId}`));
+});
+
 test('rotas públicas essenciais não introduzem violações automáticas de acessibilidade', async ({ page }) => {
   const routes = [
     ['/', 'Sua campanha merece um brinde que ninguém esquece.'],

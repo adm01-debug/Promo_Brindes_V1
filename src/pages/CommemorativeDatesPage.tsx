@@ -3,8 +3,10 @@ import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { normalizeCampaignYear, supportedCampaignYears } from '../../shared/campaignYears';
 import { Seo } from '../components/Seo';
+import { useCustomerAuth } from '../context/customerAuth';
 import { trackFunnelEvent } from '../lib/analytics';
 import { occasionCatalogUrl } from '../lib/campaignBrief';
+import { listMyOccasionFavorites, setMyOccasionFavorite } from '../lib/customerOccasionFavorites';
 import {
   filterOccasions,
   monthNames,
@@ -24,6 +26,8 @@ type CalendarView = 'list' | 'calendar';
 type ShareState = 'idle' | 'copied' | 'shared' | 'error';
 
 const FAVORITES_KEY = 'promo-brindes:occasion-favorites:v1';
+const FAVORITES_PROMOTION_KEY = 'promo-brindes:occasion-favorites:account-promoted:';
+const FAVORITES_OWNER_KEY = 'promo-brindes:occasion-favorites:local-owner';
 const kindLabels: Record<OccasionKind, string> = { relacionamento: 'Relacionamento', cultura: 'Pessoas & cultura', impacto: 'Causas & impacto', sazonal: 'Sazonal' };
 const audienceLabels: Record<OccasionAudience, string> = { clientes: 'Clientes & parceiros', colaboradores: 'Colaboradores', eventos: 'Eventos & comunidades', comunidade: 'Causas & impacto' };
 
@@ -59,6 +63,10 @@ function loadFavorites() {
   } catch {
     return new Set<string>();
   }
+}
+
+function promotionKey(userId: string) {
+  return `${FAVORITES_PROMOTION_KEY}${userId}`;
 }
 
 function downloadCalendar(occasion: DatedOccasion, planning: boolean) {
@@ -125,6 +133,7 @@ function OccasionCard({ occasion, favorite, onFavorite, onOpen }: { occasion: Da
 }
 
 export default function CommemorativeDatesPage() {
+  const auth = useCustomerAuth();
   const now = new Date();
   // Chave estável de granularidade diária: prioritizeUpcomingOccasions e
   // nextOccasion truncam `now` para o dia internamente, então esta chave capta
@@ -150,6 +159,8 @@ export default function CommemorativeDatesPage() {
   const closeRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
+  const favoriteSyncEpochRef = useRef(0);
+  const favoriteMutationEpochRef = useRef(new Map<string, number>());
 
   const allOccasions = useMemo(() => occasionsForYear(year), [year]);
   const results = useMemo(() => filterOccasions(allOccasions, { month, audience, query }), [allOccasions, audience, month, query]);
@@ -163,6 +174,7 @@ export default function CommemorativeDatesPage() {
   const next = useMemo(() => nextOccasion(now), [today]);
   const selected = allOccasions.find((occasion) => occasion.id === params.get('data')) || null;
   const favoriteOccasions = allOccasions.filter((occasion) => favorites.has(occasion.id));
+  const occasionIds = useMemo(() => allOccasions.map((occasion) => occasion.id).join(','), [allOccasions]);
   const monthCounts = useMemo(() => {
     const filtered = filterOccasions(allOccasions, { month: null, audience, query });
     return monthNames.map((_, index) => filtered.filter((occasion) => occasion.date.getUTCMonth() === index).length);
@@ -172,10 +184,58 @@ export default function CommemorativeDatesPage() {
   useEffect(() => {
     try {
       window.localStorage.setItem(FAVORITES_KEY, JSON.stringify([...favorites]));
+      if (auth.user?.id) window.localStorage.setItem(FAVORITES_OWNER_KEY, auth.user.id);
     } catch {
       setStorageMessage('Seu navegador não permitiu salvar esta seleção neste dispositivo.');
     }
-  }, [favorites]);
+  }, [auth.user?.id, favorites]);
+
+  useEffect(() => {
+    const userId = auth.user?.id;
+    const syncEpoch = ++favoriteSyncEpochRef.current;
+    if (auth.loading) return;
+    if (!userId) {
+      // Não mostrar nem promover o shortlist de outra conta no mesmo navegador.
+      const owner = window.localStorage.getItem(FAVORITES_OWNER_KEY);
+      setFavorites(!owner || owner === 'anonymous' ? loadFavorites() : new Set());
+      return;
+    }
+
+    let active = true;
+    const knownIds = new Set(occasionIds.split(',').filter(Boolean));
+    void listMyOccasionFavorites()
+      .then(async (remote) => {
+        if (!active || favoriteSyncEpochRef.current !== syncEpoch) return;
+        const remoteFavorites = new Set(remote.filter((id) => knownIds.has(id)));
+        let merged = remoteFavorites;
+        try {
+          const localOwner = window.localStorage.getItem(FAVORITES_OWNER_KEY);
+          const shouldPromoteLocal = !window.localStorage.getItem(promotionKey(userId))
+            && (!localOwner || localOwner === 'anonymous');
+          if (shouldPromoteLocal) {
+            const localOnly = [...loadFavorites()].filter((id) => knownIds.has(id) && !remoteFavorites.has(id));
+            if (localOnly.length) await Promise.all(localOnly.map((id) => setMyOccasionFavorite(id, true)));
+            if (!active || favoriteSyncEpochRef.current !== syncEpoch) return;
+            merged = new Set([...remoteFavorites, ...localOnly]);
+            window.localStorage.setItem(promotionKey(userId), '1');
+          }
+          window.localStorage.setItem(FAVORITES_OWNER_KEY, userId);
+        } catch {
+          // A lista local continua utilizável; não a substituímos por uma leitura parcial.
+          if (active && favoriteSyncEpochRef.current === syncEpoch) {
+            setStorageMessage('Não foi possível sincronizar suas datas agora. Elas continuam salvas neste dispositivo.');
+          }
+          return;
+        }
+        if (active && favoriteSyncEpochRef.current === syncEpoch) setFavorites(merged);
+      })
+      .catch(() => {
+        if (active && favoriteSyncEpochRef.current === syncEpoch) {
+          setStorageMessage('Não foi possível carregar suas datas salvas agora. Tente novamente mais tarde.');
+        }
+      });
+    return () => { active = false; };
+  }, [auth.loading, auth.user?.id, occasionIds]);
 
   useEffect(() => {
     if (!lastRemovedFavorite) return;
@@ -238,22 +298,44 @@ export default function CommemorativeDatesPage() {
     updateParams({ data: null });
   }
 
-  function toggleFavorite(occasion: DatedOccasion) {
+  function setFavorite(occasion: DatedOccasion, nextSaved: boolean, allowUndo = true) {
     setStorageMessage('');
-    const saved = favorites.has(occasion.id);
+    const previouslySaved = favorites.has(occasion.id);
     setFavorites((current) => {
       const nextFavorites = new Set(current);
-      saved ? nextFavorites.delete(occasion.id) : nextFavorites.add(occasion.id);
+      nextSaved ? nextFavorites.add(occasion.id) : nextFavorites.delete(occasion.id);
       return nextFavorites;
     });
-    setLastRemovedFavorite(saved ? occasion : null);
-    trackFunnelEvent('occasion_saved', { occasion_id: occasion.id, saved: !saved });
+    setLastRemovedFavorite(!nextSaved && allowUndo ? occasion : null);
+    trackFunnelEvent('occasion_saved', { occasion_id: occasion.id, saved: nextSaved });
+
+    if (!auth.user) {
+      try { window.localStorage.setItem(FAVORITES_OWNER_KEY, 'anonymous'); } catch { /* o fallback local já reporta a falha */ }
+      return;
+    }
+    const mutationEpoch = (favoriteMutationEpochRef.current.get(occasion.id) || 0) + 1;
+    favoriteMutationEpochRef.current.set(occasion.id, mutationEpoch);
+    void setMyOccasionFavorite(occasion.id, nextSaved).catch((error: unknown) => {
+      if (favoriteMutationEpochRef.current.get(occasion.id) !== mutationEpoch) return;
+      setFavorites((current) => {
+        const restored = new Set(current);
+        previouslySaved ? restored.add(occasion.id) : restored.delete(occasion.id);
+        return restored;
+      });
+      setLastRemovedFavorite(null);
+      setStorageMessage(error instanceof Error && error.message === 'occasion_favorite_limit_reached'
+        ? 'Você já salvou o máximo de 100 datas na sua conta. Remova uma para adicionar outra.'
+        : 'Não foi possível sincronizar esta alteração. Sua lista foi restaurada.');
+    });
+  }
+
+  function toggleFavorite(occasion: DatedOccasion) {
+    setFavorite(occasion, !favorites.has(occasion.id));
   }
 
   function restoreLastFavorite() {
     if (!lastRemovedFavorite) return;
-    setFavorites((current) => new Set([...current, lastRemovedFavorite.id]));
-    trackFunnelEvent('occasion_saved', { occasion_id: lastRemovedFavorite.id, saved: true });
+    setFavorite(lastRemovedFavorite, true, false);
     setLastRemovedFavorite(null);
   }
 
@@ -342,7 +424,7 @@ export default function CommemorativeDatesPage() {
 
       <section className="saved-dates section" aria-labelledby="saved-dates-title">
         <div className="container saved-dates__grid">
-          <div><span className="section-kicker">Seu shortlist</span><h2 id="saved-dates-title">Minhas datas</h2><p>Guarde oportunidades para revisar com seu time. Elas ficam salvas neste dispositivo.</p></div>
+          <div><span className="section-kicker">Seu shortlist</span><h2 id="saved-dates-title">Minhas datas</h2><p>{auth.user ? 'Guarde oportunidades para revisar com seu time. Elas acompanham sua conta.' : <>Guarde oportunidades para revisar com seu time. Elas ficam salvas neste dispositivo. <Link to="/entrar">Entre para sincronizar.</Link></>}</p></div>
           <div className="saved-dates__content">
             {storageMessage && <p className="saved-dates__error" role="alert">{storageMessage}</p>}
             {lastRemovedFavorite && <div className="saved-dates__undo" role="status"><span>{lastRemovedFavorite.name} removida.</span><button type="button" onClick={restoreLastFavorite}>Desfazer</button><button type="button" aria-label="Fechar aviso" onClick={() => setLastRemovedFavorite(null)}><X size={15} /></button></div>}
