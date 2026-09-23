@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(18);
+select plan(19);
 
 select has_table('site_private', 'customer_occasion_favorites', 'favoritos de datas existem no schema privado');
 select ok((select c.relrowsecurity and c.relforcerowsecurity from pg_catalog.pg_class c
@@ -38,6 +38,13 @@ select is((public.set_my_occasion_favorite('natal', false) ->> 'saved')::boolean
 set local request.jwt.claims = '{"sub":"abababab-abab-4bab-8bab-abababababab","role":"authenticated"}';
 select is((public.set_my_occasion_favorite('dia-do-cliente', false) ->> 'saved')::boolean, false, 'titular remove sua data');
 select is(jsonb_array_length(public.list_my_occasion_favorites() -> 'items'), 0, 'data removida some da lista');
+insert into site_private.customer_occasion_favorites (customer_user_id, occasion_id)
+select 'abababab-abab-4bab-8bab-abababababab'::uuid, 'teste-' || series::text
+from generate_series(1, 100) as series;
+select throws_ok(
+  $$ select public.set_my_occasion_favorite('natal', true) $$,
+  'P0001', 'occasion_favorite_limit_reached', 'limite de cem favoritos é aplicado no banco');
+delete from site_private.customer_occasion_favorites where customer_user_id = 'abababab-abab-4bab-8bab-abababababab';
 select public.set_my_occasion_favorite('natal', true);
 insert into site_private.customer_profiles (user_id, verified_email)
 values ('abababab-abab-4bab-8bab-abababababab', 'datas-ana@example.test');
