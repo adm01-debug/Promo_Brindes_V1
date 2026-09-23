@@ -349,8 +349,8 @@ Fila mínima de objetos privados para remoção pela Storage API; não contém c
 | `attach_my_briefing_assets_to_quote` | `p_request_id uuid, p_asset_ids uuid[]` | — |
 | `can_delete_my_unverified_briefing_asset_path` | `p_path text` | Permite limpeza direta somente antes da verificação; depois dela a exclusão ocorre pela fila server-side. |
 | `claim_my_quote_requests` | `` | Associa solicitações sem titular somente após confirmação do e-mail da identidade autenticada. |
-| `claim_site_notification_deliveries` | `p_channels text[], p_batch_size integer` | Reivindica notificações com lease e protocolo persistido; terminaliza jobs esgotados com SKIP LOCKED para não bloquear workers simultâneos. |
-| `claim_site_quote_notification` | `p_request_id uuid, p_channel text` | Reivindicação síncrona imediata (não recupera processing preso). Lê limites de site_private.notification_policy() (Etapa 12) e expõe o protocolo persistido (Etapa 19). |
+| `claim_site_notification_deliveries` | `p_channels text[], p_batch_size integer` | Reivindica notificações com lease e devolve o contrato estruturado da confirmação, sem notas livres ou dados privados desnecessários ao e-mail. |
+| `claim_site_quote_notification` | `p_request_id uuid, p_channel text` | Reivindicação imediata com o mesmo contrato estruturado da fila; não recupera jobs processing presos. |
 | `confirm_site_briefing_asset_verification` | `p_id uuid, p_storage_path text, p_mime_type text, p_size_bytes integer` | — |
 | `create_my_briefing_asset` | `p_original_name text, p_mime_type text, p_size_bytes integer, p_kind text` | — |
 | `create_site_contact_request` | `p_payload jsonb, p_request_meta jsonb` | — |
