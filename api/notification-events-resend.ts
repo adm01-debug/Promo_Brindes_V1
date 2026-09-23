@@ -11,7 +11,7 @@
 // diretório.
 
 import { verifySvixSignature } from './_lib/webhookSignature.js';
-import { callSiteRpc } from './_lib/siteDatabase.js';
+import { callSiteRpc, parseProviderEventApplyResponse } from './_lib/siteDatabase.js';
 
 export const REQUEST_TIMEOUT_MS = 10_000;
 export const MAX_WEBHOOK_BODY_BYTES = 256 * 1024;
@@ -31,12 +31,6 @@ interface ResendWebhookPayload {
     email_id?: string;
     bounce?: { type?: string };
   };
-}
-
-interface ApplyEventResult {
-  applied: boolean;
-  deliveryId: string | null;
-  reason: string | null;
 }
 
 function json(status: number, body: unknown): Response {
@@ -88,7 +82,7 @@ export default {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
-      const result = await callSiteRpc<ApplyEventResult>('apply_site_notification_provider_event', {
+      const rawResult = await callSiteRpc<unknown>('apply_site_notification_provider_event', {
         p_provider: 'resend',
         p_provider_message_id: emailId,
         p_event_type: eventType,
@@ -96,6 +90,7 @@ export default {
         p_occurred_at: occurredAt,
         p_bounce_reason: eventType === 'bounced' ? ((payload.data?.bounce?.type || '').slice(0, 200) || null) : null,
       }, controller.signal);
+      const result = parseProviderEventApplyResponse(rawResult);
       console.info('site_notification_event_applied', { provider: 'resend', eventType, applied: result.applied, reason: result.reason });
       return json(200, { ok: true, applied: result.applied });
     } catch (error) {

@@ -4,6 +4,7 @@ import handler from '../../api/notification-events-whatsapp.js';
 
 const APP_SECRET = 'whatsapp-webhook-test-app-secret';
 const VERIFY_TOKEN = 'verify-token-de-testes-0001';
+const DELIVERY_ID = 'a2d52926-96ef-4d72-a5e6-da3d8daed7b4';
 
 function configureEnv() {
   vi.stubEnv('SITE_SUPABASE_URL', 'https://xlzmclcjdncjfdrjxclt.supabase.co');
@@ -89,7 +90,7 @@ describe('api/notification-events-whatsapp (Etapa 30)', () => {
       const fetchMock = vi.fn(async (_url: string | URL, init?: RequestInit) => {
         const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
         calls.push(body);
-        return new Response(JSON.stringify({ applied: true, deliveryId: 'd1', reason: null }), { status: 200 });
+        return new Response(JSON.stringify({ applied: true, deliveryId: DELIVERY_ID, reason: null }), { status: 200 });
       });
       vi.stubGlobal('fetch', fetchMock);
 
@@ -118,7 +119,7 @@ describe('api/notification-events-whatsapp (Etapa 30)', () => {
         if (body.p_provider_message_id === 'wamid.fails') {
           return new Response('{}', { status: 500 });
         }
-        return new Response(JSON.stringify({ applied: true, deliveryId: 'd1', reason: null }), { status: 200 });
+        return new Response(JSON.stringify({ applied: true, deliveryId: DELIVERY_ID, reason: null }), { status: 200 });
       });
       vi.stubGlobal('fetch', fetchMock);
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -132,6 +133,18 @@ describe('api/notification-events-whatsapp (Etapa 30)', () => {
       expect(await response.json()).toEqual({ error: 'apply_failed' });
       expect(consoleErrorSpy).toHaveBeenCalledWith('site_notification_event_failed', expect.objectContaining({ provider: 'meta-whatsapp-cloud' }));
       expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('solicita reentrega quando a RPC retorna um protocolo 200 malformado', async () => {
+      configureEnv();
+      vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ applied: true, deliveryId: null, reason: null }), { status: 200 })));
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const response = await handler.fetch(signedPostRequest(statusPayload([
+        { id: 'wamid.bad-contract', status: 'delivered', timestamp: '1700000000' },
+      ])));
+      expect(response.status).toBe(500);
+      expect(await response.json()).toEqual({ error: 'apply_failed' });
+      expect(consoleErrorSpy).toHaveBeenCalledWith('site_notification_event_failed', expect.objectContaining({ provider: 'meta-whatsapp-cloud' }));
     });
 
     it('rejeita JSON inválido depois de validar a assinatura', async () => {
