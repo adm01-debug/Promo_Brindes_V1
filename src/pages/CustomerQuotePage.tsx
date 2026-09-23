@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { CustomerRoute } from '../components/CustomerRoute';
 import { Seo } from '../components/Seo';
 import { useQuoteCart } from '../context/quoteCart';
+import { useCustomerAuth } from '../context/customerAuth';
 import { customerStatusLabel, customerStatusTone, fetchMyQuoteRequest, isProposalExpired, requestMyQuoteAdjustment, type CustomerProposal, type CustomerQuoteDetail } from '../lib/customerAccount';
 import { siteSupabase } from '../lib/siteSupabase';
 import { trackFunnelEvent } from '../lib/analytics';
@@ -23,7 +24,10 @@ function QuoteContent() {
   const { id = '' } = useParams();
   const navigate = useNavigate();
   const cart = useQuoteCart();
+  const auth = useCustomerAuth();
+  const contextKey = `${auth.user?.id || 'anonymous'}:${auth.identityEpoch}:${id}`;
   const [quote, setQuote] = useState<CustomerQuoteDetail | null>(null);
+  const [quoteContextKey, setQuoteContextKey] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [proposalError, setProposalError] = useState('');
@@ -39,6 +43,11 @@ function QuoteContent() {
   const cancelRepeatRef = useRef<HTMLButtonElement>(null);
   const repeatConfirmationRef = useRef<HTMLElement>(null);
   const repeatTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const currentContextRef = useRef(contextKey);
+  const loadedQuoteIdRef = useRef('');
+  const repeatAbortRef = useRef<AbortController | null>(null);
+  const proposalAbortRef = useRef<AbortController | null>(null);
+  currentContextRef.current = contextKey;
 
   function closeRepeatConfirmation() {
     setRepeatConfirmationOpen(false);
@@ -46,14 +55,44 @@ function QuoteContent() {
   }
 
   useEffect(() => {
+    repeatAbortRef.current?.abort();
+    proposalAbortRef.current?.abort();
+    if (loadedQuoteIdRef.current) clearSubmissionAttempt(`promo-brindes:quote-adjustment:${loadedQuoteIdRef.current}`);
+    loadedQuoteIdRef.current = '';
+    adjustmentAttemptRef.current = null;
     let active = true;
     setQuote(null);
+    setQuoteContextKey('');
     setLoading(true);
     setError('');
     setProposalError('');
-    void fetchMyQuoteRequest(id).then((data) => { if (active) setQuote(data); }).catch(() => { if (active) setError('Não conseguimos abrir esta solicitação.'); }).finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
-  }, [id, retryKey]);
+    setDownloading('');
+    setRepeatConfirmationOpen(false);
+    setRepeating(false);
+    setRepeatError('');
+    setAdjustmentMessage('');
+    setAdjustmentState('idle');
+    setAdjustmentError('');
+    repeatTriggerRef.current = null;
+    void fetchMyQuoteRequest(id).then((data) => {
+      if (!active || currentContextRef.current !== contextKey) return;
+      loadedQuoteIdRef.current = data?.id || '';
+      setQuote(data);
+      setQuoteContextKey(contextKey);
+    }).catch(() => {
+      if (active && currentContextRef.current === contextKey) {
+        setQuoteContextKey(contextKey);
+        setError('Não conseguimos abrir esta solicitação.');
+      }
+    }).finally(() => {
+      if (active && currentContextRef.current === contextKey) setLoading(false);
+    });
+    return () => {
+      active = false;
+      repeatAbortRef.current?.abort();
+      proposalAbortRef.current?.abort();
+    };
+  }, [contextKey, id, retryKey]);
 
   useEffect(() => {
     if (!repeatConfirmationOpen) return;
@@ -83,21 +122,28 @@ function QuoteContent() {
 
   async function continueRepeatQuote() {
     if (!quote || repeating) return;
+    const operationContext = contextKey;
+    const sourceQuote = quote;
+    const controller = new AbortController();
+    repeatAbortRef.current?.abort();
+    repeatAbortRef.current = controller;
     setRepeating(true);
     setRepeatError('');
     try {
-      const products = await fetchProductsByIds(quote.items.map((item) => item.productId), undefined, 50);
-      const reconciledItems = reconcileHistoricalQuoteItems(quote.items, products);
+      const products = await fetchProductsByIds(sourceQuote.items.map((item) => item.productId), controller.signal, 50);
+      if (controller.signal.aborted || currentContextRef.current !== operationContext) return;
+      const reconciledItems = reconcileHistoricalQuoteItems(sourceQuote.items, products);
       cart.replaceItems(reconciledItems);
-      cart.setCampaign(normalizeCampaignBrief(quote.campaign));
-      cart.setSelectionTitle(quote.briefing?.actionName);
-      saveQuoteRepeat({ quoteId: quote.id, campaign: normalizeCampaignBrief(quote.campaign), briefing: normalizeQuoteBriefing(quote.briefing) });
+      cart.setCampaign(normalizeCampaignBrief(sourceQuote.campaign));
+      cart.setSelectionTitle(sourceQuote.briefing?.actionName);
+      saveQuoteRepeat({ quoteId: sourceQuote.id, campaign: normalizeCampaignBrief(sourceQuote.campaign), briefing: normalizeQuoteBriefing(sourceQuote.briefing) });
       trackFunnelEvent('customer_quote_repeated', { item_count: reconciledItems.length });
-      void navigate(`/orcamento?repetir=${encodeURIComponent(quote.id)}`);
+      void navigate(`/orcamento?repetir=${encodeURIComponent(sourceQuote.id)}`);
     } catch {
-      setRepeatError('Não conseguimos conferir os produtos atuais. Tente novamente antes de substituir sua seleção.');
+      if (!controller.signal.aborted && currentContextRef.current === operationContext) setRepeatError('Não conseguimos conferir os produtos atuais. Tente novamente antes de substituir sua seleção.');
     } finally {
-      setRepeating(false);
+      if (repeatAbortRef.current === controller) repeatAbortRef.current = null;
+      if (currentContextRef.current === operationContext) setRepeating(false);
     }
   }
 
@@ -113,17 +159,26 @@ function QuoteContent() {
 
   async function downloadProposal(proposal: CustomerProposal) {
     if (!siteSupabase) return;
+    const operationContext = contextKey;
+    const controller = new AbortController();
+    proposalAbortRef.current?.abort();
+    proposalAbortRef.current = controller;
     setDownloading(proposal.id);
     setProposalError('');
     try {
       const { data } = await siteSupabase.auth.getSession();
-      const response = await fetch('/api/customer-proposals', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.session?.access_token || ''}` }, body: JSON.stringify({ proposalId: proposal.id }) });
+      if (controller.signal.aborted || currentContextRef.current !== operationContext) return;
+      const response = await fetch('/api/customer-proposals', { method: 'POST', signal: controller.signal, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.session?.access_token || ''}` }, body: JSON.stringify({ proposalId: proposal.id }) });
       const result = await response.json() as { url?: string; message?: string };
       if (!response.ok || !result.url) throw new Error(result.message);
+      if (controller.signal.aborted || currentContextRef.current !== operationContext) return;
       trackFunnelEvent('customer_proposal_opened', { version: proposal.version });
       window.location.assign(result.url);
-    } catch { setProposalError('Não conseguimos abrir esta proposta agora. Tente novamente em alguns instantes.'); }
-    finally { setDownloading(''); }
+    } catch { if (!controller.signal.aborted && currentContextRef.current === operationContext) setProposalError('Não conseguimos abrir esta proposta agora. Tente novamente em alguns instantes.'); }
+    finally {
+      if (proposalAbortRef.current === controller) proposalAbortRef.current = null;
+      if (currentContextRef.current === operationContext) setDownloading('');
+    }
   }
 
   async function submitAdjustment(event: FormEvent) {
@@ -135,24 +190,29 @@ function QuoteContent() {
     }
     setAdjustmentState('sending');
     setAdjustmentError('');
+    const operationContext = contextKey;
+    const sourceQuote = quote;
+    const sourceMessage = adjustmentMessage;
     try {
-      const attemptKey = `promo-brindes:quote-adjustment:${quote.id}`;
+      const attemptKey = `promo-brindes:quote-adjustment:${sourceQuote.id}`;
       const attempt = adjustmentAttemptRef.current || getOrCreateSubmissionAttempt(attemptKey);
       adjustmentAttemptRef.current = attempt;
-      await requestMyQuoteAdjustment(quote.id, adjustmentMessage, attempt.id);
+      await requestMyQuoteAdjustment(sourceQuote.id, sourceMessage, attempt.id);
+      if (currentContextRef.current !== operationContext) return;
       adjustmentAttemptRef.current = null;
       clearSubmissionAttempt(attemptKey);
       setAdjustmentMessage('');
       setAdjustmentState('success');
-      trackFunnelEvent('customer_adjustment_requested', { item_count: quote.items.length });
+      trackFunnelEvent('customer_adjustment_requested', { item_count: sourceQuote.items.length });
       setRetryKey((current) => current + 1);
     } catch (error) {
+      if (currentContextRef.current !== operationContext) return;
       setAdjustmentState('error');
       setAdjustmentError(error instanceof Error ? error.message : 'Não conseguimos enviar o pedido de ajuste agora. Tente novamente em alguns instantes.');
     }
   }
 
-  if (loading) return <div className="customer-state container" role="status">Carregando solicitação…</div>;
+  if (loading || quoteContextKey !== contextKey) return <div className="customer-state container" role="status">Carregando solicitação…</div>;
   if (error && !quote) return <div className="customer-state container"><span>SOLICITAÇÃO</span><h1>Não foi possível abrir.</h1><p>{error}</p><button className="button button--green" type="button" onClick={() => setRetryKey((current) => current + 1)}>Tentar novamente</button><Link className="button button--dark" to="/minha-conta">Voltar ao histórico</Link></div>;
   if (!quote) return <div className="customer-state container"><span>SOLICITAÇÃO</span><h1>Orçamento não encontrado.</h1><p>Ele pode pertencer a outro acesso ou não estar mais disponível.</p><Link className="button button--dark" to="/minha-conta">Voltar ao histórico</Link></div>;
   const campaignContext = campaignBriefLabels(normalizeCampaignBrief(quote.campaign));

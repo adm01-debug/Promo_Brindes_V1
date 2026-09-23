@@ -5,7 +5,18 @@ const signatures: Record<string, (bytes: Uint8Array) => boolean> = {
   'image/jpeg': (bytes) => startsWith(bytes, [0xff, 0xd8, 0xff]),
   'image/webp': (bytes) => startsWith(bytes, ASCII.encode('RIFF'))
     && sliceEquals(bytes, 8, ASCII.encode('WEBP')),
-  'application/pdf': (bytes) => indexOf(bytes.subarray(0, 1024), ASCII.encode('%PDF-')) >= 0,
+  // Aceitar o marcador em qualquer offset permitia um polyglot iniciado por
+  // HTML/JavaScript. Para uploads privados de briefing adotamos o contrato
+  // estrito: o primeiro registro precisa ser um cabeçalho PDF 1.x ou 2.x.
+  'application/pdf': (bytes) => {
+    const majorVersion = bytes[5];
+    const minorVersion = bytes[7];
+    return startsWith(bytes, ASCII.encode('%PDF-'))
+      && (majorVersion === 0x31 || majorVersion === 0x32)
+      && bytes[6] === 0x2e
+      && typeof minorVersion === 'number'
+      && minorVersion >= 0x30 && minorVersion <= 0x39;
+  },
 };
 
 function startsWith(bytes: Uint8Array, expected: ArrayLike<number>): boolean {
@@ -18,14 +29,6 @@ function sliceEquals(bytes: Uint8Array, offset: number, expected: ArrayLike<numb
     if (bytes[offset + index] !== expected[index]) return false;
   }
   return true;
-}
-
-function indexOf(bytes: Uint8Array, expected: ArrayLike<number>): number {
-  if (!expected.length || bytes.length < expected.length) return -1;
-  for (let offset = 0; offset <= bytes.length - expected.length; offset += 1) {
-    if (sliceEquals(bytes, offset, expected)) return offset;
-  }
-  return -1;
 }
 
 export function matchesDeclaredFileSignature(mimeType: string, bytes: Uint8Array): boolean {

@@ -29,7 +29,9 @@ Todas usam `errcode = '22023'` (invalid_text_representation, reaproveitado como
 | `invalid_item_decision_group` | `create_site_quote_request` | **Não mapeada** | genérico |
 | `invalid_status_filter` | `get_my_quote_requests` | **Não mapeada** — filtro vem de UI própria, não de input livre do usuário | genérico |
 | `adjustment_message_required` | `request_my_quote_adjustment` | **Não mapeada** | genérico |
+| `too_many_pending_adjustments` (`errcode P0001`) | `request_my_quote_adjustment` | Limite transacional de solicitações pendentes por pedido; a Área do Cliente apresenta o erro do pedido sem criar uma solicitação duplicada | erro no pedido |
 | `verified_email_required` (`errcode 42501`) | `claim_my_quote_requests` | **Não mapeada** — fluxo interno, não acionável pelo usuário diretamente | genérico |
+| `identity_erased` (`errcode 42501`) | `claim_my_quote_requests` | Impede que uma conta recriada reivindique pedidos vinculados a uma identidade já apagada por solicitação LGPD; não expõe o hash-túmulo ao cliente | genérico |
 | `quote_not_found` | `request_my_quote_adjustment` | **Não mapeada** | genérico |
 | `invalid_rate_limit_input` | `site_private.consume_rate_limit` | Interno — nunca deveria propagar a um chamador HTTP | n/a |
 | `invalid_notification_channel` | `claim_site_quote_notification` | Só chamada pelo backend (`api/notifications.ts`), tratada como falha de infraestrutura | 500 (log + retry pelo cron) |
@@ -43,6 +45,8 @@ Todas usam `errcode = '22023'` (invalid_text_representation, reaproveitado como
 | `invalid_selection_reference_set` | `normalize_selection_references` | fronteira interna; wrappers convertem para o erro público do fluxo | não exposto diretamente |
 | `invalid_shared_selection_rate_limit` | `consume_shared_selection_action_limit` | `api/_lib/sharedSelections.ts` | erro de configuração; não expor detalhe |
 | `invalid_retention_batch_size`, `invalid_retention_finalize_input` | `get_site_data_retention_candidates`, `finalize_site_data_retention` | Só chamado por `api/retention.ts` (cron), nunca por input de usuário | 500 |
+| `invalid_audit_retention_input` | `purge_site_admin_audit_log` | Somente operação de retenção administrativa; valida lote e período mínimo antes de remover auditoria antiga | n/a |
+| `invalid_site_storage_retention_input` | `get_site_storage_retention_candidates`, `finalize_site_storage_retention` | Somente `api/retention.ts`; valida bucket, lote, UUID e resultado do expurgo assíncrono de Storage | 500 (log; nova tentativa no cron seguinte) |
 | `invalid_erasure_email` | `erase_customer_data` (Etapa 32) | Só `service_role`, executado manualmente via Studio (`docs/RUNBOOK_PEDIDO_TITULAR.md`) — nunca alcançável pela API pública | n/a |
 | `invalid_selection_payload`, `invalid_selection_reference`, `duplicate_selection_reference`, `invalid_selection_version` | `save_my_selection` | Área do Cliente valida antes do envio; a RPC rejeita payload forjado | erro no rascunho |
 | `selection_version_conflict`, `selection_limit_reached` (`errcode P0001`) | `save_my_selection`, `set_my_selection_archived`, `delete_my_selection` | Conflito visível com ação para recarregar; limite de 30 seleções, com arquivamento e exclusão | erro no rascunho |

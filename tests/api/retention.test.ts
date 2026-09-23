@@ -44,14 +44,15 @@ describe('tarefa de retenção', () => {
       if (url.includes('/finalize_site_data_retention')) return new Response(JSON.stringify({ quotesDeleted: 1, proposalDocumentsDeleted: 1 }), { status: 200 });
       if (url.includes('/purge_archived_customer_selections')) return new Response('0', { status: 200 });
       if (url.includes('/get_briefing_asset_retention_candidates')) return new Response(JSON.stringify({ objects: [] }), { status: 200 });
-      if (url.includes('/finalize_briefing_asset_retention')) return new Response('0', { status: 200 });
+      if (url.includes('/finalize_site_storage_retention')) return new Response('{}', { status: 200 });
+      if (url.includes('/purge_site_admin_audit_logs')) return new Response('{}', { status: 200 });
       return new Response('{}', { status: 500 });
     });
     vi.stubGlobal('fetch', fetchMock);
     const { result, response } = responseDouble();
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
     expect(result.statusCode).toBe(200);
-    expect(fetchMock.mock.calls).toHaveLength(6);
+    expect(fetchMock.mock.calls).toHaveLength(7);
     const [candidatesUrl, candidatesInit] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(candidatesUrl).toBe('https://xlzmclcjdncjfdrjxclt.supabase.co/rest/v1/rpc/get_site_data_retention_candidates');
     expect(candidatesInit.headers).toMatchObject({ apikey: expect.stringMatching(/^sb_secret_/) });
@@ -64,7 +65,9 @@ describe('tarefa de retenção', () => {
     expect(finalizeInit.body).toBe(`{"p_quote_ids":["${quoteId}"],"p_storage_paths":["cliente/proposta.pdf"],"p_batch_size":100}`);
     expect(String(fetchMock.mock.calls[3]?.[0])).toContain('/purge_archived_customer_selections');
     expect(String(fetchMock.mock.calls[4]?.[0])).toContain('/get_briefing_asset_retention_candidates');
-    expect(String(fetchMock.mock.calls[5]?.[0])).toContain('/finalize_briefing_asset_retention');
+    expect(String(fetchMock.mock.calls[5]?.[0])).toContain('/finalize_site_storage_retention');
+    expect((fetchMock.mock.calls[5]?.[1] as RequestInit).body).toBe('{"p_objects":[],"p_batch_size":100}');
+    expect(String(fetchMock.mock.calls[6]?.[0])).toContain('/purge_site_admin_audit_logs');
   });
 
   it('usa a role limitada para RPC e a chave de Storage separada ao migrar a autenticação', async () => {
@@ -80,7 +83,8 @@ describe('tarefa de retenção', () => {
       if (url.includes('/finalize_site_data_retention')) return new Response('{}', { status: 200 });
       if (url.includes('/purge_archived_customer_selections')) return new Response('0', { status: 200 });
       if (url.includes('/get_briefing_asset_retention_candidates')) return new Response(JSON.stringify({ objects: [] }), { status: 200 });
-      if (url.includes('/finalize_briefing_asset_retention')) return new Response('0', { status: 200 });
+      if (url.includes('/finalize_site_storage_retention')) return new Response('{}', { status: 200 });
+      if (url.includes('/purge_site_admin_audit_logs')) return new Response('{}', { status: 200 });
       return new Response('{}', { status: 500 });
     });
     vi.stubGlobal('fetch', fetchMock);
@@ -96,6 +100,7 @@ describe('tarefa de retenção', () => {
     expect((fetchMock.mock.calls[3]?.[1] as RequestInit).headers).toMatchObject({ Authorization: `Bearer ${serviceJwt}` });
     expect((fetchMock.mock.calls[4]?.[1] as RequestInit).headers).toMatchObject({ Authorization: `Bearer ${serviceJwt}` });
     expect((fetchMock.mock.calls[5]?.[1] as RequestInit).headers).toMatchObject({ Authorization: `Bearer ${serviceJwt}` });
+    expect((fetchMock.mock.calls[6]?.[1] as RequestInit).headers).toMatchObject({ Authorization: `Bearer ${serviceJwt}` });
   });
 
   it('não finaliza metadados quando falta credencial para apagar um blob existente', async () => {
@@ -169,15 +174,67 @@ describe('tarefa de retenção', () => {
         return new Response(JSON.stringify({ objects: [{ bucket: 'customer-briefing-assets', path: 'cliente/referencia.webp' }] }), { status: 200 });
       }
       if (url.includes('/storage/v1/object/customer-briefing-assets')) return new Response('[]', { status: 200 });
-      if (url.includes('/finalize_briefing_asset_retention')) return new Response('1', { status: 200 });
+      if (url.includes('/finalize_site_storage_retention')) return new Response(JSON.stringify({ assetsDeleted: 1, queueEntriesDeleted: 1 }), { status: 200 });
+      if (url.includes('/purge_site_admin_audit_logs')) return new Response('{}', { status: 200 });
       return new Response('{}', { status: 500 });
     });
     vi.stubGlobal('fetch', fetchMock);
     const { result, response } = responseDouble();
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
     expect(result.statusCode).toBe(200);
-    expect(fetchMock.mock.calls).toHaveLength(7);
+    expect(fetchMock.mock.calls).toHaveLength(8);
     expect(String(fetchMock.mock.calls[5]?.[0])).toContain('/storage/v1/object/customer-briefing-assets');
     expect((fetchMock.mock.calls[5]?.[1] as RequestInit).body).toBe('{"prefixes":["cliente/referencia.webp"]}');
+    expect(String(fetchMock.mock.calls[6]?.[0])).toContain('/finalize_site_storage_retention');
+    expect((fetchMock.mock.calls[6]?.[1] as RequestInit).body).toBe('{"p_objects":[{"bucket":"customer-briefing-assets","path":"cliente/referencia.webp"}],"p_batch_size":100}');
+  });
+
+  it('separa por bucket e só finaliza a fila após ambos os blobs serem removidos', async () => {
+    configure();
+    const objects = [
+      { bucket: 'customer-briefing-assets', path: 'cliente/referencia.webp' },
+      { bucket: 'customer-proposals', path: 'cliente/proposta-apagada.pdf' },
+    ];
+    const fetchMock = vi.fn(async (url: string, _init?: RequestInit) => {
+      if (url.includes('/get_site_data_retention_candidates')) return new Response(JSON.stringify({ quoteIds: [], storagePaths: [] }), { status: 200 });
+      if (url.includes('/finalize_site_data_retention')) return new Response('{}', { status: 200 });
+      if (url.includes('/purge_archived_customer_selections')) return new Response('0', { status: 200 });
+      if (url.includes('/get_briefing_asset_retention_candidates')) return new Response(JSON.stringify({ objects }), { status: 200 });
+      if (url.includes('/storage/v1/object/')) return new Response('[]', { status: 200 });
+      if (url.includes('/finalize_site_storage_retention')) return new Response(JSON.stringify({ assetsDeleted: 1, queueEntriesDeleted: 2 }), { status: 200 });
+      if (url.includes('/purge_site_admin_audit_logs')) return new Response('{}', { status: 200 });
+      return new Response('{}', { status: 500 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+
+    expect(result.statusCode).toBe(200);
+    expect(String(fetchMock.mock.calls[4]?.[0])).toContain('/customer-briefing-assets');
+    expect(String(fetchMock.mock.calls[5]?.[0])).toContain('/customer-proposals');
+    expect(String(fetchMock.mock.calls[6]?.[0])).toContain('/finalize_site_storage_retention');
+    expect((fetchMock.mock.calls[6]?.[1] as RequestInit).body).toBe(JSON.stringify({ p_objects: objects, p_batch_size: 100 }));
+  });
+
+  it('não finaliza nenhum bucket quando a remoção do segundo bucket falha', async () => {
+    configure();
+    const fetchMock = vi.fn(async (url: string, _init?: RequestInit) => {
+      if (url.includes('/get_site_data_retention_candidates')) return new Response(JSON.stringify({ quoteIds: [], storagePaths: [] }), { status: 200 });
+      if (url.includes('/finalize_site_data_retention')) return new Response('{}', { status: 200 });
+      if (url.includes('/purge_archived_customer_selections')) return new Response('0', { status: 200 });
+      if (url.includes('/get_briefing_asset_retention_candidates')) return new Response(JSON.stringify({ objects: [
+        { bucket: 'customer-briefing-assets', path: 'cliente/referencia.webp' },
+        { bucket: 'customer-proposals', path: 'cliente/proposta-apagada.pdf' },
+      ] }), { status: 200 });
+      if (url.includes('/customer-briefing-assets')) return new Response('[]', { status: 200 });
+      if (url.includes('/customer-proposals')) return new Response('{}', { status: 500 });
+      return new Response('{}', { status: 500 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+
+    expect(result.statusCode).toBe(503);
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/finalize_site_storage_retention'))).toBe(false);
   });
 });

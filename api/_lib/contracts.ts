@@ -373,6 +373,17 @@ export function normalizeLeadPayload(kind: LeadKind, body: unknown): NormalizedL
     throw new RequestValidationError('A data de recebimento não pode ficar depois da data do evento.');
   }
   const items = payload.items.map(quoteItem);
+  const logicalReferences = new Set<string>();
+  for (const item of items) {
+    const variantReference = item.variantId
+      ? `variant:${item.variantId.toLowerCase()}`
+      : `color:${(item.colorName || '').trim().normalize('NFC').toLocaleLowerCase('pt-BR') || 'sem-cor'}`;
+    const logicalReference = `${item.productId.toLowerCase()}::${variantReference}`;
+    if (logicalReferences.has(logicalReference)) {
+      throw new RequestValidationError('A seleção contém o mesmo produto e variante mais de uma vez.', 422, 'duplicate_quote_item');
+    }
+    logicalReferences.add(logicalReference);
+  }
   const kitGroups = new Map<string, { name: string; quantity: number; count: number }>();
   for (const item of items) {
     if (!item.kitGroupId) continue;

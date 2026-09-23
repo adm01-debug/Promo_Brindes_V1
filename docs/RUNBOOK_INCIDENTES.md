@@ -31,7 +31,8 @@ original já têm runbook dedicado:
    select public.site_notification_queue_health();
    ```
    Compare `eligibleCount` (deveria estar drenando) com `exhaustedCount` (jobs que
-   esgotaram as 5 tentativas — ver seção seguinte).
+   esgotaram as 5 tentativas) e `uncertainCount` (WhatsApp cuja chamada externa
+   começou, mas o aceite não pôde ser confirmado — ver seção seguinte).
 4. Se `eligibleCount` está alto mas não cai mesmo com o cron rodando, suspeite de um
    provedor retornando erro sistemático (ver seção "provedor fora do ar" abaixo) — os
    jobs voltam para `pending`/`failed` com backoff (Etapa 11), não ficam presos, mas se
@@ -75,6 +76,37 @@ específico, com `last_error_code` consistente entre as linhas.
    mecanismo de reconciliação (R01/R02, `existingProviderMessageId`) existe
    justamente para não duplicar envio quando uma tentativa anterior já foi aceita pelo
    provedor mas não finalizada; contornar o worker perde essa proteção.
+
+## WhatsApp com `uncertainCount > 0`
+
+O marcador `last_error_code = 'whatsapp_dispatch_started'` é gravado **antes** da
+chamada à Meta. Se a rede cair ou a Meta responder `2xx` sem ID, o job permanece em
+`processing` e não é reivindicado outra vez: é uma escolha at-most-once para não
+duplicar mensagem ao cliente.
+
+1. Consulte o job pelo período, canal e protocolo; não altere em massa.
+2. Procure no painel da Meta o envio correspondente. Se houver `wamid`, registre-o com
+   `record_site_notification_provider_acceptance` usando o `id` e `lease_token` atuais;
+   o worker seguinte apenas reconciliará/finalizará, sem enviar de novo.
+3. Se a Meta comprovar que não recebeu a chamada, documente a evidência e só então
+   libere uma nova tentativa de forma administrativa. Substitua o UUID abaixo pelo
+   único job reconciliado; a guarda impede alterar qualquer outro estado:
+   ```sql
+   update site_private.notification_deliveries
+   set status = 'failed', lease_token = null, lease_expires_at = null,
+       last_error_code = 'manual_meta_not_received', next_attempt_at = now(),
+       updated_at = now()
+   where id = '00000000-0000-0000-0000-000000000000'
+     and channel = 'whatsapp'
+     and status = 'processing'
+     and last_error_code = 'whatsapp_dispatch_started'
+     and provider_message_id is null
+   returning id;
+   ```
+   Exija exatamente uma linha retornada. Zero linhas significa estado divergente e
+   interrompe a operação; uma ausência de log no painel não é prova suficiente.
+4. Toda decisão deve ficar no ticket do incidente; `admin_audit_log` registra a escrita
+   administrativa, e o cron de retenção mantém essa trilha por 400 dias.
 
 ## SLA de referência (Etapa 42)
 

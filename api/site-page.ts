@@ -57,7 +57,7 @@ function pageFrom(request: VercelRequest): StaticPage | null {
   if (page === 'ideia') return ideas[queryValue(request, 'topic')] || null;
   if (page === 'catalogos') {
     const collectionId = queryValue(request, 'colecao');
-    const collection = catalogPreviews[collectionId];
+    const collection = catalogPreviews()[collectionId];
     if (collection) return {
       path: `/catalogos?colecao=${encodeURIComponent(collectionId)}`,
       title: `${collection.title} | Catálogos Promo Brindes`,

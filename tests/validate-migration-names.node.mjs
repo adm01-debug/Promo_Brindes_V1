@@ -56,6 +56,11 @@ test('isValidCalendarTimestamp rejeita mês, dia, hora, minuto e segundo fora do
   assert.equal(isValidCalendarTimestamp('20260908006000'), false);
   assert.equal(isValidCalendarTimestamp('20260908000060'), false);
   assert.equal(isValidCalendarTimestamp('20260908230000'), true);
+  assert.equal(isValidCalendarTimestamp('20260229000000'), false);
+  assert.equal(isValidCalendarTimestamp('20260230000000'), false);
+  assert.equal(isValidCalendarTimestamp('20260431000000'), false);
+  assert.equal(isValidCalendarTimestamp('20260931000000'), false);
+  assert.equal(isValidCalendarTimestamp('20240229000000'), true);
 });
 
 test('ignora arquivos que não terminam em .sql e diretórios ausentes', () => {

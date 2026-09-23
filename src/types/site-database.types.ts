@@ -107,6 +107,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      finalize_site_storage_retention: {
+        Args: { p_batch_size?: number; p_objects: Json }
+        Returns: Json
+      }
       get_briefing_asset_retention_candidates: {
         Args: { p_batch_size?: number }
         Returns: Json
@@ -153,6 +157,14 @@ export type Database = {
       purge_archived_customer_selections: {
         Args: { p_batch_size?: number }
         Returns: number
+      }
+      purge_site_admin_audit_logs: {
+        Args: { p_batch_size?: number; p_retention_days?: number }
+        Returns: Json
+      }
+      record_site_notification_dispatch_started: {
+        Args: { p_delivery_id: string; p_lease_token: string }
+        Returns: boolean
       }
       record_site_notification_provider_acceptance: {
         Args: {
@@ -482,6 +494,24 @@ export type Database = {
           title?: string
           updated_at?: string
           version?: number
+        }
+        Relationships: []
+      }
+      erased_customer_identities: {
+        Row: {
+          auth_users_deleted: number
+          email_sha256: string
+          erased_at: string
+        }
+        Insert: {
+          auth_users_deleted?: number
+          email_sha256: string
+          erased_at?: string
+        }
+        Update: {
+          auth_users_deleted?: number
+          email_sha256?: string
+          erased_at?: string
         }
         Relationships: []
       }
@@ -1000,6 +1030,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      audit_actor: { Args: never; Returns: string }
       consume_rate_limit: {
         Args: {
           p_identifier_hash: string

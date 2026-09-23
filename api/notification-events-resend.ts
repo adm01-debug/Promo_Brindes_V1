@@ -14,6 +14,7 @@ import { verifySvixSignature } from './_lib/webhookSignature.js';
 import { callSiteRpc } from './_lib/siteDatabase.js';
 
 export const REQUEST_TIMEOUT_MS = 10_000;
+export const MAX_WEBHOOK_BODY_BYTES = 256 * 1024;
 
 type ResendEventType = 'delivered' | 'bounced' | 'complained';
 
@@ -50,6 +51,9 @@ export default {
     if (!secret) return json(503, { error: 'webhook_not_configured' });
 
     const rawBody = await request.text();
+    if (Buffer.byteLength(rawBody, 'utf8') > MAX_WEBHOOK_BODY_BYTES) {
+      return json(413, { error: 'payload_too_large' });
+    }
     const svixId = request.headers.get('svix-id') || '';
     const svixTimestamp = request.headers.get('svix-timestamp') || '';
     const svixSignature = request.headers.get('svix-signature') || '';
@@ -74,6 +78,12 @@ export default {
       console.info('site_notification_event_ignored', { provider: 'resend', type: payload.type || null });
       return json(200, { ok: true, applied: false });
     }
+    let occurredAt = new Date().toISOString();
+    if (payload.created_at !== undefined) {
+      const parsed = new Date(payload.created_at);
+      if (Number.isNaN(parsed.getTime())) return json(400, { error: 'invalid_event_timestamp' });
+      occurredAt = parsed.toISOString();
+    }
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -83,7 +93,7 @@ export default {
         p_provider_message_id: emailId,
         p_event_type: eventType,
         p_provider_event_id: svixId,
-        p_occurred_at: payload.created_at || new Date().toISOString(),
+        p_occurred_at: occurredAt,
         p_bounce_reason: eventType === 'bounced' ? ((payload.data?.bounce?.type || '').slice(0, 200) || null) : null,
       }, controller.signal);
       console.info('site_notification_event_applied', { provider: 'resend', eventType, applied: result.applied, reason: result.reason });

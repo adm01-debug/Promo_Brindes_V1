@@ -26,7 +26,9 @@ SITE_SUPABASE_JWT_SECRET='<legacy jwt secret>' npm run db:site:generate-site-api
 
 Confirme antes de prosseguir (`node -e` com o mesmo código de decodificação, ou
 `tests/generate-site-api-jwt.node.mjs` como referência): o payload deve ter
-`role: "site_api"` e `ref: "xlzmclcjdncjfdrjxclt"`.
+`role: "site_api"`, `ref: "xlzmclcjdncjfdrjxclt"`, `jti` único e validade padrão de
+30 dias. O gerador recusa validade acima de 90 dias; para uma janela menor use
+`SITE_SUPABASE_JWT_TTL_DAYS=7`. Registre expiração e rotação antes do corte.
 
 ## 2. Validar o token contra o projeto remoto (leitura, sem efeito)
 
@@ -65,6 +67,7 @@ cutover e confira a migration. Não use um endpoint inexistente como teste de ne
    a retenção falha sem apagar os metadados.
 3. Valide separadamente leitura da RPC, operação de Storage no bucket autorizado e
    negação fora desse escopo antes de classificar o cutover como concluído.
+4. Agende rotação antes do `exp`; nunca trate esse JWT como credencial de longa duração.
 
 ## 4. Deploy e observação
 

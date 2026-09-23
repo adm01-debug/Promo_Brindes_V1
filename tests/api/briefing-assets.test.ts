@@ -139,9 +139,16 @@ describe('assinaturas de arquivo', () => {
     ['image/png', new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])],
     ['image/jpeg', new Uint8Array([0xff, 0xd8, 0xff, 0xe0])],
     ['image/webp', new TextEncoder().encode('RIFF0000WEBP')],
-    ['application/pdf', new TextEncoder().encode('\n%PDF-1.7')],
+    ['application/pdf', new TextEncoder().encode('%PDF-1.7')],
+    ['application/pdf', new TextEncoder().encode('%PDF-2.0')],
   ])('reconhece %s', (mimeType, bytes) => {
     expect(matchesDeclaredFileSignature(mimeType, bytes)).toBe(true);
+  });
+
+  it('rejeita polyglot iniciado por HTML mesmo que contenha marcador PDF no primeiro KiB', () => {
+    const polyglot = new TextEncoder().encode('<script>alert(1)</script>\n%PDF-1.7');
+    expect(matchesDeclaredFileSignature('application/pdf', polyglot)).toBe(false);
+    expect(matchesDeclaredFileSignature('application/pdf', new TextEncoder().encode('%PDF-9.0'))).toBe(false);
   });
 
   it('limita a leitura a 1 KiB mesmo quando a resposta é maior', async () => {

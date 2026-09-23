@@ -3,7 +3,9 @@ export interface CuratedPagePreview {
   description: string;
 }
 
-export const catalogPreviews: Record<string, CuratedPagePreview> = publicCatalogEditorialEntries();
+export function catalogPreviews(now = new Date()): Record<string, CuratedPagePreview> {
+  return publicCatalogEditorialEntries(now);
+}
 
 export const occasionPreviews: Record<string, CuratedPagePreview> = {
   'ano-novo': { title: 'Ano Novo', description: 'Comece o ciclo com uma lembrança útil, otimista e alinhada à cultura da marca.' },
