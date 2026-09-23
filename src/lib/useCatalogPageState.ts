@@ -104,10 +104,15 @@ export function useCatalogPageState() {
     ? categories.error || (campaignCategoryMissing ? 'Não foi possível localizar a categoria de tecnologia neste momento.' : catalog.error)
     : catalog.error;
   const catalogLoading = !catalogError && ((campaignNeedsCategories && categories.loading) || catalog.loading);
-  const rankedCatalogProducts = useMemo(() => rankCatalogProducts(catalog.data.products, {
-    query,
-    campaign: campaignSelection,
-  }), [campaignSelection, catalog.data.products, query]);
+  // "Nome" e "Mais recentes" são escolhas explícitas da pessoa. A API já
+  // ordena esse recorte (inclusive entre páginas); reordená-lo aqui por flags
+  // editoriais quebraria o contrato visual e faria a página 1 parecer correta
+  // enquanto a ordem global permanecesse inconsistente. Curadoria é aplicada
+  // apenas quando essa é a ordem selecionada.
+  const rankedCatalogProducts = useMemo(() => sort === 'curadoria'
+    ? rankCatalogProducts(catalog.data.products, { query, campaign: campaignSelection })
+    : catalog.data.products,
+  [campaignSelection, catalog.data.products, query, sort]);
   const rankedCatalog = useMemo(() => ({
     ...catalog,
     data: { ...catalog.data, products: rankedCatalogProducts },

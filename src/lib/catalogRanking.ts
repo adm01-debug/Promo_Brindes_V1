@@ -98,10 +98,14 @@ function diversify(ranked: RankedProduct[]): CatalogProduct[] {
 }
 
 export function rankCatalogProducts(products: CatalogProduct[], context: CatalogRankingContext = {}): CatalogProduct[] {
+  return rankProducts(products, context);
+}
+
+function rankProducts(products: CatalogProduct[], context: CatalogRankingContext, adjustment: (product: CatalogProduct) => number = () => 0): CatalogProduct[] {
   const unique = new Map(products.map((product) => [product.id, product]));
   const ranked = [...unique.values()].map((product) => ({
     product,
-    score: scoreProduct(product, context),
+    score: scoreProduct(product, context) + adjustment(product),
     categoryKey: product.mainCategoryId || product.categoryId || 'sem-categoria',
     materialKey: normalizeSearchText(product.materials[0] || 'sem-material') || 'sem-material',
   }));
@@ -111,13 +115,12 @@ export function rankCatalogProducts(products: CatalogProduct[], context: Catalog
 /** Curadoria da página de produto: prioriza a mesma família, mas mistura materiais e novidades. */
 export function rankRelatedProducts(products: CatalogProduct[], product: CatalogProduct): CatalogProduct[] {
   const anchorMaterials = new Set(product.materials.map(normalizeSearchText).filter(Boolean));
-  return rankCatalogProducts(products.filter((candidate) => candidate.id !== product.id), {
+  // Afinidade e diversidade participam da mesma ordenação. Um segundo sort
+  // após diversify() parecia inocente, mas recolocava materiais/famílias
+  // repetidos no topo e anulava a escolha de descoberta.
+  return rankProducts(products.filter((candidate) => candidate.id !== product.id), {
     query: product.name,
-  }).sort((left, right) => {
-    const leftScore = Number(left.mainCategoryId === product.mainCategoryId) * 10
-      + Number(left.isNew) * 2 + Number(left.materials.some((material) => anchorMaterials.has(normalizeSearchText(material))));
-    const rightScore = Number(right.mainCategoryId === product.mainCategoryId) * 10
-      + Number(right.isNew) * 2 + Number(right.materials.some((material) => anchorMaterials.has(normalizeSearchText(material))));
-    return rightScore - leftScore || left.name.localeCompare(right.name, 'pt-BR') || left.id.localeCompare(right.id);
-  });
+  }, (candidate) => Number(candidate.mainCategoryId === product.mainCategoryId) * 10
+    + Number(candidate.isNew) * 2
+    + Number(candidate.materials.some((material) => anchorMaterials.has(normalizeSearchText(material)))));
 }
