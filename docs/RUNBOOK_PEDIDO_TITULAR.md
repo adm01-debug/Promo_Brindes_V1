@@ -21,39 +21,46 @@ qualquer outro canal) é atendido manualmente, seguindo este runbook.
 select public.erase_customer_data('email-do-titular@exemplo.com');
 ```
 
-A função (`site-supabase/supabase/migrations/20260916200000_add_customer_data_erasure.sql`):
+A função, endurecida pela migration
+`20260923120000_audit_security_reliability_hardening.sql`:
 
 - É idempotente — rodar duas vezes com o mesmo e-mail não duplica efeito nem falha.
 - Normaliza o e-mail internamente (`site_private.normalize_email`) — não precisa
   garantir maiúsculas/minúsculas ou espaços antes de chamar.
-- Anonimiza `quote_requests`, `contact_requests` e `customer_profiles` associados ao
-  e-mail (substitui nome/telefone/empresa por um marcador de titular apagado,
-  preservando a linha para integridade referencial de pedidos já em andamento).
+- Anonimiza `quote_requests` e `contact_requests`, inclusive notas e texto livre.
+- Remove a conta de `auth.users`; sessões, perfil, seleções, anexos e pedidos de ajuste
+  ligados à conta desaparecem pelas FKs. O protocolo não identificável do pedido é
+  preservado como evidência operacional.
+- Registra somente o SHA-256 do e-mail em `erased_customer_identities`, impedindo que
+  uma nova conta com o mesmo e-mail reivindique novamente o histórico apagado.
 - Apaga (`delete`) as linhas de `proposal_documents` associadas.
-- Devolve `storagePathsToRemove`: os *caminhos* dos PDFs de proposta que existiam no
-  banco antes do apagamento.
+- Enfileira atomicamente os PDFs de proposta e anexos de briefing para remoção pela
+  Storage API no cron diário; também devolve `storagePathsToRemove` como evidência.
 
-## 2. Remover os arquivos do Storage
+## 2. Confirmar a remoção assíncrona do Storage
 
-O apagamento no banco **não remove os objetos no bucket** `customer-proposals` — isso é
-um passo manual separado, usando a lista `storagePathsToRemove` do retorno do passo 1:
+O cron `/api/retention` remove os objetos enfileirados nos buckets
+`customer-proposals` e `customer-briefing-assets` e só depois finaliza a fila. Acompanhe
+a execução seguinte; a operação é idempotente e trata objeto já ausente como sucesso.
 
 ```sql
--- Studio > Storage > customer-proposals, ou via API do Storage com cada caminho da lista.
+select bucket, object_path, queued_at
+from site_private.storage_deletion_queue
+order by queued_at;
+-- Esperado após um cron bem-sucedido: nenhum caminho devolvido no passo 1.
 ```
 
-Confirme cada caminho antes de remover — a lista veio de uma consulta ao estado
-*anterior* ao apagamento, então precisa ser usada imediatamente após o passo 1, não
-guardada para depois.
+Se a fila permanecer, não apague seu metadado manualmente. Verifique primeiro a
+credencial de Storage e os logs do cron; remover a fila sem confirmação do bucket pode
+deixar um blob órfão com dado pessoal.
 
 ## 3. Verificação
 
 ```sql
--- Confirma que não sobrou nome/telefone/empresa em claro para o e-mail apagado:
-select contact_name, company, email, phone
-from site_private.quote_requests
-where email = site_private.normalize_email('email-do-titular@exemplo.com');
--- Esperado: contact_name/company/phone substituídos pelo marcador de titular apagado.
+-- Não deve existir conta Auth/perfil com o e-mail original.
+select count(*) from auth.users
+where lower(email) = site_private.normalize_email('email-do-titular@exemplo.com');
+-- Esperado: 0.
 
 select count(*) from site_private.proposal_documents pd
 join site_private.quote_requests qr on qr.id = pd.quote_request_id
@@ -63,19 +70,17 @@ where qr.email = site_private.normalize_email('email-do-titular@exemplo.com');
 
 ## 4. Comunicação e evidência
 
-A função **não registra em nenhum lugar** que o pedido foi atendido além do que você
-salvar manualmente — não existe um evento `erased` em `quote_request_events` (avaliado e
-não implementado nesta rodada; ver nota no checklist da Etapa 32 no plano de correções).
-Guarde, fora do banco (ex.: sistema de tickets do time), como evidência de atendimento:
+A tombstone registra o atendimento sem conservar o e-mail em claro, mas não substitui
+o ticket jurídico/operacional. Guarde, fora do banco, como evidência de atendimento:
 
 - Data e canal do pedido original.
 - E-mail do titular (o dado, não o pedido em si, para permitir auditoria futura).
 - Saída completa do passo 1 (contagens afetadas).
-- Confirmação de que os arquivos do Storage (passo 2) foram removidos.
+- Confirmação de que a fila de Storage (passo 2) foi drenada.
 - Resposta enviada ao titular confirmando o atendimento.
 
 ## Ensaiado em
 
-Banco local, 16/09/2026 — `site-supabase/supabase/tests/database/customer_data_erasure.test.sql`
-(15 testes, incluindo idempotência para `quote_requests`/`contact_requests`; ver nota de
-auditoria no plano de correções sobre a cobertura de `customer_profiles`).
+Banco local, 23/09/2026 — `customer_data_erasure.test.sql` cobre 28 contratos:
+idempotência, texto livre, Auth/perfil, tombstone, dois buckets e bloqueio de nova
+reivindicação. O conjunto completo soma 513 contratos pgTAP.

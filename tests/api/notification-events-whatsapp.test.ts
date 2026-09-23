@@ -145,5 +145,35 @@ describe('api/notification-events-whatsapp (Etapa 30)', () => {
       }));
       expect(response.status).toBe(400);
     });
+
+    it('ignora timestamp numérico fora do intervalo sem lançar RangeError nem chamar o banco', async () => {
+      configureEnv();
+      const fetchMock = vi.fn();
+      vi.stubGlobal('fetch', fetchMock);
+      const response = await handler.fetch(signedPostRequest(statusPayload([
+        { id: 'wamid.out-of-range', status: 'delivered', timestamp: '9999999999999' },
+      ])));
+      expect(response.status).toBe(200);
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('recusa lotes com mais de cem status sem iniciar chamadas ao banco', async () => {
+      configureEnv();
+      const fetchMock = vi.fn();
+      vi.stubGlobal('fetch', fetchMock);
+      const response = await handler.fetch(signedPostRequest(statusPayload(
+        Array.from({ length: 101 }, (_, index) => ({ id: `wamid.${index}`, status: 'delivered' })),
+      )));
+      expect(response.status).toBe(413);
+      expect(await response.json()).toEqual({ error: 'too_many_events' });
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('recusa corpo acima de 256 KiB antes de verificar assinatura ou parsear JSON', async () => {
+      configureEnv();
+      const rawBody = JSON.stringify({ padding: 'x'.repeat(256 * 1024) });
+      const response = await handler.fetch(signedPostRequest({}, { rawBody, signature: 'inválida' }));
+      expect(response.status).toBe(413);
+    });
   });
 });

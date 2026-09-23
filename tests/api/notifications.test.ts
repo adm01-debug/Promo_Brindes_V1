@@ -187,6 +187,7 @@ describe('worker de comprovantes do orçamento', () => {
         await emailGate;
         return new Response('{"id":"email-immediate"}', { status: 200 });
       }
+      if (target.includes('/record_site_notification_dispatch_started')) return new Response('true', { status: 200 });
       if (new URL(target).hostname === 'graph.facebook.com') {
         whatsappAttempted = true;
         return new Response('{"messages":[{"id":"wamid-paralelo"}]}', { status: 200 });
@@ -264,6 +265,7 @@ describe('worker de comprovantes do orçamento', () => {
     const later = new Date(Date.now() + 2 * 86_400_000).toUTCString();
     const fetchMock = vi.fn(async (url: string | URL, _init?: RequestInit) => {
       if (String(url).includes('/claim_site_quote_notification')) return new Response(JSON.stringify({ ...emailJob, channel: 'whatsapp' }), { status: 200 });
+      if (String(url).includes('/record_site_notification_dispatch_started')) return new Response('true', { status: 200 });
       if (new URL(String(url)).hostname === 'graph.facebook.com') {
         return new Response('{"error":"overloaded"}', { status: 503, headers: { 'Retry-After': later } });
       }
@@ -317,6 +319,7 @@ describe('worker de comprovantes do orçamento', () => {
     const whatsappJob = { ...emailJob, channel: 'whatsapp' };
     const fetchMock = vi.fn(async (url: string | URL, _init?: RequestInit) => {
       if (String(url).includes('/claim_site_notification_deliveries')) return new Response(JSON.stringify([whatsappJob]), { status: 200 });
+      if (String(url).includes('/record_site_notification_dispatch_started')) return new Response('true', { status: 200 });
       if (new URL(String(url)).hostname === 'graph.facebook.com') return new Response('{"messages":[{"id":"wamid-test"}]}', { status: 200 });
       if (String(url).includes('/record_site_notification_provider_acceptance')) return new Response('true', { status: 200 });
       if (String(url).includes('/finalize_site_notification_delivery')) return new Response('true', { status: 200 });
@@ -351,6 +354,49 @@ describe('worker de comprovantes do orçamento', () => {
 
     expect(result.body).toEqual({ ok: true, claimed: 1, delivered: 1, failed: 0, inconclusive: 0 });
     expect(fetchMock.mock.calls.some(([url]) => new URL(String(url)).hostname === 'graph.facebook.com')).toBe(false);
+  });
+
+  it('não chama a Meta quando a intenção durável não pôde ser confirmada no banco', async () => {
+    configure();
+    vi.stubEnv('WHATSAPP_ACCESS_TOKEN', 'meta-synthetic-token');
+    vi.stubEnv('WHATSAPP_PHONE_NUMBER_ID', '1234567890');
+    vi.stubEnv('WHATSAPP_QUOTE_TEMPLATE', 'confirmacao_orcamento');
+    vi.stubEnv('WHATSAPP_GRAPH_API_VERSION', 'v23.0');
+    const whatsappJob = { ...emailJob, channel: 'whatsapp' };
+    const fetchMock = vi.fn(async (url: string | URL) => {
+      if (String(url).includes('/claim_site_notification_deliveries')) return new Response(JSON.stringify([whatsappJob]), { status: 200 });
+      if (String(url).includes('/record_site_notification_dispatch_started')) return new Response('{}', { status: 500 });
+      return notMocked();
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+
+    expect(result.body).toEqual({ ok: true, claimed: 1, delivered: 0, failed: 0, inconclusive: 1 });
+    expect(fetchMock.mock.calls.some(([url]) => new URL(String(url)).hostname === 'graph.facebook.com')).toBe(false);
+  });
+
+  it('resposta 2xx da Meta sem ID fica inconclusiva e não libera retry automático', async () => {
+    configure();
+    vi.stubEnv('WHATSAPP_ACCESS_TOKEN', 'meta-synthetic-token');
+    vi.stubEnv('WHATSAPP_PHONE_NUMBER_ID', '1234567890');
+    vi.stubEnv('WHATSAPP_QUOTE_TEMPLATE', 'confirmacao_orcamento');
+    vi.stubEnv('WHATSAPP_GRAPH_API_VERSION', 'v23.0');
+    const whatsappJob = { ...emailJob, channel: 'whatsapp' };
+    const fetchMock = vi.fn(async (url: string | URL) => {
+      if (String(url).includes('/claim_site_notification_deliveries')) return new Response(JSON.stringify([whatsappJob]), { status: 200 });
+      if (String(url).includes('/record_site_notification_dispatch_started')) return new Response('true', { status: 200 });
+      if (new URL(String(url)).hostname === 'graph.facebook.com') return new Response('{}', { status: 200 });
+      return notMocked();
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+
+    expect(result.body).toEqual({ ok: true, claimed: 1, delivered: 0, failed: 0, inconclusive: 1 });
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/finalize_site_notification_delivery'))).toBe(false);
   });
 });
 
@@ -443,6 +489,32 @@ describe('Etapa 29: sinal de saúde da fila (reportQueueHealth, via handler)', (
 
     expect(result.statusCode).toBe(200);
     expect(errorSpy).toHaveBeenCalledWith('site_notifications_queue_alert', { ...exhaustedChannel, ageAlertThresholdSeconds: QUEUE_AGE_ALERT_SECONDS });
+    expect(errorSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('despacho WhatsApp incerto soa alerta sem liberar reenvio automático', async () => {
+    configure();
+    vi.stubEnv('RESEND_API_KEY', 're_synthetic_test_key');
+    vi.stubEnv('SITE_EMAIL_FROM', 'Promo Brindes <atendimento@example.test>');
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'info').mockImplementation(() => {});
+    const uncertainChannel = {
+      channel: 'whatsapp', oldestEligibleAgeSeconds: null, eligibleCount: 0,
+      exhaustedCount: 0, uncertainCount: 1,
+    };
+    const channels = [
+      { channel: 'email', oldestEligibleAgeSeconds: null, eligibleCount: 0, exhaustedCount: 0, uncertainCount: 0 },
+      uncertainChannel,
+    ];
+    vi.stubGlobal('fetch', fetchMockWithQueueHealth(channels));
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+
+    expect(result.statusCode).toBe(200);
+    expect(errorSpy).toHaveBeenCalledWith('site_notifications_queue_alert', {
+      ...uncertainChannel,
+      ageAlertThresholdSeconds: QUEUE_AGE_ALERT_SECONDS,
+    });
     expect(errorSpy).toHaveBeenCalledTimes(1);
   });
 

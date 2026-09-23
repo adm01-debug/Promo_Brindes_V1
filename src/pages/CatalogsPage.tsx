@@ -16,8 +16,6 @@ import { replaceBrokenProductImage } from '../lib/images';
 
 type CatalogThemeFilter = 'all' | CatalogCollectionTheme;
 type ShareState = 'idle' | 'copied' | 'shared' | 'error';
-const catalogCollections = publicCatalogCollections();
-
 function validTheme(value: string | null): CatalogThemeFilter {
   return catalogThemeOptions.some((option) => option.id === value) ? value as CatalogThemeFilter : 'all';
 }
@@ -110,7 +108,9 @@ function CatalogCard({
 }
 
 export default function CatalogsPage() {
+  const [editorialNow, setEditorialNow] = useState(() => new Date());
   const [params, setParams] = useSearchParams();
+  const catalogCollections = useMemo(() => publicCatalogCollections(editorialNow), [editorialNow]);
   const query = (params.get('q') || '').trim().slice(0, 80);
   const theme = validTheme(params.get('tema'));
   const sharedCollection = catalogCollections.find((collection) => collection.id === params.get('colecao'));
@@ -119,10 +119,14 @@ export default function CatalogsPage() {
   const [shareStatus, setShareStatus] = useState('');
 
   useEffect(() => setSearchInput(query), [query]);
+  useEffect(() => {
+    const interval = window.setInterval(() => setEditorialNow(new Date()), 60_000);
+    return () => window.clearInterval(interval);
+  }, []);
 
   const results = useMemo(
     () => filterCatalogCollections(catalogCollections, query, theme),
-    [query, theme],
+    [catalogCollections, query, theme],
   );
   const featured = !query && theme === 'all' ? sharedCollection || catalogCollections.find((collection) => collection.featured) : undefined;
   const gridResults = featured ? results.filter((collection) => collection.id !== featured.id) : results;

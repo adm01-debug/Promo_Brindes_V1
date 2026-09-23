@@ -10,7 +10,7 @@ import { defaultQuoteQuantity } from '../lib/catalog';
 import { trackFunnelEvent } from '../lib/analytics';
 import { clampQuoteQuantity, MAX_QUOTE_ITEMS, normalizeQuoteItems } from '../lib/quoteItems';
 import { normalizeCampaignBrief } from '../lib/campaignBrief';
-import type { CatalogProduct, ProductColor, QuoteItem } from '../types';
+import type { CatalogProduct, ProductColor } from '../types';
 import { QuoteCartContext, type QuoteCartValue } from './quoteCart';
 import { cartReducer, loadInitialQuoteCartState, type CartState } from './quoteCartReducer';
 
@@ -20,7 +20,10 @@ export function QuoteCartProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(cartReducer, undefined, loadInitialQuoteCartState);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [lastCleared, setLastCleared] = useState<CartState | null>(null);
-  const [lastRemoved, setLastRemoved] = useState<{ item: QuoteItem; index: number } | null>(null);
+  // O undo precisa guardar o estado inteiro: remover um componente pode converter o
+  // último componente do kit em item avulso. Guardar só a linha removida tornava essa
+  // conversão irreversível e o "Desfazer" deixava de restaurar o kit original.
+  const [lastRemoved, setLastRemoved] = useState<CartState | null>(null);
   const [selectionLimitReached, setSelectionLimitReached] = useState(false);
 
   useEffect(() => {
@@ -124,10 +127,8 @@ export function QuoteCartProvider({ children }: { children: ReactNode }) {
       dismissSelectionLimit: () => setSelectionLimitReached(false),
       addProduct,
       removeItem: (key) => {
-        const index = state.items.findIndex((item) => item.key === key);
-        const item = state.items[index];
-        if (!item) return;
-        setLastRemoved({ item, index });
+        if (!state.items.some((item) => item.key === key)) return;
+        setLastRemoved(state);
         dispatch({ type: 'remove', key });
       },
       updateQuantity: (key, quantity) => dispatch({ type: 'quantity', key, quantity }),
@@ -157,7 +158,7 @@ export function QuoteCartProvider({ children }: { children: ReactNode }) {
       canUndoRemoval: Boolean(lastRemoved),
       restoreLastRemoval: () => {
         if (!lastRemoved) return;
-        dispatch({ type: 'restore', item: lastRemoved.item, index: lastRemoved.index });
+        dispatch({ type: 'restore-selection', state: lastRemoved });
         setLastRemoved(null);
       },
       dismissLastRemoval: () => setLastRemoved(null),

@@ -10,6 +10,8 @@ import { verifyMetaSignature } from './_lib/webhookSignature.js';
 import { callSiteRpc } from './_lib/siteDatabase.js';
 
 export const REQUEST_TIMEOUT_MS = 10_000;
+export const MAX_WEBHOOK_BODY_BYTES = 256 * 1024;
+export const MAX_STATUSES_PER_WEBHOOK = 100;
 
 type WhatsAppEventType = 'delivered' | 'bounced';
 
@@ -74,9 +76,14 @@ async function applyStatus(status: WhatsAppStatus): Promise<'ignored' | 'applied
   const eventType = status.status ? eventTypeFor(status.status) : null;
   if (!eventType || !status.id) return 'ignored';
 
-  const occurredAt = status.timestamp && /^\d+$/.test(status.timestamp)
-    ? new Date(Number(status.timestamp) * 1000).toISOString()
-    : new Date().toISOString();
+  let occurredAt = new Date().toISOString();
+  if (status.timestamp !== undefined) {
+    if (!/^\d{1,12}$/.test(status.timestamp)) return 'ignored';
+    const milliseconds = Number(status.timestamp) * 1000;
+    const parsed = new Date(milliseconds);
+    if (!Number.isFinite(milliseconds) || Number.isNaN(parsed.getTime())) return 'ignored';
+    occurredAt = parsed.toISOString();
+  }
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -107,6 +114,9 @@ async function handlePost(request: Request): Promise<Response> {
   if (!appSecret) return json(503, { error: 'webhook_not_configured' });
 
   const rawBody = await request.text();
+  if (Buffer.byteLength(rawBody, 'utf8') > MAX_WEBHOOK_BODY_BYTES) {
+    return json(413, { error: 'payload_too_large' });
+  }
   const signatureHeader = request.headers.get('x-hub-signature-256') || '';
   if (!verifyMetaSignature({ rawBody, signatureHeader, appSecret })) {
     return json(401, { error: 'invalid_signature' });
@@ -122,6 +132,7 @@ async function handlePost(request: Request): Promise<Response> {
   const statuses = (payload.entry || [])
     .flatMap((entry) => entry.changes || [])
     .flatMap((change) => change.value?.statuses || []);
+  if (statuses.length > MAX_STATUSES_PER_WEBHOOK) return json(413, { error: 'too_many_events' });
 
   const outcomes = await Promise.all(statuses.map((status) => applyStatus(status)));
   if (outcomes.includes('failed')) return json(500, { error: 'apply_failed' });

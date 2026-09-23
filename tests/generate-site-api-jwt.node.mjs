@@ -30,8 +30,9 @@ test('gera um JWT HS256 válido com role:site_api, verificável com o mesmo segr
   assert.equal(payload.role, 'site_api');
   assert.equal(payload.ref, 'xlzmclcjdncjfdrjxclt');
   assert.equal(payload.iss, 'supabase');
+  assert.match(payload.jti, /^[0-9a-f-]{36}$/i);
   assert.ok(payload.exp > payload.iat, 'expira no futuro');
-  assert.ok(payload.exp - payload.iat > 365 * 24 * 60 * 60, 'validade de vários anos (chave de serviço de longa duração, como as legadas)');
+  assert.equal(payload.exp - payload.iat, 30 * 24 * 60 * 60, 'validade padrão é curta e rotacionável');
 
   const expectedSignature = createHmac('sha256', fakeSecret)
     .update(`${parts[0]}.${parts[1]}`)
@@ -40,6 +41,14 @@ test('gera um JWT HS256 válido com role:site_api, verificável com o mesmo segr
     .replace(/\//g, '_')
     .replace(/=+$/, '');
   assert.equal(parts[2], expectedSignature, 'assinatura HS256 confere ao recalcular com o mesmo segredo');
+});
+
+test('permite TTL explícito apenas dentro do teto operacional de 90 dias', () => {
+  const fakeSecret = 'fixture-secret-nao-e-uma-credencial-real-so-para-este-teste';
+  const output = execFileSync('node', [SCRIPT], { env: { ...process.env, SITE_SUPABASE_JWT_SECRET: fakeSecret, SITE_SUPABASE_JWT_TTL_DAYS: '7' }, stdio: 'pipe' }).toString().trim();
+  const payload = JSON.parse(base64urlDecode(output.split('.')[1]).toString('utf8'));
+  assert.equal(payload.exp - payload.iat, 7 * 24 * 60 * 60);
+  assert.throws(() => execFileSync('node', [SCRIPT], { env: { ...process.env, SITE_SUPABASE_JWT_SECRET: fakeSecret, SITE_SUPABASE_JWT_TTL_DAYS: '3650' }, stdio: 'pipe' }));
 });
 
 test('segredos diferentes produzem assinaturas diferentes para o mesmo payload (não é uma constante disfarçada)', () => {

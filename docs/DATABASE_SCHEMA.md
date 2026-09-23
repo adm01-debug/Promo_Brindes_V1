@@ -1,6 +1,6 @@
 # Diagrama entidade-relacionamento — site_private (Etapa 48)
 
-Gerado por `npm run db:site:schema-doc` a partir de `pg_constraint` no banco local, na versão do schema da migration mais recente (2026-09-22). Complementa `docs/DATABASE_DICTIONARY.md` (colunas e comentários) com as relações entre tabelas.
+Gerado por `npm run db:site:schema-doc` a partir de `pg_constraint` no banco local, na versão do schema da migration mais recente (2026-09-23). Complementa `docs/DATABASE_DICTIONARY.md` (colunas e comentários) com as relações entre tabelas.
 
 ```mermaid
 erDiagram
@@ -11,6 +11,7 @@ erDiagram
   customer_briefing_assets
   customer_profiles
   customer_selections
+  erased_customer_identities
   notification_deliveries
   notification_provider_events
   proposal_documents

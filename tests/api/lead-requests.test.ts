@@ -389,6 +389,21 @@ describe('APIs de leads isoladas', () => {
     expect(second.result.statusCode).toBe(413);
   });
 
+  it('rejeita referências lógicas duplicadas mesmo quando as chaves do cliente diferem', async () => {
+    configureSiteDatabase();
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const duplicate = {
+      ...quotePayload,
+      items: [quotePayload.items[0], { ...quotePayload.items[0], key: 'chave-forjada-diferente', quantity: 250 }],
+    };
+    const { result, response } = responseDouble();
+    await quoteHandler(request(duplicate), response);
+    expect(result.statusCode).toBe(422);
+    expect(result.body).toMatchObject({ error: 'duplicate_quote_item' });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('rejeita prazo, URL e imagem hostis antes de consultar banco algum', async () => {
     configureSiteDatabase();
     const fetchMock = vi.fn();

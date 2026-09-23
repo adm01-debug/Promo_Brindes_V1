@@ -35,15 +35,30 @@ const catalogEditorialSource = {
 export type CatalogEditorialId = keyof typeof catalogEditorialSource;
 export const catalogEditorialEntries: Record<CatalogEditorialId, CatalogEditorialEntry> = catalogEditorialSource;
 
-function time(value: string): number {
-  return new Date(`${value}T00:00:00.000Z`).getTime();
+const EDITORIAL_TIME_ZONE = 'America/Sao_Paulo';
+
+function validDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split('-').map(Number);
+  const candidate = new Date(Date.UTC(year!, month! - 1, day!));
+  return candidate.getUTCFullYear() === year && candidate.getUTCMonth() === month! - 1 && candidate.getUTCDate() === day;
+}
+
+function editorialDate(now: Date): string {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: EDITORIAL_TIME_ZONE,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(now);
+  const value = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${value.year}-${value.month}-${value.day}`;
 }
 
 export function isCatalogEditorialEntryPublic(entry: CatalogEditorialEntry, now = new Date()): boolean {
-  const current = now.getTime();
+  const current = editorialDate(now);
   return entry.status === 'published'
-    && time(entry.publishedAt) <= current
-    && (!entry.expiresAt || time(entry.expiresAt) > current);
+    && validDate(entry.publishedAt)
+    && entry.publishedAt <= current
+    && (!entry.expiresAt || (validDate(entry.expiresAt) && entry.expiresAt > current));
 }
 
 export function publicCatalogEditorialEntries(now = new Date()): Partial<Record<CatalogEditorialId, CatalogEditorialEntry>> {
@@ -54,11 +69,15 @@ export function publicCatalogEditorialEntries(now = new Date()): Partial<Record<
 
 export function catalogEditorialIssues(now = new Date()): string[] {
   const issues: string[] = [];
+  const current = editorialDate(now);
   for (const [id, entry] of Object.entries(catalogEditorialEntries)) {
     if (!entry.owner.trim()) issues.push(`${id}: responsável ausente`);
-    if (time(entry.reviewedAt) < time(entry.publishedAt)) issues.push(`${id}: revisão anterior à publicação`);
-    if (time(entry.reviewDueAt) <= now.getTime()) issues.push(`${id}: revisão editorial vencida`);
-    if (entry.expiresAt && time(entry.expiresAt) <= time(entry.publishedAt)) issues.push(`${id}: expiração anterior à publicação`);
+    for (const [field, value] of [['publishedAt', entry.publishedAt], ['reviewedAt', entry.reviewedAt], ['reviewDueAt', entry.reviewDueAt], ['expiresAt', entry.expiresAt]] as const) {
+      if (value !== undefined && !validDate(value)) issues.push(`${id}: ${field} inválido`);
+    }
+    if (validDate(entry.reviewedAt) && validDate(entry.publishedAt) && entry.reviewedAt < entry.publishedAt) issues.push(`${id}: revisão anterior à publicação`);
+    if (validDate(entry.reviewDueAt) && entry.reviewDueAt <= current) issues.push(`${id}: revisão editorial vencida`);
+    if (entry.expiresAt && validDate(entry.expiresAt) && validDate(entry.publishedAt) && entry.expiresAt <= entry.publishedAt) issues.push(`${id}: expiração anterior à publicação`);
   }
   return issues;
 }

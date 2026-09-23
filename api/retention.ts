@@ -66,16 +66,22 @@ async function removeStorageObjects(baseUrl: string, secretKey: string, bucket: 
   if (!result.ok && result.status !== 404) throw new Error('storage_delete_failed');
 }
 
-function briefingAssetPaths(value: unknown): string[] {
+type StorageDeletionObject = { bucket: typeof PROPOSAL_BUCKET | typeof BRIEFING_ASSET_BUCKET; path: string };
+
+function storageDeletionObjects(value: unknown): StorageDeletionObject[] {
   if (!Array.isArray(value) || value.length > RETENTION_BATCH_SIZE) throw new Error('invalid_retention_candidates');
-  return Array.from(new Set(value.map((item) => {
+  const unique = new Map<string, StorageDeletionObject>();
+  value.forEach((item) => {
     if (!item || typeof item !== 'object' || Array.isArray(item)) throw new Error('invalid_retention_candidates');
     const record = item as { bucket?: unknown; path?: unknown };
-    if (record.bucket !== BRIEFING_ASSET_BUCKET || typeof record.path !== 'string' || !safeStoragePath(record.path)) {
+    if (![BRIEFING_ASSET_BUCKET, PROPOSAL_BUCKET].includes(String(record.bucket))
+      || typeof record.path !== 'string' || !safeStoragePath(record.path)) {
       throw new Error('invalid_retention_candidates');
     }
-    return record.path;
-  })));
+    const object = { bucket: record.bucket, path: record.path } as StorageDeletionObject;
+    unique.set(`${object.bucket}\0${object.path}`, object);
+  });
+  return Array.from(unique.values());
 }
 
 export default async function handler(request: ApiRequest, response: ApiResponse) {
@@ -133,14 +139,24 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       { p_batch_size: RETENTION_BATCH_SIZE },
       controller.signal,
     );
-    const assetPaths = briefingAssetPaths(briefingCandidates.objects);
-    if (assetPaths.length && !config.storageDeleteCredential) throw new Error('storage_delete_credential_not_configured');
-    await removeStorageObjects(config.url, config.storageDeleteCredential || '', BRIEFING_ASSET_BUCKET, assetPaths, controller.signal);
-    const briefingAssetsFinalized = await rpc<number>(
+    const storageObjects = storageDeletionObjects(briefingCandidates.objects);
+    if (storageObjects.length && !config.storageDeleteCredential) throw new Error('storage_delete_credential_not_configured');
+    for (const bucket of [BRIEFING_ASSET_BUCKET, PROPOSAL_BUCKET] as const) {
+      const paths = storageObjects.filter((object) => object.bucket === bucket).map((object) => object.path);
+      await removeStorageObjects(config.url, config.storageDeleteCredential || '', bucket, paths, controller.signal);
+    }
+    const storageFinalized = await rpc<{ assetsDeleted?: number; queueEntriesDeleted?: number }>(
       config.url,
       config.serviceCredential,
-      'finalize_briefing_asset_retention',
-      { p_storage_paths: assetPaths, p_batch_size: RETENTION_BATCH_SIZE },
+      'finalize_site_storage_retention',
+      { p_objects: storageObjects, p_batch_size: RETENTION_BATCH_SIZE },
+      controller.signal,
+    );
+    const auditLogsPurged = await rpc<{ writesDeleted?: number; ddlDeleted?: number }>(
+      config.url,
+      config.serviceCredential,
+      'purge_site_admin_audit_logs',
+      { p_retention_days: 400, p_batch_size: 1000 },
       controller.signal,
     );
     console.info('site_retention_completed', {
@@ -149,7 +165,10 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       contactsDeleted: Number(finalized.contactsDeleted || 0),
       notificationsDeleted: Number(finalized.notificationsDeleted || 0),
       archivedSelectionsDeleted: Number(archivedSelectionsDeleted || 0),
-      briefingAssetsFinalized: Number(briefingAssetsFinalized || 0),
+      briefingAssetsFinalized: Number(storageFinalized.assetsDeleted || 0),
+      storageQueueEntriesFinalized: Number(storageFinalized.queueEntriesDeleted || 0),
+      adminWriteAuditLogsPurged: Number(auditLogsPurged.writesDeleted || 0),
+      adminDdlAuditLogsPurged: Number(auditLogsPurged.ddlDeleted || 0),
     });
     response.status(200).json({ ok: true });
   } catch (error) {

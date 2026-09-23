@@ -117,4 +117,23 @@ describe('api/notification-events-resend (Etapa 30)', () => {
     const response = await handler.fetch(signedRequest({ type: 'email.delivered', data: { email_id: 'em_42' } }));
     expect(response.status).toBe(500);
   });
+
+  it('recusa timestamp de evento inválido sem chamar o banco', async () => {
+    configureEnv();
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const response = await handler.fetch(signedRequest({
+      type: 'email.delivered', created_at: 'não-é-data', data: { email_id: 'em_42' },
+    }));
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: 'invalid_event_timestamp' });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('recusa corpo acima de 256 KiB antes de verificar assinatura', async () => {
+    configureEnv();
+    const rawBody = JSON.stringify({ padding: 'x'.repeat(256 * 1024) });
+    const response = await handler.fetch(signedRequest({}, { rawBody, signature: 'inválida' }));
+    expect(response.status).toBe(413);
+  });
 });

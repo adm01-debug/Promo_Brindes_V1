@@ -119,6 +119,16 @@ describe('seleção para orçamento', () => {
     expect(updated.items[0]).not.toHaveProperty('kitGroupId');
   });
 
+  it('restaura atomicamente a composição original do kit ao desfazer uma remoção', () => {
+    const group = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    const first = { ...item, kitGroupId: group, kitName: 'Kit boas-vindas', kitQuantity: 100, unitsPerKit: 2, quantity: 200 };
+    const second = { ...item, key: '22222222-2222-4222-8222-222222222222::azul', productId: '22222222-2222-4222-8222-222222222222', kitGroupId: group, kitName: 'Kit boas-vindas', kitQuantity: 100, unitsPerKit: 1 };
+    const original = { items: [first, second], campaign: { source: 'finder' as const, moment: 'onboarding' as const }, selectionTitle: 'Integração' };
+    const removed = cartReducer(original, { type: 'remove', key: first.key });
+    expect(removed.items[0]).not.toHaveProperty('kitGroupId');
+    expect(cartReducer(removed, { type: 'restore-selection', state: original })).toEqual(original);
+  });
+
   it('substitui o moodboard por um orçamento anterior normalizado', () => {
     const previous = { ...item, quantity: 250 };
     expect(cartReducer({ items: [] }, { type: 'replace', items: [previous] }).items).toEqual([previous]);

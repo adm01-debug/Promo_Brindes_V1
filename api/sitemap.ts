@@ -36,8 +36,6 @@ const STATIC_PAGES = [
   { path: '/ideias/clientes-vip', changeFrequency: 'monthly', priority: '0.7' },
   { path: '/ideias/sustentaveis', changeFrequency: 'monthly', priority: '0.7' },
 ] as const;
-const CURATED_URL_COUNT = Object.keys(catalogPreviews).length + Object.keys(occasionPreviews).length;
-const MAX_PRODUCT_URLS = MAX_SITEMAP_URLS - STATIC_PAGES.length - CURATED_URL_COUNT;
 
 class CatalogHttpError extends Error {
   constructor(readonly status: number) {
@@ -88,11 +86,11 @@ function urlEntry(location: string, changeFrequency: string, priority: string, l
   ].filter(Boolean).join('\n');
 }
 
-async function fetchAllProducts(resource: string, apiKey: string): Promise<ProductSitemapRow[]> {
+async function fetchAllProducts(resource: string, apiKey: string, maxProductUrls: number): Promise<ProductSitemapRow[]> {
   const pageSize = 1000;
   const products: ProductSitemapRow[] = [];
-  for (let offset = 0; products.length < MAX_PRODUCT_URLS; offset += pageSize) {
-    const limit = Math.min(pageSize, MAX_PRODUCT_URLS - products.length);
+  for (let offset = 0; products.length < maxProductUrls; offset += pageSize) {
+    const limit = Math.min(pageSize, maxProductUrls - products.length);
     const params = new URLSearchParams({
       select: 'id,slug',
       is_active: 'eq.true',
@@ -135,17 +133,19 @@ export default async function handler(request: VercelRequest, response: VercelRe
   }
 
   const siteUrl = (process.env.VITE_PUBLIC_URL || FALLBACK_SITE_URL).replace(/\/$/, '');
+  const currentCatalogPreviews = catalogPreviews();
+  const maxProductUrls = MAX_SITEMAP_URLS - STATIC_PAGES.length - Object.keys(currentCatalogPreviews).length - Object.keys(occasionPreviews).length;
   const apiKey = publicApiKey(process.env.VITE_SUPABASE_PUBLISHABLE_KEY);
   const preferredResource = productResource(process.env.VITE_PRODUCT_CATALOG_RESOURCE);
   let products: ProductSitemapRow[] = [];
   let catalogAvailable = true;
 
   try {
-    products = await fetchAllProducts(preferredResource, apiKey);
+    products = await fetchAllProducts(preferredResource, apiKey, maxProductUrls);
   } catch (error) {
     if (preferredResource !== 'v_products_public' && error instanceof CatalogHttpError && error.status === 404) {
       try {
-        products = await fetchAllProducts('v_products_public', apiKey);
+        products = await fetchAllProducts('v_products_public', apiKey, maxProductUrls);
       } catch {
         catalogAvailable = false;
       }
@@ -166,7 +166,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
     urlEntry(`${siteUrl}${page.path}`, page.changeFrequency, page.priority));
   const currentYear = currentCampaignYear();
   const curatedEntries = [
-    ...Object.keys(catalogPreviews).map((id) =>
+    ...Object.keys(currentCatalogPreviews).map((id) =>
       urlEntry(`${siteUrl}/catalogos?colecao=${encodeURIComponent(id)}`, 'monthly', '0.7')),
     ...Object.keys(occasionPreviews).map((id) =>
       urlEntry(`${siteUrl}/datas-comemorativas?ano=${currentYear}&data=${encodeURIComponent(id)}`, 'yearly', '0.6')),

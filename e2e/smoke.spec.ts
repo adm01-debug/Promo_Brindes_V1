@@ -1147,15 +1147,19 @@ test('impressão mantém a seleção legível e gera PDF paginado', async ({ pag
   await expect(page.locator('.quote-item')).toHaveCount(8);
   await page.emulateMedia({ media: 'print' });
   await expect(page.locator('.quote-print-identity')).toBeVisible();
+  await expect(page.locator('.quote-print-summary')).toBeVisible();
   await expect(page.locator('.quote-form-section')).toBeHidden();
   await expect(page.locator('.quote-print-button')).toBeHidden();
   await expect(page.locator('.quote-item').first()).toBeVisible();
+  await expect(page.locator('.quote-item').first().locator('.quantity-control')).toBeHidden();
+  await expect(page.locator('.quote-item').first().locator('.quote-item__decision')).toBeHidden();
+  await expect(page.locator('.quote-item').first().locator('.quote-item__print-quantity')).toBeVisible();
   const printLayout = await page.locator('.quote-item').first().evaluate((element) => ({
     breakInside: getComputedStyle(element).breakInside,
     columns: getComputedStyle(element).gridTemplateColumns,
   }));
   expect(printLayout.breakInside).toBe('avoid');
-  expect(printLayout.columns.split(' ').length).toBeGreaterThanOrEqual(3);
+  expect(printLayout.columns.split(' ')).toHaveLength(3);
   const pdf = await page.pdf({ format: 'A4', printBackground: true });
   const pageObjects = pdf.toString('latin1').match(/\/Type\s*\/Page\b/g) || [];
   expect(pdf.byteLength).toBeGreaterThan(20_000);

@@ -77,7 +77,7 @@ function safeText(value: unknown, max: number): string {
 }
 
 class ProviderDeliveryError extends Error {
-  constructor(code: string, readonly retryAfterSeconds: number | null) {
+  constructor(code: string, readonly retryAfterSeconds: number | null, readonly definitiveRejection = true) {
     super(code);
   }
 }
@@ -178,7 +178,15 @@ function whatsappRecipient(phone: string): string {
   return digits.length >= 12 && digits.length <= 15 ? digits : '';
 }
 
-async function sendWhatsApp(job: NotificationJob, signal: AbortSignal): Promise<{ provider: string; id: string }> {
+interface WhatsAppRequestConfig {
+  token: string;
+  phoneNumberId: string;
+  template: string;
+  apiVersion: string;
+  to: string;
+}
+
+function whatsappRequestConfig(job: NotificationJob): WhatsAppRequestConfig {
   const token = process.env.WHATSAPP_ACCESS_TOKEN?.trim();
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID?.trim();
   const template = process.env.WHATSAPP_QUOTE_TEMPLATE?.trim();
@@ -187,13 +195,17 @@ async function sendWhatsApp(job: NotificationJob, signal: AbortSignal): Promise<
   if (!token || !/^\d{5,30}$/.test(phoneNumberId || '') || !/^[a-z0-9_]{2,120}$/.test(template || '') || !/^v\d{1,2}\.\d{1,2}$/.test(apiVersion || '') || !to) {
     throw new Error('whatsapp_provider_not_configured');
   }
-  const response = await fetch(`https://graph.facebook.com/${apiVersion}/${phoneNumberId}/messages`, {
+  return { token, phoneNumberId: phoneNumberId || '', template: template || '', apiVersion: apiVersion || '', to };
+}
+
+async function sendWhatsApp(job: NotificationJob, signal: AbortSignal, config = whatsappRequestConfig(job)): Promise<{ provider: string; id: string }> {
+  const response = await fetch(`https://graph.facebook.com/${config.apiVersion}/${config.phoneNumberId}/messages`, {
     method: 'POST', signal,
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    headers: { Authorization: `Bearer ${config.token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      messaging_product: 'whatsapp', to, type: 'template',
+      messaging_product: 'whatsapp', to: config.to, type: 'template',
       template: {
-        name: template, language: { code: 'pt_BR' },
+        name: config.template, language: { code: 'pt_BR' },
         components: [{ type: 'body', parameters: [
           { type: 'text', text: job.contactName }, { type: 'text', text: job.protocol }, { type: 'text', text: job.company },
         ] }],
@@ -203,7 +215,13 @@ async function sendWhatsApp(job: NotificationJob, signal: AbortSignal): Promise<
   const body = await response.json().catch(() => ({})) as { messages?: Array<{ id?: unknown }> };
   const id = body.messages?.[0]?.id;
   if (!response.ok || typeof id !== 'string') {
-    throw new ProviderDeliveryError(`whatsapp_provider_${response.status || 'invalid_response'}`, retryAfterSeconds(response));
+    // HTTP não-2xx confirma rejeição e permite retry. Já um 2xx sem ID deixa
+    // o aceite incerto: reenviar automaticamente poderia duplicar a mensagem.
+    throw new ProviderDeliveryError(
+      `whatsapp_provider_${response.status || 'invalid_response'}`,
+      retryAfterSeconds(response),
+      !response.ok,
+    );
   }
   return { provider: 'meta-whatsapp-cloud', id: id.slice(0, 240) };
 }
@@ -265,6 +283,22 @@ async function recordProviderAcceptance(job: NotificationJob, delivery: { provid
   }
 }
 
+async function recordWhatsAppDispatchStarted(job: NotificationJob, signal: AbortSignal): Promise<boolean> {
+  try {
+    return await rpc<boolean>('record_site_notification_dispatch_started', {
+      p_delivery_id: job.id,
+      p_lease_token: job.leaseToken,
+    }, signal);
+  } catch (error) {
+    logServerWarning('site_notification_dispatch_start_unconfirmed', {
+      requestId: job.requestId,
+      channel: job.channel,
+      errorClass: errorClass(error),
+    });
+    return false;
+  }
+}
+
 async function deliverJob(job: NotificationJob, signal: AbortSignal): Promise<DeliveryOutcome> {
   // Reconciliação: uma tentativa anterior já obteve aceite do provedor, mas
   // não concluiu a finalização. Não reenvia a mensagem — apenas finaliza.
@@ -274,9 +308,33 @@ async function deliverJob(job: NotificationJob, signal: AbortSignal): Promise<De
   }
 
   let delivery: { provider: string; id: string };
+  let whatsappConfig: WhatsAppRequestConfig | undefined;
+  if (job.channel === 'whatsapp') {
+    try {
+      // Valida tudo antes de gravar a intenção. Assim uma configuração ausente
+      // continua sendo uma falha recuperável sem colocar o job em revisão manual.
+      whatsappConfig = whatsappRequestConfig(job);
+    } catch (error) {
+      const code = error instanceof Error ? error.message : 'provider_error';
+      const confirmed = await tryFinalize(job, 'failed', signal, undefined, code);
+      return confirmed ? 'failed' : 'inconclusive';
+    }
+    // A Meta não oferece chave de idempotência. A intenção durável precede a
+    // chamada externa; se a resposta se perder, o banco bloqueia reenvio cego.
+    if (!await recordWhatsAppDispatchStarted(job, signal)) return 'inconclusive';
+  }
   try {
-    delivery = job.channel === 'email' ? await sendEmail(job, signal) : await sendWhatsApp(job, signal);
+    delivery = job.channel === 'email' ? await sendEmail(job, signal) : await sendWhatsApp(job, signal, whatsappConfig);
   } catch (error) {
+    if (job.channel === 'whatsapp'
+      && (!(error instanceof ProviderDeliveryError) || !error.definitiveRejection)) {
+      logServerWarning('site_notification_whatsapp_dispatch_uncertain', {
+        requestId: job.requestId,
+        channel: job.channel,
+        errorClass: errorClass(error),
+      });
+      return 'inconclusive';
+    }
     const code = error instanceof Error ? error.message : 'provider_error';
     const confirmed = await tryFinalize(job, 'failed', signal, undefined, code,
       error instanceof ProviderDeliveryError ? error.retryAfterSeconds : null);
@@ -293,6 +351,7 @@ interface ChannelQueueHealth {
   oldestEligibleAgeSeconds: number | null;
   eligibleCount: number;
   exhaustedCount: number;
+  uncertainCount?: number;
 }
 
 /** Etapa 29: sinal ativo de acúmulo ou job preso na fila, em vez de
@@ -315,13 +374,14 @@ async function reportQueueHealth(): Promise<void> {
     console.info('site_notifications_queue_health', { channels });
     for (const health of channels) {
       const stale = health.oldestEligibleAgeSeconds !== null && health.oldestEligibleAgeSeconds > QUEUE_AGE_ALERT_SECONDS;
-      if (stale || health.exhaustedCount > 0) {
+      if (stale || health.exhaustedCount > 0 || Number(health.uncertainCount || 0) > 0) {
         console.error('site_notifications_queue_alert', { ...health, ageAlertThresholdSeconds: QUEUE_AGE_ALERT_SECONDS });
         const alerted = await sendOperationalAlert('notification_queue_alert', {
           channel: health.channel,
           oldestEligibleAgeSeconds: health.oldestEligibleAgeSeconds,
           eligibleCount: health.eligibleCount,
           exhaustedCount: health.exhaustedCount,
+          uncertainCount: Number(health.uncertainCount || 0),
           ageAlertThresholdSeconds: QUEUE_AGE_ALERT_SECONDS,
         });
         if (process.env.OPERATIONS_ALERT_WEBHOOK_URL?.trim() && !alerted) {

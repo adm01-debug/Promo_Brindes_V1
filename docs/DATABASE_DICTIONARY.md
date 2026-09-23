@@ -1,6 +1,6 @@
 # Dicionário de dados — site_private (Etapa 35)
 
-Gerado por `npm run db:site:dictionary` a partir de `pg_description` no banco local, na versão do schema da migration mais recente (2026-09-22). Não editar à mão — a fonte de verdade é o comentário na migration (`comment on table`/`comment on column`); rode o script de novo depois de qualquer mudança de schema.
+Gerado por `npm run db:site:dictionary` a partir de `pg_description` no banco local, na versão do schema da migration mais recente (2026-09-23). Não editar à mão — a fonte de verdade é o comentário na migration (`comment on table`/`comment on column`); rode o script de novo depois de qualquer mudança de schema.
 
 ## Tabelas
 
@@ -117,6 +117,16 @@ Rascunhos privados do titular, sem preço nem estoque. A FK apaga ao excluir a c
 | `archived_at` | `timestamp with time zone` | — |
 | `created_at` | `timestamp with time zone` | — |
 | `updated_at` | `timestamp with time zone` | — |
+
+### `site_private.erased_customer_identities`
+
+Túmulos SHA-256 irreversíveis de identidades apagadas por solicitação LGPD; impedem a reapropriação posterior do histórico sem preservar o e-mail.
+
+| Coluna | Tipo | Comentário |
+|---|---|---|
+| `email_sha256` | `text` | SHA-256 hexadecimal do e-mail normalizado; nunca armazena o endereço original. |
+| `erased_at` | `timestamp with time zone` | — |
+| `auth_users_deleted` | `integer` | Maior quantidade de contas Auth removidas nas execuções idempotentes deste apagamento. |
 
 ### `site_private.notification_deliveries`
 
@@ -337,10 +347,11 @@ Fila mínima de objetos privados para remoção pela Storage API; não contém c
 | `create_site_shared_selection` | `p_items jsonb, p_management_token_hash text, p_identifier_hash text` | — |
 | `delete_my_briefing_asset` | `p_id uuid` | — |
 | `delete_my_selection` | `p_id uuid, p_expected_version integer` | — |
-| `erase_customer_data` | `p_email text` | Etapa 32: apagamento de titular (LGPD art. 18). Anonimiza quote_requests/contact_requests/customer_profiles em vez de apagar (preserva id/datas/protocolo para integridade referencial e evidência de conformidade); apaga proposal_documents (o PDF pode conter PII no conteúdo, não só nos metadados) e devolve os caminhos de Storage para o chamador limpar. Idempotente: reexecutar para o mesmo e-mail não reprocessa linhas já anonimizadas. Não cobre texto livre (message de contact_requests/quote_adjustment_requests) — sem análise de conteúdo não dá para distinguir PII digitada de conteúdo legítimo. |
+| `erase_customer_data` | `p_email text` | Apagamento administrativo idempotente: anonimiza registros e texto livre, enfileira blobs, registra tombstone SHA-256, remove Auth/sessões por cascade e impede novo claim do mesmo e-mail. |
 | `finalize_briefing_asset_retention` | `p_storage_paths text[], p_batch_size integer` | — |
 | `finalize_site_data_retention` | `p_quote_ids uuid[], p_storage_paths text[], p_batch_size integer` | — |
 | `finalize_site_notification_delivery` | `p_delivery_id uuid, p_lease_token uuid, p_status text, p_provider text, p_provider_message_id text, p_error_code text, p_retry_after_seconds integer` | Finaliza uma tentativa previamente reivindicada; exige o lease_token da reivindicação ativa (R04). Backoff exponencial com jitter via site_private.next_retry_at (Etapa 11); p_retry_after_seconds é só um piso opcional do provedor. |
+| `finalize_site_storage_retention` | `p_objects jsonb, p_batch_size integer` | Finaliza metadados somente depois que a API removeu, por bucket, todos os objetos privados informados. |
 | `get_briefing_asset_retention_candidates` | `p_batch_size integer` | — |
 | `get_my_briefing_asset_verification` | `p_id uuid` | — |
 | `get_my_proposal_document` | `p_proposal_id uuid` | Entrega o local de um documento somente ao cliente proprietário para assinatura server-side. |
@@ -353,6 +364,8 @@ Fila mínima de objetos privados para remoção pela Storage API; não contém c
 | `matches_my_briefing_asset_upload` | `p_path text, p_metadata jsonb` | Autoriza apenas o primeiro upload de uma reserva ainda não verificada; conteúdo validado não pode ser substituído pelo titular. |
 | `owns_my_briefing_asset_path` | `p_path text` | — |
 | `purge_archived_customer_selections` | `p_batch_size integer` | — |
+| `purge_site_admin_audit_logs` | `p_retention_days integer, p_batch_size integer` | Remove em lotes trilhas administrativas além da janela configurada; padrão 400 dias. |
+| `record_site_notification_dispatch_started` | `p_delivery_id uuid, p_lease_token uuid` | Persiste intenção WhatsApp antes da chamada externa; sem confirmação do marcador, a Meta não é chamada. Um envio incerto exige reconciliação humana e nunca é reenviado cegamente. |
 | `record_site_notification_provider_acceptance` | `p_delivery_id uuid, p_lease_token uuid, p_provider text, p_provider_message_id text` | Registra o aceite do provedor antes da finalização, para reconciliação em caso de falha na etapa seguinte (R01, R02). |
 | `request_my_quote_adjustment` | `p_request_id uuid, p_message text, p_client_request_id text` | Registra um pedido de ajuste somente para o titular autenticado da solicitação, mantendo o texto no schema privado. |
 | `revoke_site_shared_selection` | `p_token uuid, p_management_token_hash text, p_identifier_hash text` | — |

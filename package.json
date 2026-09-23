@@ -5,7 +5,7 @@
   "description": "Catálogo público B2B da Promo Brindes para curadoria e solicitação de orçamento.",
   "type": "module",
   "engines": {
-    "node": ">=22.13.0 <23"
+    "node": "22.x"
   },
   "packageManager": "npm@11.17.0",
   "scripts": {
@@ -13,6 +13,7 @@
     "lint": "eslint .",
     "build": "tsc -b && vite build",
     "check:performance-budget": "node scripts/check-performance-budget.mjs",
+    "smoke:deployment": "node scripts/smoke-deployment.mjs",
     "preview": "vite preview",
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",

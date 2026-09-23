@@ -13,6 +13,7 @@ export const MIGRATION_DIRS = ['site-supabase/supabase/migrations'];
 const NAME_PATTERN = /^(\d{14})_([a-z0-9_]+)\.sql$/;
 
 export function isValidCalendarTimestamp(digits) {
+  if (!/^\d{14}$/.test(digits)) return false;
   const year = Number(digits.slice(0, 4));
   const month = Number(digits.slice(4, 6));
   const day = Number(digits.slice(6, 8));
@@ -23,7 +24,13 @@ export function isValidCalendarTimestamp(digits) {
   if (day < 1 || day > 31) return false;
   if (hour > 23 || minute > 59 || second > 59) return false;
   if (year < 2020 || year > 2100) return false;
-  return true;
+  const candidate = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+  return candidate.getUTCFullYear() === year
+    && candidate.getUTCMonth() === month - 1
+    && candidate.getUTCDate() === day
+    && candidate.getUTCHours() === hour
+    && candidate.getUTCMinutes() === minute
+    && candidate.getUTCSeconds() === second;
 }
 
 /**

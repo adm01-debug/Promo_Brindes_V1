@@ -1,0 +1,105 @@
+name: Release isolated database then Vercel
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: production-release
+  cancel-in-progress: false
+
+permissions:
+  actions: read
+  checks: read
+  contents: read
+
+jobs:
+  release:
+    name: Verify DB migration, deploy and smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SUPABASE_PROJECT_REF: xlzmclcjdncjfdrjxclt
+      VERCEL_ORG_ID: team_QyN41X0q8hrqhW80AwokbFLv
+      VERCEL_PROJECT_ID: prj_LVKX7uhs1VhTjDDznD7KinvjgHXU
+      SMOKE_BASE_URL: https://promo-brindes-v1.vercel.app
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
+      - name: Wait for every protected main-branch gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          required=('validate' 'cross-browser' 'Migrations and pgTAP' 'Build structural Graphify map')
+          for attempt in $(seq 1 90); do
+            checks="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/check-runs?per_page=100")"
+            pending=0
+            for name in "${required[@]}"; do
+              conclusion="$(jq -r --arg name "$name" '[.check_runs[] | select(.name == $name)] | sort_by(.started_at) | last | .conclusion // "pending"' <<<"$checks")"
+              if [ "$conclusion" = failure ] || [ "$conclusion" = cancelled ] || [ "$conclusion" = timed_out ] || [ "$conclusion" = action_required ]; then
+                echo "::error::Gate '$name' terminou como '$conclusion'."
+                exit 1
+              fi
+              [ "$conclusion" = success ] || pending=1
+            done
+            [ "$pending" -eq 0 ] && break
+            if [ "$attempt" -eq 90 ]; then
+              echo "::error::Timeout aguardando os gates protegidos."
+              exit 1
+            fi
+            sleep 20
+          done
+      - name: Wait for the isolated Supabase migration ledger
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          test -n "$SUPABASE_ACCESS_TOKEN" || { echo '::error::SUPABASE_ACCESS_TOKEN ausente'; exit 1; }
+          find site-supabase/supabase/migrations -maxdepth 1 -type f -name '*.sql' -printf '%f\n' \
+            | sed -E 's/^([0-9]{14})_.*/\1/' | sort > expected-migration-versions.txt
+          query='{"query":"select version from supabase_migrations.schema_migrations order by version"}'
+          for attempt in $(seq 1 60); do
+            response="$(curl --silent --show-error --fail \
+              -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+              -H 'Content-Type: application/json' \
+              --data "$query" \
+              "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/database/query")"
+            jq -er '.[].version' <<<"$response" | sort > remote-migration-versions.txt
+            comm -3 expected-migration-versions.txt remote-migration-versions.txt > migration-ledger-drift.txt
+            if [ ! -s migration-ledger-drift.txt ]; then
+              break
+            fi
+            if [ "$attempt" -eq 60 ]; then
+              echo '::error::O ledger remoto não corresponde exatamente às migrations versionadas.'
+              sed 's/^/  /' migration-ledger-drift.txt
+              exit 1
+            fi
+            sleep 15
+          done
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.13.1
+          cache: npm
+      - name: Build the exact tested revision for production
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          test -n "$VERCEL_TOKEN" || { echo '::error::VERCEL_TOKEN ausente'; exit 1; }
+          npm install --global npm@11.17.0 vercel@59.5.0
+          npm ci
+          vercel pull --yes --environment=production --token "$VERCEL_TOKEN"
+          vercel build --prod --token "$VERCEL_TOKEN"
+          vercel deploy --prebuilt --prod --token "$VERCEL_TOKEN" | tee deployment-url.txt
+      - name: Validate the promoted production deployment
+        run: npm run smoke:deployment | tee deployment-smoke.log
+      - name: Upload release evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: production-release-${{ github.sha }}
+          path: |
+            deployment-url.txt
+            deployment-smoke.log
+            expected-migration-versions.txt
+            remote-migration-versions.txt
+            migration-ledger-drift.txt
+          if-no-files-found: warn
+          retention-days: 90
