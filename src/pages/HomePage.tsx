@@ -31,7 +31,8 @@ import { ProductCard } from '../components/ProductCard';
 import { SearchAutocomplete } from '../components/SearchAutocomplete';
 import { Seo } from '../components/Seo';
 import { trackFunnelEvent } from '../lib/analytics';
-import { useCatalog, useCategories } from '../lib/hooks';
+import { categoryQueryIds } from '../lib/catalogFilters';
+import { useAllCategories, useCatalog, useCategories } from '../lib/hooks';
 import type { Category } from '../types';
 
 const PUBLIC_SITE_URL =
@@ -50,9 +51,47 @@ const categoryIcons: Array<{ match: RegExp; icon: ReactNode; label: string }> = 
 
 function curatedCategories(categories: Category[]) {
   return categoryIcons.flatMap((item) => {
-    const category = categories.find((candidate) => item.match.test(candidate.name));
+    const category = categories.find((candidate) => candidate.parentId === null && item.match.test(candidate.name));
     return category ? [{ ...item, category }] : [];
   });
+}
+
+function CategoryPhotoCard({
+  category,
+  allCategories,
+  icon,
+  label,
+  index,
+}: {
+  category: Category;
+  allCategories: Category[];
+  icon: ReactNode;
+  label: string;
+  index: number;
+}) {
+  // A imagem vem de um produto publicado da própria categoria; não é um banco
+  // genérico de fotos nem uma promessa de disponibilidade daquele item.
+  const preview = useCatalog({
+    pageSize: 1,
+    categoryIds: categoryQueryIds(allCategories, [category.id]),
+    sort: 'curated',
+  }, 0, allCategories.length > 0);
+  const product = preview.data.products[0];
+
+  return (
+    <Link
+      className={`category-card category-card--photo category-card--${(index % 4) + 1}`}
+      to={`/catalogo?categoria=${category.id}&nome=${encodeURIComponent(label)}`}
+    >
+      {product && <img className="category-card__photo" src={product.imageUrl} alt="" width="560" height="560" loading="lazy" decoding="async" referrerPolicy="no-referrer" />}
+      <span className="category-card__photo-veil" aria-hidden="true" />
+      <span className="category-card__number">0{index + 1}</span>
+      <span className="category-card__icon">{icon}</span>
+      <span className="category-card__label">{label}</span>
+      <span className="category-card__caption">{product ? 'Ver produtos' : 'Explorar categoria'}</span>
+      <ChevronRight className="category-card__arrow" />
+    </Link>
+  );
 }
 
 export default function HomePage() {
@@ -61,6 +100,7 @@ export default function HomePage() {
   const [featuredRetryKey, setFeaturedRetryKey] = useState(0);
   const navigate = useNavigate();
   const categories = useCategories(categoryRetryKey);
+  const allCategories = useAllCategories(categoryRetryKey);
   const featured = useCatalog({ pageSize: 8, profile: 'featured', sort: 'curated' }, featuredRetryKey);
   const categoryNameById = useMemo(
     () => new Map(categories.data.map((category) => [category.id, category.name])),
@@ -266,16 +306,7 @@ export default function HomePage() {
               : categories.loading
               ? Array.from({ length: 8 }, (_, index) => <div key={index} className="category-card category-card--loading" />)
               : homepageCategories.map(({ category, icon, label }, index) => (
-                  <Link
-                    key={category.id}
-                    className={`category-card category-card--${(index % 4) + 1}`}
-                    to={`/catalogo?categoria=${category.id}&nome=${encodeURIComponent(label)}`}
-                  >
-                    <span className="category-card__number">0{index + 1}</span>
-                    <span className="category-card__icon">{icon}</span>
-                    <span className="category-card__label">{label}</span>
-                    <ChevronRight className="category-card__arrow" />
-                  </Link>
+                  <CategoryPhotoCard key={category.id} category={category} allCategories={allCategories.data} icon={icon} label={label} index={index} />
                 ))}
           </div>
         </div>

@@ -9,6 +9,7 @@ erDiagram
   consent_receipts
   contact_requests
   customer_briefing_assets
+  customer_occasion_favorites
   customer_profiles
   customer_selections
   erased_customer_identities
@@ -28,6 +29,7 @@ erDiagram
   consent_receipts }o--|| quote_requests : references
   customer_briefing_assets }o--|| users : references
   customer_briefing_assets }o--|| quote_requests : references
+  customer_occasion_favorites }o--|| users : references
   customer_profiles }o--|| users : references
   customer_selections }o--|| users : references
   notification_deliveries }o--|| notification_provider_events : references

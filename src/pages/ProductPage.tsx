@@ -21,14 +21,15 @@ import { ContextualFaq } from '../components/ContextualFaq';
 import { Seo } from '../components/Seo';
 import { useQuoteCart } from '../context/quoteCart';
 import { defaultQuoteQuantity } from '../lib/catalog';
+import { rankRelatedProducts } from '../lib/catalogRanking';
 import { trackFunnelEvent } from '../lib/analytics';
 import { useCatalog, useCategories, useProduct } from '../lib/hooks';
 import { replaceBrokenProductImage } from '../lib/images';
 import type { CatalogProduct, ProductColor } from '../types';
 
 function RelatedProducts({ product }: { product: CatalogProduct }) {
-  const related = useCatalog({ pageSize: 5, categoryId: product.mainCategoryId || undefined, sort: 'curated' });
-  const products = related.data.products.filter((item) => item.id !== product.id).slice(0, 4);
+  const related = useCatalog({ pageSize: 24, categoryId: product.mainCategoryId || undefined, sort: 'curated' });
+  const products = rankRelatedProducts(related.data.products, product).slice(0, 4);
   if (related.loading) return <ProductGridSkeleton count={4} />;
   if (related.error || products.length === 0) return null;
   return <div className="product-grid">{products.map((item) => <ProductCard key={item.id} product={item} />)}</div>;

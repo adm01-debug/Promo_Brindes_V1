@@ -142,6 +142,7 @@ export type Database = {
         Returns: Json
       }
       list_my_briefing_assets: { Args: never; Returns: Json }
+      list_my_occasion_favorites: { Args: never; Returns: Json }
       list_my_selections: {
         Args: { p_include_archived?: boolean }
         Returns: Json
@@ -199,6 +200,10 @@ export type Database = {
           p_references: Json
           p_title: string
         }
+        Returns: Json
+      }
+      set_my_occasion_favorite: {
+        Args: { p_occasion_id: string; p_saved: boolean }
         Returns: Json
       }
       set_my_selection_archived: {
@@ -433,6 +438,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      customer_occasion_favorites: {
+        Row: {
+          created_at: string
+          customer_user_id: string
+          occasion_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_user_id: string
+          occasion_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_user_id?: string
+          occasion_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       customer_profiles: {
         Row: {

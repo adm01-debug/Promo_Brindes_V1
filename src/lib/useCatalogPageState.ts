@@ -22,6 +22,7 @@ import {
   type ProfileParam,
 } from './catalogFilters';
 import { loadCatalogComparison, saveCatalogComparison } from './catalogComparison';
+import { rankCatalogProducts } from './catalogRanking';
 import { useAllCategories, useCatalog } from './hooks';
 import { suggestSearchCorrection } from './search';
 import { useQuoteCart } from '../context/quoteCart';
@@ -67,6 +68,10 @@ export function useCatalogPageState() {
   const [comparisonExpanded, setComparisonExpanded] = useState(() => typeof window === 'undefined' || window.innerWidth > 760);
   const [comparisonNotice, setComparisonNotice] = useState('');
   const comparisonControlRefs = useRef(new Map<string, HTMLButtonElement>());
+  // Uma revalidação anterior pode terminar depois de uma inclusão mais recente.
+  // Sem este contador, a resposta menor (ex.: 1 item) removia silenciosamente
+  // os itens 2 e 3 que a pessoa acabou de colocar na comparação.
+  const comparisonRefreshEpochRef = useRef(0);
   const mobileTriggerRef = useRef<HTMLButtonElement>(null);
   const mobileDialogRef = useRef<HTMLDivElement>(null);
   const mobileCloseRef = useRef<HTMLButtonElement>(null);
@@ -99,6 +104,14 @@ export function useCatalogPageState() {
     ? categories.error || (campaignCategoryMissing ? 'Não foi possível localizar a categoria de tecnologia neste momento.' : catalog.error)
     : catalog.error;
   const catalogLoading = !catalogError && ((campaignNeedsCategories && categories.loading) || catalog.loading);
+  const rankedCatalogProducts = useMemo(() => rankCatalogProducts(catalog.data.products, {
+    query,
+    campaign: campaignSelection,
+  }), [campaignSelection, catalog.data.products, query]);
+  const rankedCatalog = useMemo(() => ({
+    ...catalog,
+    data: { ...catalog.data, products: rankedCatalogProducts },
+  }), [catalog, rankedCatalogProducts]);
   const categoryNameById = useMemo(() => new Map(categories.data.map((item) => [item.id, item.name])), [categories.data]);
   const selectedCategoryId = selectedCategoryIds[0];
   const selectedCategoryName = selectedCategoryIds.length === 1 && selectedCategoryId ? categoryNameById.get(selectedCategoryId) || categoryNameParam : '';
@@ -121,18 +134,31 @@ export function useCatalogPageState() {
   useEffect(() => {
     if (!comparisonIds) return;
     const controller = new AbortController();
+    const requestEpoch = ++comparisonRefreshEpochRef.current;
     void fetchProductsByIds(comparisonIds.split(',').filter(Boolean), controller.signal)
       .then((available) => {
+        if (comparisonRefreshEpochRef.current !== requestEpoch) return;
         const byId = new Map(available.map((product) => [product.id, product]));
         setComparison((current) => {
+          // A checagem dentro do setter cobre a janela entre a resposta HTTP e
+          // a atualização de estado concorrente do React.
+          if (current.map((product) => product.id).sort().join(',') !== comparisonIds) return current;
           const next = current.flatMap((product) => byId.has(product.id) ? [byId.get(product.id)!] : []);
           const missing = current.length - next.length;
           setComparisonNotice(missing ? `${missing === 1 ? 'Uma referência não está mais ativa e foi retirada da comparação.' : `${missing} referências não estão mais ativas e foram retiradas da comparação.`}` : '');
           return next;
         });
       })
-      .catch(() => setComparisonNotice('Não foi possível atualizar as referências agora; os dados exibidos são o último retrato salvo.'));
-    return () => controller.abort();
+      .catch(() => {
+        if (comparisonRefreshEpochRef.current === requestEpoch && !controller.signal.aborted) {
+          setComparisonNotice('Não foi possível atualizar as referências agora; os dados exibidos são o último retrato salvo.');
+        }
+      });
+    return () => {
+      controller.abort();
+      // Invalida callbacks que já tenham passado pela camada de fetch.
+      if (comparisonRefreshEpochRef.current === requestEpoch) comparisonRefreshEpochRef.current += 1;
+    };
   }, [comparisonIds]);
   useEffect(() => {
     if (!catalog.data.products.length) return;
@@ -240,7 +266,7 @@ export function useCatalogPageState() {
   };
 
   return {
-    activeFilterCount, campaignCount, catalog, catalogError, catalogLoading, categoryNameById, clearAll, clearComparison, comparison,
+    activeFilterCount, campaignCount, catalog: rankedCatalog, catalogError, catalogLoading, categoryNameById, clearAll, clearComparison, comparison,
     comparisonControlRefs, comparisonExpanded, comparisonNotice, effectiveColors, effectiveMaterials, filterPanelProfile, filterPanelProps,
     giftPackaging, mobileCloseRef, mobileDialogRef, mobileFiltersOpen, mobileTriggerRef, page, personalizable, profile,
     profileWasExplicitlySet, query, removeCampaignFilter, removeComparison, searchCorrection, searchInput, selectedCampaignLabels,

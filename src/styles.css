@@ -4377,6 +4377,56 @@ p {
   letter-spacing: -0.04em;
 }
 
+/* A fotografia é sempre de um produto publicado da categoria. Texto e ação
+   preservam contraste mesmo quando a imagem não carrega. */
+.category-card--photo {
+  isolation: isolate;
+  color: #fff;
+  background: var(--ink);
+}
+
+.category-card__photo,
+.category-card__photo-veil {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.category-card__photo {
+  object-fit: cover;
+  opacity: 0.92;
+  transition: transform 350ms ease;
+}
+
+.category-card__photo-veil {
+  z-index: -1;
+  background: linear-gradient(145deg, rgb(8 12 10 / 0.22), rgb(8 12 10 / 0.9) 84%);
+}
+
+.category-card--photo .category-card__number,
+.category-card--photo .category-card__label { color: #fff; }
+
+.category-card--photo .category-card__icon {
+  color: var(--ink);
+  background: var(--acid);
+}
+
+.category-card--photo .category-card__arrow { color: #fff; }
+
+.category-card__caption {
+  position: absolute;
+  right: 48px;
+  bottom: 25px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.category-card--photo:hover .category-card__photo { transform: scale(1.06); }
+
 .featured-section {
   background: var(--paper);
 }
