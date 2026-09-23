@@ -35,7 +35,33 @@ export const TOTAL_TIME_BUDGET_MS = OVERALL_TIME_BUDGET_MS + QUEUE_HEALTH_TIMEOU
 export const QUEUE_AGE_ALERT_SECONDS = 45 * 60;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-interface NotificationItem { name: string; sku: string; quantity: number; colorName?: string | null }
+interface NotificationItem {
+  name: string;
+  sku: string;
+  quantity: number;
+  colorName?: string | null;
+  decisionGroup?: 'primary' | 'alternative';
+  kitGroupId?: string | null;
+  kitName?: string | null;
+  kitQuantity?: number | null;
+  unitsPerKit?: number | null;
+}
+interface NotificationCampaign {
+  moment?: 'onboarding' | 'evento' | 'relacionamento' | 'reconhecimento' | 'sazonal';
+  audience?: 'clientes' | 'colaboradores' | 'lideranca' | 'parceiros' | 'publico-evento';
+  scale?: 'ate-50' | '51-200' | '201-500' | '500-mais';
+  mood?: 'util' | 'premium' | 'sustentavel' | 'tech' | 'afetivo' | 'divertido';
+  occasion?: { name: string; date?: string };
+}
+interface NotificationBriefing {
+  actionName?: string;
+  budgetRange?: 'ate-25' | '26-50' | '51-100' | '101-200' | 'acima-200' | 'a-definir';
+  budgetScope?: 'por-pessoa' | 'total';
+  eventDate?: string;
+  deadlineFlexibility?: 'flexivel' | 'data-fixa';
+  responseChannel?: 'whatsapp' | 'email' | 'telefone' | 'sem-preferencia';
+  brandAssetStatus?: 'logo-pronto' | 'identidade-em-criacao' | 'preciso-de-ajuda';
+}
 interface NotificationJob {
   id: string;
   leaseToken: string;
@@ -52,6 +78,9 @@ interface NotificationJob {
   company: string;
   submittedAt: string;
   items: NotificationItem[];
+  desiredDeadline?: string | null;
+  campaign?: NotificationCampaign;
+  briefing?: NotificationBriefing;
 }
 
 /** Resultado de uma tentativa de entrega. 'inconclusive' cobre tanto uma falha
@@ -74,6 +103,49 @@ function matchesSecret(authorization: string, secret: string): boolean {
 
 function safeText(value: unknown, max: number): string {
   return typeof value === 'string' ? value.replace(/[\r\n]+/g, ' ').trim().slice(0, max) : '';
+}
+
+function safeDate(value: unknown): string | undefined {
+  const date = safeText(value, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return undefined;
+  const parsed = new Date(`${date}T00:00:00.000Z`);
+  return Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== date ? undefined : date;
+}
+
+function safeEnum<Value extends string>(value: unknown, values: readonly Value[]): Value | undefined {
+  return typeof value === 'string' && values.includes(value as Value) ? value as Value : undefined;
+}
+
+function safeCampaign(value: unknown): NotificationCampaign | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const raw = value as Record<string, unknown>;
+  const occasionRaw = raw.occasion;
+  const occasion = occasionRaw && typeof occasionRaw === 'object' && !Array.isArray(occasionRaw)
+    ? { name: safeText((occasionRaw as Record<string, unknown>).name, 120), date: safeDate((occasionRaw as Record<string, unknown>).date) }
+    : undefined;
+  const result: NotificationCampaign = {
+    moment: safeEnum(raw.moment, ['onboarding', 'evento', 'relacionamento', 'reconhecimento', 'sazonal']),
+    audience: safeEnum(raw.audience, ['clientes', 'colaboradores', 'lideranca', 'parceiros', 'publico-evento']),
+    scale: safeEnum(raw.scale, ['ate-50', '51-200', '201-500', '500-mais']),
+    mood: safeEnum(raw.mood, ['util', 'premium', 'sustentavel', 'tech', 'afetivo', 'divertido']),
+    ...(occasion?.name ? { occasion } : {}),
+  };
+  return Object.keys(result).length ? result : undefined;
+}
+
+function safeBriefing(value: unknown): NotificationBriefing | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const raw = value as Record<string, unknown>;
+  const result: NotificationBriefing = {
+    actionName: safeText(raw.actionName, 100) || undefined,
+    budgetRange: safeEnum(raw.budgetRange, ['ate-25', '26-50', '51-100', '101-200', 'acima-200', 'a-definir']),
+    budgetScope: safeEnum(raw.budgetScope, ['por-pessoa', 'total']),
+    eventDate: safeDate(raw.eventDate),
+    deadlineFlexibility: safeEnum(raw.deadlineFlexibility, ['flexivel', 'data-fixa']),
+    responseChannel: safeEnum(raw.responseChannel, ['whatsapp', 'email', 'telefone', 'sem-preferencia']),
+    brandAssetStatus: safeEnum(raw.brandAssetStatus, ['logo-pronto', 'identidade-em-criacao', 'preciso-de-ajuda']),
+  };
+  return Object.values(result).some(Boolean) ? result : undefined;
 }
 
 class ProviderDeliveryError extends Error {
@@ -109,9 +181,16 @@ function parseJobs(value: unknown): NotificationJob[] {
       if (!rawItem || typeof rawItem !== 'object') throw new Error('invalid_notification_item');
       const item = rawItem as Record<string, unknown>;
       if (!Number.isInteger(item.quantity) || Number(item.quantity) < 1) throw new Error('invalid_notification_item');
+      const kitGroupId = safeText(item.kitGroupId, 36) || null;
+      const kitName = safeText(item.kitName, 100) || null;
+      const kitQuantity = Number.isInteger(item.kitQuantity) && Number(item.kitQuantity) > 0 ? Number(item.kitQuantity) : null;
+      const unitsPerKit = Number.isInteger(item.unitsPerKit) && Number(item.unitsPerKit) > 0 ? Number(item.unitsPerKit) : null;
+      const completeKit = kitGroupId && kitName && kitQuantity && unitsPerKit;
       return {
         name: safeText(item.name, 240), sku: safeText(item.sku, 120), quantity: Number(item.quantity),
         colorName: safeText(item.colorName, 120) || null,
+        decisionGroup: safeEnum(item.decisionGroup, ['primary', 'alternative']),
+        ...(completeKit ? { kitGroupId, kitName, kitQuantity, unitsPerKit } : {}),
       };
     });
     return {
@@ -122,6 +201,9 @@ function parseJobs(value: unknown): NotificationJob[] {
       attempt: Number(job.attempt), protocol: safeText(job.protocol, 40), recipientEmail: safeText(job.recipientEmail, 160).toLowerCase(),
       recipientPhone: safeText(job.recipientPhone, 24), contactName: safeText(job.contactName, 100),
       company: safeText(job.company, 150), submittedAt: safeText(job.submittedAt, 50), items,
+      desiredDeadline: safeDate(job.desiredDeadline) || null,
+      campaign: safeCampaign(job.campaign),
+      briefing: safeBriefing(job.briefing),
     };
   });
 }
@@ -146,20 +228,75 @@ function publicAccountUrl(): string {
   try { return `${new URL(origin).origin}/minha-conta`; } catch { return ''; }
 }
 
+function localizedDate(value?: string | null): string | undefined {
+  const valid = safeDate(value);
+  return valid ? new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC', dateStyle: 'long' }).format(new Date(`${valid}T12:00:00.000Z`)) : undefined;
+}
+
+const campaignLabels = {
+  moment: { onboarding: 'Onboarding', evento: 'Evento', relacionamento: 'Relacionamento', reconhecimento: 'Reconhecimento', sazonal: 'Data especial' },
+  audience: { clientes: 'Clientes', colaboradores: 'Colaboradores', lideranca: 'Liderança', parceiros: 'Parceiros', 'publico-evento': 'Público de evento' },
+  scale: { 'ate-50': 'Até 50 pessoas', '51-200': '51–200 pessoas', '201-500': '201–500 pessoas', '500-mais': '500+ pessoas' },
+  mood: { util: 'Útil', premium: 'Premium', sustentavel: 'Sustentável', tech: 'Tech', afetivo: 'Afetivo', divertido: 'Divertido' },
+} as const;
+
+const briefingLabels = {
+  budgetRange: { 'ate-25': 'Até R$ 25', '26-50': 'De R$ 26 a R$ 50', '51-100': 'De R$ 51 a R$ 100', '101-200': 'De R$ 101 a R$ 200', 'acima-200': 'Acima de R$ 200', 'a-definir': 'Verba a definir' },
+  budgetScope: { 'por-pessoa': 'por pessoa', total: 'no total da ação' },
+  deadlineFlexibility: { flexivel: 'Recebimento com data flexível', 'data-fixa': 'Recebimento em data fixa' },
+  responseChannel: { whatsapp: 'Contato por WhatsApp', email: 'Contato por e-mail', telefone: 'Contato por telefone', 'sem-preferencia': 'Sem preferência de contato' },
+  brandAssetStatus: { 'logo-pronto': 'Logo pronto para compartilhar', 'identidade-em-criacao': 'Identidade visual em criação', 'preciso-de-ajuda': 'Preciso de ajuda com o direcionamento visual' },
+} as const;
+
+function confirmationContext(job: NotificationJob): string[] {
+  const campaign = job.campaign;
+  const briefing = job.briefing;
+  return [
+    job.desiredDeadline ? `Recebimento desejado: ${localizedDate(job.desiredDeadline)}` : '',
+    campaign?.occasion?.name ? `Data especial: ${campaign.occasion.name}${localizedDate(campaign.occasion.date) ? ` (${localizedDate(campaign.occasion.date)})` : ''}` : '',
+    campaign?.moment ? campaignLabels.moment[campaign.moment] : '',
+    campaign?.audience ? campaignLabels.audience[campaign.audience] : '',
+    campaign?.scale ? campaignLabels.scale[campaign.scale] : '',
+    campaign?.mood ? campaignLabels.mood[campaign.mood] : '',
+    briefing?.actionName ? `Ação: ${briefing.actionName}` : '',
+    briefing?.budgetRange ? `${briefingLabels.budgetRange[briefing.budgetRange]}${briefing.budgetScope ? ` ${briefingLabels.budgetScope[briefing.budgetScope]}` : ''}` : '',
+    briefing?.eventDate ? `Evento em ${localizedDate(briefing.eventDate)}` : '',
+    briefing?.deadlineFlexibility ? briefingLabels.deadlineFlexibility[briefing.deadlineFlexibility] : '',
+    briefing?.responseChannel ? briefingLabels.responseChannel[briefing.responseChannel] : '',
+    briefing?.brandAssetStatus ? briefingLabels.brandAssetStatus[briefing.brandAssetStatus] : '',
+  ].filter((value): value is string => Boolean(value));
+}
+
+function itemDescription(item: NotificationItem): string {
+  const details = [
+    `${item.quantity.toLocaleString('pt-BR')} un.`,
+    item.name,
+    `cód. ${item.sku}`,
+    item.colorName || '',
+    item.decisionGroup === 'alternative' ? 'alternativa para comparar' : '',
+    item.kitName && item.kitQuantity && item.unitsPerKit ? `kit ${item.kitName}: ${item.kitQuantity.toLocaleString('pt-BR')} kits × ${item.unitsPerKit} un.` : '',
+  ].filter(Boolean);
+  return details.join(' · ');
+}
+
 async function sendEmail(job: NotificationJob, signal: AbortSignal): Promise<{ provider: string; id: string }> {
   const apiKey = process.env.RESEND_API_KEY?.trim();
   const from = safeText(process.env.SITE_EMAIL_FROM, 200);
   if (!apiKey || !from || !job.recipientEmail.includes('@')) throw new Error('email_provider_not_configured');
-  const itemLines = job.items.map((item) => `${item.quantity.toLocaleString('pt-BR')} un. · ${item.name} · cód. ${item.sku}${item.colorName ? ` · ${item.colorName}` : ''}`);
+  const itemLines = job.items.map(itemDescription);
+  const contextLines = confirmationContext(job);
   const accountUrl = publicAccountUrl();
   const text = [
     `Olá, ${job.contactName}.`, '', `Recebemos a solicitação #${job.protocol} para ${job.company}.`, '',
-    ...itemLines.map((line) => `• ${line}`), '',
+    ...itemLines.map((line) => `• ${line}`),
+    ...(contextLines.length ? ['Contexto registrado:', ...contextLines.map((line) => `• ${line}`)] : []),
+    '', 'As observações livres e os dados de contato ficam apenas na área privada para preservar sua privacidade.',
     'Nosso time de especialistas vai analisar o briefing e conversar com você antes de qualquer decisão.',
     accountUrl ? `Acompanhe em: ${accountUrl}` : '', '', 'Promo Brindes · Conectando Marcas e Pessoas',
   ].filter(Boolean).join('\n');
-  const itemHtml = job.items.map((item) => `<li><strong>${item.quantity.toLocaleString('pt-BR')} un.</strong> · ${html(item.name)} · cód. ${html(item.sku)}${item.colorName ? ` · ${html(item.colorName)}` : ''}</li>`).join('');
-  const emailHtml = `<div style="font-family:Arial,sans-serif;color:#151515;line-height:1.55"><p>Olá, ${html(job.contactName)}.</p><h1 style="font-size:24px">Recebemos sua solicitação.</h1><p>Protocolo <strong>#${html(job.protocol)}</strong> · ${html(job.company)}</p><ul>${itemHtml}</ul><p>Nosso time de especialistas vai analisar o briefing e conversar com você antes de qualquer decisão.</p>${accountUrl ? `<p><a href="${html(accountUrl)}">Acompanhar meus orçamentos</a></p>` : ''}<p><strong>Promo Brindes</strong><br>Conectando Marcas e Pessoas</p></div>`;
+  const itemHtml = job.items.map((item) => `<li>${html(itemDescription(item))}</li>`).join('');
+  const contextHtml = contextLines.length ? `<h2 style="font-size:18px">Contexto registrado</h2><ul>${contextLines.map((line) => `<li>${html(line)}</li>`).join('')}</ul>` : '';
+  const emailHtml = `<div style="font-family:Arial,sans-serif;color:#151515;line-height:1.55"><p>Olá, ${html(job.contactName)}.</p><h1 style="font-size:24px">Recebemos sua solicitação.</h1><p>Protocolo <strong>#${html(job.protocol)}</strong> · ${html(job.company)}</p><h2 style="font-size:18px">Seleção enviada</h2><ul>${itemHtml}</ul>${contextHtml}<p>As observações livres e os dados de contato ficam apenas na área privada para preservar sua privacidade.</p><p>Nosso time de especialistas vai analisar o briefing e conversar com você antes de qualquer decisão.</p>${accountUrl ? `<p><a href="${html(accountUrl)}">Acompanhar meus orçamentos</a></p>` : ''}<p><strong>Promo Brindes</strong><br>Conectando Marcas e Pessoas</p></div>`;
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST', signal,
     headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json', 'Idempotency-Key': `quote-${job.requestId}-customer-email` },

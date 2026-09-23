@@ -32,7 +32,10 @@ const emailJob = {
   requestId: '22222222-2222-4222-8222-222222222222',
   channel: 'email', attempt: 1, protocol: '22222222', recipientEmail: 'cliente@example.test',
   recipientPhone: '(11) 99999-9999', contactName: 'Ana & Cia', company: 'Marca <Teste>',
-  submittedAt: '2026-09-12T12:00:00Z', items: [{ name: 'Mochila <Premium>', sku: 'MO-1', quantity: 100, colorName: 'Azul' }],
+  submittedAt: '2026-09-12T12:00:00Z', desiredDeadline: '2026-10-20',
+  campaign: { moment: 'onboarding', audience: 'clientes', occasion: { name: 'Dia do Cliente <Especial>', date: '2026-09-15' } },
+  briefing: { actionName: 'Marca <Teste>', budgetRange: '51-100', budgetScope: 'por-pessoa', responseChannel: 'whatsapp' },
+  items: [{ name: 'Mochila <Premium>', sku: 'MO-1', quantity: 100, colorName: 'Azul', decisionGroup: 'alternative', kitGroupId: '33333333-3333-4333-8333-333333333333', kitName: 'Boas-vindas <2026>', kitQuantity: 100, unitsPerKit: 1 }],
 };
 
 // A finalização e o registro de aceite do provedor caem aqui quando um teste
@@ -98,6 +101,10 @@ describe('worker de comprovantes do orçamento', () => {
     expect(resendPayload.html).toContain('Ana &amp; Cia');
     expect(resendPayload.html).toContain('Marca &lt;Teste&gt;');
     expect(resendPayload.html).not.toContain('Mochila <Premium>');
+    expect(resendPayload.html).toContain('alternativa para comparar');
+    expect(resendPayload.html).toContain('kit Boas-vindas &lt;2026&gt;: 100 kits × 1 un.');
+    expect(resendPayload.html).toContain('Dia do Cliente &lt;Especial&gt;');
+    expect(resendPayload.html).toContain('As observações livres e os dados de contato ficam apenas na área privada');
     expect(resendCall?.[1]?.headers).toMatchObject({ 'Idempotency-Key': `quote-${emailJob.requestId}-customer-email` });
     const acceptanceCall = fetchMock.mock.calls.find(([url]) => String(url).includes('/record_site_notification_provider_acceptance'));
     expect(JSON.parse(String(acceptanceCall?.[1]?.body))).toMatchObject({ p_delivery_id: emailJob.id, p_lease_token: emailJob.leaseToken, p_provider: 'resend', p_provider_message_id: 'email-provider-1' });

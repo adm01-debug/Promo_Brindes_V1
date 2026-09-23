@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(41);
+select plan(47);
 
 select has_column('site_private', 'notification_deliveries', 'next_attempt_at', 'fila possui agenda de nova tentativa');
 select has_column('site_private', 'notification_deliveries', 'lease_token', 'fila identifica a reivindicação ativa (R04)');
@@ -28,15 +28,17 @@ select is(
       'source', 'site-promo-brindes', 'clientRequestId', 'notification-outbox-quote-1', 'submittedAt', now(),
       'pageUrl', 'https://promo.test/orcamento',
       'consent', jsonb_build_object('accepted', true, 'noticeVersion', '2026-09-08', 'acceptedAt', now()),
-      'contact', jsonb_build_object('name', 'Cliente Fila', 'company', 'Empresa Fila', 'email', 'fila@example.test', 'phone', '(11) 99999-9999', 'city', '', 'deadline', '', 'notes', ''),
+      'contact', jsonb_build_object('name', 'Cliente Fila', 'company', 'Empresa Fila', 'email', 'fila@example.test', 'phone', '(11) 99999-9999', 'city', '', 'deadline', '2026-12-20', 'notes', 'Observação privada que não pode sair na confirmação'),
       'items', jsonb_build_array(jsonb_build_object(
         'productId', '33333333-3333-4333-8333-333333333333', 'key', '33333333-3333-4333-8333-333333333333::sem-cor',
         'slug', 'produto-fila', 'name', 'Produto fila', 'sku', 'FILA-1', 'imageUrl', '/images/product-placeholder.svg',
-        'quantity', 100, 'minQuantity', 50
+        'quantity', 100, 'minQuantity', 50, 'decisionGroup', 'alternative'
       ))
     ),
     jsonb_build_object(
       'requestHash', repeat('1', 64), 'identifierHash', repeat('2', 64),
+      'campaign', jsonb_build_object('source', 'finder', 'moment', 'onboarding', 'audience', 'clientes'),
+      'briefing', jsonb_build_object('actionName', 'Boas-vindas 2026', 'budgetRange', '51-100', 'budgetScope', 'por-pessoa'),
       'notificationPreferences', jsonb_build_object('emailCopy', true, 'whatsappCopy', true)
     )
   )) ->> 'duplicate',
@@ -79,6 +81,41 @@ select isnt(
   (select job ->> 'leaseToken' from claimed_jobs, lateral jsonb_array_elements(payload) job where job ->> 'recipientEmail' = 'fila@example.test' limit 1),
   null,
   'reivindicação inclui lease_token (R04)'
+);
+select is(
+  (select job ->> 'desiredDeadline' from claimed_jobs, lateral jsonb_array_elements(payload) job where job ->> 'recipientEmail' = 'fila@example.test' limit 1),
+  '2026-12-20',
+  'confirmação recebe somente a data desejada estruturada'
+);
+select is(
+  (select job #>> '{campaign,moment}' from claimed_jobs, lateral jsonb_array_elements(payload) job where job ->> 'recipientEmail' = 'fila@example.test' limit 1),
+  'onboarding',
+  'confirmação recebe o contexto estruturado de campanha'
+);
+select is(
+  (select job #>> '{briefing,actionName}' from claimed_jobs, lateral jsonb_array_elements(payload) job where job ->> 'recipientEmail' = 'fila@example.test' limit 1),
+  'Boas-vindas 2026',
+  'confirmação recebe o briefing estruturado'
+);
+select is(
+  (select job #>> '{items,0,decisionGroup}' from claimed_jobs, lateral jsonb_array_elements(payload) job where job ->> 'recipientEmail' = 'fila@example.test' limit 1),
+  'alternative',
+  'confirmação preserva a intenção de alternativa'
+);
+select ok(
+  not (select job ? 'notes' from claimed_jobs, lateral jsonb_array_elements(payload) job where job ->> 'recipientEmail' = 'fila@example.test' limit 1),
+  'observação livre não entra no payload de confirmação'
+);
+create temporary table claimed_immediate(payload jsonb);
+insert into claimed_immediate
+select public.claim_site_quote_notification(
+  (select id from site_private.quote_requests where client_request_id = 'notification-outbox-quote-1'),
+  'whatsapp'
+);
+select is(
+  (select payload #>> '{briefing,actionName}' from claimed_immediate),
+  'Boas-vindas 2026',
+  'reivindicação imediata usa o mesmo contrato estruturado'
 );
 select ok(
   (select delivery.claimed_at is not null and delivery.lease_expires_at > delivery.claimed_at
