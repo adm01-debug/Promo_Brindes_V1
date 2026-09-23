@@ -1103,6 +1103,10 @@ export type Database = {
           retry_cap_seconds: number
         }[]
       }
+      quote_notification_payload: {
+        Args: { p_delivery_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
