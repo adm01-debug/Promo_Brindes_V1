@@ -89,6 +89,17 @@ Logos e referências privadas do titular. Objetos ficam em bucket privado, expir
 | `expires_at` | `timestamp with time zone` | — |
 | `verified_at` | `timestamp with time zone` | Preenchido somente pela API do site após ler o blob privado e validar sua assinatura binária. |
 
+### `site_private.customer_occasion_favorites`
+
+IDs de datas comemorativas escolhidas pelo titular. A lista editorial fica no frontend; a conta guarda somente o ID e o vínculo é apagado com auth.users.
+
+| Coluna | Tipo | Comentário |
+|---|---|---|
+| `customer_user_id` | `uuid` | — |
+| `occasion_id` | `text` | — |
+| `created_at` | `timestamp with time zone` | — |
+| `updated_at` | `timestamp with time zone` | — |
+
 ### `site_private.customer_profiles`
 
 _Sem comment on table — considerar adicionar um na próxima migration que tocar esta tabela._
@@ -360,6 +371,7 @@ Fila mínima de objetos privados para remoção pela Storage API; não contém c
 | `get_site_data_retention_candidates` | `p_batch_size integer` | — |
 | `get_site_shared_selection` | `p_token uuid, p_identifier_hash text` | — |
 | `list_my_briefing_assets` | `` | — |
+| `list_my_occasion_favorites` | `` | — |
 | `list_my_selections` | `p_include_archived boolean` | — |
 | `matches_my_briefing_asset_upload` | `p_path text, p_metadata jsonb` | Autoriza apenas o primeiro upload de uma reserva ainda não verificada; conteúdo validado não pode ser substituído pelo titular. |
 | `owns_my_briefing_asset_path` | `p_path text` | — |
@@ -371,5 +383,6 @@ Fila mínima de objetos privados para remoção pela Storage API; não contém c
 | `revoke_site_shared_selection` | `p_token uuid, p_management_token_hash text, p_identifier_hash text` | — |
 | `rls_auto_enable` | `` | Guarda DDL do banco isolado: novas tabelas no schema public nascem com RLS habilitada. Sem EXECUTE para roles da API. |
 | `save_my_selection` | `p_title text, p_references jsonb, p_campaign jsonb, p_id uuid, p_expected_version integer` | — |
+| `set_my_occasion_favorite` | `p_occasion_id text, p_saved boolean` | — |
 | `set_my_selection_archived` | `p_id uuid, p_expected_version integer, p_archived boolean` | — |
 | `site_notification_queue_health` | `` | Idade do job elegível mais antigo e contagem de exhausted por canal (Etapa 29); devolve só contagens e canais, sem conteúdo pessoal. |
