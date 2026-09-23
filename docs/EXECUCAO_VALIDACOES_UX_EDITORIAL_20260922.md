@@ -39,3 +39,9 @@ Esta rodada fechou lacunas técnicas reproduzíveis de restauração de posiçã
 - LK10 continua ausente: não foram inventadas fotografias de categorias nem direitos de uso.
 - Resend, WhatsApp, webhooks, alertas e a role limitada continuam adiados pelo usuário; esta rodada não afirma entrega real de mensagens.
 - Testes automatizados não substituem compradores reais, leitor de tela, aparelhos físicos, métricas de campo ou drill de restore.
+
+## Triagem residual do plano
+
+A revisão final das `100` linhas parciais separou presença técnica de aceite operacional. Não foi localizada outra lacuna de código isolada que pudesse ser encerrada com segurança sem inventar conteúdo, regra comercial, destino de atendimento ou credencial adiada. A linha UX77 tinha uma descrição desatualizada: `e2e/smoke.spec.ts` já cobre a troca de ID e prova que dados e ações da rota anterior não permanecem na tela. A matriz foi corrigida, mas UX77 continua parcial até o pedido de ajuste chegar a um responsável e percorrer um ciclo operacional autorizado.
+
+Os demais itens de natureza `codigo_validacao`, `codigo_operacao` ou `dados_codigo` continuam parciais por critérios específicos: ranking e relacionados exigem julgamento comercial; técnicas, áreas e múltiplos exigem dados aprovados; notificações ao atendimento exigem destino, responsável e SLA; métricas exigem recepção e uso operacional; e os itens Graphify remanescentes são ampliações documentais, semânticas, direcionais ou adversariais que não devem ser confundidas com defeitos do site publicado.
