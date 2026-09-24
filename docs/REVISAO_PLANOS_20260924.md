@@ -80,9 +80,19 @@ Escopo da prova: dados locais do calendário, em teste do hook real com duas ide
 
 Correção a planejar: projeção síncrona condicionada a identidade/proprietário e estado de autenticação, mantendo isolamento também durante carregamento. Testar efeitos de layout e DOM, não apenas estado estabilizado após `waitFor`.
 
+### Remediação posterior ao SHA auditado — 24/09/2026
+
+Os três achados acima foram preservados como registro da reprodução original, mas não representam mais o estado de `main`:
+
+- **F24-01 e F24-02:** `applyIntents` mantém adições e remoções locais sobre snapshots remotos que ainda não as refletem; as regressões cobrem leitura atrasada vazia, remoção com leitura antiga e respostas de escrita fora de ordem.
+- **F24-03:** `visibleFavorites` condiciona a projeção da renderização ao titular síncrono e ao estado de autenticação; a regressão captura commits de layout e confirma que B nunca recebe favoritos de A.
+- **Múltiplas abas:** eventos `storage` atualizam somente a chave do mesmo titular e não superam intenção local pendente.
+
+Evidência: `src/lib/useOccasionFavorites.test.tsx` (8 cenários), `npm test` e a matriz cross-browser do PR #46. Isso fecha o lote técnico de favoritos; não substitui a homologação real de login por e-mail, dispositivos físicos ou sessões externas controladas.
+
 ### Relação com os achados A01–A05 anteriores
 
-As regressões permanentes de promoção anônima, cache de outra conta após falha e rollback tardio de outra sessão passam. A04/A05 (diversidade e ordenação explícita) também têm testes corretivos aprovados. F24-01/02 ampliam a matriz de concorrência; F24-03 revela que o aceite completo de isolamento de renderização continuou parcial. Não declarar todos os favoritos concluídos nem apagar as melhorias já entregues.
+As regressões permanentes de promoção anônima, cache de outra conta após falha e rollback tardio de outra sessão passam. A04/A05 (diversidade e ordenação explícita) também têm testes corretivos aprovados. F24-01/02/03 foram promovidos para a suíte permanente na remediação posterior; permanecem separados os aceites que exigem operação, sessão real ou pesquisa com pessoas.
 
 Reprodução, sem rede e sem gravação em produção:
 
@@ -100,14 +110,14 @@ Fonte: [plano de 23/09](PLANO_MELHORIAS_CORRECOES_50_ETAPAS_20260923.md). Legend
 |---|---|---|
 | 01 — Base e fronteiras | T | SHA/remoto, ambiente e alvo identificados. Artefatos desta auditoria são locais; Promo Gifts preservado. |
 | 02 — Reconciliar requisitos | P | 230 linhas estruturalmente válidas; notas/estados desatualizados continuam na matriz. Este parecer registra correções, não reescreve o histórico. |
-| 03 — Regressões A01–A05 | T | Testes corretivos permanentes aprovados nos módulos de favoritos/ranking/hook de catálogo. Novos F24-01/02/03 exigem outro lote; red/green histórico não foi reconstruído em checkout antigo nesta rodada. |
+| 03 — Regressões A01–A05 | T | Testes corretivos permanentes aprovados nos módulos de favoritos/ranking/hook de catálogo. F24-01/02/03 foram incorporados depois da auditoria inicial; o red/green histórico permanece documentado, sem necessidade de reabrir o bug. |
 | 04 — Invariantes de dados | P | Regras sem checkout/sem corte por estoque e contratos de kits/mínimo existem; regras comerciais faltantes não podem ser inferidas. Aprovação integral não comprovada. |
 | 05 — Lotes e rollback | P | PRs #35–43 pequenos e publicados; runbooks/gates existem. Matriz completa de falha de deploy e reversão observada não certificada. |
-| 06 — Estado de favoritos | P | Hook extraído em #36, cache por titular e épocas existem; F24-01/02/03 contradizem a autoridade/projeção plenamente consistente. |
+| 06 — Estado de favoritos | P | Hook, cache por titular, épocas e intenções por data existem; F24-01/02/03 foram corrigidos. Permanecem cenários de promoção anônima no limite e homologação de identidade real. |
 | 07 — Promoção anônima | P | Cenário básico corrigido e aprovado. Limite, falha parcial, repetição e intenção concorrente ainda não têm toda a homologação exigida. |
-| 08 — Cache entre contas | P | Cache particionado; falha da conta B não usa cache persistido de A. Falta isolamento síncrono de renderização: F24-03. |
-| 09 — Respostas antigas | P | Rollback de outra sessão protegido e testado. Leitura atrasada ainda sobrepõe intenção: F24-01/02; matriz salvar-remover-salvar não integralmente demonstrada. |
-| 10 — E2E de favoritos | P | SQL e testes de componente existem; faltam os três novos cenários e homologação autenticada/múltiplas abas exigida. |
+| 08 — Cache entre contas | T | Cache particionado e projeção síncrona impedem renderização de favoritos de A em B; eventos de outra conta também são descartados. |
+| 09 — Respostas antigas | P | Rollback de outra sessão e leituras atrasadas F24-01/02 estão protegidos e testados. A matriz completa em sessões reais/dispositivos distintos ainda não foi homologada. |
+| 10 — E2E de favoritos | P | Os três cenários foram promovidos a testes de componente, incluindo eventos entre abas; falta homologação autenticada em múltiplas abas reais. |
 | 11 — Ordem do comprador | T | `useCatalogPageState` só aplica ranking em curadoria; modos Nome/Mais recentes preservados e testes aprovados. Ensaio real multipágina permanece distinto. |
 | 12 — Relacionados | T | `catalogRanking` combina afinidade/diversidade numa só estratégia; regressão de segundo sort corrigida. Julgamento humano fica em 14. |
 | 13 — Alcance da relevância | P | Ranking reorganiza os resultados da página recebida; não há relevância global homologada. Falta decisão/aceite explícito do limite e corpus multipágina. |
@@ -194,12 +204,11 @@ Rastreabilidade histórica completa, preservada sem sobrescrever conclusões dat
 
 ## Ordem recomendada para a próxima execução autorizada
 
-1. Corrigir F24-03 (isolamento síncrono) e F24-01/02 (reconciliação por intenção), promovendo os probes a regressões permanentes; ampliar duas contas, auth carregando e respostas fora de ordem.
-2. Reconciliar matriz/índice com evidências atuais; manter P quando faltar parte do aceite, mesmo havendo código publicado.
-3. Fechar política de anexos além da assinatura, sem mandar arquivos de clientes a terceiros nem prometer antimalware inexistente.
-4. Implementar/verificar contrato público cross-projeto somente leitura e resolver a diferença de ACL do site por causa/necessidade comprovadas, sem repair ou revogação cega.
-5. Formalizar limite da curadoria, corpus julgado e regras comerciais; concluir fontes de dados e conteúdo aprovados sem inventá-los.
-6. Definir destino/responsável do atendimento; só então implementar passagem ao comercial e metas operacionais.
-7. Prosseguir preview, restauração isolada, pesquisa/acessibilidade/medição e Graphify por critérios explícitos. Provedores e segredos continuam adiados conforme decisão vigente.
+1. Reconciliar matriz/índice com evidências atuais; manter P quando faltar parte do aceite, mesmo havendo código publicado.
+2. Fechar política de anexos além da assinatura, sem mandar arquivos de clientes a terceiros nem prometer antimalware inexistente.
+3. Implementar/verificar contrato público cross-projeto somente leitura e resolver a diferença de ACL do site por causa/necessidade comprovadas, sem repair ou revogação cega.
+4. Formalizar limite da curadoria, corpus julgado e regras comerciais; concluir fontes de dados e conteúdo aprovados sem inventá-los.
+5. Definir destino/responsável do atendimento; só então implementar passagem ao comercial e metas operacionais.
+6. Prosseguir preview, restauração isolada, pesquisa/acessibilidade/medição e Graphify por critérios explícitos. Provedores e segredos continuam adiados conforme decisão vigente.
 
 Conclusão: há uma base técnica publicada com extensa cobertura, mas **não cabe encerrar o plano, declarar todas as funções completas ou atribuir 10/10**. O próximo lote prioritário é delimitado e reproduzível; as dependências externas estão separadas de falhas que podem ser corrigidas no código do site.
