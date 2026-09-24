@@ -44,12 +44,17 @@ function userHeaders(apiKey: string, authorization: string): Record<string, stri
   return { apikey: apiKey, Authorization: authorization, 'Content-Type': 'application/json', Accept: 'application/json' };
 }
 
-async function removeRejectedAsset(baseUrl: string, secret: string, authorization: string, path: string, assetId: string, signal: AbortSignal) {
+async function removeRejectedAsset(baseUrl: string, secret: string, path: string, assetId: string, signal: AbortSignal) {
+  // A remoção do metadado vem primeiro: o trigger transacional enfileira o blob
+  // para retenção caso o DELETE no Storage falhe. Isso também funciona depois
+  // que a segunda leitura detecta mudança em um objeto já bloqueado.
+  const rejected = await fetch(`${baseUrl}/rest/v1/rpc/reject_site_briefing_asset_verification`, {
+    method: 'POST', headers: serviceHeaders(secret), body: JSON.stringify({ p_id: assetId, p_storage_path: path }), signal,
+  });
+  const removed = await rejected.json().catch(() => false);
+  if (!rejected.ok || removed !== true) throw new Error('briefing_asset_rejection_failed');
   await fetch(`${baseUrl}/storage/v1/object/${encodeURIComponent(BUCKET)}`, {
     method: 'DELETE', headers: serviceHeaders(secret), body: JSON.stringify({ prefixes: [path] }), signal,
-  }).catch(() => undefined);
-  await fetch(`${baseUrl}/rest/v1/rpc/delete_my_briefing_asset`, {
-    method: 'POST', headers: userHeaders(secret, authorization), body: JSON.stringify({ p_id: assetId }), signal,
   }).catch(() => undefined);
 }
 
@@ -116,7 +121,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       return;
     }
     if (!matchesDeclaredFileSignature(candidate.mimeType, prefix)) {
-      await removeRejectedAsset(config.url, config.storageDeleteCredential, authorization, candidate.path, assetId, controller.signal);
+      await removeRejectedAsset(config.url, config.storageDeleteCredential, candidate.path, assetId, controller.signal);
       response.status(422).json({ error: 'briefing_asset_signature_mismatch', message: 'O conteúdo do arquivo não corresponde ao formato informado.' });
       return;
     }
@@ -136,7 +141,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     // fecha a janela entre a primeira inspeção e esse bloqueio (TOCTOU).
     const lockedPrefix = await readStoredSignature(config.url, config.storageDeleteCredential, candidate.path, controller.signal);
     if (!lockedPrefix || !matchesDeclaredFileSignature(candidate.mimeType, lockedPrefix)) {
-      await removeRejectedAsset(config.url, config.storageDeleteCredential, authorization, candidate.path, assetId, controller.signal);
+      await removeRejectedAsset(config.url, config.storageDeleteCredential, candidate.path, assetId, controller.signal);
       response.status(422).json({ error: 'briefing_asset_signature_mismatch', message: 'O arquivo mudou durante a verificação e foi descartado.' });
       return;
     }

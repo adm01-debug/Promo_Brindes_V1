@@ -176,6 +176,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      reject_site_briefing_asset_verification: {
+        Args: { p_id: string; p_storage_path: string }
+        Returns: boolean
+      }
       request_my_quote_adjustment: {
         Args: {
           p_client_request_id: string

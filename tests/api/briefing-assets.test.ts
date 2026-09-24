@@ -58,21 +58,22 @@ describe('inspeção server-side de anexos privados', () => {
     expect(fetchMock.mock.calls[3]?.[0]).toBe(fetchMock.mock.calls[1]?.[0]);
   });
 
-  it('remove blob e reserva quando o conteúdo contradiz o MIME declarado', async () => {
+  it('remove blob e metadado pelo caminho server-side quando o conteúdo contradiz o MIME declarado', async () => {
     configure();
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(new Response(JSON.stringify(candidate()), { status: 200 }))
       .mockResolvedValueOnce(new Response('<svg onload="alert(1)"></svg>', { status: 206 }))
-      .mockResolvedValueOnce(new Response('{}', { status: 200 }))
-      .mockResolvedValueOnce(new Response('true', { status: 200 }));
+      .mockResolvedValueOnce(new Response('true', { status: 200 }))
+      .mockResolvedValueOnce(new Response('{}', { status: 200 }));
     vi.stubGlobal('fetch', fetchMock);
     const current = responseDouble();
     await handler(request(), current.response);
     expect(current.result.statusCode).toBe(422);
     expect(current.result.body).toMatchObject({ error: 'briefing_asset_signature_mismatch' });
-    expect(fetchMock.mock.calls[2]?.[0]).toBe('https://xlzmclcjdncjfdrjxclt.supabase.co/storage/v1/object/customer-briefing-assets');
-    expect((fetchMock.mock.calls[2]?.[1] as RequestInit).method).toBe('DELETE');
-    expect(fetchMock.mock.calls[3]?.[0]).toContain('/rpc/delete_my_briefing_asset');
+    expect(fetchMock.mock.calls[2]?.[0]).toContain('/rpc/reject_site_briefing_asset_verification');
+    expect(JSON.parse(String((fetchMock.mock.calls[2]?.[1] as RequestInit).body))).toEqual({ p_id: assetId, p_storage_path: path });
+    expect(fetchMock.mock.calls[3]?.[0]).toBe('https://xlzmclcjdncjfdrjxclt.supabase.co/storage/v1/object/customer-briefing-assets');
+    expect((fetchMock.mock.calls[3]?.[1] as RequestInit).method).toBe('DELETE');
   });
 
   it('rejeita origem, sessão e ID inválidos antes de acessar o banco', async () => {
@@ -120,8 +121,8 @@ describe('inspeção server-side de anexos privados', () => {
       .mockResolvedValueOnce(new Response(png, { status: 206 }))
       .mockResolvedValueOnce(new Response(JSON.stringify('2026-09-22T12:00:00.000Z'), { status: 200 }))
       .mockResolvedValueOnce(new Response('<svg onload="alert(1)"></svg>', { status: 206 }))
-      .mockResolvedValueOnce(new Response('{}', { status: 200 }))
-      .mockResolvedValueOnce(new Response('true', { status: 200 }));
+      .mockResolvedValueOnce(new Response('true', { status: 200 }))
+      .mockResolvedValueOnce(new Response('{}', { status: 200 }));
     vi.stubGlobal('fetch', fetchMock);
     const current = responseDouble();
 
@@ -129,8 +130,24 @@ describe('inspeção server-side de anexos privados', () => {
 
     expect(current.result.statusCode).toBe(422);
     expect(current.result.body).toMatchObject({ error: 'briefing_asset_signature_mismatch' });
-    expect(fetchMock.mock.calls[4]?.[0]).toContain('/storage/v1/object/customer-briefing-assets');
-    expect(fetchMock.mock.calls[5]?.[0]).toContain('/rpc/delete_my_briefing_asset');
+    expect(fetchMock.mock.calls[4]?.[0]).toContain('/rpc/reject_site_briefing_asset_verification');
+    expect(fetchMock.mock.calls[5]?.[0]).toContain('/storage/v1/object/customer-briefing-assets');
+  });
+
+  it('falha fechada quando não consegue remover a reserva inválida', async () => {
+    configure();
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify(candidate()), { status: 200 }))
+      .mockResolvedValueOnce(new Response('<svg onload="alert(1)"></svg>', { status: 206 }))
+      .mockResolvedValueOnce(new Response('false', { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const current = responseDouble();
+
+    await handler(request(), current.response);
+
+    expect(current.result.statusCode).toBe(503);
+    expect(current.result.body).toMatchObject({ error: 'briefing_asset_verification_unavailable' });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 });
 
