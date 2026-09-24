@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
-select plan(44);
+select plan(51);
 
 select has_table('site_private', 'customer_briefing_assets', 'metadados privados de arquivos existem');
 select has_column('site_private', 'customer_briefing_assets', 'verified_at', 'assinatura binária possui recibo de verificação');
@@ -21,6 +21,8 @@ select ok(pg_catalog.has_function_privilege('authenticated', 'public.get_my_brie
 select ok(not pg_catalog.has_function_privilege('anon', 'public.get_my_briefing_asset_verification(uuid)', 'execute'), 'anônimo não consulta candidato de verificação');
 select ok(pg_catalog.has_function_privilege('site_api', 'public.confirm_site_briefing_asset_verification(uuid,text,text,integer)', 'execute'), 'API limitada confirma a inspeção');
 select ok(not pg_catalog.has_function_privilege('authenticated', 'public.confirm_site_briefing_asset_verification(uuid,text,text,integer)', 'execute'), 'cliente não confirma a própria inspeção');
+select ok(pg_catalog.has_function_privilege('site_api', 'public.reject_site_briefing_asset_verification(uuid,text)', 'execute'), 'API limitada pode descartar uma reserva inválida');
+select ok(not pg_catalog.has_function_privilege('authenticated', 'public.reject_site_briefing_asset_verification(uuid,text)', 'execute'), 'cliente não descarta reserva verificada pelo caminho server-side');
 select ok(pg_catalog.has_function_privilege('authenticated', 'public.owns_my_briefing_asset_path(text)', 'execute'), 'policy pode validar propriedade');
 select has_function('public', 'can_delete_my_unverified_briefing_asset_path', array['text'], 'exclusão direta possui guarda de imutabilidade');
 select ok(pg_catalog.has_function_privilege('authenticated', 'public.can_delete_my_unverified_briefing_asset_path(text)', 'execute'), 'titular pode avaliar a policy de exclusão pré-verificação');
@@ -92,6 +94,29 @@ select ok(not public.matches_my_briefing_asset_upload(
   (select result ->> 'path' from asset_a), '{"size":2048,"mimetype":"image/png"}'
 ), 'caminho verificado não aceita substituição com os mesmos metadados');
 select ok(not public.can_delete_my_unverified_briefing_asset_path((select result ->> 'path' from asset_a)), 'objeto verificado não pode ser removido diretamente pelo titular');
+
+create temporary table asset_rejected as
+select public.create_my_briefing_asset('referencia-a-rejeitar.pdf', 'application/pdf', 4096, 'reference') as result;
+insert into storage.objects (id, bucket_id, name, owner_id, metadata)
+select gen_random_uuid(), 'customer-briefing-assets', result ->> 'path',
+  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '{"size":4096,"mimetype":"application/pdf"}'::jsonb
+from asset_rejected;
+select ok(public.confirm_site_briefing_asset_verification(
+  (select (result ->> 'id')::uuid from asset_rejected),
+  (select result ->> 'path' from asset_rejected), 'application/pdf', 4096
+) is not null, 'reserva de rejeição pode ter sido bloqueada antes da segunda leitura');
+select ok(public.reject_site_briefing_asset_verification(
+  (select (result ->> 'id')::uuid from asset_rejected),
+  (select result ->> 'path' from asset_rejected)
+), 'API remove reserva bloqueada que falhou na segunda inspeção');
+select is((select count(*) from site_private.customer_briefing_assets
+  where id = (select (result ->> 'id')::uuid from asset_rejected)), 0::bigint, 'metadado rejeitado não fica apontando para blob removido');
+select ok(exists (select 1 from site_private.storage_deletion_queue
+  where object_path = (select result ->> 'path' from asset_rejected)), 'remoção server-side enfileira blob rejeitado');
+select ok(not public.reject_site_briefing_asset_verification(
+  (select (result ->> 'id')::uuid from asset_rejected),
+  (select result ->> 'path' from asset_rejected)
+), 'rejeição é idempotente depois da primeira remoção');
 select is(public.attach_my_briefing_assets_to_quote(
   'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
   array[(select (result ->> 'id')::uuid from asset_a)]
@@ -108,7 +133,7 @@ select public.create_my_briefing_asset('referencia.pdf', 'application/pdf', 4096
 select is(jsonb_array_length(public.list_my_briefing_assets()), 2, 'biblioteca mostra logo e referência');
 update site_private.customer_briefing_assets set expires_at = now() - interval '1 minute'
 where id = (select (result ->> 'id')::uuid from asset_expired);
-select is(jsonb_array_length(public.get_briefing_asset_retention_candidates(100) -> 'objects'), 1, 'retenção encontra arquivo expirado');
+select is(jsonb_array_length(public.get_briefing_asset_retention_candidates(100) -> 'objects'), 2, 'retenção encontra o arquivo expirado e a rejeição que aguarda limpeza de Storage');
 select is(public.finalize_briefing_asset_retention(
   array[(select result ->> 'path' from asset_expired)], 100
 ), 1, 'finalização remove a pendência depois do Storage');

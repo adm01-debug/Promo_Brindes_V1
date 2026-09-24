@@ -11,6 +11,7 @@ Este lote executa as etapas 01, 04 e 06–10 do plano de 50 etapas, no que é ve
 - A intenção mais recente vence respostas de escrita fora de ordem; um erro tardio não desfaz uma operação posterior.
 - As intenções são descartadas ao mudar de sessão. Callbacks da sessão anterior continuam invalidados pelos epochs já existentes.
 - Abas da mesma conta passam a sincronizar via evento `storage`; eventos de outra conta são descartados e uma intenção local pendente continua prevalecendo até revalidação remota.
+- A rejeição de um anexo que muda entre a primeira e a segunda inspeção agora remove o metadado por RPC server-side e enfileira o blob privado para exclusão. Antes, esse caso podia deixar metadado verificado apontando para objeto já removido.
 - A tela de datas comemorativas substituiu três ícones de toolbar por símbolos textuais acessíveis, mantendo o texto explícito dos controles. A redução preserva o orçamento de JavaScript sem aumentar o limite.
 
 ## Provas automatizadas adicionadas
@@ -35,13 +36,13 @@ Os três probes históricos foram preservados em `docs/audits/plan-review-202609
 | `npx vitest run src/lib/useOccasionFavorites.test.tsx src/pages/CommemorativeDatesPage.test.tsx` | 9 testes aprovados |
 | `npm run lint` | aprovado |
 | `npm run typecheck` | aprovado |
-| `npm test` | 58 arquivos / 380 testes aprovados |
-| `npm run db:site:test` | 27 arquivos / 539 asserções aprovadas no Supabase local |
+| `npm test` | 58 arquivos / 384 testes aprovados |
+| `npm run db:site:test` | 27 arquivos / 546 asserções aprovadas no Supabase local |
 | `npx vitest run --config docs/audits/plan-review-20260924/vitest.config.ts` | 3 probes F24 aprovados |
 | `npm run build` | aprovado |
 | `npm run check:performance-budget` | aprovado: 260,8 KiB Brotli de JavaScript, teto de 261 KiB |
 | `npm run test:e2e` | 96 cenários desktop/mobile aprovados |
-| `npm run test:coverage` | 58 arquivos / 380 testes aprovados; limiares configurados aprovados |
+| `npm run test:coverage` | 58 arquivos / 384 testes aprovados; limiares configurados aprovados |
 | `npm run ledger:check` | 230 referências estruturais válidas |
 | `npm run graph:update && npm run graph:check` | mapa estrutural atualizado: 1.912 nós / 3.862 relações |
 
