@@ -10,17 +10,21 @@ Este lote executa as etapas 01, 04 e 06–10 do plano de 50 etapas, no que é ve
 - Intenções locais por data são preservadas sobre snapshots remotos iniciados antes da escrita. Assim, uma leitura antiga não apaga adição confirmada (F24-01) nem ressuscita remoção confirmada (F24-02).
 - A intenção mais recente vence respostas de escrita fora de ordem; um erro tardio não desfaz uma operação posterior.
 - As intenções são descartadas ao mudar de sessão. Callbacks da sessão anterior continuam invalidados pelos epochs já existentes.
+- Abas da mesma conta passam a sincronizar via evento `storage`; eventos de outra conta são descartados e uma intenção local pendente continua prevalecendo até revalidação remota.
 - A tela de datas comemorativas substituiu três ícones de toolbar por símbolos textuais acessíveis, mantendo o texto explícito dos controles. A redução preserva o orçamento de JavaScript sem aumentar o limite.
 
 ## Provas automatizadas adicionadas
 
-`src/lib/useOccasionFavorites.test.tsx` fixa cinco regressões:
+`src/lib/useOccasionFavorites.test.tsx` fixa oito regressões:
 
 1. Adição confirmada diante de leitura antiga vazia.
 2. Remoção diante de leitura antiga que ainda contém a data.
 3. Escritas com respostas fora de ordem.
 4. Identidade em carregamento e ação após troca para outra conta.
 5. Captura por `useLayoutEffect` que confirma não haver frame da conta B com dados da conta A.
+6. Atualização da mesma conta recebida de outra aba.
+7. Descarte de atualização pertencente a outra conta.
+8. Conflito entre atualização de outra aba e intenção local pendente.
 
 Os três probes históricos foram preservados em `docs/audits/plan-review-20260924/` e agora também aprovam. Eles continuam separados da suíte de produto por serem artefatos de auditoria/reprodução.
 

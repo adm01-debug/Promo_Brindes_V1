@@ -101,4 +101,53 @@ describe('useOccasionFavorites', () => {
 
     expect(frames.filter((frame) => frame.owner === 'conta-b').every((frame) => !frame.ids.includes(date))).toBe(true);
   });
+
+  it('reflete uma alteração da mesma conta vinda de outra aba', async () => {
+    const { result } = renderHook(() => useOccasionFavorites(options));
+    await act(async () => {});
+
+    await act(async () => {
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: accountKey('conta-a'),
+        newValue: JSON.stringify([date]),
+        storageArea: localStorage,
+      }));
+    });
+
+    expect(result.current.favorites.has(date)).toBe(true);
+  });
+
+  it('não aceita um evento de storage pertencente a outra conta', async () => {
+    const { result } = renderHook(() => useOccasionFavorites(options));
+    await act(async () => {});
+
+    await act(async () => {
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: accountKey('conta-b'),
+        newValue: JSON.stringify([date]),
+        storageArea: localStorage,
+      }));
+    });
+
+    expect(result.current.favorites.has(date)).toBe(false);
+  });
+
+  it('mantém a intenção local diante de uma atualização concorrente de outra aba', async () => {
+    const pendingWrite = deferred<void>();
+    rpc.save.mockReturnValue(pendingWrite.promise);
+    const { result } = renderHook(() => useOccasionFavorites(options));
+    await act(async () => {});
+    await act(async () => { result.current.saveFavorite(date, true); });
+
+    await act(async () => {
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: accountKey('conta-a'),
+        newValue: JSON.stringify([]),
+        storageArea: localStorage,
+      }));
+    });
+
+    expect(result.current.favorites.has(date)).toBe(true);
+    await act(async () => { pendingWrite.resolve(); });
+  });
 });
