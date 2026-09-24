@@ -173,6 +173,25 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
     return () => { active = false; };
   }, [authLoading, knownOccasionIdsKey, userId]);
 
+  // `storage` é emitido somente nas outras abas do mesmo navegador. A ação
+  // local ainda prevalece enquanto houver uma intenção pendente; assim, uma
+  // gravação concorrente em outra aba não desfaz uma escolha recém-feita.
+  useEffect(() => {
+    if (authLoading || typeof window === 'undefined') return;
+    const owner = ownerFor(userId);
+    const key = cacheKeyFor(owner);
+    const knownIds = new Set(knownOccasionIdsKey.split(',').filter(Boolean));
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== key || (event.storageArea && event.storageArea !== window.localStorage) || favoriteOwnerRef.current !== owner) return;
+      const externalFavorites = new Set([...parseFavorites(event.newValue)].filter((id) => knownIds.has(id)));
+      const next = applyIntents(externalFavorites, intentsRef.current);
+      favoritesRef.current = next;
+      setFavorites(next);
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [authLoading, knownOccasionIdsKey, userId]);
+
   const saveFavorite = useCallback((occasionId: string, nextSaved: boolean, onRollback?: () => void) => {
     setStorageMessage('');
     const owner = ownerFor(userId);
