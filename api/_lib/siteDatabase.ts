@@ -113,6 +113,40 @@ export function parseLeadPersistenceResponse(value: unknown): { requestId: strin
   return { requestId, duplicate: result.duplicate };
 }
 
+export type ProviderEventApplyReason = 'duplicate' | 'delivery_not_found' | 'delivery_state_already_set';
+
+export interface ProviderEventApplyResult {
+  applied: boolean;
+  deliveryId: string | null;
+  reason: ProviderEventApplyReason | null;
+}
+
+const PROVIDER_EVENT_APPLY_REASONS = new Set<ProviderEventApplyReason>([
+  'duplicate',
+  'delivery_not_found',
+  'delivery_state_already_set',
+]);
+
+/**
+ * `apply_site_notification_provider_event` também cruza a fronteira JSON do
+ * PostgREST. Uma resposta 200 malformada não pode confirmar para Resend ou
+ * Meta que o evento foi gravado: isso perderia a chance de reentrega.
+ */
+export function parseProviderEventApplyResponse(value: unknown): ProviderEventApplyResult {
+  const result = record(value);
+  const deliveryId = result?.deliveryId;
+  const reason = result?.reason;
+  if (!result
+    || typeof result.applied !== 'boolean'
+    || (deliveryId !== null && (typeof deliveryId !== 'string' || !UUID_PATTERN.test(deliveryId)))
+    || (reason !== null && (typeof reason !== 'string' || !PROVIDER_EVENT_APPLY_REASONS.has(reason as ProviderEventApplyReason)))
+    || (result.applied && (deliveryId === null || reason !== null))
+    || (!result.applied && (reason === null || (reason === 'delivery_not_found' && deliveryId !== null)))) {
+    throw new SiteDatabaseError('O banco não devolveu um protocolo de evento válido.', 'invalid_database_response', 502);
+  }
+  return { applied: result.applied, deliveryId, reason: reason as ProviderEventApplyReason | null };
+}
+
 function responseErrorDetail(value: unknown): string {
   const result = record(value);
   const message = typeof result?.message === 'string' ? result.message.slice(0, 160) : '';

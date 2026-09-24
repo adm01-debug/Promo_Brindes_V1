@@ -3,6 +3,7 @@ import { createHmac } from 'node:crypto';
 import handler from '../../api/notification-events-resend.js';
 
 const SECRET = `whsec_${Buffer.from('resend-webhook-test-secret-0001').toString('base64')}`;
+const DELIVERY_ID = 'a2d52926-96ef-4d72-a5e6-da3d8daed7b4';
 
 function configureEnv() {
   vi.stubEnv('SITE_SUPABASE_URL', 'https://xlzmclcjdncjfdrjxclt.supabase.co');
@@ -81,7 +82,7 @@ describe('api/notification-events-resend (Etapa 30)', () => {
       expect(body.p_provider).toBe('resend');
       expect(body.p_provider_message_id).toBe('em_42');
       expect(body.p_event_type).toBe(eventType);
-      return new Response(JSON.stringify({ applied: true, deliveryId: 'd1', reason: null }), { status: 200 });
+      return new Response(JSON.stringify({ applied: true, deliveryId: DELIVERY_ID, reason: null }), { status: 200 });
     });
     vi.stubGlobal('fetch', fetchMock);
     const response = await handler.fetch(signedRequest({ type, data: { email_id: 'em_42' } }));
@@ -96,7 +97,7 @@ describe('api/notification-events-resend (Etapa 30)', () => {
       const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
       expect(body.p_event_type).toBe('bounced');
       expect(body.p_bounce_reason).toBe('HardBounce');
-      return new Response(JSON.stringify({ applied: true, deliveryId: 'd1', reason: null }), { status: 200 });
+      return new Response(JSON.stringify({ applied: true, deliveryId: DELIVERY_ID, reason: null }), { status: 200 });
     });
     vi.stubGlobal('fetch', fetchMock);
     const response = await handler.fetch(signedRequest({ type: 'email.bounced', data: { email_id: 'em_42', bounce: { type: 'HardBounce' } } }));
@@ -116,6 +117,14 @@ describe('api/notification-events-resend (Etapa 30)', () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 500 })));
     const response = await handler.fetch(signedRequest({ type: 'email.delivered', data: { email_id: 'em_42' } }));
     expect(response.status).toBe(500);
+  });
+
+  it('solicita reentrega quando a RPC retorna um protocolo 200 malformado', async () => {
+    configureEnv();
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ applied: 'true', deliveryId: null, reason: null }), { status: 200 })));
+    const response = await handler.fetch(signedRequest({ type: 'email.delivered', data: { email_id: 'em_42' } }));
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({ error: 'apply_failed' });
   });
 
   it('recusa timestamp de evento inválido sem chamar o banco', async () => {
