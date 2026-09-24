@@ -5,6 +5,7 @@ import { allowedSiteOrigins } from './_lib/siteOrigin.js';
 const PROPOSAL_BUCKET = 'customer-proposals';
 export const REQUEST_TIMEOUT_MS = 10_000;
 const MAX_PROPOSAL_BODY_BYTES = 4 * 1024;
+const MAX_PROPOSAL_PATH_LENGTH = 500;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function header(request: ApiRequest, name: string): string {
@@ -29,6 +30,25 @@ function proposalPayload(request: ApiRequest): { proposalId?: string; error?: 'u
   }
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return { error: 'invalid_proposal' };
   return { proposalId: String((parsed as { proposalId?: unknown }).proposalId || '') };
+}
+
+function hasControlCharacter(value: string): boolean {
+  return Array.from(value).some((character) => {
+    const point = character.codePointAt(0) || 0;
+    return point <= 0x1f || point === 0x7f;
+  });
+}
+
+/** O RPC determina a autorização, mas o caminho ainda atravessa JSON antes de
+ * chegar ao Storage. Nunca aceite caminho absoluto, segmento de navegação ou
+ * caracteres de controle como objeto a assinar. */
+function isSafeProposalPath(value: unknown): value is string {
+  return typeof value === 'string'
+    && value.length > 0
+    && value.length <= MAX_PROPOSAL_PATH_LENGTH
+    && !value.startsWith('/')
+    && !hasControlCharacter(value)
+    && value.split('/').every((segment) => segment.length > 0 && segment !== '.' && segment !== '..');
 }
 
 function signedStorageUrl(baseUrl: string, candidate: string): string {
@@ -90,7 +110,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       response.status(401).json({ error: 'authentication_required', message: 'Sua sessão expirou. Entre novamente.' });
       return;
     }
-    if (!rpcResponse.ok || document?.bucket !== PROPOSAL_BUCKET || !document.path) {
+    if (!rpcResponse.ok || document?.bucket !== PROPOSAL_BUCKET || !isSafeProposalPath(document?.path)) {
       response.status(404).json({ error: 'proposal_not_found', message: 'Proposta não encontrada.' });
       return;
     }

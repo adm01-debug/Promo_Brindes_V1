@@ -131,4 +131,16 @@ describe('download autenticado de propostas', () => {
     await proposalHandler(request(), unsafeUrl.response);
     expect(unsafeUrl.result.statusCode).toBe(503);
   });
+
+  it('recusa caminho de proposta forjado antes de solicitar URL assinada', async () => {
+    configure();
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      bucket: 'customer-proposals', path: '../documento-forjado.pdf',
+    }), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const current = responseDouble();
+    await proposalHandler(request(), current.response);
+    expect(current.result.statusCode).toBe(404);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
 });
