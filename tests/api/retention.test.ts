@@ -135,6 +135,38 @@ describe('tarefa de retenção', () => {
     expect(String(storageCall[0])).toContain('/storage/v1/object/customer-proposals');
   });
 
+  it('recusa um caminho de proposta inválido retornado pelo RPC antes de chamar a Storage API', async () => {
+    configure();
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes('/get_site_data_retention_candidates')) {
+        return new Response(JSON.stringify({ quoteIds: [], storagePaths: ['../fora-do-escopo.pdf'] }), { status: 200 });
+      }
+      return new Response('{}', { status: 500 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+
+    expect(result.statusCode).toBe(503);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('recusa caminho de proposta não textual retornado pelo RPC antes de chamar a Storage API', async () => {
+    configure();
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes('/get_site_data_retention_candidates')) {
+        return new Response(JSON.stringify({ quoteIds: [], storagePaths: [123] }), { status: 200 });
+      }
+      return new Response('{}', { status: 500 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+
+    expect(result.statusCode).toBe(503);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   // Etapa 33 do plano de correções: cenário de falha parcial que faltava — Storage
   // removeu o arquivo, mas finalize_site_data_retention falhou antes de apagar os
   // metadados. A próxima execução (replay) precisa concluir sem duplicar nem perder,
@@ -236,5 +268,25 @@ describe('tarefa de retenção', () => {
 
     expect(result.statusCode).toBe(503);
     expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/finalize_site_storage_retention'))).toBe(false);
+  });
+
+  it('recusa caminho inválido da fila de briefing antes de apagar qualquer blob', async () => {
+    configure();
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes('/get_site_data_retention_candidates')) return new Response(JSON.stringify({ quoteIds: [], storagePaths: [] }), { status: 200 });
+      if (url.includes('/finalize_site_data_retention')) return new Response('{}', { status: 200 });
+      if (url.includes('/purge_archived_customer_selections')) return new Response('0', { status: 200 });
+      if (url.includes('/get_briefing_asset_retention_candidates')) {
+        return new Response(JSON.stringify({ objects: [{ bucket: 'customer-briefing-assets', path: 'cliente//arquivo.webp' }] }), { status: 200 });
+      }
+      return new Response('{}', { status: 500 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+
+    expect(result.statusCode).toBe(503);
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/storage/v1/object/'))).toBe(false);
   });
 });

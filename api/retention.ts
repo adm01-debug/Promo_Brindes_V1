@@ -23,13 +23,22 @@ function matchesCronSecret(authorization: string, secret: string): boolean {
 
 function stringArray(value: unknown, max: number, valid: (item: string) => boolean): string[] {
   if (!Array.isArray(value) || value.length > max) throw new Error('invalid_retention_candidates');
-  const items = value.map((item) => String(item));
+  if (value.some((item) => typeof item !== 'string')) throw new Error('invalid_retention_candidates');
+  const items = value;
   if (items.some((item) => !valid(item))) throw new Error('invalid_retention_candidates');
   return Array.from(new Set(items));
 }
 
+function hasControlCharacter(value: string): boolean {
+  return Array.from(value).some((character) => {
+    const code = character.charCodeAt(0);
+    return code < 32 || code === 127;
+  });
+}
+
 function safeStoragePath(path: string): boolean {
-  return path.length >= 2 && path.length <= 500 && !/(^|\/)\.\.($|\/)/.test(path);
+  if (path.length < 2 || path.length > 500 || path.startsWith('/') || hasControlCharacter(path)) return false;
+  return path.split('/').every((segment) => segment.length > 0 && segment !== '.' && segment !== '..');
 }
 
 async function rpc<T>(baseUrl: string, secretKey: string, name: string, body: Record<string, unknown>, signal: AbortSignal): Promise<T> {
