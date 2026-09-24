@@ -7,6 +7,7 @@ const FAVORITES_KEY = 'promo-brindes:occasion-favorites:v1';
 const FAVORITES_PROMOTION_KEY = 'promo-brindes:occasion-favorites:account-promoted:';
 const FAVORITES_OWNER_KEY = 'promo-brindes:occasion-favorites:local-owner';
 const FAVORITES_ACCOUNT_CACHE_PREFIX = 'promo-brindes:occasion-favorites:account:';
+const EMPTY_FAVORITES = new Set<string>();
 
 function ownerFor(userId?: string): FavoriteOwner {
   return userId ? `account:${userId}` : 'anonymous';
@@ -59,6 +60,21 @@ function promotionKey(userId: string) {
   return `${FAVORITES_PROMOTION_KEY}${userId}`;
 }
 
+function applyIntents(remote: Set<string>, intents: Map<string, boolean>) {
+  const next = new Set(remote);
+  for (const [occasionId, saved] of intents) {
+    // Uma leitura que já reflete a intenção pode liberar a sobreposição local.
+    // Enquanto ela divergir, o snapshot é anterior à ação e não pode apagar nem
+    // ressuscitar a escolha feita neste dispositivo.
+    if (remote.has(occasionId) === saved) {
+      intents.delete(occasionId);
+      continue;
+    }
+    saved ? next.add(occasionId) : next.delete(occasionId);
+  }
+  return next;
+}
+
 export interface OccasionFavoritesOptions {
   userId?: string;
   authLoading: boolean;
@@ -72,13 +88,16 @@ export interface OccasionFavoritesOptions {
  */
 export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey }: OccasionFavoritesOptions) {
   const initialOwner = ownerFor(userId);
-  const [favoriteOwner, setFavoriteOwner] = useState<FavoriteOwner>(initialOwner);
   const [favorites, setFavorites] = useState(() => loadFavorites(initialOwner));
   const [storageMessage, setStorageMessage] = useState('');
   const favoriteOwnerRef = useRef<FavoriteOwner>(initialOwner);
   const favoritesRef = useRef(favorites);
   const syncEpochRef = useRef(0);
   const mutationEpochRef = useRef(new Map<string, number>());
+  // Intenções pertencem somente à sessão de sincronização do titular atual.
+  // Ao trocar a conta, callbacks antigos já são invalidados pelo epoch e a
+  // projeção seguinte começa pelo cache/servidor do novo titular.
+  const intentsRef = useRef(new Map<string, boolean>());
 
   const replaceFavorites = useCallback((update: Set<string> | ((current: Set<string>) => Set<string>)) => {
     setFavorites((current) => {
@@ -90,11 +109,11 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
 
   useEffect(() => {
     try {
-      if (favoriteOwnerRef.current === favoriteOwner) saveFavorites(favoriteOwner, favorites);
+      if (favoriteOwnerRef.current === initialOwner) saveFavorites(initialOwner, favorites);
     } catch {
       setStorageMessage('Seu navegador não permitiu salvar esta seleção neste dispositivo.');
     }
-  }, [favoriteOwner, favorites]);
+  }, [favorites, initialOwner]);
 
   useEffect(() => {
     const syncEpoch = ++syncEpochRef.current;
@@ -109,7 +128,7 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
       : new Set<string>();
     favoriteOwnerRef.current = owner;
     mutationEpochRef.current.clear();
-    setFavoriteOwner(owner);
+    intentsRef.current.clear();
     const cachedFavorites = new Set([...loadFavorites(owner)].filter((id) => knownIds.has(id)));
     favoritesRef.current = cachedFavorites;
     setFavorites(cachedFavorites);
@@ -129,6 +148,7 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
             if (localOnly.length) await Promise.all(localOnly.map((id) => setMyOccasionFavorite(id, true)));
             if (!active || syncEpochRef.current !== syncEpoch || favoriteOwnerRef.current !== owner) return;
             merged = new Set([...remoteFavorites, ...localOnly]);
+            localOnly.forEach((id) => intentsRef.current.set(id, true));
             window.localStorage.setItem(promotionKey(userId), '1');
           }
         } catch {
@@ -140,8 +160,7 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
           return;
         }
         if (active && syncEpochRef.current === syncEpoch && favoriteOwnerRef.current === owner) {
-          const hasCurrentMutation = [...mutationEpochRef.current.keys()].some((key) => key.startsWith(`${owner}:`));
-          const next = hasCurrentMutation ? new Set([...merged, ...favoritesRef.current]) : merged;
+          const next = applyIntents(merged, intentsRef.current);
           favoritesRef.current = next;
           setFavorites(next);
         }
@@ -174,6 +193,7 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
     const mutationEpoch = (mutationEpochRef.current.get(mutationKey) || 0) + 1;
     const syncEpoch = syncEpochRef.current;
     mutationEpochRef.current.set(mutationKey, mutationEpoch);
+    intentsRef.current.set(occasionId, nextSaved);
     void setMyOccasionFavorite(occasionId, nextSaved)
       .catch((error: unknown) => {
         if (syncEpochRef.current !== syncEpoch || favoriteOwnerRef.current !== owner || mutationEpochRef.current.get(mutationKey) !== mutationEpoch) return;
@@ -182,6 +202,7 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
           previouslySaved ? restored.add(occasionId) : restored.delete(occasionId);
           return restored;
         });
+        intentsRef.current.set(occasionId, previouslySaved);
         onRollback?.();
         setStorageMessage(error instanceof Error && error.message === 'occasion_favorite_limit_reached'
           ? 'Você já salvou o máximo de 100 datas na sua conta. Remova uma para adicionar outra.'
@@ -195,5 +216,9 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
     return true;
   }, [authLoading, replaceFavorites, userId]);
 
-  return { favorites, saveFavorite, storageMessage };
+  // `useEffect` só atualiza o cache depois da renderização. A projeção abaixo
+  // impede um commit com o titular B e favoritos pertencentes a A nesse intervalo.
+  const visibleFavorites = !authLoading && favoriteOwnerRef.current === initialOwner ? favorites : EMPTY_FAVORITES;
+
+  return { favorites: visibleFavorites, saveFavorite, storageMessage };
 }
