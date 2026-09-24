@@ -132,6 +132,24 @@ describe('worker de comprovantes do orçamento', () => {
     expect(result.body).toEqual({ ok: true, claimed: 1, delivered: 0, failed: 0, inconclusive: 1 });
   });
 
+  it('R01: resposta escalar malformada não vira sucesso por coerção truthy', async () => {
+    configure();
+    vi.stubEnv('RESEND_API_KEY', 're_synthetic_test_key');
+    vi.stubEnv('SITE_EMAIL_FROM', 'Promo Brindes <atendimento@example.test>');
+    const fetchMock = vi.fn(async (url: string | URL) => {
+      if (String(url).includes('/claim_site_notification_deliveries')) return new Response(JSON.stringify([emailJob]), { status: 200 });
+      if (String(url) === 'https://api.resend.com/emails') return new Response('{"id":"email-provider-1"}', { status: 200 });
+      if (String(url).includes('/record_site_notification_provider_acceptance')) return new Response('true', { status: 200 });
+      // A string "false" é truthy em JavaScript; o worker deve falhar fechado.
+      if (String(url).includes('/finalize_site_notification_delivery')) return new Response('"false"', { status: 200 });
+      return notMocked();
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+    expect(result.body).toEqual({ ok: true, claimed: 1, delivered: 0, failed: 0, inconclusive: 1 });
+  });
+
   it('R02/R21: reconcilia em vez de reenviar quando um aceite anterior já foi persistido', async () => {
     configure();
     vi.stubEnv('RESEND_API_KEY', 're_synthetic_test_key');
@@ -384,6 +402,28 @@ describe('worker de comprovantes do orçamento', () => {
     expect(fetchMock.mock.calls.some(([url]) => new URL(String(url)).hostname === 'graph.facebook.com')).toBe(false);
   });
 
+  it('não chama a Meta quando o marcador de intenção retorna um booleano malformado', async () => {
+    configure();
+    vi.stubEnv('WHATSAPP_ACCESS_TOKEN', 'meta-synthetic-token');
+    vi.stubEnv('WHATSAPP_PHONE_NUMBER_ID', '1234567890');
+    vi.stubEnv('WHATSAPP_QUOTE_TEMPLATE', 'confirmacao_orcamento');
+    vi.stubEnv('WHATSAPP_GRAPH_API_VERSION', 'v23.0');
+    const whatsappJob = { ...emailJob, channel: 'whatsapp' };
+    const fetchMock = vi.fn(async (url: string | URL) => {
+      if (String(url).includes('/claim_site_notification_deliveries')) return new Response(JSON.stringify([whatsappJob]), { status: 200 });
+      // Uma string truthy nunca pode liberar uma chamada externa sem marcador durável.
+      if (String(url).includes('/record_site_notification_dispatch_started')) return new Response('"true"', { status: 200 });
+      return notMocked();
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+
+    expect(result.body).toEqual({ ok: true, claimed: 1, delivered: 0, failed: 0, inconclusive: 1 });
+    expect(fetchMock.mock.calls.some(([url]) => new URL(String(url)).hostname === 'graph.facebook.com')).toBe(false);
+  });
+
   it('resposta 2xx da Meta sem ID fica inconclusiva e não libera retry automático', async () => {
     configure();
     vi.stubEnv('WHATSAPP_ACCESS_TOKEN', 'meta-synthetic-token');
@@ -436,6 +476,22 @@ describe('Etapa 29: sinal de saúde da fila (reportQueueHealth, via handler)', (
     expect(result.statusCode).toBe(200);
     expect(infoSpy).toHaveBeenCalledWith('site_notifications_queue_health', { channels });
     expect(errorSpy).not.toHaveBeenCalled();
+  });
+
+  it('descarta telemetria malformada sem transformar a resposta já concluída em falha', async () => {
+    configure();
+    vi.stubEnv('RESEND_API_KEY', 're_synthetic_test_key');
+    vi.stubEnv('SITE_EMAIL_FROM', 'Promo Brindes <atendimento@example.test>');
+    const warningSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.spyOn(console, 'info').mockImplementation(() => {});
+    vi.stubGlobal('fetch', fetchMockWithQueueHealth([
+      { channel: 'email', oldestEligibleAgeSeconds: null, eligibleCount: '0', exhaustedCount: 0 },
+    ]));
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+
+    expect(result.body).toEqual({ ok: true, claimed: 0, delivered: 0, failed: 0, inconclusive: 0 });
+    expect(warningSpy).toHaveBeenCalledWith('site_notifications_queue_health_unavailable', expect.any(Object));
   });
 
   it('job elegível mais velho que o limiar: soa alerta com o payload do canal afetado', async () => {

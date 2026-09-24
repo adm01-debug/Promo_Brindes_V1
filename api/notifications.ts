@@ -208,6 +208,16 @@ function parseJobs(value: unknown): NotificationJob[] {
   });
 }
 
+/**
+ * Uma RPC escalar do PostgREST ainda é JSON não confiável em runtime. Em
+ * particular, a string "false" é truthy no JavaScript e não pode jamais
+ * confirmar uma finalização de entrega ou liberar o envio ao WhatsApp.
+ */
+function parseBooleanRpc(value: unknown, name: string): boolean {
+  if (typeof value !== 'boolean') throw new Error(`invalid_notification_${name}_response`);
+  return value;
+}
+
 async function rpc<T>(name: string, body: Record<string, unknown>, signal: AbortSignal): Promise<T> {
   const config = getSiteDatabaseConfig();
   const response = await fetch(`${config.url}/rest/v1/rpc/${name}`, {
@@ -384,11 +394,12 @@ async function finalize(job: NotificationJob, status: 'sent' | 'failed', signal:
   // banco por ser maior (base de 300s contra 60s) e o deixaria morto na
   // prática. p_retry_after_seconds só recebe um Retry-After válido do
   // provedor; sem esse header, a função usa apenas a política do banco.
-  return rpc<boolean>('finalize_site_notification_delivery', {
+  const result = await rpc<unknown>('finalize_site_notification_delivery', {
     p_delivery_id: job.id, p_lease_token: job.leaseToken, p_status: status, p_provider: delivery?.provider || null,
     p_provider_message_id: delivery?.id || null, p_error_code: errorCode?.slice(0, 120) || null,
     p_retry_after_seconds: providerRetryAfter ?? undefined,
   }, signal);
+  return parseBooleanRpc(result, 'finalize_site_notification_delivery');
 }
 
 /** Envolve finalize() para nunca deixar uma falha de rede ao próprio banco
@@ -412,9 +423,12 @@ async function tryFinalize(job: NotificationJob, status: 'sent' | 'failed', sign
  * mesmo par logo em seguida. */
 async function recordProviderAcceptance(job: NotificationJob, delivery: { provider: string; id: string }, signal: AbortSignal): Promise<void> {
   try {
-    await rpc<boolean>('record_site_notification_provider_acceptance', {
+    const accepted = parseBooleanRpc(await rpc<unknown>('record_site_notification_provider_acceptance', {
       p_delivery_id: job.id, p_lease_token: job.leaseToken, p_provider: delivery.provider, p_provider_message_id: delivery.id,
-    }, signal);
+    }, signal), 'record_site_notification_provider_acceptance');
+    if (!accepted) {
+      logServerWarning('site_notification_provider_acceptance_unconfirmed', { requestId: job.requestId, channel: job.channel, errorClass: 'lease_not_confirmed' });
+    }
   } catch (error) {
     logServerWarning('site_notification_provider_acceptance_unconfirmed', { requestId: job.requestId, channel: job.channel, errorClass: errorClass(error) });
   }
@@ -422,10 +436,11 @@ async function recordProviderAcceptance(job: NotificationJob, delivery: { provid
 
 async function recordWhatsAppDispatchStarted(job: NotificationJob, signal: AbortSignal): Promise<boolean> {
   try {
-    return await rpc<boolean>('record_site_notification_dispatch_started', {
+    const result = await rpc<unknown>('record_site_notification_dispatch_started', {
       p_delivery_id: job.id,
       p_lease_token: job.leaseToken,
     }, signal);
+    return parseBooleanRpc(result, 'record_site_notification_dispatch_started');
   } catch (error) {
     logServerWarning('site_notification_dispatch_start_unconfirmed', {
       requestId: job.requestId,
@@ -491,6 +506,39 @@ interface ChannelQueueHealth {
   uncertainCount?: number;
 }
 
+function isNonnegativeSafeInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
+}
+
+function parseQueueHealth(value: unknown): ChannelQueueHealth[] {
+  if (!Array.isArray(value) || value.length > 2) throw new Error('invalid_notification_queue_health');
+  const seen = new Set<string>();
+  return value.map((raw) => {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('invalid_notification_queue_health');
+    const health = raw as Record<string, unknown>;
+    const channel = health.channel;
+    const oldestEligibleAgeSeconds = health.oldestEligibleAgeSeconds;
+    const eligibleCount = health.eligibleCount;
+    const exhaustedCount = health.exhaustedCount;
+    const uncertainCount = health.uncertainCount;
+    if ((channel !== 'email' && channel !== 'whatsapp') || seen.has(channel)
+      || (oldestEligibleAgeSeconds !== null && !isNonnegativeSafeInteger(oldestEligibleAgeSeconds))
+      || !isNonnegativeSafeInteger(eligibleCount)
+      || !isNonnegativeSafeInteger(exhaustedCount)
+      || (uncertainCount !== undefined && !isNonnegativeSafeInteger(uncertainCount))) {
+      throw new Error('invalid_notification_queue_health');
+    }
+    seen.add(channel);
+    return {
+      channel,
+      oldestEligibleAgeSeconds: oldestEligibleAgeSeconds as number | null,
+      eligibleCount: eligibleCount as number,
+      exhaustedCount: exhaustedCount as number,
+      ...(uncertainCount === undefined ? {} : { uncertainCount: uncertainCount as number }),
+    };
+  });
+}
+
 /** Etapa 29: sinal ativo de acúmulo ou job preso na fila, em vez de
  * descoberta manual — o único sinal anterior (`site_notifications_completed`
  * abaixo) só cobre o lote já processado na invocação atual, nunca o que
@@ -504,7 +552,7 @@ async function reportQueueHealth(): Promise<void> {
     const timeout = setTimeout(() => controller.abort(), QUEUE_HEALTH_TIMEOUT_MS);
     let channels: ChannelQueueHealth[];
     try {
-      channels = await rpc<ChannelQueueHealth[]>('site_notification_queue_health', {}, controller.signal);
+      channels = parseQueueHealth(await rpc<unknown>('site_notification_queue_health', {}, controller.signal));
     } finally {
       clearTimeout(timeout);
     }
