@@ -5,6 +5,11 @@ import { deliverQuoteConfirmationsNow } from '../notifications.js';
 import { createCorrelationId, errorClass, logServerError } from './observability.js';
 import { allowedSiteOrigins } from './siteOrigin.js';
 
+/** Orçamento ponta a ponta abaixo do maxDuration de 30 s da Vercel. */
+export const LEAD_TOTAL_TIME_BUDGET_MS = 24_000;
+/** A confirmação imediata usa até 7 s; esta folga protege a resposta HTTP. */
+export const MIN_CONFIRMATION_WINDOW_MS = 8_000;
+
 export interface ApiRequest {
   method?: string;
   headers: Record<string, string | string[] | undefined>;
@@ -77,6 +82,9 @@ function validateOrigin(request: ApiRequest): void {
 
 export async function handleLeadRequest(kind: LeadKind, request: ApiRequest, response: ApiResponse) {
   const correlationId = createCorrelationId();
+  const deadlineController = new AbortController();
+  const deadline = Date.now() + LEAD_TOTAL_TIME_BUDGET_MS;
+  const deadlineTimeout = setTimeout(() => deadlineController.abort(), LEAD_TOTAL_TIME_BUDGET_MS);
   response.setHeader('Cache-Control', 'no-store');
   response.setHeader('Content-Type', 'application/json; charset=utf-8');
   response.setHeader('X-Content-Type-Options', 'nosniff');
@@ -103,16 +111,16 @@ export async function handleLeadRequest(kind: LeadKind, request: ApiRequest, res
       throw new RequestValidationError('A chave de idempotência não corresponde à solicitação.', 409, 'idempotency_key_mismatch');
     }
     const payload = normalizedPayload.source === 'site-promo-brindes'
-      ? await reconcileQuoteItems(normalizedPayload)
+      ? await reconcileQuoteItems(normalizedPayload, deadlineController.signal)
       : normalizedPayload;
     const result = await persistLead(kind, payload, {
       ip: requestIp(request),
       userAgent: header(request, 'user-agent'),
       origin: header(request, 'origin'),
-    });
+    }, deadlineController.signal);
     console.info('site_lead_request_persisted', { kind, requestId: result.requestId, duplicate: result.duplicate, correlationId });
     const confirmations = payload.source === 'site-promo-brindes'
-      ? result.duplicate
+      ? result.duplicate || Date.now() > deadline - MIN_CONFIRMATION_WINDOW_MS
         ? { email: 'pending' as const, whatsapp: payload.notificationPreferences.whatsappCopy ? 'pending' as const : 'not_requested' as const }
         : await deliverQuoteConfirmationsNow(result.requestId, payload.notificationPreferences.whatsappCopy, correlationId)
       : undefined;
@@ -125,7 +133,16 @@ export async function handleLeadRequest(kind: LeadKind, request: ApiRequest, res
       response.status(error.status).json({ error: error.code, message: error.message });
       return;
     }
+    if (deadlineController.signal.aborted) {
+      response.status(503).json({
+        error: 'request_deadline_exceeded',
+        message: 'A solicitação demorou mais que o esperado. Tente novamente.',
+      });
+      return;
+    }
     logServerError('site_lead_request_failed', { kind, correlationId, errorClass: errorClass(error) });
     response.status(500).json({ error: 'internal_error', message: 'Não conseguimos processar sua solicitação.' });
+  } finally {
+    clearTimeout(deadlineTimeout);
   }
 }

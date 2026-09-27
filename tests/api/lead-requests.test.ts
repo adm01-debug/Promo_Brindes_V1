@@ -166,6 +166,21 @@ describe('APIs de leads isoladas', () => {
     expect(sent.p_payload.items[0].imageUrl).toBe('https://catalogo-canonico.test/mochila-verde.webp');
   });
 
+  it('encerra uma dependência que não responde antes do limite da função', async () => {
+    configureSiteDatabase();
+    vi.stubGlobal('fetch', vi.fn((_url: string | URL, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+      init?.signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true });
+    })));
+    const { result, response } = responseDouble();
+    const pending = quoteHandler(request(quotePayload), response);
+
+    await vi.advanceTimersByTimeAsync(5_000);
+    await pending;
+
+    expect(result.statusCode).toBe(503);
+    expect(result.body).toMatchObject({ error: 'catalog_validation_unavailable' });
+  });
+
   it('preserva a composição do kit e rejeita aritmética adulterada', async () => {
     configureSiteDatabase();
     const kit = {

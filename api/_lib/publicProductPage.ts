@@ -1,3 +1,5 @@
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { fallbackPageShell, renderPageShell, type PublicPageMetadata } from './pageShell.js';
 
 const CANONICAL_PROJECT_ID = 'doufsxqlfjyuvxuezpln';
@@ -67,17 +69,6 @@ export function configuredSiteOrigin(): string {
   }
 }
 
-/**
- * A função é executada dentro de um deployment que pode exigir autenticação
- * interna da Vercel. O shell, porém, precisa ser obtido do endereço público
- * canônico que o visitante também usa. Buscar VERCEL_URL aqui fazia `fetch`
- * seguir o redirect para a tela de login e servir aquele HTML como se fosse
- * o aplicativo.
- */
-function publicAppShellUrl(): string {
-  return `${configuredSiteOrigin()}/index.html`;
-}
-
 function isValidAppShell(html: string): boolean {
   return /<div\s+id=["']root["'][^>]*>/i.test(html)
     && /<script\b[^>]*\bsrc=["']\/assets\//i.test(html)
@@ -88,16 +79,6 @@ export function validProductIdentifier(value: string): boolean {
   return UUID_PATTERN.test(value) || SLUG_PATTERN.test(value);
 }
 
-async function fetchWithTimeout(input: string, init: RequestInit): Promise<Response> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), NETWORK_TIMEOUT_MS);
-  try {
-    return await fetch(input, { ...init, signal: controller.signal });
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
 export async function fetchPublicProduct(identifier: string): Promise<PublicProductRow | null> {
   if (!validProductIdentifier(identifier)) throw new PublicProductPageError(400, 'Identificador de produto inválido.');
   const apiKey = publicApiKey(process.env.VITE_SUPABASE_PUBLISHABLE_KEY);
@@ -105,33 +86,40 @@ export async function fetchPublicProduct(identifier: string): Promise<PublicProd
   const isUuid = UUID_PATTERN.test(identifier);
   const params = new URLSearchParams({ select: PRODUCT_FIELDS, is_active: 'eq.true', limit: '1' });
   params.set(isUuid ? 'id' : 'slug', `eq.${identifier}`);
-  const get = async (resource: string) => fetchWithTimeout(`${CATALOG_URL}/rest/v1/${resource}?${params.toString()}`, {
-    headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}`, Accept: 'application/json' },
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), NETWORK_TIMEOUT_MS);
+  const get = async (resource: string) => fetch(`${CATALOG_URL}/rest/v1/${resource}?${params.toString()}`, {
+    headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}`, Accept: 'application/json' }, signal: controller.signal,
   });
-  let response: Response;
   try {
-    response = await get(catalogResource(process.env.VITE_PRODUCT_CATALOG_RESOURCE));
+    let response = await get(catalogResource(process.env.VITE_PRODUCT_CATALOG_RESOURCE));
     if (response.status === 404 && catalogResource(process.env.VITE_PRODUCT_CATALOG_RESOURCE) !== 'v_products_public') response = await get('v_products_public');
+    if (!response.ok) throw new PublicProductPageError(503, 'Catálogo temporariamente indisponível.');
+    // O timer só é limpo após JSON; o corpo também faz parte da consulta.
+    const products = await response.json().catch(() => null);
+    if (!Array.isArray(products) || !products[0] || typeof products[0] !== 'object') return null;
+    const row = products[0] as Partial<PublicProductRow>;
+    if (typeof row.id !== 'string' || typeof row.name !== 'string' || typeof row.sku !== 'string') return null;
+    return row as PublicProductRow;
   } catch {
     throw new PublicProductPageError(503, 'Catálogo temporariamente indisponível.');
+  } finally {
+    clearTimeout(timeout);
   }
-  if (!response.ok) throw new PublicProductPageError(503, 'Catálogo temporariamente indisponível.');
-  const products = await response.json().catch(() => null);
-  if (!Array.isArray(products) || !products[0] || typeof products[0] !== 'object') return null;
-  const row = products[0] as Partial<PublicProductRow>;
-  if (typeof row.id !== 'string' || typeof row.name !== 'string' || typeof row.sku !== 'string') return null;
-  return row as PublicProductRow;
 }
 
 export async function loadAppShell(): Promise<string> {
   try {
-    const shellUrl = publicAppShellUrl();
-    const response = await fetchWithTimeout(shellUrl, { headers: { Accept: 'text/html' }, redirect: 'error' });
-    if (!response.ok) throw new Error('app shell unavailable');
-    // Response.url fica vazio nos doubles de teste, mas é preenchido pelo
-    // runtime HTTP. Quando existir, ele não pode trocar de origem.
-    if (response.url && new URL(response.url).origin !== new URL(shellUrl).origin) throw new Error('unexpected app shell origin');
-    const shell = await response.text();
+    // O artefato é incluído na mesma função Vercel por includeFiles. Ler do
+    // pacote elimina fetch para a origem canônica, preview protegido e chunks
+    // de outro deployment.
+    // O caminho alternativo existe somente sob Vitest e aponta para uma
+    // fixture versionada; produção sempre usa o artefato `dist` incluído pela
+    // configuração Vercel abaixo.
+    const shellPath = process.env.NODE_ENV === 'test' && process.env.SITE_TEST_APP_SHELL === '1'
+      ? join(process.cwd(), 'tests', 'fixtures', 'app-shell.html')
+      : join(process.cwd(), 'dist', 'index.html');
+    const shell = await readFile(shellPath, 'utf8');
     if (!isValidAppShell(shell)) throw new Error('invalid app shell');
     return shell;
   } catch {

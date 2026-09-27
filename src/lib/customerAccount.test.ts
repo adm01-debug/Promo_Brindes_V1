@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { customerStatusLabel, customerStatusTone, isProposalExpired, sanitizeCustomerNextPath } from './customerAccount';
+import { customerStatusLabel, customerStatusTone, isProposalExpired, normalizeCustomerHistoryPage, sanitizeCustomerNextPath } from './customerAccount';
 
 describe('contrato da Área do Cliente', () => {
   it('traduz somente estados operacionais reais', () => {
@@ -19,5 +19,13 @@ describe('contrato da Área do Cliente', () => {
     expect(isProposalExpired({ validUntil: '2026-09-11' }, '2026-09-12')).toBe(true);
     expect(isProposalExpired({ validUntil: '2026-09-12' }, '2026-09-12')).toBe(false);
     expect(isProposalExpired({ validUntil: null }, '2026-09-12')).toBe(false);
+  });
+
+  it('aceita somente páginas inteiras dentro do limite do histórico', () => {
+    expect(normalizeCustomerHistoryPage(null)).toBe(1);
+    expect(normalizeCustomerHistoryPage('1')).toBe(1);
+    expect(normalizeCustomerHistoryPage('2.5')).toBe(1);
+    expect(normalizeCustomerHistoryPage('-2')).toBe(1);
+    expect(normalizeCustomerHistoryPage('999')).toBe(834);
   });
 });

@@ -5,7 +5,7 @@ import { CustomerRoute } from '../components/CustomerRoute';
 import { SavedSelections } from '../components/SavedSelections';
 import { Seo } from '../components/Seo';
 import { useCustomerAuth } from '../context/customerAuth';
-import { customerStatusLabel, customerStatusOptions, customerStatusTone, fetchMyQuoteRequests, type CustomerQuotePage, type CustomerQuoteStatus } from '../lib/customerAccount';
+import { customerStatusLabel, customerStatusOptions, customerStatusTone, fetchMyQuoteRequests, normalizeCustomerHistoryPage, type CustomerQuotePage, type CustomerQuoteStatus } from '../lib/customerAccount';
 import { trackFunnelEvent } from '../lib/analytics';
 import { replaceBrokenProductImage } from '../lib/images';
 
@@ -21,8 +21,7 @@ function AccountContent() {
   const query = (params.get('q') || '').slice(0, 80);
   const statusValue = params.get('status') || '';
   const status = customerStatusOptions.some((option) => option.value === statusValue) ? statusValue as CustomerQuoteStatus | '' : '';
-  const requestedPage = Number(params.get('page'));
-  const page = Number.isInteger(requestedPage) && requestedPage >= 1 ? Math.min(834, requestedPage) : 1;
+  const page = normalizeCustomerHistoryPage(params.get('page'));
   const [search, setSearch] = useState(query);
   const [result, setResult] = useState<CustomerQuotePage | null>(null);
   const [loading, setLoading] = useState(true);
@@ -30,6 +29,16 @@ function AccountContent() {
   const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => setSearch(query), [query]);
+  // A URL é uma interface compartilhável: valores fracionários, negativos e
+  // "page=1" não ficam visíveis como se fossem páginas válidas.
+  useEffect(() => {
+    const raw = params.get('page');
+    const canonical = page > 1 ? String(page) : null;
+    if (raw === canonical) return;
+    const updated = new URLSearchParams(params);
+    if (canonical) updated.set('page', canonical); else updated.delete('page');
+    setParams(updated, { replace: true });
+  }, [page, params, setParams]);
   useEffect(() => {
     let active = true;
     setLoading(true);

@@ -158,14 +158,14 @@ function responseErrorDetail(value: unknown): string {
   return `${message} ${code}`;
 }
 
-export async function persistLead(kind: LeadKind, payload: NormalizedLeadPayload, metadata: RequestMetadata) {
+export async function persistLead(kind: LeadKind, payload: NormalizedLeadPayload, metadata: RequestMetadata, externalSignal?: AbortSignal) {
   const config = getSiteDatabaseConfig();
   const rpcName = kind === 'quote' ? 'create_site_quote_request' : 'create_site_contact_request';
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-  let response: Response;
+  const signal = externalSignal ? AbortSignal.any([controller.signal, externalSignal]) : controller.signal;
   try {
-    response = await fetch(`${config.url}/rest/v1/rpc/${rpcName}`, {
+    const response = await fetch(`${config.url}/rest/v1/rpc/${rpcName}`, {
       method: 'POST',
       headers: {
         apikey: config.serviceCredential,
@@ -187,26 +187,28 @@ export async function persistLead(kind: LeadKind, payload: NormalizedLeadPayload
           } : {}),
         },
       }),
-      signal: controller.signal,
+      signal,
     });
-  } catch {
+    // O timer cobre também a leitura do corpo. Headers imediatos com JSON
+    // pendente não podem deixar uma solicitação presa indefinidamente.
+    const result = await response.json().catch(() => null) as unknown;
+    if (!response.ok) {
+      const detail = responseErrorDetail(result);
+      if (detail.includes('rate_limit_exceeded')) {
+        throw new SiteDatabaseError('Muitas tentativas em pouco tempo. Aguarde alguns minutos.', 'rate_limit_exceeded', 429);
+      }
+      if (detail.includes('client_request_id_conflict')) {
+        throw new SiteDatabaseError('Esta solicitação entrou em conflito com uma tentativa anterior. Atualize a página.', 'idempotency_conflict', 409);
+      }
+      throw new SiteDatabaseError('Não conseguimos registrar sua solicitação agora. Tente novamente.', 'database_unavailable');
+    }
+    return parseLeadPersistenceResponse(result);
+  } catch (error) {
+    if (error instanceof SiteDatabaseError) throw error;
     throw new SiteDatabaseError('Não conseguimos registrar sua solicitação agora. Tente novamente.', 'database_unavailable');
   } finally {
     clearTimeout(timeout);
   }
-
-  const result = await response.json().catch(() => null) as unknown;
-  if (!response.ok) {
-    const detail = responseErrorDetail(result);
-    if (detail.includes('rate_limit_exceeded')) {
-      throw new SiteDatabaseError('Muitas tentativas em pouco tempo. Aguarde alguns minutos.', 'rate_limit_exceeded', 429);
-    }
-    if (detail.includes('client_request_id_conflict')) {
-      throw new SiteDatabaseError('Esta solicitação entrou em conflito com uma tentativa anterior. Atualize a página.', 'idempotency_conflict', 409);
-    }
-    throw new SiteDatabaseError('Não conseguimos registrar sua solicitação agora. Tente novamente.', 'database_unavailable');
-  }
-  return parseLeadPersistenceResponse(result);
 }
 
 export function assertSafeSiteDatabaseConfiguration(): boolean {

@@ -29,6 +29,7 @@ function configure() {
   vi.stubEnv('VITE_SUPABASE_PUBLISHABLE_KEY', `sb_publishable_${'x'.repeat(40)}`);
   vi.stubEnv('VITE_PRODUCT_CATALOG_RESOURCE', 'v_site_products_public');
   vi.stubEnv('VERCEL_URL', '');
+  vi.stubEnv('SITE_TEST_APP_SHELL', '1');
 }
 
 describe('HTML inicial de fichas de produto', () => {
@@ -48,14 +49,10 @@ describe('HTML inicial de fichas de produto', () => {
 
   it('entrega produto com metadados específicos e schema sem virar checkout', async () => {
     configure();
-    const fetchMock = vi.fn(async (input: string | URL) => {
-      const url = String(input);
-      if (url.endsWith('/index.html')) return new Response(appShell, { status: 200 });
-      return new Response(JSON.stringify([{
+    const fetchMock = vi.fn(async (_input: string | URL) => new Response(JSON.stringify([{
         id: '11111111-1111-4111-8111-111111111111', name: 'Squeeze corporativo', sku: 'SQ-42', slug: 'squeeze-corporativo',
         ai_summary: 'Uma escolha funcional para eventos.', primary_image_url: 'https://cdn.example/squeeze.webp', images: [],
-      }]), { status: 200 });
-    });
+      }]), { status: 200 }));
     vi.stubGlobal('fetch', fetchMock);
     const { result, response } = responseDouble();
 
@@ -72,7 +69,7 @@ describe('HTML inicial de fichas de produto', () => {
 
   it('responde 404 e noindex para um identificador inválido sem consultar o catálogo', async () => {
     configure();
-    const fetchMock = vi.fn(async (_input: string | URL) => new Response(appShell, { status: 200 }));
+    const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);
     const { result, response } = responseDouble();
 
@@ -81,17 +78,12 @@ describe('HTML inicial de fichas de produto', () => {
     expect(result.statusCode).toBe(404);
     expect(result.headers.get('Cache-Control')).toBe('no-store');
     expect(result.body).toContain('noindex,nofollow');
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    const firstCall = fetchMock.mock.calls[0];
-    if (!firstCall) throw new Error('A leitura de index esperada não ocorreu.');
-    expect(String(firstCall[0])).toMatch(/\/index\.html$/);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('preserva 404 real quando o item ativo não existe', async () => {
     configure();
-    vi.stubGlobal('fetch', vi.fn(async (input: string | URL) => String(input).endsWith('/index.html')
-      ? new Response(appShell, { status: 200 })
-      : new Response('[]', { status: 200 })));
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('[]', { status: 200 })));
     const { result, response } = responseDouble();
 
     await handler({ method: 'GET', query: { identifier: 'produto-removido' } }, response);
@@ -103,7 +95,7 @@ describe('HTML inicial de fichas de produto', () => {
 
   it('entrega 404 real também para uma rota de interface inexistente', async () => {
     configure();
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(appShell, { status: 200 })));
+    vi.stubGlobal('fetch', vi.fn());
     const { result, response } = responseDouble();
 
     await notFoundHandler({ method: 'GET' }, response);
@@ -113,22 +105,17 @@ describe('HTML inicial de fichas de produto', () => {
     expect(result.body).toContain('noindex,nofollow');
   });
 
-  it('usa a origem pública canônica e rejeita HTML de proteção mesmo quando retorna 200', async () => {
+  it('usa o shell incluso no mesmo deployment e nunca consulta a origem pública', async () => {
     configure();
     vi.stubEnv('VERCEL_URL', 'deployment-protegido.vercel.app');
-    const fetchMock = vi.fn(async (input: string | URL) => {
-      const url = String(input);
-      if (url.endsWith('/index.html')) return new Response('<html><title>Log in to Vercel</title>Protected Deployment</html>', { status: 200 });
-      return new Response('[]', { status: 200 });
-    });
+    const fetchMock = vi.fn(async () => new Response('[]', { status: 200 }));
     vi.stubGlobal('fetch', fetchMock);
     const { result, response } = responseDouble();
 
     await handler({ method: 'GET', query: { identifier: 'produto-removido' } }, response);
 
-    expect(String(fetchMock.mock.calls.find(([url]) => String(url).endsWith('/index.html'))?.[0])).toBe('https://www.promobrindes.com.br/index.html');
-    expect(result.statusCode).toBe(503);
-    expect(result.body).toContain('Produto temporariamente indisponível');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(result.statusCode).toBe(404);
     expect(result.body).not.toContain('Log in to Vercel');
   });
 });

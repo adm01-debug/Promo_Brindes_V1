@@ -1120,6 +1120,25 @@ test('galeria com muitas fotos mantém o documento dentro da viewport móvel', a
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });
 
+test('galeria com múltiplas fotos anuncia controles válidos e não cria violação de lista', async ({ page }) => {
+  await page.unroute(/\/rest\/v1\/v_(?:site_)?products_public\?/);
+  await page.route(/\/rest\/v1\/v_(?:site_)?products_public\?/, (route) => route.fulfill({
+    contentType: 'application/json',
+    headers: { 'content-range': '0-0/1' },
+    body: JSON.stringify([{ ...product, images: ['/images/product-placeholder.svg?foto=2', '/images/product-placeholder.svg?foto=3'] }]),
+  }));
+  await page.goto(`/produto/${product.slug}`);
+  const controls = page.getByRole('group', { name: 'Escolher foto' });
+  await expect(controls).toBeVisible();
+  await expect(controls.getByRole('button')).toHaveCount(3);
+  await controls.getByRole('button', { name: 'Ver foto 2' }).focus();
+  await expect(controls.getByRole('button', { name: 'Ver foto 2' })).toBeFocused();
+  await controls.getByRole('button', { name: 'Ver foto 2' }).click();
+  await expect(controls.getByRole('button', { name: 'Ver foto 2' })).toHaveAttribute('aria-pressed', 'true');
+  const result = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
+  expect(result.violations, 'Violações na galeria de múltiplas fotos').toEqual([]);
+});
+
 test('navegação de catálogo por query fecha menu e reposiciona resultados', async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.includes('mobile'), 'Cenário dedicado ao viewport móvel.');
   await page.goto('/catalogo');

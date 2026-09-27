@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { clearSubmissionAttempt, getOrCreateSubmissionAttempt, postJson } from './http';
+import { clearSubmissionAttempt, getOrCreateSubmissionAttempt, postJson, REQUEST_TIMEOUT_MS } from './http';
 
 describe('transporte dos formulários', () => {
   afterEach(() => {
@@ -54,8 +54,12 @@ describe('transporte dos formulários', () => {
     vi.stubGlobal('fetch', fetchMock);
     const request = postJson('/api/contact-requests', {}, 'contato');
     const assertion = expect(request).rejects.toThrow('demorou além do esperado');
-    await vi.advanceTimersByTimeAsync(15_000);
+    await vi.advanceTimersByTimeAsync(REQUEST_TIMEOUT_MS);
     await assertion;
+  });
+
+  it('mantém margem no navegador para a resposta do orçamento no servidor', () => {
+    expect(REQUEST_TIMEOUT_MS).toBeGreaterThan(24_000);
   });
 
   it('mantém somente identidade e instante da tentativa entre recargas', () => {

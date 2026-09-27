@@ -10,6 +10,7 @@ import { REQUEST_TIMEOUT_MS as RETENTION_TIMEOUT_MS } from '../../api/retention.
 import { REQUEST_TIMEOUT_MS as CUSTOMER_PROPOSALS_TIMEOUT_MS } from '../../api/customer-proposals.js';
 import { REQUEST_TIMEOUT_MS as BRIEFING_ASSETS_TIMEOUT_MS } from '../../api/briefing-assets.js';
 import { REQUEST_TIMEOUT_MS as SITEMAP_TIMEOUT_MS } from '../../api/sitemap.js';
+import { LEAD_TOTAL_TIME_BUDGET_MS, MIN_CONFIRMATION_WINDOW_MS } from '../../api/_lib/leadHandler.js';
 
 // deliverQuoteConfirmationsNow (api/notifications.ts): 7s por canal, mas os
 // canais rodam em paralelo (Etapa 26) — soma uma vez só, não uma por canal.
@@ -43,8 +44,12 @@ describe('Etapa 24: maxDuration em vercel.json cobre o pior caso real de cada ro
   }
 
   it('api/quote-requests.ts: catalogValidation + siteDatabase + confirmação (canais em paralelo)', () => {
-    const worstCaseMs = CATALOG_VALIDATION_TIMEOUT_MS + SITE_DATABASE_TIMEOUT_MS + QUOTE_CONFIRMATION_CHANNEL_TIMEOUT_MS;
-    expect(worstCaseMs).toBeLessThan(maxDurationMs('api/quote-requests.ts'));
+    // As dependências compartilham um sinal global de 24 s; não podem mais
+    // consumir 5+10+7 s em sequência e atravessar a janela da plataforma.
+    expect(LEAD_TOTAL_TIME_BUDGET_MS).toBeLessThan(maxDurationMs('api/quote-requests.ts'));
+    expect(MIN_CONFIRMATION_WINDOW_MS).toBeGreaterThanOrEqual(QUOTE_CONFIRMATION_CHANNEL_TIMEOUT_MS);
+    expect(CATALOG_VALIDATION_TIMEOUT_MS).toBeLessThan(LEAD_TOTAL_TIME_BUDGET_MS);
+    expect(SITE_DATABASE_TIMEOUT_MS).toBeLessThan(LEAD_TOTAL_TIME_BUDGET_MS);
   });
 
   it('api/contact-requests.ts: apenas siteDatabase (sem catalogValidation nem confirmação)', () => {
@@ -93,5 +98,12 @@ describe('Etapa 24: maxDuration em vercel.json cobre o pior caso real de cada ro
 
   it('api/not-found.ts (via publicProductPage)', () => {
     expect(PUBLIC_PRODUCT_PAGE_TIMEOUT_MS).toBeLessThan(maxDurationMs('api/not-found.ts'));
+  });
+
+  it('funções de HTML inicial carregam o shell publicado no próprio deploy', () => {
+    for (const path of ['api/product-page.ts', 'api/site-page.ts', 'api/not-found.ts']) {
+      const entry = functions[path] as { includeFiles?: string } | undefined;
+      expect(entry?.includeFiles).toBe('dist/index.html');
+    }
   });
 });

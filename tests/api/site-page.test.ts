@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import handler from '../../api/site-page.js';
@@ -25,6 +25,9 @@ function responseDouble() {
 }
 
 describe('HTML inicial das páginas estáticas', () => {
+  // A rota serverless lê o mesmo app shell que é empacotado no deploy. O
+  // fixture existe só para que estes testes não dependam de um build prévio.
+  beforeEach(() => { vi.stubEnv('SITE_TEST_APP_SHELL', '1'); });
   afterEach(() => { vi.useRealTimers(); vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
 
   it('entrega metadados específicos para catálogo e não indexa o detalhe privado', async () => {
@@ -114,15 +117,15 @@ describe('HTML inicial das páginas estáticas', () => {
     expect(occasion.result.body).not.toContain('ano=2030');
   });
 
-  it('não transforma HTML de autenticação de terceiro em página estática', async () => {
+  it('não consulta HTML de autenticação de terceiro para compor uma página estática', async () => {
     vi.stubEnv('VITE_PUBLIC_URL', 'https://promo-brindes-v1.vercel.app');
     vi.stubEnv('VERCEL_URL', 'deployment-protegido.vercel.app');
-    vi.stubGlobal('fetch', vi.fn(async () => new Response('<html>Protected Deployment — Log in to Vercel</html>', { status: 200 })));
+    vi.stubGlobal('fetch', vi.fn());
     const { result, response } = responseDouble();
 
     await handler({ method: 'GET', query: { page: 'catalogo' } }, response);
 
-    expect(result.statusCode).toBe(503);
+    expect(result.statusCode).toBe(200);
     expect(result.body).toContain('Catálogo de brindes | Promo Brindes');
     expect(result.body).not.toContain('Log in to Vercel');
   });

@@ -1,5 +1,5 @@
 import { Eye, EyeOff } from 'lucide-react';
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Seo } from '../components/Seo';
 import { useCustomerAuth } from '../context/customerAuth';
@@ -12,20 +12,26 @@ export default function SetPasswordPage() {
   const [done, setDone] = useState(false);
   const [error, setError] = useState('');
   const [pending, setPending] = useState(false);
+  const submittingRef = useRef(false);
+  const currentUserIdRef = useRef(auth.user?.id);
+  currentUserIdRef.current = auth.user?.id;
   const [passwordVisible, setPasswordVisible] = useState(false);
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (pending || auth.loading) return;
+    if (submittingRef.current || pending || auth.loading) return;
     if (!siteSupabase || password.length < 8 || password !== confirmation) { setError('Use pelo menos 8 caracteres e repita a mesma senha.'); return; }
+    const ownerAtStart = auth.user?.id;
+    submittingRef.current = true;
     setPending(true);
     setError('');
     try {
       const result = await siteSupabase.auth.updateUser({ password });
       if (result.error) setError('Não conseguimos atualizar a senha. Solicite um novo link.');
-      else setDone(true);
+      else if (ownerAtStart && currentUserIdRef.current === ownerAtStart) setDone(true);
     } catch {
       setError('Não conseguimos atualizar a senha. Solicite um novo link.');
     } finally {
+      submittingRef.current = false;
       setPending(false);
     }
   }
