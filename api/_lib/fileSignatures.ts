@@ -35,6 +35,20 @@ export function matchesDeclaredFileSignature(mimeType: string, bytes: Uint8Array
   return signatures[mimeType]?.(bytes) ?? false;
 }
 
+/**
+ * Um cabeçalho PDF só prova que os primeiros bytes parecem um PDF. Para anexos
+ * privados aceitamos uma política deliberadamente restrita: documento completo,
+ * trailer e startxref, sem ações executáveis ou mídia ativa. Isto não substitui
+ * antimalware; impede que um prefixo isolado ganhe o selo de arquivo verificado.
+ */
+export function isSafePdfDocument(bytes: Uint8Array): boolean {
+  if (!matchesDeclaredFileSignature('application/pdf', bytes) || bytes.length < 32) return false;
+  const text = new TextDecoder('latin1').decode(bytes);
+  const tail = text.slice(-2048);
+  if (!/startxref\s+\d+\s+%%EOF\s*$/i.test(tail)) return false;
+  return !/\/(?:JS|JavaScript|OpenAction|AA|Launch|RichMedia|EmbeddedFile)\b/i.test(text);
+}
+
 export async function readSignaturePrefix(response: Response, limit = 1024): Promise<Uint8Array> {
   if (!response.body) return new Uint8Array();
   const reader = response.body.getReader();

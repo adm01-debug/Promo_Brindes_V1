@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(19);
+select plan(21);
 
 select has_table('site_private', 'customer_occasion_favorites', 'favoritos de datas existem no schema privado');
 select ok((select c.relrowsecurity and c.relforcerowsecurity from pg_catalog.pg_class c
@@ -14,6 +14,8 @@ select ok(not pg_catalog.has_table_privilege('authenticated', 'site_private.cust
 select ok(pg_catalog.has_function_privilege('authenticated', 'public.list_my_occasion_favorites()', 'execute'), 'cliente autenticado lista favoritos pelo RPC');
 select ok(pg_catalog.has_function_privilege('authenticated', 'public.set_my_occasion_favorite(text,boolean)', 'execute'), 'cliente autenticado altera favoritos pelo RPC');
 select ok(not pg_catalog.has_function_privilege('anon', 'public.list_my_occasion_favorites()', 'execute'), 'anon não lista favoritos');
+select ok(not pg_catalog.has_function_privilege('site_api', 'public.list_my_occasion_favorites()', 'execute'), 'role da API do site não acessa favoritos de clientes');
+select ok(not pg_catalog.has_function_privilege('service_role', 'public.set_my_occasion_favorite(text,boolean)', 'execute'), 'service_role não recebe ACL implícita nas RPCs de favoritos');
 
 insert into auth.users (
   instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,

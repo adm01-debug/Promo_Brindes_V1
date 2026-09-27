@@ -21,7 +21,8 @@ function AccountContent() {
   const query = (params.get('q') || '').slice(0, 80);
   const statusValue = params.get('status') || '';
   const status = customerStatusOptions.some((option) => option.value === statusValue) ? statusValue as CustomerQuoteStatus | '' : '';
-  const page = Math.max(1, Math.min(1000, Number(params.get('page')) || 1));
+  const requestedPage = Number(params.get('page'));
+  const page = Number.isInteger(requestedPage) && requestedPage >= 1 ? Math.min(834, requestedPage) : 1;
   const [search, setSearch] = useState(query);
   const [result, setResult] = useState<CustomerQuotePage | null>(null);
   const [loading, setLoading] = useState(true);
@@ -55,6 +56,14 @@ function AccountContent() {
   }
 
   const totalPages = Math.max(1, Math.ceil((result?.total || 0) / PAGE_SIZE));
+
+  useEffect(() => {
+    if (loading || !result || page <= totalPages) return;
+    const updated = new URLSearchParams(params);
+    if (totalPages > 1) updated.set('page', String(totalPages));
+    else updated.delete('page');
+    setParams(updated, { replace: true });
+  }, [loading, page, params, result, setParams, totalPages]);
 
   return (
     <>

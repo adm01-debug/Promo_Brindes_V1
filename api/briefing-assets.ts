@@ -1,10 +1,11 @@
-import { matchesDeclaredFileSignature, readSignaturePrefix } from './_lib/fileSignatures.js';
+import { isSafePdfDocument, matchesDeclaredFileSignature, readSignaturePrefix } from './_lib/fileSignatures.js';
 import { getSiteDatabaseConfig } from './_lib/siteDatabase.js';
 import type { ApiRequest, ApiResponse } from './_lib/leadHandler.js';
 import { allowedSiteOrigins } from './_lib/siteOrigin.js';
 
 export const REQUEST_TIMEOUT_MS = 10_000;
 const MAX_BODY_BYTES = 4 * 1024;
+const MAX_ASSET_BYTES = 10 * 1024 * 1024;
 const BUCKET = 'customer-briefing-assets';
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const SAFE_PATH = /^[0-9a-f-]{36}\/[0-9a-f-]{36}\.(?:png|jpg|webp|pdf)$/i;
@@ -67,6 +68,30 @@ async function readStoredSignature(baseUrl: string, credential: string, path: st
   return object.ok ? readSignaturePrefix(object) : null;
 }
 
+async function readStoredPdf(baseUrl: string, credential: string, path: string, sizeBytes: number, signal: AbortSignal): Promise<Uint8Array | null> {
+  if (!Number.isInteger(sizeBytes) || sizeBytes < 32 || sizeBytes > MAX_ASSET_BYTES) return null;
+  const encodedPath = path.split('/').map(encodeURIComponent).join('/');
+  const object = await fetch(`${baseUrl}/storage/v1/object/authenticated/${encodeURIComponent(BUCKET)}/${encodedPath}`, {
+    headers: { apikey: credential, Authorization: `Bearer ${credential}`, Range: `bytes=0-${sizeBytes - 1}` }, signal,
+  });
+  if (!object.ok) return null;
+  const bytes = new Uint8Array(await object.arrayBuffer());
+  return bytes.length === sizeBytes ? bytes : null;
+}
+
+type StoredAssetValidation = 'valid' | 'invalid' | 'missing';
+
+async function validateStoredAsset(baseUrl: string, credential: string, candidate: { path: string; mimeType: string; sizeBytes: number }, signal: AbortSignal): Promise<StoredAssetValidation> {
+  if (candidate.mimeType === 'application/pdf') {
+    const document = await readStoredPdf(baseUrl, credential, candidate.path, candidate.sizeBytes, signal);
+    if (!document) return 'missing';
+    return isSafePdfDocument(document) ? 'valid' : 'invalid';
+  }
+  const prefix = await readStoredSignature(baseUrl, credential, candidate.path, signal);
+  if (!prefix) return 'missing';
+  return matchesDeclaredFileSignature(candidate.mimeType, prefix) ? 'valid' : 'invalid';
+}
+
 export default async function handler(request: ApiRequest, response: ApiResponse) {
   response.setHeader('Cache-Control', 'no-store');
   response.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -106,7 +131,8 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     }
     if (!lookup.ok || candidate?.id !== assetId || candidate.bucket !== BUCKET
       || typeof candidate.path !== 'string' || !SAFE_PATH.test(candidate.path)
-      || typeof candidate.mimeType !== 'string' || !Number.isInteger(candidate.sizeBytes)) {
+      || typeof candidate.mimeType !== 'string' || typeof candidate.sizeBytes !== 'number' || !Number.isInteger(candidate.sizeBytes)
+      || candidate.sizeBytes < 1 || candidate.sizeBytes > MAX_ASSET_BYTES) {
       response.status(404).json({ error: 'briefing_asset_not_found', message: 'Arquivo não encontrado.' });
       return;
     }
@@ -115,12 +141,14 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       return;
     }
 
-    const prefix = await readStoredSignature(config.url, config.storageDeleteCredential, candidate.path, controller.signal);
-    if (!prefix) {
+    const validBeforeLock = await validateStoredAsset(config.url, config.storageDeleteCredential, {
+      path: candidate.path, mimeType: candidate.mimeType, sizeBytes: candidate.sizeBytes,
+    }, controller.signal);
+    if (validBeforeLock === 'missing') {
       response.status(409).json({ error: 'briefing_asset_upload_incomplete', message: 'A transferência ainda não foi confirmada. Tente enviar novamente.' });
       return;
     }
-    if (!matchesDeclaredFileSignature(candidate.mimeType, prefix)) {
+    if (validBeforeLock === 'invalid') {
       await removeRejectedAsset(config.url, config.storageDeleteCredential, candidate.path, assetId, controller.signal);
       response.status(422).json({ error: 'briefing_asset_signature_mismatch', message: 'O conteúdo do arquivo não corresponde ao formato informado.' });
       return;
@@ -139,8 +167,10 @@ export default async function handler(request: ApiRequest, response: ApiResponse
 
     // A confirmação torna o objeto imutável para o titular. Uma segunda leitura
     // fecha a janela entre a primeira inspeção e esse bloqueio (TOCTOU).
-    const lockedPrefix = await readStoredSignature(config.url, config.storageDeleteCredential, candidate.path, controller.signal);
-    if (!lockedPrefix || !matchesDeclaredFileSignature(candidate.mimeType, lockedPrefix)) {
+    const lockedValid = await validateStoredAsset(config.url, config.storageDeleteCredential, {
+      path: candidate.path, mimeType: candidate.mimeType, sizeBytes: candidate.sizeBytes,
+    }, controller.signal);
+    if (lockedValid !== 'valid') {
       await removeRejectedAsset(config.url, config.storageDeleteCredential, candidate.path, assetId, controller.signal);
       response.status(422).json({ error: 'briefing_asset_signature_mismatch', message: 'O arquivo mudou durante a verificação e foi descartado.' });
       return;

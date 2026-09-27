@@ -145,4 +145,14 @@ describe('api/notification-events-resend (Etapa 30)', () => {
     const response = await handler.fetch(signedRequest({}, { rawBody, signature: 'inválida' }));
     expect(response.status).toBe(413);
   });
+
+  it('recusa uma estrutura JSON assinada que não é um evento Resend', async () => {
+    configureEnv();
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const response = await handler.fetch(signedRequest(null));
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: 'invalid_payload' });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 });

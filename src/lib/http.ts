@@ -80,25 +80,31 @@ export async function postJson(endpoint: string, payload: unknown, label: string
       body: JSON.stringify(payload),
       signal,
     });
-  } catch {
+    const body = await response.json().catch(() => {
+      if (externalSignal?.aborted) throw new Error('O envio foi cancelado.');
+      if (controller.signal.aborted) throw new Error('O envio demorou além do esperado. Tente novamente.');
+      return {};
+    }) as { id?: string; requestId?: string; error?: string; message?: string; confirmations?: unknown };
+    if (!response.ok) {
+      const message = response.status === 429
+        ? 'Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente novamente.'
+        : response.status === 409
+          ? 'Encontramos uma tentativa anterior. Atualize a página antes de reenviar.'
+          : body.message || 'Não conseguimos enviar agora. Tente novamente em alguns instantes.';
+      throw new ClientRequestError(message, response.status, body.error);
+    }
+    const requestId = body.requestId || body.id;
+    if (typeof requestId !== 'string' || !/^[a-zA-Z0-9-]{8,100}$/.test(requestId)) {
+      throw new ClientRequestError('O serviço não confirmou um protocolo válido. Sua seleção foi preservada.', response.status, 'invalid_response');
+    }
+    return { requestId, confirmations: body.confirmations };
+  } catch (error) {
+    if (error instanceof ClientRequestError) throw error;
     if (externalSignal?.aborted) throw new Error('O envio foi cancelado.');
     if (controller.signal.aborted) throw new Error('O envio demorou além do esperado. Tente novamente.');
+    if (error instanceof Error && (error.message === 'O envio foi cancelado.' || error.message === 'O envio demorou além do esperado. Tente novamente.')) throw error;
     throw new Error('Não conseguimos conectar ao serviço de envio. Verifique sua conexão e tente novamente.');
   } finally {
     window.clearTimeout(timeout);
   }
-  const body = await response.json().catch(() => ({})) as { id?: string; requestId?: string; error?: string; message?: string; confirmations?: unknown };
-  if (!response.ok) {
-    const message = response.status === 429
-      ? 'Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente novamente.'
-      : response.status === 409
-        ? 'Encontramos uma tentativa anterior. Atualize a página antes de reenviar.'
-        : body.message || 'Não conseguimos enviar agora. Tente novamente em alguns instantes.';
-    throw new ClientRequestError(message, response.status, body.error);
-  }
-  const requestId = body.requestId || body.id;
-  if (typeof requestId !== 'string' || !/^[a-zA-Z0-9-]{8,100}$/.test(requestId)) {
-    throw new ClientRequestError('O serviço não confirmou um protocolo válido. Sua seleção foi preservada.', response.status, 'invalid_response');
-  }
-  return { requestId, confirmations: body.confirmations };
 }

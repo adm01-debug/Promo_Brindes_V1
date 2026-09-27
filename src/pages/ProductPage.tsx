@@ -186,7 +186,7 @@ export default function ProductPage() {
               <button className="product-gallery__zoom" type="button" onClick={() => setImageZoomOpen(true)} aria-label={`Ampliar foto de ${product.name}`}><Maximize2 size={18} /><span>Ampliar</span></button>
             </div>
             {productImages.length > 1 && (
-              <div className="product-gallery__thumbs" role="list" aria-label="Escolher foto">
+              <div className="product-gallery__thumbs" role="group" aria-label="Escolher foto">
                 {productImages.slice(0, 8).map((image, index) => (
                   <button key={image} type="button" className={activeImage === index ? 'is-active' : ''} onClick={() => setActiveImage(index)} aria-label={`Ver foto ${index + 1}`} aria-pressed={activeImage === index}>
                     <img src={image} alt="" width="100" height="100" loading="lazy" referrerPolicy="no-referrer" onError={replaceBrokenProductImage} />

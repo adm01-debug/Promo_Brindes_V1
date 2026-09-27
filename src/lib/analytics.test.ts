@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const { trackMock } = vi.hoisted(() => ({ trackMock: vi.fn() }));
 vi.mock('@vercel/analytics', () => ({ track: trackMock }));
 
-import { redactAnalyticsUrl, trackFunnelEvent } from './analytics';
+import { redactAnalyticsUrl, redactTelemetryUrl, trackFunnelEvent } from './analytics';
 
 describe('instrumentação segura', () => {
   beforeEach(() => trackMock.mockClear());
@@ -29,6 +29,11 @@ describe('instrumentação segura', () => {
     expect(redactAnalyticsUrl({ type: 'pageview', url: 'https://promo.test/interno/cliente@empresa.test' })).toMatchObject({
       url: 'https://promo.test/rota-nao-listada',
     });
+  });
+
+  it('aplica a mesma minimização de URL aos eventos de desempenho', () => {
+    expect(redactTelemetryUrl({ name: 'LCP', value: 1800, url: 'https://promo.test/minha-conta/orcamentos/11111111-1111-4111-8111-111111111111?email=cliente%40teste' }))
+      .toMatchObject({ name: 'LCP', value: 1800, url: 'https://promo.test/minha-conta/orcamentos/:id' });
   });
 
   it('emite somente propriedades agregadas do contrato fechado', () => {

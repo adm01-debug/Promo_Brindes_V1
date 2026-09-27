@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import handler from '../../api/briefing-assets.js';
-import { matchesDeclaredFileSignature, readSignaturePrefix } from '../../api/_lib/fileSignatures.js';
+import { isSafePdfDocument, matchesDeclaredFileSignature, readSignaturePrefix } from '../../api/_lib/fileSignatures.js';
 import type { ApiRequest, ApiResponse } from '../../api/_lib/leadHandler.js';
 
 const assetId = '11111111-1111-4111-8111-111111111111';
@@ -166,6 +166,15 @@ describe('assinaturas de arquivo', () => {
     const polyglot = new TextEncoder().encode('<script>alert(1)</script>\n%PDF-1.7');
     expect(matchesDeclaredFileSignature('application/pdf', polyglot)).toBe(false);
     expect(matchesDeclaredFileSignature('application/pdf', new TextEncoder().encode('%PDF-9.0'))).toBe(false);
+  });
+
+  it('não confunde cabeçalho PDF com um documento íntegro e sem ações ativas', () => {
+    const valid = new TextEncoder().encode('%PDF-1.7\n1 0 obj\n<< /Type /Catalog >>\nendobj\nstartxref\n0\n%%EOF\n');
+    const truncated = new TextEncoder().encode('%PDF-1.7\n1 0 obj\n<< /Type /Catalog >>\nendobj\n');
+    const active = new TextEncoder().encode('%PDF-1.7\n1 0 obj\n<< /OpenAction 2 0 R /JS (alert) >>\nendobj\nstartxref\n0\n%%EOF\n');
+    expect(isSafePdfDocument(valid)).toBe(true);
+    expect(isSafePdfDocument(truncated)).toBe(false);
+    expect(isSafePdfDocument(active)).toBe(false);
   });
 
   it('limita a leitura a 1 KiB mesmo quando a resposta é maior', async () => {

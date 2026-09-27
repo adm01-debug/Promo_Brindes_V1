@@ -159,6 +159,16 @@ describe('api/notification-events-whatsapp (Etapa 30)', () => {
       expect(response.status).toBe(400);
     });
 
+    it('recusa uma estrutura JSON assinada que não é um evento Meta', async () => {
+      configureEnv();
+      const fetchMock = vi.fn();
+      vi.stubGlobal('fetch', fetchMock);
+      const response = await handler.fetch(signedPostRequest({ entry: {} }));
+      expect(response.status).toBe(400);
+      expect(await response.json()).toEqual({ error: 'invalid_payload' });
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
     it('ignora timestamp numérico fora do intervalo sem lançar RangeError nem chamar o banco', async () => {
       configureEnv();
       const fetchMock = vi.fn();
