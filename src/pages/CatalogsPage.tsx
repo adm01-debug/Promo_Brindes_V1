@@ -13,6 +13,7 @@ import {
 } from '../lib/catalogLibrary';
 import { useCatalog } from '../lib/hooks';
 import { replaceBrokenProductImage } from '../lib/images';
+import { resolveCatalogEditorialId } from '../../shared/catalogEditorial';
 
 type CatalogThemeFilter = 'all' | CatalogCollectionTheme;
 type ShareState = 'idle' | 'copied' | 'shared' | 'error';
@@ -113,7 +114,8 @@ export default function CatalogsPage() {
   const catalogCollections = useMemo(() => publicCatalogCollections(editorialNow), [editorialNow]);
   const query = (params.get('q') || '').trim().slice(0, 80);
   const theme = validTheme(params.get('tema'));
-  const sharedCollection = catalogCollections.find((collection) => collection.id === params.get('colecao'));
+  const sharedCollectionId = resolveCatalogEditorialId(params.get('colecao'));
+  const sharedCollection = catalogCollections.find((collection) => collection.id === sharedCollectionId);
   const [searchInput, setSearchInput] = useState(query);
   const [shareStates, setShareStates] = useState<Record<string, Exclude<ShareState, 'idle'>>>({});
   const [shareStatus, setShareStatus] = useState('');

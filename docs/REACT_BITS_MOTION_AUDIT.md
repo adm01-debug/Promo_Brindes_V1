@@ -1,13 +1,13 @@
 # Auditoria de movimento — React Bits para Promo Brindes
 
-Última revisão: 8 de setembro de 2026.
+Última revisão: 27 de setembro de 2026 (terminologia editorial).
 
 ## 1. Decisão executiva
 
 O React Bits oferece 32 animações de texto na revisão analisada. O site não deve parecer uma vitrine de efeitos: o público é criativo, mas está trabalhando sob prazo e precisa defender uma escolha dentro da empresa. A direção aprovada usa somente dois efeitos em produção:
 
 1. **Fold Text — aprovado para a headline principal.** Traduz descoberta e abertura de possibilidades, executa uma vez e preserva a frase estática ao final.
-2. **Glitch Text — aprovado de forma adaptada para “Drop da vez”.** Comunica novidade e repertório digital em uma área editorial secundária. O loop infinito original foi removido.
+2. **Glitch Text — aprovado de forma adaptada para “Tendências da vez”.** Comunica novidade e repertório digital em uma área editorial secundária. O loop infinito original foi removido.
 
 Próximos candidatos, apenas quando houver conteúdo real que os justifique: **Count Up** para métricas auditáveis; **Stroke Text** para uma landing page de campanha; **Masked Heading** para uma história visual sazonal. Não entram na home atual.
 
@@ -30,7 +30,7 @@ Regras de corte:
 | Efeito | Nota | Veredito para este site | Leitura de UX e marca |
 |---|---:|---|---|
 | Fold Text | 5,0 | **Usar na headline** | A metáfora de algo que se abre combina com descoberta e curadoria. Uma execução curta cria assinatura sem prejudicar o escaneamento. |
-| Glitch Text | 4,2 adaptado / 2,0 original | **Usar só em “Drop da vez”** | O código visual digital combina com marketing jovem, mas jitter e loop permanente parecem ruído. A versão adotada roda uma vez e no hover, em área pequena. |
+| Glitch Text | 4,2 adaptado / 2,0 original | **Usar só em “Tendências da vez”** | O código visual digital combina com marketing jovem, mas jitter e loop permanente parecem ruído. A versão adotada roda uma vez e no hover, em área pequena. |
 | Stroke Text | 4,0 | Reservar para campanha | Tem linguagem gráfica/editorial forte e boa relação com criação de marca; em muitos títulos, reduz a sobriedade comercial. |
 | Masked Heading | 3,9 | Reservar para conteúdo sazonal | Pode unir produto e tipografia em uma landing page; na home competiria com a fotografia do hero. |
 | Split Text | 3,8 | Não somar ao Fold | Entrada escalonada é clara, mas cumpre o mesmo papel do Fold Text e criaria redundância gestual. |
@@ -79,7 +79,7 @@ A adaptação corrige esses pontos: herda tipografia e cores da marca, não for�
 | Momento | Efeito | Gatilho | Duração | Repetição |
 |---|---|---|---:|---|
 | Headline do hero | Fold Text por palavra | montagem da home | até 1,1 s com stagger | uma vez |
-| “Drop da vez” | Glitch Text pequeno | entrada no viewport | até 1,05 s | uma vez + hover intencional |
+| “Tendências da vez” | Glitch Text pequeno | entrada no viewport | até 1,05 s | uma vez + hover intencional |
 | Estados do sistema | transições CSS existentes | ação do visitante | 160–240 ms | por interação |
 
 Nenhum CTA, preço, filtro, código, quantidade ou instrução muda de conteúdo. O motion budget pode ser revisto depois de teste moderado com profissionais de marketing brasileiros entre 20 e 30 anos.

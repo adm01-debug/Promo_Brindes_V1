@@ -24,7 +24,7 @@ const catalogEditorialSource = {
   'eventos-que-continuam': { ...commonGovernance, title: 'Eventos que continuam', description: 'Produtos úteis e compartilháveis para a experiência continuar depois do credenciamento.' },
   'reconhecimento-com-desejo': { ...commonGovernance, title: 'Reconhecimento com desejo', description: 'Presentes à altura de metas, marcos de carreira e conquistas que merecem memória.' },
   'relacionamento-que-fica': { ...commonGovernance, title: 'Relacionamento que fica', description: 'Ideias para clientes e parceiros levarem a sua marca para a rotina.' },
-  'novos-drops': { ...commonGovernance, title: 'Novos drops', description: 'Lançamentos e achados recentes para quem quer fugir do briefing previsível.' },
+  'novas-tendencias': { ...commonGovernance, title: 'Novas tendências', description: 'Lançamentos e achados recentes para quem quer fugir do briefing previsível.' },
   'escolhas-de-menor-impacto': { ...commonGovernance, title: 'Escolhas de menor impacto', description: 'Materiais e ideias para alinhar utilidade, mensagem e escolhas mais conscientes.' },
   'tech-que-resolve': { ...commonGovernance, title: 'Tech que resolve', description: 'Tecnologia para mesa, mobilidade e rotina — com função antes do efeito.' },
   'celebracoes-com-significado': { ...commonGovernance, title: 'Celebrações com significado', description: 'Datas especiais, encerramentos de ciclo e encontros que pedem algo além do protocolo.' },
@@ -34,6 +34,13 @@ const catalogEditorialSource = {
 
 export type CatalogEditorialId = keyof typeof catalogEditorialSource;
 export const catalogEditorialEntries: Record<CatalogEditorialId, CatalogEditorialEntry> = catalogEditorialSource;
+
+export function resolveCatalogEditorialId(value: string | null | undefined): CatalogEditorialId | null {
+  if (!value) return null;
+  // Links compartilhados antes da mudança de nome continuam abrindo a coleção.
+  const id = value === 'novos-drops' ? 'novas-tendencias' : value;
+  return Object.prototype.hasOwnProperty.call(catalogEditorialEntries, id) ? id as CatalogEditorialId : null;
+}
 
 const EDITORIAL_TIME_ZONE = 'America/Sao_Paulo';
 

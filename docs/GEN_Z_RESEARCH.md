@@ -36,7 +36,7 @@ Limitações: boa parte dos dados geracionais e de promotional products vem dos 
 
 | Sinal de pesquisa | Leitura para este produto | Decisão aplicada |
 |---|---|---|
-| A Deloitte relata que 56% da Gen Z considera conteúdo de redes sociais mais relevante que TV/filmes e que esse grupo dedica mais tempo a social/UGC | Referência visual, autenticidade e linguagem de creator economy moldam expectativa de descoberta | Hero fotográfico humano, ritmo editorial, “radar”, “drop”, módulos escaneáveis e imagem antes de texto longo |
+| A Deloitte relata que 56% da Gen Z considera conteúdo de redes sociais mais relevante que TV/filmes e que esse grupo dedica mais tempo a social/UGC | Referência visual, autenticidade e linguagem de creator economy moldam expectativa de descoberta | Hero fotográfico humano, ritmo editorial, “radar”, “tendências”, módulos escaneáveis e imagem antes de texto longo |
 | No relatório da Canva, 90% da Gen Z diz produzir seu melhor trabalho visualmente | O site deve funcionar como ferramenta de pensamento e alinhamento, não só como inventário | Conceito de moodboard, saves, cards fortes, filtros rápidos e seleção fácil de compartilhar |
 | O Gartner encontrou preferência de 61% dos compradores B2B por uma experiência geral sem representante, mas preferência por ajuda humana em tarefas contextuais | Autonomia e consultoria não são opostas; entram em momentos diferentes | Exploração sem login e sem contato obrigatório; curadoria humana depois dos saves e do briefing |
 | A PPAI aponta maior afinidade da Gen Z com vestuário, alimentos/bebidas e tecnologia, além de estilo, qualidade e apresentação semelhante ao varejo | Produto “desejável de usar” vale mais do que quantidade de opções genéricas | Atalhos para wearables, kits e tech; discurso sobre utilidade, acabamento, comunidade e cultura |
@@ -112,7 +112,7 @@ O nome “carrinho” foi evitado porque cria uma promessa de preço, pagamento 
 
 - frases curtas e concretas;
 - verbos de ação: explorar, salvar, montar, transformar, conversar;
-- termos familiares ao workflow de marketing: briefing, moodboard, referência, case, drop, radar;
+- termos familiares ao workflow de marketing: briefing, moodboard, referência, case, tendências, radar;
 - explicações comerciais explícitas: sem checkout, proposta sob medida, quantidade estimada.
 
 ### Evitar

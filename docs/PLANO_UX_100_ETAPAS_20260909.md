@@ -108,7 +108,7 @@ Separar descoberta (produtos, coleções e datas), trabalho em andamento (seleç
 
 ### 12. Padronizar os nomes das tarefas
 
-Adotar “Minha seleção”, “Comparar”, “Solicitar orçamento” e “Meus orçamentos” nos controles. Reservar “drop”, “moodboard” e “radar” para contextos editoriais em que não escondam o significado.
+Adotar “Minha seleção”, “Comparar”, “Solicitar orçamento” e “Meus orçamentos” nos controles. Reservar “tendências”, “moodboard” e “radar” para contextos editoriais em que não escondam o significado.
 
 **Aceite:** o mesmo objeto recebe o mesmo nome no menu, card, painel, formulário, confirmação e histórico.
 
