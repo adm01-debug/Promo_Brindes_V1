@@ -212,6 +212,7 @@ jobs:
             --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN"
           vercel build --prod \
             --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN"
+          node scripts/verify-vercel-artifact.mjs
 
       - name: Generate SBOM
         if: steps.preflight.outputs.gates_green == 'true'
