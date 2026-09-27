@@ -41,4 +41,25 @@ describe('reconcileQuoteItems', () => {
       status: 422, code: 'catalog_variant_unavailable',
     });
   });
+
+  it('reconcilia swatch público sem variant_id por nome inequívoco', async () => {
+    vi.stubEnv('CATALOG_SUPABASE_PUBLISHABLE_KEY', 'sb_publishable_test');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(publishedProduct([{ color_name: ' AZUL PETRÓLEO ', color_hex: '#004466', image_url: 'https://images.example.test/azul.webp' }])));
+
+    await expect(reconcileQuoteItems(payload({ variantId: undefined }))).resolves.toMatchObject({
+      items: [expect.objectContaining({ colorName: 'AZUL PETRÓLEO', colorHex: '#004466', imageUrl: 'https://images.example.test/azul.webp' })],
+    });
+  });
+
+  it('recusa swatches públicos ambíguos em vez de escolher uma cor por suposição', async () => {
+    vi.stubEnv('CATALOG_SUPABASE_PUBLISHABLE_KEY', 'sb_publishable_test');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(publishedProduct([
+      { color_name: 'Azul petróleo', color_hex: '#004466' },
+      { color_name: 'AZUL PETRÓLEO', color_hex: '#003355' },
+    ])));
+
+    await expect(reconcileQuoteItems(payload({ variantId: undefined }))).rejects.toMatchObject({
+      status: 422, code: 'catalog_variant_unavailable',
+    });
+  });
 });

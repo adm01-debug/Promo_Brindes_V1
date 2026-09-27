@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(40);
+select plan(41);
 
 select has_column('site_private', 'quote_requests', 'customer_user_id', 'orçamento possui titular autenticado opcional');
 select has_table('site_private', 'customer_profiles', 'perfil do cliente existe no schema privado');
@@ -21,6 +21,18 @@ select ok(
 select ok(not pg_catalog.has_schema_privilege('authenticated', 'site_private', 'usage'), 'authenticated não acessa schema privado');
 select ok(not pg_catalog.has_table_privilege('authenticated', 'site_private.quote_requests', 'select'), 'authenticated não lê tabela de orçamentos');
 select ok(not pg_catalog.has_table_privilege('authenticated', 'site_private.customer_profiles', 'select'), 'authenticated não lê perfis diretamente');
+select ok(
+  exists (
+    select 1 from pg_catalog.pg_indexes
+    where schemaname = 'site_private'
+      and tablename = 'quote_requests'
+      and indexname = 'quote_requests_customer_owner_idx'
+      and indexdef like '%(customer_user_id)%'
+      and indexdef like '%WHERE (customer_user_id IS NOT NULL)%'
+      and indexdef not like '%status <>%'
+  ),
+  'índice de titular cobre a FK inclusive quando o status é spam'
+);
 
 select ok(pg_catalog.has_function_privilege('authenticated', 'public.claim_my_quote_requests()', 'execute'), 'authenticated pode reivindicar seu histórico');
 select ok(pg_catalog.has_function_privilege('authenticated', 'public.get_my_quote_requests(integer,integer,text,text)', 'execute'), 'authenticated pode listar seu histórico');

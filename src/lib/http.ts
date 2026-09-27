@@ -1,4 +1,6 @@
-const REQUEST_TIMEOUT_MS = 15_000;
+// O servidor encerra o fluxo de orçamento em 24 s; o navegador guarda uma
+// margem para receber o protocolo e não abandonar uma persistência concluída.
+export const REQUEST_TIMEOUT_MS = 28_000;
 const SITE_API_ROUTES = new Set(['/api/contact-requests', '/api/quote-requests']);
 
 export interface SubmissionAttempt {

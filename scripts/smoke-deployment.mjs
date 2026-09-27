@@ -37,9 +37,15 @@ for (const path of publicRoutes) {
 const missing = await fetchWithRetry('/rota-inexistente-smoke-20260923');
 assert(missing.status === 404, `rota inexistente: esperado 404, recebido ${missing.status}`);
 
+// O App monta @vercel/analytics em toda publicação. Validar o artefato evita
+// considerar o componente React uma ativação comprovada do coletor.
+const analytics = await fetchWithRetry('/_vercel/insights/script.js');
+assert(analytics.status === 200, `Web Analytics: esperado 200, recebido ${analytics.status}`);
+assert((analytics.headers.get('content-type') || '').includes('javascript'), 'Web Analytics: script JavaScript ausente');
+
 for (const path of ['/api/retention', '/api/notifications']) {
   const response = await fetchWithRetry(path);
   assert(response.status === 401, `${path}: chamada sem segredo deveria retornar 401, recebeu ${response.status}`);
 }
 
-console.log(`Smoke aprovado em ${origin}: páginas públicas 200, rota desconhecida 404, crons sem credencial 401 e headers de segurança válidos.`);
+console.log(`Smoke aprovado em ${origin}: páginas públicas 200, Analytics 200, rota desconhecida 404, crons sem credencial 401 e headers de segurança válidos.`);

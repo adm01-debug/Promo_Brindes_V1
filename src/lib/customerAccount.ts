@@ -112,3 +112,9 @@ export async function requestMyQuoteAdjustment(requestId: string, message: strin
 export function sanitizeCustomerNextPath(value: string | null): string {
   return value?.startsWith('/minha-conta') && !value.startsWith('//') ? value : '/minha-conta';
 }
+
+/** Normaliza a paginação antes de ela virar uma consulta RPC ou URL compartilhada. */
+export function normalizeCustomerHistoryPage(value: string | null, maximumPage = 834): number {
+  const requested = Number(value);
+  return Number.isInteger(requested) && requested >= 1 ? Math.min(maximumPage, requested) : 1;
+}

@@ -17,10 +17,10 @@
     "api/customer-proposals.ts": { "maxDuration": 15 },
     "api/briefing-assets.ts": { "maxDuration": 15 },
     "api/sitemap.ts": { "maxDuration": 15 },
-    "api/product-page.ts": { "maxDuration": 15 },
-    "api/site-page.ts": { "maxDuration": 15 },
+    "api/product-page.ts": { "maxDuration": 15, "includeFiles": "dist/index.html" },
+    "api/site-page.ts": { "maxDuration": 15, "includeFiles": "dist/index.html" },
     "api/shared-selections.ts": { "maxDuration": 15 },
-    "api/not-found.ts": { "maxDuration": 15 }
+    "api/not-found.ts": { "maxDuration": 15, "includeFiles": "dist/index.html" }
   },
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },

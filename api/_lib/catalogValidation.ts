@@ -17,7 +17,8 @@ interface CatalogRow {
 }
 
 interface CatalogVariant {
-  variantId: string;
+  /** O contrato público pode expor apenas o swatch, sem um ID interno. */
+  variantId?: string;
   name?: string;
   hex?: string;
   imageUrl?: string;
@@ -34,10 +35,18 @@ function catalogVariants(value: unknown): CatalogVariant[] {
   return value.flatMap((raw) => {
     if (!raw || typeof raw !== 'object') return [];
     const variant = raw as Record<string, unknown>;
-    if (typeof variant.variant_id !== 'string' || !variant.variant_id.trim()) return [];
+    const variantId = typeof variant.variant_id === 'string' && variant.variant_id.trim()
+      ? variant.variant_id.trim()
+      : undefined;
+    const name = typeof variant.color_name === 'string' && variant.color_name.trim()
+      ? variant.color_name.trim()
+      : undefined;
+    // Um swatch sem identificador ainda é um contrato público válido quando
+    // tiver nome. Um objeto sem nenhum identificador não pode ser conciliado.
+    if (!variantId && !name) return [];
     return [{
-      variantId: variant.variant_id.trim(),
-      ...(typeof variant.color_name === 'string' && variant.color_name.trim() ? { name: variant.color_name.trim() } : {}),
+      ...(variantId ? { variantId } : {}),
+      ...(name ? { name } : {}),
       ...(typeof variant.color_hex === 'string' && variant.color_hex.trim() ? { hex: variant.color_hex.trim() } : {}),
       ...(typeof variant.image_url === 'string' && variant.image_url.trim() ? { imageUrl: variant.image_url.trim() } : {}),
     }];
@@ -61,18 +70,19 @@ function catalogKey(): string {
   return key;
 }
 
-export async function reconcileQuoteItems(payload: NormalizedQuotePayload): Promise<NormalizedQuotePayload> {
+export async function reconcileQuoteItems(payload: NormalizedQuotePayload, externalSignal?: AbortSignal): Promise<NormalizedQuotePayload> {
   const ids = Array.from(new Set(payload.items.map((item) => item.productId)));
   const key = catalogKey();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const signal = externalSignal ? AbortSignal.any([controller.signal, externalSignal]) : controller.signal;
   try {
     const url = new URL(`${CANONICAL_CATALOG_URL}/rest/v1/v_site_products_public`);
     url.searchParams.set('select', 'id,slug,name,sku,min_quantity,primary_image_url,primary_image_fallback_url,set_image_url,og_image_url,color_swatches');
     url.searchParams.set('id', `in.(${ids.join(',')})`);
     const response = await fetch(url, {
       headers: { apikey: key, Authorization: `Bearer ${key}` },
-      signal: controller.signal,
+      signal,
     });
     if (!response.ok) {
       throw new RequestValidationError('Não foi possível validar os produtos agora. Tente novamente em alguns instantes.', 503, 'catalog_validation_unavailable');
@@ -98,11 +108,14 @@ export async function reconcileQuoteItems(payload: NormalizedQuotePayload): Prom
           throw new RequestValidationError(`A quantidade do produto ${index + 1} está abaixo do mínimo atual.`, 422, 'catalog_minimum_not_met');
         }
         const variants = catalogVariants(product.color_swatches);
+        const matchingNames = item.colorName
+          ? variants.filter((candidate) => candidate.name && normalizedColorName(candidate.name) === normalizedColorName(item.colorName!))
+          : [];
         const variant = item.variantId
           ? variants.find((candidate) => candidate.variantId === item.variantId)
-          : item.colorName
-            ? variants.find((candidate) => candidate.name && normalizedColorName(candidate.name) === normalizedColorName(item.colorName!))
-            : undefined;
+          // Sem ID público, só há reconciliação se o nome for inequívoco. Isso
+          // não escolhe uma variante interna por suposição.
+          : matchingNames.length === 1 ? matchingNames[0] : undefined;
         if ((item.variantId || item.colorName) && !variant) {
           throw new RequestValidationError(`A variante do produto ${index + 1} não está mais disponível. Revise a cor escolhida.`, 422, 'catalog_variant_unavailable');
         }
@@ -111,20 +124,22 @@ export async function reconcileQuoteItems(payload: NormalizedQuotePayload): Prom
           : undefined;
         return {
           ...item,
-          key: variant ? `${product.id!}::variante-${variant.variantId}` : item.key,
+          key: variant?.variantId
+            ? `${product.id!}::variante-${variant.variantId}`
+            : variant?.name ? `${product.id!}::cor-${normalizedColorName(variant.name)}` : item.key,
           slug: product.slug!,
           name: product.name!,
           sku: product.sku!,
           minQuantity: minimum,
           imageUrl: variantImage || canonicalImage(product),
-          ...(variant ? { variantId: variant.variantId } : {}),
+          ...(variant?.variantId ? { variantId: variant.variantId } : {}),
           ...(variant?.name ? { colorName: variant.name } : {}),
           ...(variant?.hex ? { colorHex: variant.hex } : {}),
         };
       }),
     };
   } catch (error) {
-    if (controller.signal.aborted) {
+    if (signal.aborted) {
       throw new RequestValidationError('Não foi possível validar os produtos agora. Tente novamente em alguns instantes.', 503, 'catalog_validation_unavailable');
     }
     // Erros de disponibilidade e de integridade da própria seleção são
