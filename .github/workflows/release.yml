@@ -22,6 +22,7 @@ jobs:
       SUPABASE_PROJECT_REF: xlzmclcjdncjfdrjxclt
       VERCEL_ORG_ID: team_QyN41X0q8hrqhW80AwokbFLv
       VERCEL_PROJECT_ID: prj_LVKX7uhs1VhTjDDznD7KinvjgHXU
+      VERCEL_SCOPE: juca1
       SMOKE_BASE_URL: https://promo-brindes-v1.vercel.app
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
@@ -85,9 +86,13 @@ jobs:
           test -n "$VERCEL_TOKEN" || { echo '::error::VERCEL_TOKEN ausente'; exit 1; }
           npm install --global npm@11.17.0 vercel@59.5.0
           npm ci
-          vercel pull --yes --environment=production --token "$VERCEL_TOKEN"
-          vercel build --prod --token "$VERCEL_TOKEN"
-          vercel deploy --prebuilt --prod --token "$VERCEL_TOKEN" | tee deployment-url.txt
+          # O runner é efêmero: nunca dependa de uma pasta .vercel prévia nem
+          # de detecção implícita de conta. O preflight também produz uma causa
+          # clara caso o token não tenha acesso ao projeto de produção.
+          vercel project inspect "$VERCEL_PROJECT_ID" --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN"
+          vercel pull --yes --environment=production --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN"
+          vercel build --prod --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN"
+          vercel deploy --prebuilt --prod --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN" | tee deployment-url.txt
       - name: Validate the promoted production deployment
         run: npm run smoke:deployment | tee deployment-smoke.log
       - name: Upload release evidence
