@@ -1082,7 +1082,7 @@ test('produto com identificador inválido falha fechado e não pode ser indexado
 
 test('limpar a busca remove também seu estado compartilhável da URL', async ({ page }) => {
   await page.goto('/catalogo?q=squeeze');
-  await expect(page.getByRole('heading', { name: 'Matchs para “squeeze”' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Resultados para “squeeze”' })).toBeVisible();
   await page.getByRole('button', { name: 'Limpar busca' }).click();
   await expect(page).toHaveURL(/\/catalogo$/);
   await expect(page.getByRole('heading', { name: 'Radar completo' })).toBeVisible();

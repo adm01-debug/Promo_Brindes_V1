@@ -1,4 +1,4 @@
-import { FileImage, FileText, LoaderCircle, LockKeyhole, Paperclip, Trash2, Upload } from 'lucide-react';
+import { FileImage, LoaderCircle, LockKeyhole, Paperclip, Trash2, Upload } from 'lucide-react';
 import { type ChangeEvent, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCustomerAuth } from '../context/customerAuth';
@@ -116,11 +116,11 @@ export function BriefingAssetUploader({ value, onChange, contactEmail }: {
   return (
     <fieldset className="briefing-assets" disabled={loading || emailMismatch}>
       <legend><Paperclip aria-hidden="true" /> Logo e referências <span>opcional</span></legend>
-      <p>Arquivos privados, disponíveis apenas para você e para o atendimento deste briefing. PNG, JPG, WebP ou PDF, até 10 MB.</p>
+      <p>Arquivos privados, disponíveis apenas para você e para o atendimento deste briefing. PNG, JPG ou WebP, até 10 MB.</p>
       {emailMismatch && <div className="briefing-assets__warning" role="alert">Use no formulário o mesmo e-mail da conta ({accountEmail}) para vincular estes arquivos com segurança.</div>}
       <div className="briefing-assets__toolbar">
         <label><span>Tipo do arquivo</span><select value={kind} onChange={(event) => setKind(event.target.value as BriefingAssetKind)}><option value="logo">Logo da marca</option><option value="reference">Referência visual</option></select></label>
-        <input ref={inputRef} aria-label="Enviar logo ou referência" className="sr-only" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" onChange={(event) => void upload(event)} />
+        <input ref={inputRef} aria-label="Enviar logo ou referência" className="sr-only" type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => void upload(event)} />
         <button type="button" className="button button--outline" onClick={() => inputRef.current?.click()} disabled={loading || assets.length >= MAX_BRIEFING_ASSETS || emailMismatch}>{loading ? <LoaderCircle className="is-spinning" /> : <Upload />} {loading ? 'Processando…' : 'Escolher arquivo'}</button>
       </div>
       {error && <div className="field-error" role="alert">{error}</div>}
@@ -132,7 +132,7 @@ export function BriefingAssetUploader({ value, onChange, contactEmail }: {
           return <li key={asset.id} className={selected ? 'is-selected' : ''}>
             <label>
               <input type="checkbox" checked={selected} disabled={!selectable || emailMismatch} onChange={(event) => onChange(event.target.checked ? [...new Set([...value, asset.id])] : value.filter((id) => id !== asset.id))} />
-              {asset.mimeType === 'application/pdf' ? <FileText aria-hidden="true" /> : <FileImage aria-hidden="true" />}
+              <FileImage aria-hidden="true" />
               <span><strong>{asset.name}</strong><small>{fileSize(asset.sizeBytes)} · {asset.kind === 'logo' ? 'Logo' : 'Referência'}{asset.quoteRequestId ? ' · já enviado' : !asset.verifiedAt ? ' · reenvie para validar' : ''}</small></span>
             </label>
             {removable && <button type="button" aria-label={`Remover ${asset.name}`} onClick={() => void remove(asset)} disabled={loading}><Trash2 /></button>}
