@@ -59,7 +59,7 @@ export default function CatalogPage() {
             </div>
           </div>}
           <div className="catalog-toolbar"><div>
-            <h2 id="catalog-results-title">{query ? `Matchs para “${query}”` : campaignCount > 0 ? 'Curadoria para o seu briefing' : selectedCategoryIds.length > 1 ? 'Seu recorte de campanha' : selectedCategoryName || (filterPanelProfile === 'kits' ? 'Kits & combos' : filterPanelProfile === 'novos' ? 'Novas tendências' : filterPanelProfile === 'destaques' ? 'Destaques da curadoria' : 'Radar completo')}</h2>
+            <h2 id="catalog-results-title">{query ? `Resultados para “${query}”` : campaignCount > 0 ? 'Curadoria para o seu briefing' : selectedCategoryIds.length > 1 ? 'Seu recorte de campanha' : selectedCategoryName || (filterPanelProfile === 'kits' ? 'Kits & combos' : filterPanelProfile === 'novos' ? 'Novas tendências' : filterPanelProfile === 'destaques' ? 'Destaques da curadoria' : 'Radar completo')}</h2>
             <p aria-live="polite" aria-atomic="true">{catalogLoading ? 'Buscando produtos…' : catalogError ? 'Não foi possível concluir a busca.' : `${catalog.data.total.toLocaleString('pt-BR')} ${catalog.data.total === 1 ? 'produto encontrado' : 'produtos encontrados'}`}</p>
           </div><label className="sort-control">Ordenar por<select value={sort} onChange={(event) => updateParams({ ordem: event.target.value === 'curadoria' ? null : event.target.value }, true)}><option value="curadoria">Curadoria Promo</option><option value="recentes">Mais recentes</option><option value="nome">Nome A–Z</option></select></label></div>
           {activeFilterCount > 0 && <div className="active-filters" aria-label="Filtros aplicados">

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import handler from '../../api/briefing-assets.js';
-import { isSafePdfDocument, matchesDeclaredFileSignature, readSignaturePrefix } from '../../api/_lib/fileSignatures.js';
+import { matchesDeclaredFileSignature, readSignaturePrefix } from '../../api/_lib/fileSignatures.js';
 import type { ApiRequest, ApiResponse } from '../../api/_lib/leadHandler.js';
 
 const assetId = '11111111-1111-4111-8111-111111111111';
@@ -33,7 +33,8 @@ function configure() {
 }
 
 function candidate(mimeType = 'image/png') {
-  return { id: assetId, bucket: 'customer-briefing-assets', path, mimeType, sizeBytes: 2048 };
+  const extension = mimeType === 'application/pdf' ? 'pdf' : 'png';
+  return { id: assetId, bucket: 'customer-briefing-assets', path: path.replace(/\.png$/, `.${extension}`), mimeType, sizeBytes: 2048 };
 }
 
 describe('inspeção server-side de anexos privados', () => {
@@ -74,6 +75,25 @@ describe('inspeção server-side de anexos privados', () => {
     expect(JSON.parse(String((fetchMock.mock.calls[2]?.[1] as RequestInit).body))).toEqual({ p_id: assetId, p_storage_path: path });
     expect(fetchMock.mock.calls[3]?.[0]).toBe('https://xlzmclcjdncjfdrjxclt.supabase.co/storage/v1/object/customer-briefing-assets');
     expect((fetchMock.mock.calls[3]?.[1] as RequestInit).method).toBe('DELETE');
+  });
+
+  it('descarta uma reserva PDF legada sem sequer interpretar o conteúdo', async () => {
+    configure();
+    const legacy = candidate('application/pdf');
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify(legacy), { status: 200 }))
+      .mockResolvedValueOnce(new Response('true', { status: 200 }))
+      .mockResolvedValueOnce(new Response('{}', { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const current = responseDouble();
+
+    await handler(request(), current.response);
+
+    expect(current.result.statusCode).toBe(422);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock.mock.calls[1]?.[0]).toContain('/rpc/reject_site_briefing_asset_verification');
+    expect(JSON.parse(String((fetchMock.mock.calls[1]?.[1] as RequestInit).body))).toEqual({ p_id: assetId, p_storage_path: legacy.path });
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/storage/v1/object/authenticated/'))).toBe(false);
   });
 
   it('rejeita origem, sessão e ID inválidos antes de acessar o banco', async () => {
@@ -156,25 +176,15 @@ describe('assinaturas de arquivo', () => {
     ['image/png', new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])],
     ['image/jpeg', new Uint8Array([0xff, 0xd8, 0xff, 0xe0])],
     ['image/webp', new TextEncoder().encode('RIFF0000WEBP')],
-    ['application/pdf', new TextEncoder().encode('%PDF-1.7')],
-    ['application/pdf', new TextEncoder().encode('%PDF-2.0')],
   ])('reconhece %s', (mimeType, bytes) => {
     expect(matchesDeclaredFileSignature(mimeType, bytes)).toBe(true);
   });
 
-  it('rejeita polyglot iniciado por HTML mesmo que contenha marcador PDF no primeiro KiB', () => {
+  it('recusa PDF até existir análise estrutural isolada', () => {
     const polyglot = new TextEncoder().encode('<script>alert(1)</script>\n%PDF-1.7');
     expect(matchesDeclaredFileSignature('application/pdf', polyglot)).toBe(false);
-    expect(matchesDeclaredFileSignature('application/pdf', new TextEncoder().encode('%PDF-9.0'))).toBe(false);
-  });
-
-  it('não confunde cabeçalho PDF com um documento íntegro e sem ações ativas', () => {
-    const valid = new TextEncoder().encode('%PDF-1.7\n1 0 obj\n<< /Type /Catalog >>\nendobj\nstartxref\n0\n%%EOF\n');
-    const truncated = new TextEncoder().encode('%PDF-1.7\n1 0 obj\n<< /Type /Catalog >>\nendobj\n');
-    const active = new TextEncoder().encode('%PDF-1.7\n1 0 obj\n<< /OpenAction 2 0 R /JS (alert) >>\nendobj\nstartxref\n0\n%%EOF\n');
-    expect(isSafePdfDocument(valid)).toBe(true);
-    expect(isSafePdfDocument(truncated)).toBe(false);
-    expect(isSafePdfDocument(active)).toBe(false);
+    expect(matchesDeclaredFileSignature('application/pdf', new TextEncoder().encode('%PDF-1.7'))).toBe(false);
+    expect(matchesDeclaredFileSignature('application/pdf', new TextEncoder().encode('%PDF-1.7\n/Open#41ction'))).toBe(false);
   });
 
   it('limita a leitura a 1 KiB mesmo quando a resposta é maior', async () => {

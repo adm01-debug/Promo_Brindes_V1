@@ -1,18 +1,21 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
-select plan(51);
+select plan(55);
 
 select has_table('site_private', 'customer_briefing_assets', 'metadados privados de arquivos existem');
 select has_column('site_private', 'customer_briefing_assets', 'verified_at', 'assinatura binária possui recibo de verificação');
 select has_table('site_private', 'storage_deletion_queue', 'fila de exclusão de Storage existe');
 select ok((select not public and file_size_limit = 10485760
   from storage.buckets where id = 'customer-briefing-assets'), 'bucket é privado e limitado a 10 MB');
+select is((select allowed_mime_types from storage.buckets where id = 'customer-briefing-assets'),
+  array['image/png', 'image/jpeg', 'image/webp']::text[], 'bucket aceita somente imagens permitidas');
 select ok((select c.relrowsecurity and c.relforcerowsecurity from pg_catalog.pg_class c
   where c.oid = 'site_private.customer_briefing_assets'::regclass), 'arquivos têm RLS forçada');
 select ok((select c.relrowsecurity and c.relforcerowsecurity from pg_catalog.pg_class c
   where c.oid = 'site_private.storage_deletion_queue'::regclass), 'fila tem RLS forçada');
 select has_trigger('site_private', 'customer_briefing_assets', 'customer_briefing_assets_require_verification_on_insert', 'inserção direta também exige arquivo verificado');
+select has_trigger('site_private', 'customer_briefing_assets', 'customer_briefing_assets_log_admin_write', 'alterações administrativas de arquivo entram na auditoria');
 select ok(pg_catalog.has_function_privilege('authenticated', 'public.create_my_briefing_asset(text,text,integer,text)', 'execute'), 'titular cria metadado pelo RPC');
 select ok(not pg_catalog.has_function_privilege('anon', 'public.create_my_briefing_asset(text,text,integer,text)', 'execute'), 'anônimo não cria arquivo');
 select ok(not pg_catalog.has_function_privilege('service_role', 'public.create_my_briefing_asset(text,text,integer,text)', 'execute'), 'service_role não usa caminho do titular');
@@ -48,6 +51,20 @@ select is(jsonb_array_length(public.list_my_briefing_assets()), 1, 'titular list
 select is(public.get_my_briefing_asset_verification((select (result ->> 'id')::uuid from asset_a)) ->> 'verifiedAt', null, 'arquivo novo começa sem recibo');
 select ok(public.owns_my_briefing_asset_path((select result ->> 'path' from asset_a)), 'titular possui o caminho exato');
 select ok(public.can_delete_my_unverified_briefing_asset_path((select result ->> 'path' from asset_a)), 'titular pode limpar objeto ainda não verificado');
+select throws_ok(
+  $$select public.create_my_briefing_asset('referencia.pdf', 'application/pdf', 2048, 'reference')$$,
+  '22023', 'invalid_briefing_asset', 'PDF não pode mais criar reserva de briefing');
+
+do $$
+begin
+  for v_attempt in 1..19 loop
+    perform public.get_my_briefing_asset_verification((select (result ->> 'id')::uuid from asset_a));
+  end loop;
+end;
+$$;
+select throws_ok(
+  format('select public.get_my_briefing_asset_verification(%L::uuid)', (select (result ->> 'id') from asset_a)),
+  'P0001', 'rate_limit_exceeded', 'consulta de verificação bloqueia abuso por conta');
 
 set local request.jwt.claims = '{"sub":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","role":"authenticated"}';
 select is(jsonb_array_length(public.list_my_briefing_assets()), 0, 'outra conta não vê o arquivo');
@@ -96,14 +113,14 @@ select ok(not public.matches_my_briefing_asset_upload(
 select ok(not public.can_delete_my_unverified_briefing_asset_path((select result ->> 'path' from asset_a)), 'objeto verificado não pode ser removido diretamente pelo titular');
 
 create temporary table asset_rejected as
-select public.create_my_briefing_asset('referencia-a-rejeitar.pdf', 'application/pdf', 4096, 'reference') as result;
+select public.create_my_briefing_asset('referencia-a-rejeitar.webp', 'image/webp', 4096, 'reference') as result;
 insert into storage.objects (id, bucket_id, name, owner_id, metadata)
 select gen_random_uuid(), 'customer-briefing-assets', result ->> 'path',
-  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '{"size":4096,"mimetype":"application/pdf"}'::jsonb
+  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '{"size":4096,"mimetype":"image/webp"}'::jsonb
 from asset_rejected;
 select ok(public.confirm_site_briefing_asset_verification(
   (select (result ->> 'id')::uuid from asset_rejected),
-  (select result ->> 'path' from asset_rejected), 'application/pdf', 4096
+  (select result ->> 'path' from asset_rejected), 'image/webp', 4096
 ) is not null, 'reserva de rejeição pode ter sido bloqueada antes da segunda leitura');
 select ok(public.reject_site_briefing_asset_verification(
   (select (result ->> 'id')::uuid from asset_rejected),
@@ -129,7 +146,7 @@ select throws_ok(
   'P0001', 'briefing_asset_not_deletable', 'arquivo anexado não some do briefing');
 
 create temporary table asset_expired as
-select public.create_my_briefing_asset('referencia.pdf', 'application/pdf', 4096, 'reference') as result;
+select public.create_my_briefing_asset('referencia.webp', 'image/webp', 4096, 'reference') as result;
 select is(jsonb_array_length(public.list_my_briefing_assets()), 2, 'biblioteca mostra logo e referência');
 update site_private.customer_briefing_assets set expires_at = now() - interval '1 minute'
 where id = (select (result ->> 'id')::uuid from asset_expired);

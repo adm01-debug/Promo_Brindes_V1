@@ -34,10 +34,11 @@ describe('HTML inicial das páginas estáticas', () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response(appShell, { status: 200 })));
 
     const catalog = responseDouble();
-    await handler({ method: 'GET', query: { page: 'catalogo' } }, catalog.response);
+    await handler({ method: 'GET', query: { page: 'catalogo', perfil: 'novos', q: 'ecobag' } }, catalog.response);
     expect(catalog.result.statusCode).toBe(200);
     expect(catalog.result.body).toContain('<title>Catálogo de brindes | Promo Brindes</title>');
     expect(catalog.result.body).toContain('https://promo-brindes-v1.vercel.app/catalogo');
+    expect(catalog.result.body).not.toContain('perfil=novos');
     expect(catalog.result.headers.get('Cache-Control')).toBe('public, s-maxage=300, stale-while-revalidate=3600');
 
     const privatePage = responseDouble();
@@ -65,6 +66,7 @@ describe('HTML inicial das páginas estáticas', () => {
       rewrites?: Array<{ source?: string; destination?: string }>;
     };
     expect(config.rewrites).toContainEqual({ source: '/montar-kit', destination: '/api/site-page?page=montarKit' });
+    expect(config.rewrites?.some((rewrite) => rewrite.source?.includes('_vercel/'))).toBe(true);
 
     const { result, response } = responseDouble();
     await handler({ method: 'GET', query: { page: 'montarKit' } }, response);

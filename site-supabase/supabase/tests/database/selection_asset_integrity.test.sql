@@ -59,7 +59,7 @@ select ok(not public.matches_my_briefing_asset_upload(
   (select result->>'path' from integrity_asset), '{"size":1,"mimetype":"image/png"}'
 ), 'upload recusa tamanho diferente do metadado reservado');
 select ok(not public.matches_my_briefing_asset_upload(
-  (select result->>'path' from integrity_asset), '{"size":2048,"mimetype":"application/pdf"}'
+  (select result->>'path' from integrity_asset), '{"size":2048,"mimetype":"image/jpeg"}'
 ), 'upload recusa MIME diferente do metadado reservado');
 select ok((select pg_catalog.pg_get_expr(policy.polwithcheck, policy.polrelid) like '%matches_my_briefing_asset_upload%'
   from pg_catalog.pg_policy policy where policy.polrelid = 'storage.objects'::regclass

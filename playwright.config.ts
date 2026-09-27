@@ -1,5 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const port = Number(process.env.PLAYWRIGHT_PORT || 4175);
+const baseURL = `http://127.0.0.1:${port}`;
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
@@ -11,12 +14,14 @@ export default defineConfig({
     ? [['github'], ['html', { open: 'never', outputFolder: 'playwright-report' }]]
     : 'list',
   use: {
-    baseURL: 'http://127.0.0.1:4175',
+    baseURL,
     trace: 'on-first-retry',
   },
   webServer: {
-    command: 'VITE_SITE_SUPABASE_URL=https://xlzmclcjdncjfdrjxclt.supabase.co VITE_SITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_playwright_test VITE_CUSTOMER_ADJUSTMENTS_ENABLED=true VITE_QUOTE_DECISION_GROUPS_ENABLED=true VITE_PERSISTENT_SHARED_SELECTIONS_ENABLED=true VITE_QUOTE_REQUEST_ENDPOINT=/api/quote-requests npm run build && npm run preview -- --host 127.0.0.1 --port 4175',
-    url: 'http://127.0.0.1:4175',
+    command: `VITE_SITE_SUPABASE_URL=https://xlzmclcjdncjfdrjxclt.supabase.co VITE_SITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_playwright_test VITE_CUSTOMER_ADJUSTMENTS_ENABLED=true VITE_QUOTE_DECISION_GROUPS_ENABLED=true VITE_PERSISTENT_SHARED_SELECTIONS_ENABLED=true VITE_QUOTE_REQUEST_ENDPOINT=/api/quote-requests npm run build && npm run preview -- --host 127.0.0.1 --port ${port}`,
+    url: baseURL,
+    // Em paralelo, use PLAYWRIGHT_PORT=4176 (ou outro valor) para isolar cada
+    // execução. Reaproveitar um preview desconhecido mascara o build testado.
     reuseExistingServer: false,
   },
   projects: [

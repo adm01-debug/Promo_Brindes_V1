@@ -3,7 +3,7 @@ import { siteSupabase } from './siteSupabase';
 export const BRIEFING_ASSET_BUCKET = 'customer-briefing-assets';
 export const MAX_BRIEFING_ASSET_BYTES = 10 * 1024 * 1024;
 export const MAX_BRIEFING_ASSETS = 10;
-export const BRIEFING_ASSET_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'application/pdf'] as const;
+export const BRIEFING_ASSET_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'] as const;
 
 export type BriefingAssetKind = 'logo' | 'reference';
 
@@ -35,7 +35,7 @@ function rpcError(message?: string): Error {
 export function briefingAssetValidationError(file: Pick<File, 'name' | 'size' | 'type'>): string | null {
   if (!file.name.trim() || file.name.length > 160) return 'Use um nome de arquivo com até 160 caracteres.';
   if (!BRIEFING_ASSET_MIME_TYPES.includes(file.type as typeof BRIEFING_ASSET_MIME_TYPES[number])) {
-    return 'Envie PNG, JPG, WebP ou PDF.';
+    return 'Envie PNG, JPG ou WebP.';
   }
   if (file.size < 1 || file.size > MAX_BRIEFING_ASSET_BYTES) return 'Cada arquivo deve ter até 10 MB.';
   return null;
