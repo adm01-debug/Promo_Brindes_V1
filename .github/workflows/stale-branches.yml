@@ -1,0 +1,36 @@
+name: Stale branch cleanup
+
+on:
+  schedule:
+    # Toda segunda-feira às 08:00 UTC
+    - cron: '0 8 * * 1'
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: write
+
+jobs:
+  stale:
+    name: Label stale branches (>60 days sem commit)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+      - name: List stale branches
+        run: |
+          CUTOFF="$(date -u -d '60 days ago' '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date -u -v-60d '+%Y-%m-%dT%H:%M:%SZ')"
+          echo "Branches sem commit desde: $CUTOFF"
+          git for-each-ref \
+            --sort=committerdate \
+            --format='%(refname:short) %(committerdate:iso-strict) %(authorname)' \
+            refs/remotes/origin/ \
+            | grep -v 'origin/HEAD\|origin/main' \
+            | awk -v cutoff="$CUTOFF" '$2 < cutoff {print}' \
+            || true

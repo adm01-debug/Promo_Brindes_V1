@@ -9,16 +9,22 @@ concurrency:
   group: database-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+defaults:
+  run:
+    shell: bash
+
 permissions:
   contents: read
 
 jobs:
   pg-tap:
     name: Migrations and pgTAP
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24.15.0
@@ -35,37 +41,40 @@ jobs:
       - name: Run database contracts
         run: |
           mkdir -p artifacts/database
-          SUPABASE_WORKDIR=site-supabase supabase test db 2>&1 | tee artifacts/database/pgtap.log
+          SUPABASE_WORKDIR=site-supabase supabase test db > artifacts/database/pgtap.log 2>&1
       - name: Run concurrent queue workers against separate database sessions
         run: npm run test:queue-concurrency
       - name: Lint local database schema (Etapa 31 — falha também em warning)
-        run: SUPABASE_WORKDIR=site-supabase supabase db lint --local --level warning --fail-on warning 2>&1 | tee artifacts/database/lint.log
+        run: SUPABASE_WORKDIR=site-supabase supabase db lint --local --level warning --fail-on warning > artifacts/database/lint.log 2>&1
       - name: Regenerate TypeScript types and fail on drift (Etapa 21)
         run: |
           npm run db:site:types
-          git diff --exit-code -- src/types/site-database.types.ts || {
-            echo "::error::src/types/site-database.types.ts está desatualizado. Rode 'npm run db:site:types' e commite o resultado.";
-            exit 1;
-          }
+          if ! git diff --exit-code -- src/types/site-database.types.ts; then
+            echo "::error::src/types/site-database.types.ts está desatualizado. Rode 'npm run db:site:types' e commite o resultado."
+            git diff -- src/types/site-database.types.ts
+            exit 1
+          fi
       - name: Regenerate data dictionary and fail on drift (Etapa 35)
         run: |
           npm run db:site:dictionary
-          git diff --exit-code -- docs/DATABASE_DICTIONARY.md || {
-            echo "::error::docs/DATABASE_DICTIONARY.md está desatualizado. Rode 'npm run db:site:dictionary' e commite o resultado.";
-            exit 1;
-          }
+          if ! git diff --exit-code -- docs/DATABASE_DICTIONARY.md; then
+            echo "::error::docs/DATABASE_DICTIONARY.md está desatualizado. Rode 'npm run db:site:dictionary' e commite o resultado."
+            git diff -- docs/DATABASE_DICTIONARY.md
+            exit 1
+          fi
       - name: Regenerate schema ERD and fail on drift (Etapa 48)
         run: |
           npm run db:site:schema-doc
-          git diff --exit-code -- docs/DATABASE_SCHEMA.md || {
-            echo "::error::docs/DATABASE_SCHEMA.md está desatualizado. Rode 'npm run db:site:schema-doc' e commite o resultado.";
-            exit 1;
-          }
+          if ! git diff --exit-code -- docs/DATABASE_SCHEMA.md; then
+            echo "::error::docs/DATABASE_SCHEMA.md está desatualizado. Rode 'npm run db:site:schema-doc' e commite o resultado."
+            git diff -- docs/DATABASE_SCHEMA.md
+            exit 1
+          fi
       - name: Upload database validation evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: database-validation-${{ github.sha }}
           path: artifacts/database/
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 30

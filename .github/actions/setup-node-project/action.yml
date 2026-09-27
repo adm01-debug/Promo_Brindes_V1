@@ -1,0 +1,24 @@
+name: Setup Node.js project
+description: Configura Node.js com npm na versão fixada e instala dependências via npm ci
+
+inputs:
+  node-version:
+    description: Versão do Node.js
+    default: '24.15.0'
+  npm-version:
+    description: Versão do npm a instalar globalmente
+    default: '11.17.0'
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: npm
+    - name: Use declared npm version
+      shell: bash
+      run: npm install --global npm@${{ inputs.npm-version }}
+    - name: Install dependencies
+      shell: bash
+      run: npm ci

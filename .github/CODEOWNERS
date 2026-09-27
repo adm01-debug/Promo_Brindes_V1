@@ -1,0 +1,8 @@
+# Workflows, CI e banco de dados exigem review do responsável de infra.
+# Sintaxe: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Qualquer alteração no CI ou segredos do GitHub requer review
+.github/**                @adm01-debug
+
+# Migrations e config do banco de dados local requerem review
+site-supabase/**          @adm01-debug

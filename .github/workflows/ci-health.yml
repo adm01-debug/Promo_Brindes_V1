@@ -1,0 +1,82 @@
+name: CI health report
+
+on:
+  schedule:
+    # Diário às 06:00 UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+
+jobs:
+  report:
+    name: Summarize recent CI runs
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Fetch recent workflow runs
+        id: runs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RUNS="$(curl -fsSL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs?per_page=50&branch=main" \
+            | jq '[.workflow_runs[] | {name: .name, status: .status, conclusion: .conclusion, created_at: .created_at}]')"
+          TOTAL="$(echo "$RUNS" | jq 'length')"
+          FAILED="$(echo "$RUNS" | jq '[.[] | select(.conclusion == "failure")] | length')"
+          echo "total=$TOTAL" >> "$GITHUB_OUTPUT"
+          echo "failed=$FAILED" >> "$GITHUB_OUTPUT"
+          echo "$RUNS" > /tmp/runs.json
+
+      - name: Write job summary
+        run: |
+          TOTAL="${{ steps.runs.outputs.total }}"
+          FAILED="${{ steps.runs.outputs.failed }}"
+          SUCCESS=$(( TOTAL - FAILED ))
+          RATE=$(( TOTAL > 0 ? SUCCESS * 100 / TOTAL : 0 ))
+          {
+            echo "## CI Health Report — $(date -u '+%Y-%m-%dT%H:%MZ')"
+            echo ""
+            echo "Branch: \`main\` | Últimas 50 execuções"
+            echo ""
+            echo "| Métrica | Valor |"
+            echo "|---------|-------|"
+            echo "| Total de runs | $TOTAL |"
+            echo "| Falhas | $FAILED |"
+            echo "| Taxa de sucesso | ${RATE}% |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Alert if failure rate > 30%
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const total  = parseInt('${{ steps.runs.outputs.total }}');
+            const failed = parseInt('${{ steps.runs.outputs.failed }}');
+            if (total === 0) return;
+            const rate = Math.round((failed / total) * 100);
+            if (rate < 30) {
+              console.log(`CI saudável: ${rate}% de falhas`);
+              return;
+            }
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              state: 'open',
+              labels: 'ci-health',
+            });
+            if (issues.length > 0) return; // issue já aberta
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              title: `⚠️ CI instável — taxa de falha ${rate}% nos últimos 50 runs`,
+              body:  `Taxa de falha no branch main está em **${rate}%** (${failed}/${total} runs).\n\nInvestigue os logs em https://github.com/${context.repo.owner}/${context.repo.repo}/actions`,
+              labels: ['bug', 'ci-health', 'priority:high'],
+            });

@@ -1,0 +1,48 @@
+name: Release Bloqueado
+description: Deploy de produção bloqueado — use quando o release.yml falhar
+labels:
+  - bug
+  - release
+  - priority:high
+assignees:
+  - adm01-debug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use este template quando o workflow de release falhar e impedir o deploy de produção.
+  - type: input
+    id: sha
+    attributes:
+      label: Commit SHA bloqueado
+      placeholder: abc1234
+    validations:
+      required: true
+  - type: input
+    id: run-url
+    attributes:
+      label: URL do run com falha
+      placeholder: https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/...
+    validations:
+      required: true
+  - type: dropdown
+    id: stage
+    attributes:
+      label: Em qual etapa falhou?
+      options:
+        - Preflight (credenciais / gates)
+        - Build (npm ci / vercel build)
+        - Deploy (vercel deploy)
+        - Smoke test
+        - Promoção para produção (vercel promote)
+        - Rollback
+        - Outra
+    validations:
+      required: true
+  - type: textarea
+    id: error
+    attributes:
+      label: Mensagem de erro
+      description: Cole a mensagem de erro principal do log
+    validations:
+      required: true
