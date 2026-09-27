@@ -57,9 +57,10 @@ try {
   assertBudget('CSS total (Brotli)', cssBrotli, rawBytes(32));
   // O total é um teto de manutenção para todo o corpus lazy. O download real
   // da primeira visita é medido separadamente pelo grafo de imports estáticos.
-  // 261 KiB preserva uma margem de manutenção de 1 KiB para a curadoria
-  // determinística do catálogo (lazy, testada e sem aumentar o bundle inicial).
-  assertBudget('JavaScript total (Brotli)', javascriptBrotli, rawBytes(261));
+  // A base medida no SHA f48b101 era 260,7 KiB. O teto de 262 KiB preserva
+  // margem de manutenção sem esconder o custo das novas proteções de timeout,
+  // reconciliação e privacidade; o bundle inicial continua guardado à parte.
+  assertBudget('JavaScript total (Brotli)', javascriptBrotli, rawBytes(262));
   assertBudget('Bundle de entrada (Brotli)', entryBrotli, rawBytes(90));
   assertBudget('JavaScript inicial (Brotli)', initialJavascriptBrotli, rawBytes(150));
   assertBudget('Maior chunk JavaScript assíncrono (Brotli)', largestAsyncJavascriptBrotli, rawBytes(50));

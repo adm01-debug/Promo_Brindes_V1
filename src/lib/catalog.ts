@@ -258,6 +258,7 @@ export function parseContentRange(value: string | null, fallback: number): numbe
 }
 
 const RETRYABLE_HTTP_STATUS = new Set([429, 500, 502, 503, 504]);
+export const CATALOG_REQUEST_TIMEOUT_MS = 12_000;
 
 function waitForRetry(signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -298,17 +299,27 @@ async function fetchRestResponse(url: string, signal?: AbortSignal): Promise<Res
 }
 
 async function rest<T>(resource: string, params: URLSearchParams, signal?: AbortSignal): Promise<{ data: T; total: number }> {
-  const response = await fetchRestResponse(`${API_URL}/${resource}?${params.toString()}`, signal);
-  if (!response.ok) {
-    const detail = await response.json().catch(() => null) as { message?: string } | null;
-    const error = new Error(detail?.message || `Não foi possível carregar o catálogo (${response.status}).`);
-    const rangeTotal = Number(response.headers.get('content-range')?.split('/')[1]);
-    Object.assign(error, { status: response.status, total: Number.isFinite(rangeTotal) ? rangeTotal : undefined });
+  const controller = new AbortController();
+  const requestSignal = signal ? AbortSignal.any([signal, controller.signal]) : controller.signal;
+  const timeout = globalThis.setTimeout(() => controller.abort(new DOMException('Catálogo demorou além do esperado.', 'TimeoutError')), CATALOG_REQUEST_TIMEOUT_MS);
+  try {
+    const response = await fetchRestResponse(`${API_URL}/${resource}?${params.toString()}`, requestSignal);
+    if (!response.ok) {
+      const detail = await response.json().catch(() => null) as { message?: string } | null;
+      if (controller.signal.aborted && !signal?.aborted) throw new Error('O catálogo demorou além do esperado. Tente novamente.');
+      const error = new Error(detail?.message || `Não foi possível carregar o catálogo (${response.status}).`);
+      const rangeTotal = Number(response.headers.get('content-range')?.split('/')[1]);
+      Object.assign(error, { status: response.status, total: Number.isFinite(rangeTotal) ? rangeTotal : undefined });
+      throw error;
+    }
+    const data = await response.json() as T;
+    return { data, total: parseContentRange(response.headers.get('content-range'), Array.isArray(data) ? data.length : 0) };
+  } catch (error) {
+    if (controller.signal.aborted && !signal?.aborted) throw new Error('O catálogo demorou além do esperado. Tente novamente.');
     throw error;
+  } finally {
+    globalThis.clearTimeout(timeout);
   }
-  const data = await response.json() as T;
-  const fallback = Array.isArray(data) ? data.length : 0;
-  return { data, total: parseContentRange(response.headers.get('content-range'), fallback) };
 }
 
 async function productRest<T>(params: URLSearchParams, signal?: AbortSignal): Promise<{ data: T; total: number }> {

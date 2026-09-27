@@ -33,6 +33,20 @@ interface ResendWebhookPayload {
   };
 }
 
+function parsePayload(value: unknown): ResendWebhookPayload | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const payload = value as Record<string, unknown>;
+  if (payload.type !== undefined && typeof payload.type !== 'string') return null;
+  if (payload.created_at !== undefined && typeof payload.created_at !== 'string') return null;
+  if (payload.data !== undefined && (!payload.data || typeof payload.data !== 'object' || Array.isArray(payload.data))) return null;
+  const data = payload.data as Record<string, unknown> | undefined;
+  if (data?.email_id !== undefined && typeof data.email_id !== 'string') return null;
+  if (data?.bounce !== undefined && (!data.bounce || typeof data.bounce !== 'object' || Array.isArray(data.bounce))) return null;
+  const bounce = data?.bounce as Record<string, unknown> | undefined;
+  if (bounce?.type !== undefined && typeof bounce.type !== 'string') return null;
+  return value as ResendWebhookPayload;
+}
+
 function json(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 }
@@ -56,12 +70,13 @@ export default {
       return json(401, { error: 'invalid_signature' });
     }
 
-    let payload: ResendWebhookPayload;
+    let payload: ResendWebhookPayload | null;
     try {
-      payload = JSON.parse(rawBody) as ResendWebhookPayload;
+      payload = parsePayload(JSON.parse(rawBody));
     } catch {
       return json(400, { error: 'invalid_json' });
     }
+    if (!payload) return json(400, { error: 'invalid_payload' });
 
     const eventType = EVENT_TYPE_MAP[payload.type || ''];
     const emailId = payload.data?.email_id;

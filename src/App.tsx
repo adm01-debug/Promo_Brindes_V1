@@ -6,7 +6,7 @@ import { Layout } from './components/Layout';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { QuoteCartProvider } from './context/QuoteCartContext';
 import { CustomerAuthProvider } from './context/CustomerAuthContext';
-import { redactAnalyticsUrl } from './lib/analytics';
+import { redactAnalyticsUrl, redactTelemetryUrl } from './lib/analytics';
 import { browserScrollRestorationAdapter, restoreScrollPosition } from './lib/scrollRestoration';
 
 // Etapa 1 do plano de 20260917: HomePage era a única rota carregada de forma
@@ -92,7 +92,7 @@ export default function App() {
       <QuoteCartProvider>
         <CustomerAuthProvider>
           <Analytics beforeSend={redactAnalyticsUrl} debug={false} />
-          <SpeedInsights />
+          <SpeedInsights beforeSend={redactTelemetryUrl} />
           <ScrollManager />
           <AppErrorBoundary>
             <Layout>

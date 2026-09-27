@@ -98,13 +98,17 @@ export function redactAnalyticsPathname(pathname: string): string {
   return '/rota-nao-listada';
 }
 
-export function redactAnalyticsUrl(event: BeforeSendEvent): BeforeSendEvent | null {
+export function redactTelemetryUrl<Event extends { url: string }>(event: Event): Event | null {
   try {
     const url = new URL(event.url, typeof window === 'undefined' ? 'https://promo-brindes.invalid' : window.location.origin);
     return { ...event, url: `${url.origin}${redactAnalyticsPathname(url.pathname)}` };
   } catch {
     return null;
   }
+}
+
+export function redactAnalyticsUrl(event: BeforeSendEvent): BeforeSendEvent | null {
+  return redactTelemetryUrl(event);
 }
 
 export function trackFunnelEvent<Name extends FunnelEventName>(name: Name, properties: FunnelEventMap[Name]): void {

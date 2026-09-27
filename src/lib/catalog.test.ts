@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { buildCatalogParams, buildNoveltyProfileFilter, defaultQuoteQuantity, fetchCatalog, fetchProduct, fetchProductsByIds, mapProductRow, parseContentRange, resolveProductResource, resolvePublicApiKey, resolveSupabaseUrl, sanitizeSearch, type ProductRow } from './catalog';
+import { buildCatalogParams, buildNoveltyProfileFilter, CATALOG_REQUEST_TIMEOUT_MS, defaultQuoteQuantity, fetchCatalog, fetchProduct, fetchProductsByIds, mapProductRow, parseContentRange, resolveProductResource, resolvePublicApiKey, resolveSupabaseUrl, sanitizeSearch, type ProductRow } from './catalog';
 
 const rootCategoryId = '11111111-1111-4111-8111-111111111111';
 const childCategoryId = '22222222-2222-4222-8222-222222222222';
@@ -40,7 +40,7 @@ const row: ProductRow = {
 };
 
 describe('catálogo público', () => {
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 
   it('normaliza apenas os dados necessários para a experiência do cliente', () => {
     const product = mapProductRow(row);
@@ -96,6 +96,18 @@ describe('catálogo público', () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(result.products).toHaveLength(1);
+  });
+
+  it('encerra uma leitura que não entrega resposta dentro do orçamento declarado', async () => {
+    vi.useFakeTimers();
+    const fetchMock = vi.fn().mockImplementation((_url: string, init: RequestInit) => new Promise((_resolve, reject) => {
+      init.signal?.addEventListener('abort', () => reject(init.signal?.reason), { once: true });
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+    const request = fetchCatalog();
+    const assertion = expect(request).rejects.toThrow('demorou além do esperado');
+    await vi.advanceTimersByTimeAsync(CATALOG_REQUEST_TIMEOUT_MS);
+    await assertion;
   });
 
   it('recupera uma página fora do intervalo sem deixar a tela em retry infinito', async () => {

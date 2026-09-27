@@ -30,6 +30,30 @@ interface WhatsAppWebhookPayload {
   }>;
 }
 
+function parsePayload(value: unknown): WhatsAppWebhookPayload | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const entry = (value as Record<string, unknown>).entry;
+  if (entry === undefined) return {};
+  if (!Array.isArray(entry)) return null;
+  for (const rawEntry of entry) {
+    if (!rawEntry || typeof rawEntry !== 'object' || Array.isArray(rawEntry)) return null;
+    const changes = (rawEntry as Record<string, unknown>).changes;
+    if (changes === undefined) continue;
+    if (!Array.isArray(changes)) return null;
+    for (const rawChange of changes) {
+      if (!rawChange || typeof rawChange !== 'object' || Array.isArray(rawChange)) return null;
+      const valueRecord = (rawChange as Record<string, unknown>).value;
+      if (valueRecord === undefined) continue;
+      if (!valueRecord || typeof valueRecord !== 'object' || Array.isArray(valueRecord)) return null;
+      const statuses = (valueRecord as Record<string, unknown>).statuses;
+      if (statuses === undefined) continue;
+      if (!Array.isArray(statuses)) return null;
+      if (statuses.some((status) => !status || typeof status !== 'object' || Array.isArray(status))) return null;
+    }
+  }
+  return value as WhatsAppWebhookPayload;
+}
+
 function json(status: number, body: unknown, extraHeaders?: Record<string, string>): Response {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', ...extraHeaders } });
 }
@@ -117,12 +141,13 @@ async function handlePost(request: Request): Promise<Response> {
     return json(401, { error: 'invalid_signature' });
   }
 
-  let payload: WhatsAppWebhookPayload;
+  let payload: WhatsAppWebhookPayload | null;
   try {
-    payload = JSON.parse(rawBody) as WhatsAppWebhookPayload;
+    payload = parsePayload(JSON.parse(rawBody));
   } catch {
     return json(400, { error: 'invalid_json' });
   }
+  if (!payload) return json(400, { error: 'invalid_payload' });
 
   const statuses = (payload.entry || [])
     .flatMap((entry) => entry.changes || [])
