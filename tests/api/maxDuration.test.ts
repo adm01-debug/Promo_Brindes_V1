@@ -29,7 +29,7 @@ function vercelFunctionsConfig(): Record<string, { maxDuration: number }> {
  * maxDuration padrão da plataforma — inferior ao timeout interno de 20s (na
  * época) de api/notifications.ts. Sem esta trava, um deploy futuro pode
  * reduzir o maxDuration declarado, ou aumentar um timeout interno, sem que
- * ninguém perceba que a relação essencial (interno < plataforma) quebrou —
+ * ningguém perceba que a relação essencial (interno < plataforma) quebrou —
  * exatamente o mecanismo que produz jobs presos em 'processing' (R03) na
  * prática, não só na teoria.
  */
@@ -103,7 +103,7 @@ describe('Etapa 24: maxDuration em vercel.json cobre o pior caso real de cada ro
   it('funções de HTML inicial carregam o shell publicado no próprio deploy', () => {
     for (const path of ['api/product-page.ts', 'api/site-page.ts', 'api/not-found.ts']) {
       const entry = functions[path] as { includeFiles?: string } | undefined;
-      expect(entry?.includeFiles).toBe('dist/index.html');
+      expect(entry?.includeFiles).toBe('api/_lib/app-shell.generated.html');
     }
   });
 });
