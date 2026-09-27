@@ -9,13 +9,17 @@ concurrency:
   group: graphify-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+defaults:
+  run:
+    shell: bash
+
 permissions:
   contents: read
 
 jobs:
   build-structural-map:
     name: Build structural Graphify map
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     env:
       PIP_DISABLE_PIP_VERSION_CHECK: '1'
@@ -24,6 +28,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
         with:
           fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24.15.0
@@ -31,9 +36,11 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.11'
+          cache: pip
+          cache-dependency-path: requirements-graphify.txt
       - name: Install locked Graphify CLI
         run: |
-          python -m pip install 'graphifyy[sql]==0.9.48'
+          python -m pip install -r requirements-graphify.txt
           python -c 'import tree_sitter_sql'
       - name: Install application dependencies
         run: |
@@ -58,10 +65,10 @@ jobs:
           (cd "$BASE_WORKTREE" && node scripts/graphify.mjs build)
           npm run graph:compare -- --base "$BASE_WORKTREE/graphify-out/graph.json" --head graphify-out/graph.json --output graphify-out/BASE_HEAD_REPORT.md
       - name: Upload safe local map
-        if: success()
+        if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: graphify-structural-map-${{ github.sha }}
           path: graphify-out/
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 14

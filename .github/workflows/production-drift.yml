@@ -1,0 +1,129 @@
+name: Production drift detector
+
+on:
+  schedule:
+    # Diário às 07:00 UTC
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: production-drift
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  detect:
+    name: Compare Vercel production SHA with main
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Fetch production deployment SHA
+        id: vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_SCOPE: ${{ vars.VERCEL_SCOPE }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+        run: |
+          PROD_META="$(curl -fsSL \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v13/deployments?teamId=${VERCEL_SCOPE}&projectId=${VERCEL_PROJECT_ID}&target=production&limit=1" \
+            | jq -r '.deployments[0] | {sha: .meta.githubCommitSha, url: .url, createdAt: .createdAt}')"
+          PROD_SHA="$(echo "$PROD_META" | jq -r '.sha')"
+          PROD_URL="$(echo "$PROD_META" | jq -r '.url')"
+          echo "sha=$PROD_SHA" >> "$GITHUB_OUTPUT"
+          echo "url=$PROD_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch main HEAD SHA
+        id: main
+        run: |
+          MAIN_SHA="$(curl -fsSL \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/git/ref/heads/main" \
+            | jq -r '.object.sha')"
+          echo "sha=$MAIN_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Check for drift
+        id: drift
+        run: |
+          PROD="${{ steps.vercel.outputs.sha }}"
+          MAIN="${{ steps.main.outputs.sha }}"
+          if [ "$PROD" = "$MAIN" ]; then
+            echo "diverged=false" >> "$GITHUB_OUTPUT"
+            echo "Production is up to date: $MAIN"
+          else
+            echo "diverged=true" >> "$GITHUB_OUTPUT"
+            echo "DRIFT DETECTED: production=$PROD main=$MAIN"
+          fi
+
+      - name: Open or update drift issue
+        if: steps.drift.outputs.diverged == 'true'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const prod = '${{ steps.vercel.outputs.sha }}';
+            const main = '${{ steps.main.outputs.sha }}';
+            const url  = '${{ steps.vercel.outputs.url }}';
+            const title = '🚨 Production drift detected';
+            const body = [
+              '## Production divergiu de main',
+              '',
+              `| | SHA |`,
+              `|---|---|`,
+              `| **main** | \`${main}\` |`,
+              `| **production** | \`${prod}\` |`,
+              '',
+              `Vercel URL de produção: https://${url}`,
+              '',
+              'Verifique se o VERCEL_TOKEN está válido e execute o workflow de release manualmente para sincronizar.',
+              '',
+              `_Detectado em: ${new Date().toISOString()}_`,
+            ].join('\n');
+
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'production-drift',
+            });
+
+            if (issues.length > 0) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issues[0].number,
+                body: `Drift ainda presente em ${new Date().toISOString()}\n\nmain: \`${main}\`\nproduction: \`${prod}\``,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ['bug', 'production-drift', 'priority:high'],
+              });
+            }
+
+      - name: Write job summary
+        if: always()
+        run: |
+          {
+            echo "## Production drift — $(date -u '+%Y-%m-%dT%H:%MZ')"
+            echo ""
+            echo "| | SHA |"
+            echo "|---|---|"
+            echo "| main | \`${{ steps.main.outputs.sha }}\` |"
+            echo "| production | \`${{ steps.vercel.outputs.sha }}\` |"
+            echo ""
+            if [ "${{ steps.drift.outputs.diverged }}" = "true" ]; then
+              echo "**Status: DRIFT DETECTADO** ⚠️"
+            else
+              echo "**Status: Em sincronia** ✅"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

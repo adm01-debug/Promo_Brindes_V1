@@ -3,8 +3,13 @@ name: Dependency review
 on:
   pull_request:
 
+defaults:
+  run:
+    shell: bash
+
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   review:
@@ -13,10 +18,12 @@ jobs:
     # automaticamente quando o repositório público é compatível com a API.
     if: github.event.repository.visibility == 'public'
     name: Review dependency changes
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - name: Block high-risk dependency changes
         uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
         with:
           fail-on-severity: high
+          deny-licenses: GPL-3.0, AGPL-3.0
+          comment-summary-in-pr: on-failure

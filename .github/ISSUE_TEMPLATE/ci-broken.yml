@@ -1,0 +1,44 @@
+name: CI Quebrado
+description: Reporte um workflow do GitHub Actions que está falhando inesperadamente
+labels:
+  - bug
+  - ci
+assignees:
+  - adm01-debug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use este template para reportar falhas de CI que bloqueiam o fluxo de deploy.
+  - type: input
+    id: workflow
+    attributes:
+      label: Workflow afetado
+      description: Nome do workflow (ex. Quality gate, Isolated site database)
+      placeholder: Quality gate
+    validations:
+      required: true
+  - type: input
+    id: run-url
+    attributes:
+      label: URL do run com falha
+      placeholder: https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/...
+    validations:
+      required: true
+  - type: textarea
+    id: error
+    attributes:
+      label: Mensagem de erro
+      description: Cole a mensagem de erro principal do log
+    validations:
+      required: true
+  - type: dropdown
+    id: reproducible
+    attributes:
+      label: É reproduzível?
+      options:
+        - Sim — falha em toda execução
+        - Intermitente — falha esporadicamente
+        - Não sei
+    validations:
+      required: true

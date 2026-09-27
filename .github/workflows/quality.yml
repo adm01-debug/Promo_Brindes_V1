@@ -9,20 +9,22 @@ concurrency:
   group: quality-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+defaults:
+  run:
+    shell: bash
+
 permissions:
   contents: read
-  pull-requests: read
 
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
         with:
-          # O scanner de histórico compara a base do pull request ao head.
-          # O checkout raso não contém o commit-base e gera scan parcial.
           fetch-depth: 0
+          persist-credentials: false
       - name: Scan committed history for secrets
         uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
@@ -34,6 +36,8 @@ jobs:
       - name: Use the declared npm version
         run: npm install --global npm@11.17.0
       - run: npm ci
+      - run: npm audit --audit-level=high
+      - run: npm audit signatures
       - run: npm run ledger:check
       # O Chromium do Playwright não depende do repositório do Google Chrome.
       # Removê-lo no runner efêmero evita falhas transitórias de hash nesse
@@ -46,13 +50,28 @@ jobs:
       - run: npm run check
       - name: Enforce unit and API coverage thresholds
         run: npm run test:coverage
-      - run: npm audit --audit-level=high
       - name: Record the performance budget evidence
         run: |
           mkdir -p artifacts
-          npm run check:performance-budget 2>&1 | tee artifacts/performance-budget.log
+          npm run check:performance-budget > artifacts/performance-budget.log 2>&1
       - name: Reject production sourcemaps
         run: test -z "$(find dist -type f -name '*.map' -print -quit)"
+      - name: Write job summary
+        if: always()
+        run: |
+          {
+            echo "## Quality gate — $(date -u '+%Y-%m-%dT%H:%MZ')"
+            echo ""
+            echo "Commit: \`$GITHUB_SHA\`  Branch: \`${GITHUB_REF_NAME}\`"
+            echo ""
+            echo "| Check | Result |"
+            echo "| ----- | ------ |"
+            echo "| npm audit | ${{ job.status }} |"
+            echo "| npm audit signatures | ${{ job.status }} |"
+            echo "| Lint / type-check | ${{ job.status }} |"
+            echo "| Unit + API coverage | ${{ job.status }} |"
+            echo "| Performance budget | ${{ job.status }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload coverage, browser and budget evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -68,10 +87,12 @@ jobs:
 
   cross-browser:
     needs: validate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24.15.0
