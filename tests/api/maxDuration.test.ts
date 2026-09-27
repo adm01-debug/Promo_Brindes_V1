@@ -103,7 +103,7 @@ describe('Etapa 24: maxDuration em vercel.json cobre o pior caso real de cada ro
   it('funções de HTML inicial carregam o shell publicado no próprio deploy', () => {
     for (const path of ['api/product-page.ts', 'api/site-page.ts', 'api/not-found.ts']) {
       const entry = functions[path] as { includeFiles?: string } | undefined;
-      expect(entry?.includeFiles).toBe('dist/index.html');
+      expect(entry?.includeFiles).toBe('api/_lib/app-shell.generated.html');
     }
   });
 });

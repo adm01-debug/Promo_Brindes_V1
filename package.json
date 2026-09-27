@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "vite",
     "lint": "eslint .",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && node scripts/stage-app-shell.mjs",
     "check:performance-budget": "node scripts/check-performance-budget.mjs",
     "smoke:deployment": "node scripts/smoke-deployment.mjs",
     "preview": "vite preview",

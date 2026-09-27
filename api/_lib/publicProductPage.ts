@@ -110,15 +110,13 @@ export async function fetchPublicProduct(identifier: string): Promise<PublicProd
 
 export async function loadAppShell(): Promise<string> {
   try {
-    // O artefato é incluído na mesma função Vercel por includeFiles. Ler do
-    // pacote elimina fetch para a origem canônica, preview protegido e chunks
-    // de outro deployment.
+    // O build copia o HTML final com os hashes de assets para api/_lib; a
+    // Vercel inclui essa cópia no pacote de cada função via includeFiles.
     // O caminho alternativo existe somente sob Vitest e aponta para uma
-    // fixture versionada; produção sempre usa o artefato `dist` incluído pela
-    // configuração Vercel abaixo.
+    // fixture versionada; produção sempre usa o artefato gerado pelo build.
     const shellPath = process.env.NODE_ENV === 'test' && process.env.SITE_TEST_APP_SHELL === '1'
       ? join(process.cwd(), 'tests', 'fixtures', 'app-shell.html')
-      : join(process.cwd(), 'dist', 'index.html');
+      : join(process.cwd(), 'api', '_lib', 'app-shell.generated.html');
     const shell = await readFile(shellPath, 'utf8');
     if (!isValidAppShell(shell)) throw new Error('invalid app shell');
     return shell;
