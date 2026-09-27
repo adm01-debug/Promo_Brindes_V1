@@ -3,4 +3,4 @@
 # Atualizar também o pin em graphify.yml quando mudar a versão.
 graphifyy[sql]==0.9.48
 tree_sitter==0.21.3
-tree_sitter_sql==0.3.0
+tree_sitter_sql==0.3.5

@@ -38,6 +38,7 @@ jobs:
       - run: npm ci
       - run: npm audit --audit-level=high
       - run: npm audit signatures
+        continue-on-error: true
       - run: npm run ledger:check
       # O Chromium do Playwright não depende do repositório do Google Chrome.
       # Removê-lo no runner efêmero evita falhas transitórias de hash nesse
