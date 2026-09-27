@@ -14,7 +14,7 @@ Diretriz editorial de implementação, 22/09/2026. A aprovação das quatro fras
 | Composição de vários produtos | Montar kit | Navegação e composição |
 | Atendimento humano | nosso time de especialistas | Adaptar artigo e concordância: “com o nosso time de especialistas” |
 
-“Radar”, “drop” e “moodboard” podem aparecer em títulos editoriais. Botões, erros e instruções devem dizer qual ação acontece. “Time” do comprador não significa atendimento da Promo e não deve ser substituído indiscriminadamente.
+“Radar”, “tendências” e “moodboard” podem aparecer em títulos editoriais. Botões, erros e instruções devem dizer qual ação acontece. “Time” do comprador não significa atendimento da Promo e não deve ser substituído indiscriminadamente.
 
 ## Voz por situação
 

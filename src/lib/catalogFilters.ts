@@ -8,7 +8,7 @@ export type ProfileParam = 'todos' | 'destaques' | 'novos' | 'kits';
 export const PROFILE_OPTIONS: Array<{ value: ProfileParam; label: string }> = [
   { value: 'todos', label: 'Todos' },
   { value: 'destaques', label: 'Em alta' },
-  { value: 'novos', label: 'Novos drops' },
+  { value: 'novos', label: 'Novas tendências' },
   { value: 'kits', label: 'Kits & combos' },
 ];
 

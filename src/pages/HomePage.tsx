@@ -173,7 +173,7 @@ export default function HomePage() {
           <p className="hero__lead">Explore o que tem potencial, salve suas referências e compartilhe o briefing. A curadoria entra quando você quiser — sem checkout.</p>
           <div className="hero__actions">
             <Link className="button button--green button--large" to="/catalogo">Montar minha seleção <ArrowRight size={19} /></Link>
-            <a className="button button--glass button--large" href="#drop-da-vez">Ver o drop da vez</a>
+            <a className="button button--glass button--large" href="#tendencias-da-vez">Explorar tendências</a>
           </div>
           <SearchAutocomplete
             variant="hero"
@@ -211,12 +211,13 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="drop-da-vez" className="featured-section section" aria-labelledby="featured-title">
+      <section id="tendencias-da-vez" className="featured-section section" aria-labelledby="featured-title">
+        <span id="drop-da-vez" className="sr-only" aria-hidden="true" />
         <div className="container">
           <div className="section-heading section-heading--split">
             <div>
               <span className="section-kicker">Curadoria viva · atualizada pelo catálogo</span>
-              <h2 id="featured-title"><GlitchText>Drop da vez.</GlitchText></h2>
+              <h2 id="featured-title"><GlitchText>Tendências da vez.</GlitchText></h2>
             </div>
             <Link className="text-link" to="/catalogo?perfil=destaques">Abrir a seleção completa <ArrowRight size={17} /></Link>
           </div>

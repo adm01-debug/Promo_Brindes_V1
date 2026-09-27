@@ -114,7 +114,12 @@ test('headline principal usa Fold Text sem perder acessibilidade', async ({ page
   await expect(page.locator('.footer-brand img')).toHaveAttribute('src', '/brand/promo-brindes-logo-v2-800.webp');
   expect(await headerLogo.evaluate((image: HTMLImageElement) => [image.naturalWidth, image.naturalHeight])).toEqual([800, 420]);
   await expect(page.locator('#hero-title .fold-text-piece')).toHaveCount(8);
-  await expect(page.locator('#featured-title .glitch-text')).toHaveText('Drop da vez.');
+  await expect(page.locator('#featured-title .glitch-text')).toHaveText('Tendências da vez.');
+  await expect(page.locator('a[href="#tendencias-da-vez"]')).toHaveText('Explorar tendências');
+  await page.locator('a[href="#tendencias-da-vez"]').click();
+  await expect(page.locator('#featured-title')).toBeInViewport();
+  await page.evaluate(() => { window.location.hash = '#drop-da-vez'; });
+  await expect(page.locator('#featured-title')).toBeInViewport();
 
   const motionState = await page.locator('#hero-title .fold-text-piece').evaluateAll((pieces) =>
     pieces.map((piece) => ({
@@ -248,15 +253,19 @@ test('biblioteca de catálogos transforma contexto em coleções compartilhávei
   await page.getByRole('button', { name: 'Limpar filtros' }).click();
   await expect(page).toHaveURL(/\/catalogos$/);
   await expect(page.locator('.catalog-card')).toHaveCount(10);
-  const newDrops = page.locator('.catalog-card').filter({ has: page.getByRole('heading', { name: 'Novos drops' }) });
-  await newDrops.getByRole('button', { name: 'Compartilhar Novos drops' }).click();
-  await expect(newDrops.getByRole('button', { name: 'Compartilhar Novos drops' })).toContainText('Link copiado');
+  const newTrends = page.locator('.catalog-card').filter({ has: page.getByRole('heading', { name: 'Novas tendências' }) });
+  await newTrends.getByRole('button', { name: 'Compartilhar Novas tendências' }).click();
+  await expect(newTrends.getByRole('button', { name: 'Compartilhar Novas tendências' })).toContainText('Link copiado');
   const sharedCatalogUrl = await page.evaluate(() => navigator.clipboard.readText());
-  expect(sharedCatalogUrl).toMatch(/\/catalogos\?colecao=novos-drops$/);
+  expect(sharedCatalogUrl).toMatch(/\/catalogos\?colecao=novas-tendencias$/);
   await page.goto(sharedCatalogUrl);
   await waitForRoute(page);
-  await expect(page.locator('.catalog-featured').getByRole('heading', { name: 'Novos drops' })).toBeVisible();
-  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /\/catalogos\?colecao=novos-drops$/);
+  await expect(page.locator('.catalog-featured').getByRole('heading', { name: 'Novas tendências' })).toBeVisible();
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /\/catalogos\?colecao=novas-tendencias$/);
+  await page.goto('/catalogos?colecao=novos-drops');
+  await waitForRoute(page);
+  await expect(page.locator('.catalog-featured').getByRole('heading', { name: 'Novas tendências' })).toBeVisible();
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /\/catalogos\?colecao=novas-tendencias$/);
   await page.locator('.catalog-card').filter({ has: page.getByRole('heading', { name: 'Onboarding com cultura' }) }).getByRole('link', { name: /Explorar coleção/ }).click();
   await expect(page).toHaveURL(/\/catalogo\?momento=onboarding.*publico=colaboradores/);
   await expect(page).not.toHaveURL(/perfil=kits/);
@@ -1116,7 +1125,7 @@ test('navegação de catálogo por query fecha menu e reposiciona resultados', a
   await page.goto('/catalogo');
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   await page.getByRole('button', { name: 'Abrir menu' }).click();
-  await page.getByRole('navigation', { name: 'Navegação móvel' }).getByRole('link', { name: 'Novos drops' }).click();
+  await page.getByRole('navigation', { name: 'Navegação móvel' }).getByRole('link', { name: 'Novas tendências' }).click();
   await expect(page).toHaveURL(/perfil=novos/);
   await expect(page.getByRole('navigation', { name: 'Navegação móvel' })).toBeHidden();
   await expect(page.locator('#catalog-results-title')).toBeInViewport();

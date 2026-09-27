@@ -84,6 +84,12 @@ describe('HTML inicial das páginas estáticas', () => {
     expect(collection.result.body).toContain('<title>Onboarding com cultura | Catálogos Promo Brindes</title>');
     expect(collection.result.body).toContain('/catalogos?colecao=onboarding-com-cultura');
 
+    const renamedCollection = responseDouble();
+    await handler({ method: 'GET', query: { page: 'catalogos', colecao: 'novos-drops' } }, renamedCollection.response);
+    expect(renamedCollection.result.statusCode).toBe(200);
+    expect(renamedCollection.result.body).toContain('<title>Novas tendências | Catálogos Promo Brindes</title>');
+    expect(renamedCollection.result.body).toContain('/catalogos?colecao=novas-tendencias');
+
     const occasion = responseDouble();
     await handler({ method: 'GET', query: { page: 'datas', ano: '2027', data: 'dia-do-cliente' } }, occasion.response);
     expect(occasion.result.statusCode).toBe(200);

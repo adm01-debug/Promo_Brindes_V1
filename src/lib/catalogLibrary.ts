@@ -82,7 +82,7 @@ export const catalogCollections: CatalogCollection[] = [
     coverQuery: { search: 'garrafa', pageSize: 1, sort: 'curated' },
   },
   {
-    ...editorial('novos-drops'),
+    ...editorial('novas-tendencias'),
     eyebrow: 'Radar de novidades',
     format: 'online',
     theme: 'products',

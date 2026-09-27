@@ -35,7 +35,7 @@ A análise do sistema interno identificou como ativos centrais o catálogo Gold,
 7. **Recuperação explícita.** Skeletons evitam salto de layout; falhas têm mensagem e nova tentativa; catálogo vazio oferece limpeza de filtros.
 8. **Mobile como jornada completa.** Menu, busca, filtros, saves flutuantes, drawer e formulário foram desenhados para toque — não como redução tardia do desktop.
 9. **Visual primeiro, contexto logo depois.** Imagem, hierarquia e atalhos permitem reconhecer uma direção em segundos; códigos, quantidades e detalhes continuam disponíveis para aprovação interna.
-10. **Tom cultural sem caricatura.** “Radar”, “drop”, “moodboard” e “saves” aproximam o produto do workflow de marketing, mas clareza, acessibilidade e credibilidade comercial prevalecem sobre gírias.
+10. **Tom cultural sem caricatura.** “Radar”, “tendências”, “moodboard” e “saves” aproximam o produto do workflow de marketing, mas clareza, acessibilidade e credibilidade comercial prevalecem sobre gírias.
 
 ## 4. Arquitetura da informação
 
@@ -77,7 +77,7 @@ Páginas institucionais completam confiança e conformidade: Como trabalhamos, C
 - **Tipografia:** Inter para leitura funcional e Space Grotesk para títulos, CTAs e momentos de personalidade.
 - **Imagem principal:** fotografia editorial original de um time jovem e diverso de marketing criando uma ação com brindes, sem logos ou texto incorporado e com área negativa para conteúdo responsivo.
 - **Componentes:** bordas de alto contraste, sombras deslocadas, cards modulares, stickers e estados de interação evidentes. A expressividade nunca reduz a legibilidade.
-- **Movimento:** a headline inicial se desdobra uma única vez com Fold Text. “Drop da vez” recebe um Glitch Text curto ao entrar na tela e no hover. A combinação reforça revelação e novidade sem atrasar a navegação, repetir em loop ou competir com os CTAs.
+- **Movimento:** a headline inicial se desdobra uma única vez com Fold Text. “Tendências da vez” recebe um Glitch Text curto ao entrar na tela e no hover. A combinação reforça revelação e novidade sem atrasar a navegação, repetir em loop ou competir com os CTAs.
 - **Conteúdo:** português brasileiro direto, sem jargão interno, sem promessas de preço/prazo que os dados públicos não sustentam.
 
 ## 6. Acessibilidade

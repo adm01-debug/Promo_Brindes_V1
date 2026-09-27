@@ -2,6 +2,7 @@ import { fallbackPageShell, renderPageShell, type PublicPageMetadata } from './_
 import { configuredSiteOrigin, loadAppShell } from './_lib/publicProductPage.js';
 import { catalogPreviews, occasionPreviews } from './_lib/curatedPagePreviews.js';
 import { normalizeCampaignYear } from '../shared/campaignYears.js';
+import { resolveCatalogEditorialId } from '../shared/catalogEditorial.js';
 
 interface VercelRequest {
   method?: string;
@@ -56,9 +57,9 @@ function pageFrom(request: VercelRequest): StaticPage | null {
   const page = queryValue(request, 'page');
   if (page === 'ideia') return ideas[queryValue(request, 'topic')] || null;
   if (page === 'catalogos') {
-    const collectionId = queryValue(request, 'colecao');
-    const collection = catalogPreviews()[collectionId];
-    if (collection) return {
+    const collectionId = resolveCatalogEditorialId(queryValue(request, 'colecao'));
+    const collection = collectionId ? catalogPreviews()[collectionId] : undefined;
+    if (collectionId && collection) return {
       path: `/catalogos?colecao=${encodeURIComponent(collectionId)}`,
       title: `${collection.title} | Catálogos Promo Brindes`,
       description: collection.description,

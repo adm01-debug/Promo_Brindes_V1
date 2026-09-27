@@ -10,4 +10,4 @@ A adaptação preserva a linguagem visual do efeito e acrescenta decisões espec
 
 O componente `src/components/GlitchText.tsx` foi adaptado do efeito [Glitch Text](https://reactbits.dev/text-animations/glitch-text), também do React Bits e sob os mesmos termos de licença.
 
-No site Promo Brindes, o efeito deixa de ser um loop infinito: aparece uma vez quando “Drop da vez” entra no viewport, pode ser revisto no hover e é totalmente removido quando o visitante prefere movimento reduzido.
+No site Promo Brindes, o efeito deixa de ser um loop infinito: aparece uma vez quando “Tendências da vez” entra no viewport, pode ser revisto no hover e é totalmente removido quando o visitante prefere movimento reduzido.
