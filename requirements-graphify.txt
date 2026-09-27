@@ -1,5 +1,5 @@
 # Dependências do Graphify CLI — fixadas para builds reproduzíveis.
 # Para regenerar com hashes: pip-compile requirements-graphify.in --generate-hashes -o requirements-graphify.txt
 # Atualizar também o pin em graphify.yml quando mudar a versão.
-graphifyy[sql]==0.9.48
+graphifyy[sql]==0.9.67
 tree_sitter_sql==0.3.5
