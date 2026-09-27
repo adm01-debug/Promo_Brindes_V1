@@ -144,7 +144,11 @@ export function parseProviderEventApplyResponse(value: unknown): ProviderEventAp
     || (!result.applied && (reason === null || (reason === 'delivery_not_found' && deliveryId !== null)))) {
     throw new SiteDatabaseError('O banco não devolveu um protocolo de evento válido.', 'invalid_database_response', 502);
   }
-  return { applied: result.applied, deliveryId, reason: reason as ProviderEventApplyReason | null };
+  // As condições acima validam o contrato; as variáveis explícitas também
+  // preservam esse narrowing para o verificador TypeScript da Vercel.
+  const safeDeliveryId = typeof deliveryId === 'string' ? deliveryId : null;
+  const safeReason = typeof reason === 'string' ? reason as ProviderEventApplyReason : null;
+  return { applied: result.applied, deliveryId: safeDeliveryId, reason: safeReason };
 }
 
 function responseErrorDetail(value: unknown): string {
