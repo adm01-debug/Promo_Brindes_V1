@@ -72,7 +72,7 @@ _Sem comment on table — considerar adicionar um na próxima migration que toca
 
 ### `site_private.customer_briefing_assets`
 
-Logos e referências privadas do titular. Objetos ficam em bucket privado, expiram sem vínculo e acompanham a retenção do briefing após anexação.
+Logos e referências privadas em PNG, JPEG ou WebP. PDFs ficam bloqueados até existir análise estrutural/CDR isolada e antimalware.
 
 | Coluna | Tipo | Comentário |
 |---|---|---|
