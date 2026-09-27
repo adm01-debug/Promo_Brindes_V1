@@ -1,381 +1,111 @@
 name: Release isolated database then Vercel
 
-# Disparado quando um dos 3 gates obrigatórios de main conclui (workflow_run)
-# ou manualmente via Actions UI (workflow_dispatch).
-# Com workflow_run: cada disparo verifica se TODOS os gates estão verdes para
-# o mesmo head_sha; sai cedo se nem todos terminaram ainda.
 on:
-  workflow_run:
-    workflows: ["Quality gate", "Isolated site database", "Graphify structural map"]
-    types: [completed]
+  push:
     branches: [main]
-  workflow_dispatch:
-    inputs:
-      ref:
-        description: 'SHA ou branch a publicar (padrão: HEAD de main)'
-        required: false
-        default: 'main'
-      skip_gate_check:
-        description: 'Ignorar verificação de gates (apenas para SHA já verificado externamente)'
-        type: boolean
-        default: false
 
-defaults:
-  run:
-    shell: bash
-
-# Um único release por SHA ativo — sem cancelar em andamento.
-# Disparos adicionais do mesmo SHA ficam na fila; o último sempre vê os gates verdes.
 concurrency:
-  group: production-release-${{ github.event.workflow_run.head_sha || github.sha }}
+  group: production-release
   cancel-in-progress: false
 
 permissions:
   actions: read
   checks: read
   contents: read
-  deployments: write
-  issues: write
 
 jobs:
   release:
     name: Verify DB migration, deploy and smoke
-    runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
     env:
       SUPABASE_PROJECT_REF: xlzmclcjdncjfdrjxclt
       VERCEL_ORG_ID: team_QyN41X0q8hrqhW80AwokbFLv
       VERCEL_PROJECT_ID: prj_LVKX7uhs1VhTjDDznD7KinvjgHXU
       VERCEL_SCOPE: juca1
       SMOKE_BASE_URL: https://promo-brindes-v1.vercel.app
-      # SHA alvo: vem do workflow_run (event) ou do workflow_dispatch (sha atual)
-      TARGET_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
     steps:
-      # ------------------------------------------------------------------
-      # 1. PREFLIGHT — valida credenciais E gates em ~20 s
-      # Sai cedo (exit 0) se nem todos os gates estão verdes: o próximo
-      # disparo de workflow_run tentará novamente.
-      # ------------------------------------------------------------------
-      - name: Preflight — credenciais e gates
-        id: preflight
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
+      - name: Wait for every protected main-branch gate
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           GH_TOKEN: ${{ github.token }}
         run: |
-          set -euo pipefail
-
-          # --- VERCEL_TOKEN ---
-          test -n "$VERCEL_TOKEN" || { echo '::error::VERCEL_TOKEN ausente no repositório'; exit 1; }
-          vuser_raw="$(curl --silent --show-error \
-            -H "Authorization: Bearer $VERCEL_TOKEN" \
-            "https://api.vercel.com/v2/user" 2>&1)" || true
-          if ! echo "$vuser_raw" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert "user" in d' 2>/dev/null; then
-            msg="$(echo "$vuser_raw" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("error",{}).get("message","?"))' 2>/dev/null || echo "$vuser_raw" | head -2)"
-            echo "::error::VERCEL_TOKEN inválido ou sem acesso — $msg"
-            echo "::error::Gere um novo token em Vercel Account Settings e atualize o secret VERCEL_TOKEN."
-            exit 1
-          fi
-          echo "Vercel: $(echo "$vuser_raw" | python3 -c 'import json,sys;u=json.load(sys.stdin)["user"];print(u.get("name","?")+"/"+u.get("username","?"))' 2>/dev/null)"
-
-          # --- SUPABASE_ACCESS_TOKEN ---
-          test -n "$SUPABASE_ACCESS_TOKEN" || { echo '::error::SUPABASE_ACCESS_TOKEN ausente'; exit 1; }
-          sb_raw="$(curl --silent --show-error \
-            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
-            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF" 2>&1)" || true
-          if ! echo "$sb_raw" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert "id" in d' 2>/dev/null; then
-            msg="$(echo "$sb_raw" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("message","?"))' 2>/dev/null || echo "$sb_raw" | head -2)"
-            echo "::error::SUPABASE_ACCESS_TOKEN sem acesso ao projeto $SUPABASE_PROJECT_REF — $msg"
-            exit 1
-          fi
-          echo "Supabase: $(echo "$sb_raw" | python3 -c 'import json,sys;print(json.load(sys.stdin).get("name","?"))' 2>/dev/null)"
-
-          # --- Gates (ignorar se skip_gate_check=true) ---
-          if [[ "${{ github.event.inputs.skip_gate_check }}" == "true" ]]; then
-            echo "::notice::skip_gate_check ativado — pulando verificação de gates."
-            echo "gates_green=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
           required=('validate' 'cross-browser' 'Migrations and pgTAP' 'Build structural Graphify map')
-          checks="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${TARGET_SHA}/check-runs?per_page=100")"
-          any_pending=false
-          for name in "${required[@]}"; do
-            # sort_by(.id) é mais robusto que .started_at (nulo em re-execuções)
-            # filtrar app.slug==github-actions evita checks homônimos de outros apps
-            conclusion="$(LC_ALL=C jq -r --arg n "$name" \
-              '[.check_runs[] | select(.name == $n and .app.slug == "github-actions")] | sort_by(.id) | last | .conclusion // "pending"' \
-              <<<"$checks")"
-            echo "Gate '$name': $conclusion"
-            case "$conclusion" in
-              success) ;;
-              pending|"")
-                echo "::notice::Gate '$name' ainda pendente para $TARGET_SHA."
-                any_pending=true ;;
-              skipped|neutral|stale)
-                echo "::error::Gate '$name' finalizou como '$conclusion' (inesperado para gate obrigatório — verifique paths-ignore)."
-                exit 1 ;;
-              failure|cancelled|timed_out|action_required)
-                echo "::error::Gate '$name' terminou como '$conclusion' para $TARGET_SHA. Release cancelado."
-                exit 1 ;;
-              *)
-                echo "::error::Gate '$name' com conclusão desconhecida '$conclusion'."
-                exit 1 ;;
-            esac
+          for attempt in $(seq 1 90); do
+            checks="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/check-runs?per_page=100")"
+            pending=0
+            for name in "${required[@]}"; do
+              conclusion="$(jq -r --arg name "$name" '[.check_runs[] | select(.name == $name)] | sort_by(.started_at) | last | .conclusion // "pending"' <<<"$checks")"
+              if [ "$conclusion" = failure ] || [ "$conclusion" = cancelled ] || [ "$conclusion" = timed_out ] || [ "$conclusion" = action_required ]; then
+                echo "::error::Gate '$name' terminou como '$conclusion'."
+                exit 1
+              fi
+              [ "$conclusion" = success ] || pending=1
+            done
+            [ "$pending" -eq 0 ] && break
+            if [ "$attempt" -eq 90 ]; then
+              echo "::error::Timeout aguardando os gates protegidos."
+              exit 1
+            fi
+            sleep 20
           done
-
-          if [[ "$any_pending" == "true" ]]; then
-            echo "::notice::Nem todos os gates estão verdes ainda — saindo cedo. O próximo disparo de workflow_run prosseguirá."
-            echo "gates_green=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          echo "Todos os 4 gates verdes para $TARGET_SHA."
-          echo "gates_green=true" >> "$GITHUB_OUTPUT"
-
-      # ------------------------------------------------------------------
-      # Passos seguintes só executam quando todos os gates estão verdes.
-      # ------------------------------------------------------------------
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
-        if: steps.preflight.outputs.gates_green == 'true'
-        with:
-          ref: ${{ env.TARGET_SHA }}
-          persist-credentials: false
-
-      # ------------------------------------------------------------------
-      # 2. LEDGER DE MIGRATIONS — aguarda o Supabase aplicar as migrations
-      # ------------------------------------------------------------------
       - name: Wait for the isolated Supabase migration ledger
-        if: steps.preflight.outputs.gates_green == 'true'
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
-          set -euo pipefail
+          test -n "$SUPABASE_ACCESS_TOKEN" || { echo '::error::SUPABASE_ACCESS_TOKEN ausente'; exit 1; }
           find site-supabase/supabase/migrations -maxdepth 1 -type f -name '*.sql' -printf '%f\n' \
-            | LC_ALL=C sed -E 's/^([0-9]{14})_.*/\1/' | LC_ALL=C sort > expected-migration-versions.txt
-
+            | sed -E 's/^([0-9]{14})_.*/\1/' | sort > expected-migration-versions.txt
           query='{"query":"select version from supabase_migrations.schema_migrations order by version"}'
           for attempt in $(seq 1 60); do
             response="$(curl --silent --show-error --fail \
               -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
               -H 'Content-Type: application/json' \
               --data "$query" \
-              "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/database/query" 2>&1)" || {
-              # Distinguir token inválido de falha transiente
-              if echo "$response" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert "message" in d' 2>/dev/null; then
-                echo "::error::Management API negou acesso: $(echo "$response" | python3 -c 'import json,sys;print(json.load(sys.stdin).get("message","?"))' 2>/dev/null)"
-                exit 1
-              fi
-              if [[ $attempt -lt 3 ]]; then sleep 10; continue; fi
-              echo "::error::Falha ao consultar o ledger remoto (tentativa $attempt): $response"
-              exit 1
-            }
-            if ! echo "$response" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert isinstance(d,list)' 2>/dev/null; then
-              echo "::error::Resposta inesperada da API (não é array): $(echo "$response" | head -5)"
-              exit 1
-            fi
-            jq -er '.[].version' <<<"$response" | LC_ALL=C sort > remote-migration-versions.txt
-            LC_ALL=C comm -3 expected-migration-versions.txt remote-migration-versions.txt > migration-ledger-drift.txt
+              "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/database/query")"
+            jq -er '.[].version' <<<"$response" | sort > remote-migration-versions.txt
+            comm -3 expected-migration-versions.txt remote-migration-versions.txt > migration-ledger-drift.txt
             if [ ! -s migration-ledger-drift.txt ]; then
-              echo "Ledger sincronizado na tentativa $attempt."
               break
             fi
             if [ "$attempt" -eq 60 ]; then
-              echo '::error::O ledger remoto não corresponde às migrations após 60 tentativas (15 min).'
-              echo '--- Drift detectado (< em local, > em remoto) ---'
+              echo '::error::O ledger remoto não corresponde exatamente às migrations versionadas.'
               sed 's/^/  /' migration-ledger-drift.txt
               exit 1
             fi
-            # Backoff gradual: 10 s → 15 s → 20 s → 30 s (teto)
-            delay=$(( attempt < 3 ? 10 : attempt < 10 ? 15 : attempt < 20 ? 20 : 30 ))
-            sleep "$delay"
+            sleep 15
           done
-
-      # ------------------------------------------------------------------
-      # 3. BUILD — instala ferramentas e constrói o artefato para produção
-      # ------------------------------------------------------------------
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        if: steps.preflight.outputs.gates_green == 'true'
         with:
           node-version: 24.15.0
           cache: npm
-
       - name: Build the exact tested revision for production
-        if: steps.preflight.outputs.gates_green == 'true'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          set -euo pipefail
+          test -n "$VERCEL_TOKEN" || { echo '::error::VERCEL_TOKEN ausente'; exit 1; }
           npm install --global npm@11.17.0 vercel@59.5.0
-          npm audit signatures
           npm ci
-          vercel pull --yes --environment=production \
-            --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN"
-          vercel build --prod \
-            --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN"
+          # O runner é efêmero: nunca dependa de uma pasta .vercel prévia nem
+          # de detecção implícita de conta. O preflight também produz uma causa
+          # clara caso o token não tenha acesso ao projeto de produção.
+          vercel project inspect "$VERCEL_PROJECT_ID" --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN"
+          vercel pull --yes --environment=production --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN"
+          vercel build --prod --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN"
           node scripts/verify-vercel-artifact.mjs
-
-      - name: Generate SBOM
-        if: steps.preflight.outputs.gates_green == 'true'
-        run: |
-          npm sbom --sbom-format cyclonedx > sbom.json 2>/dev/null \
-            || echo '::warning::npm sbom não disponível nesta versão (opcional).'
-
-      # ------------------------------------------------------------------
-      # 4. DEPLOY → SMOKE → PROMOTE
-      # Ordem correcta: candidato é promovido APENAS se o smoke passar.
-      # ------------------------------------------------------------------
-      - name: Deploy preview candidate (without --prod)
-        if: steps.preflight.outputs.gates_green == 'true'
-        id: deploy
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          set -euo pipefail
-          echo "Fazendo deploy do candidato (sem --prod)…"
-          DEPLOYMENT_URL="$(vercel deploy --prebuilt \
-            --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN")"
-          test -n "$DEPLOYMENT_URL" || { echo '::error::vercel deploy não retornou URL.'; exit 1; }
-          echo "Candidato: $DEPLOYMENT_URL"
-          echo "url=$DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
-          echo "$DEPLOYMENT_URL" > deployment-url.txt
-
-      - name: Smoke-test the candidate deployment
-        if: steps.preflight.outputs.gates_green == 'true'
-        id: smoke
-        run: |
-          set -euo pipefail
-          SMOKE_BASE_URL="${{ steps.deploy.outputs.url }}" \
-            npm run smoke:deployment \
-            > deployment-smoke.log 2>&1 \
-            || { cat deployment-smoke.log; echo '::error::Smoke falhou — NÃO promovendo para produção.'; exit 1; }
-          echo "Smoke OK."
-
-      - name: Promote candidate to production
-        if: |
-          steps.preflight.outputs.gates_green == 'true' &&
-          steps.deploy.outcome == 'success' &&
-          steps.smoke.outcome == 'success'
-        id: promote
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          set -euo pipefail
-          DEPLOYMENT_URL="${{ steps.deploy.outputs.url }}"
-          vercel promote "$DEPLOYMENT_URL" \
-            --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN"
-          echo "Produção promovida para: $DEPLOYMENT_URL"
-          echo "promoted=true" >> "$GITHUB_OUTPUT"
-
-      # ------------------------------------------------------------------
-      # 5. ROLLBACK AUTOMÁTICO se pós-promoção falhar
-      # ------------------------------------------------------------------
-      - name: Auto-rollback on post-promote failure
-        if: |
-          steps.promote.outputs.promoted == 'true' &&
-          failure()
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          echo "::error::Falha pós-promoção detectada — executando rollback automático."
-          vercel rollback --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN" --yes \
-            || echo "::error::Rollback falhou — intervenção manual necessária em https://vercel.com/juca1/promo-brindes-v1"
-
-      # ------------------------------------------------------------------
-      # 6. INTEGRIDADE — confirma que o SHA publicado == TARGET_SHA
-      # ------------------------------------------------------------------
-      - name: Verify build integrity
-        if: steps.promote.outputs.promoted == 'true'
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          set -euo pipefail
-          DEPLOYMENT_URL="${{ steps.deploy.outputs.url }}"
-          inspect_out="$(vercel inspect "$DEPLOYMENT_URL" \
-            --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN" 2>&1 || echo '')"
-          # Extrai githubCommitSha da saída textual
-          deployed_sha="$(echo "$inspect_out" | grep -oE '[0-9a-f]{40}' | head -1 || echo 'unknown')"
-          if [[ "$deployed_sha" != "$TARGET_SHA" && "$deployed_sha" != "unknown" ]]; then
-            echo "::error::Integridade falhou: deployment tem SHA '$deployed_sha', esperado '$TARGET_SHA'."
-            exit 1
-          fi
-          echo "Integridade OK (SHA $deployed_sha)."
-
-      # ------------------------------------------------------------------
-      # 7. JOB SUMMARY
-      # ------------------------------------------------------------------
-      - name: Write job summary
-        if: always() && steps.preflight.outputs.gates_green == 'true'
-        run: |
-          DEPLOYMENT_URL="${{ steps.deploy.outputs.url }}"
-          PROMOTE="${{ steps.promote.outputs.promoted == 'true' && '✅ Sim' || '❌ Não' }}"
-          {
-            echo "## Release — $(date -u '+%Y-%m-%d %H:%M UTC')"
-            echo ""
-            echo "| Campo | Valor |"
-            echo "|---|---|"
-            echo "| SHA alvo | \`${TARGET_SHA}\` |"
-            echo "| URL do candidato | ${DEPLOYMENT_URL:-N/A} |"
-            echo "| Promovido para produção | ${PROMOTE} |"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      # ------------------------------------------------------------------
-      # 8. LIMPEZA — remove segredos Vercel do runner efêmero
-      # ------------------------------------------------------------------
-      - name: Clean up Vercel secrets from runner
-        if: always()
-        run: rm -rf .vercel
-
-      # ------------------------------------------------------------------
-      # 9. ISSUE AUTOMÁTICA em falha de release
-      # ------------------------------------------------------------------
-      - name: Open/update issue on release failure
-        if: failure() && steps.preflight.outputs.gates_green == 'true'
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const sha = process.env.TARGET_SHA || context.sha;
-            const title = `🚨 Release quebrado — ${sha.slice(0,7)}`;
-            const body = [
-              `**SHA:** \`${sha}\``,
-              `**Run:** ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
-              '',
-              'Verifique o passo que falhou, corrija e realize um novo push para `main`.',
-              '',
-              '> Esta issue é gerenciada automaticamente pelo workflow de release.'
-            ].join('\n');
-            const { data: issues } = await github.rest.issues.listForRepo({
-              owner: context.repo.owner, repo: context.repo.repo,
-              labels: 'ci-release-broken', state: 'open', per_page: 1
-            });
-            if (issues.length > 0) {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner, repo: context.repo.repo,
-                issue_number: issues[0].number, body
-              });
-            } else {
-              await github.rest.issues.create({
-                owner: context.repo.owner, repo: context.repo.repo,
-                title, body, labels: ['ci-release-broken']
-              });
-            }
-        env:
-          TARGET_SHA: ${{ env.TARGET_SHA }}
-
-      # ------------------------------------------------------------------
-      # 10. ARTEFATOS DE EVIDÊNCIA
-      # ------------------------------------------------------------------
+          vercel deploy --prebuilt --prod --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN" | tee deployment-url.txt
+      - name: Validate the promoted production deployment
+        run: npm run smoke:deployment | tee deployment-smoke.log
       - name: Upload release evidence
-        if: always() && steps.preflight.outputs.gates_green == 'true'
+        if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: production-release-${{ env.TARGET_SHA }}
+          name: production-release-${{ github.sha }}
           path: |
             deployment-url.txt
             deployment-smoke.log
             expected-migration-versions.txt
             remote-migration-versions.txt
             migration-ledger-drift.txt
-            sbom.json
           if-no-files-found: warn
           retention-days: 90

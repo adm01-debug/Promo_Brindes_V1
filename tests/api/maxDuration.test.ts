@@ -29,7 +29,7 @@ function vercelFunctionsConfig(): Record<string, { maxDuration: number }> {
  * maxDuration padrão da plataforma — inferior ao timeout interno de 20s (na
  * época) de api/notifications.ts. Sem esta trava, um deploy futuro pode
  * reduzir o maxDuration declarado, ou aumentar um timeout interno, sem que
- * ningguém perceba que a relação essencial (interno < plataforma) quebrou —
+ * ninguém perceba que a relação essencial (interno < plataforma) quebrou —
  * exatamente o mecanismo que produz jobs presos em 'processing' (R03) na
  * prática, não só na teoria.
  */
