@@ -28,25 +28,28 @@ jobs:
         id: vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_SCOPE: ${{ vars.VERCEL_SCOPE }}
-          VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: team_QyN41X0q8hrqhW80AwokbFLv
+          VERCEL_PRODUCTION_DOMAIN: promo-brindes-v1.vercel.app
         run: |
+          set -euo pipefail
+          test -n "$VERCEL_TOKEN" || { echo '::error::VERCEL_TOKEN ausente'; exit 1; }
           PROD_META="$(curl -fsSL \
             -H "Authorization: Bearer $VERCEL_TOKEN" \
-            "https://api.vercel.com/v13/deployments?teamId=${VERCEL_SCOPE}&projectId=${VERCEL_PROJECT_ID}&target=production&limit=1" \
-            | jq -r '.deployments[0] | {sha: .meta.githubCommitSha, url: .url, createdAt: .createdAt}')"
-          PROD_SHA="$(echo "$PROD_META" | jq -r '.sha')"
-          PROD_URL="$(echo "$PROD_META" | jq -r '.url')"
+            "https://api.vercel.com/v13/deployments/${VERCEL_PRODUCTION_DOMAIN}?teamId=${VERCEL_ORG_ID}")"
+          PROD_SHA="$(jq -er '.meta.githubCommitSha | select(type == "string" and test("^[0-9a-f]{40}$"))' <<<"$PROD_META")" \
+            || { echo '::error::Deployment ativo sem githubCommitSha válido'; exit 1; }
+          PROD_URL="$(jq -er '.url | select(type == "string" and length > 0)' <<<"$PROD_META")"
           echo "sha=$PROD_SHA" >> "$GITHUB_OUTPUT"
           echo "url=$PROD_URL" >> "$GITHUB_OUTPUT"
 
       - name: Fetch main HEAD SHA
         id: main
         run: |
+          set -euo pipefail
           MAIN_SHA="$(curl -fsSL \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             "https://api.github.com/repos/${{ github.repository }}/git/ref/heads/main" \
-            | jq -r '.object.sha')"
+            | jq -er '.object.sha | select(type == "string" and test("^[0-9a-f]{40}$"))')"
           echo "sha=$MAIN_SHA" >> "$GITHUB_OUTPUT"
 
       - name: Check for drift
@@ -65,11 +68,15 @@ jobs:
       - name: Open or update drift issue
         if: steps.drift.outputs.diverged == 'true'
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          PROD_SHA: ${{ steps.vercel.outputs.sha }}
+          MAIN_SHA: ${{ steps.main.outputs.sha }}
+          PROD_URL: ${{ steps.vercel.outputs.url }}
         with:
           script: |
-            const prod = '${{ steps.vercel.outputs.sha }}';
-            const main = '${{ steps.main.outputs.sha }}';
-            const url  = '${{ steps.vercel.outputs.url }}';
+            const prod = process.env.PROD_SHA;
+            const main = process.env.MAIN_SHA;
+            const url = process.env.PROD_URL;
             const title = '🚨 Production drift detected';
             const body = [
               '## Production divergiu de main',
@@ -86,18 +93,16 @@ jobs:
               `_Detectado em: ${new Date().toISOString()}_`,
             ].join('\n');
 
-            const { data: issues } = await github.rest.issues.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open',
-              labels: 'production-drift',
+            const { data: result } = await github.rest.search.issuesAndPullRequests({
+              q: `repo:${context.repo.owner}/${context.repo.repo} is:issue is:open in:title "Production drift detected"`,
             });
+            const existing = result.items.find((issue) => issue.title === title);
 
-            if (issues.length > 0) {
+            if (existing) {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                issue_number: issues[0].number,
+                issue_number: existing.number,
                 body: `Drift ainda presente em ${new Date().toISOString()}\n\nmain: \`${main}\`\nproduction: \`${prod}\``,
               });
             } else {
@@ -106,7 +111,7 @@ jobs:
                 repo: context.repo.repo,
                 title,
                 body,
-                labels: ['bug', 'production-drift', 'priority:high'],
+                labels: ['bug', 'github_actions'],
               });
             }
 
@@ -121,9 +126,9 @@ jobs:
             echo "| main | \`${{ steps.main.outputs.sha }}\` |"
             echo "| production | \`${{ steps.vercel.outputs.sha }}\` |"
             echo ""
-            if [ "${{ steps.drift.outputs.diverged }}" = "true" ]; then
-              echo "**Status: DRIFT DETECTADO** ⚠️"
-            else
-              echo "**Status: Em sincronia** ✅"
-            fi
+            case "${{ steps.drift.outputs.diverged }}" in
+              true) echo "**Status: DRIFT DETECTADO** ⚠️" ;;
+              false) echo "**Status: Em sincronia** ✅" ;;
+              *) echo "**Status: verificação incompleta** ❌" ;;
+            esac
           } >> "$GITHUB_STEP_SUMMARY"
