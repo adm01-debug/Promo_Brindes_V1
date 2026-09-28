@@ -210,6 +210,45 @@ describe('useOccasionFavorites', () => {
     expect(rpc.save).toHaveBeenCalledTimes(1);
   });
 
+  it('invalida a fila de A já na renderização de B, antes do efeito passivo', async () => {
+    const pendingWrite = deferred<void>();
+    rpc.save.mockReturnValueOnce(pendingWrite.promise);
+    const { result, rerender } = renderHook(({ userId }: { userId: string }) => {
+      const state = useOccasionFavorites({ ...options, userId });
+      useLayoutEffect(() => {
+        if (userId === 'conta-b') pendingWrite.resolve();
+      }, [userId]);
+      return state;
+    }, { initialProps: { userId: 'conta-a' } });
+    await act(async () => {});
+
+    await act(async () => { result.current.saveFavorite(date, true); });
+    await act(async () => { result.current.saveFavorite(date, false); });
+    expect(rpc.save).toHaveBeenCalledTimes(1);
+
+    await act(async () => { rerender({ userId: 'conta-b' }); });
+
+    expect(rpc.save).toHaveBeenCalledTimes(1);
+  });
+
+  it('mantém a remoção mais recente enquanto a adição anterior conclui após uma lista obsoleta', async () => {
+    const staleRead = deferred<string[]>();
+    const add = deferred<void>();
+    const remove = deferred<void>();
+    rpc.list.mockReturnValue(staleRead.promise);
+    rpc.save.mockReturnValueOnce(add.promise).mockReturnValueOnce(remove.promise);
+    const { result } = renderHook(() => useOccasionFavorites(options));
+
+    await act(async () => { result.current.saveFavorite(date, true); });
+    await act(async () => { result.current.saveFavorite(date, false); });
+    await act(async () => { staleRead.resolve([]); });
+    await act(async () => { add.resolve(); });
+
+    expect(rpc.save).toHaveBeenLastCalledWith(date, false);
+    expect(result.current.favorites.has(date)).toBe(false);
+    await act(async () => { remove.resolve(); });
+  });
+
   it('restaura o último estado confirmado quando duas escritas consecutivas são recusadas', async () => {
     const firstWrite = deferred<void>();
     const secondWrite = deferred<void>();

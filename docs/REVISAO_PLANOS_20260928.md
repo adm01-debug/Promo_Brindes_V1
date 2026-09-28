@@ -106,7 +106,9 @@ Os [probes](audits/plan-review-20260928/favorites.probe.tsx) têm expectativas s
 
 Os dois probes F28 foram corrigidos depois da reprodução acima e incorporados à suíte permanente em `src/lib/useOccasionFavorites.test.tsx`. A fila agora verifica titular e época **no instante em que cada operação será despachada**; uma operação que ficou esperando a anterior não atravessa logout ou troca de conta. O hook também separa estado confirmado de intenção otimista: uma falha retira somente a intenção correspondente e a UI é recomposta do último estado confirmado. A intenção confirmada localmente permanece até uma lista/evento remoto confirmar o mesmo valor, protegendo contra snapshot iniciado antes da gravação.
 
-Validação posterior: 13 testes do hook e 2 probes históricos passaram com RPCs simuladas. O aceite continua técnico nesta linha de trabalho até revisão, integração na `main` e ensaio autenticado controlado; a correção não autoriza escrita em dados reais nem substitui homologação operacional.
+Um hardening adicional durante o review fechou duas janelas mais estreitas: a identidade renderizada passou a integrar a guarda de despacho antes do efeito passivo, e uma leitura iniciada antes das interações não pode mais confirmar/remover uma intenção ainda pendente nem substituir sua base de rollback. Cada intenção agora distingue escrita pendente de escrita concluída, preservando a escolha mais recente quando adicionar→remover ocorre durante uma lista obsoleta.
+
+Validação posterior: 16 testes do hook, 4 testes de integração da página e 2 probes históricos passaram com RPCs simuladas. O aceite continua técnico nesta linha de trabalho até revisão, integração na `main` e ensaio autenticado controlado; a correção não autoriza escrita em dados reais nem substitui homologação operacional.
 
 ## 4. Publicação, segurança e observabilidade
 

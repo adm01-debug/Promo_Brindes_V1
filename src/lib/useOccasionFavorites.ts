@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { listMyOccasionFavorites, setMyOccasionFavorite } from './customerOccasionFavorites';
 
 type FavoriteOwner = 'anonymous' | `account:${string}`;
-type FavoriteIntent = { saved: boolean; version: number };
+type FavoriteIntent = { saved: boolean; version: number; writeStatus: 'pending' | 'succeeded' };
 type FavoriteScope = { owner: FavoriteOwner; syncEpoch: number };
 
 const FAVORITES_KEY = 'promo-brindes:occasion-favorites:v1';
@@ -103,6 +103,11 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
   const writeChainsRef = useRef(new Map<string, Promise<void>>());
   const authLoadingRef = useRef(authLoading);
   authLoadingRef.current = authLoading;
+  // A sessão do cliente pode mudar entre o render e o efeito passivo. Esta
+  // identidade acompanha o render atual para que uma fila criada por A nunca
+  // seja despachada usando as credenciais que já pertencem a B.
+  const renderedOwnerRef = useRef<FavoriteOwner>(initialOwner);
+  renderedOwnerRef.current = initialOwner;
   // Intenções pertencem somente à sessão de sincronização do titular atual.
   // Ao trocar a conta, callbacks antigos já são invalidados pelo epoch e a
   // projeção seguinte começa pelo cache/servidor do novo titular.
@@ -118,6 +123,7 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
 
   const isCurrentScope = useCallback((scope: FavoriteScope) => (
     !authLoadingRef.current
+    && renderedOwnerRef.current === scope.owner
     && syncEpochRef.current === scope.syncEpoch
     && favoriteOwnerRef.current === scope.owner
   ), []);
@@ -129,14 +135,30 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
     replaceFavorites(next);
   }, [isCurrentScope, replaceFavorites]);
 
-  const reconcileConfirmedFavorites = useCallback((scope: FavoriteScope, confirmed: Set<string>) => {
+  const reconcileConfirmedFavorites = useCallback((
+    scope: FavoriteScope,
+    confirmed: Set<string>,
+    options: { readStartedBeforeActiveIntents?: boolean } = {},
+  ) => {
     if (!isCurrentScope(scope)) return;
-    confirmedFavoritesRef.current = confirmed;
+    const nextConfirmed = new Set(confirmed);
     for (const [occasionId, intent] of intentsRef.current) {
-      // Uma lista/storage que já contém a intenção fornece confirmação e libera
-      // somente essa sobreposição local; intenções divergentes continuam vivas.
-      if (confirmed.has(occasionId) === intent.saved) intentsRef.current.delete(occasionId);
+      if (options.readStartedBeforeActiveIntents) {
+        // A carga inicial começou antes das interações que agora estão ativas.
+        // Ela não pode substituir a base de rollback nem confirmar uma dessas
+        // intenções, ainda que o valor coincida por acaso.
+        confirmedFavoritesRef.current.has(occasionId)
+          ? nextConfirmed.add(occasionId)
+          : nextConfirmed.delete(occasionId);
+        continue;
+      }
+      // Somente uma escrita já concluída pode ser liberada por uma observação
+      // posterior com o mesmo valor. Uma intenção ainda na fila permanece viva.
+      if (intent.writeStatus === 'succeeded' && confirmed.has(occasionId) === intent.saved) {
+        intentsRef.current.delete(occasionId);
+      }
     }
+    confirmedFavoritesRef.current = nextConfirmed;
     publishConfirmedAndIntents(scope);
   }, [isCurrentScope, publishConfirmedAndIntents]);
 
@@ -208,13 +230,13 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
           }
         } catch {
           if (active && syncEpochRef.current === syncEpoch && favoriteOwnerRef.current === owner) {
-            reconcileConfirmedFavorites(scope, remoteFavorites);
+            reconcileConfirmedFavorites(scope, remoteFavorites, { readStartedBeforeActiveIntents: true });
             setStorageMessage('Não foi possível sincronizar todas as suas datas agora. Tente novamente mais tarde.');
           }
           return;
         }
         if (active && syncEpochRef.current === syncEpoch && favoriteOwnerRef.current === owner) {
-          reconcileConfirmedFavorites(scope, merged);
+          reconcileConfirmedFavorites(scope, merged, { readStartedBeforeActiveIntents: true });
         }
       })
       .catch(() => {
@@ -245,7 +267,7 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
   const saveFavorite = useCallback((occasionId: string, nextSaved: boolean, onRollback?: () => void) => {
     setStorageMessage('');
     const owner = ownerFor(userId);
-    if (authLoading || favoriteOwnerRef.current !== owner) {
+    if (authLoading || renderedOwnerRef.current !== owner || favoriteOwnerRef.current !== owner) {
       setStorageMessage('Estamos atualizando suas datas salvas. Tente novamente em instantes.');
       return false;
     }
@@ -264,13 +286,17 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
     const mutationKey = `${owner}:${occasionId}`;
     const mutationEpoch = (mutationEpochRef.current.get(mutationKey) || 0) + 1;
     mutationEpochRef.current.set(mutationKey, mutationEpoch);
-    intentsRef.current.set(occasionId, { saved: nextSaved, version: mutationEpoch });
+    intentsRef.current.set(occasionId, { saved: nextSaved, version: mutationEpoch, writeStatus: 'pending' });
     publishConfirmedAndIntents(scope);
     void enqueueRemoteWrite(scope, occasionId, nextSaved)
       .then(() => {
         if (!isCurrentScope(scope)) return;
         confirmedFavoritesRef.current = new Set(confirmedFavoritesRef.current);
         nextSaved ? confirmedFavoritesRef.current.add(occasionId) : confirmedFavoritesRef.current.delete(occasionId);
+        const currentIntent = intentsRef.current.get(occasionId);
+        if (currentIntent?.version === mutationEpoch) {
+          intentsRef.current.set(occasionId, { ...currentIntent, writeStatus: 'succeeded' });
+        }
         // A confirmação da escrita não prova que uma lista já em voo reflete a
         // mutação. Mantemos a intenção até uma leitura/storage com o mesmo
         // valor confirmá-la, evitando que esse snapshot antigo reverta a UI.
