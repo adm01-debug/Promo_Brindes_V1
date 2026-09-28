@@ -39,4 +39,8 @@ A etapa 48 passa a ter índice e fontes validadas automaticamente. Etapas de ope
 
 ## Verificação
 
+### Revisão atual — 28/09/2026
+
+O [parecer de 28/09](REVISAO_PLANOS_20260928.md) confronta o ledger com código, novos probes e estado remoto. Inclui [230 referências de produto](REVISAO_PRODUTO_230_20260928.md), [50 etapas e correspondência com 23/09](REVISAO_50_ETAPAS_20260928.md) e [100 etapas de workflows](REVISAO_WORKFLOWS_100_20260928.md). São anexos de auditoria, não um novo ledger canônico. As contagens históricas acima não são certificação atual: categorias fotográficas/favoritos por conta já existem, mas foram reproduzidos dois novos defeitos de concorrência nos favoritos. Nenhum estado foi promovido silenciosamente a concluído.
+
 `npm run ledger:check` exige os IDs exatos dos quatro planos, campos essenciais, SHA auditado e existência das fontes dentro do repositório do site; testa o próprio validador. Continua sendo uma verificação estrutural, sem certificar que cada critério foi homologado ou publicado.
