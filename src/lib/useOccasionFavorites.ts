@@ -60,7 +60,7 @@ function loadFavorites(owner: FavoriteOwner) {
 }
 
 function saveFavorites(owner: FavoriteOwner, favorites: Set<string>) {
-  const serialized = JSON.stringify([...favorites].sort());
+  const serialized = JSON.stringify([...favorites].sort((left, right) => left.localeCompare(right)));
   const cacheKey = cacheKeyFor(owner);
   if (window.localStorage.getItem(cacheKey) !== serialized) {
     window.localStorage.setItem(cacheKey, serialized);
