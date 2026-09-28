@@ -19,8 +19,24 @@ permissions:
   contents: read
 
 jobs:
+  authorize-main:
+    name: Authorize production release from main
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Reject manual releases from branches or tags
+        env:
+          RELEASE_REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          if [ "$RELEASE_REF" != 'refs/heads/main' ]; then
+            echo "::error::Produção só pode ser liberada a partir de refs/heads/main; recebido: $RELEASE_REF"
+            exit 1
+          fi
+
   verify-db:
     name: Verify DB migration and gates
+    needs: authorize-main
     runs-on: ubuntu-24.04
     # Gates podem esperar 30 min e o ledger 15 min; reserva margem de rede
     # explícita em vez de encerrar o job antes do seu próprio limite lógico.

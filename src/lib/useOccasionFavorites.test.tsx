@@ -1,5 +1,5 @@
 import { act, cleanup, renderHook } from '@testing-library/react';
-import { useLayoutEffect } from 'react';
+import { Suspense, useLayoutEffect, type ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useOccasionFavorites } from './useOccasionFavorites';
 
@@ -229,6 +229,51 @@ describe('useOccasionFavorites', () => {
     await act(async () => { rerender({ userId: 'conta-b' }); });
 
     expect(rpc.save).toHaveBeenCalledTimes(1);
+  });
+
+  it('não invalida a fila da conta ativa quando um render concorrente de outra conta é abandonado', async () => {
+    const pendingWrite = deferred<void>();
+    const suspendedForever = new Promise<never>(() => undefined);
+    rpc.save.mockReturnValueOnce(pendingWrite.promise).mockResolvedValueOnce(undefined);
+    const wrapper = ({ children }: { children: ReactNode }) => <Suspense fallback={null}>{children}</Suspense>;
+    const { result, rerender } = renderHook(({ userId, suspend }: { userId: string; suspend: boolean }) => {
+      const state = useOccasionFavorites({ ...options, userId });
+      if (suspend) throw suspendedForever;
+      return state;
+    }, {
+      initialProps: { userId: 'conta-a', suspend: false },
+      wrapper,
+    });
+    await act(async () => {});
+
+    await act(async () => { result.current.saveFavorite(date, true); });
+    await act(async () => { result.current.saveFavorite(date, false); });
+    expect(rpc.save).toHaveBeenCalledTimes(1);
+
+    await act(async () => { rerender({ userId: 'conta-b', suspend: true }); });
+    await act(async () => { pendingWrite.resolve(); });
+
+    expect(rpc.save).toHaveBeenCalledTimes(2);
+    expect(rpc.save).toHaveBeenLastCalledWith(date, false);
+  });
+
+  it('mantém a fila da mesma conta quando apenas a chave do catálogo muda', async () => {
+    const pendingWrite = deferred<void>();
+    rpc.save.mockReturnValueOnce(pendingWrite.promise).mockResolvedValueOnce(undefined);
+    const { result, rerender } = renderHook(({ knownOccasionIdsKey }: { knownOccasionIdsKey: string }) => (
+      useOccasionFavorites({ ...options, knownOccasionIdsKey })
+    ), { initialProps: { knownOccasionIdsKey: date } });
+    await act(async () => {});
+
+    await act(async () => { result.current.saveFavorite(date, true); });
+    await act(async () => { result.current.saveFavorite(date, false); });
+    expect(rpc.save).toHaveBeenCalledTimes(1);
+
+    await act(async () => { rerender({ knownOccasionIdsKey: `${date},black-friday` }); });
+    await act(async () => { pendingWrite.resolve(); });
+
+    expect(rpc.save).toHaveBeenCalledTimes(2);
+    expect(rpc.save).toHaveBeenLastCalledWith(date, false);
   });
 
   it('mantém a remoção mais recente enquanto a adição anterior conclui após uma lista obsoleta', async () => {

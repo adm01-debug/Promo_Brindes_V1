@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { listMyOccasionFavorites, setMyOccasionFavorite } from './customerOccasionFavorites';
 
 type FavoriteOwner = 'anonymous' | `account:${string}`;
 type FavoriteIntent = { saved: boolean; version: number; writeStatus: 'pending' | 'succeeded' };
-type FavoriteScope = { owner: FavoriteOwner; syncEpoch: number };
+type FavoriteScope = { owner: FavoriteOwner; sessionEpoch: number };
 
 const FAVORITES_KEY = 'promo-brindes:occasion-favorites:v1';
 const FAVORITES_PROMOTION_KEY = 'promo-brindes:occasion-favorites:account-promoted:';
@@ -98,20 +98,28 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
   // O cache é útil para renderização imediata, mas a fonte de rollback das
   // mutações autenticadas é sempre o último estado confirmado pela RPC/lista.
   const confirmedFavoritesRef = useRef(new Set(favorites));
-  const syncEpochRef = useRef(0);
+  const sessionEpochRef = useRef(0);
+  const appliedSessionEpochRef = useRef(0);
+  const readEpochRef = useRef(0);
   const mutationEpochRef = useRef(new Map<string, number>());
   const writeChainsRef = useRef(new Map<string, Promise<void>>());
-  const authLoadingRef = useRef(authLoading);
-  authLoadingRef.current = authLoading;
-  // A sessão do cliente pode mudar entre o render e o efeito passivo. Esta
-  // identidade acompanha o render atual para que uma fila criada por A nunca
-  // seja despachada usando as credenciais que já pertencem a B.
-  const renderedOwnerRef = useRef<FavoriteOwner>(initialOwner);
-  renderedOwnerRef.current = initialOwner;
+  const committedAuthLoadingRef = useRef(authLoading);
+  const committedOwnerRef = useRef<FavoriteOwner>(initialOwner);
   // Intenções pertencem somente à sessão de sincronização do titular atual.
   // Ao trocar a conta, callbacks antigos já são invalidados pelo epoch e a
   // projeção seguinte começa pelo cache/servidor do novo titular.
   const intentsRef = useRef(new Map<string, FavoriteIntent>());
+
+  // Atualiza a identidade somente quando o render foi efetivamente commitado.
+  // Layout effect fecha a janela anterior ao efeito passivo sem deixar que um
+  // render concorrente abandonado vaze identidade para a árvore ainda ativa.
+  useLayoutEffect(() => {
+    if (committedOwnerRef.current !== initialOwner || committedAuthLoadingRef.current !== authLoading) {
+      sessionEpochRef.current += 1;
+    }
+    committedOwnerRef.current = initialOwner;
+    committedAuthLoadingRef.current = authLoading;
+  }, [authLoading, initialOwner]);
 
   const replaceFavorites = useCallback((update: Set<string> | ((current: Set<string>) => Set<string>)) => {
     setFavorites((current) => {
@@ -122,9 +130,10 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
   }, []);
 
   const isCurrentScope = useCallback((scope: FavoriteScope) => (
-    !authLoadingRef.current
-    && renderedOwnerRef.current === scope.owner
-    && syncEpochRef.current === scope.syncEpoch
+    !committedAuthLoadingRef.current
+    && committedOwnerRef.current === scope.owner
+    && sessionEpochRef.current === scope.sessionEpoch
+    && appliedSessionEpochRef.current === scope.sessionEpoch
     && favoriteOwnerRef.current === scope.owner
   ), []);
 
@@ -189,32 +198,37 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
   }, [favorites, initialOwner]);
 
   useEffect(() => {
-    const syncEpoch = ++syncEpochRef.current;
+    const readEpoch = ++readEpochRef.current;
     if (authLoading) return;
 
     const owner = ownerFor(userId);
+    const sessionEpoch = sessionEpochRef.current;
     const knownIds = new Set(knownOccasionIdsKey.split(',').filter(Boolean));
     // A origem anônima precisa ser lida antes da troca de titular para não ser
     // reatribuída pelo efeito de persistência e descartada em seguida.
     const anonymousFavorites = userId
       ? new Set([...loadFavorites('anonymous')].filter((id) => knownIds.has(id)))
       : new Set<string>();
+    const sessionChanged = favoriteOwnerRef.current !== owner || appliedSessionEpochRef.current !== sessionEpoch;
     favoriteOwnerRef.current = owner;
-    mutationEpochRef.current.clear();
-    writeChainsRef.current.clear();
-    intentsRef.current.clear();
-    const cachedFavorites = new Set([...loadFavorites(owner)].filter((id) => knownIds.has(id)));
-    confirmedFavoritesRef.current = new Set(cachedFavorites);
-    favoritesRef.current = cachedFavorites;
-    setFavorites(cachedFavorites);
+    appliedSessionEpochRef.current = sessionEpoch;
+    if (sessionChanged) {
+      mutationEpochRef.current.clear();
+      writeChainsRef.current.clear();
+      intentsRef.current.clear();
+      const cachedFavorites = new Set([...loadFavorites(owner)].filter((id) => knownIds.has(id)));
+      confirmedFavoritesRef.current = new Set(cachedFavorites);
+      favoritesRef.current = cachedFavorites;
+      setFavorites(cachedFavorites);
+    }
 
     if (!userId) return;
 
     let active = true;
     void listMyOccasionFavorites()
       .then(async (remote) => {
-        if (!active || syncEpochRef.current !== syncEpoch || favoriteOwnerRef.current !== owner) return;
-        const scope = { owner, syncEpoch };
+        const scope = { owner, sessionEpoch };
+        if (!active || readEpochRef.current !== readEpoch || !isCurrentScope(scope)) return;
         const remoteFavorites = new Set(remote.filter((id) => knownIds.has(id)));
         let merged = remoteFavorites;
         try {
@@ -224,28 +238,29 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
             // sempre vence a promoção do cache anônimo.
             const localOnly = [...anonymousFavorites].filter((id) => !remoteFavorites.has(id) && !intentsRef.current.has(id));
             if (localOnly.length) await Promise.all(localOnly.map((id) => enqueueRemoteWrite(scope, id, true)));
-            if (!active || syncEpochRef.current !== syncEpoch || favoriteOwnerRef.current !== owner) return;
+            if (!active || readEpochRef.current !== readEpoch || !isCurrentScope(scope)) return;
             merged = new Set([...remoteFavorites, ...localOnly]);
             window.localStorage.setItem(promotionKey(userId), '1');
           }
         } catch {
-          if (active && syncEpochRef.current === syncEpoch && favoriteOwnerRef.current === owner) {
+          if (active && readEpochRef.current === readEpoch && isCurrentScope(scope)) {
             reconcileConfirmedFavorites(scope, remoteFavorites, { readStartedBeforeActiveIntents: true });
             setStorageMessage('Não foi possível sincronizar todas as suas datas agora. Tente novamente mais tarde.');
           }
           return;
         }
-        if (active && syncEpochRef.current === syncEpoch && favoriteOwnerRef.current === owner) {
+        if (active && readEpochRef.current === readEpoch && isCurrentScope(scope)) {
           reconcileConfirmedFavorites(scope, merged, { readStartedBeforeActiveIntents: true });
         }
       })
       .catch(() => {
-        if (active && syncEpochRef.current === syncEpoch && favoriteOwnerRef.current === owner) {
+        const scope = { owner, sessionEpoch };
+        if (active && readEpochRef.current === readEpoch && isCurrentScope(scope)) {
           setStorageMessage('Não foi possível carregar suas datas salvas agora. Tente novamente mais tarde.');
         }
       });
     return () => { active = false; };
-  }, [authLoading, enqueueRemoteWrite, knownOccasionIdsKey, reconcileConfirmedFavorites, userId]);
+  }, [authLoading, enqueueRemoteWrite, isCurrentScope, knownOccasionIdsKey, reconcileConfirmedFavorites, userId]);
 
   // `storage` é emitido somente nas outras abas do mesmo navegador. A ação
   // local ainda prevalece enquanto houver uma intenção pendente; assim, uma
@@ -258,7 +273,7 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
     const onStorage = (event: StorageEvent) => {
       if (event.key !== key || (event.storageArea && event.storageArea !== window.localStorage) || favoriteOwnerRef.current !== owner) return;
       const externalFavorites = new Set([...parseFavorites(event.newValue)].filter((id) => knownIds.has(id)));
-      reconcileConfirmedFavorites({ owner, syncEpoch: syncEpochRef.current }, externalFavorites);
+      reconcileConfirmedFavorites({ owner, sessionEpoch: sessionEpochRef.current }, externalFavorites);
     };
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
@@ -267,12 +282,17 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
   const saveFavorite = useCallback((occasionId: string, nextSaved: boolean, onRollback?: () => void) => {
     setStorageMessage('');
     const owner = ownerFor(userId);
-    if (authLoading || renderedOwnerRef.current !== owner || favoriteOwnerRef.current !== owner) {
+    if (
+      authLoading
+      || committedOwnerRef.current !== owner
+      || favoriteOwnerRef.current !== owner
+      || appliedSessionEpochRef.current !== sessionEpochRef.current
+    ) {
       setStorageMessage('Estamos atualizando suas datas salvas. Tente novamente em instantes.');
       return false;
     }
 
-    const scope = { owner, syncEpoch: syncEpochRef.current };
+    const scope = { owner, sessionEpoch: sessionEpochRef.current };
 
     if (!userId) {
       replaceFavorites((current) => {
