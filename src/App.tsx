@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef } from 'react';
+import { StrictMode, type ReactNode, lazy, Suspense, useEffect, useRef } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
@@ -86,42 +86,52 @@ function RouteFallback() {
   return <div className="route-fallback" role="status" aria-label="Carregando página"><span /><span /><span /></div>;
 }
 
+// Reseta o error boundary a cada troca de rota: se um lazy chunk falhar ao
+// carregar, navegar para outra rota mostra a nova página em vez de manter
+// a tela de erro global.
+function RouteBoundary({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation();
+  return <AppErrorBoundary key={pathname}>{children}</AppErrorBoundary>;
+}
+
 export default function App() {
   return (
-    <BrowserRouter>
-      <QuoteCartProvider>
-        <CustomerAuthProvider>
-          <Analytics beforeSend={redactAnalyticsUrl} debug={false} />
-          <SpeedInsights beforeSend={redactTelemetryUrl} />
-          <ScrollManager />
-          <AppErrorBoundary>
-            <Layout>
-              <Suspense fallback={<RouteFallback />}>
-                <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/catalogo" element={<CatalogPage />} />
-                <Route path="/catalogos" element={<CatalogsPage />} />
-                <Route path="/montar-kit" element={<KitBuilderPage />} />
-                <Route path="/datas-comemorativas" element={<CommemorativeDatesPage />} />
-                <Route path="/produto/:identifier" element={<ProductPage />} />
-                <Route path="/orcamento" element={<QuotePage />} />
-                <Route path="/selecoes/compartilhada" element={<SharedSelectionPage />} />
-                <Route path="/ideias/:topic" element={<IdeaLandingPage />} />
-                <Route path="/sobre" element={<AboutPage />} />
-                <Route path="/contato" element={<ContactPage />} />
-                <Route path="/privacidade" element={<PrivacyPage />} />
-                <Route path="/entrar" element={<CustomerLoginPage />} />
-                <Route path="/auth/confirm" element={<AuthConfirmPage />} />
-                <Route path="/definir-senha" element={<SetPasswordPage />} />
-                <Route path="/minha-conta" element={<CustomerAccountPage />} />
-                <Route path="/minha-conta/orcamentos/:id" element={<CustomerQuotePage />} />
-                <Route path="*" element={<NotFoundPage />} />
-                </Routes>
-              </Suspense>
-            </Layout>
-          </AppErrorBoundary>
-        </CustomerAuthProvider>
-      </QuoteCartProvider>
-    </BrowserRouter>
+    <StrictMode>
+      <BrowserRouter>
+        <QuoteCartProvider>
+          <CustomerAuthProvider>
+            <Analytics beforeSend={redactAnalyticsUrl} debug={false} />
+            <SpeedInsights beforeSend={redactTelemetryUrl} />
+            <ScrollManager />
+            <RouteBoundary>
+              <Layout>
+                <Suspense fallback={<RouteFallback />}>
+                  <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/catalogo" element={<CatalogPage />} />
+                  <Route path="/catalogos" element={<CatalogsPage />} />
+                  <Route path="/montar-kit" element={<KitBuilderPage />} />
+                  <Route path="/datas-comemorativas" element={<CommemorativeDatesPage />} />
+                  <Route path="/produto/:identifier" element={<ProductPage />} />
+                  <Route path="/orcamento" element={<QuotePage />} />
+                  <Route path="/selecoes/compartilhada" element={<SharedSelectionPage />} />
+                  <Route path="/ideias/:topic" element={<IdeaLandingPage />} />
+                  <Route path="/sobre" element={<AboutPage />} />
+                  <Route path="/contato" element={<ContactPage />} />
+                  <Route path="/privacidade" element={<PrivacyPage />} />
+                  <Route path="/entrar" element={<CustomerLoginPage />} />
+                  <Route path="/auth/confirm" element={<AuthConfirmPage />} />
+                  <Route path="/definir-senha" element={<SetPasswordPage />} />
+                  <Route path="/minha-conta" element={<CustomerAccountPage />} />
+                  <Route path="/minha-conta/orcamentos/:id" element={<CustomerQuotePage />} />
+                  <Route path="*" element={<NotFoundPage />} />
+                  </Routes>
+                </Suspense>
+              </Layout>
+            </RouteBoundary>
+          </CustomerAuthProvider>
+        </QuoteCartProvider>
+      </BrowserRouter>
+    </StrictMode>
   );
 }
