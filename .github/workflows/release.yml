@@ -3,10 +3,15 @@ name: Release isolated database then Vercel
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: production-release
   cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
 
 permissions:
   actions: read
@@ -16,8 +21,10 @@ permissions:
 jobs:
   verify-db:
     name: Verify DB migration and gates
-    runs-on: ubuntu-latest
-    timeout-minutes: 35
+    runs-on: ubuntu-24.04
+    # Gates podem esperar 30 min e o ledger 15 min; reserva margem de rede
+    # explícita em vez de encerrar o job antes do seu próprio limite lógico.
+    timeout-minutes: 55
     env:
       SUPABASE_PROJECT_REF: xlzmclcjdncjfdrjxclt
     steps:
@@ -96,24 +103,26 @@ jobs:
   deploy-vercel:
     name: Build and deploy to Vercel production
     needs: verify-db
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
       VERCEL_ORG_ID: team_QyN41X0q8hrqhW80AwokbFLv
       VERCEL_PROJECT_ID: prj_LVKX7uhs1VhTjDDznD7KinvjgHXU
       VERCEL_SCOPE: juca1
-      SMOKE_BASE_URL: https://promo-brindes-v1.vercel.app
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24.15.0
           cache: npm
-      - name: Build the exact tested revision for production
+      - name: Build and create an unpromoted production candidate
+        id: candidate
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          set -eo pipefail
+          set -euo pipefail
           test -n "$VERCEL_TOKEN" || { echo '::error::VERCEL_TOKEN ausente'; exit 1; }
           npm install --global npm@11.17.0 vercel@59.5.0
           npm ci
@@ -121,18 +130,76 @@ jobs:
           vercel pull --yes --environment=production --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN"
           vercel build --prod --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN"
           node scripts/verify-vercel-artifact.mjs
-          vercel deploy --prebuilt --prod --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN" | tee deployment-url.txt
-      - name: Validate the promoted production deployment
+          # --prod carrega o contexto Production; --skip-domain garante que o
+          # alias público não muda até o smoke do candidato passar.
+          vercel deploy --prebuilt --prod --skip-domain --json \
+            --meta "githubCommitSha=$GITHUB_SHA" \
+            --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN" \
+            > candidate-deployment.json
+          CANDIDATE_ID="$(jq -er '.id // .uid' candidate-deployment.json)"
+          CANDIDATE_HOST="$(jq -er '.url | select(type == "string" and length > 0)' candidate-deployment.json)"
+          CANDIDATE_META="$(curl --silent --show-error --fail \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v13/deployments/$CANDIDATE_ID?teamId=$VERCEL_ORG_ID")"
+          jq -e --arg sha "$GITHUB_SHA" '
+            .readyState == "READY" and .meta.githubCommitSha == $sha
+          ' <<<"$CANDIDATE_META" > /dev/null \
+            || { echo '::error::Candidato Vercel não está READY ou não corresponde ao SHA testado.'; exit 1; }
+          printf '%s\n' "$CANDIDATE_META" > candidate-vercel-response.json
+          printf 'id=%s\nurl=https://%s\n' "$CANDIDATE_ID" "$CANDIDATE_HOST" >> "$GITHUB_OUTPUT"
+      - name: Smoke the unpromoted production candidate
+        env:
+          SMOKE_BASE_URL: ${{ steps.candidate.outputs.url }}
         run: |
-          set -eo pipefail
-          npm run smoke:deployment | tee deployment-smoke.log
+          set -euo pipefail
+          npm run smoke:deployment > deployment-smoke.log 2>&1
+          cat deployment-smoke.log
+      - name: Promote only the candidate that passed smoke
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          CANDIDATE_ID: ${{ steps.candidate.outputs.id }}
+        run: |
+          set -euo pipefail
+          vercel promote "$CANDIDATE_ID" --yes --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN" > promotion.log
+          cat promotion.log
+      - name: Verify the production alias after promotion
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PRODUCTION_DOMAIN: promo-brindes-v1.vercel.app
+        run: |
+          set -euo pipefail
+          ACTIVE_META="$(curl --silent --show-error --fail \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v13/deployments/$VERCEL_PRODUCTION_DOMAIN?teamId=$VERCEL_ORG_ID")"
+          jq -e --arg sha "$GITHUB_SHA" '
+            .readyState == "READY" and .meta.githubCommitSha == $sha
+          ' <<<"$ACTIVE_META" > /dev/null \
+            || { echo '::error::O alias de produção não aponta para o SHA promovido.'; exit 1; }
+          printf '%s\n' "$ACTIVE_META" > promoted-deployment.json
+      - name: Write release summary
+        if: always()
+        run: |
+          {
+            echo "## Release — $(date -u '+%Y-%m-%dT%H:%MZ')"
+            echo ""
+            echo "SHA: \`$GITHUB_SHA\`"
+            echo "Candidato: ${{ steps.candidate.outputs.url || 'não criado' }}"
+            echo ""
+            echo "O alias público só é promovido depois do smoke do candidato."
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Remove Vercel production environment files from the runner
+        if: always()
+        run: rm -rf .vercel
       - name: Upload deployment evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: production-release-${{ github.sha }}
           path: |
-            deployment-url.txt
+            candidate-deployment.json
+            candidate-vercel-response.json
             deployment-smoke.log
+            promotion.log
+            promoted-deployment.json
           if-no-files-found: warn
           retention-days: 90

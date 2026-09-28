@@ -102,6 +102,12 @@ npx vitest run --config docs/audits/plan-review-20260928/vitest.config.ts
 
 Os [probes](audits/plan-review-20260928/favorites.probe.tsx) têm expectativas seguras e permanecem vermelhos no código atual. São artefatos de diagnóstico separados da suíte normal; não ajustei expectativas para ocultar bugs. Após correção, devem virar regressões permanentes. F24-01/02/03 continuam corrigidos; os novos achados não invalidam aquelas entregas específicas, mas impedem fechar T24-06/10/15, UX79/88/99 e AC10/30 integralmente.
 
+### Remediação posterior à auditoria
+
+Os dois probes F28 foram corrigidos depois da reprodução acima e incorporados à suíte permanente em `src/lib/useOccasionFavorites.test.tsx`. A fila agora verifica titular e época **no instante em que cada operação será despachada**; uma operação que ficou esperando a anterior não atravessa logout ou troca de conta. O hook também separa estado confirmado de intenção otimista: uma falha retira somente a intenção correspondente e a UI é recomposta do último estado confirmado. A intenção confirmada localmente permanece até uma lista/evento remoto confirmar o mesmo valor, protegendo contra snapshot iniciado antes da gravação.
+
+Validação posterior: 13 testes do hook e 2 probes históricos passaram com RPCs simuladas. O aceite continua técnico nesta linha de trabalho até revisão, integração na `main` e ensaio autenticado controlado; a correção não autoriza escrita em dados reais nem substitui homologação operacional.
+
 ## 4. Publicação, segurança e observabilidade
 
 ### P1 — produção é promovida antes do smoke
@@ -125,6 +131,12 @@ API Vercel retorna `features.webAnalytics=false`, `nodeVersion=22.x`. O script d
 ### P2 — detector corrigido apenas no branch
 
 Main ainda contém detector que falhou no [run36391431073](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/36391431073). PR67 corrige consulta pelo alias ativo/team ID, SHA inválido e summary incompleto. Como não foi integrado, **estar no GitHub em um branch não significa estar ativo em produção**. O texto do alerta ainda recomenda release manual, mas release não tem `workflow_dispatch` (WF08): requisito permanece.
+
+### Remediação posterior: candidato antes da promoção
+
+Nesta linha de trabalho, `release.yml` passou a construir com contexto Production, criar deployment com `--skip-domain`, gravar `id`/URL/metadados, validar o SHA do candidato via API Vercel e executar smoke usando a URL imutável. Somente depois do smoke o workflow chama `vercel promote`; então consulta o alias público e exige que ele aponte para o SHA do run. Também adiciona disparo manual, shell bash, runner fixo, margem coerente para o timeout e limpeza de `.vercel` no runner.
+
+O smoke ainda falhará corretamente enquanto Web Analytics estiver desativado. Portanto, essa mudança torna o fluxo seguro, mas não torna a publicação apta até a configuração externa ser resolvida. Ela também aguarda revisão/merge para atingir `main`.
 
 ### P2 — relatórios de CI podem induzir interpretação errada
 

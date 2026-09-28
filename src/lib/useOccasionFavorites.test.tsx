@@ -191,4 +191,53 @@ describe('useOccasionFavorites', () => {
     await act(async () => { secondWrite.resolve(); });
     expect(result.current.favorites.has(date)).toBe(true);
   });
+
+  it('não despacha uma ação de A que ficou na fila após a sessão mudar para B', async () => {
+    const pendingWrite = deferred<void>();
+    rpc.save.mockReturnValueOnce(pendingWrite.promise);
+    const { result, rerender } = renderHook(({ userId }: { userId: string }) => useOccasionFavorites({ ...options, userId }), {
+      initialProps: { userId: 'conta-a' },
+    });
+    await act(async () => {});
+
+    await act(async () => { result.current.saveFavorite(date, true); });
+    await act(async () => { result.current.saveFavorite(date, false); });
+    expect(rpc.save).toHaveBeenCalledTimes(1);
+
+    await act(async () => { rerender({ userId: 'conta-b' }); });
+    await act(async () => { pendingWrite.resolve(); });
+
+    expect(rpc.save).toHaveBeenCalledTimes(1);
+  });
+
+  it('restaura o último estado confirmado quando duas escritas consecutivas são recusadas', async () => {
+    const firstWrite = deferred<void>();
+    const secondWrite = deferred<void>();
+    rpc.save.mockReturnValueOnce(firstWrite.promise).mockReturnValueOnce(secondWrite.promise);
+    const { result } = renderHook(() => useOccasionFavorites(options));
+    await act(async () => {});
+    expect(result.current.favorites.has(date)).toBe(false);
+
+    await act(async () => { result.current.saveFavorite(date, true); });
+    await act(async () => { result.current.saveFavorite(date, false); });
+    await act(async () => { firstWrite.reject(new Error('primeira gravação recusada')); });
+    await act(async () => { secondWrite.reject(new Error('segunda gravação recusada')); });
+
+    expect(result.current.favorites.has(date)).toBe(false);
+  });
+
+  it('restaura uma confirmação anterior quando a intenção posterior é recusada', async () => {
+    const add = deferred<void>();
+    const remove = deferred<void>();
+    rpc.save.mockReturnValueOnce(add.promise).mockReturnValueOnce(remove.promise);
+    const { result } = renderHook(() => useOccasionFavorites(options));
+    await act(async () => {});
+
+    await act(async () => { result.current.saveFavorite(date, true); });
+    await act(async () => { result.current.saveFavorite(date, false); });
+    await act(async () => { add.resolve(); });
+    await act(async () => { remove.reject(new Error('remoção recusada')); });
+
+    expect(result.current.favorites.has(date)).toBe(true);
+  });
 });

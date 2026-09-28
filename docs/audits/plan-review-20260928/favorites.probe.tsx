@@ -1,4 +1,5 @@
-// Probes de auditoria: expectativa segura; não integram a suíte normal.
+// Probes históricos da auditoria F28. As mesmas regressões agora vivem na
+// suíte permanente; este arquivo preserva a reprodução isolada e segura.
 // RPCs simuladas, identidades sintéticas, nenhuma chamada ao Supabase.
 import { act, cleanup, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
