@@ -26,12 +26,18 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -eo pipefail
           required=('validate' 'cross-browser' 'Migrations and pgTAP' 'Build structural Graphify map')
           for attempt in $(seq 1 90); do
             checks="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/check-runs?per_page=100")"
+            total="$(jq -r '.total_count' <<<"$checks")"
+            count="$(jq -r '.check_runs | length' <<<"$checks")"
+            if [ "$total" -gt "$count" ]; then
+              echo "::warning::A API retornou $count de $total check-runs — algum gate pode estar fora da página."
+            fi
             pending=0
             for name in "${required[@]}"; do
-              conclusion="$(jq -r --arg name "$name" '[.check_runs[] | select(.name == $name)] | sort_by(.started_at) | last | .conclusion // "pending"' <<<"$checks")"
+              conclusion="$(jq -r --arg name "$name" '[.check_runs[] | select(.name == $name and .started_at != null)] | sort_by(.started_at) | last | .conclusion // "pending"' <<<"$checks")"
               if [ "$conclusion" = failure ] || [ "$conclusion" = cancelled ] || [ "$conclusion" = timed_out ] || [ "$conclusion" = action_required ]; then
                 echo "::error::Gate '$name' terminou como '$conclusion'."
                 exit 1
@@ -49,8 +55,10 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
+          set -eo pipefail
           test -n "$SUPABASE_ACCESS_TOKEN" || { echo '::error::SUPABASE_ACCESS_TOKEN ausente'; exit 1; }
           find site-supabase/supabase/migrations -maxdepth 1 -type f -name '*.sql' -printf '%f\n' \
+            | grep -E '^[0-9]{14}_' \
             | sed -E 's/^([0-9]{14})_.*/\1/' | sort > expected-migration-versions.txt
           query='{"query":"select version from supabase_migrations.schema_migrations order by version"}'
           for attempt in $(seq 1 60); do
@@ -58,8 +66,10 @@ jobs:
               -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
               -H 'Content-Type: application/json' \
               --data "$query" \
-              "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/database/query")"
-            jq -er '.[].version' <<<"$response" | sort > remote-migration-versions.txt
+              "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/database/query")" \
+              || { echo "::error::Falha ao consultar a API do Supabase (tentativa $attempt — verifique SUPABASE_ACCESS_TOKEN e SUPABASE_PROJECT_REF)."; exit 1; }
+            jq -er 'if type == "array" then .[].version else error("Resposta inesperada da API: " + (. | tostring)) end' \
+              <<<"$response" | sort > remote-migration-versions.txt
             comm -3 expected-migration-versions.txt remote-migration-versions.txt > migration-ledger-drift.txt
             if [ ! -s migration-ledger-drift.txt ]; then
               break
@@ -103,6 +113,7 @@ jobs:
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
+          set -eo pipefail
           test -n "$VERCEL_TOKEN" || { echo '::error::VERCEL_TOKEN ausente'; exit 1; }
           npm install --global npm@11.17.0 vercel@59.5.0
           npm ci
@@ -112,7 +123,9 @@ jobs:
           node scripts/verify-vercel-artifact.mjs
           vercel deploy --prebuilt --prod --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN" | tee deployment-url.txt
       - name: Validate the promoted production deployment
-        run: npm run smoke:deployment | tee deployment-smoke.log
+        run: |
+          set -eo pipefail
+          npm run smoke:deployment | tee deployment-smoke.log
       - name: Upload deployment evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
