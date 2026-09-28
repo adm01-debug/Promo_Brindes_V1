@@ -1,4 +1,5 @@
 import { siteSupabase } from './siteSupabase';
+import { runSiteRpc } from './siteRpc';
 
 const OCCASION_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+){0,15}$/;
 
@@ -28,17 +29,17 @@ function parseItems(value: unknown): string[] {
 
 /** Lista somente IDs editoriais; título e descrição continuam no catálogo estático do site. */
 export async function listMyOccasionFavorites(): Promise<string[]> {
-  const { data, error } = await client().rpc('list_my_occasion_favorites');
+  const { data, error } = await runSiteRpc(client().rpc('list_my_occasion_favorites'));
   if (error) throw new Error('occasion_favorites_unavailable');
   return parseItems(data);
 }
 
 /** Alteração idempotente e exclusiva da sessão autenticada atual. */
 export async function setMyOccasionFavorite(occasionId: string, saved: boolean): Promise<void> {
-  const { data, error } = await client().rpc('set_my_occasion_favorite', {
+  const { data, error } = await runSiteRpc(client().rpc('set_my_occasion_favorite', {
     p_occasion_id: normalizeOccasionId(occasionId),
     p_saved: saved,
-  });
+  }));
   if (error?.message?.includes('occasion_favorite_limit_reached')) throw new Error('occasion_favorite_limit_reached');
   if (error || !data || typeof data !== 'object' || (data as { saved?: unknown }).saved !== saved) {
     throw new Error('occasion_favorites_unavailable');

@@ -133,6 +133,21 @@ jobs:
         with:
           node-version: 24.15.0
           cache: npm
+      - name: Capture the currently active deployment for rollback
+        id: previous
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PRODUCTION_DOMAIN: promo-brindes-v1.vercel.app
+        run: |
+          set -euo pipefail
+          test -n "$VERCEL_TOKEN" || { echo '::error::VERCEL_TOKEN ausente'; exit 1; }
+          PREVIOUS_META="$(curl --silent --show-error --fail \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v13/deployments/$VERCEL_PRODUCTION_DOMAIN?teamId=$VERCEL_ORG_ID")"
+          PREVIOUS_ID="$(jq -er '.id // .uid | select(type == "string" and length > 0)' <<<"$PREVIOUS_META")"
+          jq '{id:(.id // .uid),url,readyState,target,createdAt,meta:{githubCommitSha:.meta.githubCommitSha}}' \
+            <<<"$PREVIOUS_META" > previous-deployment.json
+          printf 'id=%s\n' "$PREVIOUS_ID" >> "$GITHUB_OUTPUT"
       - name: Build and create an unpromoted production candidate
         id: candidate
         env:
@@ -161,7 +176,8 @@ jobs:
             .readyState == "READY" and .meta.githubCommitSha == $sha
           ' <<<"$CANDIDATE_META" > /dev/null \
             || { echo '::error::Candidato Vercel não está READY ou não corresponde ao SHA testado.'; exit 1; }
-          printf '%s\n' "$CANDIDATE_META" > candidate-vercel-response.json
+          jq '{id:(.id // .uid),url,readyState,target,createdAt,meta:{githubCommitSha:.meta.githubCommitSha}}' \
+            <<<"$CANDIDATE_META" > candidate-vercel-response.json
           printf 'id=%s\nurl=https://%s\n' "$CANDIDATE_ID" "$CANDIDATE_HOST" >> "$GITHUB_OUTPUT"
       - name: Smoke the unpromoted production candidate
         env:
@@ -171,11 +187,15 @@ jobs:
           npm run smoke:deployment > deployment-smoke.log 2>&1
           cat deployment-smoke.log
       - name: Promote only the candidate that passed smoke
+        id: promote
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           CANDIDATE_ID: ${{ steps.candidate.outputs.id }}
         run: |
           set -euo pipefail
+          # Registra a tentativa antes do comando: se a Vercel alterar o alias
+          # e o próprio comando terminar com erro, o rollback ainda é obrigatório.
+          echo 'attempted=true' >> "$GITHUB_OUTPUT"
           vercel promote "$CANDIDATE_ID" --yes --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN" > promotion.log
           cat promotion.log
       - name: Verify the production alias after promotion
@@ -191,7 +211,33 @@ jobs:
             .readyState == "READY" and .meta.githubCommitSha == $sha
           ' <<<"$ACTIVE_META" > /dev/null \
             || { echo '::error::O alias de produção não aponta para o SHA promovido.'; exit 1; }
-          printf '%s\n' "$ACTIVE_META" > promoted-deployment.json
+          jq '{id:(.id // .uid),url,readyState,target,createdAt,meta:{githubCommitSha:.meta.githubCommitSha}}' \
+            <<<"$ACTIVE_META" > promoted-deployment.json
+      - name: Smoke the public production domain after promotion
+        env:
+          SMOKE_BASE_URL: https://promo-brindes-v1.vercel.app
+        run: |
+          set -euo pipefail
+          npm run smoke:deployment > production-smoke.log 2>&1
+          cat production-smoke.log
+      - name: Roll back when post-promotion validation fails
+        if: failure() && steps.promote.outputs.attempted == 'true'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          PREVIOUS_DEPLOYMENT_ID: ${{ steps.previous.outputs.id }}
+        run: |
+          set -euo pipefail
+          test -n "$PREVIOUS_DEPLOYMENT_ID" || { echo '::error::Deployment anterior indisponível para rollback'; exit 1; }
+          vercel promote "$PREVIOUS_DEPLOYMENT_ID" --yes --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN" > rollback.log
+          cat rollback.log
+          ROLLED_BACK_META="$(curl --silent --show-error --fail \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v13/deployments/promo-brindes-v1.vercel.app?teamId=$VERCEL_ORG_ID")"
+          jq -e --arg id "$PREVIOUS_DEPLOYMENT_ID" '(.id // .uid) == $id and .readyState == "READY"' \
+            <<<"$ROLLED_BACK_META" > /dev/null \
+            || { echo '::error::O alias público não confirmou o rollback.'; exit 1; }
+          jq '{id:(.id // .uid),url,readyState,target,createdAt,meta:{githubCommitSha:.meta.githubCommitSha}}' \
+            <<<"$ROLLED_BACK_META" > rolled-back-deployment.json
       - name: Write release summary
         if: always()
         run: |
@@ -201,7 +247,8 @@ jobs:
             echo "SHA: \`$GITHUB_SHA\`"
             echo "Candidato: ${{ steps.candidate.outputs.url || 'não criado' }}"
             echo ""
-            echo "O alias público só é promovido depois do smoke do candidato."
+            echo "O alias público só é promovido depois do smoke do candidato e recebe novo smoke após a promoção."
+            echo "Em falha pós-promoção, o workflow promove novamente o deployment anterior."
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Remove Vercel production environment files from the runner
         if: always()
@@ -214,8 +261,12 @@ jobs:
           path: |
             candidate-deployment.json
             candidate-vercel-response.json
+            previous-deployment.json
             deployment-smoke.log
             promotion.log
             promoted-deployment.json
+            production-smoke.log
+            rollback.log
+            rolled-back-deployment.json
           if-no-files-found: warn
           retention-days: 90

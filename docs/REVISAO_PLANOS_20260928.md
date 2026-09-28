@@ -108,7 +108,9 @@ Os dois probes F28 foram corrigidos depois da reprodução acima e incorporados 
 
 Um hardening adicional durante o review fechou janelas mais estreitas: a identidade commitada passou a integrar a guarda de despacho em `useLayoutEffect`, sem vazar de renders concorrentes abandonados; época de sessão e época de leitura do catálogo foram separadas, para uma reordenação de datas não cancelar escritas legítimas; e uma leitura iniciada antes das interações não pode mais confirmar/remover uma intenção ainda pendente nem substituir sua base de rollback. Cada leitura registra as versões e o estado das intenções existentes quando começa: protege apenas mutações posteriores ou ainda pendentes, mas permite que uma releitura posterior confirme e libere uma intenção já concluída. Cada intenção distingue escrita pendente de escrita concluída, preservando a escolha mais recente quando adicionar→remover ocorre durante uma lista obsoleta.
 
-Validação posterior: 19 testes do hook, 4 testes de integração da página e 2 probes históricos passaram com RPCs simuladas. O aceite continua técnico nesta linha de trabalho até revisão, integração na `main` e ensaio autenticado controlado; a correção não autoriza escrita em dados reais nem substitui homologação operacional.
+Uma auditoria adversarial posterior acrescentou watermarks por data para que uma lista antiga não substitua confirmação de escrita ou evento de outra aba mais recente; eventos `storage` agora encerram intents concluídas, não são regravados como eco e convergem em vez de mascarar a outra aba; as cadeias físicas de RPC permanecem serializadas em A→B→A; e IDs fora do catálogo nunca integram a projeção pública. As RPCs browser do portal também receberam deadline real de 12 segundos com `AbortSignal` encaminhado ao PostgREST.
+
+Validação posterior: 24 testes do hook, 4 testes de integração da página, 3 contratos do deadline e 2 probes históricos passaram com RPCs simuladas. O aceite continua técnico nesta linha de trabalho até revisão, integração na `main` e ensaio autenticado controlado; a correção não autoriza escrita em dados reais nem substitui homologação operacional.
 
 ## 4. Publicação, segurança e observabilidade
 
@@ -138,6 +140,8 @@ Main ainda contém detector que falhou no [run36391431073](https://github.com/ad
 
 Nesta linha de trabalho, `release.yml` passou a construir com contexto Production, criar deployment com `--skip-domain`, gravar `id`/URL/metadados, validar o SHA do candidato via API Vercel e executar smoke usando a URL imutável. Somente depois do smoke o workflow chama `vercel promote`; então consulta o alias público e exige que ele aponte para o SHA do run. Também adiciona disparo manual restrito explicitamente a `refs/heads/main`, shell bash, runner fixo, margem coerente para o timeout e limpeza de `.vercel` no runner.
 
+O hardening final adicionou um segundo smoke no domínio público e rollback automático para o deployment anterior se qualquer validação pós-promoção falhar. Evidências Vercel agora são reduzidas a ID, URL, estado, alvo, criação e SHA, sem inventariar nomes de variáveis. O detector abre alerta quando nem sequer consegue comparar, fecha alertas recuperados e falha fechado. O gate de performance deixou de ser opcional e recompila com as mesmas integrações e feature flags usadas na configuração equivalente à produção antes de medir.
+
 Em 28/09/2026, Web Analytics foi habilitado pela API no projeto Vercel isolado e confirmado por `features.webAnalytics=true`. A nova rota só passa a existir após o próximo deployment; por isso o smoke do candidato continua sendo a prova final antes da promoção. A mudança ainda aguarda revisão/merge para atingir `main`.
 
 ### P2 — relatórios de CI podem induzir interpretação errada
@@ -157,7 +161,7 @@ O alias técnico `novos-drops` em `shared/catalogEditorial.ts` preserva URLs ant
 
 ### Funções com código, mas aceite incompleto
 
-- Favoritos: novos F28 precisam correção; não basta sincronização existir.
+- Favoritos: F28 e as corridas adicionais do review foram corrigidos e incorporados à suíte; o aceite operacional com duas sessões reais permanece separado.
 - E-mail/WhatsApp: outbox, consentimento, adapters e callbacks existem; variáveis/ativação e recebimento real continuam adiados por decisão do usuário. “Serviços prontos” declarado anteriormente não é ensaio de entrega.
 - Conta/propostas: falta ciclo real controlado de confirmação/recuperação/refresh/publicação de PDF/ajuste recebido pelo comercial.
 - Anexos: PDF atualmente recusado; PNG/JPEG/WebP têm checagens de assinatura e isolamento, não certificação de sanitização integral.
@@ -180,6 +184,8 @@ O dry-run atual resolveu novamente a dúvida de migrations pendentes. **Não é 
 
 A migration `20260927103000_harden_occasion_favorites_rpc_acl.sql` agora revoga permissões amplas nas duas RPCs de favoritos e concede somente a `authenticated`; a versão está entre as migrations alinhadas. Não repetir o achado antigo de ACL como se não houvesse remediação. Entretanto, aplicação registrada não substitui novo retrato integral dos privilégios atuais/default privileges; esse aceite permanece parcial.
 
+A migration `20260928174000_reject_null_occasion_favorite_state.sql` endurece o contrato binário da escrita: `p_saved = NULL` recebe `22023/invalid_favorite_state` em vez de ser interpretado como remoção. O reset local reaplicou todas as migrations, 554 asserções pgTAP passaram e o lint do schema ficou sem achados; a promoção remota depende do gate e do ledger desta entrega.
+
 Ressalvas que atualizam o [anexo técnico de150 linhas](REVISAO_PLANOS_20260923_ANEXO_TECNICO.md):
 
 | Referências históricas | Posição atual que prevalece |
@@ -200,7 +206,7 @@ As demais linhas históricas mantêm seus próprios limites; não receberam rece
 
 ## 7. Ordem de fechamento recomendada
 
-1. Corrigir F28-01/02 e incorporar probes à suíte; testar troca de identidade e falhas combinadas antes de qualquer aceite de favoritos.
+1. Manter as regressões F28 e as corridas adicionais como gates permanentes; homologar separadamente duas sessões reais sem dados de clientes.
 2. Resolver governança do PR67 sem bypass silencioso; integrar correção do detector e validar execução real.
 3. Corrigir estratégia de release: preflight cedo, candidato de produção, SHA, smoke antes de alias e resposta a falha; alinhar runtime e resolver Analytics por decisão explícita.
 4. Ativar/revisar camadas de segurança do GitHub, menor privilégio de Actions/Environments e métricas/alertas com resultados reais por etapa.
@@ -209,5 +215,19 @@ As demais linhas históricas mantêm seus próprios limites; não receberam rece
 7. Localizar acervo aprovado e homologar curadoria/dados comerciais; definir destino/responsável do atendimento antes de integrar.
 8. Quando forem retomados os itens adiados, ensaiar mensagens, Auth, propostas, restore e operação com destinatários/dados controlados.
 9. Fechar pesquisa, acessibilidade assistiva, dispositivos, métricas de campo e Graphify avançado por critérios próprios.
+
+## 8. Validação pós-remediação desta linha de trabalho
+
+Depois das correções descritas acima, a linha de trabalho foi novamente validada de forma serial para impedir que dois `vite build` concorrentes disputassem o mesmo diretório `dist`:
+
+- `npm run check`: lint, TypeScript, 415 testes em 60 arquivos, contratos auxiliares, build, orçamento de performance e 94 cenários Chromium aprovados; 4 skips condicionais esperados;
+- `npm run test:coverage`: 415 testes aprovados e thresholds configurados satisfeitos;
+- Firefox + WebKit: 86 cenários aplicáveis aprovados e 12 skips condicionais esperados;
+- probes F28 históricos: 2/2 aprovados;
+- Supabase local isolado: 554 asserções pgTAP em 27 arquivos, lint sem achados e catálogo de erros completo;
+- dry-run remoto: exatamente a migration `20260928174000_reject_null_occasion_favorite_state.sql` pendente, sem seeds ou roles;
+- `actionlint`, `git diff --check` e `npm audit --audit-level=high`: aprovados, com zero vulnerabilidades altas.
+
+O rollback de release também registra a tentativa **antes** de chamar `vercel promote`. Assim, se o alias for alterado e o próprio comando ou qualquer validação posterior falhar, o workflow ainda restaura o deployment anteriormente capturado. Esta evidência valida o código e o banco local; integração na `main`, aplicação remota, novo deployment e smoke público continuam sendo etapas observáveis do release, não fatos antecipados pelo relatório.
 
 **Critério final:** requisito + fonte + teste + SHA + ativação + evidência operacional/humana quando aplicável. Ausência de falhas na suíte não substitui essas dimensões. Esta auditoria entrega o diagnóstico e a rastreabilidade; não declara implementadas as correções que apenas recomenda.

@@ -9,6 +9,7 @@ import {
   type CustomerQuotePage,
   type CustomerQuoteStatus,
 } from './customerQuoteContract';
+import { runSiteRpc } from './siteRpc';
 
 export type { CustomerProposal, CustomerQuoteDetail, CustomerQuotePage, CustomerQuoteStatus } from './customerQuoteContract';
 
@@ -53,7 +54,7 @@ function rpcError(error: { message?: string } | null): never {
 }
 
 export async function claimMyQuoteRequests(): Promise<number> {
-  const { data, error } = await requireClient().rpc('claim_my_quote_requests');
+  const { data, error } = await runSiteRpc(requireClient().rpc('claim_my_quote_requests'));
   if (error) rpcError(error);
   if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('customer_area_unavailable');
   const claimed = (data as Record<string, unknown>).claimed;
@@ -67,12 +68,12 @@ export async function fetchMyQuoteRequests(options: {
   status?: CustomerQuoteStatus | '';
   search?: string;
 } = {}): Promise<CustomerQuotePage> {
-  const { data, error } = await requireClient().rpc('get_my_quote_requests', {
+  const { data, error } = await runSiteRpc(requireClient().rpc('get_my_quote_requests', {
     p_limit: options.limit ?? 20,
     p_offset: options.offset ?? 0,
     p_status: options.status || undefined,
     p_search: options.search?.trim().slice(0, 80) || undefined,
-  });
+  }));
   if (error) rpcError(error);
   try {
     return parseCustomerQuotePage(data);
@@ -83,7 +84,7 @@ export async function fetchMyQuoteRequests(options: {
 
 export async function fetchMyQuoteRequest(id: string): Promise<CustomerQuoteDetail | null> {
   if (!isCustomerQuoteId(id)) return null;
-  const { data, error } = await requireClient().rpc('get_my_quote_request', { p_request_id: id });
+  const { data, error } = await runSiteRpc(requireClient().rpc('get_my_quote_request', { p_request_id: id }));
   if (error) rpcError(error);
   try {
     return parseCustomerQuoteDetail(data);
@@ -96,11 +97,11 @@ export async function requestMyQuoteAdjustment(requestId: string, message: strin
   if (!isCustomerQuoteId(requestId)) throw new Error('quote_not_found');
   const normalizedMessage = message.trim().slice(0, 800);
   if (normalizedMessage.length < 2) throw new Error('adjustment_message_required');
-  const { data, error } = await requireClient().rpc('request_my_quote_adjustment', {
+  const { data, error } = await runSiteRpc(requireClient().rpc('request_my_quote_adjustment', {
     p_request_id: requestId,
     p_message: normalizedMessage,
     p_client_request_id: clientRequestId,
-  });
+  }));
   if (error) rpcError(error);
   try {
     return parseCustomerQuoteAdjustmentResult(data);

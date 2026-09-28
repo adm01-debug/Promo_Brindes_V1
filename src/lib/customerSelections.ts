@@ -5,6 +5,7 @@ import { fetchProductsByIds } from './catalog';
 import { normalizePublicLabel, normalizeQuoteItemsForTransmission } from './quoteItems';
 import { hydrateSharedSelectionDetails, type SharedSelectionItem } from './sharedSelection';
 import { siteSupabase } from './siteSupabase';
+import { runSiteRpc } from './siteRpc';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -100,7 +101,7 @@ function handleRpcError(error: { message?: string } | null): never {
 }
 
 export async function listMySelections(includeArchived = true): Promise<SavedSelection[]> {
-  const { data, error } = await client().rpc('list_my_selections', { p_include_archived: includeArchived });
+  const { data, error } = await runSiteRpc(client().rpc('list_my_selections', { p_include_archived: includeArchived }));
   if (error) handleRpcError(error);
   const result = record(data);
   if (!result || !Array.isArray(result.items)) throw new Error('saved_selection_unavailable');
@@ -115,13 +116,13 @@ export async function saveMySelection(
 ): Promise<void> {
   const references = referencesFromCart(items);
   if (!references.length || title.trim().length < 1 || title.trim().length > 100) throw new Error('invalid_saved_selection');
-  const { data, error } = await client().rpc('save_my_selection', {
+  const { data, error } = await runSiteRpc(client().rpc('save_my_selection', {
     p_title: title.trim(),
     p_references: references as unknown as Json,
     p_campaign: campaign ? campaign as unknown as Json : undefined,
     p_id: current?.id,
     p_expected_version: current?.version,
-  });
+  }));
   if (error) handleRpcError(error);
   const result = record(data);
   if (!result || typeof result.id !== 'string' || !UUID_PATTERN.test(result.id) || !Number.isInteger(result.version)) {
@@ -130,19 +131,19 @@ export async function saveMySelection(
 }
 
 export async function setMySelectionArchived(selection: SavedSelection, archived: boolean): Promise<void> {
-  const { error } = await client().rpc('set_my_selection_archived', {
+  const { error } = await runSiteRpc(client().rpc('set_my_selection_archived', {
     p_id: selection.id,
     p_expected_version: selection.version,
     p_archived: archived,
-  });
+  }));
   if (error) handleRpcError(error);
 }
 
 export async function deleteMySelection(selection: SavedSelection): Promise<void> {
-  const { error } = await client().rpc('delete_my_selection', {
+  const { error } = await runSiteRpc(client().rpc('delete_my_selection', {
     p_id: selection.id,
     p_expected_version: selection.version,
-  });
+  }));
   if (error) handleRpcError(error);
 }
 

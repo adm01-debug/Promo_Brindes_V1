@@ -60,10 +60,15 @@ function loadFavorites(owner: FavoriteOwner) {
 }
 
 function saveFavorites(owner: FavoriteOwner, favorites: Set<string>) {
-  window.localStorage.setItem(cacheKeyFor(owner), JSON.stringify([...favorites]));
+  const serialized = JSON.stringify([...favorites].sort());
+  const cacheKey = cacheKeyFor(owner);
+  if (window.localStorage.getItem(cacheKey) !== serialized) {
+    window.localStorage.setItem(cacheKey, serialized);
+  }
   if (owner === 'anonymous') {
-    window.localStorage.setItem(FAVORITES_KEY, JSON.stringify([...favorites]));
-    window.localStorage.setItem(FAVORITES_OWNER_KEY, 'anonymous');
+    if (window.localStorage.getItem(FAVORITES_OWNER_KEY) !== 'anonymous') {
+      window.localStorage.setItem(FAVORITES_OWNER_KEY, 'anonymous');
+    }
   }
 }
 
@@ -102,8 +107,11 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
   const sessionEpochRef = useRef(0);
   const appliedSessionEpochRef = useRef(0);
   const readEpochRef = useRef(0);
+  const confirmedRevisionRef = useRef(0);
+  const confirmedRevisionByOccasionRef = useRef(new Map<string, number>());
   const mutationEpochRef = useRef(new Map<string, number>());
   const writeChainsRef = useRef(new Map<string, Promise<void>>());
+  const skipNextPersistenceRef = useRef(false);
   const committedAuthLoadingRef = useRef(authLoading);
   const committedOwnerRef = useRef<FavoriteOwner>(initialOwner);
   // Intenções pertencem somente à sessão de sincronização do titular atual.
@@ -148,11 +156,28 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
   const reconcileConfirmedFavorites = useCallback((
     scope: FavoriteScope,
     confirmed: Set<string>,
-    options: { intentsAtReadStart?: FavoriteIntentSnapshot } = {},
+    options: {
+      intentsAtReadStart?: FavoriteIntentSnapshot;
+      confirmedRevisionAtReadStart?: number;
+      readKnownIds?: Set<string>;
+      supersedeSucceededIntents?: boolean;
+    } = {},
   ) => {
     if (!isCurrentScope(scope)) return;
     const nextConfirmed = new Set(confirmed);
+    if (options.confirmedRevisionAtReadStart !== undefined) {
+      for (const [occasionId, revision] of confirmedRevisionByOccasionRef.current) {
+        if (revision <= options.confirmedRevisionAtReadStart || !options.readKnownIds?.has(occasionId)) continue;
+        confirmedFavoritesRef.current.has(occasionId)
+          ? nextConfirmed.add(occasionId)
+          : nextConfirmed.delete(occasionId);
+      }
+    }
     for (const [occasionId, intent] of intentsRef.current) {
+      if (options.supersedeSucceededIntents && intent.writeStatus === 'succeeded') {
+        intentsRef.current.delete(occasionId);
+        continue;
+      }
       const intentAtReadStart = options.intentsAtReadStart?.get(occasionId);
       if (
         options.intentsAtReadStart
@@ -200,6 +225,10 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
 
   useEffect(() => {
     try {
+      if (skipNextPersistenceRef.current) {
+        skipNextPersistenceRef.current = false;
+        return;
+      }
       if (favoriteOwnerRef.current === initialOwner) saveFavorites(initialOwner, favorites);
     } catch {
       setStorageMessage('Seu navegador não permitiu salvar esta seleção neste dispositivo.');
@@ -223,8 +252,8 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
     appliedSessionEpochRef.current = sessionEpoch;
     if (sessionChanged) {
       mutationEpochRef.current.clear();
-      writeChainsRef.current.clear();
       intentsRef.current.clear();
+      confirmedRevisionByOccasionRef.current.clear();
       const cachedFavorites = new Set([...loadFavorites(owner)].filter((id) => knownIds.has(id)));
       confirmedFavoritesRef.current = new Set(cachedFavorites);
       favoritesRef.current = cachedFavorites;
@@ -240,6 +269,7 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
     const intentsAtReadStart = new Map(
       [...intentsRef.current].map(([occasionId, intent]) => [occasionId, { ...intent }]),
     );
+    const confirmedRevisionAtReadStart = confirmedRevisionRef.current;
     let active = true;
     void listMyOccasionFavorites()
       .then(async (remote) => {
@@ -260,13 +290,21 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
           }
         } catch {
           if (active && readEpochRef.current === readEpoch && isCurrentScope(scope)) {
-            reconcileConfirmedFavorites(scope, remoteFavorites, { intentsAtReadStart });
+            reconcileConfirmedFavorites(scope, remoteFavorites, {
+              intentsAtReadStart,
+              confirmedRevisionAtReadStart,
+              readKnownIds: knownIds,
+            });
             setStorageMessage('Não foi possível sincronizar todas as suas datas agora. Tente novamente mais tarde.');
           }
           return;
         }
         if (active && readEpochRef.current === readEpoch && isCurrentScope(scope)) {
-          reconcileConfirmedFavorites(scope, merged, { intentsAtReadStart });
+          reconcileConfirmedFavorites(scope, merged, {
+            intentsAtReadStart,
+            confirmedRevisionAtReadStart,
+            readKnownIds: knownIds,
+          });
         }
       })
       .catch(() => {
@@ -288,12 +326,23 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
     const knownIds = new Set(knownOccasionIdsKey.split(',').filter(Boolean));
     const onStorage = (event: StorageEvent) => {
       if (event.key !== key || (event.storageArea && event.storageArea !== window.localStorage) || favoriteOwnerRef.current !== owner) return;
+      const scope = { owner, sessionEpoch: sessionEpochRef.current };
+      if (!isCurrentScope(scope)) return;
       const externalFavorites = new Set([...parseFavorites(event.newValue)].filter((id) => knownIds.has(id)));
-      reconcileConfirmedFavorites({ owner, sessionEpoch: sessionEpochRef.current }, externalFavorites);
+      const observationRevision = ++confirmedRevisionRef.current;
+      for (const occasionId of knownIds) {
+        confirmedRevisionByOccasionRef.current.set(occasionId, observationRevision);
+      }
+      skipNextPersistenceRef.current = true;
+      reconcileConfirmedFavorites(
+        scope,
+        externalFavorites,
+        { supersedeSucceededIntents: true },
+      );
     };
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
-  }, [authLoading, knownOccasionIdsKey, reconcileConfirmedFavorites, userId]);
+  }, [authLoading, isCurrentScope, knownOccasionIdsKey, reconcileConfirmedFavorites, userId]);
 
   const saveFavorite = useCallback((occasionId: string, nextSaved: boolean, onRollback?: () => void) => {
     setStorageMessage('');
@@ -329,6 +378,8 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
         if (!isCurrentScope(scope)) return;
         confirmedFavoritesRef.current = new Set(confirmedFavoritesRef.current);
         nextSaved ? confirmedFavoritesRef.current.add(occasionId) : confirmedFavoritesRef.current.delete(occasionId);
+        const confirmationRevision = ++confirmedRevisionRef.current;
+        confirmedRevisionByOccasionRef.current.set(occasionId, confirmationRevision);
         const currentIntent = intentsRef.current.get(occasionId);
         if (currentIntent?.version === mutationEpoch) {
           intentsRef.current.set(occasionId, { ...currentIntent, writeStatus: 'succeeded' });
@@ -355,7 +406,10 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
 
   // `useEffect` só atualiza o cache depois da renderização. A projeção abaixo
   // impede um commit com o titular B e favoritos pertencentes a A nesse intervalo.
-  const visibleFavorites = !authLoading && favoriteOwnerRef.current === initialOwner ? favorites : EMPTY_FAVORITES;
+  const renderKnownIds = new Set(knownOccasionIdsKey.split(',').filter(Boolean));
+  const visibleFavorites = !authLoading && favoriteOwnerRef.current === initialOwner
+    ? new Set([...favorites].filter((id) => renderKnownIds.has(id)))
+    : EMPTY_FAVORITES;
 
   return { favorites: visibleFavorites, saveFavorite, storageMessage };
 }
