@@ -4,6 +4,7 @@ import { listMyOccasionFavorites, setMyOccasionFavorite } from './customerOccasi
 type FavoriteOwner = 'anonymous' | `account:${string}`;
 type FavoriteIntent = { saved: boolean; version: number; writeStatus: 'pending' | 'succeeded' };
 type FavoriteScope = { owner: FavoriteOwner; sessionEpoch: number };
+type FavoriteIntentSnapshot = Map<string, FavoriteIntent>;
 
 const FAVORITES_KEY = 'promo-brindes:occasion-favorites:v1';
 const FAVORITES_PROMOTION_KEY = 'promo-brindes:occasion-favorites:account-promoted:';
@@ -147,15 +148,23 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
   const reconcileConfirmedFavorites = useCallback((
     scope: FavoriteScope,
     confirmed: Set<string>,
-    options: { readStartedBeforeActiveIntents?: boolean } = {},
+    options: { intentsAtReadStart?: FavoriteIntentSnapshot } = {},
   ) => {
     if (!isCurrentScope(scope)) return;
     const nextConfirmed = new Set(confirmed);
     for (const [occasionId, intent] of intentsRef.current) {
-      if (options.readStartedBeforeActiveIntents) {
-        // A carga inicial começou antes das interações que agora estão ativas.
-        // Ela não pode substituir a base de rollback nem confirmar uma dessas
-        // intenções, ainda que o valor coincida por acaso.
+      const intentAtReadStart = options.intentsAtReadStart?.get(occasionId);
+      if (
+        options.intentsAtReadStart
+        && (
+          intentAtReadStart?.version !== intent.version
+          || intentAtReadStart.writeStatus !== 'succeeded'
+        )
+      ) {
+        // A leitura começou antes da intenção atual ou enquanto sua escrita
+        // ainda não estava confirmada. Esse snapshot não pode substituir a
+        // base de rollback nem confirmar a intenção, mesmo se coincidir por
+        // acaso. Intenções já concluídas antes da leitura podem ser liberadas.
         confirmedFavoritesRef.current.has(occasionId)
           ? nextConfirmed.add(occasionId)
           : nextConfirmed.delete(occasionId);
@@ -224,6 +233,13 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
 
     if (!userId) return;
 
+    // Cada leitura leva a fotografia das intenções que já existiam quando ela
+    // começou. Assim, uma carga antiga protege ações mais novas, enquanto uma
+    // releitura iniciada depois de uma escrita concluída pode confirmá-la e
+    // liberar a sobreposição otimista.
+    const intentsAtReadStart = new Map(
+      [...intentsRef.current].map(([occasionId, intent]) => [occasionId, { ...intent }]),
+    );
     let active = true;
     void listMyOccasionFavorites()
       .then(async (remote) => {
@@ -244,13 +260,13 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
           }
         } catch {
           if (active && readEpochRef.current === readEpoch && isCurrentScope(scope)) {
-            reconcileConfirmedFavorites(scope, remoteFavorites, { readStartedBeforeActiveIntents: true });
+            reconcileConfirmedFavorites(scope, remoteFavorites, { intentsAtReadStart });
             setStorageMessage('Não foi possível sincronizar todas as suas datas agora. Tente novamente mais tarde.');
           }
           return;
         }
         if (active && readEpochRef.current === readEpoch && isCurrentScope(scope)) {
-          reconcileConfirmedFavorites(scope, merged, { readStartedBeforeActiveIntents: true });
+          reconcileConfirmedFavorites(scope, merged, { intentsAtReadStart });
         }
       })
       .catch(() => {

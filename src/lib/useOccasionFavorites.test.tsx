@@ -276,6 +276,29 @@ describe('useOccasionFavorites', () => {
     expect(rpc.save).toHaveBeenLastCalledWith(date, false);
   });
 
+  it('libera uma intenção concluída quando uma releitura posterior confirma o valor salvo', async () => {
+    const refresh = deferred<string[]>();
+    rpc.list.mockResolvedValueOnce([]).mockReturnValueOnce(refresh.promise);
+    const { result, rerender } = renderHook(({ knownOccasionIdsKey }: { knownOccasionIdsKey: string }) => (
+      useOccasionFavorites({ ...options, knownOccasionIdsKey })
+    ), { initialProps: { knownOccasionIdsKey: date } });
+    await act(async () => {});
+
+    await act(async () => { result.current.saveFavorite(date, true); });
+    await act(async () => { rerender({ knownOccasionIdsKey: `${date},black-friday` }); });
+    await act(async () => { refresh.resolve([date]); });
+
+    await act(async () => {
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: accountKey('conta-a'),
+        newValue: JSON.stringify([]),
+        storageArea: localStorage,
+      }));
+    });
+
+    expect(result.current.favorites.has(date)).toBe(false);
+  });
+
   it('mantém a remoção mais recente enquanto a adição anterior conclui após uma lista obsoleta', async () => {
     const staleRead = deferred<string[]>();
     const add = deferred<void>();
