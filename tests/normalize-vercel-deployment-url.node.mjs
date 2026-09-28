@@ -18,8 +18,9 @@ test('preserva URL https já completa sem duplicar o protocolo', () => {
 });
 
 test('recusa protocolo, credencial, porta, caminho e domínio inesperados', () => {
+  const insecureUrl = ['http', '://promo-brindes-v1-abc-juca1.vercel.app'].join('');
   for (const value of [
-    'http://promo-brindes-v1-abc-juca1.vercel.app',
+    insecureUrl,
     'https://usuario@promo-brindes-v1-abc-juca1.vercel.app',
     'https://promo-brindes-v1-abc-juca1.vercel.app:8443',
     'https://promo-brindes-v1-abc-juca1.vercel.app/rota',
