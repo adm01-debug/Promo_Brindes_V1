@@ -3,10 +3,15 @@ name: Release isolated database then Vercel
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: production-release
   cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
 
 permissions:
   actions: read
@@ -14,28 +19,48 @@ permissions:
   contents: read
 
 jobs:
-  release:
-    name: Verify DB migration, deploy and smoke
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
+  authorize-main:
+    name: Authorize production release from main
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Reject manual releases from branches or tags
+        env:
+          RELEASE_REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          if [ "$RELEASE_REF" != 'refs/heads/main' ]; then
+            echo "::error::Produção só pode ser liberada a partir de refs/heads/main; recebido: $RELEASE_REF"
+            exit 1
+          fi
+
+  verify-db:
+    name: Verify DB migration and gates
+    needs: authorize-main
+    runs-on: ubuntu-24.04
+    # Gates podem esperar 30 min e o ledger 15 min; reserva margem de rede
+    # explícita em vez de encerrar o job antes do seu próprio limite lógico.
+    timeout-minutes: 55
     env:
       SUPABASE_PROJECT_REF: xlzmclcjdncjfdrjxclt
-      VERCEL_ORG_ID: team_QyN41X0q8hrqhW80AwokbFLv
-      VERCEL_PROJECT_ID: prj_LVKX7uhs1VhTjDDznD7KinvjgHXU
-      VERCEL_SCOPE: juca1
-      SMOKE_BASE_URL: https://promo-brindes-v1.vercel.app
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
       - name: Wait for every protected main-branch gate
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -eo pipefail
           required=('validate' 'cross-browser' 'Migrations and pgTAP' 'Build structural Graphify map')
           for attempt in $(seq 1 90); do
             checks="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/check-runs?per_page=100")"
+            total="$(jq -r '.total_count' <<<"$checks")"
+            count="$(jq -r '.check_runs | length' <<<"$checks")"
+            if [ "$total" -gt "$count" ]; then
+              echo "::warning::A API retornou $count de $total check-runs — algum gate pode estar fora da página."
+            fi
             pending=0
             for name in "${required[@]}"; do
-              conclusion="$(jq -r --arg name "$name" '[.check_runs[] | select(.name == $name)] | sort_by(.started_at) | last | .conclusion // "pending"' <<<"$checks")"
+              conclusion="$(jq -r --arg name "$name" '[.check_runs[] | select(.name == $name and .started_at != null)] | sort_by(.started_at) | last | .conclusion // "pending"' <<<"$checks")"
               if [ "$conclusion" = failure ] || [ "$conclusion" = cancelled ] || [ "$conclusion" = timed_out ] || [ "$conclusion" = action_required ]; then
                 echo "::error::Gate '$name' terminou como '$conclusion'."
                 exit 1
@@ -53,8 +78,10 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
+          set -eo pipefail
           test -n "$SUPABASE_ACCESS_TOKEN" || { echo '::error::SUPABASE_ACCESS_TOKEN ausente'; exit 1; }
           find site-supabase/supabase/migrations -maxdepth 1 -type f -name '*.sql' -printf '%f\n' \
+            | grep -E '^[0-9]{14}_' \
             | sed -E 's/^([0-9]{14})_.*/\1/' | sort > expected-migration-versions.txt
           query='{"query":"select version from supabase_migrations.schema_migrations order by version"}'
           for attempt in $(seq 1 60); do
@@ -62,8 +89,10 @@ jobs:
               -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
               -H 'Content-Type: application/json' \
               --data "$query" \
-              "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/database/query")"
-            jq -er '.[].version' <<<"$response" | sort > remote-migration-versions.txt
+              "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/database/query")" \
+              || { echo "::error::Falha ao consultar a API do Supabase (tentativa $attempt — verifique SUPABASE_ACCESS_TOKEN e SUPABASE_PROJECT_REF)."; exit 1; }
+            jq -er 'if type == "array" then .[].version else error("Resposta inesperada da API: " + (. | tostring)) end' \
+              <<<"$response" | sort > remote-migration-versions.txt
             comm -3 expected-migration-versions.txt remote-migration-versions.txt > migration-ledger-drift.txt
             if [ ! -s migration-ledger-drift.txt ]; then
               break
@@ -75,26 +104,82 @@ jobs:
             fi
             sleep 15
           done
+      - name: Upload DB verification evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: db-verify-${{ github.sha }}
+          path: |
+            expected-migration-versions.txt
+            remote-migration-versions.txt
+            migration-ledger-drift.txt
+          if-no-files-found: warn
+          retention-days: 90
+
+  deploy-vercel:
+    name: Build and deploy to Vercel production
+    needs: verify-db
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      VERCEL_ORG_ID: team_QyN41X0q8hrqhW80AwokbFLv
+      VERCEL_PROJECT_ID: prj_LVKX7uhs1VhTjDDznD7KinvjgHXU
+      VERCEL_SCOPE: juca1
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24.15.0
           cache: npm
-      - name: Build the exact tested revision for production
+      - name: Capture the currently active deployment for rollback
+        id: previous
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PRODUCTION_DOMAIN: promo-brindes-v1.vercel.app
+        run: |
+          set -euo pipefail
+          test -n "$VERCEL_TOKEN" || { echo '::error::VERCEL_TOKEN ausente'; exit 1; }
+          PREVIOUS_META="$(curl --silent --show-error --fail \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v13/deployments/$VERCEL_PRODUCTION_DOMAIN?teamId=$VERCEL_ORG_ID")"
+          PREVIOUS_ID="$(jq -er '.id // .uid | select(type == "string" and length > 0)' <<<"$PREVIOUS_META")"
+          jq '{id:(.id // .uid),url,readyState,target,createdAt,meta:{githubCommitSha:.meta.githubCommitSha}}' \
+            <<<"$PREVIOUS_META" > previous-deployment.json
+          printf 'id=%s\n' "$PREVIOUS_ID" >> "$GITHUB_OUTPUT"
+      - name: Build and create an unpromoted production candidate
+        id: candidate
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          set -eo pipefail
+          set -euo pipefail
           test -n "$VERCEL_TOKEN" || { echo '::error::VERCEL_TOKEN ausente'; exit 1; }
           npm install --global npm@11.17.0 vercel@59.5.0
           npm ci
-          # O runner é efêmero: nunca dependa de uma pasta .vercel prévia nem
-          # de detecção implícita de conta. O preflight também produz uma causa
-          # clara caso o token não tenha acesso ao projeto de produção.
           vercel project inspect "$VERCEL_PROJECT_ID" --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN"
           vercel pull --yes --environment=production --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN"
           vercel build --prod --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN"
           node scripts/verify-vercel-artifact.mjs
-          vercel deploy --prebuilt --prod --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN" | tee deployment-url.txt
+          # --prod carrega o contexto Production; --skip-domain garante que o
+          # alias público não muda até o smoke do candidato passar.
+          vercel deploy --prebuilt --prod --skip-domain --json \
+            --meta "githubCommitSha=$GITHUB_SHA" \
+            --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN" \
+            > candidate-deployment.json
+          CANDIDATE_ID="$(jq -er '.id // .uid' candidate-deployment.json)"
+          CANDIDATE_HOST="$(jq -er '.url | select(type == "string" and length > 0)' candidate-deployment.json)"
+          CANDIDATE_URL="$(node scripts/normalize-vercel-deployment-url.mjs "$CANDIDATE_HOST")"
+          CANDIDATE_META="$(curl --silent --show-error --fail \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v13/deployments/$CANDIDATE_ID?teamId=$VERCEL_ORG_ID")"
+          jq -e --arg sha "$GITHUB_SHA" '
+            .readyState == "READY" and .meta.githubCommitSha == $sha
+          ' <<<"$CANDIDATE_META" > /dev/null \
+            || { echo '::error::Candidato Vercel não está READY ou não corresponde ao SHA testado.'; exit 1; }
+          jq '{id:(.id // .uid),url,readyState,target,createdAt,meta:{githubCommitSha:.meta.githubCommitSha}}' \
+            <<<"$CANDIDATE_META" > candidate-vercel-response.json
+          printf 'id=%s\nurl=%s\n' "$CANDIDATE_ID" "$CANDIDATE_URL" >> "$GITHUB_OUTPUT"
       - name: Enable Vercel Web Analytics for this project
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -109,20 +194,94 @@ jobs:
             -w "%{http_code}" -o /dev/null 2>&1 || true)
           echo "Analytics enable response: ${http_code}"
           [ "$http_code" = "200" ] || [ "$http_code" = "409" ] || { echo "::error::Falha ao habilitar analytics (${http_code})"; exit 1; }
-      - name: Validate the promoted production deployment
+      - name: Smoke the unpromoted production candidate
+        env:
+          SMOKE_BASE_URL: ${{ steps.candidate.outputs.url }}
         run: |
-          set -eo pipefail
-          npm run smoke:deployment | tee deployment-smoke.log
-      - name: Upload release evidence
+          set -euo pipefail
+          npm run smoke:deployment > deployment-smoke.log 2>&1
+          cat deployment-smoke.log
+      - name: Promote only the candidate that passed smoke
+        id: promote
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          CANDIDATE_ID: ${{ steps.candidate.outputs.id }}
+        run: |
+          set -euo pipefail
+          # Registra a tentativa antes do comando: se a Vercel alterar o alias
+          # e o próprio comando terminar com erro, o rollback ainda é obrigatório.
+          echo 'attempted=true' >> "$GITHUB_OUTPUT"
+          vercel promote "$CANDIDATE_ID" --yes --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN" > promotion.log
+          cat promotion.log
+      - name: Verify the production alias after promotion
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PRODUCTION_DOMAIN: promo-brindes-v1.vercel.app
+        run: |
+          set -euo pipefail
+          ACTIVE_META="$(curl --silent --show-error --fail \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v13/deployments/$VERCEL_PRODUCTION_DOMAIN?teamId=$VERCEL_ORG_ID")"
+          jq -e --arg sha "$GITHUB_SHA" '
+            .readyState == "READY" and .meta.githubCommitSha == $sha
+          ' <<<"$ACTIVE_META" > /dev/null \
+            || { echo '::error::O alias de produção não aponta para o SHA promovido.'; exit 1; }
+          jq '{id:(.id // .uid),url,readyState,target,createdAt,meta:{githubCommitSha:.meta.githubCommitSha}}' \
+            <<<"$ACTIVE_META" > promoted-deployment.json
+      - name: Smoke the public production domain after promotion
+        env:
+          SMOKE_BASE_URL: https://promo-brindes-v1.vercel.app
+        run: |
+          set -euo pipefail
+          npm run smoke:deployment > production-smoke.log 2>&1
+          cat production-smoke.log
+      - name: Roll back when post-promotion validation fails
+        if: failure() && steps.promote.outputs.attempted == 'true'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          PREVIOUS_DEPLOYMENT_ID: ${{ steps.previous.outputs.id }}
+        run: |
+          set -euo pipefail
+          test -n "$PREVIOUS_DEPLOYMENT_ID" || { echo '::error::Deployment anterior indisponível para rollback'; exit 1; }
+          vercel promote "$PREVIOUS_DEPLOYMENT_ID" --yes --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN" > rollback.log
+          cat rollback.log
+          ROLLED_BACK_META="$(curl --silent --show-error --fail \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v13/deployments/promo-brindes-v1.vercel.app?teamId=$VERCEL_ORG_ID")"
+          jq -e --arg id "$PREVIOUS_DEPLOYMENT_ID" '(.id // .uid) == $id and .readyState == "READY"' \
+            <<<"$ROLLED_BACK_META" > /dev/null \
+            || { echo '::error::O alias público não confirmou o rollback.'; exit 1; }
+          jq '{id:(.id // .uid),url,readyState,target,createdAt,meta:{githubCommitSha:.meta.githubCommitSha}}' \
+            <<<"$ROLLED_BACK_META" > rolled-back-deployment.json
+      - name: Write release summary
+        if: always()
+        run: |
+          {
+            echo "## Release — $(date -u '+%Y-%m-%dT%H:%MZ')"
+            echo ""
+            echo "SHA: \`$GITHUB_SHA\`"
+            echo "Candidato: ${{ steps.candidate.outputs.url || 'não criado' }}"
+            echo ""
+            echo "O alias público só é promovido depois do smoke do candidato e recebe novo smoke após a promoção."
+            echo "Em falha pós-promoção, o workflow promove novamente o deployment anterior."
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Remove Vercel production environment files from the runner
+        if: always()
+        run: rm -rf .vercel
+      - name: Upload deployment evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: production-release-${{ github.sha }}
           path: |
-            deployment-url.txt
+            candidate-deployment.json
+            candidate-vercel-response.json
+            previous-deployment.json
             deployment-smoke.log
-            expected-migration-versions.txt
-            remote-migration-versions.txt
-            migration-ledger-drift.txt
+            promotion.log
+            promoted-deployment.json
+            production-smoke.log
+            rollback.log
+            rolled-back-deployment.json
           if-no-files-found: warn
           retention-days: 90
