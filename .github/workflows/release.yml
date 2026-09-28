@@ -14,30 +14,28 @@ permissions:
   contents: read
 
 jobs:
-  verify-db:
-    name: Verify DB migration and gates
+  release:
+    name: Verify DB migration, deploy and smoke
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 45
     env:
       SUPABASE_PROJECT_REF: xlzmclcjdncjfdrjxclt
+      VERCEL_ORG_ID: team_QyN41X0q8hrqhW80AwokbFLv
+      VERCEL_PROJECT_ID: prj_LVKX7uhs1VhTjDDznD7KinvjgHXU
+      VERCEL_SCOPE: juca1
+      SMOKE_BASE_URL: https://promo-brindes-v1.vercel.app
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
       - name: Wait for every protected main-branch gate
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          set -eo pipefail
           required=('validate' 'cross-browser' 'Migrations and pgTAP' 'Build structural Graphify map')
           for attempt in $(seq 1 90); do
             checks="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/check-runs?per_page=100")"
-            total="$(jq -r '.total_count' <<<"$checks")"
-            count="$(jq -r '.check_runs | length' <<<"$checks")"
-            if [ "$total" -gt "$count" ]; then
-              echo "::warning::A API retornou $count de $total check-runs — algum gate pode estar fora da página."
-            fi
             pending=0
             for name in "${required[@]}"; do
-              conclusion="$(jq -r --arg name "$name" '[.check_runs[] | select(.name == $name and .started_at != null)] | sort_by(.started_at) | last | .conclusion // "pending"' <<<"$checks")"
+              conclusion="$(jq -r --arg name "$name" '[.check_runs[] | select(.name == $name)] | sort_by(.started_at) | last | .conclusion // "pending"' <<<"$checks")"
               if [ "$conclusion" = failure ] || [ "$conclusion" = cancelled ] || [ "$conclusion" = timed_out ] || [ "$conclusion" = action_required ]; then
                 echo "::error::Gate '$name' terminou como '$conclusion'."
                 exit 1
@@ -55,10 +53,8 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
-          set -eo pipefail
           test -n "$SUPABASE_ACCESS_TOKEN" || { echo '::error::SUPABASE_ACCESS_TOKEN ausente'; exit 1; }
           find site-supabase/supabase/migrations -maxdepth 1 -type f -name '*.sql' -printf '%f\n' \
-            | grep -E '^[0-9]{14}_' \
             | sed -E 's/^([0-9]{14})_.*/\1/' | sort > expected-migration-versions.txt
           query='{"query":"select version from supabase_migrations.schema_migrations order by version"}'
           for attempt in $(seq 1 60); do
@@ -66,10 +62,8 @@ jobs:
               -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
               -H 'Content-Type: application/json' \
               --data "$query" \
-              "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/database/query")" \
-              || { echo "::error::Falha ao consultar a API do Supabase (tentativa $attempt — verifique SUPABASE_ACCESS_TOKEN e SUPABASE_PROJECT_REF)."; exit 1; }
-            jq -er 'if type == "array" then .[].version else error("Resposta inesperada da API: " + (. | tostring)) end' \
-              <<<"$response" | sort > remote-migration-versions.txt
+              "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/database/query")"
+            jq -er '.[].version' <<<"$response" | sort > remote-migration-versions.txt
             comm -3 expected-migration-versions.txt remote-migration-versions.txt > migration-ledger-drift.txt
             if [ ! -s migration-ledger-drift.txt ]; then
               break
@@ -81,30 +75,6 @@ jobs:
             fi
             sleep 15
           done
-      - name: Upload DB verification evidence
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: db-verify-${{ github.sha }}
-          path: |
-            expected-migration-versions.txt
-            remote-migration-versions.txt
-            migration-ledger-drift.txt
-          if-no-files-found: warn
-          retention-days: 90
-
-  deploy-vercel:
-    name: Build and deploy to Vercel production
-    needs: verify-db
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    env:
-      VERCEL_ORG_ID: team_QyN41X0q8hrqhW80AwokbFLv
-      VERCEL_PROJECT_ID: prj_LVKX7uhs1VhTjDDznD7KinvjgHXU
-      VERCEL_SCOPE: juca1
-      SMOKE_BASE_URL: https://promo-brindes-v1.vercel.app
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24.15.0
@@ -113,20 +83,34 @@ jobs:
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          set -eo pipefail
           test -n "$VERCEL_TOKEN" || { echo '::error::VERCEL_TOKEN ausente'; exit 1; }
           npm install --global npm@11.17.0 vercel@59.5.0
           npm ci
+          # O runner é efêmero: nunca dependa de uma pasta .vercel prévia nem
+          # de detecção implícita de conta. O preflight também produz uma causa
+          # clara caso o token não tenha acesso ao projeto de produção.
           vercel project inspect "$VERCEL_PROJECT_ID" --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN"
           vercel pull --yes --environment=production --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN"
           vercel build --prod --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN"
           node scripts/verify-vercel-artifact.mjs
           vercel deploy --prebuilt --prod --scope "$VERCEL_SCOPE" --project "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN" | tee deployment-url.txt
-      - name: Validate the promoted production deployment
+      - name: Enable Vercel Web Analytics for this project
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          set -eo pipefail
-          npm run smoke:deployment | tee deployment-smoke.log
-      - name: Upload deployment evidence
+          # Sem analytics habilitado, /_vercel/insights/script.js retorna 404.
+          # HTTP 409 = já habilitado (idempotente, ok).
+          http_code=$(curl -sf -X POST \
+            "https://api.vercel.com/v8/projects/${VERCEL_PROJECT_ID}/analytics?teamId=${VERCEL_ORG_ID}" \
+            -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{}' \
+            -w "%{http_code}" -o /dev/null 2>&1 || true)
+          echo "Analytics enable response: ${http_code}"
+          [ "$http_code" = "200" ] || [ "$http_code" = "409" ] || { echo "::error::Falha ao habilitar analytics (${http_code})"; exit 1; }
+      - name: Validate the promoted production deployment
+        run: npm run smoke:deployment | tee deployment-smoke.log
+      - name: Upload release evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -134,5 +118,8 @@ jobs:
           path: |
             deployment-url.txt
             deployment-smoke.log
+            expected-migration-versions.txt
+            remote-migration-versions.txt
+            migration-ledger-drift.txt
           if-no-files-found: warn
           retention-days: 90
