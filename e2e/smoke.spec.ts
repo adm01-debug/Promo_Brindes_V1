@@ -176,6 +176,8 @@ test('montador de kits preserva componentes e calcula a quantidade completa', as
   }));
 
   await page.goto('/montar-kit');
+  await expect(page.locator('main')).toHaveCount(1);
+  await expect(page.locator('main main')).toHaveCount(0);
   if ((page.viewportSize()?.width || 0) > 980) {
     const [configBox, summaryBox] = await Promise.all([
       page.locator('.kit-builder__config').boundingBox(),

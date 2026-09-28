@@ -1,4 +1,5 @@
 import { siteSupabase } from './siteSupabase';
+import { runSiteRpc } from './siteRpc';
 
 export const BRIEFING_ASSET_BUCKET = 'customer-briefing-assets';
 export const MAX_BRIEFING_ASSET_BYTES = 10 * 1024 * 1024;
@@ -77,7 +78,7 @@ async function verifyUploadedAsset(asset: BriefingAsset): Promise<BriefingAsset>
 }
 
 export async function listMyBriefingAssets(): Promise<BriefingAsset[]> {
-  const { data, error } = await client().rpc('list_my_briefing_assets');
+  const { data, error } = await runSiteRpc(client().rpc('list_my_briefing_assets'));
   if (error) throw rpcError(error.message);
   return (Array.isArray(data) ? data : []).map(normalizeAsset).filter((asset): asset is BriefingAsset => Boolean(asset));
 }
@@ -86,12 +87,12 @@ export async function uploadMyBriefingAsset(file: File, kind: BriefingAssetKind)
   const validationError = briefingAssetValidationError(file);
   if (validationError) throw new Error(validationError);
   const supabase = client();
-  const { data, error } = await supabase.rpc('create_my_briefing_asset', {
+  const { data, error } = await runSiteRpc(supabase.rpc('create_my_briefing_asset', {
     p_original_name: file.name,
     p_mime_type: file.type,
     p_size_bytes: file.size,
     p_kind: kind,
-  });
+  }));
   if (error) throw rpcError(error.message);
   const asset = normalizeAsset(data);
   if (!asset) throw new Error('O arquivo não recebeu um identificador válido.');
@@ -103,7 +104,7 @@ export async function uploadMyBriefingAsset(file: File, kind: BriefingAssetKind)
   });
   if (uploaded.error) {
     try {
-      await supabase.rpc('delete_my_briefing_asset', { p_id: asset.id });
+      await runSiteRpc(supabase.rpc('delete_my_briefing_asset', { p_id: asset.id }));
     } catch {
       // A fila de retenção também trata metadados expirados; a falha de limpeza
       // compensatória não deve esconder o erro original do upload.
@@ -119,7 +120,7 @@ export async function uploadMyBriefingAsset(file: File, kind: BriefingAssetKind)
       // A reserva expira automaticamente; esta limpeza é apenas compensatória.
     }
     try {
-      await supabase.rpc('delete_my_briefing_asset', { p_id: asset.id });
+      await runSiteRpc(supabase.rpc('delete_my_briefing_asset', { p_id: asset.id }));
     } catch {
       // Mantém o erro de verificação como causa principal para a pessoa usuária.
     }
@@ -131,16 +132,16 @@ export async function deleteMyBriefingAsset(asset: BriefingAsset): Promise<void>
   if (asset.quoteRequestId) throw new Error('Este arquivo já faz parte de um briefing e não pode ser removido por aqui.');
   // A remoção do registro revoga o caminho imediatamente e enfileira o blob.
   // Objetos verificados permanecem imutáveis via RLS até essa exclusão lógica.
-  const { error } = await client().rpc('delete_my_briefing_asset', { p_id: asset.id });
+  const { error } = await runSiteRpc(client().rpc('delete_my_briefing_asset', { p_id: asset.id }));
   if (error) throw rpcError(error.message);
 }
 
 export async function attachMyBriefingAssetsToQuote(requestId: string, assetIds: string[]): Promise<number> {
   if (!assetIds.length) return 0;
-  const { data, error } = await client().rpc('attach_my_briefing_assets_to_quote', {
+  const { data, error } = await runSiteRpc(client().rpc('attach_my_briefing_assets_to_quote', {
     p_request_id: requestId,
     p_asset_ids: assetIds,
-  });
+  }));
   if (error) throw rpcError(error.message);
   return Number(data || 0);
 }

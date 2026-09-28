@@ -72,6 +72,10 @@ describe('favoritos de datas comemorativas por titular', () => {
     const view = render(page());
     const remove = await screen.findByRole('button', { name: 'Remover Dia do Cliente em Minhas datas' });
     fireEvent.click(remove);
+    // Esta é a variante de uma requisição que já saiu da conta A. A cobertura
+    // do hook valida separadamente que uma segunda intenção ainda na fila não
+    // é despachada depois da troca de titular.
+    await waitFor(() => expect(mocks.save).toHaveBeenCalledTimes(1));
 
     mocks.user = { id: 'conta-b' };
     view.rerender(page());

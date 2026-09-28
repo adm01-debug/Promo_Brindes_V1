@@ -1,7 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { listMyOccasionFavorites, setMyOccasionFavorite } from './customerOccasionFavorites';
 
 type FavoriteOwner = 'anonymous' | `account:${string}`;
+type FavoriteIntent = { saved: boolean; version: number; writeStatus: 'pending' | 'succeeded' };
+type FavoriteScope = { owner: FavoriteOwner; sessionEpoch: number };
+type FavoriteIntentSnapshot = Map<string, FavoriteIntent>;
 
 const FAVORITES_KEY = 'promo-brindes:occasion-favorites:v1';
 const FAVORITES_PROMOTION_KEY = 'promo-brindes:occasion-favorites:account-promoted:';
@@ -57,10 +60,15 @@ function loadFavorites(owner: FavoriteOwner) {
 }
 
 function saveFavorites(owner: FavoriteOwner, favorites: Set<string>) {
-  window.localStorage.setItem(cacheKeyFor(owner), JSON.stringify([...favorites]));
+  const serialized = JSON.stringify([...favorites].sort((left, right) => left.localeCompare(right)));
+  const cacheKey = cacheKeyFor(owner);
+  if (window.localStorage.getItem(cacheKey) !== serialized) {
+    window.localStorage.setItem(cacheKey, serialized);
+  }
   if (owner === 'anonymous') {
-    window.localStorage.setItem(FAVORITES_KEY, JSON.stringify([...favorites]));
-    window.localStorage.setItem(FAVORITES_OWNER_KEY, 'anonymous');
+    if (window.localStorage.getItem(FAVORITES_OWNER_KEY) !== 'anonymous') {
+      window.localStorage.setItem(FAVORITES_OWNER_KEY, 'anonymous');
+    }
   }
 }
 
@@ -68,16 +76,9 @@ function promotionKey(userId: string) {
   return `${FAVORITES_PROMOTION_KEY}${userId}`;
 }
 
-function applyIntents(remote: Set<string>, intents: Map<string, boolean>) {
-  const next = new Set(remote);
-  for (const [occasionId, saved] of intents) {
-    // Uma leitura que já reflete a intenção pode liberar a sobreposição local.
-    // Enquanto ela divergir, o snapshot é anterior à ação e não pode apagar nem
-    // ressuscitar a escolha feita neste dispositivo.
-    if (remote.has(occasionId) === saved) {
-      intents.delete(occasionId);
-      continue;
-    }
+function applyIntents(confirmed: Set<string>, intents: Map<string, FavoriteIntent>) {
+  const next = new Set(confirmed);
+  for (const [occasionId, { saved }] of intents) {
     saved ? next.add(occasionId) : next.delete(occasionId);
   }
   return next;
@@ -100,13 +101,34 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
   const [storageMessage, setStorageMessage] = useState('');
   const favoriteOwnerRef = useRef<FavoriteOwner>(initialOwner);
   const favoritesRef = useRef(favorites);
-  const syncEpochRef = useRef(0);
+  // O cache é útil para renderização imediata, mas a fonte de rollback das
+  // mutações autenticadas é sempre o último estado confirmado pela RPC/lista.
+  const confirmedFavoritesRef = useRef(new Set(favorites));
+  const sessionEpochRef = useRef(0);
+  const appliedSessionEpochRef = useRef(0);
+  const readEpochRef = useRef(0);
+  const confirmedRevisionRef = useRef(0);
+  const confirmedRevisionByOccasionRef = useRef(new Map<string, number>());
   const mutationEpochRef = useRef(new Map<string, number>());
   const writeChainsRef = useRef(new Map<string, Promise<void>>());
+  const skipNextPersistenceRef = useRef(false);
+  const committedAuthLoadingRef = useRef(authLoading);
+  const committedOwnerRef = useRef<FavoriteOwner>(initialOwner);
   // Intenções pertencem somente à sessão de sincronização do titular atual.
   // Ao trocar a conta, callbacks antigos já são invalidados pelo epoch e a
   // projeção seguinte começa pelo cache/servidor do novo titular.
-  const intentsRef = useRef(new Map<string, boolean>());
+  const intentsRef = useRef(new Map<string, FavoriteIntent>());
+
+  // Atualiza a identidade somente quando o render foi efetivamente commitado.
+  // Layout effect fecha a janela anterior ao efeito passivo sem deixar que um
+  // render concorrente abandonado vaze identidade para a árvore ainda ativa.
+  useLayoutEffect(() => {
+    if (committedOwnerRef.current !== initialOwner || committedAuthLoadingRef.current !== authLoading) {
+      sessionEpochRef.current += 1;
+    }
+    committedOwnerRef.current = initialOwner;
+    committedAuthLoadingRef.current = authLoading;
+  }, [authLoading, initialOwner]);
 
   const replaceFavorites = useCallback((update: Set<string> | ((current: Set<string>) => Set<string>)) => {
     setFavorites((current) => {
@@ -116,23 +138,97 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
     });
   }, []);
 
+  const isCurrentScope = useCallback((scope: FavoriteScope) => (
+    !committedAuthLoadingRef.current
+    && committedOwnerRef.current === scope.owner
+    && sessionEpochRef.current === scope.sessionEpoch
+    && appliedSessionEpochRef.current === scope.sessionEpoch
+    && favoriteOwnerRef.current === scope.owner
+  ), []);
+
+  const publishConfirmedAndIntents = useCallback((scope: FavoriteScope) => {
+    if (!isCurrentScope(scope)) return;
+    const next = applyIntents(confirmedFavoritesRef.current, intentsRef.current);
+    favoritesRef.current = next;
+    replaceFavorites(next);
+  }, [isCurrentScope, replaceFavorites]);
+
+  const reconcileConfirmedFavorites = useCallback((
+    scope: FavoriteScope,
+    confirmed: Set<string>,
+    options: {
+      intentsAtReadStart?: FavoriteIntentSnapshot;
+      confirmedRevisionAtReadStart?: number;
+      readKnownIds?: Set<string>;
+      supersedeSucceededIntents?: boolean;
+    } = {},
+  ) => {
+    if (!isCurrentScope(scope)) return;
+    const nextConfirmed = new Set(confirmed);
+    if (options.confirmedRevisionAtReadStart !== undefined) {
+      for (const [occasionId, revision] of confirmedRevisionByOccasionRef.current) {
+        if (revision <= options.confirmedRevisionAtReadStart || !options.readKnownIds?.has(occasionId)) continue;
+        confirmedFavoritesRef.current.has(occasionId)
+          ? nextConfirmed.add(occasionId)
+          : nextConfirmed.delete(occasionId);
+      }
+    }
+    for (const [occasionId, intent] of intentsRef.current) {
+      if (options.supersedeSucceededIntents && intent.writeStatus === 'succeeded') {
+        intentsRef.current.delete(occasionId);
+        continue;
+      }
+      const intentAtReadStart = options.intentsAtReadStart?.get(occasionId);
+      if (
+        options.intentsAtReadStart
+        && (
+          intentAtReadStart?.version !== intent.version
+          || intentAtReadStart.writeStatus !== 'succeeded'
+        )
+      ) {
+        // A leitura começou antes da intenção atual ou enquanto sua escrita
+        // ainda não estava confirmada. Esse snapshot não pode substituir a
+        // base de rollback nem confirmar a intenção, mesmo se coincidir por
+        // acaso. Intenções já concluídas antes da leitura podem ser liberadas.
+        confirmedFavoritesRef.current.has(occasionId)
+          ? nextConfirmed.add(occasionId)
+          : nextConfirmed.delete(occasionId);
+        continue;
+      }
+      // Somente uma escrita já concluída pode ser liberada por uma observação
+      // posterior com o mesmo valor. Uma intenção ainda na fila permanece viva.
+      if (intent.writeStatus === 'succeeded' && confirmed.has(occasionId) === intent.saved) {
+        intentsRef.current.delete(occasionId);
+      }
+    }
+    confirmedFavoritesRef.current = nextConfirmed;
+    publishConfirmedAndIntents(scope);
+  }, [isCurrentScope, publishConfirmedAndIntents]);
+
   // O banco recebe operações idempotentes, mas não recebe uma versão do cliente.
-  // Serializar por titular/data garante que a última intenção local chega por
-  // último também no servidor, inclusive quando a promoção anônima concorre com
-  // um clique da pessoa.
-  const enqueueRemoteWrite = useCallback((owner: FavoriteOwner, occasionId: string, saved: boolean) => {
-    const mutationKey = `${owner}:${occasionId}`;
+  // Serializar por titular/data garante ordem no servidor. A guarda é feita no
+  // instante do despacho (e não só no callback) para que uma operação já
+  // enfileirada nunca seja enviada depois de logout ou troca de conta.
+  const enqueueRemoteWrite = useCallback((scope: FavoriteScope, occasionId: string, saved: boolean) => {
+    const mutationKey = `${scope.owner}:${occasionId}`;
     const previous = writeChainsRef.current.get(mutationKey) || Promise.resolve();
-    const next = previous.catch(() => undefined).then(() => setMyOccasionFavorite(occasionId, saved));
+    const next = previous.catch(() => undefined).then(() => {
+      if (!isCurrentScope(scope)) throw new Error('stale_favorite_session');
+      return setMyOccasionFavorite(occasionId, saved);
+    });
     writeChainsRef.current.set(mutationKey, next);
     void next.finally(() => {
       if (writeChainsRef.current.get(mutationKey) === next) writeChainsRef.current.delete(mutationKey);
     }).catch(() => undefined);
     return next;
-  }, []);
+  }, [isCurrentScope]);
 
   useEffect(() => {
     try {
+      if (skipNextPersistenceRef.current) {
+        skipNextPersistenceRef.current = false;
+        return;
+      }
       if (favoriteOwnerRef.current === initialOwner) saveFavorites(initialOwner, favorites);
     } catch {
       setStorageMessage('Seu navegador não permitiu salvar esta seleção neste dispositivo.');
@@ -140,30 +236,45 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
   }, [favorites, initialOwner]);
 
   useEffect(() => {
-    const syncEpoch = ++syncEpochRef.current;
+    const readEpoch = ++readEpochRef.current;
     if (authLoading) return;
 
     const owner = ownerFor(userId);
+    const sessionEpoch = sessionEpochRef.current;
     const knownIds = new Set(knownOccasionIdsKey.split(',').filter(Boolean));
     // A origem anônima precisa ser lida antes da troca de titular para não ser
     // reatribuída pelo efeito de persistência e descartada em seguida.
     const anonymousFavorites = userId
       ? new Set([...loadFavorites('anonymous')].filter((id) => knownIds.has(id)))
       : new Set<string>();
+    const sessionChanged = favoriteOwnerRef.current !== owner || appliedSessionEpochRef.current !== sessionEpoch;
     favoriteOwnerRef.current = owner;
-    mutationEpochRef.current.clear();
-    writeChainsRef.current.clear();
-    intentsRef.current.clear();
-    const cachedFavorites = new Set([...loadFavorites(owner)].filter((id) => knownIds.has(id)));
-    favoritesRef.current = cachedFavorites;
-    setFavorites(cachedFavorites);
+    appliedSessionEpochRef.current = sessionEpoch;
+    if (sessionChanged) {
+      mutationEpochRef.current.clear();
+      intentsRef.current.clear();
+      confirmedRevisionByOccasionRef.current.clear();
+      const cachedFavorites = new Set([...loadFavorites(owner)].filter((id) => knownIds.has(id)));
+      confirmedFavoritesRef.current = new Set(cachedFavorites);
+      favoritesRef.current = cachedFavorites;
+      setFavorites(cachedFavorites);
+    }
 
     if (!userId) return;
 
+    // Cada leitura leva a fotografia das intenções que já existiam quando ela
+    // começou. Assim, uma carga antiga protege ações mais novas, enquanto uma
+    // releitura iniciada depois de uma escrita concluída pode confirmá-la e
+    // liberar a sobreposição otimista.
+    const intentsAtReadStart = new Map(
+      [...intentsRef.current].map(([occasionId, intent]) => [occasionId, { ...intent }]),
+    );
+    const confirmedRevisionAtReadStart = confirmedRevisionRef.current;
     let active = true;
     void listMyOccasionFavorites()
       .then(async (remote) => {
-        if (!active || syncEpochRef.current !== syncEpoch || favoriteOwnerRef.current !== owner) return;
+        const scope = { owner, sessionEpoch };
+        if (!active || readEpochRef.current !== readEpoch || !isCurrentScope(scope)) return;
         const remoteFavorites = new Set(remote.filter((id) => knownIds.has(id)));
         let merged = remoteFavorites;
         try {
@@ -172,36 +283,38 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
             // Uma intenção autenticada criada enquanto a lista remota carregava
             // sempre vence a promoção do cache anônimo.
             const localOnly = [...anonymousFavorites].filter((id) => !remoteFavorites.has(id) && !intentsRef.current.has(id));
-            if (localOnly.length) await Promise.all(localOnly.map((id) => enqueueRemoteWrite(owner, id, true)));
-            if (!active || syncEpochRef.current !== syncEpoch || favoriteOwnerRef.current !== owner) return;
+            if (localOnly.length) await Promise.all(localOnly.map((id) => enqueueRemoteWrite(scope, id, true)));
+            if (!active || readEpochRef.current !== readEpoch || !isCurrentScope(scope)) return;
             merged = new Set([...remoteFavorites, ...localOnly]);
-            localOnly.forEach((id) => {
-              if (!intentsRef.current.has(id)) intentsRef.current.set(id, true);
-            });
             window.localStorage.setItem(promotionKey(userId), '1');
           }
         } catch {
-          if (active && syncEpochRef.current === syncEpoch && favoriteOwnerRef.current === owner) {
-            const next = applyIntents(remoteFavorites, intentsRef.current);
-            favoritesRef.current = next;
-            setFavorites(next);
+          if (active && readEpochRef.current === readEpoch && isCurrentScope(scope)) {
+            reconcileConfirmedFavorites(scope, remoteFavorites, {
+              intentsAtReadStart,
+              confirmedRevisionAtReadStart,
+              readKnownIds: knownIds,
+            });
             setStorageMessage('Não foi possível sincronizar todas as suas datas agora. Tente novamente mais tarde.');
           }
           return;
         }
-        if (active && syncEpochRef.current === syncEpoch && favoriteOwnerRef.current === owner) {
-          const next = applyIntents(merged, intentsRef.current);
-          favoritesRef.current = next;
-          setFavorites(next);
+        if (active && readEpochRef.current === readEpoch && isCurrentScope(scope)) {
+          reconcileConfirmedFavorites(scope, merged, {
+            intentsAtReadStart,
+            confirmedRevisionAtReadStart,
+            readKnownIds: knownIds,
+          });
         }
       })
       .catch(() => {
-        if (active && syncEpochRef.current === syncEpoch && favoriteOwnerRef.current === owner) {
+        const scope = { owner, sessionEpoch };
+        if (active && readEpochRef.current === readEpoch && isCurrentScope(scope)) {
           setStorageMessage('Não foi possível carregar suas datas salvas agora. Tente novamente mais tarde.');
         }
       });
     return () => { active = false; };
-  }, [authLoading, enqueueRemoteWrite, knownOccasionIdsKey, userId]);
+  }, [authLoading, enqueueRemoteWrite, isCurrentScope, knownOccasionIdsKey, reconcileConfirmedFavorites, userId]);
 
   // `storage` é emitido somente nas outras abas do mesmo navegador. A ação
   // local ainda prevalece enquanto houver uma intenção pendente; assim, uma
@@ -213,45 +326,75 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
     const knownIds = new Set(knownOccasionIdsKey.split(',').filter(Boolean));
     const onStorage = (event: StorageEvent) => {
       if (event.key !== key || (event.storageArea && event.storageArea !== window.localStorage) || favoriteOwnerRef.current !== owner) return;
+      const scope = { owner, sessionEpoch: sessionEpochRef.current };
+      if (!isCurrentScope(scope)) return;
       const externalFavorites = new Set([...parseFavorites(event.newValue)].filter((id) => knownIds.has(id)));
-      const next = applyIntents(externalFavorites, intentsRef.current);
-      favoritesRef.current = next;
-      setFavorites(next);
+      const observationRevision = ++confirmedRevisionRef.current;
+      for (const occasionId of knownIds) {
+        confirmedRevisionByOccasionRef.current.set(occasionId, observationRevision);
+      }
+      skipNextPersistenceRef.current = true;
+      reconcileConfirmedFavorites(
+        scope,
+        externalFavorites,
+        { supersedeSucceededIntents: true },
+      );
     };
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
-  }, [authLoading, knownOccasionIdsKey, userId]);
+  }, [authLoading, isCurrentScope, knownOccasionIdsKey, reconcileConfirmedFavorites, userId]);
 
   const saveFavorite = useCallback((occasionId: string, nextSaved: boolean, onRollback?: () => void) => {
     setStorageMessage('');
     const owner = ownerFor(userId);
-    if (authLoading || favoriteOwnerRef.current !== owner) {
+    if (
+      authLoading
+      || committedOwnerRef.current !== owner
+      || favoriteOwnerRef.current !== owner
+      || appliedSessionEpochRef.current !== sessionEpochRef.current
+    ) {
       setStorageMessage('Estamos atualizando suas datas salvas. Tente novamente em instantes.');
       return false;
     }
 
-    const previouslySaved = favoritesRef.current.has(occasionId);
-    replaceFavorites((current) => {
-      const next = new Set(current);
-      nextSaved ? next.add(occasionId) : next.delete(occasionId);
-      return next;
-    });
+    const scope = { owner, sessionEpoch: sessionEpochRef.current };
 
-    if (!userId) return true;
+    if (!userId) {
+      replaceFavorites((current) => {
+        const next = new Set(current);
+        nextSaved ? next.add(occasionId) : next.delete(occasionId);
+        confirmedFavoritesRef.current = new Set(next);
+        return next;
+      });
+      return true;
+    }
     const mutationKey = `${owner}:${occasionId}`;
     const mutationEpoch = (mutationEpochRef.current.get(mutationKey) || 0) + 1;
-    const syncEpoch = syncEpochRef.current;
     mutationEpochRef.current.set(mutationKey, mutationEpoch);
-    intentsRef.current.set(occasionId, nextSaved);
-    void enqueueRemoteWrite(owner, occasionId, nextSaved)
+    intentsRef.current.set(occasionId, { saved: nextSaved, version: mutationEpoch, writeStatus: 'pending' });
+    publishConfirmedAndIntents(scope);
+    void enqueueRemoteWrite(scope, occasionId, nextSaved)
+      .then(() => {
+        if (!isCurrentScope(scope)) return;
+        confirmedFavoritesRef.current = new Set(confirmedFavoritesRef.current);
+        nextSaved ? confirmedFavoritesRef.current.add(occasionId) : confirmedFavoritesRef.current.delete(occasionId);
+        const confirmationRevision = ++confirmedRevisionRef.current;
+        confirmedRevisionByOccasionRef.current.set(occasionId, confirmationRevision);
+        const currentIntent = intentsRef.current.get(occasionId);
+        if (currentIntent?.version === mutationEpoch) {
+          intentsRef.current.set(occasionId, { ...currentIntent, writeStatus: 'succeeded' });
+        }
+        // A confirmação da escrita não prova que uma lista já em voo reflete a
+        // mutação. Mantemos a intenção até uma leitura/storage com o mesmo
+        // valor confirmá-la, evitando que esse snapshot antigo reverta a UI.
+        publishConfirmedAndIntents(scope);
+      })
       .catch((error: unknown) => {
-        if (syncEpochRef.current !== syncEpoch || favoriteOwnerRef.current !== owner || mutationEpochRef.current.get(mutationKey) !== mutationEpoch) return;
-        replaceFavorites((current) => {
-          const restored = new Set(current);
-          previouslySaved ? restored.add(occasionId) : restored.delete(occasionId);
-          return restored;
-        });
-        intentsRef.current.set(occasionId, previouslySaved);
+        if (!isCurrentScope(scope) || mutationEpochRef.current.get(mutationKey) !== mutationEpoch) return;
+        // O estado confirmado não é modificado em uma falha. Só a intenção que
+        // falhou é removida; uma intenção posterior preserva sua precedência.
+        if (intentsRef.current.get(occasionId)?.version === mutationEpoch) intentsRef.current.delete(occasionId);
+        publishConfirmedAndIntents(scope);
         onRollback?.();
         setStorageMessage(error instanceof Error && error.message === 'occasion_favorite_limit_reached'
           ? 'Você já salvou o máximo de 100 datas na sua conta. Remova uma para adicionar outra.'
@@ -259,11 +402,14 @@ export function useOccasionFavorites({ userId, authLoading, knownOccasionIdsKey 
       })
       .finally(() => undefined);
     return true;
-  }, [authLoading, enqueueRemoteWrite, replaceFavorites, userId]);
+  }, [authLoading, enqueueRemoteWrite, isCurrentScope, publishConfirmedAndIntents, replaceFavorites, userId]);
 
   // `useEffect` só atualiza o cache depois da renderização. A projeção abaixo
   // impede um commit com o titular B e favoritos pertencentes a A nesse intervalo.
-  const visibleFavorites = !authLoading && favoriteOwnerRef.current === initialOwner ? favorites : EMPTY_FAVORITES;
+  const renderKnownIds = new Set(knownOccasionIdsKey.split(',').filter(Boolean));
+  const visibleFavorites = !authLoading && favoriteOwnerRef.current === initialOwner
+    ? new Set([...favorites].filter((id) => renderKnownIds.has(id)))
+    : EMPTY_FAVORITES;
 
   return { favorites: visibleFavorites, saveFavorite, storageMessage };
 }

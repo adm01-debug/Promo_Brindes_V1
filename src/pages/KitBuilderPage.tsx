@@ -86,7 +86,7 @@ export default function KitBuilderPage() {
     <>
       <Seo title="Monte seu kit" description="Combine produtos reais do catálogo, calcule quantidades por kit e envie a composição em um briefing." path="/montar-kit" />
       <header className="kit-builder-hero"><div className="container"><span className="section-kicker">Mix & match · do seu jeito</span><h1>Monte um kit que<br /><em>faça sentido.</em></h1><p>Escolha a estrutura, substitua cada componente e veja a conta completa antes de pedir uma proposta. Sem preço ou estoque fictício.</p></div></header>
-      <main className="container kit-builder">
+      <div className="container kit-builder">
         <section className="kit-builder__config" aria-labelledby="kit-config-title">
           <div className="section-heading"><span className="section-kicker">01 · Estrutura</span><h2 id="kit-config-title">Comece pelo tamanho da experiência.</h2></div>
           <div className="kit-template-grid">
@@ -124,7 +124,7 @@ export default function KitBuilderPage() {
           {error && <p className="kit-builder-summary__error" role="alert">{error}</p>}
           <button className="button button--green button--large" type="button" onClick={addKitToBriefing} disabled={!complete || kitQuantity < minimum}><ShoppingBag /> Levar para o briefing <ArrowRight /></button>
         </aside>
-      </main>
+      </div>
     </>
   );
 }

@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(21);
+select plan(22);
 
 select has_table('site_private', 'customer_occasion_favorites', 'favoritos de datas existem no schema privado');
 select ok((select c.relrowsecurity and c.relforcerowsecurity from pg_catalog.pg_class c
@@ -32,6 +32,9 @@ select is(jsonb_array_length(public.list_my_occasion_favorites() -> 'items'), 1,
 select throws_ok(
   $$ select public.set_my_occasion_favorite('../../segredo', true) $$,
   '22023', 'invalid_occasion_id', 'ID de data inválido é rejeitado');
+select throws_ok(
+  $$ select public.set_my_occasion_favorite('natal', null) $$,
+  '22023', 'invalid_favorite_state', 'estado ausente não é interpretado como remoção');
 
 set local request.jwt.claims = '{"sub":"bcbcbcbc-bcbc-4cbc-8cbc-bcbcbcbcbcbc","role":"authenticated"}';
 select is(jsonb_array_length(public.list_my_occasion_favorites() -> 'items'), 0, 'outra conta não lê favoritos alheios');

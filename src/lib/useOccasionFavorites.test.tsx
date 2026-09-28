@@ -1,5 +1,5 @@
 import { act, cleanup, renderHook } from '@testing-library/react';
-import { useLayoutEffect } from 'react';
+import { Suspense, useLayoutEffect, type ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useOccasionFavorites } from './useOccasionFavorites';
 
@@ -58,6 +58,24 @@ describe('useOccasionFavorites', () => {
     expect(result.current.favorites.has(date)).toBe(false);
   });
 
+  it('não deixa uma leitura antiga apagar a escrita anterior quando a intenção seguinte falha', async () => {
+    const staleRead = deferred<string[]>();
+    const add = deferred<void>();
+    const remove = deferred<void>();
+    rpc.list.mockReturnValue(staleRead.promise);
+    rpc.save.mockReturnValueOnce(add.promise).mockReturnValueOnce(remove.promise);
+    const { result } = renderHook(() => useOccasionFavorites(options));
+
+    await act(async () => { result.current.saveFavorite(date, true); });
+    await act(async () => { result.current.saveFavorite(date, false); });
+    await act(async () => { add.resolve(); });
+    await act(async () => { remove.reject(new Error('remoção recusada')); });
+    expect(result.current.favorites.has(date)).toBe(true);
+
+    await act(async () => { staleRead.resolve([]); });
+    expect(result.current.favorites.has(date)).toBe(true);
+  });
+
   it('mantém a intenção mais recente quando respostas de escrita chegam fora de ordem', async () => {
     localStorage.setItem(accountKey('conta-a'), JSON.stringify([date]));
     const firstWrite = deferred<void>();
@@ -77,12 +95,15 @@ describe('useOccasionFavorites', () => {
     const { result, rerender } = renderHook((value: { userId?: string; authLoading: boolean }) => useOccasionFavorites({ ...options, ...value }), {
       initialProps: { userId: 'conta-a', authLoading: true },
     });
-    expect(result.current.saveFavorite(date, true)).toBe(false);
+    let accepted = true;
+    act(() => { accepted = result.current.saveFavorite(date, true); });
+    expect(accepted).toBe(false);
     expect(result.current.favorites.size).toBe(0);
 
     await act(async () => { rerender({ userId: 'conta-b', authLoading: false }); });
     expect(result.current.favorites.size).toBe(0);
-    expect(result.current.saveFavorite(date, true)).toBe(true);
+    await act(async () => { accepted = result.current.saveFavorite(date, true); });
+    expect(accepted).toBe(true);
   });
 
   it('não mostra como seleção anônima o cache legado que pertence a uma conta anterior no mesmo navegador', async () => {
@@ -175,6 +196,45 @@ describe('useOccasionFavorites', () => {
     await act(async () => { pendingWrite.resolve(); });
   });
 
+  it('não deixa uma lista anterior reverter uma atualização mais nova de outra aba', async () => {
+    const staleRead = deferred<string[]>();
+    rpc.list.mockReturnValue(staleRead.promise);
+    const { result } = renderHook(() => useOccasionFavorites(options));
+
+    await act(async () => {
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: accountKey('conta-a'),
+        newValue: JSON.stringify([date]),
+        storageArea: localStorage,
+      }));
+    });
+    expect(result.current.favorites.has(date)).toBe(true);
+
+    await act(async () => { staleRead.resolve([]); });
+    expect(result.current.favorites.has(date)).toBe(true);
+  });
+
+  it('aceita a alteração posterior de outra aba após a escrita local concluir sem ecoar o storage', async () => {
+    const { result } = renderHook(() => useOccasionFavorites(options));
+    await act(async () => {});
+    await act(async () => { result.current.saveFavorite(date, true); });
+    expect(result.current.favorites.has(date)).toBe(true);
+
+    localStorage.setItem(accountKey('conta-a'), JSON.stringify([]));
+    const setItem = vi.spyOn(Storage.prototype, 'setItem');
+    await act(async () => {
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: accountKey('conta-a'),
+        newValue: JSON.stringify([]),
+        storageArea: localStorage,
+      }));
+    });
+
+    expect(result.current.favorites.has(date)).toBe(false);
+    expect(setItem).not.toHaveBeenCalledWith(accountKey('conta-a'), expect.any(String));
+    setItem.mockRestore();
+  });
+
   it('envia a segunda intenção somente depois de a primeira concluir, preservando a ordem no servidor', async () => {
     localStorage.setItem(accountKey('conta-a'), JSON.stringify([date]));
     const firstWrite = deferred<void>();
@@ -189,6 +249,189 @@ describe('useOccasionFavorites', () => {
     await act(async () => { firstWrite.resolve(); });
     expect(rpc.save).toHaveBeenLastCalledWith(date, true);
     await act(async () => { secondWrite.resolve(); });
+    expect(result.current.favorites.has(date)).toBe(true);
+  });
+
+  it('não despacha uma ação de A que ficou na fila após a sessão mudar para B', async () => {
+    const pendingWrite = deferred<void>();
+    rpc.save.mockReturnValueOnce(pendingWrite.promise);
+    const { result, rerender } = renderHook(({ userId }: { userId: string }) => useOccasionFavorites({ ...options, userId }), {
+      initialProps: { userId: 'conta-a' },
+    });
+    await act(async () => {});
+
+    await act(async () => { result.current.saveFavorite(date, true); });
+    await act(async () => { result.current.saveFavorite(date, false); });
+    expect(rpc.save).toHaveBeenCalledTimes(1);
+
+    await act(async () => { rerender({ userId: 'conta-b' }); });
+    await act(async () => { pendingWrite.resolve(); });
+
+    expect(rpc.save).toHaveBeenCalledTimes(1);
+  });
+
+  it('invalida a fila de A já na renderização de B, antes do efeito passivo', async () => {
+    const pendingWrite = deferred<void>();
+    rpc.save.mockReturnValueOnce(pendingWrite.promise);
+    const { result, rerender } = renderHook(({ userId }: { userId: string }) => {
+      const state = useOccasionFavorites({ ...options, userId });
+      useLayoutEffect(() => {
+        if (userId === 'conta-b') pendingWrite.resolve();
+      }, [userId]);
+      return state;
+    }, { initialProps: { userId: 'conta-a' } });
+    await act(async () => {});
+
+    await act(async () => { result.current.saveFavorite(date, true); });
+    await act(async () => { result.current.saveFavorite(date, false); });
+    expect(rpc.save).toHaveBeenCalledTimes(1);
+
+    await act(async () => { rerender({ userId: 'conta-b' }); });
+
+    expect(rpc.save).toHaveBeenCalledTimes(1);
+  });
+
+  it('não invalida a fila da conta ativa quando um render concorrente de outra conta é abandonado', async () => {
+    const pendingWrite = deferred<void>();
+    const suspendedForever = new Promise<never>(() => undefined);
+    rpc.save.mockReturnValueOnce(pendingWrite.promise).mockResolvedValueOnce(undefined);
+    const wrapper = ({ children }: { children: ReactNode }) => <Suspense fallback={null}>{children}</Suspense>;
+    const { result, rerender } = renderHook(({ userId, suspend }: { userId: string; suspend: boolean }) => {
+      const state = useOccasionFavorites({ ...options, userId });
+      if (suspend) throw suspendedForever;
+      return state;
+    }, {
+      initialProps: { userId: 'conta-a', suspend: false },
+      wrapper,
+    });
+    await act(async () => {});
+
+    await act(async () => { result.current.saveFavorite(date, true); });
+    await act(async () => { result.current.saveFavorite(date, false); });
+    expect(rpc.save).toHaveBeenCalledTimes(1);
+
+    await act(async () => { rerender({ userId: 'conta-b', suspend: true }); });
+    await act(async () => { pendingWrite.resolve(); });
+
+    expect(rpc.save).toHaveBeenCalledTimes(2);
+    expect(rpc.save).toHaveBeenLastCalledWith(date, false);
+  });
+
+  it('mantém a serialização física por conta e data ao alternar A para B e voltar para A', async () => {
+    const firstWrite = deferred<void>();
+    rpc.save.mockReturnValueOnce(firstWrite.promise).mockResolvedValueOnce(undefined);
+    const { result, rerender } = renderHook(({ userId }: { userId: string }) => (
+      useOccasionFavorites({ ...options, userId })
+    ), { initialProps: { userId: 'conta-a' } });
+    await act(async () => {});
+
+    await act(async () => { result.current.saveFavorite(date, true); });
+    await act(async () => { rerender({ userId: 'conta-b' }); });
+    await act(async () => { rerender({ userId: 'conta-a' }); });
+    await act(async () => { result.current.saveFavorite(date, false); });
+    expect(rpc.save).toHaveBeenCalledTimes(1);
+
+    await act(async () => { firstWrite.resolve(); });
+    expect(rpc.save).toHaveBeenCalledTimes(2);
+    expect(rpc.save).toHaveBeenLastCalledWith(date, false);
+  });
+
+  it('mantém a fila da mesma conta quando apenas a chave do catálogo muda', async () => {
+    const pendingWrite = deferred<void>();
+    rpc.save.mockReturnValueOnce(pendingWrite.promise).mockResolvedValueOnce(undefined);
+    const { result, rerender } = renderHook(({ knownOccasionIdsKey }: { knownOccasionIdsKey: string }) => (
+      useOccasionFavorites({ ...options, knownOccasionIdsKey })
+    ), { initialProps: { knownOccasionIdsKey: date } });
+    await act(async () => {});
+
+    await act(async () => { result.current.saveFavorite(date, true); });
+    await act(async () => { result.current.saveFavorite(date, false); });
+    expect(rpc.save).toHaveBeenCalledTimes(1);
+
+    await act(async () => { rerender({ knownOccasionIdsKey: `${date},black-friday` }); });
+    await act(async () => { pendingWrite.resolve(); });
+
+    expect(rpc.save).toHaveBeenCalledTimes(2);
+    expect(rpc.save).toHaveBeenLastCalledWith(date, false);
+  });
+
+  it('libera uma intenção concluída quando uma releitura posterior confirma o valor salvo', async () => {
+    const refresh = deferred<string[]>();
+    rpc.list.mockResolvedValueOnce([]).mockReturnValueOnce(refresh.promise);
+    const { result, rerender } = renderHook(({ knownOccasionIdsKey }: { knownOccasionIdsKey: string }) => (
+      useOccasionFavorites({ ...options, knownOccasionIdsKey })
+    ), { initialProps: { knownOccasionIdsKey: date } });
+    await act(async () => {});
+
+    await act(async () => { result.current.saveFavorite(date, true); });
+    await act(async () => { rerender({ knownOccasionIdsKey: `${date},black-friday` }); });
+    await act(async () => { refresh.resolve([date]); });
+
+    await act(async () => {
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: accountKey('conta-a'),
+        newValue: JSON.stringify([]),
+        storageArea: localStorage,
+      }));
+    });
+
+    expect(result.current.favorites.has(date)).toBe(false);
+  });
+
+  it('nunca expõe IDs removidos do catálogo enquanto a leitura remota está pendente', () => {
+    localStorage.setItem(accountKey('conta-a'), JSON.stringify([date, 'id-removido']));
+    rpc.list.mockReturnValue(new Promise<string[]>(() => undefined));
+    const { result } = renderHook(() => useOccasionFavorites(options));
+
+    expect([...result.current.favorites]).toEqual([date]);
+  });
+
+  it('mantém a remoção mais recente enquanto a adição anterior conclui após uma lista obsoleta', async () => {
+    const staleRead = deferred<string[]>();
+    const add = deferred<void>();
+    const remove = deferred<void>();
+    rpc.list.mockReturnValue(staleRead.promise);
+    rpc.save.mockReturnValueOnce(add.promise).mockReturnValueOnce(remove.promise);
+    const { result } = renderHook(() => useOccasionFavorites(options));
+
+    await act(async () => { result.current.saveFavorite(date, true); });
+    await act(async () => { result.current.saveFavorite(date, false); });
+    await act(async () => { staleRead.resolve([]); });
+    await act(async () => { add.resolve(); });
+
+    expect(rpc.save).toHaveBeenLastCalledWith(date, false);
+    expect(result.current.favorites.has(date)).toBe(false);
+    await act(async () => { remove.resolve(); });
+  });
+
+  it('restaura o último estado confirmado quando duas escritas consecutivas são recusadas', async () => {
+    const firstWrite = deferred<void>();
+    const secondWrite = deferred<void>();
+    rpc.save.mockReturnValueOnce(firstWrite.promise).mockReturnValueOnce(secondWrite.promise);
+    const { result } = renderHook(() => useOccasionFavorites(options));
+    await act(async () => {});
+    expect(result.current.favorites.has(date)).toBe(false);
+
+    await act(async () => { result.current.saveFavorite(date, true); });
+    await act(async () => { result.current.saveFavorite(date, false); });
+    await act(async () => { firstWrite.reject(new Error('primeira gravação recusada')); });
+    await act(async () => { secondWrite.reject(new Error('segunda gravação recusada')); });
+
+    expect(result.current.favorites.has(date)).toBe(false);
+  });
+
+  it('restaura uma confirmação anterior quando a intenção posterior é recusada', async () => {
+    const add = deferred<void>();
+    const remove = deferred<void>();
+    rpc.save.mockReturnValueOnce(add.promise).mockReturnValueOnce(remove.promise);
+    const { result } = renderHook(() => useOccasionFavorites(options));
+    await act(async () => {});
+
+    await act(async () => { result.current.saveFavorite(date, true); });
+    await act(async () => { result.current.saveFavorite(date, false); });
+    await act(async () => { add.resolve(); });
+    await act(async () => { remove.reject(new Error('remoção recusada')); });
+
     expect(result.current.favorites.has(date)).toBe(true);
   });
 });

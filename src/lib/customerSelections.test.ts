@@ -18,6 +18,10 @@ const saved: SavedSelection = {
   createdAt: '2026-09-22T12:00:00Z', updatedAt: '2026-09-22T12:00:00Z',
 };
 
+function response(value: unknown) {
+  return { abortSignal: vi.fn().mockResolvedValue(value) };
+}
+
 describe('seleções privadas da conta', () => {
   afterEach(() => rpc.mockReset());
 
@@ -33,9 +37,9 @@ describe('seleções privadas da conta', () => {
   });
 
   it('lista, cria e atualiza usando a versão recebida do servidor', async () => {
-    rpc.mockResolvedValueOnce({ data: { items: [saved] }, error: null })
-      .mockResolvedValueOnce({ data: { id: saved.id, version: 1 }, error: null })
-      .mockResolvedValueOnce({ data: { id: saved.id, version: 4 }, error: null });
+    rpc.mockReturnValueOnce(response({ data: { items: [saved] }, error: null }))
+      .mockReturnValueOnce(response({ data: { id: saved.id, version: 1 }, error: null }))
+      .mockReturnValueOnce(response({ data: { id: saved.id, version: 4 }, error: null }));
     const [selection] = await listMySelections(false);
     expect(selection).toMatchObject(saved);
     expect(rpc).toHaveBeenCalledWith('list_my_selections', { p_include_archived: false });
@@ -50,14 +54,14 @@ describe('seleções privadas da conta', () => {
   });
 
   it('não encobre conflito de edição concorrente e exige nova leitura', async () => {
-    rpc.mockResolvedValue({ data: null, error: { message: 'selection_version_conflict' } });
+    rpc.mockReturnValue(response({ data: null, error: { message: 'selection_version_conflict' } }));
     await expect(saveMySelection('Feira', [product], undefined, saved)).rejects.toThrow('selection_version_conflict');
     await expect(setMySelectionArchived(saved, true)).rejects.toThrow('selection_version_conflict');
     await expect(deleteMySelection(saved)).rejects.toThrow('selection_version_conflict');
   });
 
   it('não aceita resposta de seleção de outro formato', async () => {
-    rpc.mockResolvedValue({ data: { items: [{ ...saved, id: 'forged' }] }, error: null });
+    rpc.mockReturnValue(response({ data: { items: [{ ...saved, id: 'forged' }] }, error: null }));
     await expect(listMySelections()).rejects.toThrow('invalid_saved_selection');
   });
 });

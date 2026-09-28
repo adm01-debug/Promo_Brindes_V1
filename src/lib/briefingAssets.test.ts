@@ -30,7 +30,7 @@ describe('arquivos privados do briefing', () => {
       mimeType: 'image/png', sizeBytes: 2048, quoteRequestId: null, verifiedAt: '2026-09-22T12:00:00Z',
       createdAt: '2026-09-22T12:00:00Z', expiresAt: '2026-10-22T12:00:00Z',
     };
-    mocks.rpc.mockResolvedValue({ data: true, error: null });
+    mocks.rpc.mockReturnValue({ abortSignal: vi.fn().mockResolvedValue({ data: true, error: null }) });
 
     await deleteMyBriefingAsset(asset);
 

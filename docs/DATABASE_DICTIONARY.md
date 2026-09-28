@@ -1,6 +1,6 @@
 # Dicionário de dados — site_private (Etapa 35)
 
-Gerado por `npm run db:site:dictionary` a partir de `pg_description` no banco local, na versão do schema da migration mais recente (2026-09-27). Não editar à mão — a fonte de verdade é o comentário na migration (`comment on table`/`comment on column`); rode o script de novo depois de qualquer mudança de schema.
+Gerado por `npm run db:site:dictionary` a partir de `pg_description` no banco local, na versão do schema da migration mais recente (2026-09-28). Não editar à mão — a fonte de verdade é o comentário na migration (`comment on table`/`comment on column`); rode o script de novo depois de qualquer mudança de schema.
 
 ## Tabelas
 
@@ -384,6 +384,6 @@ Fila mínima de objetos privados para remoção pela Storage API; não contém c
 | `revoke_site_shared_selection` | `p_token uuid, p_management_token_hash text, p_identifier_hash text` | — |
 | `rls_auto_enable` | `` | Guarda DDL do banco isolado: novas tabelas no schema public nascem com RLS habilitada. Sem EXECUTE para roles da API. |
 | `save_my_selection` | `p_title text, p_references jsonb, p_campaign jsonb, p_id uuid, p_expected_version integer` | — |
-| `set_my_occasion_favorite` | `p_occasion_id text, p_saved boolean` | Altera um ID editorial do titular autenticado. EXECUTE somente para authenticated. |
+| `set_my_occasion_favorite` | `p_occasion_id text, p_saved boolean` | Adiciona ou remove data favorita da conta autenticada; rejeita estado ausente. |
 | `set_my_selection_archived` | `p_id uuid, p_expected_version integer, p_archived boolean` | — |
 | `site_notification_queue_health` | `` | Idade do job elegível mais antigo e contagem de exhausted por canal (Etapa 29); devolve só contagens e canais, sem conteúdo pessoal. |
