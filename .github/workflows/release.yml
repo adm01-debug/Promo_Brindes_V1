@@ -169,6 +169,7 @@ jobs:
             > candidate-deployment.json
           CANDIDATE_ID="$(jq -er '.id // .uid' candidate-deployment.json)"
           CANDIDATE_HOST="$(jq -er '.url | select(type == "string" and length > 0)' candidate-deployment.json)"
+          CANDIDATE_URL="$(node scripts/normalize-vercel-deployment-url.mjs "$CANDIDATE_HOST")"
           CANDIDATE_META="$(curl --silent --show-error --fail \
             -H "Authorization: Bearer $VERCEL_TOKEN" \
             "https://api.vercel.com/v13/deployments/$CANDIDATE_ID?teamId=$VERCEL_ORG_ID")"
@@ -178,7 +179,7 @@ jobs:
             || { echo '::error::Candidato Vercel não está READY ou não corresponde ao SHA testado.'; exit 1; }
           jq '{id:(.id // .uid),url,readyState,target,createdAt,meta:{githubCommitSha:.meta.githubCommitSha}}' \
             <<<"$CANDIDATE_META" > candidate-vercel-response.json
-          printf 'id=%s\nurl=https://%s\n' "$CANDIDATE_ID" "$CANDIDATE_HOST" >> "$GITHUB_OUTPUT"
+          printf 'id=%s\nurl=%s\n' "$CANDIDATE_ID" "$CANDIDATE_URL" >> "$GITHUB_OUTPUT"
       - name: Smoke the unpromoted production candidate
         env:
           SMOKE_BASE_URL: ${{ steps.candidate.outputs.url }}

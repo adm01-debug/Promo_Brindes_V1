@@ -230,4 +230,6 @@ Depois das correções descritas acima, a linha de trabalho foi novamente valida
 
 O rollback de release também registra a tentativa **antes** de chamar `vercel promote`. Assim, se o alias for alterado e o próprio comando ou qualquer validação posterior falhar, o workflow ainda restaura o deployment anteriormente capturado. Esta evidência valida o código e o banco local; integração na `main`, aplicação remota, novo deployment e smoke público continuam sendo etapas observáveis do release, não fatos antecipados pelo relatório.
 
+Na primeira execução operacional, o guard funcionou: o candidato permaneceu sem promoção porque a CLI da Vercel devolveu uma URL já iniciada por `https://` e o workflow acrescentou o protocolo novamente. O domínio público não mudou. A remediação passou a normalizar e validar estritamente a origem `*.vercel.app`, cobre hostname sem protocolo, URL completa e formatos hostis em teste automatizado, e aprovou o smoke integral usando a URL real do candidato bloqueado.
+
 **Critério final:** requisito + fonte + teste + SHA + ativação + evidência operacional/humana quando aplicável. Ausência de falhas na suíte não substitui essas dimensões. Esta auditoria entrega o diagnóstico e a rastreabilidade; não declara implementadas as correções que apenas recomenda.
