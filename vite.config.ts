@@ -55,8 +55,8 @@ export default defineConfig({
       // um limiar alto aqui puniria uma divisão de responsabilidade real entre
       // as duas suítes, não uma lacuna de teste.
       thresholds: {
-        'api/**': { statements: 70, branches: 60, functions: 75, lines: 80 },
-        'src/lib/**': { statements: 70, branches: 60, functions: 70, lines: 75 },
+        'api/**': { statements: 70, branches: 70, functions: 75, lines: 80 },
+        'src/lib/**': { statements: 70, branches: 70, functions: 70, lines: 75 },
       },
     },
   },
