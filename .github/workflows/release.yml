@@ -180,6 +180,20 @@ jobs:
           jq '{id:(.id // .uid),url,readyState,target,createdAt,meta:{githubCommitSha:.meta.githubCommitSha}}' \
             <<<"$CANDIDATE_META" > candidate-vercel-response.json
           printf 'id=%s\nurl=%s\n' "$CANDIDATE_ID" "$CANDIDATE_URL" >> "$GITHUB_OUTPUT"
+      - name: Enable Vercel Web Analytics for this project
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          # Sem analytics habilitado, /_vercel/insights/script.js retorna 404.
+          # HTTP 409 = já habilitado (idempotente, ok).
+          http_code=$(curl -sf -X POST \
+            "https://api.vercel.com/v1/projects/${VERCEL_PROJECT_ID}/analytics?teamId=${VERCEL_ORG_ID}" \
+            -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{}' \
+            -w "%{http_code}" -o /dev/null 2>&1 || true)
+          echo "Analytics enable response: ${http_code}"
+          [ "$http_code" = "200" ] || [ "$http_code" = "409" ] || { echo "::error::Falha ao habilitar analytics (${http_code})"; exit 1; }
       - name: Smoke the unpromoted production candidate
         env:
           SMOKE_BASE_URL: ${{ steps.candidate.outputs.url }}
