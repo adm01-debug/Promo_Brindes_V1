@@ -32,6 +32,9 @@ jobs:
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
         run: |
           set -euo pipefail
+          test -n "$VERCEL_TOKEN"      || { echo "::error::VERCEL_TOKEN secret ausente em Settings > Secrets > Actions"; exit 1; }
+          test -n "$VERCEL_SCOPE"      || { echo "::error::vars.VERCEL_SCOPE não configurado em Settings > Variables > Actions"; exit 1; }
+          test -n "$VERCEL_PROJECT_ID" || { echo "::error::vars.VERCEL_PROJECT_ID não configurado em Settings > Variables > Actions"; exit 1; }
           PROD_META="$(curl -fsSL \
             -H "Authorization: Bearer $VERCEL_TOKEN" \
             "https://api.vercel.com/v13/deployments?teamId=${VERCEL_SCOPE}&projectId=${VERCEL_PROJECT_ID}&target=production&limit=1" \
@@ -39,7 +42,7 @@ jobs:
           PROD_SHA="$(echo "$PROD_META" | jq -r '.sha')"
           PROD_URL="$(echo "$PROD_META" | jq -r '.url')"
           if [ -z "$PROD_SHA" ] || [ "$PROD_SHA" = "null" ]; then
-            echo "::error::Falha ao obter SHA de produção — VERCEL_TOKEN pode estar expirado ou projeto inválido"
+            echo "::error::Falha ao obter SHA de produção — verifique VERCEL_TOKEN (expirado?), vars.VERCEL_SCOPE e vars.VERCEL_PROJECT_ID"
             exit 1
           fi
           echo "sha=$PROD_SHA" >> "$GITHUB_OUTPUT"

@@ -186,12 +186,13 @@ jobs:
         run: |
           # Sem analytics habilitado, /_vercel/insights/script.js retorna 404.
           # HTTP 409 = já habilitado (idempotente, ok).
-          http_code=$(curl -sf -X POST \
+          # Usar -s (silent) sem -f: -f + 2>&1 corromperia http_code com stderr do curl no 409.
+          http_code=$(curl -s -X POST \
             "https://api.vercel.com/v1/projects/${VERCEL_PROJECT_ID}/analytics?teamId=${VERCEL_ORG_ID}" \
             -H "Authorization: Bearer ${VERCEL_TOKEN}" \
             -H "Content-Type: application/json" \
             -d '{}' \
-            -w "%{http_code}" -o /dev/null 2>&1 || true)
+            -w "%{http_code}" -o /dev/null)
           echo "Analytics enable response: ${http_code}"
           [ "$http_code" = "200" ] || [ "$http_code" = "409" ] || { echo "::error::Falha ao habilitar analytics (${http_code})"; exit 1; }
       - name: Smoke the unpromoted production candidate
