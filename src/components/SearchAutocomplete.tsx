@@ -73,11 +73,17 @@ export function SearchAutocomplete({
 
   const formClass = variant === 'hero' ? 'hero-search smart-search' : variant === 'catalog' ? 'catalog-search smart-search' : 'header-search smart-search';
   const submitClass = variant === 'catalog' ? 'catalog-search__submit' : undefined;
+  const landmarkLabel = variant === 'hero'
+    ? 'Busca principal da página inicial'
+    : variant === 'catalog'
+      ? 'Busca principal do catálogo'
+      : 'Busca no cabeçalho';
 
   return (
     <form
       className={formClass}
       role="search"
+      aria-label={landmarkLabel}
       onSubmit={submit}
       onFocus={() => setOpen(true)}
       onBlur={(event) => {
