@@ -1147,7 +1147,7 @@ test('galeria com múltiplas fotos anuncia controles válidos e não cria viola�
   expect(result.violations, 'Violações na galeria de múltiplas fotos').toEqual([]);
 });
 
-test('perfil de novidades apresenta Tendências em toda a interface', async ({ page }) => {
+test('perfil de novidades apresenta Tendências em toda a interface', async ({ page }, testInfo) => {
   await page.goto('/catalogo?perfil=novos');
   await waitForRoute(page);
 
@@ -1155,6 +1155,13 @@ test('perfil de novidades apresenta Tendências em toda a interface', async ({ p
   await expect(page.locator('.site-header').locator('a[href="/catalogo?perfil=novos"]')).toHaveText('Tendências');
   await expect(page.locator('.site-footer').locator('a[href="/catalogo?perfil=novos"]')).toHaveText('Tendências');
   await expect(page.locator('body')).not.toContainText(/Novas tendências/i);
+  await expect(page.getByRole('search', { name: 'Busca principal do catálogo' })).toBeVisible();
+  if (!testInfo.project.name.includes('mobile')) {
+    await expect(page.getByRole('search', { name: 'Busca no cabeçalho' })).toBeVisible();
+    await expect(page.getByRole('complementary', { name: 'Atendimento rápido' })).toBeVisible();
+  }
+  const accessibility = await new AxeBuilder({ page }).analyze();
+  expect(accessibility.violations, 'Violações Axe no perfil Tendências').toEqual([]);
 });
 
 test('navegação de catálogo por query fecha menu e reposiciona resultados', async ({ page }, testInfo) => {

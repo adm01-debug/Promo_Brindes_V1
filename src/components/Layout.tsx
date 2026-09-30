@@ -105,12 +105,12 @@ export function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="site-shell">
       <a className="skip-link" href="#conteudo">Pular para o conteúdo</a>
-      <div className="utility-bar">
+      <aside className="utility-bar" aria-label="Atendimento rápido">
         <div className="container utility-bar__inner">
           <span><i aria-hidden="true" /> Estratégia de marca em forma de presente</span>
           <div className="utility-bar__actions">{customerAreaEnabled && <Link to="/minha-conta"><UserRound size={14} /> Meus orçamentos</Link>}<a href="tel:+551146375517">Briefing urgente? (11) 4637-5517</a></div>
         </div>
-      </div>
+      </aside>
       <header className="site-header">
         <div className="container site-header__inner">
           <Link to="/" className="brand" aria-label="Promo Brindes — início">
