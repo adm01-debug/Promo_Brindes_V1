@@ -88,6 +88,9 @@ export const catalogCollections: CatalogCollection[] = [
     theme: 'products',
     href: '/catalogo?perfil=novos',
     tags: ['Novidades', 'Tendências', 'Lançamentos'],
+    // Compatibilidade de descoberta: os nomes anteriores continuam aceitos
+    // apenas na busca, sem reaparecer no conteúdo apresentado ao cliente.
+    searchAliases: ['novas tendências', 'novos drops'],
     palette: { background: '#f6f1e7', accent: '#4844ff', ink: '#121511' },
     edition: 'Atualização contínua',
     coverQuery: { profile: 'new', pageSize: 1, sort: 'newest' },

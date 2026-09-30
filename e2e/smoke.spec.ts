@@ -235,6 +235,7 @@ test('biblioteca de catálogos transforma contexto em coleções compartilhávei
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /\/catalogos$/);
   await expect(page.getByText('10 catálogos encontrados')).toBeVisible();
   await expect(page.locator('.catalog-card')).toHaveCount(10);
+  await expect(page.locator('body')).not.toContainText(/Novas tendências/i);
   if (testInfo.project.name.includes('mobile')) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   }
@@ -255,6 +256,11 @@ test('biblioteca de catálogos transforma contexto em coleções compartilhávei
   await page.getByRole('button', { name: 'Limpar filtros' }).click();
   await expect(page).toHaveURL(/\/catalogos$/);
   await expect(page.locator('.catalog-card')).toHaveCount(10);
+  await page.getByLabel('O que você está planejando?').fill('novas tendências');
+  await page.locator('.catalog-search').getByRole('button', { name: 'Buscar' }).click();
+  await expect(page.locator('.catalog-card')).toHaveCount(1);
+  await expect(page.getByRole('heading', { name: 'Tendências' })).toBeVisible();
+  await page.getByRole('button', { name: 'Limpar filtros' }).click();
   const newTrends = page.locator('.catalog-card').filter({ has: page.getByRole('heading', { name: 'Tendências' }) });
   await newTrends.getByRole('button', { name: 'Compartilhar Tendências' }).click();
   await expect(newTrends.getByRole('button', { name: 'Compartilhar Tendências' })).toContainText('Link copiado');
@@ -1139,6 +1145,16 @@ test('galeria com múltiplas fotos anuncia controles válidos e não cria viola�
   await expect(controls.getByRole('button', { name: 'Ver foto 2' })).toHaveAttribute('aria-pressed', 'true');
   const result = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
   expect(result.violations, 'Violações na galeria de múltiplas fotos').toEqual([]);
+});
+
+test('perfil de novidades apresenta Tendências em toda a interface', async ({ page }) => {
+  await page.goto('/catalogo?perfil=novos');
+  await waitForRoute(page);
+
+  await expect(page.locator('#catalog-results-title')).toHaveText('Tendências');
+  await expect(page.locator('.site-header').locator('a[href="/catalogo?perfil=novos"]')).toHaveText('Tendências');
+  await expect(page.locator('.site-footer').locator('a[href="/catalogo?perfil=novos"]')).toHaveText('Tendências');
+  await expect(page.locator('body')).not.toContainText(/Novas tendências/i);
 });
 
 test('navegação de catálogo por query fecha menu e reposiciona resultados', async ({ page }, testInfo) => {
