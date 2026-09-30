@@ -10,7 +10,13 @@ const verifier = resolve('scripts/verify-vercel-artifact.mjs');
 const workspaces: string[] = [];
 const shellPath = 'api/_lib/app-shell.generated.html';
 
-function fixture(options: { missingShellFrom?: string; mismatchedHtml?: boolean; noShellDeclaration?: boolean } = {}) {
+function fixture(options: {
+  includeFilesAsArray?: boolean;
+  missingFunctionFromArtifact?: string;
+  missingShellFrom?: string;
+  mismatchedHtml?: boolean;
+  noShellDeclaration?: boolean;
+} = {}) {
   const root = mkdtempSync(join(tmpdir(), 'promo-vercel-artifact-'));
   workspaces.push(root);
   const pageFunctions = ['site-page', 'product-page', 'not-found'];
@@ -22,6 +28,7 @@ function fixture(options: { missingShellFrom?: string; mismatchedHtml?: boolean;
   writeFileSync(join(root, '.vercel', 'output', 'static', 'index.html'), options.mismatchedHtml ? '<main>outro</main>' : '<main>shell</main>');
 
   for (const name of allFunctions) {
+    if (options.missingFunctionFromArtifact === name) continue;
     const functionDir = join(root, '.vercel', 'output', 'functions', 'api', `${name}.func`);
     mkdirSync(functionDir, { recursive: true });
     const mapsShell = pageFunctions.includes(name) && options.missingShellFrom !== name;
@@ -33,7 +40,7 @@ function fixture(options: { missingShellFrom?: string; mismatchedHtml?: boolean;
   const functions = Object.fromEntries(allFunctions.map((name) => [
     `api/${name}.ts`,
     pageFunctions.includes(name) && !options.noShellDeclaration
-      ? { maxDuration: 15, includeFiles: shellPath }
+      ? { maxDuration: 15, includeFiles: options.includeFilesAsArray ? [shellPath] : shellPath }
       : { maxDuration: 15 },
   ]));
   writeFileSync(join(root, 'vercel.json'), JSON.stringify({ functions }));
@@ -55,6 +62,20 @@ describe('verificador do artefato Vercel', () => {
     expect(result.status).toBe(0);
     expect(result.stdout).toContain('3 funções de página');
     expect(result.stdout).toContain('5 funções no total');
+  });
+
+  it('aceita includeFiles como lista sem perder o contrato do app shell', () => {
+    const result = verify(fixture({ includeFilesAsArray: true }));
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain('3 funções de página');
+  });
+
+  it('falha quando uma função de página declarada não existe no artefato', () => {
+    const result = verify(fixture({ missingFunctionFromArtifact: 'product-page' }));
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('função product-page, que exige o app shell, não foi encontrada');
   });
 
   it('falha quando uma função de página declarada não empacota o app shell', () => {

@@ -23,6 +23,13 @@ describe('biblioteca de catálogos', () => {
     expect(resolveCatalogEditorialId('colecao-inexistente')).toBeNull();
   });
 
+  it('mantém os nomes anteriores somente como aliases internos de busca', () => {
+    for (const query of ['novas tendências', 'novos drops']) {
+      expect(filterCatalogCollections(catalogCollections, query, 'all').map(({ id }) => id))
+        .toEqual(['novas-tendencias']);
+    }
+  });
+
   it('explica o formato antes de a pessoa abrir o material', () => {
     expect(catalogFormatLabel('online')).toBe('Coleção online');
     expect(catalogFormatLabel('pdf')).toBe('Catálogo em PDF');
