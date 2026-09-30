@@ -255,18 +255,18 @@ test('biblioteca de catálogos transforma contexto em coleções compartilhávei
   await page.getByRole('button', { name: 'Limpar filtros' }).click();
   await expect(page).toHaveURL(/\/catalogos$/);
   await expect(page.locator('.catalog-card')).toHaveCount(10);
-  const newTrends = page.locator('.catalog-card').filter({ has: page.getByRole('heading', { name: 'Novas tendências' }) });
-  await newTrends.getByRole('button', { name: 'Compartilhar Novas tendências' }).click();
-  await expect(newTrends.getByRole('button', { name: 'Compartilhar Novas tendências' })).toContainText('Link copiado');
+  const newTrends = page.locator('.catalog-card').filter({ has: page.getByRole('heading', { name: 'Tendências' }) });
+  await newTrends.getByRole('button', { name: 'Compartilhar Tendências' }).click();
+  await expect(newTrends.getByRole('button', { name: 'Compartilhar Tendências' })).toContainText('Link copiado');
   const sharedCatalogUrl = await page.evaluate(() => navigator.clipboard.readText());
   expect(sharedCatalogUrl).toMatch(/\/catalogos\?colecao=novas-tendencias$/);
   await page.goto(sharedCatalogUrl);
   await waitForRoute(page);
-  await expect(page.locator('.catalog-featured').getByRole('heading', { name: 'Novas tendências' })).toBeVisible();
+  await expect(page.locator('.catalog-featured').getByRole('heading', { name: 'Tendências' })).toBeVisible();
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /\/catalogos\?colecao=novas-tendencias$/);
   await page.goto('/catalogos?colecao=novos-drops');
   await waitForRoute(page);
-  await expect(page.locator('.catalog-featured').getByRole('heading', { name: 'Novas tendências' })).toBeVisible();
+  await expect(page.locator('.catalog-featured').getByRole('heading', { name: 'Tendências' })).toBeVisible();
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /\/catalogos\?colecao=novas-tendencias$/);
   await page.locator('.catalog-card').filter({ has: page.getByRole('heading', { name: 'Onboarding com cultura' }) }).getByRole('link', { name: /Explorar coleção/ }).click();
   await expect(page).toHaveURL(/\/catalogo\?momento=onboarding.*publico=colaboradores/);
@@ -1146,10 +1146,11 @@ test('navegação de catálogo por query fecha menu e reposiciona resultados', a
   await page.goto('/catalogo');
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   await page.getByRole('button', { name: 'Abrir menu' }).click();
-  await page.getByRole('navigation', { name: 'Navegação móvel' }).getByRole('link', { name: 'Novas tendências' }).click();
+  await page.getByRole('navigation', { name: 'Navegação móvel' }).getByRole('link', { name: 'Tendências' }).click();
   await expect(page).toHaveURL(/perfil=novos/);
   await expect(page.getByRole('navigation', { name: 'Navegação móvel' })).toBeHidden();
   await expect(page.locator('#catalog-results-title')).toBeInViewport();
+  await expect(page.locator('#catalog-results-title')).toHaveText('Tendências');
 });
 
 test('voltar ao catálogo restaura a leitura mesmo após conteúdo assíncrono', async ({ page }) => {

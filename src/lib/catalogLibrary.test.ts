@@ -17,7 +17,7 @@ describe('biblioteca de catálogos', () => {
   });
 
   it('usa o nome atual em links novos e mantém links antigos da coleção', () => {
-    expect(catalogCollections.find(({ id }) => id === 'novas-tendencias')?.title).toBe('Novas tendências');
+    expect(catalogCollections.find(({ id }) => id === 'novas-tendencias')?.title).toBe('Tendências');
     expect(resolveCatalogEditorialId('novas-tendencias')).toBe('novas-tendencias');
     expect(resolveCatalogEditorialId('novos-drops')).toBe('novas-tendencias');
     expect(resolveCatalogEditorialId('colecao-inexistente')).toBeNull();
