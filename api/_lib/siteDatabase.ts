@@ -5,6 +5,7 @@ import type { LeadKind, NormalizedLeadPayload } from './contracts.js';
 const SITE_DATABASE_PROJECT = 'xlzmclcjdncjfdrjxclt';
 const INTERNAL_DATABASE_PROJECT = 'doufsxqlfjyuvxuezpln';
 export const REQUEST_TIMEOUT_MS = 10_000;
+export const LEAD_PREFLIGHT_TIMEOUT_MS = 2_500;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export class SiteDatabaseError extends Error {
@@ -156,6 +157,47 @@ function responseErrorDetail(value: unknown): string {
   const message = typeof result?.message === 'string' ? result.message.slice(0, 160) : '';
   const code = typeof result?.code === 'string' ? result.code.slice(0, 80) : '';
   return `${message} ${code}`;
+}
+
+export async function enforceLeadPreflightRateLimit(
+  kind: LeadKind,
+  clientRequestId: string,
+  metadata: RequestMetadata,
+  externalSignal?: AbortSignal,
+) {
+  const config = getSiteDatabaseConfig();
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), LEAD_PREFLIGHT_TIMEOUT_MS);
+  const signal = externalSignal ? AbortSignal.any([controller.signal, externalSignal]) : controller.signal;
+  try {
+    const response = await fetch(`${config.url}/rest/v1/rpc/preflight_site_lead_request`, {
+      method: 'POST',
+      headers: {
+        apikey: config.serviceCredential,
+        Authorization: `Bearer ${config.serviceCredential}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({
+        p_request_kind: kind,
+        p_identifier_hash: identifierHash(metadata.ip, config.requestHashSalt),
+        p_client_request_id: clientRequestId,
+      }),
+      signal,
+    });
+    if (!response.ok) {
+      const result = await response.json().catch(() => null) as unknown;
+      if (responseErrorDetail(result).includes('rate_limit_exceeded')) {
+        throw new SiteDatabaseError('Muitas tentativas em pouco tempo. Aguarde alguns minutos.', 'rate_limit_exceeded', 429);
+      }
+      throw new SiteDatabaseError('Não conseguimos validar sua solicitação agora. Tente novamente.', 'database_unavailable');
+    }
+  } catch (error) {
+    if (error instanceof SiteDatabaseError) throw error;
+    throw new SiteDatabaseError('Não conseguimos validar sua solicitação agora. Tente novamente.', 'database_unavailable');
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 export async function persistLead(kind: LeadKind, payload: NormalizedLeadPayload, metadata: RequestMetadata, externalSignal?: AbortSignal) {

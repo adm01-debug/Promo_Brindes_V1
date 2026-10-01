@@ -89,9 +89,12 @@ function catalogResponse() {
 }
 
 function quoteFetchMock(rpcBody: string) {
-  return vi.fn(async (url: string | URL, _init?: RequestInit) => String(url).includes('/v_site_products_public')
-    ? catalogResponse()
-    : new Response(rpcBody, { status: 200 }));
+  return vi.fn(async (url: string | URL, _init?: RequestInit) => {
+    if (String(url).includes('/preflight_site_lead_request')) return new Response('true', { status: 200 });
+    return String(url).includes('/v_site_products_public')
+      ? catalogResponse()
+      : new Response(rpcBody, { status: 200 });
+  });
 }
 
 describe('APIs de leads isoladas', () => {
@@ -118,7 +121,7 @@ describe('APIs de leads isoladas', () => {
 
     expect(result.statusCode).toBe(201);
     expect(result.body).toEqual({ requestId: REQUEST_ID, duplicate: false });
-    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const [url, init] = fetchMock.mock.calls.find(([calledUrl]) => String(calledUrl).includes('/create_site_contact_request')) as [string, RequestInit];
     expect(url).toBe('https://xlzmclcjdncjfdrjxclt.supabase.co/rest/v1/rpc/create_site_contact_request');
     expect(init.headers).toMatchObject({ apikey: expect.stringMatching(/^sb_secret_/) });
     const sent = JSON.parse(String(init.body));
@@ -168,7 +171,9 @@ describe('APIs de leads isoladas', () => {
 
   it('encerra uma dependência que não responde antes do limite da função', async () => {
     configureSiteDatabase();
-    vi.stubGlobal('fetch', vi.fn((_url: string | URL, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+    vi.stubGlobal('fetch', vi.fn((url: string | URL, init?: RequestInit) => String(url).includes('/preflight_site_lead_request')
+      ? Promise.resolve(new Response('true', { status: 200 }))
+      : new Promise<Response>((_resolve, reject) => {
       init?.signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true });
     })));
     const { result, response } = responseDouble();
@@ -179,6 +184,44 @@ describe('APIs de leads isoladas', () => {
 
     expect(result.statusCode).toBe(503);
     expect(result.body).toMatchObject({ error: 'catalog_validation_unavailable' });
+  });
+
+  it('encerra o preflight indisponível em 2,5 segundos sem consultar o catálogo', async () => {
+    configureSiteDatabase();
+    const fetchMock = vi.fn((_url: string | URL, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+      init?.signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true });
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    const pending = quoteHandler(request(quotePayload), response);
+
+    await vi.advanceTimersByTimeAsync(2_500);
+    await pending;
+
+    expect(result.statusCode).toBe(503);
+    expect(result.body).toMatchObject({ error: 'database_unavailable' });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain('/preflight_site_lead_request');
+  });
+
+  it('recusa a rajada antes de consultar o catálogo', async () => {
+    configureSiteDatabase();
+    const fetchMock = vi.fn(async (url: string | URL) => {
+      if (String(url).includes('/preflight_site_lead_request')) {
+        return new Response(JSON.stringify({ message: 'rate_limit_exceeded', code: 'P0001' }), { status: 400 });
+      }
+      throw new Error(`chamada inesperada após rate limit: ${String(url)}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+
+    await quoteHandler(request(quotePayload), response);
+
+    expect(result.statusCode).toBe(429);
+    expect(result.body).toMatchObject({ error: 'rate_limit_exceeded' });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain('/preflight_site_lead_request');
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/v_site_products_public'))).toBe(false);
   });
 
   it('preserva a composição do kit e rejeita aritmética adulterada', async () => {
@@ -328,8 +371,24 @@ describe('APIs de leads isoladas', () => {
       'x-forwarded-for': '198.51.100.99',
       'x-vercel-forwarded-for': '203.0.113.42',
     } }), response);
+    const preflightCall = fetchMock.mock.calls.find(([url]) => String(url).includes('/preflight_site_lead_request'));
     const rpcCall = fetchMock.mock.calls.find(([url]) => String(url).includes('/create_site_quote_request'));
-    expect(JSON.parse(String(rpcCall?.[1]?.body)).p_request_meta.identifierHash).toMatch(/^[0-9a-f]{64}$/);
+    const preflightBody = JSON.parse(String(preflightCall?.[1]?.body));
+    const finalBody = JSON.parse(String(rpcCall?.[1]?.body));
+    expect(preflightBody.p_identifier_hash).toMatch(/^[0-9a-f]{64}$/);
+    expect(preflightBody.p_identifier_hash).toBe(finalBody.p_request_meta.identifierHash);
+    expect(preflightBody.p_identifier_hash).not.toContain('203.0.113.42');
+    expect(preflightBody.p_client_request_id).toBe(quotePayload.clientRequestId);
+  });
+
+  it('não deixa timer pendente ao rejeitar método diferente de POST', async () => {
+    const { result, response } = responseDouble();
+
+    await contactHandler(request(undefined, { method: 'GET' }), response);
+
+    expect(result.statusCode).toBe(405);
+    expect(result.headers.get('Allow')).toBe('POST');
+    expect(vi.getTimerCount()).toBe(0);
   });
 
   it('nunca envia a secret key para um host que não seja Supabase', async () => {
@@ -389,7 +448,9 @@ describe('APIs de leads isoladas', () => {
     }), response);
 
     expect(result.statusCode).toBe(201);
-    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/preflight_site_lead_request'))).toBe(true);
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/create_site_contact_request'))).toBe(true);
   });
 
   it('rejeita instante anterior ao limite retroativo antes de acessar o banco', async () => {

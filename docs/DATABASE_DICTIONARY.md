@@ -1,6 +1,6 @@
 # Dicionário de dados — site_private (Etapa 35)
 
-Gerado por `npm run db:site:dictionary` a partir de `pg_description` no banco local, na versão do schema da migration mais recente (2026-09-28). Não editar à mão — a fonte de verdade é o comentário na migration (`comment on table`/`comment on column`); rode o script de novo depois de qualquer mudança de schema.
+Gerado por `npm run db:site:dictionary` a partir de `pg_description` no banco local, na versão do schema da migration mais recente (2026-10-01). Não editar à mão — a fonte de verdade é o comentário na migration (`comment on table`/`comment on column`); rode o script de novo depois de qualquer mudança de schema.
 
 ## Tabelas
 
@@ -375,6 +375,7 @@ Fila mínima de objetos privados para remoção pela Storage API; não contém c
 | `list_my_selections` | `p_include_archived boolean` | — |
 | `matches_my_briefing_asset_upload` | `p_path text, p_metadata jsonb` | Autoriza apenas o primeiro upload de uma reserva ainda não verificada; conteúdo validado não pode ser substituído pelo titular. |
 | `owns_my_briefing_asset_path` | `p_path text` | — |
+| `preflight_site_lead_request` | `p_request_kind text, p_identifier_hash text, p_client_request_id text` | Primeira camada distribuída de rate limit para leads, executada antes da consulta ao catálogo. Retorna false para client_request_id já persistido e true quando consumiu o bucket. |
 | `purge_archived_customer_selections` | `p_batch_size integer` | — |
 | `purge_site_admin_audit_logs` | `p_retention_days integer, p_batch_size integer` | Remove em lotes trilhas administrativas além da janela configurada; padrão 400 dias. |
 | `record_site_notification_dispatch_started` | `p_delivery_id uuid, p_lease_token uuid` | Persiste intenção WhatsApp antes da chamada externa; sem confirmação do marcador, a Meta não é chamada. Um envio incerto exige reconciliação humana e nunca é reenviado cegamente. |

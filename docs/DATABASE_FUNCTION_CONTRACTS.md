@@ -34,6 +34,7 @@ Todas usam `errcode = '22023'` (invalid_text_representation, reaproveitado como
 | `identity_erased` (`errcode 42501`) | `claim_my_quote_requests` | Impede que uma conta recriada reivindique pedidos vinculados a uma identidade já apagada por solicitação LGPD; não expõe o hash-túmulo ao cliente | genérico |
 | `quote_not_found` | `request_my_quote_adjustment` | **Não mapeada** | genérico |
 | `invalid_rate_limit_input` | `site_private.consume_rate_limit` | Interno — nunca deveria propagar a um chamador HTTP | n/a |
+| `invalid_lead_preflight_input` | `preflight_site_lead_request` | Interno — entrada é montada pelo backend após validação | n/a |
 | `invalid_notification_channel` | `claim_site_quote_notification` | Só chamada pelo backend (`api/notifications.ts`), tratada como falha de infraestrutura | 500 (log + retry pelo cron) |
 | `invalid_notification_claim_input` | `claim_site_notification_deliveries` | Idem | 500 |
 | `invalid_notification_finalize_input` | `finalize_site_notification_delivery` | Idem | 500 |
