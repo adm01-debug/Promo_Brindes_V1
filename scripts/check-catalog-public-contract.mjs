@@ -91,6 +91,13 @@ function sameValues(left, right) {
   return left.length === right.length && left.every((value, index) => value === right[index]);
 }
 
+function exactCount(response, resource) {
+  const contentRange = response.headers.get('content-range');
+  const total = Number(contentRange?.split('/')[1]);
+  assert(Number.isSafeInteger(total) && total >= 0, `Contrato inconclusivo: ${resource} não informou contagem exata.`);
+  return total;
+}
+
 function nestedForbiddenKeys(value, path = '') {
   if (Array.isArray(value)) return value.flatMap((item, index) => nestedForbiddenKeys(item, `${path}[${index}]`));
   if (value === null || typeof value !== 'object') return [];
@@ -155,6 +162,10 @@ export function validateCatalogPublicContract(rows, { seenProductIds = new Set()
     for (const column of NUMBER_COLUMNS) {
       assert(row[column] === null || (typeof row[column] === 'number' && Number.isFinite(row[column])), `Contrato inválido: ${column} do produto ${index + 1} não é number/null.`);
     }
+    assert(
+      row.min_quantity === null || (Number.isInteger(row.min_quantity) && row.min_quantity >= 1 && row.min_quantity <= 999_999),
+      `Contrato inválido: min_quantity do produto ${index + 1} está fora do intervalo cotável.`,
+    );
     for (const column of NULLABLE_TEXT_COLUMNS) {
       assert(row[column] === null || typeof row[column] === 'string', `Contrato inválido: ${column} do produto ${index + 1} não é string/null.`);
     }
@@ -211,8 +222,19 @@ function catalogConfig() {
 
 export async function checkCatalogPublicContract(fetchImplementation = fetch) {
   const { origin, key } = catalogConfig();
+  const baselineUrl = new URL('/rest/v1/v_products_public', origin);
+  baselineUrl.searchParams.set('select', 'id');
+  baselineUrl.searchParams.set('is_active', 'eq.true');
+  baselineUrl.searchParams.set('limit', '1');
+  const baselineResponse = await fetchImplementation(baselineUrl, {
+    headers: { apikey: key, Authorization: `Bearer ${key}`, Accept: 'application/json', Prefer: 'count=exact' },
+    signal: AbortSignal.timeout(10_000),
+  });
+  if (!baselineResponse.ok) throw new Error(`Contrato inconclusivo: v_products_public respondeu HTTP ${baselineResponse.status}.`);
+  const baselineTotal = exactCount(baselineResponse, 'v_products_public');
   let inspectedRows = 0;
   let lastId = '';
+  let siteTotal = null;
   const seenProductIds = new Set();
   const warnings = { blankSwatchNames: 0, duplicateSwatchNames: 0 };
 
@@ -227,14 +249,17 @@ export async function checkCatalogPublicContract(fetchImplementation = fetch) {
     // enquanto a leitura percorre as páginas e funciona mesmo com max-rows baixo.
     if (lastId) url.searchParams.set('id', `gt.${lastId}`);
     const response = await fetchImplementation(url, {
-      headers: { apikey: key, Authorization: `Bearer ${key}`, Accept: 'application/json' },
+      headers: { apikey: key, Authorization: `Bearer ${key}`, Accept: 'application/json', Prefer: 'count=exact' },
       signal: AbortSignal.timeout(10_000),
     });
     if (!response.ok) throw new Error(`Contrato indisponível: v_site_products_public respondeu HTTP ${response.status}.`);
+    if (siteTotal === null) siteTotal = exactCount(response, 'v_site_products_public');
     const rows = await response.json().catch(() => null);
     assert(Array.isArray(rows), 'Contrato inválido: a resposta do catálogo não é uma lista.');
     if (rows.length === 0) {
       assert(inspectedRows > 0, 'Contrato inconclusivo: a origem não devolveu produto algum para inspeção.');
+      assert(inspectedRows === siteTotal, `Contrato inválido: a paginação inspecionou ${inspectedRows} de ${siteTotal} linhas públicas.`);
+      assert(siteTotal === baselineTotal, `Contrato incompleto: v_site_products_public expõe ${siteTotal} de ${baselineTotal} produtos ativos da referência pública.`);
       return { inspectedRows, columns: EXPECTED_CATALOG_COLUMNS.length, warnings };
     }
     const result = validateCatalogPublicContract(rows, { seenProductIds });
