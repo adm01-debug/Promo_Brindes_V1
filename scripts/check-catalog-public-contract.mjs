@@ -95,6 +95,7 @@ export function validateCatalogPublicContract(rows) {
     assert(typeof row.slug === 'string' && row.slug.trim().length > 0, `Contrato inválido: produto ${index + 1} sem slug.`);
     assert(Array.isArray(row.images), `Contrato inválido: images do produto ${index + 1} não é lista.`);
     assert(Array.isArray(row.materials), `Contrato inválido: materials do produto ${index + 1} não é lista.`);
+    assert(Array.isArray(row.colors), `Contrato inválido: colors do produto ${index + 1} não é lista.`);
     assert(Array.isArray(row.color_swatches), `Contrato inválido: color_swatches do produto ${index + 1} não é lista.`);
 
     for (const column of BOOLEAN_COLUMNS) {
@@ -118,7 +119,16 @@ function catalogConfig() {
   const rawUrl = process.env.VITE_SUPABASE_URL?.trim();
   const key = process.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
   assert(rawUrl, 'VITE_SUPABASE_URL ausente.');
-  assert(key && !key.startsWith('sb_secret_'), 'VITE_SUPABASE_PUBLISHABLE_KEY ausente ou privilegiada.');
+  let isPublicKey = Boolean(key?.startsWith('sb_publishable_'));
+  if (!isPublicKey && key?.split('.').length === 3) {
+    try {
+      const payload = JSON.parse(Buffer.from(key.split('.')[1] ?? '', 'base64url').toString('utf8'));
+      isPublicKey = payload?.role === 'anon';
+    } catch {
+      isPublicKey = false;
+    }
+  }
+  assert(isPublicKey, 'VITE_SUPABASE_PUBLISHABLE_KEY ausente ou privilegiada.');
   const origin = new URL(rawUrl).origin;
   assert(origin === CANONICAL_CATALOG_ORIGIN, `Alvo recusado: esperado ${CANONICAL_CATALOG_ORIGIN}; recebido ${origin}.`);
   return { origin, key };

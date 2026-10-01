@@ -16,6 +16,7 @@ function validRow(overrides = {}) {
     slug: 'mochila',
     images: [],
     materials: [],
+    colors: [],
     color_swatches: [{ color_name: 'Verde', color_hex: '#00aa66', image_url: null }],
     ...overrides,
   };
@@ -44,7 +45,19 @@ test('recusa identificador, arrays e swatches incompatíveis', () => {
   assert.throws(() => validateCatalogPublicContract([validRow({ color_swatches: [{ color_name: 'Azul', variant_id: 'interno' }] })]), /swatch.*expõe/);
 });
 
-test('consulta apenas a origem canônica com chave pública e timeout', async () => {
+function restoreEnvAfter(t) {
+  const originalUrl = process.env.VITE_SUPABASE_URL;
+  const originalKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  t.after(() => {
+    if (originalUrl === undefined) delete process.env.VITE_SUPABASE_URL;
+    else process.env.VITE_SUPABASE_URL = originalUrl;
+    if (originalKey === undefined) delete process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+    else process.env.VITE_SUPABASE_PUBLISHABLE_KEY = originalKey;
+  });
+}
+
+test('consulta apenas a origem canônica com chave pública e timeout', async (t) => {
+  restoreEnvAfter(t);
   process.env.VITE_SUPABASE_URL = 'https://doufsxqlfjyuvxuezpln.supabase.co';
   process.env.VITE_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fixture';
   const fetchMock = async (url, init) => {
@@ -59,11 +72,26 @@ test('consulta apenas a origem canônica com chave pública e timeout', async ()
   assert.deepEqual(await checkCatalogPublicContract(fetchMock), { inspectedRows: 1, columns: 36 });
 });
 
-test('falha fechado para outro projeto ou chave privilegiada', async () => {
+test('aceita JWT legado somente quando a role declarada é anon', async (t) => {
+  restoreEnvAfter(t);
+  process.env.VITE_SUPABASE_URL = 'https://doufsxqlfjyuvxuezpln.supabase.co';
+  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
+  const payload = Buffer.from(JSON.stringify({ role: 'anon' })).toString('base64url');
+  process.env.VITE_SUPABASE_PUBLISHABLE_KEY = `${header}.${payload}.fixture`;
+  const fetchMock = async () => new Response(JSON.stringify([validRow()]), { status: 200 });
+  assert.deepEqual(await checkCatalogPublicContract(fetchMock), { inspectedRows: 1, columns: 36 });
+});
+
+test('falha fechado para outro projeto ou chave privilegiada', async (t) => {
+  restoreEnvAfter(t);
   process.env.VITE_SUPABASE_URL = 'https://xlzmclcjdncjfdrjxclt.supabase.co';
   process.env.VITE_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fixture';
   await assert.rejects(() => checkCatalogPublicContract(), /Alvo recusado/);
   process.env.VITE_SUPABASE_URL = 'https://doufsxqlfjyuvxuezpln.supabase.co';
   process.env.VITE_SUPABASE_PUBLISHABLE_KEY = 'sb_secret_fixture';
+  await assert.rejects(() => checkCatalogPublicContract(), /ausente ou privilegiada/);
+  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
+  const payload = Buffer.from(JSON.stringify({ role: 'service_role' })).toString('base64url');
+  process.env.VITE_SUPABASE_PUBLISHABLE_KEY = `${header}.${payload}.fixture`;
   await assert.rejects(() => checkCatalogPublicContract(), /ausente ou privilegiada/);
 });
