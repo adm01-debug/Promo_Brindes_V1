@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(18);
+select plan(20);
 
 select has_function(
   'public', 'preflight_site_lead_request', array['text', 'text', 'text'],
@@ -59,6 +59,16 @@ select lives_ok(
 select throws_ok(
   $$select public.preflight_site_lead_request('quote', repeat('c', 64), 'burst-0999')$$,
   'P0001', 'rate_limit_exceeded', 'nona tentativa é bloqueada antes do catálogo'
+);
+
+select lives_ok(
+  $$select public.preflight_site_lead_request('contact', repeat('e', 64), 'contact-burst-' || lpad(value::text, 4, '0'))
+    from generate_series(1, 12) value$$,
+  'doze contatos entram na janela'
+);
+select throws_ok(
+  $$select public.preflight_site_lead_request('contact', repeat('e', 64), 'contact-burst-0999')$$,
+  'P0001', 'rate_limit_exceeded', 'décimo terceiro contato é bloqueado antes do catálogo'
 );
 
 select ok(
