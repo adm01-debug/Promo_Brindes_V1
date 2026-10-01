@@ -816,7 +816,7 @@ P2 · M · Produto, Marketing e QA · Depende de: 056, 057, 058, 059, 060, 062, 
 
 ### Etapa 095 Confirmar prontidão operacional e liberações
 
-P1 · M · Produto e Operação · Depende de: 020, 027, 029, 030, 090.
+P1 · M · Produto e Operação · Depende de: 020, 027, 029, 030, 031, 032, 033, 034, 035, 090.
 
 - **Entrega:** reunião de prontidão com destinos, responsáveis, recuperação, privacidade, escala e canais; separar escopo tecnicamente pronto de integrações ainda adiadas. Quando os canais externos forem liberados, 040 também se torna pré-requisito; enquanto permanecerem formalmente adiados, registrar a decisão e homologar o fluxo básico sem fingir a entrega integral dos canais.
 - **Cenários:** segredo não liberado, operador ausente, canal indisponível e restore não comprovado.
@@ -828,7 +828,7 @@ P1 · M · DevOps e QA · Depende de: 093, 094, 095, 097.
 
 - **Entrega:** aprovar PR, publicar artefato identificado, conferir ambos os aliases e executar smoke; ativar somente recursos liberados, com observação inicial.
 - **Cenários:** ambiente divergente, erro no primeiro acesso, migration incompatível e alias com cache antigo.
-- **Aceite:** GitHub, artefato e URLs correspondem ao SHA aprovado; qualquer correção decorrente dos aceites 094–095 obriga reexecutar 093 no novo SHA antes da publicação; dados operacionais não são copiados para o Git nem entre bancos para simular igualdade.
+- **Aceite:** GitHub, artefato e URLs correspondem ao SHA aprovado; qualquer correção decorrente dos aceites 094–095 ou do ensaio 097 obriga reexecutar 093 no novo SHA antes da publicação; dados operacionais não são copiados para o Git nem entre bancos para simular igualdade.
 
 ### Etapa 097 Ensaiar reversão e resposta a incidentes antes da publicação
 
