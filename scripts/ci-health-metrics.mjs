@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 const FAILURE_CONCLUSIONS = new Set([
   'failure',
@@ -43,4 +44,10 @@ function runCli() {
   process.stdout.write(`${JSON.stringify(calculateCiHealthMetrics(runs))}\n`);
 }
 
-if (process.argv[1]?.endsWith('/ci-health-metrics.mjs')) runCli();
+const MODULE_BASENAME = fileURLToPath(import.meta.url).split(/[\\/]/).at(-1);
+
+export function isDirectExecution(entryPath = process.argv[1]) {
+  return entryPath?.split(/[\\/]/).at(-1) === MODULE_BASENAME;
+}
+
+if (isDirectExecution()) runCli();

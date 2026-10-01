@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
-import { calculateCiHealthMetrics } from '../scripts/ci-health-metrics.mjs';
+import { calculateCiHealthMetrics, isDirectExecution } from '../scripts/ci-health-metrics.mjs';
 
 test('não contabiliza cancelamento, timeout ou execução pendente como sucesso', () => {
   assert.deepEqual(calculateCiHealthMetrics([
@@ -82,4 +82,11 @@ test('CLI lê JSON somente de stdin e recusa qualquer caminho informado', () => 
   assert.notEqual(rejected.status, 0);
   assert.match(rejected.stderr, /exclusivamente por stdin/);
   assert.doesNotMatch(rejected.stderr, /root:/);
+});
+
+test('reconhece a execução direta com separadores POSIX ou Windows', () => {
+  assert.equal(isDirectExecution('/workspace/scripts/ci-health-metrics.mjs'), true);
+  assert.equal(isDirectExecution('C:\\workspace\\scripts\\ci-health-metrics.mjs'), true);
+  assert.equal(isDirectExecution('/workspace/tests/runner.mjs'), false);
+  assert.equal(isDirectExecution(undefined), false);
 });
