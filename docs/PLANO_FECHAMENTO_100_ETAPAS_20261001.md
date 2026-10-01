@@ -800,7 +800,7 @@ P1 · M · DBA e DevOps · Depende de: 021, 024, 029, 085, 091.
 
 ### Etapa 093 Executar a bateria final de regressão
 
-P1 · L · QA e Engenharia · Depende de: 077, 080, 084, 085, 088, 092.
+P1 · L · QA e Engenharia · Depende de: 077, 080, 084, 085, 086, 088, 092.
 
 - **Entrega:** lint, tipos, unitários, APIs, pgTAP, concorrência, build, budgets, navegadores e contratos de segurança contra o mesmo candidato.
 - **Cenários:** todas as jornadas públicas/privadas e falhas catalogadas, incluindo kits, anexos, favoritos e isolamento.

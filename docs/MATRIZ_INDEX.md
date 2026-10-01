@@ -4,7 +4,7 @@
 
 O [novo plano de fechamento em 100 etapas](PLANO_FECHAMENTO_100_ETAPAS_20261001.md) organiza correções, entregas parciais, homologação e dependências externas sobre a base `cfb33e4`. Inclui critérios de aceite, cenários adversos, responsáveis por função, dependências e correspondência com os planos anteriores. Está **planejado, não executado**; seu commit não promove estados do ledger nem autoriza mudanças no Promo Gifts ou ativação de integrações adiadas.
 
-As contagens e diagnósticos abaixo permanecem como registros históricos. Não representam percentual atual de conclusão: a revisão de 01/10 confirmou a correção dos probes de favoritos e o funcionamento do release/Analytics, mas identificou pendências técnicas e operacionais além das credenciais. A reconciliação individual dos requisitos está prevista nas etapas 002–003 e 099 do novo plano.
+As contagens e diagnósticos abaixo permanecem como registros históricos. Não representam percentual atual de conclusão: a revisão de 01/10 confirmou a correção dos probes de favoritos e o funcionamento do release, mas o recebimento dos eventos de Analytics ainda depende da homologação prevista na etapa 067. Também foram identificadas pendências técnicas e operacionais além das credenciais. A reconciliação individual dos requisitos está prevista nas etapas 002–003 e 099 do novo plano.
 
 ## Matriz e evidências históricas
 
