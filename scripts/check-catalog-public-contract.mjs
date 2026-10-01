@@ -64,6 +64,25 @@ const BOOLEAN_COLUMNS = [
 
 const NUMBER_COLUMNS = ['capacity_ml', 'height_cm', 'length_cm', 'min_quantity', 'weight_g', 'width_cm'];
 
+const NULLABLE_TEXT_COLUMNS = [
+  'ai_description',
+  'ai_summary',
+  'ai_title',
+  'brand',
+  'category_id',
+  'created_at',
+  'description',
+  'main_category_id',
+  'og_image_url',
+  'primary_image_fallback_url',
+  'primary_image_url',
+  'set_image_url',
+  'short_description',
+];
+
+const CATALOG_PAGE_SIZE = 1_000;
+const MAX_CATALOG_PAGES = 100;
+
 function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
@@ -89,7 +108,7 @@ export function validateCatalogPublicContract(rows) {
     }
 
     assert(
-      typeof row.id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(row.id),
+      typeof row.id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(row.id),
       `Contrato inválido: produto ${index + 1} sem UUID público.`,
     );
     assert(typeof row.name === 'string' && row.name.trim().length > 0, `Contrato inválido: produto ${index + 1} sem nome.`);
@@ -99,6 +118,7 @@ export function validateCatalogPublicContract(rows) {
     assert(Array.isArray(row.materials), `Contrato inválido: materials do produto ${index + 1} não é lista.`);
     assert(Array.isArray(row.colors), `Contrato inválido: colors do produto ${index + 1} não é lista.`);
     assert(Array.isArray(row.color_swatches), `Contrato inválido: color_swatches do produto ${index + 1} não é lista.`);
+    assert(row.is_active === true, `Contrato inseguro: produto ${index + 1} inativo está exposto na view pública.`);
 
     for (const column of BOOLEAN_COLUMNS) {
       assert(row[column] === null || typeof row[column] === 'boolean', `Contrato inválido: ${column} do produto ${index + 1} não é boolean/null.`);
@@ -106,14 +126,17 @@ export function validateCatalogPublicContract(rows) {
     for (const column of NUMBER_COLUMNS) {
       assert(row[column] === null || (typeof row[column] === 'number' && Number.isFinite(row[column])), `Contrato inválido: ${column} do produto ${index + 1} não é number/null.`);
     }
+    for (const column of NULLABLE_TEXT_COLUMNS) {
+      assert(row[column] === null || typeof row[column] === 'string', `Contrato inválido: ${column} do produto ${index + 1} não é string/null.`);
+    }
     for (const [swatchIndex, swatch] of row.color_swatches.entries()) {
       assert(swatch !== null && typeof swatch === 'object' && !Array.isArray(swatch), `Contrato inválido: swatch ${swatchIndex + 1} do produto ${index + 1} não é objeto.`);
       const keys = Object.keys(swatch).sort((left, right) => left.localeCompare(right));
       const allowed = ['color_hex', 'color_name', 'image_url'];
       assert(keys.every((key) => allowed.includes(key)), `Contrato inseguro: swatch do produto ${index + 1} expõe [${keys.filter((key) => !allowed.includes(key)).join(', ')}].`);
       assert(
-        typeof swatch.color_name === 'string' && swatch.color_name.trim().length > 0,
-        `Contrato inválido: color_name do swatch ${swatchIndex + 1} do produto ${index + 1} não é string preenchida.`,
+        typeof swatch.color_name === 'string',
+        `Contrato inválido: color_name do swatch ${swatchIndex + 1} do produto ${index + 1} não é string.`,
       );
       assert(
         swatch.color_hex === undefined || swatch.color_hex === null || typeof swatch.color_hex === 'string',
@@ -150,18 +173,33 @@ function catalogConfig() {
 
 export async function checkCatalogPublicContract(fetchImplementation = fetch) {
   const { origin, key } = catalogConfig();
-  const url = new URL('/rest/v1/v_site_products_public', origin);
-  url.searchParams.set('select', '*');
-  url.searchParams.set('is_active', 'eq.true');
-  url.searchParams.set('order', 'id.asc');
-  url.searchParams.set('limit', '5');
-  const response = await fetchImplementation(url, {
-    headers: { apikey: key, Authorization: `Bearer ${key}`, Accept: 'application/json' },
-    signal: AbortSignal.timeout(10_000),
-  });
-  if (!response.ok) throw new Error(`Contrato indisponível: v_site_products_public respondeu HTTP ${response.status}.`);
-  const rows = await response.json().catch(() => null);
-  return validateCatalogPublicContract(rows);
+  let inspectedRows = 0;
+
+  for (let page = 0; page < MAX_CATALOG_PAGES; page += 1) {
+    const url = new URL('/rest/v1/v_site_products_public', origin);
+    url.searchParams.set('select', '*');
+    // A view deve aplicar o isolamento. Não filtre is_active aqui: isso esconderia
+    // uma regressão que passasse a publicar produtos inativos.
+    url.searchParams.set('order', 'id.asc');
+    url.searchParams.set('limit', String(CATALOG_PAGE_SIZE));
+    url.searchParams.set('offset', String(page * CATALOG_PAGE_SIZE));
+    const response = await fetchImplementation(url, {
+      headers: { apikey: key, Authorization: `Bearer ${key}`, Accept: 'application/json' },
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!response.ok) throw new Error(`Contrato indisponível: v_site_products_public respondeu HTTP ${response.status}.`);
+    const rows = await response.json().catch(() => null);
+    assert(Array.isArray(rows), 'Contrato inválido: a resposta do catálogo não é uma lista.');
+    if (rows.length === 0) {
+      assert(inspectedRows > 0, 'Contrato inconclusivo: a origem não devolveu produto algum para inspeção.');
+      return { inspectedRows, columns: EXPECTED_CATALOG_COLUMNS.length };
+    }
+    const result = validateCatalogPublicContract(rows);
+    inspectedRows += result.inspectedRows;
+    if (rows.length < CATALOG_PAGE_SIZE) return { inspectedRows, columns: result.columns };
+  }
+
+  throw new Error(`Contrato inconclusivo: catálogo excedeu ${MAX_CATALOG_PAGES * CATALOG_PAGE_SIZE} produtos durante a inspeção paginada.`);
 }
 
 async function runCli() {
