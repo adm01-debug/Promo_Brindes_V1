@@ -1,0 +1,72 @@
+name: Canonical catalog public contract
+
+on:
+  schedule:
+    - cron: '30 7 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: canonical-catalog-contract
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    name: Check read-only product contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Reject execution outside main
+        env:
+          WORKFLOW_REF: ${{ github.ref }}
+        run: |
+          if [ "$WORKFLOW_REF" != 'refs/heads/main' ]; then
+            echo "::error::A sonda do contrato canônico só pode rodar a partir da main; recebido: $WORKFLOW_REF"
+            exit 1
+          fi
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+
+      - name: Verify the live read-only contract
+        id: contract
+        continue-on-error: true
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          set -euo pipefail
+          node scripts/check-catalog-public-contract.mjs > catalog-contract.log 2>&1
+
+      - name: Summarize the contract check
+        if: always()
+        run: |
+          set -euo pipefail
+          {
+            echo '## Contrato público do catálogo canônico'
+            echo ''
+            echo '- modo: somente leitura'
+            echo '- recurso: v_site_products_public'
+            echo '- resultado: ${{ steps.contract.outcome }}'
+            echo ''
+            echo '```text'
+            if [ -f catalog-contract.log ]; then cat catalog-contract.log; else echo 'Sonda não executada.'; fi
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Enforce the contract result
+        if: steps.contract.outcome != 'success'
+        run: |
+          echo '::error::O contrato público vivo do catálogo divergiu ou ficou indisponível.'
+          exit 1
