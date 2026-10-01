@@ -155,6 +155,14 @@ export type Database = {
         Args: { p_path: string }
         Returns: boolean
       }
+      preflight_site_lead_request: {
+        Args: {
+          p_client_request_id: string
+          p_identifier_hash: string
+          p_request_kind: string
+        }
+        Returns: boolean
+      }
       purge_archived_customer_selections: {
         Args: { p_batch_size?: number }
         Returns: number

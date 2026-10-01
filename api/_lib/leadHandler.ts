@@ -1,6 +1,6 @@
 import { normalizeLeadPayload, RequestValidationError, type LeadKind } from './contracts.js';
 import { reconcileQuoteItems } from './catalogValidation.js';
-import { persistLead, SiteDatabaseError } from './siteDatabase.js';
+import { enforceLeadPreflightRateLimit, persistLead, SiteDatabaseError } from './siteDatabase.js';
 import { deliverQuoteConfirmationsNow } from '../notifications.js';
 import { createCorrelationId, errorClass, logServerError } from './observability.js';
 import { allowedSiteOrigins } from './siteOrigin.js';
@@ -92,6 +92,7 @@ export async function handleLeadRequest(kind: LeadKind, request: ApiRequest, res
   if (request.method !== 'POST') {
     response.setHeader('Allow', 'POST');
     response.status(405).json({ error: 'method_not_allowed', message: 'Método não permitido.' });
+    clearTimeout(deadlineTimeout);
     return;
   }
 
@@ -110,14 +111,21 @@ export async function handleLeadRequest(kind: LeadKind, request: ApiRequest, res
     if (idempotencyKey && idempotencyKey !== normalizedPayload.clientRequestId) {
       throw new RequestValidationError('A chave de idempotência não corresponde à solicitação.', 409, 'idempotency_key_mismatch');
     }
-    const payload = normalizedPayload.source === 'site-promo-brindes'
-      ? await reconcileQuoteItems(normalizedPayload, deadlineController.signal)
-      : normalizedPayload;
-    const result = await persistLead(kind, payload, {
+    const metadata = {
       ip: requestIp(request),
       userAgent: header(request, 'user-agent'),
       origin: header(request, 'origin'),
-    }, deadlineController.signal);
+    };
+    await enforceLeadPreflightRateLimit(
+      kind,
+      normalizedPayload.clientRequestId,
+      metadata,
+      deadlineController.signal,
+    );
+    const payload = normalizedPayload.source === 'site-promo-brindes'
+      ? await reconcileQuoteItems(normalizedPayload, deadlineController.signal)
+      : normalizedPayload;
+    const result = await persistLead(kind, payload, metadata, deadlineController.signal);
     console.info('site_lead_request_persisted', { kind, requestId: result.requestId, duplicate: result.duplicate, correlationId });
     const confirmations = payload.source === 'site-promo-brindes'
       ? result.duplicate || Date.now() > deadline - MIN_CONFIRMATION_WINDOW_MS
