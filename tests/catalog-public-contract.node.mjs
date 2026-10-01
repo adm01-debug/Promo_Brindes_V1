@@ -32,6 +32,18 @@ function baselineResponse(total) {
   return catalogResponse(total > 0 ? [{ id: '11111111-1111-4111-8111-111111111111' }] : [], total);
 }
 
+function deniedResponse() {
+  return new Response(JSON.stringify({ message: 'column does not exist' }), { status: 400 });
+}
+
+function stableControlResponse(url, total) {
+  const select = url.searchParams.get('select');
+  if (url.pathname === '/rest/v1/v_products_public') return baselineResponse(total);
+  if (url.pathname === '/rest/v1/v_site_products_public' && select === 'id') return baselineResponse(total);
+  if (url.pathname === '/rest/v1/v_site_products_public' && select?.startsWith('id,')) return deniedResponse();
+  return null;
+}
+
 test('aceita somente o contrato público exato de 36 colunas', () => {
   assert.deepEqual(validateCatalogPublicContract([validRow()]), {
     inspectedRows: 1,
@@ -62,6 +74,8 @@ test('recusa identificador, arrays e swatches incompatíveis', () => {
   assert.throws(() => validateCatalogPublicContract([validRow({ materials: 'algodão' })]), /materials/);
   assert.throws(() => validateCatalogPublicContract([validRow({ images: [{ cost_price: 10 }] })]), /images.*não é string/);
   assert.throws(() => validateCatalogPublicContract([validRow({ dimensions: { supplier_id: 'interno' } })]), /chaves aninhadas proibidas/);
+  assert.throws(() => validateCatalogPublicContract([validRow({ dimensions: { supplierId: 'interno' } })]), /chaves aninhadas proibidas/);
+  assert.throws(() => validateCatalogPublicContract([validRow({ dimensions: { costPrice: 10, stockQuantity: 2 } })]), /chaves aninhadas proibidas/);
   assert.throws(() => validateCatalogPublicContract([validRow({ color_swatches: [{ color_name: 'Azul', variant_id: 'interno' }] })]), /chaves aninhadas proibidas/);
   assert.throws(() => validateCatalogPublicContract([validRow({ color_swatches: [{}] })]), /color_name/);
   assert.throws(() => validateCatalogPublicContract([validRow({ color_swatches: [{ color_name: 7 }] })]), /color_name/);
@@ -107,9 +121,27 @@ test('consulta todas as linhas da origem canônica com chave pública e timeout'
   process.env.VITE_SUPABASE_URL = 'https://doufsxqlfjyuvxuezpln.supabase.co';
   process.env.VITE_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fixture';
   let siteRequests = 0;
+  let baselineRequests = 0;
+  let forbiddenProbes = 0;
   const fetchMock = async (url, init) => {
     assert.equal(url.origin, 'https://doufsxqlfjyuvxuezpln.supabase.co');
-    if (url.pathname === '/rest/v1/v_products_public') return baselineResponse(1);
+    if (url.pathname === '/rest/v1/v_products_public') {
+      baselineRequests += 1;
+      assert.equal(url.searchParams.get('select'), 'id');
+      assert.equal(url.searchParams.get('is_active'), 'eq.true');
+      assert.equal(url.searchParams.get('limit'), '1');
+      assert.equal(init.headers.Prefer, 'count=exact');
+      assert.equal(init.headers.apikey, 'sb_publishable_fixture');
+      assert.equal(init.headers.Accept, 'application/json');
+      assert.equal(init.signal instanceof AbortSignal, true);
+      return baselineResponse(1);
+    }
+    if (url.searchParams.get('select') === 'id') return baselineResponse(1);
+    if (url.searchParams.get('select')?.startsWith('id,')) {
+      forbiddenProbes += 1;
+      assert.equal(init.headers.Prefer, undefined);
+      return deniedResponse();
+    }
     siteRequests += 1;
     assert.equal(url.pathname, '/rest/v1/v_site_products_public');
     assert.equal(url.searchParams.get('select'), '*');
@@ -118,6 +150,7 @@ test('consulta todas as linhas da origem canônica com chave pública e timeout'
     assert.equal(url.searchParams.has('offset'), false);
     assert.equal(init.headers.apikey, 'sb_publishable_fixture');
     assert.equal(init.signal instanceof AbortSignal, true);
+    assert.equal(init.headers.Prefer, siteRequests === 1 ? 'count=exact' : undefined);
     return catalogResponse(url.searchParams.has('id') ? [] : [validRow()], 1);
   };
   assert.deepEqual(await checkCatalogPublicContract(fetchMock), {
@@ -126,6 +159,8 @@ test('consulta todas as linhas da origem canônica com chave pública e timeout'
     warnings: { blankSwatchNames: 0, duplicateSwatchNames: 0 },
   });
   assert.equal(siteRequests, 2);
+  assert.equal(baselineRequests, 2);
+  assert.equal(forbiddenProbes, 4);
 });
 
 test('pagina o catálogo completo e valida swatches além da primeira página', async (t) => {
@@ -137,7 +172,8 @@ test('pagina o catálogo completo e valida swatches além da primeira página', 
     id: `11111111-1111-4111-8111-${String(index).padStart(12, '0')}`,
   }));
   const fetchMock = async (url) => {
-    if (url.pathname === '/rest/v1/v_products_public') return baselineResponse(1001);
+    const control = stableControlResponse(url, 1001);
+    if (control) return control;
     siteRequests += 1;
     const cursor = url.searchParams.get('id');
     if (!cursor) return catalogResponse(firstPage, 1001);
@@ -148,22 +184,21 @@ test('pagina o catálogo completo e valida swatches além da primeira página', 
   assert.equal(siteRequests, 2);
 });
 
-test('continua após uma página menor que o limite imposto pelo servidor', async (t) => {
+test('continua por mais de cem páginas quando o servidor impõe max-rows baixo', async (t) => {
   restoreEnvAfter(t);
   process.env.VITE_SUPABASE_URL = 'https://doufsxqlfjyuvxuezpln.supabase.co';
   process.env.VITE_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fixture';
-  const pages = [
-    [validRow({ id: '11111111-1111-4111-8111-111111111111' })],
-    [validRow({ id: '22222222-2222-4222-8222-222222222222' })],
-    [],
-  ];
+  const rows = Array.from({ length: 101 }, (_, index) => validRow({
+    id: `11111111-1111-4111-8111-${String(index).padStart(12, '0')}`,
+  }));
   let request = 0;
   const result = await checkCatalogPublicContract(async (url) => {
-    if (url.pathname === '/rest/v1/v_products_public') return baselineResponse(2);
-    return catalogResponse(pages[request++], 2);
+    const control = stableControlResponse(url, rows.length);
+    if (control) return control;
+    return catalogResponse(request < rows.length ? [rows[request++]] : [], rows.length);
   });
-  assert.equal(result.inspectedRows, 2);
-  assert.equal(request, 3);
+  assert.equal(result.inspectedRows, rows.length);
+  assert.equal(request, rows.length);
 });
 
 test('detecta duplicata escondida no limite de uma página pela contagem exata', async (t) => {
@@ -172,7 +207,8 @@ test('detecta duplicata escondida no limite de uma página pela contagem exata',
   process.env.VITE_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fixture';
   let request = 0;
   const fetchMock = async (url) => {
-    if (url.pathname === '/rest/v1/v_products_public') return baselineResponse(2);
+    const control = stableControlResponse(url, 2);
+    if (control) return control;
     return catalogResponse(request++ === 0 ? [validRow()] : [], 2);
   };
   await assert.rejects(() => checkCatalogPublicContract(fetchMock), /paginação inspecionou 1 de 2/);
@@ -185,9 +221,41 @@ test('detecta desaparecimento parcial comparando a view dedicada com a referênc
   let request = 0;
   const fetchMock = async (url) => {
     if (url.pathname === '/rest/v1/v_products_public') return baselineResponse(2);
+    if (url.searchParams.get('select') === 'id') return baselineResponse(1);
     return catalogResponse(request++ === 0 ? [validRow()] : [], 1);
   };
   await assert.rejects(() => checkCatalogPublicContract(fetchMock), /expõe 1 de 2 produtos ativos/);
+});
+
+test('repete a varredura uma vez quando as contagens mudam durante a leitura', async (t) => {
+  restoreEnvAfter(t);
+  process.env.VITE_SUPABASE_URL = 'https://doufsxqlfjyuvxuezpln.supabase.co';
+  process.env.VITE_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fixture';
+  const twoRows = [
+    validRow({ id: '11111111-1111-4111-8111-111111111111' }),
+    validRow({ id: '22222222-2222-4222-8222-222222222222' }),
+  ];
+  let legacyCounts = 0;
+  let scanPage = 0;
+  const fetchMock = async (url) => {
+    const select = url.searchParams.get('select');
+    if (url.pathname === '/rest/v1/v_products_public') {
+      legacyCounts += 1;
+      return baselineResponse(legacyCounts === 1 ? 1 : 2);
+    }
+    if (select === 'id') {
+      return baselineResponse(2);
+    }
+    if (select?.startsWith('id,')) return deniedResponse();
+    scanPage += 1;
+    if (scanPage === 1) return catalogResponse([twoRows[0]], 1);
+    if (scanPage === 2) return catalogResponse([], 1);
+    if (scanPage === 3) return catalogResponse(twoRows, 2);
+    return catalogResponse([], 2);
+  };
+  const result = await checkCatalogPublicContract(fetchMock);
+  assert.equal(result.inspectedRows, 2);
+  assert.equal(scanPage, 4);
 });
 
 test('aceita JWT legado somente quando a role declarada é anon', async (t) => {
@@ -198,7 +266,8 @@ test('aceita JWT legado somente quando a role declarada é anon', async (t) => {
   process.env.VITE_SUPABASE_PUBLISHABLE_KEY = `${header}.${payload}.fixture`;
   let request = 0;
   const fetchMock = async (url) => {
-    if (url.pathname === '/rest/v1/v_products_public') return baselineResponse(1);
+    const control = stableControlResponse(url, 1);
+    if (control) return control;
     return catalogResponse(request++ === 0 ? [validRow()] : [], 1);
   };
   assert.deepEqual(await checkCatalogPublicContract(fetchMock), {

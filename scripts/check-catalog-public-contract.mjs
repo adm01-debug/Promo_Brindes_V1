@@ -81,7 +81,7 @@ const NULLABLE_TEXT_COLUMNS = [
 ];
 
 const CATALOG_PAGE_SIZE = 1_000;
-const MAX_CATALOG_PAGES = 100;
+const FORBIDDEN_PROBE_COLUMNS = ['sale_price', 'stock_quantity', 'supplier_id', 'variant_id'];
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -98,13 +98,21 @@ function exactCount(response, resource) {
   return total;
 }
 
+function isForbiddenKey(key) {
+  const normalized = key
+    .replace(/([a-z\d])([A-Z])/g, '$1_$2')
+    .replace(/[^a-z\d]+/gi, '_')
+    .toLocaleLowerCase('en-US');
+  return FORBIDDEN_COLUMN_PATTERNS.some((pattern) => pattern.test(normalized));
+}
+
 function nestedForbiddenKeys(value, path = '') {
   if (Array.isArray(value)) return value.flatMap((item, index) => nestedForbiddenKeys(item, `${path}[${index}]`));
   if (value === null || typeof value !== 'object') return [];
   return Object.entries(value).flatMap(([key, child]) => {
     const childPath = path ? `${path}.${key}` : key;
     return [
-      ...(FORBIDDEN_COLUMN_PATTERNS.some((pattern) => pattern.test(key)) ? [childPath] : []),
+      ...(isForbiddenKey(key) ? [childPath] : []),
       ...nestedForbiddenKeys(child, childPath),
     ];
   });
@@ -120,7 +128,7 @@ export function validateCatalogPublicContract(rows, { seenProductIds = new Set()
     assert(value !== null && typeof value === 'object' && !Array.isArray(value), `Contrato inválido: produto ${index + 1} não é um objeto.`);
     const row = value;
     const columns = Object.keys(row).sort((left, right) => left.localeCompare(right));
-    const forbidden = columns.filter((column) => FORBIDDEN_COLUMN_PATTERNS.some((pattern) => pattern.test(column)));
+    const forbidden = columns.filter(isForbiddenKey);
     assert(forbidden.length === 0, `Contrato inseguro: produto ${index + 1} expõe colunas proibidas: ${forbidden.join(', ')}.`);
     if (!sameValues(columns, EXPECTED_CATALOG_COLUMNS)) {
       const missing = EXPECTED_CATALOG_COLUMNS.filter((column) => !columns.includes(column));
@@ -220,25 +228,44 @@ function catalogConfig() {
   return { origin, key };
 }
 
-export async function checkCatalogPublicContract(fetchImplementation = fetch) {
-  const { origin, key } = catalogConfig();
-  const baselineUrl = new URL('/rest/v1/v_products_public', origin);
-  baselineUrl.searchParams.set('select', 'id');
-  baselineUrl.searchParams.set('is_active', 'eq.true');
-  baselineUrl.searchParams.set('limit', '1');
-  const baselineResponse = await fetchImplementation(baselineUrl, {
+async function fetchExactCount(fetchImplementation, origin, key, resource, activeOnly = false) {
+  const url = new URL(`/rest/v1/${resource}`, origin);
+  url.searchParams.set('select', 'id');
+  if (activeOnly) url.searchParams.set('is_active', 'eq.true');
+  url.searchParams.set('limit', '1');
+  const response = await fetchImplementation(url, {
     headers: { apikey: key, Authorization: `Bearer ${key}`, Accept: 'application/json', Prefer: 'count=exact' },
     signal: AbortSignal.timeout(10_000),
   });
-  if (!baselineResponse.ok) throw new Error(`Contrato inconclusivo: v_products_public respondeu HTTP ${baselineResponse.status}.`);
-  const baselineTotal = exactCount(baselineResponse, 'v_products_public');
+  if (!response.ok) throw new Error(`Contrato inconclusivo: ${resource} respondeu HTTP ${response.status}.`);
+  return exactCount(response, resource);
+}
+
+async function probeForbiddenSelections(fetchImplementation, origin, key) {
+  for (const column of FORBIDDEN_PROBE_COLUMNS) {
+    const url = new URL('/rest/v1/v_site_products_public', origin);
+    url.searchParams.set('select', `id,${column}`);
+    url.searchParams.set('limit', '1');
+    const response = await fetchImplementation(url, {
+      headers: { apikey: key, Authorization: `Bearer ${key}`, Accept: 'application/json' },
+      signal: AbortSignal.timeout(10_000),
+    });
+    assert(!response.ok, `Contrato inseguro: a coluna proibida ${column} pode ser selecionada explicitamente.`);
+  }
+}
+
+async function scanCatalog(fetchImplementation, origin, key, baselineTotal) {
   let inspectedRows = 0;
   let lastId = '';
   let siteTotal = null;
+  let requests = 0;
   const seenProductIds = new Set();
   const warnings = { blankSwatchNames: 0, duplicateSwatchNames: 0 };
 
-  for (let page = 0; page < MAX_CATALOG_PAGES; page += 1) {
+  // Uma resposta não vazia sempre avança ao menos um UUID. O total observado
+  // define o limite superior, independentemente do max-rows do PostgREST.
+  while (requests <= Math.max(siteTotal ?? 0, baselineTotal)) {
+    requests += 1;
     const url = new URL('/rest/v1/v_site_products_public', origin);
     url.searchParams.set('select', '*');
     // A view deve aplicar o isolamento. Não filtre is_active aqui: isso esconderia
@@ -249,7 +276,12 @@ export async function checkCatalogPublicContract(fetchImplementation = fetch) {
     // enquanto a leitura percorre as páginas e funciona mesmo com max-rows baixo.
     if (lastId) url.searchParams.set('id', `gt.${lastId}`);
     const response = await fetchImplementation(url, {
-      headers: { apikey: key, Authorization: `Bearer ${key}`, Accept: 'application/json', Prefer: 'count=exact' },
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+        Accept: 'application/json',
+        ...(siteTotal === null ? { Prefer: 'count=exact' } : {}),
+      },
       signal: AbortSignal.timeout(10_000),
     });
     if (!response.ok) throw new Error(`Contrato indisponível: v_site_products_public respondeu HTTP ${response.status}.`);
@@ -260,7 +292,7 @@ export async function checkCatalogPublicContract(fetchImplementation = fetch) {
       assert(inspectedRows > 0, 'Contrato inconclusivo: a origem não devolveu produto algum para inspeção.');
       assert(inspectedRows === siteTotal, `Contrato inválido: a paginação inspecionou ${inspectedRows} de ${siteTotal} linhas públicas.`);
       assert(siteTotal === baselineTotal, `Contrato incompleto: v_site_products_public expõe ${siteTotal} de ${baselineTotal} produtos ativos da referência pública.`);
-      return { inspectedRows, columns: EXPECTED_CATALOG_COLUMNS.length, warnings };
+      return { inspectedRows, columns: EXPECTED_CATALOG_COLUMNS.length, warnings, siteTotal };
     }
     const result = validateCatalogPublicContract(rows, { seenProductIds });
     inspectedRows += result.inspectedRows;
@@ -271,7 +303,26 @@ export async function checkCatalogPublicContract(fetchImplementation = fetch) {
     lastId = pageLastId;
   }
 
-  throw new Error(`Contrato inconclusivo: catálogo excedeu ${MAX_CATALOG_PAGES * CATALOG_PAGE_SIZE} produtos durante a inspeção paginada.`);
+  throw new Error(`Contrato inconclusivo: paginação não terminou após ${requests} requisições para ${siteTotal ?? baselineTotal} linhas observadas.`);
+}
+
+export async function checkCatalogPublicContract(fetchImplementation = fetch) {
+  const { origin, key } = catalogConfig();
+  let lastDrift = '';
+
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    const baselineBefore = await fetchExactCount(fetchImplementation, origin, key, 'v_products_public', true);
+    const scan = await scanCatalog(fetchImplementation, origin, key, baselineBefore);
+    const siteAfter = await fetchExactCount(fetchImplementation, origin, key, 'v_site_products_public');
+    const baselineAfter = await fetchExactCount(fetchImplementation, origin, key, 'v_products_public', true);
+    if (scan.siteTotal === siteAfter && baselineBefore === baselineAfter && siteAfter === baselineAfter) {
+      await probeForbiddenSelections(fetchImplementation, origin, key);
+      return { inspectedRows: scan.inspectedRows, columns: scan.columns, warnings: scan.warnings };
+    }
+    lastDrift = `tentativa ${attempt}: site ${scan.siteTotal}→${siteAfter}; referência ${baselineBefore}→${baselineAfter}`;
+  }
+
+  throw new Error(`Contrato inconclusivo: catálogo mudou durante duas varreduras (${lastDrift}).`);
 }
 
 async function runCli() {
