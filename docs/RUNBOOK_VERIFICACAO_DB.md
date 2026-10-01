@@ -5,7 +5,7 @@ qualquer momento, que o banco remoto está no estado esperado — sem precisar d
 via Studio nem de um conector MCP dedicado. Read-only: nenhum comando abaixo altera
 schema ou dados (`db push` só roda com `--dry-run`).
 
-## Pré-requisito: token de acesso
+## Pré-requisito: credenciais administrativas mínimas
 
 Nenhum comando abaixo funciona sem um `SUPABASE_ACCESS_TOKEN` do CLI com escopo restrito
 ao projeto `xlzmclcjdncjfdrjxclt` (Dashboard > Account > Access Tokens; **não** o token
@@ -15,6 +15,20 @@ time — nunca em `.env.local` versionado, nunca colado em chat/issue.
 ```bash
 export SUPABASE_ACCESS_TOKEN='<token de escopo mínimo, do cofre do time>'
 ```
+
+Os comandos que abrem uma conexão PostgreSQL direta (`db lint`, `db query`,
+`db diff` e, conforme a versão do CLI, `db push --dry-run`) também podem exigir
+`SUPABASE_DB_PASSWORD`. O access token autoriza a Management API, mas não substitui
+a senha da role temporária do banco. Recupere a senha exclusivamente no cofre do
+time e injete-a apenas na sessão de execução:
+
+```bash
+export SUPABASE_DB_PASSWORD='<senha do banco isolado, do cofre do time>'
+```
+
+Se o CLI responder `password authentication failed for user cli_login_postgres`,
+interrompa a auditoria: a credencial está ausente ou desatualizada. Não repita o
+comando nem tente reparar migrations; confirme a senha do projeto isolado primeiro.
 
 O acesso administrativo deve ser conferido antes de executar os comandos, sem
 copiar tokens para documentação ou logs. Consultas anteriores reconciliaram o

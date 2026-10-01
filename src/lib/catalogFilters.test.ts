@@ -7,12 +7,17 @@ import {
   parseCatalogPage,
   parseCategoryIds,
   parseFilterIds,
+  PROFILE_OPTIONS,
   resolveColorValues,
   resolveMaterialValues,
   serializeFilterIds,
 } from './catalogFilters';
 
 describe('estado do superfiltro público', () => {
+  it('apresenta o perfil de novidades como Tendências', () => {
+    expect(PROFILE_OPTIONS.find(({ value }) => value === 'novos')?.label).toBe('Tendências');
+  });
+
   it('aceita apenas IDs conhecidos e remove repetições da URL', () => {
     expect(parseFilterIds('preto,azul,preto,inventado', colorFilterIds)).toEqual(['preto', 'azul']);
     expect(parseFilterIds('bambu,nao-existe', materialFilterIds)).toEqual(['bambu']);

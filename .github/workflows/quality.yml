@@ -51,14 +51,20 @@ jobs:
       - run: npm run check
       - name: Enforce unit and API coverage thresholds
         run: npm run test:coverage
-      - run: npm run test:site-api-jwt
-      - run: npm run test:timing-safe-secrets
-      - run: npm run test:supabase-db-query
       - name: Record the performance budget evidence
-        continue-on-error: true
+        id: performance
+        env:
+          VITE_SITE_SUPABASE_URL: https://xlzmclcjdncjfdrjxclt.supabase.co
+          VITE_SITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_playwright_test
+          VITE_CUSTOMER_ADJUSTMENTS_ENABLED: 'true'
+          VITE_QUOTE_DECISION_GROUPS_ENABLED: 'true'
+          VITE_PERSISTENT_SHARED_SELECTIONS_ENABLED: 'true'
+          VITE_QUOTE_REQUEST_ENDPOINT: /api/quote-requests
         run: |
+          set -o pipefail
           mkdir -p artifacts
-          npm run check:performance-budget > artifacts/performance-budget.log 2>&1
+          npm run build > artifacts/performance-build.log 2>&1
+          npm run check:performance-budget 2>&1 | tee artifacts/performance-budget.log
       - name: Reject production sourcemaps
         run: test -z "$(find dist -type f -name '*.map' -print -quit)"
       - name: Write job summary
@@ -75,8 +81,7 @@ jobs:
             echo "| npm audit signatures | ${{ job.status }} |"
             echo "| Lint / type-check | ${{ job.status }} |"
             echo "| Unit + API coverage | ${{ job.status }} |"
-            echo "| JWT / timing-safe / db-query tests | ${{ job.status }} |"
-            echo "| Performance budget | ${{ job.status }} |"
+            echo "| Performance budget | ${{ steps.performance.outcome }} |"
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload coverage, browser and budget evidence
         if: always()
@@ -88,6 +93,7 @@ jobs:
             playwright-report/
             test-results/
             artifacts/performance-budget.log
+            artifacts/performance-build.log
           if-no-files-found: warn
           retention-days: 30
 

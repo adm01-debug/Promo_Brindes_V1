@@ -235,6 +235,7 @@ test('biblioteca de catálogos transforma contexto em coleções compartilhávei
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /\/catalogos$/);
   await expect(page.getByText('10 catálogos encontrados')).toBeVisible();
   await expect(page.locator('.catalog-card')).toHaveCount(10);
+  await expect(page.locator('body')).not.toContainText(/Novas tendências/i);
   if (testInfo.project.name.includes('mobile')) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   }
@@ -255,18 +256,23 @@ test('biblioteca de catálogos transforma contexto em coleções compartilhávei
   await page.getByRole('button', { name: 'Limpar filtros' }).click();
   await expect(page).toHaveURL(/\/catalogos$/);
   await expect(page.locator('.catalog-card')).toHaveCount(10);
-  const newTrends = page.locator('.catalog-card').filter({ has: page.getByRole('heading', { name: 'Novas tendências' }) });
-  await newTrends.getByRole('button', { name: 'Compartilhar Novas tendências' }).click();
-  await expect(newTrends.getByRole('button', { name: 'Compartilhar Novas tendências' })).toContainText('Link copiado');
+  await page.getByLabel('O que você está planejando?').fill('novas tendências');
+  await page.locator('.catalog-search').getByRole('button', { name: 'Buscar' }).click();
+  await expect(page.locator('.catalog-card')).toHaveCount(1);
+  await expect(page.getByRole('heading', { name: 'Tendências' })).toBeVisible();
+  await page.getByRole('button', { name: 'Limpar filtros' }).click();
+  const newTrends = page.locator('.catalog-card').filter({ has: page.getByRole('heading', { name: 'Tendências' }) });
+  await newTrends.getByRole('button', { name: 'Compartilhar Tendências' }).click();
+  await expect(newTrends.getByRole('button', { name: 'Compartilhar Tendências' })).toContainText('Link copiado');
   const sharedCatalogUrl = await page.evaluate(() => navigator.clipboard.readText());
   expect(sharedCatalogUrl).toMatch(/\/catalogos\?colecao=novas-tendencias$/);
   await page.goto(sharedCatalogUrl);
   await waitForRoute(page);
-  await expect(page.locator('.catalog-featured').getByRole('heading', { name: 'Novas tendências' })).toBeVisible();
+  await expect(page.locator('.catalog-featured').getByRole('heading', { name: 'Tendências' })).toBeVisible();
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /\/catalogos\?colecao=novas-tendencias$/);
   await page.goto('/catalogos?colecao=novos-drops');
   await waitForRoute(page);
-  await expect(page.locator('.catalog-featured').getByRole('heading', { name: 'Novas tendências' })).toBeVisible();
+  await expect(page.locator('.catalog-featured').getByRole('heading', { name: 'Tendências' })).toBeVisible();
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /\/catalogos\?colecao=novas-tendencias$/);
   await page.locator('.catalog-card').filter({ has: page.getByRole('heading', { name: 'Onboarding com cultura' }) }).getByRole('link', { name: /Explorar coleção/ }).click();
   await expect(page).toHaveURL(/\/catalogo\?momento=onboarding.*publico=colaboradores/);
@@ -1141,15 +1147,33 @@ test('galeria com múltiplas fotos anuncia controles válidos e não cria viola�
   expect(result.violations, 'Violações na galeria de múltiplas fotos').toEqual([]);
 });
 
+test('perfil de novidades apresenta Tendências em toda a interface', async ({ page }, testInfo) => {
+  await page.goto('/catalogo?perfil=novos');
+  await waitForRoute(page);
+
+  await expect(page.locator('#catalog-results-title')).toHaveText('Tendências');
+  await expect(page.locator('.site-header').locator('a[href="/catalogo?perfil=novos"]')).toHaveText('Tendências');
+  await expect(page.locator('.site-footer').locator('a[href="/catalogo?perfil=novos"]')).toHaveText('Tendências');
+  await expect(page.locator('body')).not.toContainText(/Novas tendências/i);
+  await expect(page.getByRole('search', { name: 'Busca principal do catálogo' })).toBeVisible();
+  if (!testInfo.project.name.includes('mobile')) {
+    await expect(page.getByRole('search', { name: 'Busca no cabeçalho' })).toBeVisible();
+    await expect(page.getByRole('complementary', { name: 'Atendimento rápido' })).toBeVisible();
+  }
+  const accessibility = await new AxeBuilder({ page }).analyze();
+  expect(accessibility.violations, 'Violações Axe no perfil Tendências').toEqual([]);
+});
+
 test('navegação de catálogo por query fecha menu e reposiciona resultados', async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.includes('mobile'), 'Cenário dedicado ao viewport móvel.');
   await page.goto('/catalogo');
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   await page.getByRole('button', { name: 'Abrir menu' }).click();
-  await page.getByRole('navigation', { name: 'Navegação móvel' }).getByRole('link', { name: 'Novas tendências' }).click();
+  await page.getByRole('navigation', { name: 'Navegação móvel' }).getByRole('link', { name: 'Tendências' }).click();
   await expect(page).toHaveURL(/perfil=novos/);
   await expect(page.getByRole('navigation', { name: 'Navegação móvel' })).toBeHidden();
   await expect(page.locator('#catalog-results-title')).toBeInViewport();
+  await expect(page.locator('#catalog-results-title')).toHaveText('Tendências');
 });
 
 test('voltar ao catálogo restaura a leitura mesmo após conteúdo assíncrono', async ({ page }) => {

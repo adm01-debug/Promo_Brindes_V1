@@ -182,7 +182,7 @@ describe('catálogo público', () => {
     expect(buildCatalogParams({ sort: 'name' }).get('order')).toBe('name.asc,id.asc');
   });
 
-  it('alinha o filtro Novas tendências à mesma janela do badge, sem aceitar data futura', () => {
+  it('alinha o filtro Tendências à mesma janela do badge, sem aceitar data futura', () => {
     const now = Date.parse('2026-09-09T12:00:00.000Z');
     expect(buildNoveltyProfileFilter(now)).toBe('(is_new.eq.true,and(created_at.gte.2026-08-10T12:00:00.000Z,created_at.lte.2026-09-09T12:00:00.000Z))');
     expect(buildCatalogParams({ profile: 'new' }).get('or')).toMatch(/^\(is_new\.eq\.true,and\(created_at\.gte\./);

@@ -17,10 +17,17 @@ describe('biblioteca de catálogos', () => {
   });
 
   it('usa o nome atual em links novos e mantém links antigos da coleção', () => {
-    expect(catalogCollections.find(({ id }) => id === 'novas-tendencias')?.title).toBe('Novas tendências');
+    expect(catalogCollections.find(({ id }) => id === 'novas-tendencias')?.title).toBe('Tendências');
     expect(resolveCatalogEditorialId('novas-tendencias')).toBe('novas-tendencias');
     expect(resolveCatalogEditorialId('novos-drops')).toBe('novas-tendencias');
     expect(resolveCatalogEditorialId('colecao-inexistente')).toBeNull();
+  });
+
+  it('mantém os nomes anteriores somente como aliases internos de busca', () => {
+    for (const query of ['novas tendências', 'novos drops']) {
+      expect(filterCatalogCollections(catalogCollections, query, 'all').map(({ id }) => id))
+        .toEqual(['novas-tendencias']);
+    }
   });
 
   it('explica o formato antes de a pessoa abrir o material', () => {

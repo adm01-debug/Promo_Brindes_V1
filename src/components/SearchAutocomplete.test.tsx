@@ -3,6 +3,28 @@ import { describe, expect, it, vi } from 'vitest';
 import { SearchAutocomplete } from './SearchAutocomplete';
 
 describe('SearchAutocomplete', () => {
+  it.each([
+    ['hero', 'Busca principal da página inicial'],
+    ['catalog', 'Busca principal do catálogo'],
+    ['header', 'Busca no cabeçalho'],
+  ] as const)('nomeia o landmark de busca %s de forma única', (variant, landmarkLabel) => {
+    render(
+      <SearchAutocomplete
+        variant={variant}
+        inputId={`${variant}-search`}
+        label="Buscar produtos"
+        value=""
+        placeholder="Buscar"
+        categories={[]}
+        onChange={() => undefined}
+        onSubmit={() => undefined}
+        onSelect={() => undefined}
+      />,
+    );
+
+    expect(screen.getByRole('search', { name: landmarkLabel })).toBeInTheDocument();
+  });
+
   it('remove a opção ativa do leitor de tela quando o campo perde foco', () => {
     render(
       <SearchAutocomplete

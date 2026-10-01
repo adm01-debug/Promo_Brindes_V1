@@ -13,7 +13,7 @@ const navItems = [
   { to: '/catalogos', label: 'Catálogos' },
   { to: '/datas-comemorativas', label: 'Datas comemorativas' },
   { to: '/montar-kit', label: 'Monte seu kit' },
-  { to: '/catalogo?perfil=novos', label: 'Novas tendências', catalogQuery: true },
+  { to: '/catalogo?perfil=novos', label: 'Tendências', catalogQuery: true },
   { to: '/sobre', label: 'Como funciona' },
   { to: '/contato', label: 'Fale com a gente' },
 ];
@@ -105,12 +105,12 @@ export function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="site-shell">
       <a className="skip-link" href="#conteudo">Pular para o conteúdo</a>
-      <div className="utility-bar">
+      <aside className="utility-bar" aria-label="Atendimento rápido">
         <div className="container utility-bar__inner">
           <span><i aria-hidden="true" /> Estratégia de marca em forma de presente</span>
           <div className="utility-bar__actions">{customerAreaEnabled && <Link to="/minha-conta"><UserRound size={14} /> Meus orçamentos</Link>}<a href="tel:+551146375517">Briefing urgente? (11) 4637-5517</a></div>
         </div>
-      </div>
+      </aside>
       <header className="site-header">
         <div className="container site-header__inner">
           <Link to="/" className="brand" aria-label="Promo Brindes — início">
@@ -179,7 +179,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <Link to="/catalogos">Catálogos por campanha</Link>
             <Link to="/datas-comemorativas">Datas comemorativas</Link>
             <Link to="/montar-kit">Monte seu kit</Link>
-            <Link to="/catalogo?perfil=novos">Novas tendências</Link>
+            <Link to="/catalogo?perfil=novos">Tendências</Link>
             <Link to="/orcamento">Minha seleção</Link>
             {customerAreaEnabled && <Link to="/minha-conta">Meus orçamentos</Link>}
           </div>
@@ -198,7 +198,7 @@ export function Layout({ children }: { children: ReactNode }) {
         </div>
         <div className="footer-social">
           <div className="container footer-social__inner">
-            <p><strong>Acompanhe a Promo.</strong><span>Ideias, bastidores e novas tendências para a sua próxima campanha.</span></p>
+            <p><strong>Acompanhe a Promo.</strong><span>Ideias, bastidores e tendências para a sua próxima campanha.</span></p>
             <nav aria-label="Redes sociais da Promo Brindes">
               {socialLinks.map((social) => <a key={social.network} href={social.href} target="_blank" rel="noopener noreferrer" aria-label={`Promo Brindes no ${social.label}`} onClick={() => trackFunnelEvent('social_link_opened', { network: social.network })}><SocialIcon network={social.network} /><span className="sr-only">{social.label}</span></a>)}
             </nav>

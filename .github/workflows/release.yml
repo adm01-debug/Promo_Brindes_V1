@@ -125,6 +125,7 @@ jobs:
       VERCEL_ORG_ID: team_QyN41X0q8hrqhW80AwokbFLv
       VERCEL_PROJECT_ID: prj_LVKX7uhs1VhTjDDznD7KinvjgHXU
       VERCEL_SCOPE: juca1
+      VERCEL_BRANCH_ALIAS: promo-brindes-v1-git-main-juca1.vercel.app
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
         with:
@@ -147,7 +148,13 @@ jobs:
           PREVIOUS_ID="$(jq -er '.id // .uid | select(type == "string" and length > 0)' <<<"$PREVIOUS_META")"
           jq '{id:(.id // .uid),url,readyState,target,createdAt,meta:{githubCommitSha:.meta.githubCommitSha}}' \
             <<<"$PREVIOUS_META" > previous-deployment.json
-          printf 'id=%s\n' "$PREVIOUS_ID" >> "$GITHUB_OUTPUT"
+          PREVIOUS_BRANCH_META="$(curl --silent --show-error --fail \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v13/deployments/$VERCEL_BRANCH_ALIAS?teamId=$VERCEL_ORG_ID")"
+          PREVIOUS_BRANCH_ID="$(jq -er '.id // .uid | select(type == "string" and length > 0)' <<<"$PREVIOUS_BRANCH_META")"
+          jq '{id:(.id // .uid),url,readyState,target,createdAt,meta:{githubCommitSha:.meta.githubCommitSha}}' \
+            <<<"$PREVIOUS_BRANCH_META" > previous-branch-alias-deployment.json
+          printf 'id=%s\nbranch_alias_id=%s\n' "$PREVIOUS_ID" "$PREVIOUS_BRANCH_ID" >> "$GITHUB_OUTPUT"
       - name: Build and create an unpromoted production candidate
         id: candidate
         env:
@@ -180,21 +187,6 @@ jobs:
           jq '{id:(.id // .uid),url,readyState,target,createdAt,meta:{githubCommitSha:.meta.githubCommitSha}}' \
             <<<"$CANDIDATE_META" > candidate-vercel-response.json
           printf 'id=%s\nurl=%s\n' "$CANDIDATE_ID" "$CANDIDATE_URL" >> "$GITHUB_OUTPUT"
-      - name: Enable Vercel Web Analytics for this project
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          # Sem analytics habilitado, /_vercel/insights/script.js retorna 404.
-          # HTTP 409 = já habilitado (idempotente, ok).
-          # Usar -s (silent) sem -f: -f + 2>&1 corromperia http_code com stderr do curl no 409.
-          http_code=$(curl -s -X POST \
-            "https://api.vercel.com/v1/projects/${VERCEL_PROJECT_ID}/analytics?teamId=${VERCEL_ORG_ID}" \
-            -H "Authorization: Bearer ${VERCEL_TOKEN}" \
-            -H "Content-Type: application/json" \
-            -d '{}' \
-            -w "%{http_code}" -o /dev/null)
-          echo "Analytics enable response: ${http_code}"
-          [ "$http_code" = "200" ] || [ "$http_code" = "409" ] || { echo "::error::Falha ao habilitar analytics (${http_code})"; exit 1; }
       - name: Smoke the unpromoted production candidate
         env:
           SMOKE_BASE_URL: ${{ steps.candidate.outputs.url }}
@@ -229,6 +221,30 @@ jobs:
             || { echo '::error::O alias de produção não aponta para o SHA promovido.'; exit 1; }
           jq '{id:(.id // .uid),url,readyState,target,createdAt,meta:{githubCommitSha:.meta.githubCommitSha}}' \
             <<<"$ACTIVE_META" > promoted-deployment.json
+      - name: Synchronize the main branch alias
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          CANDIDATE_ID: ${{ steps.candidate.outputs.id }}
+        run: |
+          set -euo pipefail
+          vercel alias set "$CANDIDATE_ID" "$VERCEL_BRANCH_ALIAS" \
+            --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN" > branch-alias.log
+          cat branch-alias.log
+      - name: Verify the main branch alias after synchronization
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          CANDIDATE_ID: ${{ steps.candidate.outputs.id }}
+        run: |
+          set -euo pipefail
+          BRANCH_META="$(curl --silent --show-error --fail \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v13/deployments/$VERCEL_BRANCH_ALIAS?teamId=$VERCEL_ORG_ID")"
+          jq -e --arg id "$CANDIDATE_ID" --arg sha "$GITHUB_SHA" '
+            (.id // .uid) == $id and .readyState == "READY" and .meta.githubCommitSha == $sha
+          ' <<<"$BRANCH_META" > /dev/null \
+            || { echo '::error::O alias git-main não aponta para o candidato/SHA promovido.'; exit 1; }
+          jq '{id:(.id // .uid),url,readyState,target,createdAt,meta:{githubCommitSha:.meta.githubCommitSha}}' \
+            <<<"$BRANCH_META" > branch-alias-deployment.json
       - name: Smoke the public production domain after promotion
         env:
           SMOKE_BASE_URL: https://promo-brindes-v1.vercel.app
@@ -236,16 +252,28 @@ jobs:
           set -euo pipefail
           npm run smoke:deployment > production-smoke.log 2>&1
           cat production-smoke.log
+      - name: Smoke the main branch alias after synchronization
+        env:
+          SMOKE_BASE_URL: https://promo-brindes-v1-git-main-juca1.vercel.app
+        run: |
+          set -euo pipefail
+          npm run smoke:deployment > branch-alias-smoke.log 2>&1
+          cat branch-alias-smoke.log
       - name: Roll back when post-promotion validation fails
         if: failure() && steps.promote.outputs.attempted == 'true'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           PREVIOUS_DEPLOYMENT_ID: ${{ steps.previous.outputs.id }}
+          PREVIOUS_BRANCH_ALIAS_DEPLOYMENT_ID: ${{ steps.previous.outputs.branch_alias_id }}
         run: |
           set -euo pipefail
           test -n "$PREVIOUS_DEPLOYMENT_ID" || { echo '::error::Deployment anterior indisponível para rollback'; exit 1; }
+          test -n "$PREVIOUS_BRANCH_ALIAS_DEPLOYMENT_ID" || { echo '::error::Deployment anterior do alias git-main indisponível para rollback'; exit 1; }
           vercel promote "$PREVIOUS_DEPLOYMENT_ID" --yes --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN" > rollback.log
           cat rollback.log
+          vercel alias set "$PREVIOUS_BRANCH_ALIAS_DEPLOYMENT_ID" "$VERCEL_BRANCH_ALIAS" \
+            --scope "$VERCEL_SCOPE" --token "$VERCEL_TOKEN" > branch-alias-rollback.log
+          cat branch-alias-rollback.log
           ROLLED_BACK_META="$(curl --silent --show-error --fail \
             -H "Authorization: Bearer $VERCEL_TOKEN" \
             "https://api.vercel.com/v13/deployments/promo-brindes-v1.vercel.app?teamId=$VERCEL_ORG_ID")"
@@ -254,6 +282,14 @@ jobs:
             || { echo '::error::O alias público não confirmou o rollback.'; exit 1; }
           jq '{id:(.id // .uid),url,readyState,target,createdAt,meta:{githubCommitSha:.meta.githubCommitSha}}' \
             <<<"$ROLLED_BACK_META" > rolled-back-deployment.json
+          ROLLED_BACK_BRANCH_META="$(curl --silent --show-error --fail \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v13/deployments/$VERCEL_BRANCH_ALIAS?teamId=$VERCEL_ORG_ID")"
+          jq -e --arg id "$PREVIOUS_BRANCH_ALIAS_DEPLOYMENT_ID" \
+            '(.id // .uid) == $id and .readyState == "READY"' <<<"$ROLLED_BACK_BRANCH_META" > /dev/null \
+            || { echo '::error::O alias git-main não confirmou o rollback.'; exit 1; }
+          jq '{id:(.id // .uid),url,readyState,target,createdAt,meta:{githubCommitSha:.meta.githubCommitSha}}' \
+            <<<"$ROLLED_BACK_BRANCH_META" > rolled-back-branch-alias-deployment.json
       - name: Write release summary
         if: always()
         run: |
@@ -264,7 +300,8 @@ jobs:
             echo "Candidato: ${{ steps.candidate.outputs.url || 'não criado' }}"
             echo ""
             echo "O alias público só é promovido depois do smoke do candidato e recebe novo smoke após a promoção."
-            echo "Em falha pós-promoção, o workflow promove novamente o deployment anterior."
+            echo "O alias git-main é sincronizado com o mesmo SHA e também recebe smoke independente."
+            echo "Em falha pós-promoção, o workflow restaura os deployments anteriores dos dois aliases."
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Remove Vercel production environment files from the runner
         if: always()
@@ -278,11 +315,17 @@ jobs:
             candidate-deployment.json
             candidate-vercel-response.json
             previous-deployment.json
+            previous-branch-alias-deployment.json
             deployment-smoke.log
             promotion.log
             promoted-deployment.json
             production-smoke.log
+            branch-alias.log
+            branch-alias-deployment.json
+            branch-alias-smoke.log
             rollback.log
+            branch-alias-rollback.log
             rolled-back-deployment.json
+            rolled-back-branch-alias-deployment.json
           if-no-files-found: warn
           retention-days: 90

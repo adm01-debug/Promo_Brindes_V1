@@ -92,7 +92,7 @@ describe('HTML inicial das páginas estáticas', () => {
     const renamedCollection = responseDouble();
     await handler({ method: 'GET', query: { page: 'catalogos', colecao: 'novos-drops' } }, renamedCollection.response);
     expect(renamedCollection.result.statusCode).toBe(200);
-    expect(renamedCollection.result.body).toContain('<title>Novas tendências | Catálogos Promo Brindes</title>');
+    expect(renamedCollection.result.body).toContain('<title>Tendências | Catálogos Promo Brindes</title>');
     expect(renamedCollection.result.body).toContain('/catalogos?colecao=novas-tendencias');
 
     const occasion = responseDouble();
