@@ -1,3 +1,5 @@
+import { pathToFileURL } from 'node:url';
+
 const CANONICAL_CATALOG_ORIGIN = 'https://doufsxqlfjyuvxuezpln.supabase.co';
 
 export const EXPECTED_CATALOG_COLUMNS = Object.freeze([
@@ -109,6 +111,18 @@ export function validateCatalogPublicContract(rows) {
       const keys = Object.keys(swatch).sort((left, right) => left.localeCompare(right));
       const allowed = ['color_hex', 'color_name', 'image_url'];
       assert(keys.every((key) => allowed.includes(key)), `Contrato inseguro: swatch do produto ${index + 1} expõe [${keys.filter((key) => !allowed.includes(key)).join(', ')}].`);
+      assert(
+        typeof swatch.color_name === 'string' && swatch.color_name.trim().length > 0,
+        `Contrato inválido: color_name do swatch ${swatchIndex + 1} do produto ${index + 1} não é string preenchida.`,
+      );
+      assert(
+        swatch.color_hex === undefined || swatch.color_hex === null || typeof swatch.color_hex === 'string',
+        `Contrato inválido: color_hex do swatch ${swatchIndex + 1} do produto ${index + 1} não é string/null.`,
+      );
+      assert(
+        swatch.image_url === undefined || swatch.image_url === null || typeof swatch.image_url === 'string',
+        `Contrato inválido: image_url do swatch ${swatchIndex + 1} do produto ${index + 1} não é string/null.`,
+      );
     }
   }
 
@@ -155,7 +169,7 @@ async function runCli() {
   process.stdout.write(`Contrato público aprovado: ${result.columns} colunas, ${result.inspectedRows} produtos inspecionados, nenhuma coluna proibida.\n`);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   runCli().catch((error) => {
     process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
     process.exitCode = 1;
