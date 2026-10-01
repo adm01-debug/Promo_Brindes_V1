@@ -21,27 +21,47 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.0
+        with:
+          persist-credentials: false
+
       - name: Fetch recent workflow runs
-        id: runs
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
           RUNS="$(curl -fsSL \
             -H "Authorization: Bearer $GH_TOKEN" \
             "https://api.github.com/repos/${{ github.repository }}/actions/runs?per_page=50&branch=main" \
             | jq '[.workflow_runs[] | {name: .name, status: .status, conclusion: .conclusion, created_at: .created_at}]')"
-          TOTAL="$(echo "$RUNS" | jq 'length')"
-          FAILED="$(echo "$RUNS" | jq '[.[] | select(.conclusion == "failure")] | length')"
-          echo "total=$TOTAL" >> "$GITHUB_OUTPUT"
-          echo "failed=$FAILED" >> "$GITHUB_OUTPUT"
           echo "$RUNS" > /tmp/runs.json
+
+      - name: Calculate CI health metrics
+        id: runs
+        run: |
+          set -euo pipefail
+          METRICS="$(node scripts/ci-health-metrics.mjs /tmp/runs.json)"
+          echo "total=$(jq -r '.total' <<<"$METRICS")" >> "$GITHUB_OUTPUT"
+          echo "successful=$(jq -r '.successful' <<<"$METRICS")" >> "$GITHUB_OUTPUT"
+          echo "failed=$(jq -r '.failed' <<<"$METRICS")" >> "$GITHUB_OUTPUT"
+          echo "inconclusive=$(jq -r '.inconclusive' <<<"$METRICS")" >> "$GITHUB_OUTPUT"
+          echo "terminal=$(jq -r '.terminal' <<<"$METRICS")" >> "$GITHUB_OUTPUT"
+          echo "success_rate=$(jq -r '.successRate // "n/a"' <<<"$METRICS")" >> "$GITHUB_OUTPUT"
+          echo "failure_rate=$(jq -r '.failureRate // "n/a"' <<<"$METRICS")" >> "$GITHUB_OUTPUT"
 
       - name: Write job summary
         run: |
+          set -euo pipefail
           TOTAL="${{ steps.runs.outputs.total }}"
+          SUCCESSFUL="${{ steps.runs.outputs.successful }}"
           FAILED="${{ steps.runs.outputs.failed }}"
-          SUCCESS=$(( TOTAL - FAILED ))
-          RATE=$(( TOTAL > 0 ? SUCCESS * 100 / TOTAL : 0 ))
+          INCONCLUSIVE="${{ steps.runs.outputs.inconclusive }}"
+          TERMINAL="${{ steps.runs.outputs.terminal }}"
+          SUCCESS_RATE="${{ steps.runs.outputs.success_rate }}"
+          FAILURE_RATE="${{ steps.runs.outputs.failure_rate }}"
+          [ "$SUCCESS_RATE" = 'n/a' ] || SUCCESS_RATE="${SUCCESS_RATE}%"
+          [ "$FAILURE_RATE" = 'n/a' ] || FAILURE_RATE="${FAILURE_RATE}%"
           {
             echo "## CI Health Report — $(date -u '+%Y-%m-%dT%H:%MZ')"
             echo ""
@@ -50,18 +70,27 @@ jobs:
             echo "| Métrica | Valor |"
             echo "|---------|-------|"
             echo "| Total de runs | $TOTAL |"
-            echo "| Falhas | $FAILED |"
-            echo "| Taxa de sucesso | ${RATE}% |"
+            echo "| Conclusões terminais | $TERMINAL |"
+            echo "| Sucessos reais | $SUCCESSFUL |"
+            echo "| Falhas/timeout | $FAILED |"
+            echo "| Inconclusivos/cancelados | $INCONCLUSIVE |"
+            echo "| Taxa de sucesso terminal | $SUCCESS_RATE |"
+            echo "| Taxa de falha terminal | $FAILURE_RATE |"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Alert if failure rate > 30%
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           script: |
-            const total  = parseInt('${{ steps.runs.outputs.total }}');
+            const terminal = parseInt('${{ steps.runs.outputs.terminal }}');
             const failed = parseInt('${{ steps.runs.outputs.failed }}');
-            if (total === 0) return;
-            const rate = Math.round((failed / total) * 100);
+            const rate = '${{ steps.runs.outputs.failure_rate }}' === 'n/a'
+              ? null
+              : parseInt('${{ steps.runs.outputs.failure_rate }}');
+            if (terminal === 0 || rate === null) {
+              console.log('CI inconclusivo: nenhuma execução terminal na amostra.');
+              return;
+            }
             if (rate < 30) {
               console.log(`CI saudável: ${rate}% de falhas`);
               return;
@@ -77,6 +106,6 @@ jobs:
               owner: context.repo.owner,
               repo:  context.repo.repo,
               title: `⚠️ CI instável — taxa de falha ${rate}% nos últimos 50 runs`,
-              body:  `Taxa de falha no branch main está em **${rate}%** (${failed}/${total} runs).\n\nInvestigue os logs em https://github.com/${context.repo.owner}/${context.repo.repo}/actions`,
+              body:  `Taxa de falha terminal no branch main está em **${rate}%** (${failed}/${terminal} conclusões terminais). Runs cancelados, neutros, ignorados ou pendentes não entram como sucesso.\n\nInvestigue os logs em https://github.com/${context.repo.owner}/${context.repo.repo}/actions`,
               labels: ['bug', 'ci-health', 'priority:high'],
             });
