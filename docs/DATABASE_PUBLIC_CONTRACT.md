@@ -33,6 +33,15 @@ A fase A foi concluída em 08/09/2026 com a migration `20260908190000_create_sit
 - swatches limitados a `color_name`, `color_hex` e `image_url`;
 - preço, estoque, fornecedor e variante rejeitados pela API.
 
+O workflow `Canonical catalog public contract` executa diariamente uma sonda
+somente-leitura em `v_site_products_public`, sempre a partir da `main`. Ele
+confere as 36 colunas, tipos essenciais, conteúdo dos swatches e ausência de
+preço, estoque, fornecedor, variante interna ou integração. A chave usada é a
+publishable key já configurada na Vercel; o arquivo de ambiente baixado no
+runner é removido mesmo em falha. Esse monitor prova o contrato consumível pela
+API pública, não substitui auditoria de triggers, policies ou GRANTs por
+`pg_catalog`.
+
 O frontend, o catálogo e o sitemap passaram a usar a view mínima. A fase B é um endurecimento futuro e independente: inventariar todos os consumidores da view legada antes de qualquer revogação.
 
 ```sql
