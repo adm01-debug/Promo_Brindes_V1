@@ -91,9 +91,23 @@ function sameValues(left, right) {
   return left.length === right.length && left.every((value, index) => value === right[index]);
 }
 
-export function validateCatalogPublicContract(rows) {
+function nestedForbiddenKeys(value, path = '') {
+  if (Array.isArray(value)) return value.flatMap((item, index) => nestedForbiddenKeys(item, `${path}[${index}]`));
+  if (value === null || typeof value !== 'object') return [];
+  return Object.entries(value).flatMap(([key, child]) => {
+    const childPath = path ? `${path}.${key}` : key;
+    return [
+      ...(FORBIDDEN_COLUMN_PATTERNS.some((pattern) => pattern.test(key)) ? [childPath] : []),
+      ...nestedForbiddenKeys(child, childPath),
+    ];
+  });
+}
+
+export function validateCatalogPublicContract(rows, { seenProductIds = new Set() } = {}) {
   assert(Array.isArray(rows), 'Contrato inválido: a resposta do catálogo não é uma lista.');
   assert(rows.length > 0, 'Contrato inconclusivo: a origem não devolveu produto algum para inspeção.');
+  let blankSwatchNames = 0;
+  let duplicateSwatchNames = 0;
 
   for (const [index, value] of rows.entries()) {
     assert(value !== null && typeof value === 'object' && !Array.isArray(value), `Contrato inválido: produto ${index + 1} não é um objeto.`);
@@ -111,13 +125,28 @@ export function validateCatalogPublicContract(rows) {
       typeof row.id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(row.id),
       `Contrato inválido: produto ${index + 1} sem UUID público.`,
     );
+    assert(!seenProductIds.has(row.id), `Contrato inválido: UUID público duplicado (${row.id}).`);
+    seenProductIds.add(row.id);
     assert(typeof row.name === 'string' && row.name.trim().length > 0, `Contrato inválido: produto ${index + 1} sem nome.`);
     assert(typeof row.sku === 'string' && row.sku.trim().length > 0, `Contrato inválido: produto ${index + 1} sem SKU.`);
-    assert(typeof row.slug === 'string' && row.slug.trim().length > 0, `Contrato inválido: produto ${index + 1} sem slug.`);
+    assert(
+      typeof row.slug === 'string' && /^[a-z0-9](?:[a-z0-9-]{0,198}[a-z0-9])?$/i.test(row.slug),
+      `Contrato inválido: produto ${index + 1} sem slug público compatível.`,
+    );
     assert(Array.isArray(row.images), `Contrato inválido: images do produto ${index + 1} não é lista.`);
     assert(Array.isArray(row.materials), `Contrato inválido: materials do produto ${index + 1} não é lista.`);
     assert(Array.isArray(row.colors), `Contrato inválido: colors do produto ${index + 1} não é lista.`);
     assert(Array.isArray(row.color_swatches), `Contrato inválido: color_swatches do produto ${index + 1} não é lista.`);
+    for (const column of ['images', 'materials', 'colors']) {
+      assert(row[column].every((item) => typeof item === 'string'), `Contrato inválido: ${column} do produto ${index + 1} contém item que não é string.`);
+    }
+    assert(
+      row.dimensions === null || (typeof row.dimensions === 'object' && !Array.isArray(row.dimensions)),
+      `Contrato inválido: dimensions do produto ${index + 1} não é objeto/null.`,
+    );
+    const forbiddenNested = ['images', 'materials', 'colors', 'dimensions', 'color_swatches']
+      .flatMap((column) => nestedForbiddenKeys(row[column], column));
+    assert(forbiddenNested.length === 0, `Contrato inseguro: produto ${index + 1} expõe chaves aninhadas proibidas: ${forbiddenNested.join(', ')}.`);
     assert(row.is_active === true, `Contrato inseguro: produto ${index + 1} inativo está exposto na view pública.`);
 
     for (const column of BOOLEAN_COLUMNS) {
@@ -129,6 +158,7 @@ export function validateCatalogPublicContract(rows) {
     for (const column of NULLABLE_TEXT_COLUMNS) {
       assert(row[column] === null || typeof row[column] === 'string', `Contrato inválido: ${column} do produto ${index + 1} não é string/null.`);
     }
+    const normalizedSwatchNames = new Set();
     for (const [swatchIndex, swatch] of row.color_swatches.entries()) {
       assert(swatch !== null && typeof swatch === 'object' && !Array.isArray(swatch), `Contrato inválido: swatch ${swatchIndex + 1} do produto ${index + 1} não é objeto.`);
       const keys = Object.keys(swatch).sort((left, right) => left.localeCompare(right));
@@ -138,6 +168,10 @@ export function validateCatalogPublicContract(rows) {
         typeof swatch.color_name === 'string',
         `Contrato inválido: color_name do swatch ${swatchIndex + 1} do produto ${index + 1} não é string.`,
       );
+      const normalizedName = swatch.color_name.trim().normalize('NFC').toLocaleLowerCase('pt-BR');
+      if (!normalizedName) blankSwatchNames += 1;
+      else if (normalizedSwatchNames.has(normalizedName)) duplicateSwatchNames += 1;
+      else normalizedSwatchNames.add(normalizedName);
       assert(
         swatch.color_hex === undefined || swatch.color_hex === null || typeof swatch.color_hex === 'string',
         `Contrato inválido: color_hex do swatch ${swatchIndex + 1} do produto ${index + 1} não é string/null.`,
@@ -149,7 +183,11 @@ export function validateCatalogPublicContract(rows) {
     }
   }
 
-  return { inspectedRows: rows.length, columns: EXPECTED_CATALOG_COLUMNS.length };
+  return {
+    inspectedRows: rows.length,
+    columns: EXPECTED_CATALOG_COLUMNS.length,
+    warnings: { blankSwatchNames, duplicateSwatchNames },
+  };
 }
 
 function catalogConfig() {
@@ -174,6 +212,9 @@ function catalogConfig() {
 export async function checkCatalogPublicContract(fetchImplementation = fetch) {
   const { origin, key } = catalogConfig();
   let inspectedRows = 0;
+  let lastId = '';
+  const seenProductIds = new Set();
+  const warnings = { blankSwatchNames: 0, duplicateSwatchNames: 0 };
 
   for (let page = 0; page < MAX_CATALOG_PAGES; page += 1) {
     const url = new URL('/rest/v1/v_site_products_public', origin);
@@ -182,7 +223,9 @@ export async function checkCatalogPublicContract(fetchImplementation = fetch) {
     // uma regressão que passasse a publicar produtos inativos.
     url.searchParams.set('order', 'id.asc');
     url.searchParams.set('limit', String(CATALOG_PAGE_SIZE));
-    url.searchParams.set('offset', String(page * CATALOG_PAGE_SIZE));
+    // Cursor imutável por UUID: evita saltos de offset se o catálogo mudar
+    // enquanto a leitura percorre as páginas e funciona mesmo com max-rows baixo.
+    if (lastId) url.searchParams.set('id', `gt.${lastId}`);
     const response = await fetchImplementation(url, {
       headers: { apikey: key, Authorization: `Bearer ${key}`, Accept: 'application/json' },
       signal: AbortSignal.timeout(10_000),
@@ -192,11 +235,15 @@ export async function checkCatalogPublicContract(fetchImplementation = fetch) {
     assert(Array.isArray(rows), 'Contrato inválido: a resposta do catálogo não é uma lista.');
     if (rows.length === 0) {
       assert(inspectedRows > 0, 'Contrato inconclusivo: a origem não devolveu produto algum para inspeção.');
-      return { inspectedRows, columns: EXPECTED_CATALOG_COLUMNS.length };
+      return { inspectedRows, columns: EXPECTED_CATALOG_COLUMNS.length, warnings };
     }
-    const result = validateCatalogPublicContract(rows);
+    const result = validateCatalogPublicContract(rows, { seenProductIds });
     inspectedRows += result.inspectedRows;
-    if (rows.length < CATALOG_PAGE_SIZE) return { inspectedRows, columns: result.columns };
+    warnings.blankSwatchNames += result.warnings.blankSwatchNames;
+    warnings.duplicateSwatchNames += result.warnings.duplicateSwatchNames;
+    const pageLastId = rows.at(-1)?.id;
+    assert(typeof pageLastId === 'string' && (!lastId || pageLastId > lastId), 'Contrato inválido: paginação do catálogo não avançou por UUID.');
+    lastId = pageLastId;
   }
 
   throw new Error(`Contrato inconclusivo: catálogo excedeu ${MAX_CATALOG_PAGES * CATALOG_PAGE_SIZE} produtos durante a inspeção paginada.`);
@@ -205,6 +252,9 @@ export async function checkCatalogPublicContract(fetchImplementation = fetch) {
 async function runCli() {
   const result = await checkCatalogPublicContract();
   process.stdout.write(`Contrato público aprovado: ${result.columns} colunas, ${result.inspectedRows} produtos inspecionados, nenhuma coluna proibida.\n`);
+  if (result.warnings.blankSwatchNames || result.warnings.duplicateSwatchNames) {
+    process.stdout.write(`Avisos de qualidade da origem: ${result.warnings.blankSwatchNames} swatch(es) sem nome e ${result.warnings.duplicateSwatchNames} nome(s) duplicado(s).\n`);
+  }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

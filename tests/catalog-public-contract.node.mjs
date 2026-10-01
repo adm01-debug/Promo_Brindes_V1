@@ -24,7 +24,11 @@ function validRow(overrides = {}) {
 }
 
 test('aceita somente o contrato público exato de 36 colunas', () => {
-  assert.deepEqual(validateCatalogPublicContract([validRow()]), { inspectedRows: 1, columns: 36 });
+  assert.deepEqual(validateCatalogPublicContract([validRow()]), {
+    inspectedRows: 1,
+    columns: 36,
+    warnings: { blankSwatchNames: 0, duplicateSwatchNames: 0 },
+  });
 });
 
 test('falha se uma coluna esperada sumir ou uma coluna nova aparecer', () => {
@@ -43,12 +47,30 @@ test('falha explicitamente se preço, estoque ou fornecedor forem expostos', () 
 test('recusa identificador, arrays e swatches incompatíveis', () => {
   assert.throws(() => validateCatalogPublicContract([validRow({ id: 'interno-42' })]), /sem UUID público/);
   assert.throws(() => validateCatalogPublicContract([validRow({ id: '11111111-1111-7111-8111-111111111111' })]), /sem UUID público/);
+  assert.throws(() => validateCatalogPublicContract([validRow({ slug: 'slug_inválido' })]), /slug público compatível/);
   assert.throws(() => validateCatalogPublicContract([validRow({ materials: 'algodão' })]), /materials/);
-  assert.throws(() => validateCatalogPublicContract([validRow({ color_swatches: [{ color_name: 'Azul', variant_id: 'interno' }] })]), /swatch.*expõe/);
+  assert.throws(() => validateCatalogPublicContract([validRow({ images: [{ cost_price: 10 }] })]), /images.*não é string/);
+  assert.throws(() => validateCatalogPublicContract([validRow({ dimensions: { supplier_id: 'interno' } })]), /chaves aninhadas proibidas/);
+  assert.throws(() => validateCatalogPublicContract([validRow({ color_swatches: [{ color_name: 'Azul', variant_id: 'interno' }] })]), /chaves aninhadas proibidas/);
   assert.throws(() => validateCatalogPublicContract([validRow({ color_swatches: [{}] })]), /color_name/);
   assert.throws(() => validateCatalogPublicContract([validRow({ color_swatches: [{ color_name: 7 }] })]), /color_name/);
   assert.throws(() => validateCatalogPublicContract([validRow({ color_swatches: [{ color_name: 'Azul', color_hex: 7 }] })]), /color_hex/);
   assert.throws(() => validateCatalogPublicContract([validRow({ color_swatches: [{ color_name: 'Azul', image_url: false }] })]), /image_url/);
+});
+
+test('torna anomalias de nomes de swatches observáveis sem confundi-las com vazamento', () => {
+  assert.deepEqual(
+    validateCatalogPublicContract([validRow({ color_swatches: [
+      { color_name: ' ' },
+      { color_name: 'Azul' },
+      { color_name: ' AZUL ' },
+    ] })]).warnings,
+    { blankSwatchNames: 1, duplicateSwatchNames: 1 },
+  );
+});
+
+test('recusa UUID de produto repetido no mesmo lote', () => {
+  assert.throws(() => validateCatalogPublicContract([validRow(), validRow()]), /UUID público duplicado/);
 });
 
 test('recusa produto inativo e textos incompatíveis com os consumidores', () => {
@@ -73,18 +95,25 @@ test('consulta todas as linhas da origem canônica com chave pública e timeout'
   restoreEnvAfter(t);
   process.env.VITE_SUPABASE_URL = 'https://doufsxqlfjyuvxuezpln.supabase.co';
   process.env.VITE_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fixture';
+  let requests = 0;
   const fetchMock = async (url, init) => {
+    requests += 1;
     assert.equal(url.origin, 'https://doufsxqlfjyuvxuezpln.supabase.co');
     assert.equal(url.pathname, '/rest/v1/v_site_products_public');
     assert.equal(url.searchParams.get('select'), '*');
     assert.equal(url.searchParams.has('is_active'), false);
     assert.equal(url.searchParams.get('limit'), '1000');
-    assert.equal(url.searchParams.get('offset'), '0');
+    assert.equal(url.searchParams.has('offset'), false);
     assert.equal(init.headers.apikey, 'sb_publishable_fixture');
     assert.equal(init.signal instanceof AbortSignal, true);
-    return new Response(JSON.stringify([validRow()]), { status: 200 });
+    return new Response(JSON.stringify(url.searchParams.has('id') ? [] : [validRow()]), { status: 200 });
   };
-  assert.deepEqual(await checkCatalogPublicContract(fetchMock), { inspectedRows: 1, columns: 36 });
+  assert.deepEqual(await checkCatalogPublicContract(fetchMock), {
+    inspectedRows: 1,
+    columns: 36,
+    warnings: { blankSwatchNames: 0, duplicateSwatchNames: 0 },
+  });
+  assert.equal(requests, 2);
 });
 
 test('pagina o catálogo completo e valida swatches além da primeira página', async (t) => {
@@ -97,13 +126,37 @@ test('pagina o catálogo completo e valida swatches além da primeira página', 
   }));
   const fetchMock = async (url) => {
     requests += 1;
-    const offset = Number(url.searchParams.get('offset'));
-    if (offset === 0) return new Response(JSON.stringify(firstPage), { status: 200 });
-    assert.equal(offset, 1000);
+    const cursor = url.searchParams.get('id');
+    if (!cursor) return new Response(JSON.stringify(firstPage), { status: 200 });
+    assert.equal(cursor, `gt.${firstPage.at(-1).id}`);
     return new Response(JSON.stringify([validRow({ color_swatches: [{ color_name: 'Azul', supplier_id: 'vazamento' }] })]), { status: 200 });
   };
-  await assert.rejects(() => checkCatalogPublicContract(fetchMock), /swatch.*expõe/);
+  await assert.rejects(() => checkCatalogPublicContract(fetchMock), /chaves aninhadas proibidas/);
   assert.equal(requests, 2);
+});
+
+test('continua após uma página menor que o limite imposto pelo servidor', async (t) => {
+  restoreEnvAfter(t);
+  process.env.VITE_SUPABASE_URL = 'https://doufsxqlfjyuvxuezpln.supabase.co';
+  process.env.VITE_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fixture';
+  const pages = [
+    [validRow({ id: '11111111-1111-4111-8111-111111111111' })],
+    [validRow({ id: '22222222-2222-4222-8222-222222222222' })],
+    [],
+  ];
+  let request = 0;
+  const result = await checkCatalogPublicContract(async () => new Response(JSON.stringify(pages[request++]), { status: 200 }));
+  assert.equal(result.inspectedRows, 2);
+  assert.equal(request, 3);
+});
+
+test('recusa UUID repetido entre páginas paginadas', async (t) => {
+  restoreEnvAfter(t);
+  process.env.VITE_SUPABASE_URL = 'https://doufsxqlfjyuvxuezpln.supabase.co';
+  process.env.VITE_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fixture';
+  let request = 0;
+  const fetchMock = async () => new Response(JSON.stringify(request++ < 2 ? [validRow()] : []), { status: 200 });
+  await assert.rejects(() => checkCatalogPublicContract(fetchMock), /UUID público duplicado/);
 });
 
 test('aceita JWT legado somente quando a role declarada é anon', async (t) => {
@@ -112,8 +165,13 @@ test('aceita JWT legado somente quando a role declarada é anon', async (t) => {
   const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
   const payload = Buffer.from(JSON.stringify({ role: 'anon' })).toString('base64url');
   process.env.VITE_SUPABASE_PUBLISHABLE_KEY = `${header}.${payload}.fixture`;
-  const fetchMock = async () => new Response(JSON.stringify([validRow()]), { status: 200 });
-  assert.deepEqual(await checkCatalogPublicContract(fetchMock), { inspectedRows: 1, columns: 36 });
+  let request = 0;
+  const fetchMock = async () => new Response(JSON.stringify(request++ === 0 ? [validRow()] : []), { status: 200 });
+  assert.deepEqual(await checkCatalogPublicContract(fetchMock), {
+    inspectedRows: 1,
+    columns: 36,
+    warnings: { blankSwatchNames: 0, duplicateSwatchNames: 0 },
+  });
 });
 
 test('falha fechado para outro projeto ou chave privilegiada', async (t) => {
