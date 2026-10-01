@@ -1,3 +1,4 @@
+import { createHmac } from 'node:crypto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import contactHandler from '../../api/contact-requests.js';
 import quoteHandler from '../../api/quote-requests.js';
@@ -97,6 +98,12 @@ function quoteFetchMock(rpcBody: string) {
   });
 }
 
+function leadFetchMock(rpcBody: string) {
+  return vi.fn(async (url: string | URL, _init?: RequestInit) => String(url).includes('/preflight_site_lead_request')
+    ? new Response('true', { status: 200 })
+    : new Response(rpcBody, { status: 200 }));
+}
+
 describe('APIs de leads isoladas', () => {
   // O contrato rejeita submissões com mais de sete dias. Congelar o relógio
   // mantém estes cenários determinísticos, sem enfraquecer a regra em produção.
@@ -113,7 +120,7 @@ describe('APIs de leads isoladas', () => {
 
   it('registra contato normalizado pelo RPC server-side', async () => {
     configureSiteDatabase();
-    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ requestId: REQUEST_ID, duplicate: false }), { status: 200 }));
+    const fetchMock = leadFetchMock(JSON.stringify({ requestId: REQUEST_ID, duplicate: false }));
     vi.stubGlobal('fetch', fetchMock);
     const { result, response } = responseDouble();
 
@@ -138,7 +145,7 @@ describe('APIs de leads isoladas', () => {
     ['envelope que não é objeto', ['requestId', REQUEST_ID]],
   ])('rejeita resposta malformada do banco: %s', async (_scenario, rpcResult) => {
     configureSiteDatabase();
-    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify(rpcResult), { status: 200 }));
+    const fetchMock = leadFetchMock(JSON.stringify(rpcResult));
     vi.stubGlobal('fetch', fetchMock);
     const { result, response } = responseDouble();
 
@@ -186,11 +193,17 @@ describe('APIs de leads isoladas', () => {
     expect(result.body).toMatchObject({ error: 'catalog_validation_unavailable' });
   });
 
-  it('encerra o preflight indisponível em 2,5 segundos sem consultar o catálogo', async () => {
+  it('encerra o corpo do preflight que trava após os headers em 2,5 segundos', async () => {
     configureSiteDatabase();
-    const fetchMock = vi.fn((_url: string | URL, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
-      init?.signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true });
-    }));
+    const fetchMock = vi.fn(async (_url: string | URL, init?: RequestInit) => new Response(new ReadableStream({
+      start(controller) {
+        init?.signal?.addEventListener(
+          'abort',
+          () => controller.error(new DOMException('Aborted', 'AbortError')),
+          { once: true },
+        );
+      },
+    }), { status: 200, headers: { 'content-type': 'application/json' } }));
     vi.stubGlobal('fetch', fetchMock);
     const { result, response } = responseDouble();
     const pending = quoteHandler(request(quotePayload), response);
@@ -248,8 +261,9 @@ describe('APIs de leads isoladas', () => {
       ...kit,
       unitsPerKit: 1,
     };
-    const fetchMock = vi.fn(async (url: string | URL, _init?: RequestInit) => String(url).includes('/v_site_products_public')
-      ? new Response(JSON.stringify([
+    const fetchMock = vi.fn(async (url: string | URL, _init?: RequestInit) => String(url).includes('/preflight_site_lead_request')
+      ? new Response('true', { status: 200 })
+      : String(url).includes('/v_site_products_public') ? new Response(JSON.stringify([
         JSON.parse(await catalogResponse().text())[0],
         { id: secondItem.productId, slug: secondItem.slug, name: secondItem.name, sku: secondItem.sku, min_quantity: 50, primary_image_url: secondItem.imageUrl, color_swatches: [] },
       ]), { status: 200 })
@@ -275,8 +289,9 @@ describe('APIs de leads isoladas', () => {
 
   it('mantém no briefing produto publicado com mínimo ainda não confirmado', async () => {
     configureSiteDatabase();
-    const fetchMock = vi.fn(async (url: string | URL, _init?: RequestInit) => String(url).includes('/v_site_products_public')
-      ? new Response(JSON.stringify([{ ...JSON.parse(await catalogResponse().text())[0], min_quantity: null }]), { status: 200 })
+    const fetchMock = vi.fn(async (url: string | URL, _init?: RequestInit) => String(url).includes('/preflight_site_lead_request')
+      ? new Response('true', { status: 200 })
+      : String(url).includes('/v_site_products_public') ? new Response(JSON.stringify([{ ...JSON.parse(await catalogResponse().text())[0], min_quantity: null }]), { status: 200 })
       : new Response(JSON.stringify({ requestId: REQUEST_ID, duplicate: false }), { status: 200 }));
     vi.stubGlobal('fetch', fetchMock);
     const { result, response } = responseDouble();
@@ -337,7 +352,7 @@ describe('APIs de leads isoladas', () => {
     vi.stubEnv('VERCEL_URL', 'promo-brindes-v1-preview-abc-juca1.vercel.app');
     vi.stubEnv('SITE_PREVIEW_SUPABASE_PROJECT_REF', 'unkaeotwziynruktxizp');
     vi.stubEnv('SITE_SUPABASE_URL', 'https://unkaeotwziynruktxizp.supabase.co');
-    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ requestId: REQUEST_ID, duplicate: false }), { status: 200 }));
+    const fetchMock = leadFetchMock(JSON.stringify({ requestId: REQUEST_ID, duplicate: false }));
     vi.stubGlobal('fetch', fetchMock);
     const { result, response } = responseDouble();
     await contactHandler(request({ ...contactPayload, pageUrl: 'https://promo-brindes-v1-preview-abc-juca1.vercel.app/contato' }, { headers: { origin: 'https://promo-brindes-v1-preview-abc-juca1.vercel.app', 'content-type': 'application/json' } }), response);
@@ -375,10 +390,31 @@ describe('APIs de leads isoladas', () => {
     const rpcCall = fetchMock.mock.calls.find(([url]) => String(url).includes('/create_site_quote_request'));
     const preflightBody = JSON.parse(String(preflightCall?.[1]?.body));
     const finalBody = JSON.parse(String(rpcCall?.[1]?.body));
+    const expectedTrustedHash = createHmac('sha256', 'salt-de-testes-com-mais-de-32-caracteres')
+      .update('203.0.113.42')
+      .digest('hex');
+    const spoofedHash = createHmac('sha256', 'salt-de-testes-com-mais-de-32-caracteres')
+      .update('198.51.100.99')
+      .digest('hex');
     expect(preflightBody.p_identifier_hash).toMatch(/^[0-9a-f]{64}$/);
+    expect(preflightBody.p_identifier_hash).toBe(expectedTrustedHash);
+    expect(preflightBody.p_identifier_hash).not.toBe(spoofedHash);
     expect(preflightBody.p_identifier_hash).toBe(finalBody.p_request_meta.identifierHash);
     expect(preflightBody.p_identifier_hash).not.toContain('203.0.113.42');
     expect(preflightBody.p_client_request_id).toBe(quotePayload.clientRequestId);
+  });
+
+  it('falha fechado quando o preflight devolve envelope de sucesso inválido', async () => {
+    configureSiteDatabase();
+    const fetchMock = vi.fn().mockResolvedValue(new Response('false', { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+
+    await contactHandler(request(contactPayload), response);
+
+    expect(result.statusCode).toBe(502);
+    expect(result.body).toMatchObject({ error: 'invalid_database_response' });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it('não deixa timer pendente ao rejeitar método diferente de POST', async () => {
@@ -436,7 +472,7 @@ describe('APIs de leads isoladas', () => {
 
   it('aceita o instante exatamente no limite retroativo permitido', async () => {
     configureSiteDatabase();
-    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ requestId: REQUEST_ID, duplicate: false }), { status: 200 }));
+    const fetchMock = leadFetchMock(JSON.stringify({ requestId: REQUEST_ID, duplicate: false }));
     vi.stubGlobal('fetch', fetchMock);
     const { result, response } = responseDouble();
     const submittedAt = '2026-09-01T12:00:00.000Z';

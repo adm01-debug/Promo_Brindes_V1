@@ -93,7 +93,8 @@ jobs:
               console.log('CI inconclusivo: nenhuma execução terminal na amostra.');
               return;
             }
-            if (rate < 30) {
+            const exceedsThreshold = failed * 100 > terminal * 30;
+            if (!exceedsThreshold) {
               console.log(`CI saudável: ${rate}% de falhas`);
               return;
             }

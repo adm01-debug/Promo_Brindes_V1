@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(16);
+select plan(18);
 
 select has_function(
   'public', 'preflight_site_lead_request', array['text', 'text', 'text'],
@@ -38,10 +38,17 @@ select throws_ok(
 
 select ok(public.preflight_site_lead_request('quote', repeat('b', 64), 'request-001'), 'primeira tentativa é aceita');
 select ok(public.preflight_site_lead_request('quote', repeat('b', 64), 'request-002'), 'segunda tentativa é aceita');
+select ok(public.preflight_site_lead_request('quote', repeat('b', 64), 'request-002'), 'retry idempotente também é aceito e limitado');
 select is(
   (select request_count from site_private.rate_limit_buckets where request_kind = 'quote_preflight' and identifier_hash = repeat('b', 64)),
-  2,
-  'tentativas compartilham bucket persistente por identificador'
+  3,
+  'tentativas e retries compartilham bucket persistente por identificador'
+);
+
+select is(
+  (select count(*)::integer from site_private.quote_requests where client_request_id = 'request-002'),
+  0,
+  'preflight não persiste solicitação nem usa existência prévia para liberar o catálogo'
 );
 
 select lives_ok(

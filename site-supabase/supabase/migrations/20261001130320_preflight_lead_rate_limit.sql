@@ -56,7 +56,6 @@ language plpgsql
 security invoker
 set search_path = ''
 as $$
-declare v_already_persisted boolean;
 begin
   if p_request_kind not in ('quote', 'contact')
     or coalesce(p_identifier_hash, '') !~ '^[0-9a-f]{64}$'
@@ -64,21 +63,8 @@ begin
     raise exception using errcode = '22023', message = 'invalid_lead_preflight_input';
   end if;
 
-  if p_request_kind = 'quote' then
-    select exists(
-      select 1 from site_private.quote_requests request
-      where request.client_request_id = p_client_request_id
-    ) into v_already_persisted;
-  else
-    select exists(
-      select 1 from site_private.contact_requests request
-      where request.client_request_id = p_client_request_id
-    ) into v_already_persisted;
-  end if;
-
-  -- Repetições já persistidas continuam idempotentes e não gastam o bucket.
-  if v_already_persisted then return false; end if;
-
+  -- Repetições idempotentes também consomem o bucket. Ignorá-las permitiria
+  -- repetir um client_request_id conhecido e consultar o catálogo sem limite.
   perform site_private.consume_rate_limit(
     p_request_kind || '_preflight',
     p_identifier_hash,
@@ -95,4 +81,4 @@ grant execute on function public.preflight_site_lead_request(text, text, text)
   to site_api, service_role;
 
 comment on function public.preflight_site_lead_request(text, text, text) is
-  'Primeira camada distribuída de rate limit para leads, executada antes da consulta ao catálogo. Retorna false para client_request_id já persistido e true quando consumiu o bucket.';
+  'Primeira camada distribuída de rate limit para leads, executada antes da consulta ao catálogo. Repetições idempotentes também consomem o bucket para impedir bypass por client_request_id conhecido.';

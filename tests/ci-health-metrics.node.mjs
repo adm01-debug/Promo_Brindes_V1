@@ -50,6 +50,16 @@ test('amostra sem conclusão terminal permanece inconclusiva', () => {
   });
 });
 
+test('taxas arredondadas continuam somando exatamente 100', () => {
+  const metrics = calculateCiHealthMetrics([
+    { conclusion: 'success' },
+    ...Array.from({ length: 7 }, () => ({ conclusion: 'failure' })),
+  ]);
+  assert.equal(metrics.successRate, 13);
+  assert.equal(metrics.failureRate, 87);
+  assert.equal(metrics.successRate + metrics.failureRate, 100);
+});
+
 test('recusa resposta da API que não seja uma lista', () => {
   assert.throws(() => calculateCiHealthMetrics({ workflow_runs: [] }), /deve ser um array/);
 });

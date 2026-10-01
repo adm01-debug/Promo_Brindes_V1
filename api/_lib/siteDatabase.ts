@@ -185,12 +185,20 @@ export async function enforceLeadPreflightRateLimit(
       }),
       signal,
     });
+    let result: unknown = null;
+    try {
+      result = await response.json();
+    } catch (error) {
+      if (signal.aborted) throw error;
+    }
     if (!response.ok) {
-      const result = await response.json().catch(() => null) as unknown;
       if (responseErrorDetail(result).includes('rate_limit_exceeded')) {
         throw new SiteDatabaseError('Muitas tentativas em pouco tempo. Aguarde alguns minutos.', 'rate_limit_exceeded', 429);
       }
       throw new SiteDatabaseError('Não conseguimos validar sua solicitação agora. Tente novamente.', 'database_unavailable');
+    }
+    if (result !== true) {
+      throw new SiteDatabaseError('O banco devolveu uma resposta inválida.', 'invalid_database_response', 502);
     }
   } catch (error) {
     if (error instanceof SiteDatabaseError) throw error;

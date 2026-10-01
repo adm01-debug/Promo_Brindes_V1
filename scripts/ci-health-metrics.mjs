@@ -25,14 +25,15 @@ export function calculateCiHealthMetrics(runs) {
   }
 
   const terminal = successful + failed;
+  const successRate = terminal > 0 ? Math.round((successful / terminal) * 100) : null;
   return {
     total: runs.length,
     successful,
     failed,
     inconclusive,
     terminal,
-    successRate: terminal > 0 ? Math.round((successful / terminal) * 100) : null,
-    failureRate: terminal > 0 ? Math.round((failed / terminal) * 100) : null,
+    successRate,
+    failureRate: successRate === null ? null : 100 - successRate,
   };
 }
 
