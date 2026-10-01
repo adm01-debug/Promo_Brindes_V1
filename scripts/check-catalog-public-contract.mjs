@@ -37,7 +37,7 @@ export const EXPECTED_CATALOG_COLUMNS = Object.freeze([
   'slug',
   'weight_g',
   'width_cm',
-].sort());
+].sort((left, right) => left.localeCompare(right)));
 
 const FORBIDDEN_COLUMN_PATTERNS = [
   /(^|_)cost($|_)/i,
@@ -77,7 +77,7 @@ export function validateCatalogPublicContract(rows) {
   for (const [index, value] of rows.entries()) {
     assert(value !== null && typeof value === 'object' && !Array.isArray(value), `Contrato inválido: produto ${index + 1} não é um objeto.`);
     const row = value;
-    const columns = Object.keys(row).sort();
+    const columns = Object.keys(row).sort((left, right) => left.localeCompare(right));
     const forbidden = columns.filter((column) => FORBIDDEN_COLUMN_PATTERNS.some((pattern) => pattern.test(column)));
     assert(forbidden.length === 0, `Contrato inseguro: produto ${index + 1} expõe colunas proibidas: ${forbidden.join(', ')}.`);
     if (!sameValues(columns, EXPECTED_CATALOG_COLUMNS)) {
@@ -105,7 +105,7 @@ export function validateCatalogPublicContract(rows) {
     }
     for (const [swatchIndex, swatch] of row.color_swatches.entries()) {
       assert(swatch !== null && typeof swatch === 'object' && !Array.isArray(swatch), `Contrato inválido: swatch ${swatchIndex + 1} do produto ${index + 1} não é objeto.`);
-      const keys = Object.keys(swatch).sort();
+      const keys = Object.keys(swatch).sort((left, right) => left.localeCompare(right));
       const allowed = ['color_hex', 'color_name', 'image_url'];
       assert(keys.every((key) => allowed.includes(key)), `Contrato inseguro: swatch do produto ${index + 1} expõe [${keys.filter((key) => !allowed.includes(key)).join(', ')}].`);
     }
