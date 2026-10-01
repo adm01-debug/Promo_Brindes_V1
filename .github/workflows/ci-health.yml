@@ -42,13 +42,15 @@ jobs:
         run: |
           set -euo pipefail
           METRICS="$(node scripts/ci-health-metrics.mjs /tmp/runs.json)"
-          echo "total=$(jq -r '.total' <<<"$METRICS")" >> "$GITHUB_OUTPUT"
-          echo "successful=$(jq -r '.successful' <<<"$METRICS")" >> "$GITHUB_OUTPUT"
-          echo "failed=$(jq -r '.failed' <<<"$METRICS")" >> "$GITHUB_OUTPUT"
-          echo "inconclusive=$(jq -r '.inconclusive' <<<"$METRICS")" >> "$GITHUB_OUTPUT"
-          echo "terminal=$(jq -r '.terminal' <<<"$METRICS")" >> "$GITHUB_OUTPUT"
-          echo "success_rate=$(jq -r '.successRate // "n/a"' <<<"$METRICS")" >> "$GITHUB_OUTPUT"
-          echo "failure_rate=$(jq -r '.failureRate // "n/a"' <<<"$METRICS")" >> "$GITHUB_OUTPUT"
+          {
+            echo "total=$(jq -r '.total' <<<"$METRICS")"
+            echo "successful=$(jq -r '.successful' <<<"$METRICS")"
+            echo "failed=$(jq -r '.failed' <<<"$METRICS")"
+            echo "inconclusive=$(jq -r '.inconclusive' <<<"$METRICS")"
+            echo "terminal=$(jq -r '.terminal' <<<"$METRICS")"
+            echo "success_rate=$(jq -r '.successRate // "n/a"' <<<"$METRICS")"
+            echo "failure_rate=$(jq -r '.failureRate // "n/a"' <<<"$METRICS")"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Write job summary
         run: |
