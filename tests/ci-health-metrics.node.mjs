@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import { calculateCiHealthMetrics } from '../scripts/ci-health-metrics.mjs';
 
@@ -51,4 +52,24 @@ test('amostra sem conclusão terminal permanece inconclusiva', () => {
 
 test('recusa resposta da API que não seja uma lista', () => {
   assert.throws(() => calculateCiHealthMetrics({ workflow_runs: [] }), /deve ser um array/);
+});
+
+test('CLI lê JSON somente de stdin e recusa qualquer caminho informado', () => {
+  const input = JSON.stringify([{ conclusion: 'success' }, { conclusion: 'cancelled' }]);
+  const success = spawnSync(process.execPath, ['scripts/ci-health-metrics.mjs'], { input, encoding: 'utf8' });
+  assert.equal(success.status, 0, success.stderr);
+  assert.deepEqual(JSON.parse(success.stdout), {
+    total: 2,
+    successful: 1,
+    failed: 0,
+    inconclusive: 1,
+    terminal: 1,
+    successRate: 100,
+    failureRate: 0,
+  });
+
+  const rejected = spawnSync(process.execPath, ['scripts/ci-health-metrics.mjs', '/etc/passwd'], { input, encoding: 'utf8' });
+  assert.notEqual(rejected.status, 0);
+  assert.match(rejected.stderr, /exclusivamente por stdin/);
+  assert.doesNotMatch(rejected.stderr, /root:/);
 });

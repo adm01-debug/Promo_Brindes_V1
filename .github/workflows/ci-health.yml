@@ -41,7 +41,7 @@ jobs:
         id: runs
         run: |
           set -euo pipefail
-          METRICS="$(node scripts/ci-health-metrics.mjs /tmp/runs.json)"
+          METRICS="$(node scripts/ci-health-metrics.mjs < /tmp/runs.json)"
           {
             echo "total=$(jq -r '.total' <<<"$METRICS")"
             echo "successful=$(jq -r '.successful' <<<"$METRICS")"

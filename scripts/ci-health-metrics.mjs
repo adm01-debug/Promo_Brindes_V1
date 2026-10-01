@@ -1,6 +1,4 @@
 import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import path from 'node:path';
 
 const FAILURE_CONCLUSIONS = new Set([
   'failure',
@@ -39,10 +37,9 @@ export function calculateCiHealthMetrics(runs) {
 }
 
 function runCli() {
-  const file = process.argv[2];
-  if (!file) throw new Error('Uso: node scripts/ci-health-metrics.mjs <runs.json>');
-  const runs = JSON.parse(readFileSync(path.resolve(file), 'utf8'));
+  if (process.argv.length > 2) throw new Error('Este comando recebe o JSON exclusivamente por stdin.');
+  const runs = JSON.parse(readFileSync(0, 'utf8'));
   process.stdout.write(`${JSON.stringify(calculateCiHealthMetrics(runs))}\n`);
 }
 
-if (path.resolve(process.argv[1] ?? '') === fileURLToPath(import.meta.url)) runCli();
+if (process.argv[1]?.endsWith('/ci-health-metrics.mjs')) runCli();
