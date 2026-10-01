@@ -8,6 +8,15 @@ Base inicial: `cfb33e4d0ee2f88a0294f5f3f314de997b8d995d`. Plano: PR
 [#81](https://github.com/adm01-debug/Promo_Brindes_V1/pull/81). Promo Gifts e
 o projeto Supabase canônico `doufsxqlfjyuvxuezpln` permaneceram sem escrita.
 
+Heads vinculados às evidências: o ciclo integral do PR #82 passou em
+`68d0d413f3c42029ab7b72a53cae227d074ab143`; no head incremental
+`b78a57a2547c4caeabc8db4285578d492c6b210f`, passaram 7 testes Node de
+métricas, reset local, 574 asserções pgTAP e lint SQL. O ciclo integral do PR
+#83 passou em `322685fda4f4a79e241948753d32cce1282426c7`; no head incremental
+`0f582eea5c57529f5960dfe6e7c77f386bdf53fc`, passaram os 7 testes Node do
+contrato, lint, TypeScript e a sonda viva de 36 colunas/5 produtos. Os checks
+remotos dos heads incrementais permanecem a fonte final antes do merge.
+
 ## Lote técnico implementado
 
 | Etapa | Estado em 01/10 | Evidência | Limite para conclusão |
@@ -18,9 +27,9 @@ o projeto Supabase canônico `doufsxqlfjyuvxuezpln` permaneceram sem escrita.
 | 022 | Em revisão | PR [#83](https://github.com/adm01-debug/Promo_Brindes_V1/pull/83): sonda viva somente-leitura das 36 colunas de `v_site_products_public`, tipos essenciais, swatches e ausência de preço/estoque/fornecedor/variante interna; sete mutações negativas. O job usa apenas variáveis públicas do GitHub e rejeita chaves secretas ou JWT `service_role`. | PR aprovado e primeira execução agendada na `main`; a sonda REST não substitui auditoria de schema por `pg_catalog`. |
 | 023 | Parcial em revisão | PR #82 regenera tipos, dicionário e contratos da nova RPC e mantém catálogo de erros. | Inventário integral das estruturas JSON manuais e política de depreciação continuam pendentes. |
 | 024 | Parcial em revisão | PR #82 prova `site_api` executando o preflight de ponta a ponta e nega EXECUTE a `anon`/`authenticated`; função usa invoker e `search_path` vazio. | Cutover da credencial `SITE_SUPABASE_SERVICE_JWT` continua adiado por decisão do usuário. |
-| 026 | Revalidada, não encerrada | Três cenários reais com conexões concorrentes da fila passaram; 572 asserções pgTAP passaram no lote #82. | Metas e ensaio de carga representativo do portal/paginação ainda requerem ambiente e critérios aprovados. |
+| 026 | Revalidada, não encerrada | Três cenários reais com conexões concorrentes da fila passaram; 574 asserções pgTAP passaram no head incremental do lote #82. | Metas e ensaio de carga representativo do portal/paginação ainda requerem ambiente e critérios aprovados. |
 | 076 | Atualizada no recorte | As regressões de preflight, timeout, hash, privilégio, métricas e path traversal foram incorporadas permanentemente. | A matriz individual das 580 referências é trabalho próprio da etapa 002; não foi inferida pela contagem de testes. |
-| 093 | Bateria parcial aprovada | No PR #82: 434 Vitest, 572 pgTAP, 3 concorrência, 6 testes Node de métricas, 37 regressões focadas de API, lint SQL, TypeScript, build, performance e 96 E2E Chromium; quatro skips condicionais. No PR #83: 430 Vitest, 7 testes Node do contrato e os mesmos 96 E2E. SonarCloud aprovou ambos sem novos issues ou hotspots. | Não é a bateria final do programa: faltam conteúdos, integrações, homologações, navegador cruzado do candidato e etapas predecessoras. |
+| 093 | Bateria parcial aprovada | No ciclo integral do PR #82: 434 Vitest, 572 pgTAP, 3 concorrência, 6 testes Node de métricas, 37 regressões focadas de API, lint SQL, TypeScript, build, performance e 96 E2E Chromium; quatro skips condicionais. O head incremental ampliou métricas para 7 testes e pgTAP para 574. No PR #83: 430 Vitest, 7 testes Node do contrato e os mesmos 96 E2E; o head incremental também passou a sonda viva. SonarCloud aprovou os ciclos integrais sem novos issues ou hotspots. | Não é a bateria final do programa: faltam conteúdos, integrações, homologações e etapas predecessoras. |
 
 ## Falhas encontradas e resolvidas durante a execução
 
