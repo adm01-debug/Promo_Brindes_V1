@@ -5,6 +5,7 @@ import { useQuoteCart } from '../context/quoteCart';
 import { trackFunnelEvent } from '../lib/analytics';
 import { useCategories } from '../lib/hooks';
 import { hasSiteAuthConfiguration } from '../lib/siteSupabaseConfig';
+import { GiftLoversSignature } from './GiftLoversSignature';
 import { QuoteDrawer } from './QuoteDrawer';
 import { SearchAutocomplete } from './SearchAutocomplete';
 
@@ -172,6 +173,7 @@ export function Layout({ children }: { children: ReactNode }) {
           <div className="footer-brand">
             <img src="/brand/promo-brindes-logo-v2-800.webp" width="800" height="420" alt="Promo Brindes" loading="lazy" decoding="async" />
             <p>Brindes que viram parte da cultura — não mais um item esquecido na gaveta.</p>
+            <GiftLoversSignature variant="footer" />
           </div>
           <div>
             <h2>Explore</h2>
