@@ -11,6 +11,10 @@ const CONFIGURATION_BASENAMES = new Set([
   'vercel.json',
 ]);
 
+function compareText(left, right) {
+  return left.localeCompare(right, 'en-US');
+}
+
 function normalizedPath(value) {
   return String(value || '').replace(/\\/g, '/');
 }
@@ -151,7 +155,7 @@ export function splitGraphSourceFiles(files) {
   for (const file of files) {
     (path.extname(file).toLowerCase() === '.sql' ? database : main).push(file);
   }
-  return { main: main.sort(), database: database.sort() };
+  return { main: main.sort(compareText), database: database.sort(compareText) };
 }
 
 /**

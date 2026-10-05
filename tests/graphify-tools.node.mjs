@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import path from 'node:path';
 import test from 'node:test';
 import {
   compareGraphStructures,
@@ -23,6 +24,12 @@ const navigationGraph = {
   nodes: ['a', 'b', 'c', 'd'].map((id) => ({ id, label: id.toUpperCase(), source_file: `src/${id}.ts`, source_location: 'L1' })),
   links: [{ source: 'a', target: 'b', relation: 'imports', confidence: 'EXTRACTED' }, { source: 'b', target: 'c', relation: 'calls' }],
 };
+
+function makeTestDirectory(prefix) {
+  const testRoot = path.join(process.cwd(), '.graphify-work');
+  fs.mkdirSync(testRoot, { recursive: true, mode: 0o700 });
+  return fs.mkdtempSync(path.join(testRoot, prefix));
+}
 
 test('path encontra menor caminho, identidade e nós desconectados sem inventar relações', () => {
   assert.deepEqual(shortestGraphPath(navigationGraph, 'A', 'c').map((node) => node.id), ['a', 'b', 'c']);
@@ -100,7 +107,7 @@ test('corpus principal e SQL são separados sem perder arquivos', () => {
 });
 
 test('referências TypeScript conectam tipos a consumidores sem inventar tipos externos', () => {
-  const directory = fs.mkdtempSync('/tmp/promo-brindes-graphify-types-');
+  const directory = makeTestDirectory('test-types-');
   try {
     fs.mkdirSync(`${directory}/src`, { recursive: true });
     fs.writeFileSync(`${directory}/src/types.ts`, [
@@ -140,7 +147,7 @@ test('referências TypeScript conectam tipos a consumidores sem inventar tipos e
 });
 
 test('relatório usa baixa conectividade e exclui configuração da métrica', () => {
-  const directory = fs.mkdtempSync('/tmp/promo-brindes-graphify-report-');
+  const directory = makeTestDirectory('test-report-');
   try {
     const graph = {
       directed: false,
@@ -192,7 +199,7 @@ test('benchmark exige recuperação pelo grafo e busca direta para cada cenário
 });
 
 test('varredura de artefatos identifica token de exemplo sem expor o valor', () => {
-  const directory = fs.mkdtempSync('/tmp/promo-brindes-graphify-test-');
+  const directory = makeTestDirectory('test-sensitive-');
   try {
     const examplePat = `sbp_${'abcdefghijklmnopqrstuvwxyz123456'}`;
     fs.writeFileSync(`${directory}/graph.json`, JSON.stringify({ note: examplePat }));
@@ -205,7 +212,7 @@ test('varredura de artefatos identifica token de exemplo sem expor o valor', () 
 });
 
 test('varredura bloqueia famílias adicionais de token antes do upload', () => {
-  const directory = fs.mkdtempSync('/tmp/promo-brindes-graphify-test-');
+  const directory = makeTestDirectory('test-sensitive-families-');
   try {
     const githubToken = `ghp_${'abcdefghijklmnopqrstuvwxyz123456'}`;
     const vercelToken = `vercel_token_${'abcdefghijklmnopqrstuvwxyz'}`;

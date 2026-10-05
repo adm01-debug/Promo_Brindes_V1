@@ -51,6 +51,10 @@ const SENSITIVE_PATTERNS = [
   { name: 'personal absolute path', pattern: /\/(?:home|Users)\/[A-Za-z0-9_.-]+\// },
 ];
 
+function compareText(left, right) {
+  return left.localeCompare(right, 'en-US');
+}
+
 export function assertSafeRoot(root = PROJECT_ROOT) {
   const realRoot = fs.realpathSync(root);
   const packagePath = path.join(realRoot, 'package.json');
@@ -133,7 +137,7 @@ function listSourceFiles(root, roots) {
     .toString('utf8')
     .split('\0')
     .filter(Boolean)
-    .sort();
+    .sort(compareText);
   const allowedRoots = roots.map((entry) => entry.replace(/\\/g, '/').replace(/\/$/, ''));
   return tracked.filter((relative) => {
     const normalized = relative.replace(/\\/g, '/');
@@ -148,7 +152,7 @@ function listSourceFiles(root, roots) {
 
 export function fingerprintEntries(entries, readFile) {
   const hash = crypto.createHash('sha256');
-  for (const entry of [...entries].sort()) {
+  for (const entry of [...entries].sort(compareText)) {
     hash.update(entry);
     hash.update('\0');
     hash.update(readFile(entry));
@@ -161,9 +165,9 @@ function sourceFingerprint(root, config) {
   const configuredFiles = [...new Set([
     ...listSourceFiles(root, config.sourceRoots),
     ...listSourceFiles(root, config.databaseSourceRoots),
-  ])].sort();
+  ])].sort(compareText);
   const { main: mainFiles, database: databaseFiles } = splitGraphSourceFiles(configuredFiles);
-  const entries = [...mainFiles, ...databaseFiles].sort();
+  const entries = [...mainFiles, ...databaseFiles].sort(compareText);
   const configFiles = ['.graphify.project.json', '.graphifyignore', '.graphifyrc'];
   return {
     files: entries,
@@ -202,7 +206,7 @@ function graphNodeIds(graph) {
 
 function graphEdges(graph) {
   return new Set(graph.links.map((link) => {
-    const endpoints = graph.directed ? [link.source, link.target] : [link.source, link.target].sort();
+    const endpoints = graph.directed ? [link.source, link.target] : [link.source, link.target].sort(compareText);
     return endpoints.join('\u0000');
   }));
 }
@@ -212,7 +216,7 @@ function graphSourceFiles(graph) {
 }
 
 function difference(left, right) {
-  return [...left].filter((value) => !right.has(value)).sort();
+  return [...left].filter((value) => !right.has(value)).sort(compareText);
 }
 
 /**
