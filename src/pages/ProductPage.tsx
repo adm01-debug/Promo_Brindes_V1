@@ -5,7 +5,6 @@ import {
   Check,
   ChevronRight,
   Minus,
-  Maximize2,
   PackageCheck,
   Plus,
   Ruler,
@@ -17,6 +16,8 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { CatalogError, ProductGridSkeleton } from '../components/CatalogFeedback';
 import { ProductCard } from '../components/ProductCard';
+import { ProductDescription } from '../components/ProductDescription';
+import { ProductGallery } from '../components/ProductGallery';
 import { ContextualFaq } from '../components/ContextualFaq';
 import { Seo } from '../components/Seo';
 import { useQuoteCart } from '../context/quoteCart';
@@ -24,7 +25,6 @@ import { defaultQuoteQuantity } from '../lib/catalog';
 import { rankRelatedProducts } from '../lib/catalogRanking';
 import { trackFunnelEvent } from '../lib/analytics';
 import { useCatalog, useCategories, useProduct } from '../lib/hooks';
-import { replaceBrokenProductImage } from '../lib/images';
 import type { CatalogProduct, ProductColor } from '../types';
 
 function RelatedProducts({ product }: { product: CatalogProduct }) {
@@ -33,12 +33,6 @@ function RelatedProducts({ product }: { product: CatalogProduct }) {
   if (related.loading) return <ProductGridSkeleton count={4} />;
   if (related.error || products.length === 0) return null;
   return <div className="product-grid">{products.map((item) => <ProductCard key={item.id} product={item} />)}</div>;
-}
-
-function formatDimensions(product: CatalogProduct): string | null {
-  const parts = [product.dimensions.lengthCm, product.dimensions.widthCm, product.dimensions.heightCm]
-    .filter((value): value is number => Boolean(value));
-  return parts.length ? `${parts.map((value) => value.toLocaleString('pt-BR')).join(' × ')} cm` : null;
 }
 
 function productColorKey(color: ProductColor): string {
@@ -52,19 +46,15 @@ export default function ProductPage() {
   const categories = useCategories();
   const cart = useQuoteCart();
   const product = productState.data;
-  const [activeImage, setActiveImage] = useState(0);
   const [selectedColor, setSelectedColor] = useState<ProductColor | undefined>();
   const [quantity, setQuantity] = useState(100);
   const [quantityDraft, setQuantityDraft] = useState('100');
   const [shareStatus, setShareStatus] = useState('');
-  const [imageZoomOpen, setImageZoomOpen] = useState(false);
   const trackedProductRef = useRef('');
-  const zoomCloseRef = useRef<HTMLButtonElement>(null);
-  const zoomDialogRef = useRef<HTMLElement>(null);
 
   useLayoutEffect(() => {
-    setActiveImage(0);
     setSelectedColor(undefined);
+    setShareStatus('');
     if (product) {
       const initialQuantity = defaultQuoteQuantity(product);
       setQuantity(initialQuantity);
@@ -93,31 +83,6 @@ export default function ProductPage() {
   }
 
   useEffect(() => {
-    if (!imageZoomOpen) return;
-    const previousFocus = document.activeElement as HTMLElement | null;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const closeOnKeyboard = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setImageZoomOpen(false);
-      if (event.key !== 'Tab') return;
-      const focusable = Array.from(zoomDialogRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])') || []);
-      if (!focusable.length) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (!first || !last) return;
-      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
-      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
-    };
-    window.addEventListener('keydown', closeOnKeyboard);
-    zoomCloseRef.current?.focus();
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener('keydown', closeOnKeyboard);
-      previousFocus?.focus();
-    };
-  }, [imageZoomOpen]);
-
-  useEffect(() => {
     if (!product || trackedProductRef.current === product.id) return;
     trackedProductRef.current = product.id;
     trackFunnelEvent('product_viewed', {
@@ -131,8 +96,6 @@ export default function ProductPage() {
     if (!product) return [];
     return [...new Set([selectedColor?.imageUrl, ...product.images].filter((url): url is string => Boolean(url)))];
   }, [product, selectedColor]);
-  const currentImage = productImages[Math.min(activeImage, productImages.length - 1)] || product?.imageUrl;
-  const dimensions = product ? formatDimensions(product) : null;
   const jsonLd = useMemo(() => product ? {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -179,41 +142,28 @@ export default function ProductPage() {
         </nav>
 
         <div className="product-detail">
-          <section className="product-gallery" aria-label={`Fotos de ${product.name}`}>
-            <div className="product-gallery__main">
-              <img src={currentImage} alt={product.name} width="760" height="760" fetchPriority="high" referrerPolicy="no-referrer" onError={replaceBrokenProductImage} />
-              <div className="product-gallery__badges">{product.isNew && <span className="badge badge--ink">Novo</span>}{product.isKit && <span className="badge badge--paper">Kit corporativo</span>}</div>
-              <button className="product-gallery__zoom" type="button" onClick={() => setImageZoomOpen(true)} aria-label={`Ampliar foto de ${product.name}`}><Maximize2 size={18} /><span>Ampliar</span></button>
-            </div>
-            {productImages.length > 1 && (
-              <div className="product-gallery__thumbs" role="group" aria-label="Escolher foto">
-                {productImages.slice(0, 8).map((image, index) => (
-                  <button key={image} type="button" className={activeImage === index ? 'is-active' : ''} onClick={() => setActiveImage(index)} aria-label={`Ver foto ${index + 1}`} aria-pressed={activeImage === index}>
-                    <img src={image} alt="" width="100" height="100" loading="lazy" referrerPolicy="no-referrer" onError={replaceBrokenProductImage} />
-                  </button>
-                ))}
-              </div>
-            )}
-          </section>
-
-          <section className="product-info" aria-labelledby="product-title">
+          <header className="product-heading">
             <div className="product-info__topline"><span>{categoryName?.replaceAll(' | ', ' & ') || 'Radar Promo'}</span><div className="share-action"><button type="button" className="share-button" onClick={() => void shareProduct()} aria-label="Compartilhar produto"><Share2 size={17} /> Mandar para o time</button><span role="status" aria-live="polite">{shareStatus}</span></div></div>
             <h1 id="product-title">{product.name}</h1>
-            <p className="product-code">Cód. {product.sku}</p>
-            <p className="product-info__lead">{product.shortDescription || product.description}</p>
+            <div className="product-heading__meta"><span className="product-code">Cód. {product.sku}</span>{product.isKit ? <span className="badge badge--paper">Kit corporativo</span> : product.isNew && <span className="badge badge--ink">Novidade</span>}</div>
+          </header>
 
+          <ProductGallery key={product.id} images={productImages} name={product.name} />
+
+          <section className="product-info product-panel" aria-labelledby="product-selection-title">
             <div className="quote-explainer">
-              <span>Sua marca pode morar aqui.</span>
-              <p>A proposta cruza quantidade, personalização e prazo. Você salva agora, decide com o time depois e não paga nada pelo site.</p>
+              <span className="product-panel__eyebrow">Proposta sob medida</span>
+              <h2 id="product-selection-title">Sua marca pode morar aqui.</h2>
+              <p>Escolha cor e quantidade. Nosso time de especialistas confirma personalização e prazo. Você não paga nada pelo site.</p>
             </div>
 
             {product.colors.length > 0 && (
               <fieldset className="color-picker">
                 <legend>Cor preferida <span>opcional</span></legend>
                 <div className="color-picker__options">
-                  <button type="button" className={!selectedColor ? 'is-active color-none' : 'color-none'} onClick={() => { setSelectedColor(undefined); setActiveImage(0); }} aria-pressed={!selectedColor}>A definir</button>
+                  <button type="button" className={!selectedColor ? 'is-active color-none' : 'color-none'} onClick={() => setSelectedColor(undefined)} aria-pressed={!selectedColor}>A definir</button>
                   {product.colors.map((color, index) => (
-                    <button key={`${productColorKey(color)}-${index}`} type="button" className={selectedColor && productColorKey(selectedColor) === productColorKey(color) ? 'is-active' : ''} onClick={() => { setSelectedColor(color); setActiveImage(0); }} aria-pressed={Boolean(selectedColor && productColorKey(selectedColor) === productColorKey(color))} title={color.name}>
+                    <button key={`${productColorKey(color)}-${index}`} type="button" className={selectedColor && productColorKey(selectedColor) === productColorKey(color) ? 'is-active' : ''} onClick={() => setSelectedColor(color)} aria-pressed={Boolean(selectedColor && productColorKey(selectedColor) === productColorKey(color))} title={color.name}>
                       <span style={{ backgroundColor: color.hex }} /> <em>{color.name}</em>
                     </button>
                   ))}
@@ -222,10 +172,10 @@ export default function ProductPage() {
             )}
 
             <div className="product-quantity">
-              <div><label htmlFor="product-quantity">Quantidade estimada</label><span>{product.minQuantity > 1 ? `Mínimo deste item: ${product.minQuantity.toLocaleString('pt-BR')}` : 'Quantidade mínima a confirmar com nosso time de especialistas'}</span></div>
+              <div><label htmlFor="product-quantity">Quantidade estimada</label><span id="product-minimum-hint">{product.minQuantity > 1 ? `Mínimo deste item: ${product.minQuantity.toLocaleString('pt-BR')}` : 'Quantidade mínima a confirmar com nosso time de especialistas'}</span></div>
               <div className="quantity-control">
                 <button type="button" onClick={() => adjustQuantity(-10)} aria-label="Diminuir quantidade"><Minus size={17} /></button>
-                <input id="product-quantity" type="number" min={product.minQuantity} max="999999" inputMode="numeric" value={quantityDraft} onFocus={(event) => event.currentTarget.select()} onChange={(event) => setQuantityDraft(event.target.value.replace(/\D/g, ''))} onBlur={commitQuantityDraft} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); }} />
+                <input id="product-quantity" type="number" min={product.minQuantity} max="999999" inputMode="numeric" aria-describedby="product-minimum-hint" value={quantityDraft} onFocus={(event) => event.currentTarget.select()} onChange={(event) => setQuantityDraft(event.target.value.replace(/\D/g, ''))} onBlur={commitQuantityDraft} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); }} />
                 <button type="button" onClick={() => adjustQuantity(10)} aria-label="Aumentar quantidade"><Plus size={17} /></button>
               </div>
             </div>
@@ -237,18 +187,29 @@ export default function ProductPage() {
               <li><Check /> Curadoria humana</li>
             </ul>
           </section>
-        </div>
 
-        <section className="product-story section" aria-labelledby="product-story-title">
-          <div className="product-story__copy"><span className="section-kicker">Sobre esta escolha</span><h2 id="product-story-title">Detalhes que ajudam a decidir.</h2><p>{product.description}</p></div>
-          <div className="product-facts">
-            {product.materials.length > 0 && <div><span><Sparkles /></span><small>Material</small><strong>{product.materials.join(', ')}</strong></div>}
-            {dimensions && <div><span><Ruler /></span><small>Dimensões</small><strong>{dimensions}</strong></div>}
-            {product.dimensions.weightG && <div><span><Weight /></span><small>Peso aproximado</small><strong>{product.dimensions.weightG.toLocaleString('pt-BR')} g</strong></div>}
-            {product.dimensions.capacityMl && <div><span><Box /></span><small>Capacidade</small><strong>{product.dimensions.capacityMl.toLocaleString('pt-BR')} ml</strong></div>}
-            {product.hasCommercialPackaging && <div><span><PackageCheck /></span><small>Apresentação</small><strong>Embalagem individual</strong></div>}
-          </div>
-        </section>
+          <section className="product-overview product-panel" aria-labelledby="product-overview-title">
+            <div className="product-overview__description">
+              <h2 id="product-overview-title">Sobre o produto</h2>
+              <ProductDescription key={product.id} text={product.description || product.shortDescription} summary={product.shortDescription} />
+            </div>
+            <div className="product-overview__specs">
+              <h3>Especificações</h3>
+              <dl className="product-facts">
+                {product.materials.length > 0 && <div className="product-facts__wide"><dt><Sparkles aria-hidden="true" /> Materiais</dt><dd className="product-materials">{product.materials.map((material, index) => <span key={`${material}-${index}`}>{material}</span>)}</dd></div>}
+                {([
+                  ['Altura', product.dimensions.heightCm],
+                  ['Largura', product.dimensions.widthCm],
+                  ['Comprimento', product.dimensions.lengthCm],
+                ] as const).map(([label, value]) => value ? <div key={label}><dt><Ruler aria-hidden="true" /> {label}</dt><dd>{value.toLocaleString('pt-BR')} cm</dd></div> : null)}
+                {product.dimensions.weightG && <div><dt><Weight aria-hidden="true" /> Peso aproximado</dt><dd>{product.dimensions.weightG.toLocaleString('pt-BR')} g</dd></div>}
+                {product.dimensions.capacityMl && <div><dt><Box aria-hidden="true" /> Capacidade</dt><dd>{product.dimensions.capacityMl.toLocaleString('pt-BR')} ml</dd></div>}
+                {product.hasCommercialPackaging && <div className="product-facts__wide"><dt><PackageCheck aria-hidden="true" /> Apresentação</dt><dd>Embalagem individual</dd></div>}
+              </dl>
+              {product.materials.length === 0 && !Object.values(product.dimensions).some(Boolean) && !product.hasCommercialPackaging && <p className="product-specs-empty">Medidas, materiais e apresentação a confirmar com nosso time de especialistas.</p>}
+            </div>
+          </section>
+        </div>
 
         <ContextualFaq scope="product" />
 
@@ -257,7 +218,6 @@ export default function ProductPage() {
           <RelatedProducts product={product} />
         </section>
       </div>
-      {imageZoomOpen && <div className="product-image-dialog-backdrop" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) setImageZoomOpen(false); }}><section ref={zoomDialogRef} className="product-image-dialog" role="dialog" aria-modal="true" aria-label={`Foto ampliada de ${product.name}`}><button ref={zoomCloseRef} type="button" onClick={() => setImageZoomOpen(false)} aria-label="Fechar foto ampliada">×</button><img src={currentImage} alt={product.name} referrerPolicy="no-referrer" onError={replaceBrokenProductImage} /></section></div>}
     </>
   );
 }
