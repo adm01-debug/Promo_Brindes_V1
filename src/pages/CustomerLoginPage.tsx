@@ -99,6 +99,8 @@ export default function CustomerLoginPage() {
   }
 
   if (!auth.configured) return <div className="customer-state container"><Seo title="Acessar meus orçamentos" path="/entrar" noIndex /><span>ÁREA DO CLIENTE</span><h1>Acesso em configuração.</h1><p>Seus briefings continuam chegando normalmente enquanto finalizamos esta conexão.</p><Link className="button button--dark" to="/catalogo">Explorar produtos</Link></div>;
+  if (auth.loading) return <div className="customer-state container" role="status"><Seo title="Acessar meus orçamentos" path="/entrar" noIndex /><span>ÁREA DO CLIENTE</span><h1>Validando seu acesso…</h1><p>Aguarde enquanto verificamos se este navegador já possui uma sessão segura.</p></div>;
+  if (auth.initializationFailed) return <div className="customer-state container" role="alert"><Seo title="Acessar meus orçamentos" path="/entrar" noIndex /><span>CONEXÃO INTERROMPIDA</span><h1>Não conseguimos abrir o acesso.</h1><p>Verifique sua conexão e tente novamente. Seus orçamentos continuam protegidos.</p><div className="customer-state__actions"><button className="button button--dark" type="button" onClick={auth.retryInitialization}>Tentar novamente</button><Link className="button button--outline" to="/catalogo">Explorar produtos</Link></div></div>;
 
   return (
     <div className="customer-auth-page">
@@ -113,19 +115,21 @@ export default function CustomerLoginPage() {
         <div className="customer-auth-card__mark"><LockKeyhole aria-hidden="true" /><span>ACESSO SEGURO</span></div>
         <h2 id="customer-access-title">{mode === 'create' ? 'Criar meu acesso' : mode === 'recover' ? 'Recuperar minha senha' : 'Acessar meus orçamentos'}</h2>
         <p>{mode === 'email' ? 'Use o mesmo e-mail informado nas solicitações.' : mode === 'create' ? 'Você precisará confirmar o e-mail antes de ver o histórico.' : mode === 'recover' ? 'Enviaremos um link seguro para definir uma nova senha.' : 'Entre com o e-mail e a senha cadastrados.'}</p>
-        {(mode === 'email' || mode === 'password') && <div className="customer-auth-tabs" aria-label="Forma de acesso"><button type="button" aria-pressed={mode === 'email'} onClick={() => { setMode('email'); setError(''); }}>Link ou código</button><button type="button" aria-pressed={mode === 'password'} onClick={() => { setMode('password'); setError(''); }}>Senha</button></div>}
-        <form onSubmit={(event) => void submit(event)} noValidate>
+        {(mode === 'email' || mode === 'password') && <div className="customer-auth-tabs" aria-label="Forma de acesso"><button type="button" disabled={sending} aria-pressed={mode === 'email'} onClick={() => { setMode('email'); setError(''); }}>Link ou código</button><button type="button" disabled={sending} aria-pressed={mode === 'password'} onClick={() => { setMode('password'); setError(''); }}>Senha</button></div>}
+        <form onSubmit={(event) => void submit(event)} noValidate aria-busy={sending}>
+          <fieldset className="submission-lock" disabled={sending}>
           <div className="form-field"><label htmlFor="customer-email">E-mail</label><input id="customer-email" name="email" type="email" inputMode="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} /></div>
           {(mode === 'password' || mode === 'create') && <div className="form-field"><label htmlFor="customer-password">Senha</label><div className="password-field"><input id="customer-password" name="password" type={passwordVisible ? 'text' : 'password'} autoComplete={mode === 'create' ? 'new-password' : 'current-password'} minLength={8} required value={password} onChange={(event) => setPassword(event.target.value)} /><button type="button" onClick={() => setPasswordVisible((visible) => !visible)} aria-label={passwordVisible ? 'Ocultar senha' : 'Mostrar senha'}>{passwordVisible ? <EyeOff size={18} /> : <Eye size={18} />}</button></div><small>Mínimo de 8 caracteres.</small></div>}
           {mode === 'email' && codeSent && <div className="form-field"><label htmlFor="customer-code">Código recebido <span>opcional se usar o link</span></label><input id="customer-code" name="one-time-code" inputMode="numeric" autoComplete="one-time-code" maxLength={8} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, ''))} /></div>}
           {error && <div className="submit-error" role="alert">{error}</div>}
           {message && <div className="customer-auth-message" role="status"><Mail aria-hidden="true" /> {message}</div>}
           <button className="button button--green button--large button--wide" type="submit" disabled={sending || !email.trim() || ((mode === 'password' || mode === 'create') && password.length < 8)}>{sending ? 'Aguarde…' : mode === 'email' && codeSent && code ? 'Validar código' : mode === 'email' ? 'Enviar acesso por e-mail' : mode === 'password' ? 'Entrar com senha' : mode === 'create' ? 'Criar acesso' : 'Enviar recuperação'} <ArrowRight size={18} /></button>
+          </fieldset>
         </form>
         <div className="customer-auth-links">
-          {mode !== 'create' && <button type="button" onClick={() => { setMode('create'); setCodeSent(false); setError(''); setMessage(''); }}>Prefiro criar uma senha</button>}
-          {mode !== 'recover' && <button type="button" onClick={() => { setMode('recover'); setCodeSent(false); setError(''); setMessage(''); }}>Esqueci minha senha</button>}
-          {(mode === 'create' || mode === 'recover') && <button type="button" onClick={() => { setMode('email'); setError(''); setMessage(''); }}>Voltar ao acesso por e-mail</button>}
+          {mode !== 'create' && <button type="button" disabled={sending} onClick={() => { setMode('create'); setCodeSent(false); setError(''); setMessage(''); }}>Prefiro criar uma senha</button>}
+          {mode !== 'recover' && <button type="button" disabled={sending} onClick={() => { setMode('recover'); setCodeSent(false); setError(''); setMessage(''); }}>Esqueci minha senha</button>}
+          {(mode === 'create' || mode === 'recover') && <button type="button" disabled={sending} onClick={() => { setMode('email'); setError(''); setMessage(''); }}>Voltar ao acesso por e-mail</button>}
         </div>
       </section>
     </div>

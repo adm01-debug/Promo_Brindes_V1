@@ -8,22 +8,45 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
   const configured = hasSiteAuthConfiguration();
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(configured);
+  const [initializationFailed, setInitializationFailed] = useState(false);
+  const [initializationAttempt, setInitializationAttempt] = useState(0);
   const [identityEpoch, setIdentityEpoch] = useState(0);
   const sessionUserId = useRef<string | null>(null);
 
   useEffect(() => {
     if (!configured) {
       setLoading(false);
+      setInitializationFailed(false);
       return;
     }
     let active = true;
     let unsubscribe = () => {};
+    setLoading(true);
+    setInitializationFailed(false);
     void import('../lib/siteSupabase').then(({ siteSupabase }) => {
-      if (!active || !siteSupabase) return;
-      void siteSupabase.auth.getSession().then(({ data }) => {
+      if (!active) return;
+      if (!siteSupabase) {
+        reportClientError(new Error('Site Supabase client unavailable during auth initialization'));
+        setInitializationFailed(true);
+        setLoading(false);
+        return;
+      }
+      void siteSupabase.auth.getSession().then(({ data, error }) => {
         if (!active) return;
+        if (error) {
+          reportClientError(error);
+          setInitializationFailed(true);
+          setLoading(false);
+          return;
+        }
         sessionUserId.current = data.session?.user.id || null;
         setSession(data.session);
+        setInitializationFailed(false);
+        setLoading(false);
+      }).catch((error: unknown) => {
+        reportClientError(error);
+        if (!active) return;
+        setInitializationFailed(true);
         setLoading(false);
       });
       const { data: subscription } = siteSupabase.auth.onAuthStateChange((_event, nextSession) => {
@@ -35,6 +58,7 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
         }
         sessionUserId.current = nextUserId;
         setSession(nextSession);
+        setInitializationFailed(false);
         setLoading(false);
       });
       unsubscribe = () => subscription.subscription.unsubscribe();
@@ -42,20 +66,25 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
       // A área do cliente continua opcional se o carregamento do SDK falhar,
       // mas a falha não pode desaparecer sem telemetria (Etapa 39).
       reportClientError(error);
-      if (active) setLoading(false);
+      if (active) {
+        setInitializationFailed(true);
+        setLoading(false);
+      }
     });
     return () => {
       active = false;
       unsubscribe();
     };
-  }, [configured]);
+  }, [configured, initializationAttempt]);
 
   const value = useMemo<CustomerAuthValue>(() => ({
     configured,
     loading,
+    initializationFailed,
     session,
     identityEpoch,
     user: session?.user ?? null,
+    retryInitialization: () => setInitializationAttempt((attempt) => attempt + 1),
     claimHistory: async () => (await import('../lib/customerAccount')).claimMyQuoteRequests(),
     signOut: async () => {
       // Não deixa dados de contato preenchidos por uma conta em um navegador
@@ -79,7 +108,7 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
       setIdentityEpoch((epoch) => epoch + 1);
       if (siteSupabase) await siteSupabase.auth.signOut();
     },
-  }), [configured, loading, session, identityEpoch]);
+  }), [configured, loading, initializationFailed, session, identityEpoch]);
 
   return <CustomerAuthContext.Provider value={value}>{children}</CustomerAuthContext.Provider>;
 }

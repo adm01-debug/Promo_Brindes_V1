@@ -4,9 +4,11 @@ import { createContext, useContext } from 'react';
 export interface CustomerAuthValue {
   configured: boolean;
   loading: boolean;
+  initializationFailed: boolean;
   session: Session | null;
   user: User | null;
   identityEpoch: number;
+  retryInitialization(): void;
   claimHistory(): Promise<number>;
   signOut(): Promise<void>;
 }
