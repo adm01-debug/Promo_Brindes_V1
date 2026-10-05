@@ -307,7 +307,7 @@ No remoto, `supabase migration list --linked` retornou as mesmas 64 versões, se
 
 O teste pgTAP `query_plans.test.sql` criou 6.000 solicitações sintéticas com distribuição realista e confirmou ausência de `Seq Scan` nas cinco consultas críticas: claim da fila, lease expirada, webhook por provider id, histórico por titular/data e retenção. As pré-condições impedem aprovação por vacuidade.
 
-Contrato remoto canônico: 7.748 produtos, 36 colunas, zero campo proibido. Avisos: 2 swatches sem nome e 84 nomes duplicados (F06). Build pós-correção: JS inicial 95,4 KiB Brotli; maior chunk assíncrono 45,4 KiB Brotli, dentro do budget.
+Contrato remoto canônico: 7.748 produtos, 36 colunas, zero campo proibido. Avisos: 2 swatches sem nome e 84 nomes duplicados (F06). Build pós-correção: JS inicial 95,2 KiB Brotli; maior chunk assíncrono 45,4 KiB Brotli, dentro do budget.
 
 ## Checkpoint 10 — Achados consolidados
 
@@ -318,7 +318,7 @@ Onde: `src/pages/QuotePage.tsx:77-82,225-285`; `/orcamento`
 Evidência: o novo E2E passou no Chromium/Firefox e inicialmente falhou no WebKit: esperado 1 item, recebido 0 depois de navegar durante request lento.  
 Impacto no usuário: a pessoa mudava de página e perdia silenciosamente uma seleção trabalhada.  
 Correção: abort no cleanup + rejeição da resposta se identidade ou `window.location.pathname` diferir da operação original.  
-Status: **CORRIGIDO+VERIFICADO** — 3/3 repetições WebKit e 1/1 Firefox após o fix.
+Status: **CORRIGIDO+VERIFICADO** — 3/3 repetições WebKit, 1/1 Firefox e matriz cross-browser completa após o fix.
 
 ### [ALTO] #F01 — Callback anunciava identidade verificada antes da verificação
 
@@ -386,9 +386,10 @@ Status: **PENDENTE** — decisão de domínio.
 ## Verificação executada
 
 - `npm run check` na linha de base: lint, TypeScript, 434 unitários, testes Node, build, budget e 96 E2E passaram; 4 skips condicionais.
+- `npm run check` pós-correção: lint e TypeScript aprovados; 440 unitários e todos os gates Node aprovados; build/budget aprovados; 102 E2E executados, com 98 aprovações e 4 skips condicionais.
 - Testes novos focados: 10/10 Vitest aprovados nas áreas alteradas.
 - E2E novo: Chromium aprovado; Firefox aprovado; WebKit revelou F04 e depois passou 3 repetições.
-- Cross-browser completo antes do último fix: Firefox aprovado; WebKit 50 cenários aprovados e apenas F04 falhou. Repetição direcionada pós-fix aprovada.
+- Cross-browser completo pós-fix: 102 cenários em Firefox/WebKit, com 90 aprovações, 12 skips condicionais por projeto/viewport e zero falha.
 - `npm run db:site:reset`: 64 migrations aplicadas do zero.
 - `npm run db:site:test`: 28 arquivos, 574 testes, PASS.
 - `npm run db:site:lint`: zero warning/erro de schema.
