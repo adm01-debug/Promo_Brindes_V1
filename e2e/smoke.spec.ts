@@ -377,6 +377,10 @@ test('ache pelo briefing transforma intenção em filtros explicáveis e compart
   await finder.getByRole('button', { name: /^Colaboradores/ }).click();
   await finder.getByRole('button', { name: /^51–200/ }).click();
   await finder.getByRole('button', { name: /^Sustentável/ }).click();
+  await expect(finder.getByRole('heading', { name: 'O que entendemos da sua campanha' })).toBeVisible();
+  await expect(finder.getByText('Você continua no controle.')).toBeVisible();
+  const summaryA11y = await new AxeBuilder({ page }).include('#ache-pelo-briefing').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
+  expect(summaryA11y.violations, 'Violações no resumo do briefing').toEqual([]);
 
   const filteredRequest = page.waitForRequest((request) => {
     const url = new URL(request.url());
@@ -514,10 +518,15 @@ test('envio confirmado remove contato e consentimento do rascunho da aba', async
   await page.getByRole('checkbox', { name: /cópia desta solicitação também pelo WhatsApp/ }).check();
   await page.getByRole('button', { name: 'Enviar briefing' }).click();
 
-  await expect(page.getByRole('heading', { name: 'Sua solicitação chegou.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Pessoa, recebemos sua seleção com 1 produto.' })).toBeVisible();
+  await page.waitForTimeout(300);
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
   await expect.poll(() => page.evaluate(() => sessionStorage.getItem('promo-brindes:quote-draft:v1'))).toBeNull();
-  await expect(page.getByText('Confirmação por e-mail registrada para envio.')).toBeVisible();
-  await expect(page.getByText('Confirmação pelo WhatsApp autorizada e registrada para envio.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'O que acontece agora' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Confirmações' })).toBeVisible();
+  await expect(page.getByText('Registrado para envio')).toHaveCount(2);
+  const confirmationA11y = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
+  expect(confirmationA11y.violations, 'Violações na confirmação do orçamento').toEqual([]);
   expect(submissions).toBe(1);
   expect(sentPayload).toMatchObject({ notificationPreferences: { emailCopy: true, whatsappCopy: true } });
 });
@@ -651,7 +660,7 @@ test('logout durante envio em andamento não mostra sucesso nem erro de outra pe
 
   releaseSubmission();
   await page.waitForTimeout(200);
-  await expect(page.getByRole('heading', { name: 'Sua solicitação chegou.' })).not.toBeVisible();
+  await expect(page.getByRole('heading', { name: /recebemos sua seleção/i })).not.toBeVisible();
   await expect(page.getByRole('alert')).not.toBeVisible();
   await expect(page.locator('#email')).toHaveValue('');
 });

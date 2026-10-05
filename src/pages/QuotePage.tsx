@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, CheckCircle2, Mail, Minus, Plus, Printer, Send, ShieldCheck, ShoppingBag, Trash2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Mail, MessageCircle, Minus, Plus, Printer, Send, ShieldCheck, ShoppingBag, Trash2 } from 'lucide-react';
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Seo } from '../components/Seo';
@@ -19,6 +19,7 @@ import type { QuoteBriefingForm, QuoteContact } from '../types';
 import { quoteDecisionGroupsEnabled } from '../lib/siteFeatureFlags';
 import { localDateInputValue } from '../lib/quoteCalendar';
 import { attachMyBriefingAssetsToQuote } from '../lib/briefingAssets';
+import { confirmationDeliveryLabel, quoteConfirmationTitle } from '../lib/quoteConfirmation';
 
 function formatPhone(value: string): string {
   const digits = value.replace(/\D/g, '').slice(0, 11);
@@ -58,7 +59,7 @@ export default function QuotePage() {
   const [draftNotice, setDraftNotice] = useState('');
   const [quantityDrafts, setQuantityDrafts] = useState<Record<string, string>>({});
   const [briefingAssetIds, setBriefingAssetIds] = useState<string[]>([]);
-  const [success, setSuccess] = useState<{ mode: 'endpoint' | 'email'; href?: string; requestId?: string; confirmations?: { email: 'sent' | 'pending'; whatsapp: 'sent' | 'pending' | 'not_requested' }; assets?: { status: 'attached' | 'pending'; count: number } } | null>(null);
+  const [success, setSuccess] = useState<{ mode: 'endpoint' | 'email'; href?: string; requestId?: string; contactName?: string; itemCount?: number; confirmations?: { email: 'sent' | 'pending'; whatsapp: 'sent' | 'pending' | 'not_requested' }; assets?: { status: 'attached' | 'pending'; count: number } } | null>(null);
   const [website, setWebsite] = useState('');
   const formRef = useRef<HTMLFormElement>(null);
   const availabilityNoticeRef = useRef<HTMLDivElement>(null);
@@ -115,9 +116,29 @@ export default function QuotePage() {
   useEffect(() => {
     if (success) {
       clearQuoteDraft();
-      return;
+      const root = document.documentElement;
+      const previousScrollBehavior = root.style.scrollBehavior;
+      root.style.scrollBehavior = 'auto';
+      const scrollToTop = () => window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      let secondFrame: number | undefined;
+      scrollToTop();
+      const firstFrame = window.requestAnimationFrame(() => {
+        scrollToTop();
+        secondFrame = window.requestAnimationFrame(scrollToTop);
+      });
+      const settledLayoutTimer = window.setTimeout(() => {
+        scrollToTop();
+        root.style.scrollBehavior = previousScrollBehavior;
+      }, 200);
+      return () => {
+        window.cancelAnimationFrame(firstFrame);
+        if (secondFrame !== undefined) window.cancelAnimationFrame(secondFrame);
+        window.clearTimeout(settledLayoutTimer);
+        root.style.scrollBehavior = previousScrollBehavior;
+      };
     }
     saveQuoteDraft({ contact, briefing });
+    return undefined;
   }, [briefing, contact, success]);
 
   function updateField<Key extends keyof QuoteContact>(key: Key, value: QuoteContact[Key]) {
@@ -216,6 +237,8 @@ export default function QuotePage() {
     submittingRef.current = true;
     setSending(true);
     setSubmitError('');
+    const submittedContactName = contact.name;
+    const submittedItemCount = cart.items.length;
     const controller = new AbortController();
     const operationIdentity = identityKey;
     submitAbortControllerRef.current = controller;
@@ -249,7 +272,7 @@ export default function QuotePage() {
         if (controller.signal.aborted || currentIdentityRef.current !== operationIdentity) return;
         requestAttemptRef.current = null;
         clearSubmissionAttempt('promo-brindes:quote-attempt');
-        setSuccess({ mode: 'endpoint', requestId: result.requestId, confirmations: result.confirmations, assets });
+        setSuccess({ mode: 'endpoint', requestId: result.requestId, contactName: submittedContactName, itemCount: submittedItemCount, confirmations: result.confirmations, assets });
         cart.reset();
         clearQuoteDraft();
         clearQuoteRepeat();
@@ -293,30 +316,46 @@ export default function QuotePage() {
   }
 
   if (success) {
+    const endpointSuccess = success.mode === 'endpoint';
     return (
       <div className="success-page container">
-        <Seo title="Solicitação preparada" path="/orcamento" noIndex />
-        <span className="success-page__icon"><CheckCircle2 size={42} /></span>
-        <span className="section-kicker">Briefing em movimento</span>
-        <h1>{success.mode === 'endpoint' ? 'Sua solicitação chegou.' : 'Seu e-mail está pronto.'}</h1>
-        <p>{success.mode === 'endpoint' ? 'Nosso time de especialistas vai analisar os itens e entrar em contato pelos dados informados.' : 'Abrimos seu aplicativo de e-mail com a seleção preenchida. Revise a mensagem e toque em enviar para concluir.'}</p>
-        {success.requestId && <span className="success-page__protocol">Protocolo: {success.requestId}</span>}
-        {/* Etapa 31: "Cópia"/"comprovantes" prometia uma réplica do briefing;
-        o e-mail traz nome, protocolo e itens (sem ação/prazo/verba/
-        observações) e o WhatsApp traz só nome, protocolo e empresa — texto
-        alinhado ao que a Política de Privacidade já descreve (o protocolo
-        exibido acima é o comprovante imediato; e-mail/WhatsApp são
-        confirmações transacionais, não uma cópia do formulário). Decisão
-        provisória enquanto o produto não define formalmente entre resumo e
-        cópia integral (ver plano de correções, Etapa 31). */}
-        {success.mode === 'endpoint' && success.confirmations && <div className="success-page__confirmations" role="status"><strong>Confirmação de envio</strong><span>{success.confirmations.email === 'sent' ? 'Confirmação enviada para o seu e-mail.' : 'Confirmação por e-mail registrada para envio.'}</span>{success.confirmations.whatsapp !== 'not_requested' && <span>{success.confirmations.whatsapp === 'sent' ? 'Confirmação enviada também pelo WhatsApp autorizado.' : 'Confirmação pelo WhatsApp autorizada e registrada para envio.'}</span>}</div>}
-        {success.assets && <div className={`success-page__confirmations ${success.assets.status === 'pending' ? 'success-page__confirmations--warning' : ''}`} role="status"><strong>{success.assets.status === 'attached' ? 'Arquivos protegidos vinculados' : 'Orçamento recebido; vínculo dos arquivos pendente'}</strong><span>{success.assets.status === 'attached' ? `${success.assets.count} ${success.assets.count === 1 ? 'arquivo acompanha' : 'arquivos acompanham'} este briefing.` : 'Os arquivos continuam privados na sua conta. Tente vinculá-los novamente sem reenviar o orçamento.'}</span>{success.assets.status === 'pending' && <button type="button" className="text-button" onClick={() => void retryAssetAttachment()}>Tentar vincular novamente</button>}</div>}
-        <div className="success-page__actions">
-          {success.href && <a className="button button--green" href={success.href}><Mail size={18} /> Abrir e-mail novamente</a>}
-          {success.mode === 'endpoint' && <Link className="button button--green" to="/entrar?next=/minha-conta">Acompanhar meus orçamentos</Link>}
-          <Link className="button button--outline" to="/catalogo">Voltar ao catálogo</Link>
+        <Seo title={endpointSuccess ? 'Solicitação recebida' : 'Solicitação preparada'} path="/orcamento" noIndex />
+        <div className="success-page__panel">
+          <span className="success-page__icon"><CheckCircle2 size={42} /></span>
+          <span className="section-kicker">{endpointSuccess ? 'Solicitação recebida' : 'Briefing em movimento'}</span>
+          <h1>{endpointSuccess ? quoteConfirmationTitle(success.contactName || '', success.itemCount ?? 0) : 'Seu e-mail está pronto.'}</h1>
+          <p>{endpointSuccess ? 'Nosso time de especialistas vai analisar suas referências e confirmar as possibilidades de personalização e prazo.' : 'Abrimos seu aplicativo de e-mail com a seleção preenchida. Revise a mensagem e toque em enviar para concluir.'}</p>
+          {success.requestId && <span className="success-page__protocol">Protocolo: {success.requestId}</span>}
+
+          {endpointSuccess && (
+            <section className="success-page__next" aria-labelledby="success-next-title">
+              <h2 id="success-next-title">O que acontece agora</h2>
+              <ol>
+                <li><span>1</span><div><strong>Analisamos sua seleção</strong><small>Entendemos referências, quantidades e contexto.</small></div></li>
+                <li><span>2</span><div><strong>Confirmamos os detalhes</strong><small>Alinhamos personalização, prazo e possibilidades.</small></div></li>
+                <li><span>3</span><div><strong>Construímos sua proposta</strong><small>Você recebe uma recomendação sob medida.</small></div></li>
+              </ol>
+            </section>
+          )}
+
+          {/* Estas linhas espelham apenas o estado devolvido pela API; não
+          prometem uma cópia integral do briefing nem antecipam um envio. */}
+          {endpointSuccess && success.confirmations && (
+            <section className="success-page__confirmations" aria-labelledby="success-confirmations-title" role="status">
+              <h2 id="success-confirmations-title">Confirmações</h2>
+              <div><Mail size={19} aria-hidden="true" /><span><strong>E-mail</strong><small>{confirmationDeliveryLabel(success.confirmations.email)}</small></span><CheckCircle2 size={18} aria-hidden="true" /></div>
+              <div><MessageCircle size={19} aria-hidden="true" /><span><strong>WhatsApp</strong><small>{confirmationDeliveryLabel(success.confirmations.whatsapp)}</small></span>{success.confirmations.whatsapp === 'not_requested' ? <Minus size={18} aria-hidden="true" /> : <CheckCircle2 size={18} aria-hidden="true" />}</div>
+            </section>
+          )}
+
+          {success.assets && <div className={`success-page__asset-status ${success.assets.status === 'pending' ? 'success-page__asset-status--warning' : ''}`} role="status"><strong>{success.assets.status === 'attached' ? 'Arquivos protegidos vinculados' : 'Orçamento recebido; vínculo dos arquivos pendente'}</strong><span>{success.assets.status === 'attached' ? `${success.assets.count} ${success.assets.count === 1 ? 'arquivo acompanha' : 'arquivos acompanham'} este briefing.` : 'Os arquivos continuam privados na sua conta. Tente vinculá-los novamente sem reenviar o orçamento.'}</span>{success.assets.status === 'pending' && <button type="button" className="text-button" onClick={() => void retryAssetAttachment()}>Tentar vincular novamente</button>}</div>}
+          <div className="success-page__actions">
+            {success.href && <a className="button button--green" href={success.href}><Mail size={18} /> Abrir e-mail novamente</a>}
+            {endpointSuccess && <Link className="button button--green" to="/entrar?next=/minha-conta">Acompanhar meus orçamentos</Link>}
+            <Link className="button button--outline" to="/catalogo">Voltar ao catálogo</Link>
+          </div>
+          {endpointSuccess && <p className="success-page__account-note">Entre com o mesmo e-mail informado no briefing para ver esta solicitação no seu histórico.</p>}
         </div>
-        {success.mode === 'endpoint' && <p className="success-page__account-note">Entre com o mesmo e-mail informado no briefing para ver esta solicitação no seu histórico.</p>}
       </div>
     );
   }
