@@ -4444,9 +4444,7 @@ p {
 }
 
 .product-card__image-wrap {
-  background:
-    radial-gradient(circle at 20% 20%, rgb(61 80 255 / 0.08) 0 2px, transparent 2.5px) 0 0 / 18px 18px,
-    #efeee8;
+  background: linear-gradient(145deg, #f8f7f2 0%, #eeece5 100%);
   border-bottom: 1.5px solid var(--ink);
 }
 
