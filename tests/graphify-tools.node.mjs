@@ -1,7 +1,22 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
-import { compareGraphStructures, evaluateGraphBenchmark, explainGraphNode, fingerprintEntries, findSensitiveArtifacts, normalizeQuery, resolveGraphNode, shortestGraphPath, validateGraph } from '../scripts/graphify.mjs';
+import {
+  compareGraphStructures,
+  enrichTypeScriptReferences,
+  evaluateGraphBenchmark,
+  explainGraphNode,
+  fingerprintEntries,
+  findSensitiveArtifacts,
+  normalizeGraphReport,
+  normalizeQuery,
+  projectGapMetrics,
+  resolveGraphNode,
+  shortestGraphPath,
+  splitGraphSourceFiles,
+  validateGraph,
+  validateSeparatedCorpora,
+} from '../scripts/graphify.mjs';
 
 const navigationGraph = {
   directed: false,
@@ -52,6 +67,8 @@ test('consulta em português expande termos do domínio sem executar conteúdo',
   assert.match(expanded, /quote request/);
   assert.match(expanded, /quote cart/);
   assert.match(normalizeQuery('Como valida os dados?'), /normalizeLeadPayload contracts/);
+  assert.match(normalizeQuery('Como a sessão termina?'), /auth signOut CustomerAuthContext/);
+  assert.match(normalizeQuery('Como a sessao termina?'), /auth signOut CustomerAuthContext/);
   assert.match(normalizeQuery('Como retém dados antigos?'), /retention site_retention/);
   assert.throws(() => normalizeQuery(''), /Informe uma pergunta/);
   assert.throws(() => normalizeQuery('x'.repeat(501)), /máximo de 500/);
@@ -72,6 +89,97 @@ test('comparação base/head relata mudanças estruturais sem inferir causalidad
   assert.deepEqual(comparison.removedSources, ['src/a.ts']);
   assert.equal(comparison.addedEdges.length, 1);
   assert.equal(comparison.removedEdges.length, 1);
+});
+
+test('corpus principal e SQL são separados sem perder arquivos', () => {
+  const files = ['src/App.tsx', 'api/index.ts', 'site-supabase/supabase/migrations/001.sql', 'site-supabase/supabase/tests/example.test.sql'];
+  assert.deepEqual(splitGraphSourceFiles(files), {
+    main: ['api/index.ts', 'src/App.tsx'],
+    database: ['site-supabase/supabase/migrations/001.sql', 'site-supabase/supabase/tests/example.test.sql'],
+  });
+});
+
+test('referências TypeScript conectam tipos a consumidores sem inventar tipos externos', () => {
+  const directory = fs.mkdtempSync('/tmp/promo-brindes-graphify-types-');
+  try {
+    fs.mkdirSync(`${directory}/src`, { recursive: true });
+    fs.writeFileSync(`${directory}/src/types.ts`, [
+      'export interface QuoteEvent { id: string }',
+      "export type DeliveryStatus = 'sent' | 'pending';",
+    ].join('\n'));
+    fs.writeFileSync(`${directory}/src/consumer.ts`, [
+      "import type { QuoteEvent, DeliveryStatus } from './types';",
+      'export function summarize(event: QuoteEvent): DeliveryStatus {',
+      "  return event.id ? 'sent' : 'pending';",
+      '}',
+      'export function external(value: Promise<string>): string { return String(value); }',
+    ].join('\n'));
+    const graphPath = `${directory}/graph.json`;
+    fs.writeFileSync(graphPath, JSON.stringify({
+      directed: false,
+      nodes: [
+        { id: 'types-file', label: 'types.ts', source_file: 'src/types.ts' },
+        { id: 'event', label: 'QuoteEvent', source_file: 'src/types.ts', _callable_class: true },
+        { id: 'consumer-file', label: 'consumer.ts', source_file: 'src/consumer.ts' },
+        { id: 'summarize', label: 'summarize()', source_file: 'src/consumer.ts' },
+      ],
+      links: [{ source: 'types-file', target: 'event', relation: 'contains', confidence: 'EXTRACTED' }],
+    }));
+    const result = enrichTypeScriptReferences(graphPath, directory, ['src/types.ts', 'src/consumer.ts']);
+    const graph = JSON.parse(fs.readFileSync(graphPath, 'utf8'));
+    const status = graph.nodes.find((node) => node.label === 'DeliveryStatus');
+    assert.ok(status, 'type alias ausente deve ganhar nó determinístico');
+    assert.ok(graph.links.some((link) => link.source === 'summarize' && link.target === 'event' && link.relation === 'type_reference'));
+    assert.ok(graph.links.some((link) => link.source === 'summarize' && link.target === status.id && link.relation === 'type_reference'));
+    assert.equal(graph.nodes.some((node) => node.label === 'Promise'), false, 'tipo externo não deve ser inventado');
+    assert.equal(result.nodesAdded, 1);
+    assert.equal(result.typeReferenceEdgesAdded, 2);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('relatório usa baixa conectividade e exclui configuração da métrica', () => {
+  const directory = fs.mkdtempSync('/tmp/promo-brindes-graphify-report-');
+  try {
+    const graph = {
+      directed: false,
+      nodes: [
+        { id: 'file', label: 'feature.ts', source_file: 'src/feature.ts', community: 1 },
+        { id: 'type', label: 'FeatureOptions', source_file: 'src/feature.ts', community: 1 },
+        { id: 'package', label: 'react', source_file: 'package.json', community: 2 },
+        { id: 'concept', label: 'external-package', community: 3 },
+      ],
+      links: [
+        { source: 'file', target: 'type', relation: 'contains' },
+        { source: 'package', target: 'file', relation: 'imports' },
+      ],
+    };
+    const graphPath = `${directory}/graph.json`;
+    const reportPath = `${directory}/GRAPH_REPORT.md`;
+    fs.writeFileSync(graphPath, JSON.stringify(graph));
+    fs.writeFileSync(reportPath, '# Graph Report - candidate-123 (2026-10-05)\n\n## Graph Freshness\n- Run `graphify update .` after code changes (no API cost).\n\n## Knowledge Gaps\n- **2 isolated node(s):** noise\n\n## Suggested Questions\n');
+    const metrics = projectGapMetrics(graph);
+    assert.deepEqual(metrics.lowConnectivityNodes.map((node) => node.id), ['type']);
+    const normalized = normalizeGraphReport(reportPath, graphPath, { title: 'Promo Brindes', updateCommand: 'npm run graph:update' });
+    const report = fs.readFileSync(reportPath, 'utf8');
+    assert.match(report, /^# Relatório Graphify — Promo Brindes/m);
+    assert.match(report, /1 nó de baixa conectividade/);
+    assert.doesNotMatch(report, /isolated node/);
+    assert.match(report, /npm run graph:update/);
+    assert.equal(normalized.excludedConfigurationNodes, 1);
+    assert.equal(normalized.excludedConceptNodes, 1);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('validação impede mistura entre mapa principal e mapa SQL', () => {
+  const main = { nodes: [{ id: 'app', source_file: 'src/App.tsx' }], links: [] };
+  const database = { nodes: [{ id: 'migration', source_file: 'site-supabase/supabase/migrations/001.sql' }], links: [] };
+  assert.deepEqual(validateSeparatedCorpora(main, database), { sqlInMain: 0, nonSqlInDatabase: 0 });
+  assert.throws(() => validateSeparatedCorpora({ nodes: database.nodes, links: [] }, database), /Mapa principal contém/);
+  assert.throws(() => validateSeparatedCorpora(main, { nodes: main.nodes, links: [] }), /Mapa de banco contém/);
 });
 
 test('benchmark exige recuperação pelo grafo e busca direta para cada cenário', () => {
