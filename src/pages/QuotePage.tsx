@@ -74,6 +74,12 @@ export default function QuotePage() {
   const campaignLabels = useMemo(() => campaignBriefLabels(cart.campaign), [cart.campaign]);
   const minimumDeadline = localDateInputValue();
 
+  useEffect(() => () => {
+    // A navegação não pode deixar uma solicitação antiga concluir em segundo
+    // plano e limpar o carrinho/rascunho já usado em outra rota.
+    submitAbortControllerRef.current?.abort();
+  }, []);
+
   useEffect(() => {
     if (briefingTrackedRef.current || cart.items.length === 0) return;
     briefingTrackedRef.current = true;
@@ -218,6 +224,10 @@ export default function QuotePage() {
     setSubmitError('');
     const controller = new AbortController();
     const operationIdentity = identityKey;
+    const operationPath = window.location.pathname;
+    const operationIsStale = () => controller.signal.aborted
+      || currentIdentityRef.current !== operationIdentity
+      || window.location.pathname !== operationPath;
     submitAbortControllerRef.current = controller;
     try {
       const attempt = requestAttemptRef.current || getOrCreateSubmissionAttempt('promo-brindes:quote-attempt');
@@ -228,25 +238,25 @@ export default function QuotePage() {
       // já estava em trânsito quando AbortController recebeu abort(). Não
       // basta depender da rejeição do fetch: uma resposta tardia nunca pode
       // transformar o briefing do próximo titular em confirmação de sucesso.
-      if (controller.signal.aborted || currentIdentityRef.current !== operationIdentity) return;
+      if (operationIsStale()) return;
       if (result.mode === 'endpoint') {
         trackFunnelEvent('quote_submitted', { item_count: cart.items.length, has_deadline: Boolean(contact.deadline) });
         let assets: { status: 'attached' | 'pending'; count: number } | undefined;
         if (result.requestId && briefingAssetIds.length && auth.user) {
           try {
             await auth.claimHistory();
-            if (controller.signal.aborted || currentIdentityRef.current !== operationIdentity) return;
+            if (operationIsStale()) return;
             const count = await attachMyBriefingAssetsToQuote(result.requestId, briefingAssetIds);
-            if (controller.signal.aborted || currentIdentityRef.current !== operationIdentity) return;
+            if (operationIsStale()) return;
             assets = { status: 'attached', count };
           } catch {
-            if (controller.signal.aborted || currentIdentityRef.current !== operationIdentity) return;
+            if (operationIsStale()) return;
             // O orçamento já foi persistido. Uma falha de vínculo de arquivo não
             // pode transformar sucesso em retry e criar uma tentativa duplicada.
             assets = { status: 'pending', count: briefingAssetIds.length };
           }
         }
-        if (controller.signal.aborted || currentIdentityRef.current !== operationIdentity) return;
+        if (operationIsStale()) return;
         requestAttemptRef.current = null;
         clearSubmissionAttempt('promo-brindes:quote-attempt');
         setSuccess({ mode: 'endpoint', requestId: result.requestId, confirmations: result.confirmations, assets });
@@ -263,16 +273,16 @@ export default function QuotePage() {
       // A troca de titular já assumiu o estado da UI (efeito de identityEpoch);
       // mostrar um erro genérico agora exibiria uma mensagem sem relação com o
       // formulário recém-resetado, referente a uma submissão de outra pessoa.
-      if (controller.signal.aborted || currentIdentityRef.current !== operationIdentity) return;
+      if (operationIsStale()) return;
       const reason = error instanceof ClientRequestError
         ? error.status === 429 ? 'rate_limited' : error.status === 409 ? 'conflict' : error.status && error.status < 500 ? 'validation' : 'network'
         : 'unknown';
       trackFunnelEvent('quote_submission_failed', { item_count: cart.items.length, reason });
       setSubmitError(error instanceof Error ? error.message : 'Não conseguimos enviar sua solicitação.');
-      } finally {
+    } finally {
       if (submitAbortControllerRef.current === controller) submitAbortControllerRef.current = null;
       submittingRef.current = false;
-      if (currentIdentityRef.current === operationIdentity) setSending(false);
+      if (!operationIsStale()) setSending(false);
     }
   }
 
@@ -358,15 +368,15 @@ export default function QuotePage() {
 
       <div className="container quote-layout">
         <section className="quote-items" aria-labelledby="selection-title">
-          <div className="quote-section-heading"><div><span>01</span><div><h2 id="selection-title">Produtos selecionados</h2><p>{cart.itemCount} {cart.itemCount === 1 ? 'item' : 'itens'} · {totalUnits.toLocaleString('pt-BR')} unidades estimadas</p></div></div><button type="button" onClick={cart.clear}>Limpar seleção</button></div>
+          <div className="quote-section-heading"><div><span>01</span><div><h2 id="selection-title">Produtos selecionados</h2><p>{cart.itemCount} {cart.itemCount === 1 ? 'item' : 'itens'} · {totalUnits.toLocaleString('pt-BR')} unidades estimadas</p></div></div><button type="button" disabled={sending} onClick={cart.clear}>Limpar seleção</button></div>
           {cart.items.some((item) => item.productUnavailable || item.variantUnavailable) && <div ref={availabilityNoticeRef} className="quote-availability-alert" role="alert" tabIndex={-1}><strong>Esta seleção precisa de revisão.</strong><span>Um produto ou uma cor de uma solicitação anterior mudou no catálogo. Remova a referência sinalizada ou escolha uma opção atual.</span></div>}
           <div className="quote-items__list">
             {cart.items.map((item) => (
               <article className="quote-item" key={item.key}>
                 <Link className="quote-item__image" to={`/produto/${item.slug}`} aria-label={`Abrir ${item.name}`}><img src={item.imageUrl} alt="" width="130" height="130" referrerPolicy="no-referrer" onError={replaceBrokenProductImage} /></Link>
-                <div className="quote-item__main"><Link to={`/produto/${item.slug}`}>{item.name}</Link><p>Cód. {item.sku}</p>{item.kitGroupId && <span className="quote-item__kit">{item.kitName} · {item.kitQuantity?.toLocaleString('pt-BR')} kits × {item.unitsPerKit} un.</span>}{item.colorName && <span className="quote-item__color"><i style={{ backgroundColor: item.colorHex }} /> {item.colorName}</span>}{item.productUnavailable && <span className="quote-item__unavailable">Produto não publicado. Escolha outra opção no catálogo.</span>}{item.variantUnavailable && !item.productUnavailable && <span className="quote-item__unavailable">Cor não publicada. Escolha uma opção atual.</span>}{quoteDecisionGroupsEnabled && <label className="quote-item__decision"><span>Como considerar</span><select aria-label={`Como considerar ${item.name}`} value={item.decisionGroup || 'primary'} onChange={(event) => cart.setItemDecisionGroup(item.key, event.target.value as 'primary' | 'alternative')}><option value="primary">Referência principal</option><option value="alternative">Alternativa para comparar</option></select></label>}<span className="quote-item__print-decision">{item.decisionGroup === 'alternative' ? 'Alternativa para comparar' : 'Referência principal'}</span></div>
-                {item.kitGroupId && item.kitQuantity && item.unitsPerKit ? (() => { const bounds = kitQuantityBounds(item.kitGroupId); return <div className="quote-item__quantity"><label htmlFor={`kit-quantity-${item.key}`}>Kits</label><div className="quantity-control quantity-control--small"><button type="button" onClick={() => cart.updateKitQuantity(item.kitGroupId!, item.kitQuantity! - 10)} aria-label="Diminuir quantidade de kits"><Minus size={15} /></button><input id={`kit-quantity-${item.key}`} type="number" min={bounds.minimum} max={bounds.maximum} inputMode="numeric" value={item.kitQuantity} onFocus={(event) => event.currentTarget.select()} onChange={(event) => cart.updateKitQuantity(item.kitGroupId!, Number(event.target.value))} /><button type="button" onClick={() => cart.updateKitQuantity(item.kitGroupId!, item.kitQuantity! + 10)} aria-label="Aumentar quantidade de kits"><Plus size={15} /></button></div><small>{item.kitQuantity.toLocaleString('pt-BR')} × {item.unitsPerKit} = {item.quantity.toLocaleString('pt-BR')} un.</small></div>; })() : <div className="quote-item__quantity"><label htmlFor={`quantity-${item.key}`}>Quantidade</label><div className="quantity-control quantity-control--small"><button type="button" onClick={() => adjustItemQuantity(item.key, item.quantity, item.minQuantity, -10)} aria-label="Diminuir quantidade"><Minus size={15} /></button><input id={`quantity-${item.key}`} type="number" min={item.minQuantity} max="999999" inputMode="numeric" value={quantityDrafts[item.key] ?? item.quantity} onFocus={(event) => event.currentTarget.select()} onChange={(event) => setQuantityDrafts((drafts) => ({ ...drafts, [item.key]: event.target.value.replace(/\D/g, '') }))} onBlur={() => commitItemQuantity(item.key, item.minQuantity)} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); }} /><button type="button" onClick={() => adjustItemQuantity(item.key, item.quantity, item.minQuantity, 10)} aria-label="Aumentar quantidade"><Plus size={15} /></button></div>{item.minQuantity > 1 && <small>Mín. {item.minQuantity}</small>}</div>}
-                <button className="quote-item__remove" type="button" onClick={() => cart.removeItem(item.key)} aria-label={`Remover ${item.name}`}><Trash2 size={18} /></button>
+                <div className="quote-item__main"><Link to={`/produto/${item.slug}`}>{item.name}</Link><p>Cód. {item.sku}</p>{item.kitGroupId && <span className="quote-item__kit">{item.kitName} · {item.kitQuantity?.toLocaleString('pt-BR')} kits × {item.unitsPerKit} un.</span>}{item.colorName && <span className="quote-item__color"><i style={{ backgroundColor: item.colorHex }} /> {item.colorName}</span>}{item.productUnavailable && <span className="quote-item__unavailable">Produto não publicado. Escolha outra opção no catálogo.</span>}{item.variantUnavailable && !item.productUnavailable && <span className="quote-item__unavailable">Cor não publicada. Escolha uma opção atual.</span>}{quoteDecisionGroupsEnabled && <label className="quote-item__decision"><span>Como considerar</span><select disabled={sending} aria-label={`Como considerar ${item.name}`} value={item.decisionGroup || 'primary'} onChange={(event) => cart.setItemDecisionGroup(item.key, event.target.value as 'primary' | 'alternative')}><option value="primary">Referência principal</option><option value="alternative">Alternativa para comparar</option></select></label>}<span className="quote-item__print-decision">{item.decisionGroup === 'alternative' ? 'Alternativa para comparar' : 'Referência principal'}</span></div>
+                {item.kitGroupId && item.kitQuantity && item.unitsPerKit ? (() => { const bounds = kitQuantityBounds(item.kitGroupId); return <div className="quote-item__quantity"><label htmlFor={`kit-quantity-${item.key}`}>Kits</label><div className="quantity-control quantity-control--small"><button type="button" disabled={sending} onClick={() => cart.updateKitQuantity(item.kitGroupId!, item.kitQuantity! - 10)} aria-label="Diminuir quantidade de kits"><Minus size={15} /></button><input id={`kit-quantity-${item.key}`} type="number" min={bounds.minimum} max={bounds.maximum} inputMode="numeric" value={item.kitQuantity} disabled={sending} onFocus={(event) => event.currentTarget.select()} onChange={(event) => cart.updateKitQuantity(item.kitGroupId!, Number(event.target.value))} /><button type="button" disabled={sending} onClick={() => cart.updateKitQuantity(item.kitGroupId!, item.kitQuantity! + 10)} aria-label="Aumentar quantidade de kits"><Plus size={15} /></button></div><small>{item.kitQuantity.toLocaleString('pt-BR')} × {item.unitsPerKit} = {item.quantity.toLocaleString('pt-BR')} un.</small></div>; })() : <div className="quote-item__quantity"><label htmlFor={`quantity-${item.key}`}>Quantidade</label><div className="quantity-control quantity-control--small"><button type="button" disabled={sending} onClick={() => adjustItemQuantity(item.key, item.quantity, item.minQuantity, -10)} aria-label="Diminuir quantidade"><Minus size={15} /></button><input id={`quantity-${item.key}`} type="number" min={item.minQuantity} max="999999" inputMode="numeric" value={quantityDrafts[item.key] ?? item.quantity} disabled={sending} onFocus={(event) => event.currentTarget.select()} onChange={(event) => setQuantityDrafts((drafts) => ({ ...drafts, [item.key]: event.target.value.replace(/\D/g, '') }))} onBlur={() => commitItemQuantity(item.key, item.minQuantity)} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); }} /><button type="button" disabled={sending} onClick={() => adjustItemQuantity(item.key, item.quantity, item.minQuantity, 10)} aria-label="Aumentar quantidade"><Plus size={15} /></button></div>{item.minQuantity > 1 && <small>Mín. {item.minQuantity}</small>}</div>}
+                <button className="quote-item__remove" type="button" disabled={sending} onClick={() => cart.removeItem(item.key)} aria-label={`Remover ${item.name}`}><Trash2 size={18} /></button>
                 <strong className="quote-item__print-quantity">{item.kitGroupId && item.kitQuantity ? `${item.kitQuantity.toLocaleString('pt-BR')} kits · ` : ''}{item.quantity.toLocaleString('pt-BR')} un.</strong>
               </article>
             ))}
@@ -375,11 +385,12 @@ export default function QuotePage() {
         </section>
 
         <section className="quote-form-section" aria-labelledby="briefing-title">
-          <div className="quote-section-heading"><div><span>02</span><div><h2 id="briefing-title">Seu briefing</h2><p>Campos com * são obrigatórios</p></div></div><button type="button" className="text-button" onClick={discardDraft}>Apagar rascunho</button></div>
+          <div className="quote-section-heading"><div><span>02</span><div><h2 id="briefing-title">Seu briefing</h2><p>Campos com * são obrigatórios</p></div></div><button type="button" className="text-button" disabled={sending} onClick={discardDraft}>Apagar rascunho</button></div>
           <p className="quote-draft-notice" role="status">Seus dados deste formulário ficam salvos por {QUOTE_DRAFT_RETENTION_LABEL} para evitar perda de trabalho. Não use este campo para dados sensíveis.</p>
           {draftNotice && <p className="quote-draft-notice quote-draft-notice--success" role="status">{draftNotice}</p>}
           {campaignLabels.length > 0 && <aside className="quote-campaign-context" aria-label="Contexto recuperado da sua campanha"><div><span>Contexto recuperado</span><strong>Esta seleção já tem uma direção.</strong><p>Você pode complementar no briefing; essas referências acompanham a análise do nosso time de especialistas.</p></div><ul>{campaignLabels.map((label) => <li key={label}>{label}</li>)}</ul></aside>}
-          <form ref={formRef} className="quote-form" onSubmit={(event) => void submit(event)} noValidate>
+          <form ref={formRef} className="quote-form" onSubmit={(event) => void submit(event)} noValidate aria-busy={sending}>
+            <fieldset className="submission-lock" disabled={sending}>
             <div className="honeypot" aria-hidden="true"><label>Website<input value={website} onChange={(event) => setWebsite(event.target.value)} autoComplete="off" tabIndex={-1} /></label></div>
             <div className="form-grid">
               <div className="form-field"><label htmlFor="name">Seu nome *</label><input id="name" name="name" autoComplete="name" maxLength={100} value={contact.name} onChange={(event) => updateField('name', event.target.value)} aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? 'name-error' : undefined} />{errors.name && <span id="name-error" className="field-error">{errors.name}</span>}</div>
@@ -403,6 +414,7 @@ export default function QuotePage() {
             <label className="privacy-check privacy-check--optional"><input name="whatsappCopyAccepted" type="checkbox" checked={contact.whatsappCopyAccepted} onChange={(event) => updateField('whatsappCopyAccepted', event.target.checked)} /><span><ShieldCheck size={20} /></span><span>Quero receber uma cópia desta solicitação também pelo WhatsApp informado. Esta autorização é opcional e vale apenas para o atendimento deste orçamento.</span></label>
             {submitError && <div className="submit-error" role="alert">{submitError}</div>}
             <div className="quote-submit"><div><strong>Pronto para ativar a curadoria?</strong><span>Você alinha todos os detalhes com nosso time de especialistas antes de qualquer decisão.</span></div><button className="button button--green button--large" type="submit" disabled={sending}>{sending ? 'Enviando…' : <><Send size={18} /> Enviar briefing</>}</button></div>
+            </fieldset>
           </form>
         </section>
       </div>

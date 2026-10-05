@@ -179,8 +179,8 @@ export function SavedSelections() {
           <button type="button" className="saved-selections__toggle" onClick={() => setShowArchived((value) => !value)} aria-pressed={showArchived}>{showArchived ? 'Mostrar ativas' : 'Ver arquivadas'}</button>
         </div>
 
-        {cart.itemCount > 0 && <form className="saved-selections__save" onSubmit={saveNew}>
-          <div><label htmlFor="saved-selection-title">Nome para a seleção deste navegador</label><input id="saved-selection-title" value={title} onChange={(event) => setTitle(event.target.value)} maxLength={100} required /></div>
+        {cart.itemCount > 0 && <form className="saved-selections__save" onSubmit={saveNew} aria-busy={busy || loading}>
+          <div><label htmlFor="saved-selection-title">Nome para a seleção deste navegador</label><input id="saved-selection-title" value={title} onChange={(event) => setTitle(event.target.value)} maxLength={100} required disabled={busy || loading} /></div>
           <span>{cart.itemCount} {cart.itemCount === 1 ? 'produto selecionado' : 'produtos selecionados'} · salvar é uma escolha sua</span>
           <button className="button button--green" type="submit" disabled={busy || loading}><BookmarkPlus size={17} /> Salvar na minha conta</button>
         </form>}
