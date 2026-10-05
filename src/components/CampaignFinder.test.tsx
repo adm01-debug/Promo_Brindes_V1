@@ -45,5 +45,13 @@ describe('resumo editável do briefing', () => {
 
     expect(screen.getByRole('heading', { name: 'O que está acontecendo?' })).toBeVisible();
     expect(screen.getByRole('button', { name: /Evento/ })).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(screen.getByText('Onboarding'));
+    expect(screen.getByRole('heading', { name: 'Quem precisa ser encantado?' })).toBeVisible();
+    fireEvent.click(screen.getByText('Clientes'));
+    expect(screen.getByRole('heading', { name: 'Quantas pessoas, aproximadamente?' })).toBeVisible();
+    fireEvent.click(screen.getByText('Até 50'));
+    expect(screen.getByRole('heading', { name: 'Que sensação a escolha deve passar?' })).toBeVisible();
+    fireEvent.click(screen.getByText('Premium'));
+    expect(screen.getByRole('heading', { name: 'O que entendemos da sua campanha' })).toBeVisible();
   });
 });

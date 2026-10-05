@@ -24,6 +24,7 @@ export function CampaignFinder() {
   const [selection, setSelection] = useState<CampaignSelection>({});
   const [stepIndex, setStepIndex] = useState(0);
   const [summaryVisible, setSummaryVisible] = useState(false);
+  const [sequentialReview, setSequentialReview] = useState(false);
   const step = steps[stepIndex];
   if (!step) throw new Error('Etapa de briefing inválida.');
   const selectedCount = campaignSelectionCount(selection);
@@ -39,6 +40,15 @@ export function CampaignFinder() {
     if (!currentStep) return;
     const nextSelection = { ...selection, [currentStep.key]: value } as CampaignSelection;
     setSelection(nextSelection);
+    if (sequentialReview) {
+      if (stepIndex < steps.length - 1) {
+        setStepIndex((current) => current + 1);
+      } else {
+        setSequentialReview(false);
+        setSummaryVisible(true);
+      }
+      return;
+    }
     if (campaignSelectionCount(nextSelection) === steps.length) {
       setSummaryVisible(true);
       return;
@@ -47,8 +57,15 @@ export function CampaignFinder() {
   }
 
   function editStep(index: number) {
+    setSequentialReview(false);
     setSummaryVisible(false);
     setStepIndex(index);
+  }
+
+  function reviewAll() {
+    setSequentialReview(true);
+    setSummaryVisible(false);
+    setStepIndex(0);
   }
 
   function removeSelection(key: keyof CampaignSelection, index: number) {
@@ -64,6 +81,7 @@ export function CampaignFinder() {
     setSelection({});
     setStepIndex(0);
     setSummaryVisible(false);
+    setSequentialReview(false);
   }
 
   function showResults() {
@@ -124,7 +142,7 @@ export function CampaignFinder() {
                 })}
               </div>
               <div className="brief-finder__summary-actions">
-                <button type="button" className="button button--outline" onClick={() => editStep(0)}>Ajustar respostas</button>
+                <button type="button" className="button button--outline" onClick={reviewAll}>Ajustar respostas</button>
                 <button type="button" className="button button--green" onClick={showResults}>Ver minha curadoria <ArrowRight size={17} /></button>
               </div>
               <p className="brief-finder__summary-trust"><Check size={16} /> <strong>Sem cadastro.</strong> Você continua no controle.</p>

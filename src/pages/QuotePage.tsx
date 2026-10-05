@@ -20,6 +20,7 @@ import { quoteDecisionGroupsEnabled } from '../lib/siteFeatureFlags';
 import { localDateInputValue } from '../lib/quoteCalendar';
 import { attachMyBriefingAssetsToQuote } from '../lib/briefingAssets';
 import { confirmationDeliveryLabel, quoteConfirmationTitle } from '../lib/quoteConfirmation';
+import { useInitialSuccessScroll } from '../lib/useInitialSuccessScroll';
 
 function formatPhone(value: string): string {
   const digits = value.replace(/\D/g, '').slice(0, 11);
@@ -74,6 +75,8 @@ export default function QuotePage() {
   const totalUnits = useMemo(() => cart.items.reduce((sum, item) => sum + item.quantity, 0), [cart.items]);
   const campaignLabels = useMemo(() => campaignBriefLabels(cart.campaign), [cart.campaign]);
   const minimumDeadline = localDateInputValue();
+  const hasSuccess = Boolean(success);
+  useInitialSuccessScroll(hasSuccess);
 
   useEffect(() => {
     if (briefingTrackedRef.current || cart.items.length === 0) return;
@@ -116,29 +119,9 @@ export default function QuotePage() {
   useEffect(() => {
     if (success) {
       clearQuoteDraft();
-      const root = document.documentElement;
-      const previousScrollBehavior = root.style.scrollBehavior;
-      root.style.scrollBehavior = 'auto';
-      const scrollToTop = () => window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-      let secondFrame: number | undefined;
-      scrollToTop();
-      const firstFrame = window.requestAnimationFrame(() => {
-        scrollToTop();
-        secondFrame = window.requestAnimationFrame(scrollToTop);
-      });
-      const settledLayoutTimer = window.setTimeout(() => {
-        scrollToTop();
-        root.style.scrollBehavior = previousScrollBehavior;
-      }, 200);
-      return () => {
-        window.cancelAnimationFrame(firstFrame);
-        if (secondFrame !== undefined) window.cancelAnimationFrame(secondFrame);
-        window.clearTimeout(settledLayoutTimer);
-        root.style.scrollBehavior = previousScrollBehavior;
-      };
+      return;
     }
     saveQuoteDraft({ contact, briefing });
-    return undefined;
   }, [briefing, contact, success]);
 
   function updateField<Key extends keyof QuoteContact>(key: Key, value: QuoteContact[Key]) {
