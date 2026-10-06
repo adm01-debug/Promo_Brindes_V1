@@ -39,7 +39,7 @@ export function Layout({ children }: { children: ReactNode }) {
   const [search, setSearch] = useState('');
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const mobileNavRef = useRef<HTMLDivElement>(null);
-  const catalogProfileNavigationRef = useRef(false);
+  const catalogProfileNavigationRef = useRef<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const categories = useCategories();
@@ -61,14 +61,18 @@ export function Layout({ children }: { children: ReactNode }) {
       && !event.shiftKey
       && !event.altKey
       && event.currentTarget.target !== '_blank';
-    catalogProfileNavigationRef.current = Boolean(catalogQuery && opensInCurrentTab);
+    catalogProfileNavigationRef.current = catalogQuery && opensInCurrentTab
+      ? `${event.currentTarget.pathname}${event.currentTarget.search}`
+      : null;
   }
 
   useEffect(() => {
     setMenuOpen(false);
     setSearch(catalogParams.get('q') || '');
     let resultsFrame = 0;
-    if (catalogProfileNavigationRef.current && location.pathname === '/catalogo' && catalogParams.get('perfil')) {
+    const expectedDestination = catalogProfileNavigationRef.current;
+    const currentDestination = `${location.pathname}${location.search}`;
+    if (expectedDestination === currentDestination && location.pathname === '/catalogo' && catalogParams.get('perfil')) {
       // A navegação por perfil pode acontecer dentro da própria rota do
       // catálogo. Nesse caso o navegador preserva a posição anterior (até o
       // rodapé no menu móvel), então reposicionamos explicitamente o começo
@@ -82,7 +86,7 @@ export function Layout({ children }: { children: ReactNode }) {
         });
       });
     }
-    catalogProfileNavigationRef.current = false;
+    catalogProfileNavigationRef.current = null;
     // catalogParams é recomputado a cada render (new URLSearchParams nunca é
     // referencialmente estável); location.search é a string da qual ele deriva
     // por completo, e já está na lista. Incluir catalogParams faria este efeito

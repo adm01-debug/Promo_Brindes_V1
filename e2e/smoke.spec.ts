@@ -1198,6 +1198,8 @@ test('navegação de catálogo por query fecha menu e reposiciona resultados', a
     if (!profileLink) throw new Error('Link Tendências ausente');
     profileLink.addEventListener('click', (event) => event.preventDefault(), { once: true });
     profileLink.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0, ctrlKey: true }));
+    profileLink.addEventListener('click', (event) => event.preventDefault(), { once: true });
+    profileLink.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }));
   });
   await page.evaluate(() => {
     const trigger = document.querySelector<HTMLButtonElement>('.mobile-filter-trigger');
