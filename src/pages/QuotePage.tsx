@@ -44,7 +44,9 @@ function browserLocationKey(): string {
   // submit só roda no navegador, mas este fallback mantém o módulo seguro em
   // ambientes de renderização e testes que ainda não expõem `window`.
   if (typeof window === 'undefined') return '';
-  return `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  // Uma âncora só desloca a mesma página; ela não pode invalidar uma
+  // solicitação que ainda pertence ao mesmo briefing.
+  return `${window.location.pathname}${window.location.search}`;
 }
 
 export default function QuotePage() {
