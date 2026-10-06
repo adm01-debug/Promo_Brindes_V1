@@ -1,10 +1,11 @@
 import { Menu, Search, ShoppingBag, UserRound, X } from 'lucide-react';
-import { type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react';
+import { type FormEvent, type MouseEvent as ReactMouseEvent, type ReactNode, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useQuoteCart } from '../context/quoteCart';
 import { trackFunnelEvent } from '../lib/analytics';
 import { useCategories } from '../lib/hooks';
 import { hasSiteAuthConfiguration } from '../lib/siteSupabaseConfig';
+import { GiftLoversSignature } from './GiftLoversSignature';
 import { QuoteDrawer } from './QuoteDrawer';
 import { SearchAutocomplete } from './SearchAutocomplete';
 
@@ -38,6 +39,7 @@ export function Layout({ children }: { children: ReactNode }) {
   const [search, setSearch] = useState('');
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const mobileNavRef = useRef<HTMLDivElement>(null);
+  const catalogProfileNavigationRef = useRef<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const categories = useCategories();
@@ -50,14 +52,47 @@ export function Layout({ children }: { children: ReactNode }) {
     return location.pathname === item.to;
   }
 
+  function rememberCatalogProfileNavigation(event: ReactMouseEvent<HTMLAnchorElement>, catalogQuery?: boolean) {
+    // `onClick` cobre ativações primárias (mouse, toque e teclado). Aqui
+    // excluímos somente os modificadores/targets que o React Router deixa o
+    // navegador abrir fora da aba atual.
+    const opensInCurrentTab = !event.metaKey
+      && !event.ctrlKey
+      && !event.shiftKey
+      && !event.altKey
+      && event.currentTarget.target !== '_blank';
+    catalogProfileNavigationRef.current = catalogQuery && opensInCurrentTab
+      ? `${event.currentTarget.pathname}${event.currentTarget.search}`
+      : null;
+  }
+
   useEffect(() => {
     setMenuOpen(false);
     setSearch(catalogParams.get('q') || '');
+    let resultsFrame = 0;
+    const expectedDestination = catalogProfileNavigationRef.current;
+    const currentDestination = `${location.pathname}${location.search}`;
+    if (expectedDestination === currentDestination && location.pathname === '/catalogo' && catalogParams.get('perfil')) {
+      // A navegação por perfil pode acontecer dentro da própria rota do
+      // catálogo. Nesse caso o navegador preserva a posição anterior (até o
+      // rodapé no menu móvel), então reposicionamos explicitamente o começo
+      // dos resultados depois que a nova query foi renderizada.
+      resultsFrame = window.requestAnimationFrame(() => {
+        // O primeiro frame consolida o fechamento do menu (e a restauração do
+        // overflow do body); o segundo evita que essa restauração reverta o
+        // reposicionamento em navegadores móveis.
+        resultsFrame = window.requestAnimationFrame(() => {
+          document.getElementById('catalog-results-title')?.scrollIntoView({ block: 'start', behavior: 'auto' });
+        });
+      });
+    }
+    catalogProfileNavigationRef.current = null;
     // catalogParams é recomputado a cada render (new URLSearchParams nunca é
     // referencialmente estável); location.search é a string da qual ele deriva
     // por completo, e já está na lista. Incluir catalogParams faria este efeito
     // rodar a cada render do Layout, fechando o menu e resetando a busca sem
     // relação com navegação real.
+    return () => window.cancelAnimationFrame(resultsFrame);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname, location.search]);
 
@@ -119,7 +154,7 @@ export function Layout({ children }: { children: ReactNode }) {
           <nav className="desktop-nav" aria-label="Navegação principal">
             {navItems.map((item) => {
               const active = isNavItemActive(item);
-              return <Link key={item.to} to={item.to} className={`nav-link ${active ? 'nav-link--active' : ''}`} aria-current={active ? 'page' : undefined}>{item.label}</Link>;
+              return <Link key={item.to} to={item.to} className={`nav-link ${active ? 'nav-link--active' : ''}`} aria-current={active ? 'page' : undefined} onClick={(event) => rememberCatalogProfileNavigation(event, item.catalogQuery)}>{item.label}</Link>;
             })}
           </nav>
           <SearchAutocomplete
@@ -156,7 +191,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <nav aria-label="Navegação móvel">
               {navItems.map((item) => {
                 const active = isNavItemActive(item);
-                return <Link key={item.to} to={item.to} className={active ? 'nav-link--active' : undefined} aria-current={active ? 'page' : undefined}>{item.label}</Link>;
+                return <Link key={item.to} to={item.to} className={active ? 'nav-link--active' : undefined} aria-current={active ? 'page' : undefined} onClick={(event) => rememberCatalogProfileNavigation(event, item.catalogQuery)}>{item.label}</Link>;
               })}
               <Link to="/orcamento">Transformar seleção em briefing</Link>
               {customerAreaEnabled && <Link to="/minha-conta">Meus orçamentos</Link>}
@@ -172,6 +207,7 @@ export function Layout({ children }: { children: ReactNode }) {
           <div className="footer-brand">
             <img src="/brand/promo-brindes-logo-v2-800.webp" width="800" height="420" alt="Promo Brindes" loading="lazy" decoding="async" />
             <p>Brindes que viram parte da cultura — não mais um item esquecido na gaveta.</p>
+            <GiftLoversSignature variant="footer" />
           </div>
           <div>
             <h2>Explore</h2>

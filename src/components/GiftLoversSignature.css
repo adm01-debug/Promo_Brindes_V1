@@ -1,0 +1,67 @@
+/* Nome próprio de família para limitar Inter à assinatura aprovada. */
+@font-face {
+  font-family: 'Promo Signature Inter';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url('@fontsource/inter/files/inter-latin-500-normal.woff2') format('woff2');
+}
+
+.gift-lovers {
+  --signature-name: var(--ink);
+  --signature-accent: var(--blue);
+  --signature-credit: var(--muted);
+  --signature-size: clamp(2.25rem, 5vw, 4.5rem);
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+  width: max-content;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.gift-lovers .gift-lovers__name {
+  color: var(--signature-name);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: var(--signature-size);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.06em;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-align: right;
+  white-space: normal;
+}
+
+.gift-lovers .gift-lovers__accent {
+  color: var(--signature-accent);
+  font: inherit;
+  letter-spacing: inherit;
+}
+
+.gift-lovers .gift-lovers__credit {
+  color: var(--signature-credit);
+  font-family: 'Promo Signature Inter', system-ui, sans-serif;
+  font-size: clamp(0.875rem, 1.3vw, 1.125rem);
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: -0.025em;
+}
+
+.brand-manifesto__signature {
+  display: flex;
+  justify-content: center;
+  margin-top: clamp(40px, 5vw, 64px);
+}
+
+.gift-lovers--footer {
+  --signature-name: var(--acid);
+  --signature-accent: var(--acid);
+  --signature-credit: var(--white);
+  --signature-size: clamp(1.75rem, 2.4vw, 2rem);
+  margin-top: 28px;
+}
+
+.gift-lovers--footer .gift-lovers__credit {
+  font-size: 0.875rem;
+}
