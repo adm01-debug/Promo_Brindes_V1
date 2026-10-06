@@ -30,4 +30,14 @@ describe('reconciliação da seleção após o envio', () => {
     const current = [item('a', { kitGroupId: 'kit-1', unitsPerKit: 1, quantity: 200 }), item('b', { kitGroupId: 'kit-1', unitsPerKit: 2 })];
     expect(remainingItemsAfterSubmission(submitted, current)).toEqual(current);
   });
+
+  it('preserva os componentes restantes quando um item do kit é removido', () => {
+    const submitted = [
+      item('a', { kitGroupId: 'kit-1', unitsPerKit: 1 }),
+      item('b', { kitGroupId: 'kit-1', unitsPerKit: 2 }),
+      item('c', { kitGroupId: 'kit-1', unitsPerKit: 3 }),
+    ];
+    const current = submitted.slice(1);
+    expect(remainingItemsAfterSubmission(submitted, current)).toEqual(current);
+  });
 });
