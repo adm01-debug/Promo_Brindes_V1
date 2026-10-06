@@ -1177,7 +1177,13 @@ test('perfil de novidades apresenta Tendências em toda a interface', async ({ p
 test('navegação de catálogo por query fecha menu e reposiciona resultados', async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.includes('mobile'), 'Cenário dedicado ao viewport móvel.');
   await page.goto('/catalogo');
-  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await page.evaluate(() => {
+    const spacer = document.createElement('div');
+    spacer.id = 'catalog-filter-scroll-fixture';
+    spacer.style.height = '3000px';
+    document.body.append(spacer);
+    window.scrollTo(0, document.body.scrollHeight);
+  });
   await page.getByRole('button', { name: 'Abrir menu' }).click();
   await page.getByRole('navigation', { name: 'Navegação móvel' }).getByRole('link', { name: 'Tendências' }).click();
   await expect(page).toHaveURL(/perfil=novos/);
@@ -1186,15 +1192,37 @@ test('navegação de catálogo por query fecha menu e reposiciona resultados', a
   await expect(page.locator('#catalog-results-title')).toHaveText('Tendências');
 
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-  const positionBeforeSort = await page.evaluate(() => window.scrollY);
+  const positionBeforeFilter = await page.evaluate(() => window.scrollY);
   await page.evaluate(() => {
-    const select = document.querySelector<HTMLSelectElement>('.sort-control select');
-    if (!select) throw new Error('Controle de ordenação ausente');
-    select.value = 'nome';
-    select.dispatchEvent(new Event('change', { bubbles: true }));
+    const profileLink = document.querySelector<HTMLAnchorElement>('.desktop-nav a[href="/catalogo?perfil=novos"]');
+    if (!profileLink) throw new Error('Link Tendências ausente');
+    profileLink.addEventListener('click', (event) => event.preventDefault(), { once: true });
+    profileLink.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0, ctrlKey: true }));
   });
-  await expect(page).toHaveURL(/ordem=nome/);
-  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThanOrEqual(positionBeforeSort - 1);
+  await page.evaluate(() => {
+    const trigger = document.querySelector<HTMLButtonElement>('.mobile-filter-trigger');
+    if (!trigger) throw new Error('Gatilho de filtros ausente');
+    trigger.click();
+  });
+  const filterDialog = page.getByRole('dialog', { name: 'Afine seu radar' });
+  await expect(filterDialog).toBeVisible();
+  await filterDialog.getByRole('checkbox', { name: /Personalizável/ }).click();
+  await expect(page).toHaveURL(/personalizavel=1/);
+  await page.evaluate(() => new Promise<void>((resolve) => {
+    let previous = window.scrollY;
+    let stableFrames = 0;
+    let totalFrames = 0;
+    const sample = () => {
+      const current = window.scrollY;
+      stableFrames = Math.abs(current - previous) < 1 ? stableFrames + 1 : 0;
+      previous = current;
+      totalFrames += 1;
+      if (stableFrames >= 8 || totalFrames >= 120) resolve();
+      else window.requestAnimationFrame(sample);
+    };
+    window.requestAnimationFrame(sample);
+  }));
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThanOrEqual(positionBeforeFilter - 1);
   await expect(page.locator('#catalog-results-title')).not.toBeInViewport();
 });
 

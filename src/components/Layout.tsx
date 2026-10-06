@@ -1,5 +1,5 @@
 import { Menu, Search, ShoppingBag, UserRound, X } from 'lucide-react';
-import { type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react';
+import { type FormEvent, type MouseEvent as ReactMouseEvent, type ReactNode, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useQuoteCart } from '../context/quoteCart';
 import { trackFunnelEvent } from '../lib/analytics';
@@ -52,6 +52,18 @@ export function Layout({ children }: { children: ReactNode }) {
     return location.pathname === item.to;
   }
 
+  function rememberCatalogProfileNavigation(event: ReactMouseEvent<HTMLAnchorElement>, catalogQuery?: boolean) {
+    // `onClick` cobre ativações primárias (mouse, toque e teclado). Aqui
+    // excluímos somente os modificadores/targets que o React Router deixa o
+    // navegador abrir fora da aba atual.
+    const opensInCurrentTab = !event.metaKey
+      && !event.ctrlKey
+      && !event.shiftKey
+      && !event.altKey
+      && event.currentTarget.target !== '_blank';
+    catalogProfileNavigationRef.current = Boolean(catalogQuery && opensInCurrentTab);
+  }
+
   useEffect(() => {
     setMenuOpen(false);
     setSearch(catalogParams.get('q') || '');
@@ -62,7 +74,12 @@ export function Layout({ children }: { children: ReactNode }) {
       // rodapé no menu móvel), então reposicionamos explicitamente o começo
       // dos resultados depois que a nova query foi renderizada.
       resultsFrame = window.requestAnimationFrame(() => {
-        document.getElementById('catalog-results-title')?.scrollIntoView({ block: 'start', behavior: 'auto' });
+        // O primeiro frame consolida o fechamento do menu (e a restauração do
+        // overflow do body); o segundo evita que essa restauração reverta o
+        // reposicionamento em navegadores móveis.
+        resultsFrame = window.requestAnimationFrame(() => {
+          document.getElementById('catalog-results-title')?.scrollIntoView({ block: 'start', behavior: 'auto' });
+        });
       });
     }
     catalogProfileNavigationRef.current = false;
@@ -133,7 +150,7 @@ export function Layout({ children }: { children: ReactNode }) {
           <nav className="desktop-nav" aria-label="Navegação principal">
             {navItems.map((item) => {
               const active = isNavItemActive(item);
-              return <Link key={item.to} to={item.to} className={`nav-link ${active ? 'nav-link--active' : ''}`} aria-current={active ? 'page' : undefined} onClick={() => { catalogProfileNavigationRef.current = Boolean(item.catalogQuery); }}>{item.label}</Link>;
+              return <Link key={item.to} to={item.to} className={`nav-link ${active ? 'nav-link--active' : ''}`} aria-current={active ? 'page' : undefined} onClick={(event) => rememberCatalogProfileNavigation(event, item.catalogQuery)}>{item.label}</Link>;
             })}
           </nav>
           <SearchAutocomplete
@@ -170,7 +187,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <nav aria-label="Navegação móvel">
               {navItems.map((item) => {
                 const active = isNavItemActive(item);
-                return <Link key={item.to} to={item.to} className={active ? 'nav-link--active' : undefined} aria-current={active ? 'page' : undefined} onClick={() => { catalogProfileNavigationRef.current = Boolean(item.catalogQuery); }}>{item.label}</Link>;
+                return <Link key={item.to} to={item.to} className={active ? 'nav-link--active' : undefined} aria-current={active ? 'page' : undefined} onClick={(event) => rememberCatalogProfileNavigation(event, item.catalogQuery)}>{item.label}</Link>;
               })}
               <Link to="/orcamento">Transformar seleção em briefing</Link>
               {customerAreaEnabled && <Link to="/minha-conta">Meus orçamentos</Link>}
