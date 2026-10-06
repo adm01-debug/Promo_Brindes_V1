@@ -138,8 +138,8 @@ P1 · Produto e Design · C4, C5, C8 · Depende de: 003, 008.
 
 P1 · Produto e Dados · C2, C7 · Depende de: 005, 009.
 
-- **Entrega:** definir conclusão de tarefa, entendimento do próximo passo, erros recuperados, repetição de perguntas e envio confirmado, com denominador, janela e fonte.
-- **Cenários e aceite:** amostra pequena, tráfego automatizado e bloqueio de analytics são explicitados; nenhum ganho percentual ou causalidade é anunciado sem medição adequada.
+- **Entrega:** definir conclusão de tarefa, entendimento do próximo passo, erros recuperados, repetição de perguntas e envio confirmado, com denominador, janela e fonte, e registrar as observações pré-mudança disponíveis antes de iniciar os lotes de interface.
+- **Cenários e aceite:** a linha de base identifica data, versão, amostra, método e limitações. Se os dados existentes não sustentarem um indicador, registrar uma linha de base qualitativa controlada ou antecipar, por decisão explícita e revisão de privacidade, somente a instrumentação indispensável antes da implementação; amostra pequena, tráfego automatizado e bloqueio de analytics são explicitados, e nenhum ganho percentual ou causalidade é anunciado sem medição comparável.
 
 ## Bloco 2 Linguagem e propostas visuais
 
@@ -730,8 +730,8 @@ P1 · QA e Engenharia · C2, C6, C7 · Depende de: 031–090 conforme o lote.
 
 P1 · QA · C1–C8 · Depende de: 050, 060, 070, 080, 090, 091.
 
-- **Entrega:** testar home → briefing → catálogo → produto → seleção → orçamento → histórico, além de busca direta, compartilhamento e repetição.
-- **Cenários e aceite:** desktop e celular, usuário anônimo e autenticado, rede lenta, resposta tardia e storage bloqueado concluem ou recuperam a tarefa sem sucesso falso.
+- **Entrega:** testar a jornada anônima home → briefing → catálogo → produto → seleção → orçamento → confirmação e oferta opcional de conta; testar separadamente a jornada autenticada até histórico, além de busca direta, compartilhamento e repetição.
+- **Cenários e aceite:** desktop e celular, visitante anônimo até a confirmação, pessoa autenticada até o histórico, rede lenta, resposta tardia e storage bloqueado concluem ou recuperam a etapa autorizada sem sucesso falso; o cenário anônimo nunca pressupõe associação ao histórico sem identidade verificada.
 
 ### Etapa 093 Validar acessibilidade assistiva
 
@@ -747,37 +747,37 @@ P1 · Design e QA · C3, C8 · Depende de: 020, 092, 093.
 - **Entrega:** comparar capturas reais aos mockups aprovados em 320, 390, 768, 1024 e 1440 px, nos navegadores configurados, documentando diferenças intencionais.
 - **Cenários e aceite:** texto ampliado, teclado virtual, chips longos, imagens e cards não se fundem, cortam ou sobrepõem; qualquer desvio relevante volta para aprovação visual.
 
-### Etapa 095 Proteger desempenho e estabilidade
-
-P1 · Engenharia e QA · C3, C6 · Depende de: 092, 094.
-
-- **Entrega:** executar lint, TypeScript, unitários, build, orçamento de assets, E2E e cross-browser; medir o impacto de fontes, imagens e instrumentação antes da publicação.
-- **Cenários e aceite:** conexão lenta e dispositivo intermediário mantêm conteúdo essencial; não reduzir qualidade de foto nem desabilitar gate para fazer o lote passar; regressão ganha correção ou rollback.
-
-### Etapa 096 Instrumentar com privacidade
+### Etapa 095 Instrumentar com privacidade
 
 P1 · Dados, Privacidade e Engenharia · C2, C8 · Depende de: 010, 090, 091.
 
 - **Entrega:** adicionar apenas eventos necessários às hipóteses aprovadas, com nomes enumerados, propriedades permitidas e caminhos sanitizados seguindo analytics.ts.
 - **Cenários e aceite:** nomes, e-mails, empresas, mensagens, orçamento e URLs privadas não saem na telemetria; analytics ausente ou bloqueado nunca impede a tarefa.
 
+### Etapa 096 Proteger desempenho e estabilidade após instrumentação
+
+P1 · Engenharia e QA · C3, C6 · Depende de: 092, 094, 095.
+
+- **Entrega:** depois dos eventos aprovados estarem presentes, executar lint, TypeScript, unitários, build, orçamento de assets, E2E e cross-browser; medir o impacto final de fontes, imagens e instrumentação antes da publicação.
+- **Cenários e aceite:** conexão lenta e dispositivo intermediário mantêm conteúdo essencial; não reduzir qualidade de foto nem desabilitar gate para fazer o lote passar; regressão ganha correção ou rollback, e qualquer alteração posterior de telemetria exige repetir os checks afetados.
+
 ### Etapa 097 Avaliar entendimento e esforço
 
-P2 · Pesquisa e Produto · C1, C2 · Depende de: 006, 010, 092, 096.
+P2 · Pesquisa e Produto · C1, C2 · Depende de: 006, 010, 092, 095, 096.
 
 - **Entrega:** conduzir tarefas moderadas e não moderadas, comparar linha de base e registrar evidência, falhas e diferenças entre perfis sem generalização excessiva.
 - **Cenários e aceite:** observar entendimento do orçamento, edição do resumo e recuperação de erro; participantes não são conduzidos à resposta e pequenas amostras são descritas como sinais qualitativos.
 
 ### Etapa 098 Fazer piloto operacional controlado
 
-P1 · Atendimento, Produto e QA · C2, C7, C8 · Depende de: 008, 079, 085, 092, 095.
+P1 · Atendimento, Produto e QA · C2, C7, C8 · Depende de: 008, 079, 085, 092, 096.
 
 - **Entrega:** executar solicitações sintéticas autorizadas do início ao atendimento, verificando protocolo, contexto, titularidade, anexos e próximo passo sem contatar pessoas reais indevidamente.
 - **Cenários e aceite:** horário sem atendimento, anexo pendente, canal indisponível e ajuste posterior ficam reproduzíveis; logs e evidências são sanitizados e removidos conforme política.
 
 ### Etapa 099 Publicar por lotes reversíveis
 
-P1 · DevOps, Produto e Engenharia · C7 · Depende de: 093, 094, 095, 098.
+P1 · DevOps, Produto e Engenharia · C7 · Depende de: 093, 094, 096, 098.
 
 - **Entrega:** preparar PRs pequenos, evidências, plano de rollback e flags quando adequadas; publicar pelo fluxo vigente somente após reviews e checks obrigatórios.
 - **Cenários e aceite:** branch concorrente, PR 91/92 ainda aberto, falha de release e deployment de SHA divergente bloqueiam promoção; nenhum merge forçado ou proteção reduzida para concluir o plano.
@@ -810,10 +810,10 @@ P1 · Produto, QA e Responsável pelo aceite · C1–C8 · Depende de: 001–099
 | --- | --- | --- | --- |
 | A | 001–020 | Pesquisa, contratos de conteúdo e mockups aprovados | Repositório e baseline identificados; escopo, responsáveis e regra de aprovação visual confirmados. |
 | B | 021–040 | Entrada por intenção e briefing revisável | Aprovação visual do lote B. |
-| C | 041–060 | Catálogo e produto com justificativas verificáveis | Dados editoriais e PR 91 conciliados. |
+| C | 041–060 | Catálogo e produto com justificativas verificáveis | Fontes editoriais inventariadas, estado do PR 91 conhecido e última aprovação visual localizada; a conciliação ocorre na etapa 051. |
 | D | 061–080 | Seleção, formulário e confirmação honestos | Contratos de persistência e mensagens aprovados. |
 | E | 081–090 | Histórico, ajustes e relacionamento contextual | Capacidades operacionais confirmadas; integrações adiadas não são pré-requisito. |
-| F | 091–100 | Testes, pesquisa, piloto, publicação e encerramento | Lotes anteriores implementados e aceitos. |
+| F | 091–100 | Testes, pesquisa, piloto, publicação e encerramento | Entregas aplicáveis dos lotes anteriores implementadas e aceitas; etapas formalmente adiadas, dispensadas ou retiradas de escopo têm responsável, justificativa e impacto registrados, sem serem contadas como implementadas. |
 
 ## Condições que impedem declarar implementação total
 
