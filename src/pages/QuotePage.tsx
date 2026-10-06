@@ -249,32 +249,47 @@ export default function QuotePage() {
       if (operationIsStale()) return;
       if (result.mode === 'endpoint') {
         trackFunnelEvent('quote_submitted', { item_count: submittedSelection.items.length, has_deadline: Boolean(contact.deadline) });
-        let assets: { status: 'attached' | 'pending'; count: number } | undefined;
+        const shouldAttachAssets = Boolean(result.requestId && briefingAssetIds.length && auth.user);
+        const pendingAssets = shouldAttachAssets
+          ? { status: 'pending' as const, count: briefingAssetIds.length }
+          : undefined;
+
+        // O 201 significa que o orçamento já existe. Finalizamos o estado
+        // local antes de qualquer RPC opcional de anexos; assim, navegar
+        // durante essa pós-etapa nunca deixa carrinho/rascunho prontos para
+        // reenviar a mesma solicitação com uma nova chave idempotente.
+        const latestSelection = latestSelectionRef.current;
+        const selectionContextChanged = latestSelection.campaign !== submittedSelection.campaign
+          || latestSelection.selectionTitle !== submittedSelection.selectionTitle;
+        if (latestSelection === submittedSelection) cart.reset();
+        else if (selectionContextChanged) cart.replaceItems(latestSelection.items);
+        else cart.replaceItems(remainingItemsAfterSubmission(submittedSelection.items, latestSelection.items));
+        clearQuoteDraft();
+        clearQuoteRepeat();
+        setContact(EMPTY_QUOTE_CONTACT);
+        setBriefing(EMPTY_QUOTE_BRIEFING);
+        setSuccess({ mode: 'endpoint', requestId: result.requestId, confirmations: result.confirmations, assets: pendingAssets });
+        requestAttemptRef.current = null;
+        clearSubmissionAttempt('promo-brindes:quote-attempt');
+
         if (result.requestId && briefingAssetIds.length && auth.user) {
           try {
             await auth.claimHistory();
             if (operationIsStale()) return;
             const count = await attachMyBriefingAssetsToQuote(result.requestId, briefingAssetIds);
             if (operationIsStale()) return;
-            assets = { status: 'attached', count };
+            setSuccess((current) => current?.mode === 'endpoint'
+              ? { ...current, assets: { status: 'attached', count } }
+              : current);
           } catch {
             if (operationIsStale()) return;
             // O orçamento já foi persistido. Uma falha de vínculo de arquivo não
             // pode transformar sucesso em retry e criar uma tentativa duplicada.
-            assets = { status: 'pending', count: briefingAssetIds.length };
+            setSuccess((current) => current?.mode === 'endpoint'
+              ? { ...current, assets: { status: 'pending', count: briefingAssetIds.length } }
+              : current);
           }
         }
-        if (operationIsStale()) return;
-        requestAttemptRef.current = null;
-        clearSubmissionAttempt('promo-brindes:quote-attempt');
-        setSuccess({ mode: 'endpoint', requestId: result.requestId, confirmations: result.confirmations, assets });
-        const latestSelection = latestSelectionRef.current;
-        if (latestSelection === submittedSelection) cart.reset();
-        else cart.replaceItems(remainingItemsAfterSubmission(submittedSelection.items, latestSelection.items));
-        clearQuoteDraft();
-        clearQuoteRepeat();
-        setContact(EMPTY_QUOTE_CONTACT);
-        setBriefing(EMPTY_QUOTE_BRIEFING);
       } else {
         setSuccess({ mode: 'email', href: result.href });
         window.location.href = result.href;

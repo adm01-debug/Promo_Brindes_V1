@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import type { Session } from '@supabase/supabase-js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CustomerAuthProvider } from './CustomerAuthContext';
 import { useCustomerAuth } from './customerAuth';
@@ -9,7 +10,7 @@ const mocks = vi.hoisted(() => ({
   reportClientError: vi.fn(),
 }));
 
-let emitAuthState: ((event: string, session: null) => void) | undefined;
+let emitAuthState: ((event: string, session: Session | null) => void) | undefined;
 
 vi.mock('../lib/siteSupabaseConfig', () => ({ hasSiteAuthConfiguration: () => true }));
 vi.mock('../lib/clientObservability', () => ({ reportClientError: mocks.reportClientError }));
@@ -25,14 +26,18 @@ vi.mock('../lib/siteSupabase', () => ({
 
 function Probe() {
   const auth = useCustomerAuth();
-  return <><span>{auth.loading ? 'loading' : auth.initializationFailed ? 'failed' : 'ready'}</span><button type="button" onClick={auth.retryInitialization}>retry</button></>;
+  return <><span>{auth.loading ? 'loading' : auth.initializationFailed ? 'failed' : 'ready'}</span><span>{auth.user?.id || 'anonymous'}</span><button type="button" onClick={auth.retryInitialization}>retry</button></>;
+}
+
+function sessionFor(id: string): Session {
+  return { user: { id } } as Session;
 }
 
 describe('inicialização da autenticação do cliente', () => {
   beforeEach(() => {
     mocks.getSession.mockReset();
     emitAuthState = undefined;
-    mocks.onAuthStateChange.mockReset().mockImplementation((listener: (event: string, session: null) => void) => {
+    mocks.onAuthStateChange.mockReset().mockImplementation((listener: (event: string, session: Session | null) => void) => {
       emitAuthState = listener;
       return { data: { subscription: { unsubscribe: vi.fn() } } };
     });
@@ -72,5 +77,20 @@ describe('inicialização da autenticação do cliente', () => {
 
     act(() => emitAuthState?.('INITIAL_SESSION', null));
     expect(screen.getByText('failed')).toBeVisible();
+  });
+
+  it('não deixa getSession atrasado sobrescrever um evento de autenticação mais novo', async () => {
+    let resolveSession!: (value: { data: { session: Session }; error: null }) => void;
+    mocks.getSession.mockReturnValue(new Promise((resolve) => { resolveSession = resolve; }));
+
+    render(<CustomerAuthProvider><Probe /></CustomerAuthProvider>);
+    await waitFor(() => expect(emitAuthState).toBeTypeOf('function'));
+
+    act(() => emitAuthState?.('SIGNED_IN', sessionFor('sessao-mais-nova')));
+    expect(await screen.findByText('sessao-mais-nova')).toBeVisible();
+
+    await act(async () => resolveSession({ data: { session: sessionFor('sessao-antiga') }, error: null }));
+    expect(screen.getByText('sessao-mais-nova')).toBeVisible();
+    expect(screen.queryByText('sessao-antiga')).not.toBeInTheDocument();
   });
 });

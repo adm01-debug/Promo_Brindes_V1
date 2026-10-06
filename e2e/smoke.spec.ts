@@ -514,6 +514,11 @@ test('mostra produto sem estoque confiável e leva o cliente ao briefing sem che
   await expect(briefingQuantity).toHaveValue('260');
   await expect(page.getByText('Não há pagamento nem compromisso nesta etapa.')).toBeVisible();
   await waitForRoute(page);
+  // A interação com o stepper pode deixá-lo exatamente sob o header fixo no
+  // viewport móvel. Normalizamos a posição antes da varredura da página para
+  // que o axe meça os alvos, não um frame transitório parcialmente encoberto.
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'auto' }));
+  await expect(page.getByRole('heading', { name: 'Transforme sua seleção em briefing.' })).toBeInViewport();
   const briefingA11y = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
   expect(briefingA11y.violations, 'Violações no briefing preenchível').toEqual([]);
 });
@@ -578,6 +583,81 @@ test('edição feita no drawer durante o envio permanece para a próxima solicit
 
   await expect(page.getByRole('heading', { name: 'Sua solicitação chegou.' })).toBeVisible();
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('promo-brindes:quote-selection:v1') || '{"items":[]}').items[0]?.quantity)).toBe(250);
+});
+
+test('nome de campanha alterado durante o envio preserva os produtos para a próxima solicitação', async ({ page }) => {
+  await seedQuoteSelection(page);
+  const releaseSubmission = await holdQuoteSubmission(page, 'quote-com-nova-campanha');
+
+  await page.goto('/orcamento');
+  await fillRequiredQuoteContact(page);
+  await page.getByRole('button', { name: 'Enviar briefing' }).click();
+  await page.getByRole('button', { name: /Abrir seleção/ }).click();
+  await page.getByLabel(/Nome da campanha/).fill('Campanha criada durante o envio');
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('promo-brindes:quote-selection:v1') || '{}').selectionTitle)).toBe('Campanha criada durante o envio');
+
+  releaseSubmission();
+
+  await expect(page.getByRole('heading', { name: 'Sua solicitação chegou.' })).toBeVisible();
+  const savedSelection = await page.evaluate(() => JSON.parse(localStorage.getItem('promo-brindes:quote-selection:v1') || '{"items":[]}'));
+  expect(savedSelection.selectionTitle).toBe('Campanha criada durante o envio');
+  expect(savedSelection.items).toHaveLength(1);
+});
+
+test('resposta persistida finaliza o briefing antes do vínculo opcional de arquivos', async ({ page }) => {
+  const user = customerAuthUser({ id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', email: 'arquivos@empresa.com' });
+  const asset = {
+    id: '11111111-aaaa-4aaa-8aaa-111111111111', path: `${user.id}/marca.png`, name: 'marca.png', kind: 'logo',
+    mimeType: 'image/png', sizeBytes: 1024, quoteRequestId: null, verifiedAt: '2026-09-22T12:00:00Z',
+    createdAt: '2026-09-22T12:00:00Z', expiresAt: '2026-10-22T12:00:00Z',
+  };
+  await page.addInitScript(({ session, product: selectedProduct }) => {
+    localStorage.setItem('promo-brindes-customer-session', JSON.stringify(session));
+    localStorage.setItem('promo-brindes:quote-selection:v1', JSON.stringify({ items: [{
+      key: `${selectedProduct.id}::sem-cor`, productId: selectedProduct.id, slug: selectedProduct.slug, name: selectedProduct.name,
+      sku: selectedProduct.sku, imageUrl: selectedProduct.primary_image_url, quantity: 100, minQuantity: 50,
+    }] }));
+  }, { session: synthenticCustomerSession(user), product });
+
+  let submissions = 0;
+  let releaseClaim!: () => void;
+  let markClaimRequested!: () => void;
+  const claimRequested = new Promise<void>((resolve) => { markClaimRequested = resolve; });
+  const claimReleased = new Promise<void>((resolve) => { releaseClaim = resolve; });
+  await page.route('**/auth/v1/user', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify(user) }));
+  await page.route('**/rest/v1/rpc/list_my_briefing_assets', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify([asset]) }));
+  await page.route('**/rest/v1/rpc/claim_my_quote_requests', async (route) => {
+    markClaimRequested();
+    await claimReleased;
+    await route.fulfill({ contentType: 'application/json', body: '{"claimed":1}' }).catch(() => undefined);
+  });
+  await page.route('**/rest/v1/rpc/attach_my_briefing_assets_to_quote', (route) => route.fulfill({ contentType: 'application/json', body: '1' }));
+  await page.route('**/api/quote-requests', (route) => {
+    submissions += 1;
+    return route.fulfill({ status: 201, contentType: 'application/json', body: '{"requestId":"quote-com-arquivo","duplicate":false,"confirmations":{"email":"pending","whatsapp":"not_requested"}}' });
+  });
+
+  await page.goto('/orcamento');
+  await page.locator('#name').fill('Pessoa de teste');
+  await page.locator('#company').fill('Empresa de teste');
+  await page.locator('#email').fill(user.email);
+  await page.locator('#phone').fill('11999999999');
+  await page.getByRole('checkbox', { name: /Li o aviso de privacidade/ }).check();
+  await page.getByRole('checkbox', { name: new RegExp(asset.name) }).check();
+  await page.getByRole('button', { name: 'Enviar briefing' }).click();
+
+  await claimRequested;
+  await expect(page.getByRole('heading', { name: 'Sua solicitação chegou.' })).toBeVisible();
+  await expect(page.getByText('Orçamento recebido; vínculo dos arquivos pendente')).toBeVisible();
+  await expect.poll(() => page.evaluate(() => sessionStorage.getItem('promo-brindes:quote-attempt'))).toBeNull();
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('promo-brindes:quote-selection:v1') || '{"items":[]}').items.length)).toBe(0);
+  await expect.poll(() => page.evaluate(() => sessionStorage.getItem('promo-brindes:quote-draft:v1'))).toBeNull();
+
+  await page.getByRole('link', { name: 'Voltar ao catálogo' }).click();
+  releaseClaim();
+  await expect(page).toHaveURL(/\/catalogo$/);
+  expect(submissions).toBe(1);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('promo-brindes:quote-selection:v1') || '{"items":[]}').items)).toHaveLength(0);
 });
 
 // R08: dados pessoais e consentimento não podem sobreviver a uma troca de
