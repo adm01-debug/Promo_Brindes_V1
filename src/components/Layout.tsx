@@ -54,11 +54,22 @@ export function Layout({ children }: { children: ReactNode }) {
   useEffect(() => {
     setMenuOpen(false);
     setSearch(catalogParams.get('q') || '');
+    let resultsFrame = 0;
+    if (location.pathname === '/catalogo' && catalogParams.get('perfil')) {
+      // A navegação por perfil pode acontecer dentro da própria rota do
+      // catálogo. Nesse caso o navegador preserva a posição anterior (até o
+      // rodapé no menu móvel), então reposicionamos explicitamente o começo
+      // dos resultados depois que a nova query foi renderizada.
+      resultsFrame = window.requestAnimationFrame(() => {
+        document.getElementById('catalog-results-title')?.scrollIntoView({ block: 'start', behavior: 'auto' });
+      });
+    }
     // catalogParams é recomputado a cada render (new URLSearchParams nunca é
     // referencialmente estável); location.search é a string da qual ele deriva
     // por completo, e já está na lista. Incluir catalogParams faria este efeito
     // rodar a cada render do Layout, fechando o menu e resetando a busca sem
     // relação com navegação real.
+    return () => window.cancelAnimationFrame(resultsFrame);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname, location.search]);
 
