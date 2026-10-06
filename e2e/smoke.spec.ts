@@ -252,6 +252,16 @@ test('manifesto transforma as frases da marca em uma narrativa com próximo pass
   await expect(page.locator('#conversa')).toBeInViewport();
 });
 
+test('assinatura Gift Lovers não cria rolagem horizontal em tela estreita ou zoom', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.goto('/');
+  const signature = page.locator('.brand-manifesto__signature .gift-lovers');
+  await signature.scrollIntoViewIfNeeded();
+  await expect(signature).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  expect(await signature.evaluate((element) => element.getBoundingClientRect().right <= document.documentElement.clientWidth)).toBe(true);
+});
+
 test('biblioteca de catálogos transforma contexto em coleções compartilháveis', async ({ page }, testInfo) => {
   await enableClipboardForTest(page, testInfo.project.name);
   await page.goto('/catalogos');
@@ -1305,13 +1315,55 @@ test('perfil de novidades apresenta Tendências em toda a interface', async ({ p
 test('navegação de catálogo por query fecha menu e reposiciona resultados', async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.includes('mobile'), 'Cenário dedicado ao viewport móvel.');
   await page.goto('/catalogo');
-  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await page.evaluate(() => {
+    const spacer = document.createElement('div');
+    spacer.id = 'catalog-filter-scroll-fixture';
+    spacer.style.height = '3000px';
+    document.body.append(spacer);
+    window.scrollTo(0, document.body.scrollHeight);
+  });
   await page.getByRole('button', { name: 'Abrir menu' }).click();
   await page.getByRole('navigation', { name: 'Navegação móvel' }).getByRole('link', { name: 'Tendências' }).click();
   await expect(page).toHaveURL(/perfil=novos/);
   await expect(page.getByRole('navigation', { name: 'Navegação móvel' })).toBeHidden();
   await expect(page.locator('#catalog-results-title')).toBeInViewport();
   await expect(page.locator('#catalog-results-title')).toHaveText('Tendências');
+
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  const positionBeforeFilter = await page.evaluate(() => window.scrollY);
+  await page.evaluate(() => {
+    const profileLink = document.querySelector<HTMLAnchorElement>('.desktop-nav a[href="/catalogo?perfil=novos"]');
+    if (!profileLink) throw new Error('Link Tendências ausente');
+    profileLink.addEventListener('click', (event) => event.preventDefault(), { once: true });
+    profileLink.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0, ctrlKey: true }));
+    profileLink.addEventListener('click', (event) => event.preventDefault(), { once: true });
+    profileLink.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }));
+  });
+  await page.evaluate(() => {
+    const trigger = document.querySelector<HTMLButtonElement>('.mobile-filter-trigger');
+    if (!trigger) throw new Error('Gatilho de filtros ausente');
+    trigger.click();
+  });
+  const filterDialog = page.getByRole('dialog', { name: 'Afine seu radar' });
+  await expect(filterDialog).toBeVisible();
+  await filterDialog.getByRole('checkbox', { name: /Personalizável/ }).click();
+  await expect(page).toHaveURL(/personalizavel=1/);
+  await page.evaluate(() => new Promise<void>((resolve) => {
+    let previous = window.scrollY;
+    let stableFrames = 0;
+    let totalFrames = 0;
+    const sample = () => {
+      const current = window.scrollY;
+      stableFrames = Math.abs(current - previous) < 1 ? stableFrames + 1 : 0;
+      previous = current;
+      totalFrames += 1;
+      if (stableFrames >= 8 || totalFrames >= 120) resolve();
+      else window.requestAnimationFrame(sample);
+    };
+    window.requestAnimationFrame(sample);
+  }));
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThanOrEqual(positionBeforeFilter - 1);
+  await expect(page.locator('#catalog-results-title')).not.toBeInViewport();
 });
 
 test('voltar ao catálogo restaura a leitura mesmo após conteúdo assíncrono', async ({ page }) => {
