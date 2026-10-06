@@ -26,7 +26,10 @@ export function ProductDescription({ text, summary = '' }: { text: string; summa
   const normalizedSummary = summary.replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\s+/g, ' ').trim();
   const hasDistinctSummary = Boolean(normalizedSummary && normalizedSummary !== plainText);
   const needsDisclosure = hasDistinctSummary || plainText.length > 360 || blocks.length > 3;
-  const excerpt = normalizedSummary || (plainText.length > 220 ? `${plainText.slice(0, 220).replace(/\s+\S*$/, '')}…` : plainText);
+  const excerptSource = normalizedSummary || plainText;
+  const excerpt = excerptSource.length > 220
+    ? `${excerptSource.slice(0, 220).replace(/\s+\S*$/, '')}…`
+    : excerptSource;
 
   return (
     <div className="product-description">

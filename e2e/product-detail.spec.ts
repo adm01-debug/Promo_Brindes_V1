@@ -120,6 +120,13 @@ test('ficha sem dados não inventa medidas, cores ou embalagem e mantém orçame
   await expect(page.getByText('Quantidade mínima a confirmar com nosso time de especialistas')).toBeVisible();
 });
 
+test('kit novo preserva as duas informações em um único badge', async ({ page }) => {
+  await mockProduct(page, { is_kit: true, is_new: true });
+  await page.goto(`/produto/${product.slug}`);
+  await expect(page.locator('.product-heading__meta .badge')).toHaveCount(1);
+  await expect(page.locator('.product-heading__meta .badge')).toHaveText('Kit novo');
+});
+
 test('conteúdo extenso não causa sobreposição nem rolagem horizontal em larguras críticas', async ({ page }) => {
   await mockProduct(page, {
     name: 'Amplificador premium com acabamento especial para campanhas corporativas e ações de relacionamento',

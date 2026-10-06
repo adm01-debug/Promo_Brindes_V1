@@ -19,6 +19,15 @@ describe('descrição compacta e segura do produto', () => {
     expect(screen.getByText('Descrição integral com todos os detalhes técnicos e editoriais.')).toBeVisible();
   });
 
+  it('limita um resumo longo antes de revelar a descrição integral', () => {
+    const longSummary = 'Resumo editorial muito detalhado. '.repeat(20);
+    const view = render(<ProductDescription summary={longSummary} text={longSummary} />);
+    expect(view.container.textContent).not.toContain(longSummary.trim());
+    expect(view.container).toHaveTextContent('…');
+    fireEvent.click(screen.getByRole('button', { name: 'Ver descrição completa' }));
+    expect(view.container).toHaveTextContent(longSummary.trim());
+  });
+
   it('formata negrito e converte os marcadores do catálogo em lista sem renderizar HTML', () => {
     const view = render(<ProductDescription text={'**Design sustentável**. ✅ **Madeira** certificada. ✅ Sem baterias.'} />);
     expect(view.container.querySelector('strong')).toHaveTextContent('Design sustentável');
