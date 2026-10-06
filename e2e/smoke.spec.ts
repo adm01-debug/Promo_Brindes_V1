@@ -870,7 +870,13 @@ test('evento passado recebe erro no campo e não chama a API', async ({ page }) 
   await page.locator('#email').fill('pessoa@example.invalid');
   await page.locator('#phone').fill('11999999999');
   await page.locator('#eventDate').fill('2020-01-01');
-  await page.getByRole('checkbox', { name: /Li o aviso de privacidade/ }).check();
+  const privacyConsent = page.getByRole('checkbox', { name: /Li o aviso de privacidade/ });
+  // WebKit pode recalcular a posição após os campos longos acima. Primeiro
+  // aguarda a rolagem real até o controle e só então usa a interação normal;
+  // nunca usamos force aqui, para preservar a prova de acessibilidade.
+  await privacyConsent.scrollIntoViewIfNeeded();
+  await privacyConsent.check();
+  await expect(privacyConsent).toBeChecked();
   await page.getByRole('button', { name: 'Enviar briefing' }).click();
 
   await expect(page.locator('#event-date-error')).toContainText('a partir de hoje');
