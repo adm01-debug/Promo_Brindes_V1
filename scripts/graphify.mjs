@@ -2,6 +2,7 @@
 
 import crypto from 'node:crypto';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -398,8 +399,11 @@ function promoteCandidate(candidateDirectory, config) {
 function build() {
   const root = assertSafeRoot();
   const config = readProjectConfig(root);
-  const workDirectory = acquireLock(config);
-  const candidateRoot = fs.mkdtempSync(path.join(workDirectory, 'candidate-'));
+  acquireLock(config);
+  // O corpus temporário fica fora da árvore do repositório para que regras de
+  // ignore do próprio projeto não possam ocultar os arquivos explicitamente
+  // selecionados pelo wrapper.
+  const candidateRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'promo-brindes-graphify-'));
   try {
     console.log('Graphify: extração estrutural local (sem IA, rede ou Supabase).');
     const fingerprint = sourceFingerprint(root, config);
@@ -436,7 +440,7 @@ function build() {
       path.join(generatedDatabaseDirectory, 'graph.json'),
       { title: 'Promo Brindes V1 — migrations e pgTAP', updateCommand: 'npm run graph:update' },
     );
-    run(graphifyCommand(), ['tree', '--graph', path.join(generatedDatabaseDirectory, 'graph.json'), '--output', path.join(generatedDatabaseDirectory, 'GRAPH_TREE.html'), '--root', 'site-supabase/supabase', '--label', 'Promo Brindes V1 — banco']);
+    run(graphifyCommand(), ['tree', '--graph', path.join(generatedDatabaseDirectory, 'graph.json'), '--output', path.join(generatedDatabaseDirectory, 'GRAPH_TREE.html'), '--root', '.', '--label', 'Promo Brindes V1 — banco']);
 
     removeUnsafeCandidateArtifacts(generatedDatabaseDirectory);
     const databaseDirectory = path.join(candidateDirectory, 'database');
@@ -726,7 +730,7 @@ function tree({ database = false } = {}) {
   const config = readProjectConfig();
   const graphPath = database ? ensureDatabaseGraphExists(config) : ensureGraphExists(config);
   const output = database ? path.join(graphDirectory(config), 'database', 'GRAPH_TREE.html') : path.join(graphDirectory(config), 'GRAPH_TREE.html');
-  run(graphifyCommand(), ['tree', '--graph', graphPath, '--output', output, '--root', database ? 'site-supabase/supabase' : '.', '--label', database ? 'Promo Brindes V1 — banco' : 'Promo Brindes V1']);
+  run(graphifyCommand(), ['tree', '--graph', graphPath, '--output', output, '--root', '.', '--label', database ? 'Promo Brindes V1 — banco' : 'Promo Brindes V1']);
 }
 
 function doctor() {

@@ -178,12 +178,15 @@ test('relatório usa baixa conectividade e exclui configuração da métrica', (
         { id: 'file', label: 'feature.ts', source_file: 'src/feature.ts', community: 1 },
         { id: 'type', label: 'FeatureOptions', source_file: 'src/feature.ts', community: 1 },
         { id: 'helper', label: 'unusedHelper()', source_file: 'src/feature.ts', community: 1 },
+        { id: 'consumer', label: 'useFeature()', source_file: 'src/consumer.ts', community: 1 },
         { id: 'package', label: 'react', source_file: 'package.json', community: 2 },
         { id: 'concept', label: 'external-package', community: 3 },
       ],
       links: [
         { source: 'file', target: 'type', relation: 'contains' },
         { source: 'file', target: 'helper', relation: 'contains' },
+        { source: 'file', target: 'consumer', relation: 'contains' },
+        { source: 'type', target: 'consumer', relation: 'type_reference' },
         { source: 'package', target: 'file', relation: 'imports' },
       ],
     };
@@ -192,11 +195,11 @@ test('relatório usa baixa conectividade e exclui configuração da métrica', (
     fs.writeFileSync(graphPath, JSON.stringify(graph));
     fs.writeFileSync(reportPath, '# Graph Report - candidate-123 (2026-10-05)\n\n## Graph Freshness\n- Run `graphify update .` after code changes (no API cost).\n\n## Knowledge Gaps\n- **2 isolated node(s):** noise\n\n## Suggested Questions\n');
     const metrics = projectGapMetrics(graph);
-    assert.deepEqual(metrics.lowConnectivityNodes.map((node) => node.id).sort(), ['helper', 'type']);
+    assert.deepEqual(metrics.lowConnectivityNodes.map((node) => node.id).sort(), ['consumer', 'helper', 'type']);
     const normalized = normalizeGraphReport(reportPath, graphPath, { title: 'Promo Brindes', updateCommand: 'npm run graph:update' });
     const report = fs.readFileSync(reportPath, 'utf8');
     assert.match(report, /^# Relatório Graphify — Promo Brindes/m);
-    assert.match(report, /2 nós de baixa conectividade/);
+    assert.match(report, /3 nós de baixa conectividade/);
     assert.doesNotMatch(report, /isolated node/);
     assert.match(report, /npm run graph:update/);
     assert.equal(normalized.excludedConfigurationNodes, 1);

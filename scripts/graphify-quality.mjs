@@ -289,18 +289,18 @@ export function enrichTypeScriptReferences(graphPath, scanRoot, sourceFiles) {
 }
 
 export function projectGapMetrics(graph) {
-  const degrees = nodeDegree(graph);
-  const eligible = graph.nodes.filter((node) => {
-    const degree = degrees.get(node.id) ?? 0;
-    return degree <= 1
-      && !isFileNode(node)
-      && !isConceptNode(node)
-      && !isConfigurationOrDependency(node)
-      && node.file_type !== 'rationale';
+  const relevantNodes = graph.nodes.filter((node) => !isFileNode(node)
+    && !isConceptNode(node)
+    && !isConfigurationOrDependency(node)
+    && node.file_type !== 'rationale');
+  const relevantIds = new Set(relevantNodes.map((node) => node.id));
+  const degrees = nodeDegree({
+    nodes: relevantNodes,
+    links: graph.links.filter((link) => relevantIds.has(link.source) && relevantIds.has(link.target)),
   });
+  const eligible = relevantNodes.filter((node) => (degrees.get(node.id) ?? 0) <= 1);
   const communities = new Map();
-  for (const node of graph.nodes) {
-    if (isFileNode(node) || isConceptNode(node) || isConfigurationOrDependency(node)) continue;
+  for (const node of relevantNodes) {
     const id = String(node.community ?? 'unassigned');
     if (!communities.has(id)) communities.set(id, []);
     communities.get(id).push(node);
