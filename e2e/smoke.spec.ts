@@ -225,6 +225,16 @@ test('manifesto transforma as frases da marca em uma narrativa com próximo pass
   await expect(page.locator('#conversa')).toBeInViewport();
 });
 
+test('assinatura Gift Lovers não cria rolagem horizontal em tela estreita ou zoom', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.goto('/');
+  const signature = page.locator('.brand-manifesto__signature .gift-lovers');
+  await signature.scrollIntoViewIfNeeded();
+  await expect(signature).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  expect(await signature.evaluate((element) => element.getBoundingClientRect().right <= document.documentElement.clientWidth)).toBe(true);
+});
+
 test('biblioteca de catálogos transforma contexto em coleções compartilháveis', async ({ page }, testInfo) => {
   await enableClipboardForTest(page, testInfo.project.name);
   await page.goto('/catalogos');
