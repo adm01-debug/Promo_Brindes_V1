@@ -19,7 +19,7 @@ import type { QuoteBriefingForm, QuoteContact } from '../types';
 import { quoteDecisionGroupsEnabled } from '../lib/siteFeatureFlags';
 import { localDateInputValue } from '../lib/quoteCalendar';
 import { attachMyBriefingAssetsToQuote } from '../lib/briefingAssets';
-import { remainingItemsAfterSubmission } from '../lib/quoteSubmission';
+import { remainingItemsAfterSubmission, sameQuoteSelection, sameQuoteSelectionContext } from '../lib/quoteSubmission';
 
 function formatPhone(value: string): string {
   const digits = value.replace(/\D/g, '').slice(0, 11);
@@ -72,21 +72,25 @@ export default function QuotePage() {
   const currentIdentityRef = useRef(identityKey);
   currentIdentityRef.current = identityKey;
   const latestSelectionRef = useRef({ items: cart.items, campaign: cart.campaign, selectionTitle: cart.selectionTitle });
-  useEffect(() => {
-    latestSelectionRef.current = { items: cart.items, campaign: cart.campaign, selectionTitle: cart.selectionTitle };
-  }, [cart.campaign, cart.items, cart.selectionTitle]);
+  // A reconciliação depois do 201 ocorre dentro da mesma janela de commit que
+  // pode receber uma edição no drawer. Atualizar no render, como fazemos com
+  // currentIdentityRef, impede que uma resposta veja o snapshot anterior
+  // enquanto aguarda o useEffect passivo da seleção recém-editada.
+  latestSelectionRef.current = { items: cart.items, campaign: cart.campaign, selectionTitle: cart.selectionTitle };
   const totalUnits = useMemo(() => cart.items.reduce((sum, item) => sum + item.quantity, 0), [cart.items]);
   const campaignLabels = useMemo(() => campaignBriefLabels(cart.campaign), [cart.campaign]);
   const minimumDeadline = localDateInputValue();
 
   useEffect(() => () => {
     // A navegação não pode deixar uma solicitação antiga concluir em segundo
-    // plano e limpar o carrinho/rascunho já usado em outra rota.
+    // plano e limpar o carrinho/rascunho já usado em outra rota. A chave de
+    // idempotência permanece no sessionStorage: o servidor pode ter gravado
+    // o orçamento antes de o abort chegar à rede, e uma nova tentativa com o
+    // mesmo briefing precisa deduplicar essa persistência tardia.
     const controller = submitAbortControllerRef.current;
     if (!controller) return;
     controller.abort();
     requestAttemptRef.current = null;
-    clearSubmissionAttempt('promo-brindes:quote-attempt');
   }, []);
 
   useEffect(() => {
@@ -259,9 +263,8 @@ export default function QuotePage() {
         // durante essa pós-etapa nunca deixa carrinho/rascunho prontos para
         // reenviar a mesma solicitação com uma nova chave idempotente.
         const latestSelection = latestSelectionRef.current;
-        const selectionContextChanged = latestSelection.campaign !== submittedSelection.campaign
-          || latestSelection.selectionTitle !== submittedSelection.selectionTitle;
-        if (latestSelection === submittedSelection) cart.reset();
+        const selectionContextChanged = !sameQuoteSelectionContext(latestSelection, submittedSelection);
+        if (sameQuoteSelection(latestSelection, submittedSelection)) cart.reset();
         else if (selectionContextChanged) cart.replaceItems(latestSelection.items);
         else cart.replaceItems(remainingItemsAfterSubmission(submittedSelection.items, latestSelection.items));
         clearQuoteDraft();

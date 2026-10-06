@@ -13,6 +13,7 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
   const [initializationAttempt, setInitializationAttempt] = useState(0);
   const [identityEpoch, setIdentityEpoch] = useState(0);
   const sessionUserId = useRef<string | null>(null);
+  const hasResolvedInitialSession = useRef(false);
 
   useEffect(() => {
     if (!configured) {
@@ -29,11 +30,16 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
     };
     const acceptSession = (nextSession: Session | null) => {
       const nextUserId = nextSession?.user.id || null;
-      if (sessionUserId.current && sessionUserId.current !== nextUserId) {
+      // A primeira sessão aceita pode ser uma sessão persistida da própria
+      // pessoa e não deve apagar seu rascunho. Depois dela, toda mudança de
+      // fronteira de identidade — inclusive anônimo -> autenticado — limpa
+      // dados pessoais antes que outro titular possa vê-los.
+      if (hasResolvedInitialSession.current && sessionUserId.current !== nextUserId) {
         void import('../lib/personalDataReset').then(({ clearPersonalQuoteStorage }) => clearPersonalQuoteStorage());
         setIdentityEpoch((epoch) => epoch + 1);
       }
       sessionUserId.current = nextUserId;
+      hasResolvedInitialSession.current = true;
       setUser(nextSession?.user ?? null);
       setInitializationState(1);
     };

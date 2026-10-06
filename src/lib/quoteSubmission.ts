@@ -1,7 +1,32 @@
-import type { QuoteItem } from '../types';
+import type { CampaignBrief, QuoteItem } from '../types';
+
+export interface QuoteSelectionSnapshot {
+  items: QuoteItem[];
+  campaign?: CampaignBrief;
+  selectionTitle?: string;
+}
 
 function sameItem(left: QuoteItem, right: QuoteItem): boolean {
   return JSON.stringify(left) === JSON.stringify(right);
+}
+
+export function sameQuoteSelectionContext(left: QuoteSelectionSnapshot, right: QuoteSelectionSnapshot): boolean {
+  return left.selectionTitle === right.selectionTitle
+    && JSON.stringify(left.campaign) === JSON.stringify(right.campaign);
+}
+
+/**
+ * A referência do estado React muda em renders que não editaram a seleção
+ * (por exemplo, ao alternar o estado de envio). A reconciliação pós-201
+ * precisa comparar o conteúdo, nunca a identidade do objeto.
+ */
+export function sameQuoteSelection(left: QuoteSelectionSnapshot, right: QuoteSelectionSnapshot): boolean {
+  return sameQuoteSelectionContext(left, right)
+    && left.items.length === right.items.length
+    && left.items.every((item, index) => {
+      const comparable = right.items[index];
+      return comparable !== undefined && sameItem(item, comparable);
+    });
 }
 
 /**

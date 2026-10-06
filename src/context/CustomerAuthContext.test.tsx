@@ -35,6 +35,7 @@ function sessionFor(id: string): Session {
 
 describe('inicialização da autenticação do cliente', () => {
   beforeEach(() => {
+    sessionStorage.clear();
     mocks.getSession.mockReset();
     emitAuthState = undefined;
     mocks.onAuthStateChange.mockReset().mockImplementation((listener: (event: string, session: Session | null) => void) => {
@@ -92,5 +93,23 @@ describe('inicialização da autenticação do cliente', () => {
     await act(async () => resolveSession({ data: { session: sessionFor('sessao-antiga') }, error: null }));
     expect(screen.getByText('sessao-mais-nova')).toBeVisible();
     expect(screen.queryByText('sessao-antiga')).not.toBeInTheDocument();
+  });
+
+  it('limpa dados pessoais de visitante anônimo antes de aceitar um login posterior', async () => {
+    sessionStorage.setItem('promo-brindes:quote-draft:v1', JSON.stringify({ contact: { email: 'visitante@exemplo.test' } }));
+    sessionStorage.setItem('promo-brindes:quote-attempt', JSON.stringify({ key: 'attempt-visitante' }));
+    sessionStorage.setItem('promo-brindes:quote-repeat:v1', JSON.stringify({ quoteId: 'repeat-visitante' }));
+    mocks.getSession.mockResolvedValue({ data: { session: null }, error: null });
+
+    render(<CustomerAuthProvider><Probe /></CustomerAuthProvider>);
+    expect(await screen.findByText('ready')).toBeVisible();
+
+    act(() => emitAuthState?.('SIGNED_IN', sessionFor('novo-titular')));
+    expect(await screen.findByText('novo-titular')).toBeVisible();
+    await waitFor(() => {
+      expect(sessionStorage.getItem('promo-brindes:quote-draft:v1')).toBeNull();
+      expect(sessionStorage.getItem('promo-brindes:quote-attempt')).toBeNull();
+      expect(sessionStorage.getItem('promo-brindes:quote-repeat:v1')).toBeNull();
+    });
   });
 });

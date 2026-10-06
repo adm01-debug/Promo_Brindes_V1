@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { QuoteItem } from '../types';
-import { remainingItemsAfterSubmission } from './quoteSubmission';
+import { remainingItemsAfterSubmission, sameQuoteSelection, sameQuoteSelectionContext } from './quoteSubmission';
 
 const item = (key: string, overrides: Partial<QuoteItem> = {}): QuoteItem => ({
   key,
@@ -15,6 +15,20 @@ const item = (key: string, overrides: Partial<QuoteItem> = {}): QuoteItem => ({
 });
 
 describe('reconciliação da seleção após o envio', () => {
+  it('considera inalterada uma seleção recriada por render sem edição', () => {
+    const submittedItem = item('a');
+    const submitted = { items: [submittedItem], campaign: { source: 'finder' as const, moment: 'evento' as const }, selectionTitle: 'Ação de verão' };
+    const recreated = { items: [{ ...submittedItem }], campaign: { ...submitted.campaign }, selectionTitle: 'Ação de verão' };
+    expect(sameQuoteSelection(submitted, recreated)).toBe(true);
+    expect(sameQuoteSelectionContext(submitted, recreated)).toBe(true);
+  });
+
+  it('distingue edição de produto ou contexto da seleção enviada', () => {
+    const submitted = { items: [item('a')], campaign: { source: 'finder' as const, moment: 'evento' as const }, selectionTitle: 'Ação de verão' };
+    expect(sameQuoteSelection(submitted, { ...submitted, items: [item('a', { quantity: 250 })] })).toBe(false);
+    expect(sameQuoteSelectionContext(submitted, { ...submitted, selectionTitle: 'Nova ação' })).toBe(false);
+  });
+
   it('remove somente os snapshots efetivamente enviados', () => {
     const submitted = [item('a')];
     expect(remainingItemsAfterSubmission(submitted, [item('a'), item('b')])).toEqual([item('b')]);

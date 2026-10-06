@@ -76,13 +76,13 @@ async function waitForRoute(page: Page) {
   await expect(page.locator('.route-fallback')).toHaveCount(0);
 }
 
-async function seedQuoteSelection(page: Page) {
-  await page.addInitScript(({ product: selectedProduct }) => {
+async function seedQuoteSelection(page: Page, context: Record<string, unknown> = {}) {
+  await page.addInitScript(({ product: selectedProduct, context: selectionContext }) => {
     localStorage.setItem('promo-brindes:quote-selection:v1', JSON.stringify({ items: [{
       key: `${selectedProduct.id}::sem-cor`, productId: selectedProduct.id, slug: selectedProduct.slug, name: selectedProduct.name,
       sku: selectedProduct.sku, imageUrl: selectedProduct.primary_image_url, quantity: 100, minQuantity: 50,
-    }] }));
-  }, { product });
+    }], ...selectionContext }));
+  }, { product, context });
 }
 
 async function fillRequiredQuoteContact(page: Page) {
@@ -524,17 +524,16 @@ test('mostra produto sem estoque confiável e leva o cliente ao briefing sem che
   await expect(briefingQuantity).toHaveValue('260');
   await expect(page.getByText('Não há pagamento nem compromisso nesta etapa.')).toBeVisible();
   await waitForRoute(page);
-  // A interação com o stepper pode deixá-lo exatamente sob o header fixo no
-  // viewport móvel. Normalizamos a posição antes da varredura da página para
-  // que o axe meça os alvos, não um frame transitório parcialmente encoberto.
-  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'auto' }));
   await expect(page.getByRole('heading', { name: 'Transforme sua seleção em briefing.' })).toBeInViewport();
   const briefingA11y = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
   expect(briefingA11y.violations, 'Violações no briefing preenchível').toEqual([]);
 });
 
 test('envio confirmado remove contato e consentimento do rascunho da aba', async ({ page }) => {
-  await seedQuoteSelection(page);
+  await seedQuoteSelection(page, {
+    selectionTitle: 'Ação de verão',
+    campaign: { source: 'finder', moment: 'evento' },
+  });
   let submissions = 0;
   let sentPayload: Record<string, unknown> | undefined;
   await page.route('**/api/quote-requests', (route) => {
@@ -549,6 +548,7 @@ test('envio confirmado remove contato e consentimento do rascunho da aba', async
 
   await expect(page.getByRole('heading', { name: 'Sua solicitação chegou.' })).toBeVisible();
   await expect.poll(() => page.evaluate(() => sessionStorage.getItem('promo-brindes:quote-draft:v1'))).toBeNull();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('promo-brindes:quote-selection:v1'))).toBeNull();
   await expect(page.getByText('Confirmação por e-mail registrada para envio.')).toBeVisible();
   await expect(page.getByText('Confirmação pelo WhatsApp autorizada e registrada para envio.')).toBeVisible();
   expect(submissions).toBe(1);
@@ -567,13 +567,60 @@ test('envio lento congela o briefing e sair da rota preserva a seleção', async
   await expect(page.locator('input[id^="quantity-"]').first()).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Limpar seleção' })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Apagar rascunho' })).toBeDisabled();
+  // O fieldset de bloqueio não pode apagar a moldura e o respiro do card da
+  // seleção enquanto o envio está pendente.
+  const selectionCard = page.locator('.quote-items');
+  await expect(selectionCard).toHaveCSS('border-top-style', 'solid');
+  await expect.poll(() => selectionCard.evaluate((element) => Number.parseFloat(getComputedStyle(element).paddingLeft))).toBeGreaterThan(0);
+  await expect.poll(() => page.evaluate(() => sessionStorage.getItem('promo-brindes:quote-attempt'))).not.toBeNull();
+  const pendingAttempt = await page.evaluate(() => sessionStorage.getItem('promo-brindes:quote-attempt'));
   await page.getByRole('link', { name: 'Continuar escolhendo' }).click();
   await expect(page).toHaveURL(/\/catalogo$/);
-  await expect.poll(() => page.evaluate(() => sessionStorage.getItem('promo-brindes:quote-attempt'))).toBeNull();
+  await expect.poll(() => page.evaluate(() => sessionStorage.getItem('promo-brindes:quote-attempt'))).toBe(pendingAttempt);
 
   releaseSubmission();
   await page.waitForTimeout(200);
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('promo-brindes:quote-selection:v1') || '{"items":[]}').items.length)).toBe(1);
+});
+
+test('retorno após saída durante envio reutiliza a chave idempotente', async ({ page }) => {
+  await seedQuoteSelection(page);
+  const idempotencyKeys: string[] = [];
+  let releaseFirstRequest: () => void = () => {};
+  const firstRequestBlocked = new Promise<void>((resolve) => { releaseFirstRequest = resolve; });
+  let firstRequestSeen: () => void = () => {};
+  const firstRequestReceived = new Promise<void>((resolve) => { firstRequestSeen = resolve; });
+
+  await page.route('**/api/quote-requests', async (route) => {
+    idempotencyKeys.push((await route.request().headerValue('idempotency-key')) || '');
+    if (idempotencyKeys.length === 1) {
+      firstRequestSeen();
+      await firstRequestBlocked;
+      // A navegação já abortou este fetch; cumprir a rota depois é apenas
+      // necessário para liberar o interceptor do teste.
+      await route.fulfill({ status: 201, contentType: 'application/json', body: '{"requestId":"quote-primeira","duplicate":false,"confirmations":{"email":"pending","whatsapp":"not_requested"}}' }).catch(() => {});
+      return;
+    }
+    await route.fulfill({ status: 201, contentType: 'application/json', body: '{"requestId":"quote-deduplicada","duplicate":true,"confirmations":{"email":"pending","whatsapp":"not_requested"}}' });
+  });
+
+  await page.goto('/orcamento');
+  await fillRequiredQuoteContact(page);
+  await page.getByRole('button', { name: 'Enviar briefing' }).click();
+  await firstRequestReceived;
+  await expect.poll(() => page.evaluate(() => sessionStorage.getItem('promo-brindes:quote-attempt'))).not.toBeNull();
+
+  await page.getByRole('link', { name: 'Continuar escolhendo' }).click();
+  await expect(page).toHaveURL(/\/catalogo$/);
+  await page.goto('/orcamento');
+  await expect(page.locator('#email')).toHaveValue('pessoa@example.invalid');
+  await page.getByRole('button', { name: 'Enviar briefing' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Sua solicitação chegou.' })).toBeVisible();
+  expect(idempotencyKeys).toHaveLength(2);
+  expect(idempotencyKeys[0]).toMatch(/^[A-Za-z0-9][A-Za-z0-9:._-]{7,99}$/);
+  expect(idempotencyKeys[1]).toBe(idempotencyKeys[0]);
+  releaseFirstRequest();
 });
 
 test('edição feita no drawer durante o envio permanece para a próxima solicitação', async ({ page }) => {
