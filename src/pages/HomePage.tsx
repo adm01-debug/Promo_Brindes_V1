@@ -27,6 +27,7 @@ import { ConversationForm } from '../components/ConversationForm';
 import { CampaignFinder } from '../components/CampaignFinder';
 import { FoldText } from '../components/FoldText';
 import { GlitchText } from '../components/GlitchText';
+import { GiftLoversSignature } from '../components/GiftLoversSignature';
 import { ProductCard } from '../components/ProductCard';
 import { SearchAutocomplete } from '../components/SearchAutocomplete';
 import { Seo } from '../components/Seo';
@@ -289,6 +290,9 @@ export default function HomePage() {
               <a className="button button--light button--large" href="#conversa">Criar algo memorável <ArrowRight size={18} /></a>
             </article>
           </div>
+        </div>
+        <div className="container brand-manifesto__signature">
+          <GiftLoversSignature />
         </div>
       </section>
 
