@@ -28,7 +28,7 @@ function nodeDegree(graph) {
   return degrees;
 }
 
-function isFileNode(node, degree = Number.POSITIVE_INFINITY) {
+function isFileNode(node) {
   const label = String(node?.label || '');
   const source = normalizedPath(node?.source_file);
   if (!label) return false;
@@ -36,8 +36,7 @@ function isFileNode(node, degree = Number.POSITIVE_INFINITY) {
     const basename = source.split('/').at(-1);
     if (label === basename || (label.includes('/') && (source === label || source.endsWith(`/${label}`)))) return true;
   }
-  if (label.startsWith('.') && label.endsWith('()')) return true;
-  return label.endsWith('()') && degree <= 1;
+  return false;
 }
 
 function isConceptNode(node) {
@@ -118,8 +117,12 @@ function resolveModuleSource(currentFile, specifier, sourceFiles) {
   if (specifier.startsWith('@/')) base = `src/${specifier.slice(2)}`;
   else if (specifier.startsWith('.')) base = path.posix.normalize(path.posix.join(path.posix.dirname(currentFile), specifier));
   else return '';
+  const emittedJavaScriptStem = /\.(?:[cm]?js|jsx)$/u.test(base)
+    ? base.replace(/\.(?:[cm]?js|jsx)$/u, '')
+    : '';
   const candidates = [
     base,
+    ...(emittedJavaScriptStem ? ['.ts', '.tsx', '.mts', '.cts'].map((extension) => `${emittedJavaScriptStem}${extension}`) : []),
     ...['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs'].map((extension) => `${base}${extension}`),
     ...['.ts', '.tsx', '.js', '.jsx'].map((extension) => `${base}/index${extension}`),
   ];
@@ -211,8 +214,8 @@ export function enrichTypeScriptReferences(graphPath, scanRoot, sourceFiles) {
   const uniqueDeclarations = new Map();
   for (const [relative, entries] of declarations) {
     for (const [name, graphNode] of entries) {
-      const current = uniqueDeclarations.get(name);
-      uniqueDeclarations.set(name, current ? null : { relative, graphNode });
+      if (uniqueDeclarations.has(name)) uniqueDeclarations.set(name, null);
+      else uniqueDeclarations.set(name, { relative, graphNode });
     }
   }
 
@@ -290,14 +293,14 @@ export function projectGapMetrics(graph) {
   const eligible = graph.nodes.filter((node) => {
     const degree = degrees.get(node.id) ?? 0;
     return degree <= 1
-      && !isFileNode(node, degree)
+      && !isFileNode(node)
       && !isConceptNode(node)
       && !isConfigurationOrDependency(node)
       && node.file_type !== 'rationale';
   });
   const communities = new Map();
   for (const node of graph.nodes) {
-    if (isFileNode(node, degrees.get(node.id) ?? 0) || isConceptNode(node) || isConfigurationOrDependency(node)) continue;
+    if (isFileNode(node) || isConceptNode(node) || isConfigurationOrDependency(node)) continue;
     const id = String(node.community ?? 'unassigned');
     if (!communities.has(id)) communities.set(id, []);
     communities.get(id).push(node);
