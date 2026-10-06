@@ -29,6 +29,13 @@ const LOCK_PATH = path.join(PROJECT_ROOT, '.graphify-work', 'build.lock');
 const COMMAND = process.argv[2] ?? 'help';
 const COMMAND_ARGS = process.argv.slice(3);
 const CODE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.sql']);
+export const GRAPH_FINGERPRINT_CONFIG_FILES = Object.freeze([
+  '.graphify.project.json',
+  '.graphifyignore',
+  '.graphifyrc',
+  'package.json',
+  'package-lock.json',
+]);
 const SAFE_GRAPH_FILES = new Set([
   'graph.json',
   'graph.html',
@@ -169,12 +176,14 @@ function sourceFingerprint(root, config) {
   ])].sort(compareText);
   const { main: mainFiles, database: databaseFiles } = splitGraphSourceFiles(configuredFiles);
   const entries = [...mainFiles, ...databaseFiles].sort(compareText);
-  const configFiles = ['.graphify.project.json', '.graphifyignore', '.graphifyrc'];
   return {
     files: entries,
     mainFiles,
     databaseFiles,
-    hash: fingerprintEntries([...entries, ...configFiles], (relative) => fs.readFileSync(path.join(root, relative))),
+    // The TypeScript compiler is part of the graph extractor. Hashing both
+    // dependency manifests invalidates an artifact when its parser version or
+    // resolved dependency tree changes even if application sources do not.
+    hash: fingerprintEntries([...entries, ...GRAPH_FINGERPRINT_CONFIG_FILES], (relative) => fs.readFileSync(path.join(root, relative))),
   };
 }
 
@@ -381,18 +390,27 @@ function writeProjectMeta(candidateDirectory, config, health, fingerprint, { dat
   fs.writeFileSync(path.join(candidateDirectory, 'project-meta.json'), `${JSON.stringify(metadata, null, 2)}\n`);
 }
 
-function promoteCandidate(candidateDirectory, config) {
-  const outputDirectory = graphDirectory(config);
+export function promoteCandidate(candidateDirectory, outputDirectory) {
+  const outputParent = path.dirname(outputDirectory);
   const backupDirectory = `${outputDirectory}.previous`;
+  // The extracted corpus deliberately lives under the operating-system temp
+  // directory so repository ignore rules cannot prune it. Copy the validated
+  // result back beside the final destination before the atomic rename; a
+  // direct rename from TMPDIR can fail with EXDEV on bind mounts/CI runners.
+  const stagingRoot = fs.mkdtempSync(path.join(outputParent, '.graphify-promote-'));
+  const stagedDirectory = path.join(stagingRoot, path.basename(outputDirectory));
   fs.rmSync(backupDirectory, { recursive: true, force: true });
   const hadPrevious = fs.existsSync(outputDirectory);
   try {
+    fs.cpSync(candidateDirectory, stagedDirectory, { recursive: true, errorOnExist: true, force: false });
     if (hadPrevious) fs.renameSync(outputDirectory, backupDirectory);
-    fs.renameSync(candidateDirectory, outputDirectory);
+    fs.renameSync(stagedDirectory, outputDirectory);
     if (hadPrevious) fs.rmSync(backupDirectory, { recursive: true, force: true });
   } catch (error) {
     if (!fs.existsSync(outputDirectory) && fs.existsSync(backupDirectory)) fs.renameSync(backupDirectory, outputDirectory);
     throw error;
+  } finally {
+    fs.rmSync(stagingRoot, { recursive: true, force: true });
   }
 }
 
@@ -458,7 +476,7 @@ function build() {
     });
     const sensitive = findSensitiveArtifacts(candidateDirectory);
     if (sensitive.length > 0) throw new Error(`Promoção bloqueada: conteúdo sensível ou caminho pessoal detectado em ${sensitive.map((item) => `${item.file} (${item.kind})`).join(', ')}.`);
-    promoteCandidate(candidateDirectory, config);
+    promoteCandidate(candidateDirectory, graphDirectory(config));
     console.log(`Grafo principal promovido: ${health.nodes} nós, ${health.links} relações; ${typeReferences.typeReferenceEdgesAdded} referências TypeScript.`);
     console.log(`Grafo de banco promovido: ${databaseHealth.nodes} nós, ${databaseHealth.links} relações.`);
     console.log(`Abra ${path.join(config.outputDirectory, 'graph.html')} ou ${path.join(config.outputDirectory, 'GRAPH_TREE.html')} localmente.`);

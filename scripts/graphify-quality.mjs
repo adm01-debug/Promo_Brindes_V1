@@ -23,7 +23,10 @@ function nodeDegree(graph) {
   const degrees = new Map(graph.nodes.map((node) => [node.id, 0]));
   for (const link of graph.links) {
     degrees.set(link.source, (degrees.get(link.source) ?? 0) + 1);
-    degrees.set(link.target, (degrees.get(link.target) ?? 0) + 1);
+    // A self-loop is one incident relation, not two. Counting both endpoints
+    // would hide a declaration with exactly one relationship from the
+    // low-connectivity report.
+    if (link.target !== link.source) degrees.set(link.target, (degrees.get(link.target) ?? 0) + 1);
   }
   return degrees;
 }

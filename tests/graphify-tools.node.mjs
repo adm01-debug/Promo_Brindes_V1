@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import {
+  GRAPH_FINGERPRINT_CONFIG_FILES,
   compareGraphStructures,
   enrichTypeScriptReferences,
   evaluateGraphBenchmark,
@@ -12,6 +14,7 @@ import {
   normalizeGraphReport,
   normalizeQuery,
   projectGapMetrics,
+  promoteCandidate,
   resolveGraphNode,
   shortestGraphPath,
   splitGraphSourceFiles,
@@ -62,6 +65,28 @@ test('fingerprint muda ao mudar conteúdo e preserva ordem determinística', () 
   source.set('src/b.ts', 'export const b = 3;');
   assert.equal(first, same);
   assert.notEqual(first, fingerprintEntries(['src/a.ts', 'src/b.ts'], (entry) => source.get(entry)));
+  assert.ok(GRAPH_FINGERPRINT_CONFIG_FILES.includes('package.json'));
+  assert.ok(GRAPH_FINGERPRINT_CONFIG_FILES.includes('package-lock.json'));
+});
+
+test('promoção copia o candidato para staging no filesystem de destino', () => {
+  const candidateParent = fs.mkdtempSync(path.join(os.tmpdir(), 'graphify-candidate-'));
+  const destinationParent = makeTestDirectory('test-promote-');
+  const candidate = path.join(candidateParent, 'graphify-out');
+  const destination = path.join(destinationParent, 'graphify-out');
+  try {
+    fs.mkdirSync(candidate);
+    fs.writeFileSync(path.join(candidate, 'graph.json'), '{"nodes":[],"links":[]}\n');
+    fs.mkdirSync(destination);
+    fs.writeFileSync(path.join(destination, 'old.txt'), 'old');
+    promoteCandidate(candidate, destination);
+    assert.equal(fs.readFileSync(path.join(destination, 'graph.json'), 'utf8'), '{"nodes":[],"links":[]}\n');
+    assert.equal(fs.existsSync(path.join(destination, 'old.txt')), false);
+    assert.equal(fs.existsSync(`${destination}.previous`), false);
+  } finally {
+    fs.rmSync(candidateParent, { recursive: true, force: true });
+    fs.rmSync(destinationParent, { recursive: true, force: true });
+  }
 });
 
 test('validação do grafo rejeita endpoints ausentes e caminhos fora da raiz', () => {
@@ -179,6 +204,7 @@ test('relatório usa baixa conectividade e exclui configuração da métrica', (
         { id: 'type', label: 'FeatureOptions', source_file: 'src/feature.ts', community: 1 },
         { id: 'helper', label: 'unusedHelper()', source_file: 'src/feature.ts', community: 1 },
         { id: 'consumer', label: 'useFeature()', source_file: 'src/consumer.ts', community: 1 },
+        { id: 'recursive', label: 'recursive()', source_file: 'src/recursive.ts', community: 1 },
         { id: 'package', label: 'react', source_file: 'package.json', community: 2 },
         { id: 'concept', label: 'external-package', community: 3 },
       ],
@@ -187,6 +213,7 @@ test('relatório usa baixa conectividade e exclui configuração da métrica', (
         { source: 'file', target: 'helper', relation: 'contains' },
         { source: 'file', target: 'consumer', relation: 'contains' },
         { source: 'type', target: 'consumer', relation: 'type_reference' },
+        { source: 'recursive', target: 'recursive', relation: 'calls' },
         { source: 'package', target: 'file', relation: 'imports' },
       ],
     };
@@ -195,11 +222,11 @@ test('relatório usa baixa conectividade e exclui configuração da métrica', (
     fs.writeFileSync(graphPath, JSON.stringify(graph));
     fs.writeFileSync(reportPath, '# Graph Report - candidate-123 (2026-10-05)\n\n## Graph Freshness\n- Run `graphify update .` after code changes (no API cost).\n\n## Knowledge Gaps\n- **2 isolated node(s):** noise\n\n## Suggested Questions\n');
     const metrics = projectGapMetrics(graph);
-    assert.deepEqual(metrics.lowConnectivityNodes.map((node) => node.id).sort(), ['consumer', 'helper', 'type']);
+    assert.deepEqual(metrics.lowConnectivityNodes.map((node) => node.id).sort(), ['consumer', 'helper', 'recursive', 'type']);
     const normalized = normalizeGraphReport(reportPath, graphPath, { title: 'Promo Brindes', updateCommand: 'npm run graph:update' });
     const report = fs.readFileSync(reportPath, 'utf8');
     assert.match(report, /^# Relatório Graphify — Promo Brindes/m);
-    assert.match(report, /3 nós de baixa conectividade/);
+    assert.match(report, /4 nós de baixa conectividade/);
     assert.doesNotMatch(report, /isolated node/);
     assert.match(report, /npm run graph:update/);
     assert.equal(normalized.excludedConfigurationNodes, 1);
