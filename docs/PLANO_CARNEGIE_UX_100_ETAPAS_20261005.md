@@ -784,10 +784,10 @@ P1 · DevOps, Produto e Engenharia · C7 · Depende de: 093, 094, 096, 098.
 
 ### Etapa 100 Encerrar com evidência e aprendizado
 
-P1 · Produto, QA e Responsável pelo aceite · C1–C8 · Depende de: 001–099.
+P1 · Produto, QA e Responsável pelo aceite · C1–C8 · Depende de: etapas aplicáveis de 001–099; para cada etapa formalmente adiada, dispensada ou retirada de escopo, o registro aprovado de responsável, justificativa e impacto satisfaz somente esta dependência de encerramento, sem contar a etapa como implementada.
 
 - **Entrega:** atualizar matriz de requisitos e documentação com estado de cada etapa, SHAs, ambientes, testes, pesquisa, publicação, bloqueios, decisões e riscos residuais.
-- **Cenários e aceite:** nenhuma etapa é concluída somente por existir código, mockup ou CI verde; usuário responsável homologa os resultados visuais e operacionais; pendências externas continuam nomeadas e nenhum percentual “10/10” substitui evidência.
+- **Cenários e aceite:** nenhuma etapa é concluída somente por existir código, mockup ou CI verde; usuário responsável homologa os resultados visuais e operacionais; a matriz diferencia explicitamente “implementada”, “adiada”, “dispensada” e “retirada de escopo”; pendências externas continuam nomeadas e nenhum percentual “10/10” substitui evidência.
 
 ## Cenários transversais para simulação antes de cada lote
 
