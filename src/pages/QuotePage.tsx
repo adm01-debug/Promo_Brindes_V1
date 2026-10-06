@@ -40,6 +40,13 @@ function validate(contact: QuoteContact) {
   return errors;
 }
 
+function browserLocationKey(): string {
+  // submit só roda no navegador, mas este fallback mantém o módulo seguro em
+  // ambientes de renderização e testes que ainda não expõem `window`.
+  if (typeof window === 'undefined') return '';
+  return `${window.location.pathname}${window.location.search}${window.location.hash}`;
+}
+
 export default function QuotePage() {
   const cart = useQuoteCart();
   const auth = useCustomerAuth();
@@ -237,8 +244,14 @@ export default function QuotePage() {
     setSubmitError('');
     const controller = new AbortController();
     const operationIdentity = identityKey;
+    const operationLocation = browserLocationKey();
     const operationIsStale = () => controller.signal.aborted
-      || currentIdentityRef.current !== operationIdentity;
+      || currentIdentityRef.current !== operationIdentity
+      // A URL muda de forma síncrona ao clicar em um Link, mas a limpeza do
+      // componente pode esperar o próximo commit do React. Sem esta guarda,
+      // uma resposta já em trânsito (observada no WebKit) consegue concluir
+      // nesse intervalo e limpar a seleção da rota seguinte.
+      || browserLocationKey() !== operationLocation;
     submitAbortControllerRef.current = controller;
     const submittedSelection = latestSelectionRef.current;
     try {
