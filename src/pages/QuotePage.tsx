@@ -19,6 +19,7 @@ import type { QuoteBriefingForm, QuoteContact } from '../types';
 import { quoteDecisionGroupsEnabled } from '../lib/siteFeatureFlags';
 import { localDateInputValue } from '../lib/quoteCalendar';
 import { attachMyBriefingAssetsToQuote } from '../lib/briefingAssets';
+import { remainingItemsAfterSubmission, sameQuoteSelection, sameQuoteSelectionContext } from '../lib/quoteSubmission';
 
 function formatPhone(value: string): string {
   const digits = value.replace(/\D/g, '').slice(0, 11);
@@ -37,6 +38,15 @@ function validate(contact: QuoteContact) {
   if (contact.deadline && contact.deadline < localDateInputValue()) errors.deadline = 'Escolha uma data a partir de hoje.';
   if (!contact.privacyAccepted) errors.privacyAccepted = 'Confirme que leu o aviso de privacidade.';
   return errors;
+}
+
+function browserLocationKey(): string {
+  // submit só roda no navegador, mas este fallback mantém o módulo seguro em
+  // ambientes de renderização e testes que ainda não expõem `window`.
+  if (typeof window === 'undefined') return '';
+  // Uma âncora só desloca a mesma página; ela não pode invalidar uma
+  // solicitação que ainda pertence ao mesmo briefing.
+  return `${window.location.pathname}${window.location.search}`;
 }
 
 export default function QuotePage() {
@@ -70,9 +80,27 @@ export default function QuotePage() {
   const submitAbortControllerRef = useRef<AbortController | null>(null);
   const currentIdentityRef = useRef(identityKey);
   currentIdentityRef.current = identityKey;
+  const latestSelectionRef = useRef({ items: cart.items, campaign: cart.campaign, selectionTitle: cart.selectionTitle });
+  // A reconciliação depois do 201 ocorre dentro da mesma janela de commit que
+  // pode receber uma edição no drawer. Atualizar no render, como fazemos com
+  // currentIdentityRef, impede que uma resposta veja o snapshot anterior
+  // enquanto aguarda o useEffect passivo da seleção recém-editada.
+  latestSelectionRef.current = { items: cart.items, campaign: cart.campaign, selectionTitle: cart.selectionTitle };
   const totalUnits = useMemo(() => cart.items.reduce((sum, item) => sum + item.quantity, 0), [cart.items]);
   const campaignLabels = useMemo(() => campaignBriefLabels(cart.campaign), [cart.campaign]);
   const minimumDeadline = localDateInputValue();
+
+  useEffect(() => () => {
+    // A navegação não pode deixar uma solicitação antiga concluir em segundo
+    // plano e limpar o carrinho/rascunho já usado em outra rota. A chave de
+    // idempotência permanece no sessionStorage: o servidor pode ter gravado
+    // o orçamento antes de o abort chegar à rede, e uma nova tentativa com o
+    // mesmo briefing precisa deduplicar essa persistência tardia.
+    const controller = submitAbortControllerRef.current;
+    if (!controller) return;
+    controller.abort();
+    requestAttemptRef.current = null;
+  }, []);
 
   useEffect(() => {
     if (briefingTrackedRef.current || cart.items.length === 0) return;
@@ -218,43 +246,68 @@ export default function QuotePage() {
     setSubmitError('');
     const controller = new AbortController();
     const operationIdentity = identityKey;
+    const operationLocation = browserLocationKey();
+    const operationIsStale = () => controller.signal.aborted
+      || currentIdentityRef.current !== operationIdentity
+      // A URL muda de forma síncrona ao clicar em um Link, mas a limpeza do
+      // componente pode esperar o próximo commit do React. Sem esta guarda,
+      // uma resposta já em trânsito (observada no WebKit) consegue concluir
+      // nesse intervalo e limpar a seleção da rota seguinte.
+      || browserLocationKey() !== operationLocation;
     submitAbortControllerRef.current = controller;
+    const submittedSelection = latestSelectionRef.current;
     try {
       const attempt = requestAttemptRef.current || getOrCreateSubmissionAttempt('promo-brindes:quote-attempt');
       requestAttemptRef.current = attempt;
-      const payload = buildQuotePayload(contact, cart.items, undefined, attempt.submittedAt, attempt.id, cart.campaign, normalizeQuoteBriefing(briefing));
+      const payload = buildQuotePayload(contact, submittedSelection.items, undefined, attempt.submittedAt, attempt.id, submittedSelection.campaign, normalizeQuoteBriefing(briefing));
       const result = await submitQuoteRequest(payload, controller.signal);
       // Alguns intermediários de rede/testes podem concluir uma resposta que
       // já estava em trânsito quando AbortController recebeu abort(). Não
       // basta depender da rejeição do fetch: uma resposta tardia nunca pode
       // transformar o briefing do próximo titular em confirmação de sucesso.
-      if (controller.signal.aborted || currentIdentityRef.current !== operationIdentity) return;
+      if (operationIsStale()) return;
       if (result.mode === 'endpoint') {
-        trackFunnelEvent('quote_submitted', { item_count: cart.items.length, has_deadline: Boolean(contact.deadline) });
-        let assets: { status: 'attached' | 'pending'; count: number } | undefined;
-        if (result.requestId && briefingAssetIds.length && auth.user) {
-          try {
-            await auth.claimHistory();
-            if (controller.signal.aborted || currentIdentityRef.current !== operationIdentity) return;
-            const count = await attachMyBriefingAssetsToQuote(result.requestId, briefingAssetIds);
-            if (controller.signal.aborted || currentIdentityRef.current !== operationIdentity) return;
-            assets = { status: 'attached', count };
-          } catch {
-            if (controller.signal.aborted || currentIdentityRef.current !== operationIdentity) return;
-            // O orçamento já foi persistido. Uma falha de vínculo de arquivo não
-            // pode transformar sucesso em retry e criar uma tentativa duplicada.
-            assets = { status: 'pending', count: briefingAssetIds.length };
-          }
-        }
-        if (controller.signal.aborted || currentIdentityRef.current !== operationIdentity) return;
-        requestAttemptRef.current = null;
-        clearSubmissionAttempt('promo-brindes:quote-attempt');
-        setSuccess({ mode: 'endpoint', requestId: result.requestId, confirmations: result.confirmations, assets });
-        cart.reset();
+        trackFunnelEvent('quote_submitted', { item_count: submittedSelection.items.length, has_deadline: Boolean(contact.deadline) });
+        const shouldAttachAssets = Boolean(result.requestId && briefingAssetIds.length && auth.user);
+        const pendingAssets = shouldAttachAssets
+          ? { status: 'pending' as const, count: briefingAssetIds.length }
+          : undefined;
+
+        // O 201 significa que o orçamento já existe. Finalizamos o estado
+        // local antes de qualquer RPC opcional de anexos; assim, navegar
+        // durante essa pós-etapa nunca deixa carrinho/rascunho prontos para
+        // reenviar a mesma solicitação com uma nova chave idempotente.
+        const latestSelection = latestSelectionRef.current;
+        const selectionContextChanged = !sameQuoteSelectionContext(latestSelection, submittedSelection);
+        if (sameQuoteSelection(latestSelection, submittedSelection)) cart.reset();
+        else if (selectionContextChanged) cart.replaceItems(latestSelection.items);
+        else cart.replaceItems(remainingItemsAfterSubmission(submittedSelection.items, latestSelection.items));
         clearQuoteDraft();
         clearQuoteRepeat();
         setContact(EMPTY_QUOTE_CONTACT);
         setBriefing(EMPTY_QUOTE_BRIEFING);
+        setSuccess({ mode: 'endpoint', requestId: result.requestId, confirmations: result.confirmations, assets: pendingAssets });
+        requestAttemptRef.current = null;
+        clearSubmissionAttempt('promo-brindes:quote-attempt');
+
+        if (result.requestId && briefingAssetIds.length && auth.user) {
+          try {
+            await auth.claimHistory();
+            if (operationIsStale()) return;
+            const count = await attachMyBriefingAssetsToQuote(result.requestId, briefingAssetIds);
+            if (operationIsStale()) return;
+            setSuccess((current) => current?.mode === 'endpoint'
+              ? { ...current, assets: { status: 'attached', count } }
+              : current);
+          } catch {
+            if (operationIsStale()) return;
+            // O orçamento já foi persistido. Uma falha de vínculo de arquivo não
+            // pode transformar sucesso em retry e criar uma tentativa duplicada.
+            setSuccess((current) => current?.mode === 'endpoint'
+              ? { ...current, assets: { status: 'pending', count: briefingAssetIds.length } }
+              : current);
+          }
+        }
       } else {
         setSuccess({ mode: 'email', href: result.href });
         window.location.href = result.href;
@@ -263,16 +316,16 @@ export default function QuotePage() {
       // A troca de titular já assumiu o estado da UI (efeito de identityEpoch);
       // mostrar um erro genérico agora exibiria uma mensagem sem relação com o
       // formulário recém-resetado, referente a uma submissão de outra pessoa.
-      if (controller.signal.aborted || currentIdentityRef.current !== operationIdentity) return;
+      if (operationIsStale()) return;
       const reason = error instanceof ClientRequestError
         ? error.status === 429 ? 'rate_limited' : error.status === 409 ? 'conflict' : error.status && error.status < 500 ? 'validation' : 'network'
         : 'unknown';
       trackFunnelEvent('quote_submission_failed', { item_count: cart.items.length, reason });
       setSubmitError(error instanceof Error ? error.message : 'Não conseguimos enviar sua solicitação.');
-      } finally {
+    } finally {
       if (submitAbortControllerRef.current === controller) submitAbortControllerRef.current = null;
       submittingRef.current = false;
-      if (currentIdentityRef.current === operationIdentity) setSending(false);
+      if (!operationIsStale()) setSending(false);
     }
   }
 
@@ -357,7 +410,7 @@ export default function QuotePage() {
       </section>
 
       <div className="container quote-layout">
-        <section className="quote-items" aria-labelledby="selection-title">
+        <fieldset className="quote-items submission-lock" aria-labelledby="selection-title" disabled={sending}>
           <div className="quote-section-heading"><div><span>01</span><div><h2 id="selection-title">Produtos selecionados</h2><p>{cart.itemCount} {cart.itemCount === 1 ? 'item' : 'itens'} · {totalUnits.toLocaleString('pt-BR')} unidades estimadas</p></div></div><button type="button" onClick={cart.clear}>Limpar seleção</button></div>
           {cart.items.some((item) => item.productUnavailable || item.variantUnavailable) && <div ref={availabilityNoticeRef} className="quote-availability-alert" role="alert" tabIndex={-1}><strong>Esta seleção precisa de revisão.</strong><span>Um produto ou uma cor de uma solicitação anterior mudou no catálogo. Remova a referência sinalizada ou escolha uma opção atual.</span></div>}
           <div className="quote-items__list">
@@ -372,14 +425,15 @@ export default function QuotePage() {
             ))}
           </div>
           <Link className="add-more-link" to="/catalogo"><Plus size={17} /> Adicionar mais produtos</Link>
-        </section>
+        </fieldset>
 
         <section className="quote-form-section" aria-labelledby="briefing-title">
-          <div className="quote-section-heading"><div><span>02</span><div><h2 id="briefing-title">Seu briefing</h2><p>Campos com * são obrigatórios</p></div></div><button type="button" className="text-button" onClick={discardDraft}>Apagar rascunho</button></div>
+          <div className="quote-section-heading"><div><span>02</span><div><h2 id="briefing-title">Seu briefing</h2><p>Campos com * são obrigatórios</p></div></div><button type="button" className="text-button" disabled={sending} onClick={discardDraft}>Apagar rascunho</button></div>
           <p className="quote-draft-notice" role="status">Seus dados deste formulário ficam salvos por {QUOTE_DRAFT_RETENTION_LABEL} para evitar perda de trabalho. Não use este campo para dados sensíveis.</p>
           {draftNotice && <p className="quote-draft-notice quote-draft-notice--success" role="status">{draftNotice}</p>}
           {campaignLabels.length > 0 && <aside className="quote-campaign-context" aria-label="Contexto recuperado da sua campanha"><div><span>Contexto recuperado</span><strong>Esta seleção já tem uma direção.</strong><p>Você pode complementar no briefing; essas referências acompanham a análise do nosso time de especialistas.</p></div><ul>{campaignLabels.map((label) => <li key={label}>{label}</li>)}</ul></aside>}
-          <form ref={formRef} className="quote-form" onSubmit={(event) => void submit(event)} noValidate>
+          <form ref={formRef} className="quote-form" onSubmit={(event) => void submit(event)} noValidate aria-busy={sending}>
+            <fieldset className="submission-lock" disabled={sending}>
             <div className="honeypot" aria-hidden="true"><label>Website<input value={website} onChange={(event) => setWebsite(event.target.value)} autoComplete="off" tabIndex={-1} /></label></div>
             <div className="form-grid">
               <div className="form-field"><label htmlFor="name">Seu nome *</label><input id="name" name="name" autoComplete="name" maxLength={100} value={contact.name} onChange={(event) => updateField('name', event.target.value)} aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? 'name-error' : undefined} />{errors.name && <span id="name-error" className="field-error">{errors.name}</span>}</div>
@@ -402,7 +456,8 @@ export default function QuotePage() {
             {errors.privacyAccepted && <span id="privacy-error" className="field-error privacy-error">{errors.privacyAccepted}</span>}
             <label className="privacy-check privacy-check--optional"><input name="whatsappCopyAccepted" type="checkbox" checked={contact.whatsappCopyAccepted} onChange={(event) => updateField('whatsappCopyAccepted', event.target.checked)} /><span><ShieldCheck size={20} /></span><span>Quero receber uma cópia desta solicitação também pelo WhatsApp informado. Esta autorização é opcional e vale apenas para o atendimento deste orçamento.</span></label>
             {submitError && <div className="submit-error" role="alert">{submitError}</div>}
-            <div className="quote-submit"><div><strong>Pronto para ativar a curadoria?</strong><span>Você alinha todos os detalhes com nosso time de especialistas antes de qualquer decisão.</span></div><button className="button button--green button--large" type="submit" disabled={sending}>{sending ? 'Enviando…' : <><Send size={18} /> Enviar briefing</>}</button></div>
+            <div className="quote-submit"><div><strong>Pronto para ativar a curadoria?</strong><span>Você alinha todos os detalhes com nosso time de especialistas antes de qualquer decisão.</span></div><button className="button button--green button--large" type="submit">{sending ? 'Enviando…' : <><Send size={18} /> Enviar briefing</>}</button></div>
+            </fieldset>
           </form>
         </section>
       </div>

@@ -1,61 +1,81 @@
 import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
-import type { Session } from '@supabase/supabase-js';
+import type { Session, User } from '@supabase/supabase-js';
 import { hasSiteAuthConfiguration } from '../lib/siteSupabaseConfig';
 import { reportClientError } from '../lib/clientObservability';
 import { CustomerAuthContext, type CustomerAuthValue } from './customerAuth';
 
 export function CustomerAuthProvider({ children }: { children: ReactNode }) {
   const configured = hasSiteAuthConfiguration();
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(configured);
+  const [user, setUser] = useState<User | null>(null);
+  const [initializationState, setInitializationState] = useState(configured ? 0 : 1);
+  const loading = initializationState === 0;
+  const initializationFailed = initializationState === 2;
+  const [initializationAttempt, setInitializationAttempt] = useState(0);
   const [identityEpoch, setIdentityEpoch] = useState(0);
   const sessionUserId = useRef<string | null>(null);
+  const hasResolvedInitialSession = useRef(false);
 
   useEffect(() => {
     if (!configured) {
-      setLoading(false);
+      setInitializationState(1);
       return;
     }
     let active = true;
     let unsubscribe = () => {};
+    let authEventSettled = false;
+    const failInitialization = (error: unknown) => {
+      reportClientError(error);
+      if (!active || authEventSettled) return;
+      setInitializationState(2);
+    };
+    const acceptSession = (nextSession: Session | null) => {
+      const nextUserId = nextSession?.user.id || null;
+      // A primeira sessão aceita pode ser uma sessão persistida da própria
+      // pessoa e não deve apagar seu rascunho. Depois dela, toda mudança de
+      // fronteira de identidade — inclusive anônimo -> autenticado — limpa
+      // dados pessoais antes que outro titular possa vê-los.
+      if (hasResolvedInitialSession.current && sessionUserId.current !== nextUserId) {
+        void import('../lib/personalDataReset').then(({ clearPersonalQuoteStorage }) => clearPersonalQuoteStorage());
+        setIdentityEpoch((epoch) => epoch + 1);
+      }
+      sessionUserId.current = nextUserId;
+      hasResolvedInitialSession.current = true;
+      setUser(nextSession?.user ?? null);
+      setInitializationState(1);
+    };
+    setInitializationState(0);
     void import('../lib/siteSupabase').then(({ siteSupabase }) => {
-      if (!active || !siteSupabase) return;
-      void siteSupabase.auth.getSession().then(({ data }) => {
-        if (!active) return;
-        sessionUserId.current = data.session?.user.id || null;
-        setSession(data.session);
-        setLoading(false);
-      });
-      const { data: subscription } = siteSupabase.auth.onAuthStateChange((_event, nextSession) => {
-        if (!active) return;
-        const nextUserId = nextSession?.user.id || null;
-        if (sessionUserId.current && sessionUserId.current !== nextUserId) {
-          void import('../lib/personalDataReset').then(({ clearPersonalQuoteStorage }) => clearPersonalQuoteStorage());
-          setIdentityEpoch((epoch) => epoch + 1);
-        }
-        sessionUserId.current = nextUserId;
-        setSession(nextSession);
-        setLoading(false);
+      if (!active) return;
+      if (!siteSupabase) throw new Error('Site Supabase client unavailable during auth initialization');
+      const { data: subscription } = siteSupabase.auth.onAuthStateChange((event, nextSession) => {
+        if (!active || (event === 'INITIAL_SESSION' && !nextSession)) return;
+        authEventSettled = true;
+        acceptSession(nextSession);
       });
       unsubscribe = () => subscription.subscription.unsubscribe();
+      void siteSupabase.auth.getSession().then(({ data, error }) => {
+        if (!active || authEventSettled) return;
+        if (error) throw error;
+        acceptSession(data.session);
+      }).catch(failInitialization);
     }).catch((error: unknown) => {
       // A área do cliente continua opcional se o carregamento do SDK falhar,
       // mas a falha não pode desaparecer sem telemetria (Etapa 39).
-      reportClientError(error);
-      if (active) setLoading(false);
+      failInitialization(error);
     });
     return () => {
       active = false;
       unsubscribe();
     };
-  }, [configured]);
+  }, [configured, initializationAttempt]);
 
   const value = useMemo<CustomerAuthValue>(() => ({
     configured,
     loading,
-    session,
+    initializationFailed,
     identityEpoch,
-    user: session?.user ?? null,
+    user,
+    retryInitialization: () => setInitializationAttempt((attempt) => attempt + 1),
     claimHistory: async () => (await import('../lib/customerAccount')).claimMyQuoteRequests(),
     signOut: async () => {
       // Não deixa dados de contato preenchidos por uma conta em um navegador
@@ -79,7 +99,7 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
       setIdentityEpoch((epoch) => epoch + 1);
       if (siteSupabase) await siteSupabase.auth.signOut();
     },
-  }), [configured, loading, session, identityEpoch]);
+  }), [configured, loading, initializationFailed, user, identityEpoch]);
 
   return <CustomerAuthContext.Provider value={value}>{children}</CustomerAuthContext.Provider>;
 }

@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
-select plan(55);
+select plan(57);
 
 select has_table('site_private', 'customer_briefing_assets', 'metadados privados de arquivos existem');
 select has_column('site_private', 'customer_briefing_assets', 'verified_at', 'assinatura binária possui recibo de verificação');
@@ -81,6 +81,14 @@ insert into site_private.quote_requests (
   'site-promo-brindes', 'Ana Asset', 'Empresa Asset', 'asset-ana@example.test', '(11) 99999-9999',
   now(), 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 );
+insert into site_private.quote_requests (
+  id, client_request_id, request_hash, source, contact_name, company, email, phone,
+  client_submitted_at, customer_user_id
+) values (
+  'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', 'asset-quote-0002', repeat('b', 64),
+  'site-promo-brindes', 'Ana Asset', 'Empresa Asset', 'asset-ana@example.test', '(11) 99999-9999',
+  now(), 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+);
 
 set local request.jwt.claims = '{"sub":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","role":"authenticated"}';
 select throws_ok($sql$
@@ -141,6 +149,14 @@ select is(public.attach_my_briefing_assets_to_quote(
 select is((select quote_request_id from site_private.customer_briefing_assets
   where id = (select (result ->> 'id')::uuid from asset_a)),
   'cccccccc-cccc-4ccc-8ccc-cccccccccccc'::uuid, 'vínculo fica persistido');
+select is(public.attach_my_briefing_assets_to_quote(
+  'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+  array[(select (result ->> 'id')::uuid from asset_a)]
+), 1, 'repetição após resposta perdida confirma o vínculo já persistido');
+select throws_ok(
+  format('select public.attach_my_briefing_assets_to_quote(%L::uuid, array[%L::uuid])',
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', (select result ->> 'id' from asset_a)),
+  'P0001', 'briefing_asset_attachment_conflict', 'repetição não transfere arquivo para outro briefing');
 select throws_ok(
   format('select public.delete_my_briefing_asset(%L::uuid)', (select result ->> 'id' from asset_a)),
   'P0001', 'briefing_asset_not_deletable', 'arquivo anexado não some do briefing');

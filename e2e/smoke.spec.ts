@@ -76,6 +76,33 @@ async function waitForRoute(page: Page) {
   await expect(page.locator('.route-fallback')).toHaveCount(0);
 }
 
+async function seedQuoteSelection(page: Page, context: Record<string, unknown> = {}) {
+  await page.addInitScript(({ product: selectedProduct, context: selectionContext }) => {
+    localStorage.setItem('promo-brindes:quote-selection:v1', JSON.stringify({ items: [{
+      key: `${selectedProduct.id}::sem-cor`, productId: selectedProduct.id, slug: selectedProduct.slug, name: selectedProduct.name,
+      sku: selectedProduct.sku, imageUrl: selectedProduct.primary_image_url, quantity: 100, minQuantity: 50,
+    }], ...selectionContext }));
+  }, { product, context });
+}
+
+async function fillRequiredQuoteContact(page: Page) {
+  await page.locator('#name').fill('Pessoa de teste');
+  await page.locator('#company').fill('Empresa de teste');
+  await page.locator('#email').fill('pessoa@example.invalid');
+  await page.locator('#phone').fill('11999999999');
+  await page.getByRole('checkbox', { name: /Li o aviso de privacidade/ }).check();
+}
+
+async function holdQuoteSubmission(page: Page, requestId: string) {
+  let releaseSubmission: () => void = () => {};
+  const submissionRequested = new Promise<void>((resolve) => { releaseSubmission = resolve; });
+  await page.route('**/api/quote-requests', async (route) => {
+    await submissionRequested;
+    await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ requestId, duplicate: false, confirmations: { email: 'pending', whatsapp: 'not_requested' } }) });
+  });
+  return releaseSubmission;
+}
+
 /**
  * Clipboard permissions are implemented by Chromium only.  The product still
  * uses the same Web Clipboard API everywhere; this shim keeps the assertion
@@ -486,7 +513,12 @@ test('mostra produto sem estoque confiável e leva o cliente ao briefing sem che
   await page.getByRole('button', { name: /Adicionar à minha seleção/i }).click();
   await expect(page.getByRole('dialog', { name: 'Minha seleção' })).toBeVisible();
   await page.getByRole('link', { name: /^Transformar em briefing$/i }).click();
-  await expect(page.getByRole('heading', { name: 'Transforme sua seleção em briefing.' })).toBeVisible();
+  const briefingHeading = page.getByRole('heading', { name: 'Transforme sua seleção em briefing.' });
+  await expect(briefingHeading).toBeVisible();
+  // A nova rota deve começar no topo. Depois, as interações com a quantidade
+  // podem rolar a tela naturalmente; não é correto exigir que o título siga
+  // visível após a pessoa já estar trabalhando na seleção.
+  await expect(briefingHeading).toBeInViewport();
   const briefingQuantity = page.locator('input[id^="quantity-"]').first();
   await briefingQuantity.fill('');
   await briefingQuantity.pressSequentially('250');
@@ -502,12 +534,10 @@ test('mostra produto sem estoque confiável e leva o cliente ao briefing sem che
 });
 
 test('envio confirmado remove contato e consentimento do rascunho da aba', async ({ page }) => {
-  await page.addInitScript(({ product }) => {
-    localStorage.setItem('promo-brindes:quote-selection:v1', JSON.stringify({ items: [{
-      key: `${product.id}::sem-cor`, productId: product.id, slug: product.slug, name: product.name,
-      sku: product.sku, imageUrl: product.primary_image_url, quantity: 100, minQuantity: 50,
-    }] }));
-  }, { product });
+  await seedQuoteSelection(page, {
+    selectionTitle: 'Ação de verão',
+    campaign: { source: 'finder', moment: 'evento' },
+  });
   let submissions = 0;
   let sentPayload: Record<string, unknown> | undefined;
   await page.route('**/api/quote-requests', (route) => {
@@ -516,20 +546,179 @@ test('envio confirmado remove contato e consentimento do rascunho da aba', async
     return route.fulfill({ status: 201, contentType: 'application/json', body: '{"requestId":"quote-e2e","duplicate":false,"confirmations":{"email":"pending","whatsapp":"pending"}}' });
   });
   await page.goto('/orcamento');
-  await page.locator('#name').fill('Pessoa de teste');
-  await page.locator('#company').fill('Empresa de teste');
-  await page.locator('#email').fill('pessoa@example.invalid');
-  await page.locator('#phone').fill('11999999999');
-  await page.getByRole('checkbox', { name: /Li o aviso de privacidade/ }).check();
+  await fillRequiredQuoteContact(page);
   await page.getByRole('checkbox', { name: /cópia desta solicitação também pelo WhatsApp/ }).check();
   await page.getByRole('button', { name: 'Enviar briefing' }).click();
 
   await expect(page.getByRole('heading', { name: 'Sua solicitação chegou.' })).toBeVisible();
   await expect.poll(() => page.evaluate(() => sessionStorage.getItem('promo-brindes:quote-draft:v1'))).toBeNull();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('promo-brindes:quote-selection:v1'))).toBeNull();
   await expect(page.getByText('Confirmação por e-mail registrada para envio.')).toBeVisible();
   await expect(page.getByText('Confirmação pelo WhatsApp autorizada e registrada para envio.')).toBeVisible();
   expect(submissions).toBe(1);
   expect(sentPayload).toMatchObject({ notificationPreferences: { emailCopy: true, whatsappCopy: true } });
+});
+
+test('envio lento congela o briefing e sair da rota preserva a seleção', async ({ page }) => {
+  await seedQuoteSelection(page);
+  const releaseSubmission = await holdQuoteSubmission(page, 'quote-abortado');
+
+  await page.goto('/orcamento');
+  await fillRequiredQuoteContact(page);
+  await page.getByRole('button', { name: 'Enviar briefing' }).click();
+
+  await expect(page.locator('#name')).toBeDisabled();
+  await expect(page.locator('input[id^="quantity-"]').first()).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Limpar seleção' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Apagar rascunho' })).toBeDisabled();
+  // O fieldset de bloqueio não pode apagar a moldura e o respiro do card da
+  // seleção enquanto o envio está pendente.
+  const selectionCard = page.locator('.quote-items');
+  await expect(selectionCard).toHaveCSS('border-top-style', 'solid');
+  await expect.poll(() => selectionCard.evaluate((element) => Number.parseFloat(getComputedStyle(element).paddingLeft))).toBeGreaterThan(0);
+  await expect.poll(() => page.evaluate(() => sessionStorage.getItem('promo-brindes:quote-attempt'))).not.toBeNull();
+  const pendingAttempt = await page.evaluate(() => sessionStorage.getItem('promo-brindes:quote-attempt'));
+  await page.getByRole('link', { name: 'Continuar escolhendo' }).click();
+  await expect(page).toHaveURL(/\/catalogo$/);
+  await expect.poll(() => page.evaluate(() => sessionStorage.getItem('promo-brindes:quote-attempt'))).toBe(pendingAttempt);
+
+  releaseSubmission();
+  await page.waitForTimeout(200);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('promo-brindes:quote-selection:v1') || '{"items":[]}').items.length)).toBe(1);
+});
+
+test('retorno após saída durante envio reutiliza a chave idempotente', async ({ page }) => {
+  await seedQuoteSelection(page);
+  const idempotencyKeys: string[] = [];
+  let releaseFirstRequest: () => void = () => {};
+  const firstRequestBlocked = new Promise<void>((resolve) => { releaseFirstRequest = resolve; });
+  let firstRequestSeen: () => void = () => {};
+  const firstRequestReceived = new Promise<void>((resolve) => { firstRequestSeen = resolve; });
+
+  await page.route('**/api/quote-requests', async (route) => {
+    idempotencyKeys.push((await route.request().headerValue('idempotency-key')) || '');
+    if (idempotencyKeys.length === 1) {
+      firstRequestSeen();
+      await firstRequestBlocked;
+      // A navegação já abortou este fetch; cumprir a rota depois é apenas
+      // necessário para liberar o interceptor do teste.
+      await route.fulfill({ status: 201, contentType: 'application/json', body: '{"requestId":"quote-primeira","duplicate":false,"confirmations":{"email":"pending","whatsapp":"not_requested"}}' }).catch(() => {});
+      return;
+    }
+    await route.fulfill({ status: 201, contentType: 'application/json', body: '{"requestId":"quote-deduplicada","duplicate":true,"confirmations":{"email":"pending","whatsapp":"not_requested"}}' });
+  });
+
+  await page.goto('/orcamento');
+  await fillRequiredQuoteContact(page);
+  await page.getByRole('button', { name: 'Enviar briefing' }).click();
+  await firstRequestReceived;
+  await expect.poll(() => page.evaluate(() => sessionStorage.getItem('promo-brindes:quote-attempt'))).not.toBeNull();
+
+  await page.getByRole('link', { name: 'Continuar escolhendo' }).click();
+  await expect(page).toHaveURL(/\/catalogo$/);
+  await page.goto('/orcamento');
+  await expect(page.locator('#email')).toHaveValue('pessoa@example.invalid');
+  await page.getByRole('button', { name: 'Enviar briefing' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Sua solicitação chegou.' })).toBeVisible();
+  expect(idempotencyKeys).toHaveLength(2);
+  expect(idempotencyKeys[0]).toMatch(/^[A-Za-z0-9][A-Za-z0-9:._-]{7,99}$/);
+  expect(idempotencyKeys[1]).toBe(idempotencyKeys[0]);
+  releaseFirstRequest();
+});
+
+test('edição feita no drawer durante o envio permanece para a próxima solicitação', async ({ page }) => {
+  await seedQuoteSelection(page);
+  const releaseSubmission = await holdQuoteSubmission(page, 'quote-com-edicao');
+
+  await page.goto('/orcamento');
+  await fillRequiredQuoteContact(page);
+  await page.getByRole('button', { name: 'Enviar briefing' }).click();
+  await expect(page.getByRole('button', { name: 'Enviando…' })).toBeVisible();
+
+  await page.getByRole('button', { name: /Abrir seleção/ }).click();
+  const drawerQuantity = page.getByRole('spinbutton', { name: `Quantidade desejada de ${product.name}` });
+  await drawerQuantity.fill('250');
+  await drawerQuantity.blur();
+  releaseSubmission();
+
+  await expect(page.getByRole('heading', { name: 'Sua solicitação chegou.' })).toBeVisible();
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('promo-brindes:quote-selection:v1') || '{"items":[]}').items[0]?.quantity)).toBe(250);
+});
+
+test('nome de campanha alterado durante o envio preserva os produtos para a próxima solicitação', async ({ page }) => {
+  await seedQuoteSelection(page);
+  const releaseSubmission = await holdQuoteSubmission(page, 'quote-com-nova-campanha');
+
+  await page.goto('/orcamento');
+  await fillRequiredQuoteContact(page);
+  await page.getByRole('button', { name: 'Enviar briefing' }).click();
+  await page.getByRole('button', { name: /Abrir seleção/ }).click();
+  await page.getByLabel(/Nome da campanha/).fill('Campanha criada durante o envio');
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('promo-brindes:quote-selection:v1') || '{}').selectionTitle)).toBe('Campanha criada durante o envio');
+
+  releaseSubmission();
+
+  await expect(page.getByRole('heading', { name: 'Sua solicitação chegou.' })).toBeVisible();
+  const savedSelection = await page.evaluate(() => JSON.parse(localStorage.getItem('promo-brindes:quote-selection:v1') || '{"items":[]}'));
+  expect(savedSelection.selectionTitle).toBe('Campanha criada durante o envio');
+  expect(savedSelection.items).toHaveLength(1);
+});
+
+test('resposta persistida finaliza o briefing antes do vínculo opcional de arquivos', async ({ page }) => {
+  const user = customerAuthUser({ id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', email: 'arquivos@empresa.com' });
+  const asset = {
+    id: '11111111-aaaa-4aaa-8aaa-111111111111', path: `${user.id}/marca.png`, name: 'marca.png', kind: 'logo',
+    mimeType: 'image/png', sizeBytes: 1024, quoteRequestId: null, verifiedAt: '2026-09-22T12:00:00Z',
+    createdAt: '2026-09-22T12:00:00Z', expiresAt: '2026-10-22T12:00:00Z',
+  };
+  await page.addInitScript(({ session, product: selectedProduct }) => {
+    localStorage.setItem('promo-brindes-customer-session', JSON.stringify(session));
+    localStorage.setItem('promo-brindes:quote-selection:v1', JSON.stringify({ items: [{
+      key: `${selectedProduct.id}::sem-cor`, productId: selectedProduct.id, slug: selectedProduct.slug, name: selectedProduct.name,
+      sku: selectedProduct.sku, imageUrl: selectedProduct.primary_image_url, quantity: 100, minQuantity: 50,
+    }] }));
+  }, { session: synthenticCustomerSession(user), product });
+
+  let submissions = 0;
+  let releaseClaim!: () => void;
+  let markClaimRequested!: () => void;
+  const claimRequested = new Promise<void>((resolve) => { markClaimRequested = resolve; });
+  const claimReleased = new Promise<void>((resolve) => { releaseClaim = resolve; });
+  await page.route('**/auth/v1/user', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify(user) }));
+  await page.route('**/rest/v1/rpc/list_my_briefing_assets', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify([asset]) }));
+  await page.route('**/rest/v1/rpc/claim_my_quote_requests', async (route) => {
+    markClaimRequested();
+    await claimReleased;
+    await route.fulfill({ contentType: 'application/json', body: '{"claimed":1}' }).catch(() => undefined);
+  });
+  await page.route('**/rest/v1/rpc/attach_my_briefing_assets_to_quote', (route) => route.fulfill({ contentType: 'application/json', body: '1' }));
+  await page.route('**/api/quote-requests', (route) => {
+    submissions += 1;
+    return route.fulfill({ status: 201, contentType: 'application/json', body: '{"requestId":"quote-com-arquivo","duplicate":false,"confirmations":{"email":"pending","whatsapp":"not_requested"}}' });
+  });
+
+  await page.goto('/orcamento');
+  await page.locator('#name').fill('Pessoa de teste');
+  await page.locator('#company').fill('Empresa de teste');
+  await page.locator('#email').fill(user.email);
+  await page.locator('#phone').fill('11999999999');
+  await page.getByRole('checkbox', { name: /Li o aviso de privacidade/ }).check();
+  await page.getByRole('checkbox', { name: new RegExp(asset.name) }).check();
+  await page.getByRole('button', { name: 'Enviar briefing' }).click();
+
+  await claimRequested;
+  await expect(page.getByRole('heading', { name: 'Sua solicitação chegou.' })).toBeVisible();
+  await expect(page.getByText('Orçamento recebido; vínculo dos arquivos pendente')).toBeVisible();
+  await expect.poll(() => page.evaluate(() => sessionStorage.getItem('promo-brindes:quote-attempt'))).toBeNull();
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('promo-brindes:quote-selection:v1') || '{"items":[]}').items.length)).toBe(0);
+  await expect.poll(() => page.evaluate(() => sessionStorage.getItem('promo-brindes:quote-draft:v1'))).toBeNull();
+
+  await page.getByRole('link', { name: 'Voltar ao catálogo' }).click();
+  releaseClaim();
+  await expect(page).toHaveURL(/\/catalogo$/);
+  expect(submissions).toBe(1);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('promo-brindes:quote-selection:v1') || '{"items":[]}').items)).toHaveLength(0);
 });
 
 // R08: dados pessoais e consentimento não podem sobreviver a uma troca de
@@ -681,7 +870,13 @@ test('evento passado recebe erro no campo e não chama a API', async ({ page }) 
   await page.locator('#email').fill('pessoa@example.invalid');
   await page.locator('#phone').fill('11999999999');
   await page.locator('#eventDate').fill('2020-01-01');
-  await page.getByRole('checkbox', { name: /Li o aviso de privacidade/ }).check();
+  const privacyConsent = page.getByRole('checkbox', { name: /Li o aviso de privacidade/ });
+  // WebKit pode recalcular a posição após os campos longos acima. Primeiro
+  // aguarda a rolagem real até o controle e só então usa a interação normal;
+  // nunca usamos force aqui, para preservar a prova de acessibilidade.
+  await privacyConsent.scrollIntoViewIfNeeded();
+  await privacyConsent.check();
+  await expect(privacyConsent).toBeChecked();
   await page.getByRole('button', { name: 'Enviar briefing' }).click();
 
   await expect(page.locator('#event-date-error')).toContainText('a partir de hoje');
