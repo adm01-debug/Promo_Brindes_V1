@@ -1184,6 +1184,18 @@ test('navegação de catálogo por query fecha menu e reposiciona resultados', a
   await expect(page.getByRole('navigation', { name: 'Navegação móvel' })).toBeHidden();
   await expect(page.locator('#catalog-results-title')).toBeInViewport();
   await expect(page.locator('#catalog-results-title')).toHaveText('Tendências');
+
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  const positionBeforeSort = await page.evaluate(() => window.scrollY);
+  await page.evaluate(() => {
+    const select = document.querySelector<HTMLSelectElement>('.sort-control select');
+    if (!select) throw new Error('Controle de ordenação ausente');
+    select.value = 'nome';
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await expect(page).toHaveURL(/ordem=nome/);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThanOrEqual(positionBeforeSort - 1);
+  await expect(page.locator('#catalog-results-title')).not.toBeInViewport();
 });
 
 test('voltar ao catálogo restaura a leitura mesmo após conteúdo assíncrono', async ({ page }) => {

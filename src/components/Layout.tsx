@@ -39,6 +39,7 @@ export function Layout({ children }: { children: ReactNode }) {
   const [search, setSearch] = useState('');
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const mobileNavRef = useRef<HTMLDivElement>(null);
+  const catalogProfileNavigationRef = useRef(false);
   const navigate = useNavigate();
   const location = useLocation();
   const categories = useCategories();
@@ -55,7 +56,7 @@ export function Layout({ children }: { children: ReactNode }) {
     setMenuOpen(false);
     setSearch(catalogParams.get('q') || '');
     let resultsFrame = 0;
-    if (location.pathname === '/catalogo' && catalogParams.get('perfil')) {
+    if (catalogProfileNavigationRef.current && location.pathname === '/catalogo' && catalogParams.get('perfil')) {
       // A navegação por perfil pode acontecer dentro da própria rota do
       // catálogo. Nesse caso o navegador preserva a posição anterior (até o
       // rodapé no menu móvel), então reposicionamos explicitamente o começo
@@ -64,6 +65,7 @@ export function Layout({ children }: { children: ReactNode }) {
         document.getElementById('catalog-results-title')?.scrollIntoView({ block: 'start', behavior: 'auto' });
       });
     }
+    catalogProfileNavigationRef.current = false;
     // catalogParams é recomputado a cada render (new URLSearchParams nunca é
     // referencialmente estável); location.search é a string da qual ele deriva
     // por completo, e já está na lista. Incluir catalogParams faria este efeito
@@ -131,7 +133,7 @@ export function Layout({ children }: { children: ReactNode }) {
           <nav className="desktop-nav" aria-label="Navegação principal">
             {navItems.map((item) => {
               const active = isNavItemActive(item);
-              return <Link key={item.to} to={item.to} className={`nav-link ${active ? 'nav-link--active' : ''}`} aria-current={active ? 'page' : undefined}>{item.label}</Link>;
+              return <Link key={item.to} to={item.to} className={`nav-link ${active ? 'nav-link--active' : ''}`} aria-current={active ? 'page' : undefined} onClick={() => { catalogProfileNavigationRef.current = Boolean(item.catalogQuery); }}>{item.label}</Link>;
             })}
           </nav>
           <SearchAutocomplete
@@ -168,7 +170,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <nav aria-label="Navegação móvel">
               {navItems.map((item) => {
                 const active = isNavItemActive(item);
-                return <Link key={item.to} to={item.to} className={active ? 'nav-link--active' : undefined} aria-current={active ? 'page' : undefined}>{item.label}</Link>;
+                return <Link key={item.to} to={item.to} className={active ? 'nav-link--active' : undefined} aria-current={active ? 'page' : undefined} onClick={() => { catalogProfileNavigationRef.current = Boolean(item.catalogQuery); }}>{item.label}</Link>;
               })}
               <Link to="/orcamento">Transformar seleção em briefing</Link>
               {customerAreaEnabled && <Link to="/minha-conta">Meus orçamentos</Link>}
