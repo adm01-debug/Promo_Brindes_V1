@@ -487,12 +487,12 @@ P1 · Frontend e Conteúdo · C4, C5 · Depende de: 057.
 - **Entrega:** confirmar produto, cor e quantidade adicionados e oferecer continuar ou revisar seleção, respeitando deduplicação e limites já existentes.
 - **Cenários e aceite:** clique duplo não duplica intenção; limite atingido não finge sucesso; feedback é anunciado sem roubar foco ou bloquear a visualização com modal desnecessário.
 
-### Etapa 059 Revisar fichas e documentos vinculados
+### Etapa 059 Inventariar fontes para fichas e documentos
 
 P1 · Frontend e QA · C3, C7 · Depende de: 007, 053.
 
-- **Entrega:** verificar links de fichas técnicas e documentos existentes, formato, destino autorizado e indicação de abertura ou download.
-- **Cenários e aceite:** URL quebrada, resposta HTML no lugar de PDF, documento privado e arquivo indisponível não geram link falso; oferecer orientação sem contornar permissões.
+- **Entrega:** identificar se há fonte aprovada para fichas técnicas ou documentos de produto e, antes de expor qualquer link, definir contrato de dados, propriedade responsável, autorização, formato e política de indisponibilidade. Na ausência dessa fonte, manter o recurso omitido e registrar a dependência externa.
+- **Cenários e aceite:** fonte ausente, URL quebrada, resposta HTML no lugar de PDF, documento privado e arquivo indisponível não geram link falso; só depois de uma origem aprovada o teste valida abertura ou download sem contornar permissões.
 
 ### Etapa 060 Compartilhar produto com contexto apropriado
 
@@ -808,7 +808,7 @@ P1 · Produto, QA e Responsável pelo aceite · C1–C8 · Depende de: 001–099
 
 | Lote | Etapas | Resultado verificável | Condição de entrada |
 | --- | --- | --- | --- |
-| A | 001–020 | Pesquisa, contratos de conteúdo e mockups aprovados | Base conciliada e propostas em imagens. |
+| A | 001–020 | Pesquisa, contratos de conteúdo e mockups aprovados | Repositório e baseline identificados; escopo, responsáveis e regra de aprovação visual confirmados. |
 | B | 021–040 | Entrada por intenção e briefing revisável | Aprovação visual do lote B. |
 | C | 041–060 | Catálogo e produto com justificativas verificáveis | Dados editoriais e PR 91 conciliados. |
 | D | 061–080 | Seleção, formulário e confirmação honestos | Contratos de persistência e mensagens aprovados. |
