@@ -1,4 +1,4 @@
-import { CheckCircle2, LoaderCircle } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Seo } from '../components/Seo';
@@ -26,7 +26,7 @@ export default function AuthConfirmPage() {
       .catch(() => setFailed(true));
   }, [auth, navigate, nextPath]);
   if (auth.loading) {
-    return <div className="customer-state container" role="status"><Seo title="Confirmando acesso" path="/auth/confirm" noIndex /><LoaderCircle className="spin" size={42} aria-hidden="true" /><span>VERIFICAÇÃO SEGURA</span><h1>Validando seu acesso…</h1><p>Aguarde enquanto confirmamos sua identidade.</p></div>;
+    return <div className="customer-state container" role="status"><Seo title="Confirmando acesso" path="/auth/confirm" noIndex /><span>VERIFICAÇÃO SEGURA</span><h1>Validando seu acesso…</h1><p>Aguarde enquanto confirmamos sua identidade.</p></div>;
   }
   if (auth.initializationFailed) {
     return <div className="customer-state container" role="alert"><Seo title="Confirmando acesso" path="/auth/confirm" noIndex /><span>CONEXÃO INTERROMPIDA</span><h1>Não conseguimos validar sua identidade.</h1><p>Seus dados continuam protegidos. Verifique a conexão e tente novamente.</p><button className="button button--dark" type="button" onClick={auth.retryInitialization}>Tentar novamente</button></div>;

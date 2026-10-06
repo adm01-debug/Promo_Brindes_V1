@@ -1,11 +1,10 @@
-import type { Session, User } from '@supabase/supabase-js';
+import type { User } from '@supabase/supabase-js';
 import { createContext, useContext } from 'react';
 
 export interface CustomerAuthValue {
   configured: boolean;
   loading: boolean;
   initializationFailed: boolean;
-  session: Session | null;
   user: User | null;
   identityEpoch: number;
   retryInitialization(): void;

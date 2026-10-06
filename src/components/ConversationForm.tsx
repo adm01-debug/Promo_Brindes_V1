@@ -133,7 +133,7 @@ export function ConversationForm() {
           {errors.privacyAccepted && <span id="conversation-privacy-error" className="conversation-field__error conversation-consent__error">{errors.privacyAccepted}</span>}
           {submitError && <div className="conversation-form__message is-error" role="alert">{submitError}</div>}
           {success && <div className="conversation-form__message" role="status"><CheckCircle2 size={18} /> {success}</div>}
-          <button className="conversation-form__submit" type="submit" disabled={sending}>
+          <button className="conversation-form__submit" type="submit">
             {sending ? 'Enviando…' : <>Falar com a Promo <ArrowRight size={17} /></>}
           </button>
           </fieldset>

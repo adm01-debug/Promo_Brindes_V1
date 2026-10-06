@@ -11,7 +11,7 @@ function sameItem(left: QuoteItem, right: QuoteItem): boolean {
  */
 export function remainingItemsAfterSubmission(submitted: QuoteItem[], current: QuoteItem[]): QuoteItem[] {
   const submittedByKey = new Map(submitted.map((item) => [item.key, item]));
-  const currentByKey = new Map(current.map((item) => [item.key, item]));
+  const currentKeys = new Set(current.map((item) => item.key));
   const changedKitGroups = new Set<string>();
 
   for (const item of current) {
@@ -19,7 +19,7 @@ export function remainingItemsAfterSubmission(submitted: QuoteItem[], current: Q
     if ((!previous || !sameItem(previous, item)) && item.kitGroupId) changedKitGroups.add(item.kitGroupId);
   }
   for (const item of submitted) {
-    if (item.kitGroupId && !currentByKey.has(item.key)) changedKitGroups.add(item.kitGroupId);
+    if (item.kitGroupId && !currentKeys.has(item.key)) changedKitGroups.add(item.kitGroupId);
   }
 
   return current.filter((item) => {

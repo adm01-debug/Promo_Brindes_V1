@@ -123,7 +123,7 @@ export default function CustomerLoginPage() {
           {mode === 'email' && codeSent && <div className="form-field"><label htmlFor="customer-code">Código recebido <span>opcional se usar o link</span></label><input id="customer-code" name="one-time-code" inputMode="numeric" autoComplete="one-time-code" maxLength={8} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, ''))} /></div>}
           {error && <div className="submit-error" role="alert">{error}</div>}
           {message && <div className="customer-auth-message" role="status"><Mail aria-hidden="true" /> {message}</div>}
-          <button className="button button--green button--large button--wide" type="submit" disabled={sending || !email.trim() || ((mode === 'password' || mode === 'create') && password.length < 8)}>{sending ? 'Aguarde…' : mode === 'email' && codeSent && code ? 'Validar código' : mode === 'email' ? 'Enviar acesso por e-mail' : mode === 'password' ? 'Entrar com senha' : mode === 'create' ? 'Criar acesso' : 'Enviar recuperação'} <ArrowRight size={18} /></button>
+          <button className="button button--green button--large button--wide" type="submit" disabled={!email.trim() || ((mode === 'password' || mode === 'create') && password.length < 8)}>{sending ? 'Aguarde…' : mode === 'email' && codeSent && code ? 'Validar código' : mode === 'email' ? 'Enviar acesso por e-mail' : mode === 'password' ? 'Entrar com senha' : mode === 'create' ? 'Criar acesso' : 'Enviar recuperação'} <ArrowRight size={18} /></button>
           </fieldset>
         </form>
         <div className="customer-auth-links">
