@@ -21,6 +21,9 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
     }
     let active = true;
     let unsubscribe = () => {};
+    let initialSessionSettled = false;
+    let initialSessionFailed = false;
+    let authEventEstablishedSession = false;
     setLoading(true);
     setInitializationFailed(false);
     void import('../lib/siteSupabase').then(({ siteSupabase }) => {
@@ -35,10 +38,15 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
         if (!active) return;
         if (error) {
           reportClientError(error);
+          initialSessionSettled = true;
+          initialSessionFailed = true;
+          if (authEventEstablishedSession) return;
           setInitializationFailed(true);
           setLoading(false);
           return;
         }
+        initialSessionSettled = true;
+        initialSessionFailed = false;
         sessionUserId.current = data.session?.user.id || null;
         setSession(data.session);
         setInitializationFailed(false);
@@ -46,11 +54,19 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
       }).catch((error: unknown) => {
         reportClientError(error);
         if (!active) return;
+        initialSessionSettled = true;
+        initialSessionFailed = true;
+        if (authEventEstablishedSession) return;
         setInitializationFailed(true);
         setLoading(false);
       });
-      const { data: subscription } = siteSupabase.auth.onAuthStateChange((_event, nextSession) => {
+      const { data: subscription } = siteSupabase.auth.onAuthStateChange((event, nextSession) => {
         if (!active) return;
+        if (event === 'INITIAL_SESSION' && !nextSession && (!initialSessionSettled || initialSessionFailed)) return;
+        if (nextSession) {
+          authEventEstablishedSession = true;
+          initialSessionFailed = false;
+        }
         const nextUserId = nextSession?.user.id || null;
         if (sessionUserId.current && sessionUserId.current !== nextUserId) {
           void import('../lib/personalDataReset').then(({ clearPersonalQuoteStorage }) => clearPersonalQuoteStorage());

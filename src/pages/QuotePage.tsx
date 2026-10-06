@@ -19,6 +19,7 @@ import type { QuoteBriefingForm, QuoteContact } from '../types';
 import { quoteDecisionGroupsEnabled } from '../lib/siteFeatureFlags';
 import { localDateInputValue } from '../lib/quoteCalendar';
 import { attachMyBriefingAssetsToQuote } from '../lib/briefingAssets';
+import { remainingItemsAfterSubmission } from '../lib/quoteSubmission';
 
 function formatPhone(value: string): string {
   const digits = value.replace(/\D/g, '').slice(0, 11);
@@ -70,6 +71,8 @@ export default function QuotePage() {
   const submitAbortControllerRef = useRef<AbortController | null>(null);
   const currentIdentityRef = useRef(identityKey);
   currentIdentityRef.current = identityKey;
+  const latestSelectionRef = useRef({ items: cart.items, campaign: cart.campaign, selectionTitle: cart.selectionTitle });
+  latestSelectionRef.current = { items: cart.items, campaign: cart.campaign, selectionTitle: cart.selectionTitle };
   const totalUnits = useMemo(() => cart.items.reduce((sum, item) => sum + item.quantity, 0), [cart.items]);
   const campaignLabels = useMemo(() => campaignBriefLabels(cart.campaign), [cart.campaign]);
   const minimumDeadline = localDateInputValue();
@@ -77,7 +80,11 @@ export default function QuotePage() {
   useEffect(() => () => {
     // A navegação não pode deixar uma solicitação antiga concluir em segundo
     // plano e limpar o carrinho/rascunho já usado em outra rota.
-    submitAbortControllerRef.current?.abort();
+    const controller = submitAbortControllerRef.current;
+    if (!controller) return;
+    controller.abort();
+    requestAttemptRef.current = null;
+    clearSubmissionAttempt('promo-brindes:quote-attempt');
   }, []);
 
   useEffect(() => {
@@ -229,10 +236,15 @@ export default function QuotePage() {
       || currentIdentityRef.current !== operationIdentity
       || window.location.pathname !== operationPath;
     submitAbortControllerRef.current = controller;
+    const submittedSelection = {
+      items: cart.items,
+      campaign: cart.campaign,
+      selectionTitle: cart.selectionTitle,
+    };
     try {
       const attempt = requestAttemptRef.current || getOrCreateSubmissionAttempt('promo-brindes:quote-attempt');
       requestAttemptRef.current = attempt;
-      const payload = buildQuotePayload(contact, cart.items, undefined, attempt.submittedAt, attempt.id, cart.campaign, normalizeQuoteBriefing(briefing));
+      const payload = buildQuotePayload(contact, submittedSelection.items, undefined, attempt.submittedAt, attempt.id, submittedSelection.campaign, normalizeQuoteBriefing(briefing));
       const result = await submitQuoteRequest(payload, controller.signal);
       // Alguns intermediários de rede/testes podem concluir uma resposta que
       // já estava em trânsito quando AbortController recebeu abort(). Não
@@ -240,7 +252,7 @@ export default function QuotePage() {
       // transformar o briefing do próximo titular em confirmação de sucesso.
       if (operationIsStale()) return;
       if (result.mode === 'endpoint') {
-        trackFunnelEvent('quote_submitted', { item_count: cart.items.length, has_deadline: Boolean(contact.deadline) });
+        trackFunnelEvent('quote_submitted', { item_count: submittedSelection.items.length, has_deadline: Boolean(contact.deadline) });
         let assets: { status: 'attached' | 'pending'; count: number } | undefined;
         if (result.requestId && briefingAssetIds.length && auth.user) {
           try {
@@ -260,7 +272,9 @@ export default function QuotePage() {
         requestAttemptRef.current = null;
         clearSubmissionAttempt('promo-brindes:quote-attempt');
         setSuccess({ mode: 'endpoint', requestId: result.requestId, confirmations: result.confirmations, assets });
-        cart.reset();
+        const latestSelection = latestSelectionRef.current;
+        if (JSON.stringify(latestSelection) === JSON.stringify(submittedSelection)) cart.reset();
+        else cart.replaceItems(remainingItemsAfterSubmission(submittedSelection.items, latestSelection.items));
         clearQuoteDraft();
         clearQuoteRepeat();
         setContact(EMPTY_QUOTE_CONTACT);

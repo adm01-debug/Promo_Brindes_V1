@@ -550,10 +550,44 @@ test('envio lento congela o briefing e sair da rota preserva a seleção', async
   await expect(page.getByRole('button', { name: 'Apagar rascunho' })).toBeDisabled();
   await page.getByRole('link', { name: 'Continuar escolhendo' }).click();
   await expect(page).toHaveURL(/\/catalogo$/);
+  await expect.poll(() => page.evaluate(() => sessionStorage.getItem('promo-brindes:quote-attempt'))).toBeNull();
 
   releaseSubmission();
   await page.waitForTimeout(200);
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('promo-brindes:quote-selection:v1') || '{"items":[]}').items.length)).toBe(1);
+});
+
+test('edição feita no drawer durante o envio permanece para a próxima solicitação', async ({ page }) => {
+  await page.addInitScript(({ product }) => {
+    localStorage.setItem('promo-brindes:quote-selection:v1', JSON.stringify({ items: [{
+      key: `${product.id}::sem-cor`, productId: product.id, slug: product.slug, name: product.name,
+      sku: product.sku, imageUrl: product.primary_image_url, quantity: 100, minQuantity: 50,
+    }] }));
+  }, { product });
+  let releaseSubmission: () => void = () => {};
+  const submissionRequested = new Promise<void>((resolve) => { releaseSubmission = resolve; });
+  await page.route('**/api/quote-requests', async (route) => {
+    await submissionRequested;
+    await route.fulfill({ status: 201, contentType: 'application/json', body: '{"requestId":"quote-com-edicao","duplicate":false,"confirmations":{"email":"pending","whatsapp":"not_requested"}}' });
+  });
+
+  await page.goto('/orcamento');
+  await page.locator('#name').fill('Pessoa de teste');
+  await page.locator('#company').fill('Empresa de teste');
+  await page.locator('#email').fill('pessoa@example.invalid');
+  await page.locator('#phone').fill('11999999999');
+  await page.getByRole('checkbox', { name: /Li o aviso de privacidade/ }).check();
+  await page.getByRole('button', { name: 'Enviar briefing' }).click();
+  await expect(page.getByRole('button', { name: 'Enviando…' })).toBeVisible();
+
+  await page.getByRole('button', { name: /Abrir seleção/ }).click();
+  const drawerQuantity = page.getByRole('spinbutton', { name: `Quantidade desejada de ${product.name}` });
+  await drawerQuantity.fill('250');
+  await drawerQuantity.blur();
+  releaseSubmission();
+
+  await expect(page.getByRole('heading', { name: 'Sua solicitação chegou.' })).toBeVisible();
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('promo-brindes:quote-selection:v1') || '{"items":[]}').items[0]?.quantity)).toBe(250);
 });
 
 // R08: dados pessoais e consentimento não podem sobreviver a uma troca de

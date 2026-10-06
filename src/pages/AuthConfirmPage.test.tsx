@@ -53,4 +53,13 @@ describe('confirmação de acesso do cliente', () => {
     expect(screen.getByText('IDENTIDADE VERIFICADA')).toBeVisible();
     expect(mocks.auth.claimHistory).toHaveBeenCalledTimes(1);
   });
+
+  it('mostra a falha diretamente quando a inicialização termina sem sessão', () => {
+    mocks.auth.loading = false;
+    mocks.auth.user = null;
+    render(<MemoryRouter><AuthConfirmPage /></MemoryRouter>);
+
+    expect(screen.getByRole('alert')).toHaveTextContent('ACESSO NÃO CONCLUÍDO');
+    expect(screen.queryByText('IDENTIDADE VERIFICADA')).not.toBeInTheDocument();
+  });
 });

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CustomerAuthProvider } from './CustomerAuthContext';
 import { useCustomerAuth } from './customerAuth';
@@ -8,6 +8,8 @@ const mocks = vi.hoisted(() => ({
   onAuthStateChange: vi.fn(),
   reportClientError: vi.fn(),
 }));
+
+let emitAuthState: ((event: string, session: null) => void) | undefined;
 
 vi.mock('../lib/siteSupabaseConfig', () => ({ hasSiteAuthConfiguration: () => true }));
 vi.mock('../lib/clientObservability', () => ({ reportClientError: mocks.reportClientError }));
@@ -29,7 +31,11 @@ function Probe() {
 describe('inicialização da autenticação do cliente', () => {
   beforeEach(() => {
     mocks.getSession.mockReset();
-    mocks.onAuthStateChange.mockReset().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } });
+    emitAuthState = undefined;
+    mocks.onAuthStateChange.mockReset().mockImplementation((listener: (event: string, session: null) => void) => {
+      emitAuthState = listener;
+      return { data: { subscription: { unsubscribe: vi.fn() } } };
+    });
     mocks.reportClientError.mockReset();
   });
 
@@ -56,5 +62,15 @@ describe('inicialização da autenticação do cliente', () => {
 
     expect(await screen.findByText('failed')).toBeVisible();
     expect(mocks.reportClientError).toHaveBeenCalledWith(expect.objectContaining({ message: 'invalid stored session' }));
+  });
+
+  it('não apaga a falha quando INITIAL_SESSION chega vazio após getSession falhar', async () => {
+    mocks.getSession.mockResolvedValue({ data: { session: null }, error: new Error('invalid stored session') });
+
+    render(<CustomerAuthProvider><Probe /></CustomerAuthProvider>);
+    expect(await screen.findByText('failed')).toBeVisible();
+
+    act(() => emitAuthState?.('INITIAL_SESSION', null));
+    expect(screen.getByText('failed')).toBeVisible();
   });
 });
