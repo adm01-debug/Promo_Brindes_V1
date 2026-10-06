@@ -12,10 +12,14 @@
     "scripts",
     "tests",
     "e2e",
-    "site-supabase/supabase/migrations",
-    "site-supabase/supabase/tests",
+    "shared",
     "vite.config.ts",
     "playwright.config.ts"
+  ],
+  "databaseSourceRoots": [
+    "scripts/sql",
+    "site-supabase/supabase/migrations",
+    "site-supabase/supabase/tests"
   ],
   "maxWorkers": 2,
   "queryTokenBudget": 1200,

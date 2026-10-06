@@ -56,6 +56,10 @@
     "graph:explain": "node scripts/graphify.mjs explain",
     "graph:impact": "node scripts/graphify.mjs impact",
     "graph:tree": "node scripts/graphify.mjs tree",
+    "graph:db:query": "node scripts/graphify.mjs db-query",
+    "graph:db:path": "node scripts/graphify.mjs db-path",
+    "graph:db:explain": "node scripts/graphify.mjs db-explain",
+    "graph:db:tree": "node scripts/graphify.mjs db-tree",
     "graph:benchmark": "node scripts/graphify.mjs benchmark",
     "graph:compare": "node scripts/graphify.mjs compare",
     "test:graphify": "node --test tests/graphify-tools.node.mjs"

@@ -1,5 +1,9 @@
 # Índice de planos e aceites
 
+## Programa Carnegie de experiência — 05 de outubro de 2026
+
+O [plano Carnegie de UX em 100 etapas](PLANO_CARNEGIE_UX_100_ETAPAS_20261005.md) traduz princípios de escuta, reconhecimento, autonomia e relacionamento em entregas verificáveis para descoberta, catálogo, produto, seleção, briefing e pós-solicitação. Ele é um plano de implementação, não evidência de que as etapas foram concluídas: cada lote continua sujeito a aprovação visual, testes, fontes de conteúdo e dependências operacionais próprias. A reconciliação futura deve atualizar a matriz requisito por requisito, sem alterar retroativamente as contagens históricas abaixo.
+
 ## Plano de fechamento de 01 de outubro de 2026
 
 O [novo plano de fechamento em 100 etapas](PLANO_FECHAMENTO_100_ETAPAS_20261001.md) organiza correções, entregas parciais, homologação e dependências externas sobre a base `cfb33e4`. Inclui critérios de aceite, cenários adversos, responsáveis por função, dependências e correspondência com os planos anteriores. O documento nasceu como planejamento; a [execução técnica parcial de 01/10](EXECUCAO_PLANO_FECHAMENTO_20261001.md) registra separadamente o lote já implementado e seus limites. Nenhum desses registros promove sozinho estados do ledger nem autoriza mudanças no Promo Gifts ou ativação de integrações adiadas.

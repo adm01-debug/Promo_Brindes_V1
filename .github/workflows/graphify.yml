@@ -62,8 +62,14 @@ jobs:
           BASE_WORKTREE: ${{ runner.temp }}/promo-brindes-base
         run: |
           git worktree add --detach "$BASE_WORKTREE" "$BASE_SHA"
-          (cd "$BASE_WORKTREE" && node scripts/graphify.mjs build)
+          (cd "$BASE_WORKTREE" && npm ci --ignore-scripts --prefer-offline)
+          (cd "$BASE_WORKTREE" && npm run graph:build)
           npm run graph:compare -- --base "$BASE_WORKTREE/graphify-out/graph.json" --head graphify-out/graph.json --output graphify-out/BASE_HEAD_REPORT.md
+          if [[ -f "$BASE_WORKTREE/graphify-out/database/graph.json" && -f graphify-out/database/graph.json ]]; then
+            npm run graph:compare -- --base "$BASE_WORKTREE/graphify-out/database/graph.json" --head graphify-out/database/graph.json --output graphify-out/BASE_HEAD_DATABASE_REPORT.md
+          else
+            printf '%s\n' '# Comparação do grafo de banco' '' 'O snapshot base ainda não possui o corpus SQL separado; a comparação será obrigatória a partir da próxima revisão.' > graphify-out/BASE_HEAD_DATABASE_REPORT.md
+          fi
       - name: Upload safe local map
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

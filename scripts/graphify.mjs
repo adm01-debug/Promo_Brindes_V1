@@ -2,9 +2,26 @@
 
 import crypto from 'node:crypto';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync, spawnSync } from 'node:child_process';
+import {
+  enrichTypeScriptReferences,
+  normalizeGraphReport,
+  splitGraphSourceFiles,
+  stageCorpusFiles,
+  validateSeparatedCorpora,
+} from './graphify-quality.mjs';
+
+export {
+  enrichTypeScriptReferences,
+  normalizeGraphReport,
+  projectGapMetrics,
+  splitGraphSourceFiles,
+  stageCorpusFiles,
+  validateSeparatedCorpora,
+} from './graphify-quality.mjs';
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = fs.realpathSync(path.resolve(SCRIPT_DIR, '..'));
@@ -12,6 +29,13 @@ const LOCK_PATH = path.join(PROJECT_ROOT, '.graphify-work', 'build.lock');
 const COMMAND = process.argv[2] ?? 'help';
 const COMMAND_ARGS = process.argv.slice(3);
 const CODE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.sql']);
+export const GRAPH_FINGERPRINT_CONFIG_FILES = Object.freeze([
+  '.graphify.project.json',
+  '.graphifyignore',
+  '.graphifyrc',
+  'package.json',
+  'package-lock.json',
+]);
 const SAFE_GRAPH_FILES = new Set([
   'graph.json',
   'graph.html',
@@ -23,6 +47,7 @@ const SAFE_GRAPH_FILES = new Set([
   '.graphify_analysis.json',
   'project-meta.json',
 ]);
+const SAFE_GRAPH_DIRECTORIES = new Set(['database']);
 const SENSITIVE_PATTERNS = [
   { name: 'Supabase personal access token', pattern: /sbp_[A-Za-z0-9_]{16,}/i },
   { name: 'GitHub token', pattern: /gh[pousr]_[A-Za-z0-9_]{20,}/i },
@@ -33,6 +58,10 @@ const SENSITIVE_PATTERNS = [
   { name: 'generic secret assignment', pattern: /(?:api[_-]?key|secret|password)\s*[=:]\s*["'][^"'\s]{12,}/i },
   { name: 'personal absolute path', pattern: /\/(?:home|Users)\/[A-Za-z0-9_.-]+\// },
 ];
+
+function compareText(left, right) {
+  return left.localeCompare(right, 'en-US');
+}
 
 export function assertSafeRoot(root = PROJECT_ROOT) {
   const realRoot = fs.realpathSync(root);
@@ -57,6 +86,7 @@ export function readProjectConfig(root = PROJECT_ROOT) {
   }
   if (config.mode !== 'code-only') throw new Error('Configuração Graphify inválida: somente mode=code-only é permitido na automação.');
   if (!Array.isArray(config.sourceRoots) || config.sourceRoots.length === 0) throw new Error('Configuração Graphify inválida: sourceRoots.');
+  if (!Array.isArray(config.databaseSourceRoots) || config.databaseSourceRoots.length === 0) throw new Error('Configuração Graphify inválida: databaseSourceRoots.');
   if (!Number.isInteger(config.maxWorkers) || config.maxWorkers < 1 || config.maxWorkers > 8) throw new Error('Configuração Graphify inválida: maxWorkers deve estar entre 1 e 8.');
   return config;
 }
@@ -98,19 +128,25 @@ function ensureGraphExists(config) {
   return graphPath;
 }
 
+function ensureDatabaseGraphExists(config) {
+  const graphPath = path.join(graphDirectory(config), 'database', 'graph.json');
+  if (!fs.existsSync(graphPath)) throw new Error('Mapa de banco ausente. Execute `npm run graph:build` primeiro.');
+  return graphPath;
+}
+
 function ensureWithinRoot(root, candidate) {
   const relative = path.relative(root, candidate);
   if (relative === '' || (!relative.startsWith(`..${path.sep}`) && relative !== '..' && !path.isAbsolute(relative))) return;
   throw new Error(`Caminho fora da raiz recusado: ${candidate}`);
 }
 
-function listSourceFiles(root, config) {
+function listSourceFiles(root, roots) {
   const tracked = execFileSync('git', ['ls-files', '-co', '--exclude-standard', '-z'], { cwd: root, encoding: 'buffer' })
     .toString('utf8')
     .split('\0')
     .filter(Boolean)
-    .sort();
-  const allowedRoots = config.sourceRoots.map((entry) => entry.replace(/\\/g, '/').replace(/\/$/, ''));
+    .sort(compareText);
+  const allowedRoots = roots.map((entry) => entry.replace(/\\/g, '/').replace(/\/$/, ''));
   return tracked.filter((relative) => {
     const normalized = relative.replace(/\\/g, '/');
     const isAllowed = allowedRoots.some((allowed) => normalized === allowed || normalized.startsWith(`${allowed}/`));
@@ -124,7 +160,7 @@ function listSourceFiles(root, config) {
 
 export function fingerprintEntries(entries, readFile) {
   const hash = crypto.createHash('sha256');
-  for (const entry of [...entries].sort()) {
+  for (const entry of [...entries].sort(compareText)) {
     hash.update(entry);
     hash.update('\0');
     hash.update(readFile(entry));
@@ -134,11 +170,20 @@ export function fingerprintEntries(entries, readFile) {
 }
 
 function sourceFingerprint(root, config) {
-  const entries = listSourceFiles(root, config);
-  const configFiles = ['.graphify.project.json', '.graphifyignore', '.graphifyrc'];
+  const configuredFiles = [...new Set([
+    ...listSourceFiles(root, config.sourceRoots),
+    ...listSourceFiles(root, config.databaseSourceRoots),
+  ])].sort(compareText);
+  const { main: mainFiles, database: databaseFiles } = splitGraphSourceFiles(configuredFiles);
+  const entries = [...mainFiles, ...databaseFiles].sort(compareText);
   return {
     files: entries,
-    hash: fingerprintEntries([...entries, ...configFiles], (relative) => fs.readFileSync(path.join(root, relative))),
+    mainFiles,
+    databaseFiles,
+    // The TypeScript compiler is part of the graph extractor. Hashing both
+    // dependency manifests invalidates an artifact when its parser version or
+    // resolved dependency tree changes even if application sources do not.
+    hash: fingerprintEntries([...entries, ...GRAPH_FINGERPRINT_CONFIG_FILES], (relative) => fs.readFileSync(path.join(root, relative))),
   };
 }
 
@@ -171,7 +216,7 @@ function graphNodeIds(graph) {
 
 function graphEdges(graph) {
   return new Set(graph.links.map((link) => {
-    const endpoints = graph.directed ? [link.source, link.target] : [link.source, link.target].sort();
+    const endpoints = graph.directed ? [link.source, link.target] : [link.source, link.target].sort(compareText);
     return endpoints.join('\u0000');
   }));
 }
@@ -181,7 +226,7 @@ function graphSourceFiles(graph) {
 }
 
 function difference(left, right) {
-  return [...left].filter((value) => !right.has(value)).sort();
+  return [...left].filter((value) => !right.has(value)).sort(compareText);
 }
 
 /**
@@ -284,7 +329,12 @@ export function findSensitiveArtifacts(directory) {
 
 function removeUnsafeCandidateArtifacts(candidateDirectory) {
   for (const entry of fs.readdirSync(candidateDirectory)) {
-    if (!SAFE_GRAPH_FILES.has(entry)) fs.rmSync(path.join(candidateDirectory, entry), { recursive: true, force: true });
+    const target = path.join(candidateDirectory, entry);
+    if (SAFE_GRAPH_DIRECTORIES.has(entry) && fs.statSync(target).isDirectory()) {
+      removeUnsafeCandidateArtifacts(target);
+      continue;
+    }
+    if (!SAFE_GRAPH_FILES.has(entry)) fs.rmSync(target, { recursive: true, force: true });
   }
 }
 
@@ -311,7 +361,7 @@ function releaseLock() {
   fs.rmSync(LOCK_PATH, { force: true });
 }
 
-function writeProjectMeta(candidateDirectory, config, health, fingerprint) {
+function writeProjectMeta(candidateDirectory, config, health, fingerprint, { databaseHealth, typeReferences, reportMetrics }) {
   const metadata = {
     schemaVersion: 1,
     project: config.project,
@@ -321,7 +371,14 @@ function writeProjectMeta(candidateDirectory, config, health, fingerprint) {
     mode: config.mode,
     sourceFingerprint: fingerprint.hash,
     sourceFileCount: fingerprint.files.length,
+    mainSourceFileCount: fingerprint.mainFiles.length,
+    databaseSourceFileCount: fingerprint.databaseFiles.length,
     graph: health,
+    databaseGraph: databaseHealth,
+    enrichment: {
+      typeReferences,
+    },
+    reportMetrics,
     safety: {
       usesNetwork: false,
       usesAiProvider: false,
@@ -333,41 +390,95 @@ function writeProjectMeta(candidateDirectory, config, health, fingerprint) {
   fs.writeFileSync(path.join(candidateDirectory, 'project-meta.json'), `${JSON.stringify(metadata, null, 2)}\n`);
 }
 
-function promoteCandidate(candidateDirectory, config) {
-  const outputDirectory = graphDirectory(config);
+export function promoteCandidate(candidateDirectory, outputDirectory) {
+  const outputParent = path.dirname(outputDirectory);
   const backupDirectory = `${outputDirectory}.previous`;
+  // The extracted corpus deliberately lives under the operating-system temp
+  // directory so repository ignore rules cannot prune it. Copy the validated
+  // result back beside the final destination before the atomic rename; a
+  // direct rename from TMPDIR can fail with EXDEV on bind mounts/CI runners.
+  const stagingRoot = fs.mkdtempSync(path.join(outputParent, '.graphify-promote-'));
+  const stagedDirectory = path.join(stagingRoot, path.basename(outputDirectory));
   fs.rmSync(backupDirectory, { recursive: true, force: true });
   const hadPrevious = fs.existsSync(outputDirectory);
   try {
+    fs.cpSync(candidateDirectory, stagedDirectory, { recursive: true, errorOnExist: true, force: false });
     if (hadPrevious) fs.renameSync(outputDirectory, backupDirectory);
-    fs.renameSync(candidateDirectory, outputDirectory);
+    fs.renameSync(stagedDirectory, outputDirectory);
     if (hadPrevious) fs.rmSync(backupDirectory, { recursive: true, force: true });
   } catch (error) {
     if (!fs.existsSync(outputDirectory) && fs.existsSync(backupDirectory)) fs.renameSync(backupDirectory, outputDirectory);
     throw error;
+  } finally {
+    fs.rmSync(stagingRoot, { recursive: true, force: true });
   }
 }
 
 function build() {
   const root = assertSafeRoot();
   const config = readProjectConfig(root);
-  const workDirectory = acquireLock(config);
-  const candidateRoot = fs.mkdtempSync(path.join(workDirectory, 'candidate-'));
-  const candidateDirectory = path.join(candidateRoot, config.outputDirectory);
+  acquireLock(config);
+  // O corpus temporário fica fora da árvore do repositório para que regras de
+  // ignore do próprio projeto não possam ocultar os arquivos explicitamente
+  // selecionados pelo wrapper.
+  const candidateRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'promo-brindes-graphify-'));
   try {
     console.log('Graphify: extração estrutural local (sem IA, rede ou Supabase).');
-    run(graphifyCommand(), ['extract', '.', '--code-only', '--out', candidateRoot, '--max-workers', String(config.maxWorkers)]);
-    run(graphifyCommand(), ['cluster-only', candidateRoot, '--no-label']);
+    const fingerprint = sourceFingerprint(root, config);
+    const separated = splitGraphSourceFiles([...fingerprint.mainFiles, ...fingerprint.databaseFiles]);
+    if (!separated.main.length || !separated.database.length) throw new Error('Corpus Graphify inválido: mapas principal e de banco exigem arquivos.');
+
+    const mainCorpus = path.join(candidateRoot, 'corpus-main');
+    const databaseCorpus = path.join(candidateRoot, 'corpus-database');
+    stageCorpusFiles(root, mainCorpus, separated.main);
+    stageCorpusFiles(root, databaseCorpus, separated.database);
+
+    const mainOutput = path.join(candidateRoot, 'main-output');
+    const databaseOutput = path.join(candidateRoot, 'database-output');
+    run(graphifyCommand(), ['extract', mainCorpus, '--code-only', '--out', mainOutput, '--max-workers', String(config.maxWorkers)]);
+    const candidateDirectory = path.join(mainOutput, config.outputDirectory);
+    const typeReferences = enrichTypeScriptReferences(
+      path.join(candidateDirectory, 'graph.json'),
+      mainCorpus,
+      separated.main,
+    );
+    run(graphifyCommand(), ['cluster-only', mainOutput, '--no-label']);
+    const reportMetrics = normalizeGraphReport(
+      path.join(candidateDirectory, 'GRAPH_REPORT.md'),
+      path.join(candidateDirectory, 'graph.json'),
+      { title: 'Promo Brindes V1 — aplicação', updateCommand: 'npm run graph:update' },
+    );
     run(graphifyCommand(), ['tree', '--graph', path.join(candidateDirectory, 'graph.json'), '--output', path.join(candidateDirectory, 'GRAPH_TREE.html'), '--root', '.', '--label', 'Promo Brindes V1']);
+
+    run(graphifyCommand(), ['extract', databaseCorpus, '--code-only', '--out', databaseOutput, '--max-workers', String(config.maxWorkers)]);
+    const generatedDatabaseDirectory = path.join(databaseOutput, config.outputDirectory);
+    run(graphifyCommand(), ['cluster-only', databaseOutput, '--no-label']);
+    normalizeGraphReport(
+      path.join(generatedDatabaseDirectory, 'GRAPH_REPORT.md'),
+      path.join(generatedDatabaseDirectory, 'graph.json'),
+      { title: 'Promo Brindes V1 — migrations e pgTAP', updateCommand: 'npm run graph:update' },
+    );
+    run(graphifyCommand(), ['tree', '--graph', path.join(generatedDatabaseDirectory, 'graph.json'), '--output', path.join(generatedDatabaseDirectory, 'GRAPH_TREE.html'), '--root', '.', '--label', 'Promo Brindes V1 — banco']);
+
+    removeUnsafeCandidateArtifacts(generatedDatabaseDirectory);
+    const databaseDirectory = path.join(candidateDirectory, 'database');
+    fs.renameSync(generatedDatabaseDirectory, databaseDirectory);
     removeUnsafeCandidateArtifacts(candidateDirectory);
     const graph = JSON.parse(fs.readFileSync(path.join(candidateDirectory, 'graph.json'), 'utf8'));
+    const databaseGraph = JSON.parse(fs.readFileSync(path.join(databaseDirectory, 'graph.json'), 'utf8'));
     const health = validateGraph(graph, root);
-    const fingerprint = sourceFingerprint(root, config);
-    writeProjectMeta(candidateDirectory, config, health, fingerprint);
+    const databaseHealth = validateGraph(databaseGraph, root);
+    validateSeparatedCorpora(graph, databaseGraph);
+    writeProjectMeta(candidateDirectory, config, health, fingerprint, {
+      databaseHealth,
+      typeReferences,
+      reportMetrics,
+    });
     const sensitive = findSensitiveArtifacts(candidateDirectory);
     if (sensitive.length > 0) throw new Error(`Promoção bloqueada: conteúdo sensível ou caminho pessoal detectado em ${sensitive.map((item) => `${item.file} (${item.kind})`).join(', ')}.`);
-    promoteCandidate(candidateDirectory, config);
-    console.log(`Grafo promovido: ${health.nodes} nós, ${health.links} relações${health.directed ? ', direcionado.' : ', não direcionado (impacto = vizinhança, não causalidade).'} `);
+    promoteCandidate(candidateDirectory, graphDirectory(config));
+    console.log(`Grafo principal promovido: ${health.nodes} nós, ${health.links} relações; ${typeReferences.typeReferenceEdgesAdded} referências TypeScript.`);
+    console.log(`Grafo de banco promovido: ${databaseHealth.nodes} nós, ${databaseHealth.links} relações.`);
     console.log(`Abra ${path.join(config.outputDirectory, 'graph.html')} ou ${path.join(config.outputDirectory, 'GRAPH_TREE.html')} localmente.`);
   } finally {
     fs.rmSync(candidateRoot, { recursive: true, force: true });
@@ -380,7 +491,7 @@ function status({ strict = false } = {}) {
   const config = readProjectConfig(root);
   const outputDirectory = graphDirectory(config);
   const metaPath = path.join(outputDirectory, 'project-meta.json');
-  if (!fs.existsSync(metaPath) || !fs.existsSync(path.join(outputDirectory, 'graph.json'))) {
+  if (!fs.existsSync(metaPath) || !fs.existsSync(path.join(outputDirectory, 'graph.json')) || !fs.existsSync(path.join(outputDirectory, 'database', 'graph.json'))) {
     console.log('Graphify: AUSENTE — execute `npm run graph:build`.');
     if (strict) process.exitCode = 1;
     return;
@@ -390,6 +501,10 @@ function status({ strict = false } = {}) {
   try {
     metadata = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
     health = validateGraph(JSON.parse(fs.readFileSync(path.join(outputDirectory, 'graph.json'), 'utf8')), root);
+    const databaseHealth = validateGraph(JSON.parse(fs.readFileSync(path.join(outputDirectory, 'database', 'graph.json'), 'utf8')), root);
+    if (metadata.databaseGraph?.nodes !== databaseHealth.nodes || metadata.databaseGraph?.links !== databaseHealth.links) {
+      throw new Error('metadados do mapa de banco não conferem');
+    }
   } catch (error) {
     console.log(`Graphify: INVÁLIDO — ${error.message}`);
     if (strict) process.exitCode = 1;
@@ -409,6 +524,7 @@ function status({ strict = false } = {}) {
     return;
   }
   console.log(`Graphify: ATUAL — ${health.nodes} nós, ${health.links} relações; commit de origem ${metadata.commit}.`);
+  console.log(`Banco separado: ${metadata.databaseGraph.nodes} nós, ${metadata.databaseGraph.links} relações; TypeScript: ${metadata.enrichment?.typeReferences?.typeReferenceEdgesAdded ?? 0} referências.`);
   if (!health.directed) console.log('Limite conhecido: o grafo é não direcionado; use impacto como vizinhança técnica, não como prova de causalidade.');
 }
 
@@ -424,6 +540,8 @@ export function normalizeQuery(raw) {
     catalogo: 'catalog',
     cliente: 'customer',
     login: 'auth customer',
+    'sessão': 'auth signOut CustomerAuthContext',
+    sessao: 'auth signOut CustomerAuthContext',
     busca: 'search',
     filtros: 'filters catalog',
     'e-mail': 'email notification',
@@ -496,11 +614,11 @@ function benchmark() {
   console.log(`Graphify: benchmark estrutural aprovado (${results.length}/${results.length}); relatório em ${path.relative(PROJECT_ROOT, output)}.`);
 }
 
-function query() {
+function query({ database = false } = {}) {
   const config = readProjectConfig();
-  const graphPath = ensureGraphExists(config);
+  const graphPath = database ? ensureDatabaseGraphExists(config) : ensureGraphExists(config);
   const question = normalizeQuery(COMMAND_ARGS.join(' '));
-  console.log(`Consulta expandida: ${question}`);
+  console.log(`${database ? 'Consulta de banco' : 'Consulta'} expandida: ${question}`);
   run(graphifyCommand(), ['query', question, '--budget', String(config.queryTokenBudget), '--graph', graphPath]);
 }
 
@@ -607,9 +725,9 @@ export function explainGraphNode(graph, subject) {
   };
 }
 
-function inspectGraph(mode) {
+function inspectGraph(mode, { database = false } = {}) {
   const config = readProjectConfig();
-  const graph = JSON.parse(fs.readFileSync(ensureGraphExists(config), 'utf8'));
+  const graph = JSON.parse(fs.readFileSync(database ? ensureDatabaseGraphExists(config) : ensureGraphExists(config), 'utf8'));
   const location = (node) => `${node.label || node.id} — ${node.source_file || 'origem não informada'} ${node.source_location || ''}`.trim();
   console.log('Mapa estrutural: relações não comprovam comportamento, causalidade ou publicação.');
   if (mode === 'path') {
@@ -626,10 +744,11 @@ function inspectGraph(mode) {
   if (result.connections.length > 40) console.log(`${result.connections.length - 40} conexões omitidas; consulte graph.json para a lista completa.`);
 }
 
-function tree() {
+function tree({ database = false } = {}) {
   const config = readProjectConfig();
-  const graphPath = ensureGraphExists(config);
-  run(graphifyCommand(), ['tree', '--graph', graphPath, '--output', path.join(graphDirectory(config), 'GRAPH_TREE.html'), '--root', '.', '--label', 'Promo Brindes V1']);
+  const graphPath = database ? ensureDatabaseGraphExists(config) : ensureGraphExists(config);
+  const output = database ? path.join(graphDirectory(config), 'database', 'GRAPH_TREE.html') : path.join(graphDirectory(config), 'GRAPH_TREE.html');
+  run(graphifyCommand(), ['tree', '--graph', graphPath, '--output', output, '--root', '.', '--label', database ? 'Promo Brindes V1 — banco' : 'Promo Brindes V1']);
 }
 
 function doctor() {
@@ -647,7 +766,7 @@ function doctor() {
 }
 
 function help() {
-  console.log('Uso: node scripts/graphify.mjs <doctor|build|update|status|check|query|path|explain|impact|tree|benchmark|compare> [texto]');
+  console.log('Uso: node scripts/graphify.mjs <doctor|build|update|status|check|query|path|explain|impact|tree|db-query|db-path|db-explain|db-tree|benchmark|compare> [texto]');
   console.log('A automação é code-only, local e não acessa Supabase.');
 }
 
@@ -663,6 +782,10 @@ function main() {
     case 'explain': return inspectGraph('explain');
     case 'impact': return impact();
     case 'tree': return tree();
+    case 'db-query': return query({ database: true });
+    case 'db-path': return inspectGraph('path', { database: true });
+    case 'db-explain': return inspectGraph('explain', { database: true });
+    case 'db-tree': return tree({ database: true });
     case 'benchmark': return benchmark();
     case 'compare': return compare();
     case 'help': return help();
