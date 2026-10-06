@@ -6217,6 +6217,10 @@ form.catalog-search > .search-suggestions.is-open { display: grid; pointer-event
 .customer-auth-tabs button { min-height: 42px; border: 0; border-radius: 999px; background: transparent; font: inherit; font-size: .75rem; font-weight: 800; cursor: pointer; }
 .customer-auth-tabs button[aria-pressed='true'] { color: var(--white); background: var(--ink); }
 .customer-auth-card form { display: grid; gap: 18px; }
+.submission-lock { min-inline-size: 0; width: 100%; margin: 0; }
+.submission-lock:not(.quote-items) { padding: 0; border: 0; }
+.customer-auth-card .submission-lock { display: grid; gap: 18px; }
+.submission-lock:disabled { opacity: 1; }
 .customer-auth-card .form-field input, .customer-password .form-field input { width: 100%; height: 52px; padding: 0 15px; border: 1.5px solid var(--ink); border-radius: 12px; background: var(--white); font: inherit; }
 .password-field { position: relative; }
 .password-field input { padding-right: 54px !important; }

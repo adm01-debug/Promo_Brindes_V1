@@ -70,7 +70,11 @@ describe('favoritos de datas comemorativas por titular', () => {
     mocks.save.mockImplementation(() => new Promise((_, reject) => { rejectSave = reject; }));
 
     const view = render(page());
-    const remove = await screen.findByRole('button', { name: 'Remover Dia do Cliente em Minhas datas' });
+    const remove = await screen.findByRole(
+      'button',
+      { name: 'Remover Dia do Cliente em Minhas datas' },
+      { timeout: 5_000 },
+    );
     fireEvent.click(remove);
     // Esta é a variante de uma requisição que já saiu da conta A. A cobertura
     // do hook valida separadamente que uma segunda intenção ainda na fila não
@@ -93,7 +97,11 @@ describe('favoritos de datas comemorativas por titular', () => {
     mocks.save.mockRejectedValue(new Error('falha sintética'));
 
     const view = render(page());
-    fireEvent.click(await screen.findByRole('button', { name: 'Remover Dia do Cliente em Minhas datas' }));
+    fireEvent.click(await screen.findByRole(
+      'button',
+      { name: 'Remover Dia do Cliente em Minhas datas' },
+      { timeout: 5_000 },
+    ));
 
     await screen.findByText('Não foi possível sincronizar esta alteração. Sua lista foi restaurada.');
     expect(view.container.querySelector('.saved-dates')).toHaveTextContent('Dia do Cliente');

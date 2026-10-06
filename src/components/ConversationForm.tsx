@@ -92,7 +92,8 @@ export function ConversationForm() {
         <h2 id="conversation-title">Quer impressionar seu público? <em>Vamos conversar.</em></h2>
         <p className="conversation-section__lead">Traga a intenção da campanha. A gente ajuda a transformar contexto, prazo e verba em uma curadoria com personalidade.</p>
 
-        <form ref={formRef} className="conversation-form" onSubmit={(event) => void submit(event)} noValidate>
+        <form ref={formRef} className="conversation-form" onSubmit={(event) => void submit(event)} noValidate aria-busy={sending}>
+          <fieldset className="submission-lock" disabled={sending}>
           <div className="honeypot" aria-hidden="true"><label>Website<input value={website} onChange={(event) => setWebsite(event.target.value)} autoComplete="off" tabIndex={-1} /></label></div>
           <div className="conversation-form__fields">
             <div className="conversation-field">
@@ -132,9 +133,10 @@ export function ConversationForm() {
           {errors.privacyAccepted && <span id="conversation-privacy-error" className="conversation-field__error conversation-consent__error">{errors.privacyAccepted}</span>}
           {submitError && <div className="conversation-form__message is-error" role="alert">{submitError}</div>}
           {success && <div className="conversation-form__message" role="status"><CheckCircle2 size={18} /> {success}</div>}
-          <button className="conversation-form__submit" type="submit" disabled={sending}>
+          <button className="conversation-form__submit" type="submit">
             {sending ? 'Enviando…' : <>Falar com a Promo <ArrowRight size={17} /></>}
           </button>
+          </fieldset>
         </form>
         <p className="conversation-section__footnote">Coisas incríveis acontecem quando as pessoas certas se encontram.</p>
       </div>

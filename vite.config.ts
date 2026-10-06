@@ -24,6 +24,8 @@ export default defineConfig({
   preview: { host: true, port: 4175 },
   build: {
     target: 'es2022',
+    modulePreload: { polyfill: false },
+    rollupOptions: { output: { hashCharacters: 'hex' } },
     sourcemap: process.env.VITE_BUILD_SOURCEMAP === 'true',
     cssCodeSplit: true,
     // O manifest permite distinguir o JavaScript inicial dos chunks lazy no
