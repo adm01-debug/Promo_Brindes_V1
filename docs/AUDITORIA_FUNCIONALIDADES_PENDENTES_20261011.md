@@ -13,8 +13,8 @@ Levantamento exaustivo de tudo o que foi **planejado** para o site Promo Brindes
 
 ## Limites desta auditoria (o que NÃO foi verificado)
 
-- **Testes não executados.** O clone não tinha `node_modules`; Vitest, Playwright, `tsc` e pgTAP não rodaram. Afirmações sobre testes vêm da leitura do código e dos runs de CI no GitHub.
-- **Graphify indisponível.** `npm run graph:status` falha sem `node_modules` (`ERR_MODULE_NOT_FOUND: typescript`, `scripts/graphify-quality.mjs:3`). A auditoria usou leitura direta, como o `AGENTS.md` prevê quando o grafo está ausente. Isso por si é um achado (ver PF-106).
+- **Suíte de testes não executada localmente.** Vitest, Playwright, `tsc` e pgTAP não rodaram por completo nesta auditoria; só o arquivo de teste de PF-128 foi executado. Afirmações sobre testes vêm da leitura do código e dos runs de CI no GitHub (na PR desta auditoria, o CI rodou 459 testes Vitest: 458 passaram e 1 falhou por PF-128).
+- **Graphify.** Na primeira passagem o grafo estava ausente e todos os comandos `graph:*` falhavam sem `node_modules` (`ERR_MODULE_NOT_FOUND: typescript`, `scripts/graphify-quality.mjs:3`; ver PF-106), e a varredura foi feita por leitura direta. Depois, com `npm ci` e `requirements-graphify.txt` instalados, `npm run graph:update` reconstruiu o grafo (`graph:status` = ATUAL em `40482b4`: 1.491 nós e 4.174 relações no mapa principal; 386 nós e 320 relações no de banco). As consultas `graph:impact` confirmaram os achados de código morto (PF-75, PF-112). O mapa de banco não representa funções SQL como nós (`graph:db:explain erase_customer_data` → "nó não encontrado"), então as conclusões sobre RPCs e migrations continuam apoiadas em leitura direta e `grep`.
 - **Variáveis de ambiente da Vercel não lidas** (API respondeu 403). A ausência de `RESEND_*`, `WHATSAPP_*`, `OPERATIONS_ALERT_*` e `SITE_SUPABASE_SERVICE_JWT` em produção é **inferida** pelos logs (cron de notificações sem nenhum log em 72 h) e pela decisão registrada em `docs/EXECUCAO_PLANO_FECHAMENTO_20261001.md:65-66`.
 - **Banco remoto não consultado.** O estado do Supabase isolado (`xlzmclcjdncjfdrjxclt`) e do canônico vem de documentos datados (`AUDITORIA.md` 24/09, `UX_AUDIT_REPORT.md` 05/10) e dos runs do `release.yml`.
 - **Promo Gifts (sistema interno) fora do escopo**, conforme `AGENTS.md`. Itens dele aparecem só como dependência externa.
@@ -196,7 +196,7 @@ Cada item junta todas as origens que pedem a mesma coisa. "Origens" usa: **MZ** 
 
 | ID | Funcionalidade planejada | Estado | O que falta | Evidência | Origens | Quem |
 | --- | --- | --- | --- | --- | --- | --- |
-| PF-77 | Fluxo versionado de aplicação de migrations, com recibo | NÃO INICIADO | Nenhum workflow aplica migrations; `20261001130320` e `20261006134751` chegaram ao remoto sem registro de quem/quando | `database.yml` (só local); `release.yml:77-106` (só lê o ledger) | FE 021, 092; WF 90 | ENG + DONO |
+| PF-77 | Fluxo versionado de aplicação de migrations, com recibo | NÃO INICIADO | Nenhum workflow do repositório aplica migrations; `20261001130320` e `20261006134751` estão no ledger remoto sem registro de quem/quando. O `RUNBOOK_RELEASE.md:11` atribui a aplicação à integração Supabase↔GitHub, externa ao repositório e não verificada aqui | `database.yml` (só local); `release.yml:77-106` (só lê o ledger) | FE 021, 092; WF 90 | ENG + DONO |
 | PF-78 | Diff integral de schema/ACL remoto e Security Advisor recorrente | PARCIAL / NÃO INICIADO | Só ACL dos favoritos foi tratada; `db lint` só local | `20260927103000_harden_occasion_favorites_rpc_acl.sql:6-10`; `database.yml:48` | P16:31, P16:48; P23:36; P24:20 | ENG |
 | PF-79 | API usando os tipos gerados; inventário de contratos JSON | PARCIAL | 42 RPCs tipadas, mas retornos `Json` e `api/` não importa os tipos | 0 ocorrências de `site-database.types` em `api/` | FE 023; P16:21; P17:23; P23:21; P24:19 | ENG |
 | PF-80 | Contratos documentados coerentes | DIVERGÊNCIA | `purge_site_admin_audit_log` (real: `…_logs`), `get_site_storage_retention_candidates` (não existe), função legada descrita como usada, 400 × 500 nos webhooks, `SITE_SUPABASE_SETUP.md` ("18 versões", "security invoker"), portal "sem policy em `storage.objects`" | `DATABASE_FUNCTION_CONTRACTS.md:42,49,50,65`; `SITE_SUPABASE_SETUP.md:28,116`; `CUSTOMER_PORTAL_IMPLEMENTATION_20260909.md:58` | anexo 07 §4 | ENG |
@@ -240,6 +240,7 @@ Cada item junta todas as origens que pedem a mesma coisa. "Origens" usa: **MZ** 
 | PF-103 | Matriz requisito/risco → camada de teste; cenários adversos (token expira durante upload; duas máquinas editam campanha) | NÃO INICIADO | — | — | FE 076–077 | ENG |
 | PF-104 | Acessibilidade manual e dispositivos físicos | BLOQUEADO | Leitor de tela, zoom 200/400%, iOS/Android reais | só axe automatizado | MZ UX94, UX95, LK46; FE 063–064; CA 093 | PESSOAS |
 | PF-105 | Pesquisa com compradores reais | BLOQUEADO | Roteiro, recrutamento (5–8), consentimento | nenhum artefato de pesquisa em `docs/` | MZ UX11, UX20, UX21, UX54, UX64, UX91, LK02, LK05, LK09, LK42; FE 061–062; CA 006, 097 | PESSOAS |
+| PF-128 | **Teste com data fixa vencida quebra o CI de todas as PRs** | DIVERGÊNCIA (bug de teste) | O teste "usa token opaco persistente…" fixa `expiresAt: '2026-10-11T12:00:00.000Z'`; desde então `managedSharedSelectionToken` trata o token como vencido e retorna `null`. Trocar por data relativa a `Date.now()` (3 ocorrências, só no teste). Até lá nenhuma PR fica verde e o release não promove | `src/lib/sharedSelection.test.ts:115,116,128`; `src/lib/sharedSelection.ts:173-175`; reproduzido localmente (`npx vitest run src/lib/sharedSelection.test.ts`: 1 falha em 13) e no CI da PR desta auditoria | — (introduzido em #29, 22/09) | ENG |
 
 ### 2.13 Graphify (mapa de código)
 
@@ -287,7 +288,7 @@ Itens prometidos em `PLANO_UX_100`, `FREESHOP_BENCHMARK`, `LUKKA_BENCHMARK`, `RE
 | # | Decisão | Itens destravados | Recomendação técnica | Custo/risco |
 | --- | --- | --- | --- | --- |
 | D1 | **Para onde vai o lead** (CRM/canal interno) e quem responde | PF-01, PF-02, PF-05, PF-06, PF-16, PF-25 | Bitrix24 (já é o CRM central) recebendo via webhook no N8N existente, com aviso no WhatsApp interno pela Evolution (`wpp2`) | Sem custo novo de ferramenta; ~3–5 dias de engenharia |
-| D2 | Ligar Resend e WhatsApp Cloud | PF-07, PF-08, PF-09, PF-14, PF-15 | Resend primeiro (domínio próprio), com corte de backlog (PF-11) antes; WhatsApp depois do template aprovado | Resend tem plano gratuito até ~3 mil e-mails/mês; Meta cobra por conversa |
+| D2 | Ligar Resend e WhatsApp Cloud | PF-07, PF-08, PF-09, PF-14, PF-15 | Resend primeiro (domínio próprio), com corte de backlog (PF-11) antes; WhatsApp depois do template aprovado | Resend tem plano gratuito até ~3 mil e-mails/mês; a Meta cobra por mensagem de template entregue, conforme a categoria (utilidade, marketing, autenticação) e o país do destinatário |
 | D3 | Domínio oficial | PF-59, PF-60 | Definir apex + www e apontar canonical/sitemap/CSP | Registro de domínio, se ainda não houver |
 | D4 | Meta de recuperação (RPO/RTO) e PITR | PF-86 | RPO 24 h / RTO 4 h como ponto de partida; backup diário do Storage | PITR é add-on pago no Supabase |
 | D5 | Segundo revisor de PR | PF-69, PF-70 | Um revisor técnico (pode ser terceirizado) ou aceitar formalmente revisão única | Pessoa |
@@ -303,7 +304,7 @@ Itens prometidos em `PLANO_UX_100`, `FREESHOP_BENCHMARK`, `LUKKA_BENCHMARK`, `RE
 
 ## 4. Sequência recomendada
 
-**Onda 0 — hoje, custo zero, sem decisão:** PF-66 e PF-67 (secret scanning, push protection, Dependabot security, SHA pinning), PF-70 parcial (`delete_branch_on_merge`, `allow_update_branch`, `strict`).
+**Onda 0 — hoje, custo zero, sem decisão:** PF-128 (destrava o CI de todas as PRs), PF-66 e PF-67 (secret scanning, push protection, Dependabot security, SHA pinning), PF-70 parcial (`delete_branch_on_merge`, `allow_update_branch`, `strict`).
 
 **Onda 1 — engenharia, sem depender de decisão (1–2 semanas):**
 PF-10 (medir fila sem provedor) · PF-11 (corte de backlog) · PF-09 (webhook 4xx) · PF-27 (429) · PF-31 (apagamento completo) · PF-81/PF-82 (pgTAP) · PF-80 (contratos) · PF-87 (vigia dos crons) · PF-75 · PF-43/PF-44 (repetição e confirmações) · PF-19/PF-20/PF-21 (textos que enganam) · PF-49 (links para `/ideias`) · PF-114 (produto inexistente) · PF-120 (eventos de funil faltantes) · PF-123/PF-124 (conta e anexos no portal) · PF-95 (CI mais barato) · PF-106 (Graphify reproduzível) · PF-109 (reconciliar a matriz) · PF-112 (código morto).

@@ -17,4 +17,4 @@ Relatórios detalhados que sustentam o documento consolidado [`docs/AUDITORIA_FU
 
 - Os anexos foram reconciliados entre si. Onde houve conflito, prevaleceu a evidência no código: LK10 (categorias fotográficas) está entregue em `src/pages/HomePage.tsx:60-93`, e o anexo 05 foi corrigido nesse ponto.
 - O estado remoto (GitHub, Vercel) foi lido apenas onde a API permitiu. A listagem de variáveis da Vercel retornou 403; o que se diz sobre credenciais em produção é inferido por logs e por decisões registradas.
-- Nenhum teste foi executado (clone sem `node_modules`). Contagens de testes vêm do código-fonte e dos runs do CI.
+- Testes não foram executados, exceto `src/lib/sharedSelection.test.ts` (PF-128). Contagens de testes vêm do código-fonte e dos runs do CI. O Graphify foi reconstruído com `npm run graph:update` em `40482b4` e confirmou os achados de código morto; o mapa de banco não representa funções SQL como nós.
