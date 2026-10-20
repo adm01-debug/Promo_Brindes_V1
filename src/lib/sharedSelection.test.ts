@@ -111,9 +111,11 @@ describe('sharedSelection', () => {
   it('usa token opaco persistente e conserva a chave de revogação somente no dispositivo criador', async () => {
     const token = '22222222-2222-4222-8222-222222222222';
     const managementToken = '33333333-3333-4333-8333-333333333333';
+    // Validade relativa ao relógio real: data fixa vencia e quebrava o teste a partir de 12/10/2026.
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
     const fetchMock = vi.fn()
-      .mockResolvedValueOnce(new Response(JSON.stringify({ token, managementToken, expiresAt: '2026-10-11T12:00:00.000Z' }), { status: 201 }))
-      .mockResolvedValueOnce(new Response(JSON.stringify({ items: [{ id: item.productId, q: 25, v: 'azul' }], expiresAt: '2026-10-11T12:00:00.000Z' }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ token, managementToken, expiresAt }), { status: 201 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ items: [{ id: item.productId, q: 25, v: 'azul' }], expiresAt }), { status: 200 }))
       .mockResolvedValueOnce(new Response(JSON.stringify({ revoked: true }), { status: 200 }));
     vi.stubGlobal('fetch', fetchMock);
 
@@ -125,7 +127,7 @@ describe('sharedSelection', () => {
     if (!createCall) throw new Error('A criação persistente esperada não ocorreu.');
     expect(JSON.stringify(createCall[1])).not.toContain('Garrafa');
 
-    await expect(fetchPersistentSharedSelection(token)).resolves.toEqual({ items: [{ id: item.productId, q: 25, v: 'azul' }], expiresAt: '2026-10-11T12:00:00.000Z' });
+    await expect(fetchPersistentSharedSelection(token)).resolves.toEqual({ items: [{ id: item.productId, q: 25, v: 'azul' }], expiresAt });
     await expect(revokePersistentSharedSelection(token)).resolves.toBe(true);
     expect(managedSharedSelectionToken(token)).toBeNull();
   });
