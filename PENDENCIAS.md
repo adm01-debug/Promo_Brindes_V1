@@ -2,13 +2,7 @@
 
 Atualizado em 27/10/2026. Idioma: pt-BR.
 
-## PR #99 — ESLint 10 bloqueado por dependência incompatível
-
-- **PR:** [#99 — bump eslint de 9.39.5 para 10.13.0](https://github.com/adm01-debug/Promo_Brindes_V1/pull/99).
-- **Checks com falha:** [Quality gate](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40575238174) e [Graphify structural map](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40575238036).
-- **Erro reproduzido:** `npm ci` retorna `ERESOLVE`: `eslint-plugin-jsx-a11y@6.10.2` declara `peer eslint="^3 || ^4 || ^5 || ^6 || ^7 || ^8 || ^9"`, incompatível com `eslint@10.13.0`.
-- **Consequência:** a instalação falha antes de lint, build e testes. O PR permanece aberto; não há evidência de integração segura para mesclá-lo.
-- **Para destravar:** aguardar uma versão publicada do plugin que suporte ESLint 10, ou revisar uma alternativa compatível que preserve as regras de acessibilidade e passe por toda a suíte. Não usar `--force`, `--legacy-peer-deps` nem retirar o plugin apenas para satisfazer a instalação.
+O conflito de dependências do [PR #99](https://github.com/adm01-debug/Promo_Brindes_V1/pull/99) foi corrigido com um plugin de acessibilidade compatível com ESLint 10. A causa, a comparação das regras e os testes estão registrados em `RELATORIO_CI.md`. Esta seção deixa de ser uma pendência após o merge do PR.
 
 ## Revisão automática do Copilot — limite externo
 

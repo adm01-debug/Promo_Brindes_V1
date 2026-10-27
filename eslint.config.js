@@ -3,7 +3,7 @@ import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
-import jsxA11y from 'eslint-plugin-jsx-a11y';
+import jsxA11yX from 'eslint-plugin-jsx-a11y-x';
 import globals from 'globals';
 
 export default tseslint.config(
@@ -60,7 +60,7 @@ export default tseslint.config(
       parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
       globals: globals.browser,
     },
-    plugins: { 'react-hooks': reactHooks, 'react-refresh': reactRefresh, 'jsx-a11y': jsxA11y },
+    plugins: { 'react-hooks': reactHooks, 'react-refresh': reactRefresh, 'jsx-a11y-x': jsxA11yX },
     rules: {
       // Somente as duas regras de correção de hooks. A v7 do plugin também empacota
       // o conjunto do React Compiler (immutability, purity, set-state-in-effect,
@@ -69,11 +69,11 @@ export default tseslint.config(
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'error',
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
-      ...jsxA11y.configs.recommended.rules,
+      ...jsxA11yX.configs.recommended.rules,
       // Padrão documentado nas WAI-ARIA Authoring Practices para região com
       // rolagem horizontal (SCR29): tabIndex + role="region" tornam a área
       // navegável por teclado sem fingir que é um widget interativo.
-      'jsx-a11y/no-noninteractive-tabindex': ['error', { roles: ['region'] }],
+      'jsx-a11y-x/no-noninteractive-tabindex': ['error', { roles: ['region'] }],
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-misused-promises': 'error',
       '@typescript-eslint/await-thenable': 'error',
