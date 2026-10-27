@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "project": "Promo_Brindes_V1",
   "packageName": "site-promo-brindes",
-  "graphifyVersion": "0.9.48",
+  "graphifyVersion": "0.9.94",
   "mode": "code-only",
   "outputDirectory": "graphify-out",
   "workspaceDirectory": ".graphify-work",
