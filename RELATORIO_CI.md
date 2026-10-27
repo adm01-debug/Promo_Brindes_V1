@@ -1,0 +1,72 @@
+# Relatório de CI — Promo Brindes V1
+
+**Data da auditoria:** 27/10/2026  
+**Branch de trabalho:** `fix/ci-workflows` (criada a partir de `origin/main`)  
+**Commit-base:** `4c6095903b284e525a17a23683e3735c222176f3`  
+**Idioma:** pt-BR
+
+## Escopo e segurança
+
+- Repositório auditado: `adm01-debug/Promo_Brindes_V1`.
+- O clone aberto inicialmente era `Promo_Gifts_V4`; suas alterações locais foram preservadas e não fazem parte deste trabalho.
+- O clone original de `Promo_Brindes_V1` permaneceu na branch `feat/compact-product-detail`, com dois commits locais preexistentes. O trabalho de CI foi isolado neste worktree e não incorpora esses commits.
+- A URL Supabase isolada `xlzmclcjdncjfdrjxclt` não foi consultada nem alterada: o workflow de banco isolado está verde. A única falha encontrada é uma sonda pública read-only configurada para o catálogo canônico `doufsxqlfjyuvxuezpln`.
+- Nenhuma migration, DDL, dado operacional, segredo ou configuração remota foi alterado.
+
+## Inventário inicial — último run de cada workflow na `main`
+
+Critério: último run concluído por workflow, branch `main`, excluídos runs de PR.
+
+| Workflow | Status inicial | Causa provável / observação | Última execução |
+|---|---|---|---|
+| Canonical catalog public contract | **failure** | A sonda read-only divergiu do contrato esperado ou ficou indisponível. O resumo do MCP aponta falha no passo de enforcement; o erro interno da sonda foi redirecionado para o resumo da execução e não está presente nos logs/artifacts acessíveis pelo MCP. Causa raiz ainda em diagnóstico; não presumir drift de schema. | [run 40468755170](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40468755170) |
+| CI health report | success | Verde | [run 40461208115](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40461208115) |
+| CodeQL security | success | Verde | [run 40270270370](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40270270370) |
+| Isolated site database | success | Verde; nenhum acesso/mutação adicional ao projeto isolado necessário neste diagnóstico | [run 39462507044](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/39462507044) |
+| Dependency review | sem execução na `main` | Nenhum run da branch `main` retornado; workflow normalmente é acionado por PR | — |
+| Graphify structural map | success | Verde | [run 39462507171](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/39462507171) |
+| Production drift detector | success | Verde | [run 40465842915](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40465842915) |
+| Quality gate | success | Verde | [run 39462507109](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/39462507109) |
+| Release isolated database then Vercel | success | Verde | [run 39462507057](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/39462507057) |
+| Secrets rotation reminder | success | Verde | [run 36840808991](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/36840808991) |
+| Stale branch cleanup | success | Verde | [run 40292946619](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40292946619) |
+| Workflow lint | sem execução na `main` | Nenhum run da branch `main` retornado; workflow normalmente é acionado por PR | — |
+| Dependabot Updates | success | Verde | [run 40259881151](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40259881151) |
+| Dependency Graph | success | Verde | [run 37462096370](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/37462096370) |
+
+Resumo: **1 falha**, **11 workflows verdes** e **2 sem execução na `main`** (não classificadas como falha).
+
+## Baseline local — antes de correções
+
+Executado em worktree limpo no commit-base acima, antes de alterar arquivos rastreados:
+
+| Verificação | Resultado baseline |
+|---|---|
+| `npm ci` | PASSOU (exit 0); npm reportou 3 vulnerabilidades high na árvore instalada, sem aplicar correções automáticas |
+| `npm run lint` | PASSOU (incluído em `npm run check`) |
+| `npm run typecheck` | PASSOU (incluído em `npm run check`) |
+| Vitest | PASSOU — 67 arquivos, 459 testes |
+| Suítes Node adicionais | PASSOU — 60 testes combinados, incluindo nomes de migration, catálogo, release URL, segredos e CI health |
+| `npm run build` | PASSOU (incluído em `npm run check`) |
+| `npm run check:performance-budget` | PASSOU (incluído em `npm run check`) |
+| Playwright E2E | PASSOU — 123 aprovados, 5 skips previstos, 128 casos totais |
+| `npm run check` | **PASSOU — exit 0** |
+
+Ambiente local observado: Node `v24.19.0`, npm `11.17.0`; `.nvmrc` declara Node `24.15.0`, usado pelo runner GitHub. Essa diferença será considerada na reprodução final. `npm ci` também indicou `eslint@9.39.5` fora de suporte e 3 alertas high; não houve falha correspondente nos workflows da `main`, e nenhuma mudança de dependência foi feita.
+
+## Diagnóstico e resultado final
+
+- O run original terminou com falha no passo de enforcement porque `check-catalog-public-contract.mjs` retornou exit 1. O workflow redireciona o diagnóstico interno para `GITHUB_STEP_SUMMARY`; o MCP informou que os logs/artifacts disponíveis não continham esse trecho específico. Nenhum artifact foi publicado. Assim, a evidência não permite diferenciar a causa interna entre divergência transitória e indisponibilidade pontual.
+- Reprodução read-only em 27/10/2026, com as mesmas variáveis públicas do repositório e contra o mesmo projeto canônico: **passou** — 36 colunas, 7.835 produtos inspecionados, nenhuma coluna proibida. Foram observados 2 swatches sem nome e 84 nomes duplicados; são avisos existentes de qualidade de dados, não falha do contrato.
+- Rerun via MCP do GitHub: tentativa 2 da execução `40468755170`, em 27/10/2026, terminou com **`conclusion=success`**. Link: https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40468755170
+- Conclusão operacional: falha não reproduzida; comportamento consistente com ocorrência transitória. Não houve alteração de código da aplicação, workflow, contrato ou banco, pois não foi demonstrada causa persistente. Nenhuma pendência externa bloqueante ativa; `PENDENCIAS.md` não é necessário nesta etapa.
+
+### Gaps conhecidos (não introduzidos por esta correção)
+
+- `npm ci` reportou 3 vulnerabilidades high e `eslint@9.39.5` fora de suporte. O baseline completo passa e nenhum workflow da `main` está falhando por dependência; não foi feito upgrade automático. Recomenda-se abrir auditoria separada, com identificação de pacote/alcance e mudança mínima, sem reduzir políticas de segurança.
+- O resumo de erro do workflow não preserva o log da sonda. A ocorrência foi recuperada por reprodução e rerun; como melhoria futura de observabilidade, avaliar publicar o diagnóstico sanitizado como artifact de curta retenção ou diretamente em `GITHUB_STEP_SUMMARY` (sem URL/key/secrets e sem linhas de dados de produto).
+
+### Validação pós-commit e PR
+
+Pendente; será preenchida após o commit documental, a repetição integral de `npm run check`, a abertura do PR e a validação dos checks remotos.
+
