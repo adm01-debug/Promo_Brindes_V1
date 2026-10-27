@@ -26,7 +26,7 @@ export function ProductCard({ product, categoryName, priority = false, compariso
 
   return (
     <article className="product-card">
-      <Link className="product-card__image-link" to={`/produto/${product.slug}`} aria-label={`Ver ${product.name}`}>
+      <Link className="product-card__image-link" to={`/produto/${product.slug}`}>
         <div className="product-card__image-wrap">
           <img
             src={product.imageUrl}

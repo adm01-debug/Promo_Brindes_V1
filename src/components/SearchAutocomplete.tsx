@@ -113,7 +113,7 @@ export function SearchAutocomplete({
           <X size={18} />
         </button>
       )}
-      <button className={submitClass} type="submit" aria-label="Buscar">
+      <button className={submitClass} type="submit" aria-label={variant === 'hero' ? 'Explorar produtos' : 'Buscar'}>
         {variant === 'hero' ? <>Explorar <ArrowRight size={17} /></> : variant === 'catalog' ? 'Buscar' : <Search size={16} aria-hidden="true" />}
       </button>
       <div id={listboxId} className={`search-suggestions ${visible ? 'is-open' : ''}`} role="listbox" aria-label="Sugestões de busca">

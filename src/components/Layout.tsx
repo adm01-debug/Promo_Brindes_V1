@@ -171,10 +171,11 @@ export function Layout({ children }: { children: ReactNode }) {
               void navigate(suggestion.kind === 'category' && suggestion.categoryId ? `/catalogo?categoria=${suggestion.categoryId}&nome=${encodeURIComponent(suggestion.label)}` : `/catalogo?q=${encodeURIComponent(suggestion.value)}`);
             }}
           />
-          <button className="selection-button" type="button" onClick={() => cart.setDrawerOpen(true)} aria-label={`Abrir seleção com ${cart.itemCount} produtos`}>
+          <button className="selection-button" type="button" onClick={() => cart.setDrawerOpen(true)}>
             <ShoppingBag size={20} />
             <span className="selection-button__label">Minha seleção</span>
             <span className="selection-button__count" aria-hidden="true">{cart.itemCount}</span>
+            <span className="sr-only">{cart.itemCount} {cart.itemCount === 1 ? 'produto' : 'produtos'} · Abrir seleção</span>
           </button>
           <button ref={menuButtonRef} className="menu-button" type="button" onClick={() => setMenuOpen((open) => !open)} aria-expanded={menuOpen} aria-controls="mobile-navigation" aria-label={menuOpen ? 'Fechar menu' : 'Abrir menu'}>
             {menuOpen ? <X size={23} /> : <Menu size={23} />}
