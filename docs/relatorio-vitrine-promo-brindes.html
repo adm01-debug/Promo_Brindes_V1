@@ -1,0 +1,1205 @@
+<title>Vitrine Promo Brindes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap"
+/>
+
+<style>
+  :root {
+    --ground: #f3f6f5;
+    --surface: #ffffff;
+    --surface-2: #eaefee;
+    --ink: #16201e;
+    --ink-2: #3a4a47;
+    --muted: #5c6b68;
+    --line: #d3dcda;
+    --line-strong: #b4c2bf;
+    --accent: #0f6e62;
+    --accent-ink: #0a4f46;
+    --accent-soft: #dcebe7;
+    --warn: #96501a;
+    --warn-soft: #f6e7d8;
+    --crit: #9c2b2b;
+    --crit-soft: #f7dede;
+    --good: #3f6b2e;
+    --good-soft: #e2eeda;
+
+    --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    --f-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --f-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+    --step--1: 0.815rem;
+    --step-0: 1rem;
+    --step-1: 1.2rem;
+    --step-2: 1.48rem;
+    --step-3: 1.95rem;
+    --step-4: 2.7rem;
+
+    --measure: 66ch;
+    --pad: clamp(1.1rem, 4vw, 2.4rem);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0d1413;
+      --surface: #151e1c;
+      --surface-2: #1d2826;
+      --ink: #e3eae8;
+      --ink-2: #c3cfcc;
+      --muted: #93a4a0;
+      --line: #2a3835;
+      --line-strong: #3d4e4a;
+      --accent: #4fc0ae;
+      --accent-ink: #7fd6c7;
+      --accent-soft: #16302c;
+      --warn: #dd9a5f;
+      --warn-soft: #2e2318;
+      --crit: #e08585;
+      --crit-soft: #2f1b1b;
+      --good: #8fc578;
+      --good-soft: #1d2a18;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0d1413;
+    --surface: #151e1c;
+    --surface-2: #1d2826;
+    --ink: #e3eae8;
+    --ink-2: #c3cfcc;
+    --muted: #93a4a0;
+    --line: #2a3835;
+    --line-strong: #3d4e4a;
+    --accent: #4fc0ae;
+    --accent-ink: #7fd6c7;
+    --accent-soft: #16302c;
+    --warn: #dd9a5f;
+    --warn-soft: #2e2318;
+    --crit: #e08585;
+    --crit-soft: #2f1b1b;
+    --good: #8fc578;
+    --good-soft: #1d2a18;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--f-body);
+    font-size: var(--step-0);
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 78rem;
+    margin: 0 auto;
+    padding: 0 var(--pad) 5rem;
+  }
+
+  /* ---------- masthead ---------- */
+  .mast {
+    border-bottom: 2px solid var(--ink);
+    padding: 2.6rem 0 1.4rem;
+    margin-bottom: 2.4rem;
+  }
+  .kicker {
+    font-family: var(--f-mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 0.9rem;
+  }
+  h1 {
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: var(--step-4);
+    line-height: 1.06;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    margin: 0 0 0.7rem;
+  }
+  .dek {
+    font-size: var(--step-1);
+    color: var(--muted);
+    max-width: 52ch;
+    margin: 0;
+  }
+  .mast-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.6rem;
+    margin-top: 1.5rem;
+    font-family: var(--f-mono);
+    font-size: var(--step--1);
+    color: var(--muted);
+  }
+
+  /* ---------- verdict ---------- */
+  .verdict {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 5px solid var(--accent);
+    padding: 1.6rem 1.7rem;
+    margin-bottom: 3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+  .verdict h2 {
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: var(--step-2);
+    margin: 0;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+  .verdict p {
+    margin: 0;
+    max-width: var(--measure);
+  }
+  .verdict strong {
+    color: var(--accent-ink);
+  }
+
+  /* ---------- sections ---------- */
+  section {
+    margin-bottom: 3.4rem;
+  }
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.9rem;
+    border-bottom: 1px solid var(--line-strong);
+    padding-bottom: 0.55rem;
+    margin-bottom: 1.4rem;
+  }
+  .sec-num {
+    font-family: var(--f-mono);
+    font-size: var(--step--1);
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    flex: none;
+  }
+  h2.sec-title {
+    font-family: var(--f-display);
+    font-weight: 600;
+    font-size: var(--step-2);
+    letter-spacing: -0.01em;
+    margin: 0;
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+  h3 {
+    font-family: var(--f-display);
+    font-weight: 600;
+    font-size: var(--step-1);
+    margin: 2rem 0 0.6rem;
+    letter-spacing: -0.005em;
+    text-wrap: balance;
+  }
+  p {
+    max-width: var(--measure);
+    margin: 0 0 1rem;
+  }
+  ul,
+  ol {
+    max-width: var(--measure);
+    padding-left: 1.15rem;
+    margin: 0 0 1.1rem;
+  }
+  li {
+    margin-bottom: 0.5rem;
+  }
+  li::marker {
+    color: var(--accent);
+  }
+  strong {
+    font-weight: 600;
+  }
+  a {
+    color: var(--accent-ink);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+  }
+  a:focus-visible,
+  summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  /* ---------- data ---------- */
+  .scroll {
+    overflow-x: auto;
+    margin: 0 0 1.4rem;
+    border: 1px solid var(--line);
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    background: var(--surface);
+    font-size: var(--step--1);
+  }
+  caption {
+    text-align: left;
+    font-family: var(--f-mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0.7rem 0.9rem;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--line);
+  }
+  th,
+  td {
+    text-align: left;
+    padding: 0.6rem 0.9rem;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  thead th {
+    font-family: var(--f-display);
+    font-weight: 600;
+    font-size: var(--step--1);
+    background: var(--surface-2);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  td.num,
+  th.num {
+    font-family: var(--f-mono);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .row-us td {
+    background: var(--accent-soft);
+  }
+  .row-us td:first-child {
+    font-weight: 600;
+  }
+
+  /* ---------- evidence block ---------- */
+  .ev {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--line-strong);
+    padding: 0.85rem 1rem;
+    margin: 0 0 1.2rem;
+    font-family: var(--f-mono);
+    font-size: var(--step--1);
+    line-height: 1.55;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--ink-2);
+  }
+  .ev-label {
+    display: block;
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.45rem;
+  }
+
+  /* ---------- flags ---------- */
+  .flag {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    padding: 1.05rem 1.2rem;
+    margin: 0 0 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .flag > p {
+    margin: 0;
+  }
+  .flag-tag {
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    align-self: flex-start;
+    padding: 0.16rem 0.5rem;
+  }
+  .flag.crit {
+    border-left: 3px solid var(--crit);
+  }
+  .flag.crit .flag-tag {
+    background: var(--crit-soft);
+    color: var(--crit);
+  }
+  .flag.warn {
+    border-left: 3px solid var(--warn);
+  }
+  .flag.warn .flag-tag {
+    background: var(--warn-soft);
+    color: var(--warn);
+  }
+  .flag.good {
+    border-left: 3px solid var(--good);
+  }
+  .flag.good .flag-tag {
+    background: var(--good-soft);
+    color: var(--good);
+  }
+
+  /* ---------- comparison strip ---------- */
+  .strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    margin: 0 0 1.4rem;
+  }
+  .strip > div {
+    background: var(--surface);
+    padding: 1.1rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .strip h4 {
+    font-family: var(--f-display);
+    font-weight: 600;
+    font-size: var(--step-0);
+    margin: 0;
+    letter-spacing: -0.005em;
+  }
+  .strip .big {
+    font-family: var(--f-mono);
+    font-weight: 600;
+    font-size: var(--step-3);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+  }
+  .strip .cap {
+    font-size: var(--step--1);
+    color: var(--muted);
+    line-height: 1.45;
+  }
+
+  /* ---------- phases ---------- */
+  .phases {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-width: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+  .phases > li {
+    background: var(--surface);
+    padding: 1.15rem 1.25rem;
+    margin: 0;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.4rem 1.1rem;
+    align-items: baseline;
+  }
+  .ph-n {
+    font-family: var(--f-mono);
+    font-size: var(--step--1);
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    grid-row: 1/3;
+  }
+  .ph-t {
+    font-family: var(--f-display);
+    font-weight: 600;
+    font-size: var(--step-1);
+    letter-spacing: -0.005em;
+  }
+  .ph-b {
+    color: var(--ink-2);
+    max-width: 60ch;
+  }
+  .ph-b p {
+    margin: 0 0 0.55rem;
+  }
+  .ph-b p:last-child {
+    margin: 0;
+  }
+
+  /* ---------- footnote ---------- */
+  .notes {
+    border-top: 1px solid var(--line-strong);
+    padding-top: 1.3rem;
+    margin-top: 3rem;
+    font-size: var(--step--1);
+    color: var(--muted);
+  }
+  .notes p {
+    max-width: 72ch;
+  }
+  details {
+    margin: 0 0 1rem;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    padding: 0.7rem 0.95rem;
+  }
+  summary {
+    cursor: pointer;
+    font-family: var(--f-display);
+    font-weight: 600;
+    font-size: var(--step-0);
+  }
+  details[open] summary {
+    margin-bottom: 0.7rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+  @media (max-width: 34rem) {
+    .phases > li {
+      grid-template-columns: 1fr;
+    }
+    .ph-n {
+      grid-row: auto;
+    }
+  }
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <p class="kicker">Relatório de decisão · Setembro de 2026</p>
+    <h1>Vitrine Promo Brindes</h1>
+    <p class="dek">
+      Avaliação do tema Porto e definição da arquitetura do novo site público de
+      catálogo e solicitação de orçamento.
+    </p>
+    <div class="mast-meta">
+      <span>promobrindes.com.br</span>
+      <span>Catálogo sem venda online</span>
+      <span>5.453 produtos</span>
+    </div>
+  </header>
+
+  <div class="verdict">
+    <h2>Veredito: não use o Porto</h2>
+    <p>
+      O Porto é um tema de loja, e a Promo Brindes não tem loja. O site não
+      vende: o visitante navega o catálogo e
+      <strong>solicita orçamento</strong>. Adotar o Porto significa instalar um
+      motor de comércio inteiro e depois desligar a parte de compra com um
+      plugin de cotação, que é exatamente o que o site faz hoje com o tema
+      XStore. Seria trocar de cara e manter o erro.
+    </p>
+    <p>
+      O caminho recomendado é
+      <strong>uma vitrine estática em Astro lendo direto do Supabase</strong>,
+      que já é a fonte da verdade do catálogo, somada a um kit de blocos de
+      interface comprado por <strong>US$ 149</strong>. O WordPress sai de cena,
+      junto com a dependência da agência.
+    </p>
+  </div>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">01</span>
+      <h2 class="sec-title">O que já existe e é seu</h2>
+    </div>
+
+    <p>
+      O catálogo não precisa ser migrado do WordPress. Ele já vive num Supabase
+      próprio, com estrutura de gerenciamento de informação de produto muito
+      mais rica do que o WooCommerce sabe modelar.
+    </p>
+
+    <div class="scroll">
+      <table>
+        <caption>
+          Estrutura do catálogo no Supabase
+        </caption>
+        <thead>
+          <tr>
+            <th>Domínio</th>
+            <th>O que já está modelado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Catálogo</td>
+            <td>
+              Produtos, categorias com vínculo N para N, fornecedores, tags,
+              propriedades por produto, atributos por categoria
+            </td>
+          </tr>
+          <tr>
+            <td>Mídia</td>
+            <td>
+              Imagens com blurhash e imagem alternativa, imagem de
+              compartilhamento social, vídeos com stream e HLS
+            </td>
+          </tr>
+          <tr>
+            <td>Cor e material</td>
+            <td>
+              Grupos, nuances, variações, cores por fornecedor e equivalências
+              de cor entre fornecedores diferentes
+            </td>
+          </tr>
+          <tr>
+            <td>Preço</td>
+            <td>
+              Listas de preço, faixas de custo por variante, preços de venda por
+              variante, tipos de variação
+            </td>
+          </tr>
+          <tr>
+            <td>Personalização</td>
+            <td>
+              Áreas de impressão por produto, que é o núcleo do negócio de
+              brinde
+            </td>
+          </tr>
+          <tr>
+            <td>Kits</td>
+            <td>
+              Componentes por kit, com peça opcional, substituível, de embalagem
+              e que aceita gravação
+            </td>
+          </tr>
+          <tr>
+            <td>Fiscal e logística</td>
+            <td>
+              NCM, CEST, CFOP, CSOSN, alíquotas de ICMS, IPI, PIS e COFINS, EAN,
+              GTIN, classe de frete, dimensões de caixa
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      Existe ainda uma view pública de produtos com concessão de acesso coluna a
+      coluna, servida por PostgREST, e uma função que gera metadados de busca
+      por produto usando IA. A camada mais cara de um site novo já está pronta.
+    </p>
+
+    <div class="flag warn">
+      <span class="flag-tag">Consequência</span>
+      <p>
+        Levar esse catálogo para dentro do WooCommerce cria uma segunda cópia,
+        mais pobre que o original, e um sincronismo para manter até o fim dos
+        tempos. Faixas de preço por variante, áreas de impressão, equivalência
+        de cor entre fornecedores e componentes de kit não têm onde morar no
+        modelo de dados do WooCommerce sem virar campo solto.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">02</span>
+      <h2 class="sec-title">Diagnóstico do site atual</h2>
+    </div>
+
+    <p>
+      O site roda WordPress 7.0.4 com WooCommerce 11.1.0, tema XStore,
+      construtor WPBakery e um plugin de cotação, sob administração de uma
+      agência que opera vários sites do setor no mesmo molde.
+    </p>
+
+    <div class="scroll">
+      <table>
+        <caption>
+          Inventário medido via API pública e sitemaps
+        </caption>
+        <thead>
+          <tr>
+            <th>Tipo de página</th>
+            <th class="num">Quantidade</th>
+            <th>Leitura</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Produtos</td>
+            <td class="num">5.453</td>
+            <td>O ativo real</td>
+          </tr>
+          <tr>
+            <td>Páginas de tag</td>
+            <td class="num">5.407</td>
+            <td>Código de fornecedor virado em arquivo público</td>
+          </tr>
+          <tr>
+            <td>Categorias de produto</td>
+            <td class="num">109</td>
+            <td>Inclui processo interno exposto ao cliente</td>
+          </tr>
+          <tr>
+            <td>Páginas institucionais</td>
+            <td class="num">17</td>
+            <td>Pouco para o porte</td>
+          </tr>
+          <tr>
+            <td>Posts de blog</td>
+            <td class="num">0</td>
+            <td>Canal de busca inteiramente abandonado</td>
+          </tr>
+          <tr>
+            <td>Arquivos na biblioteca de mídia</td>
+            <td class="num">64.214</td>
+            <td>Cerca de doze por produto</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>A ficha de produto está quebrada em série</h3>
+    <p>
+      O título da aba de uma página de produto real sai com o nome colado no
+      molde, sem espaço:
+    </p>
+    <div class="ev">
+      <span class="ev-label">Título da página, como está no ar</span>Garrafa
+      Térmica 450mlé um brinde perfeito para a sua ação promocional
+    </div>
+
+    <p>
+      E a descrição para buscadores é um texto fixo, com erro de concordância no
+      original, presumivelmente idêntico nos 5.453 produtos:
+    </p>
+    <div class="ev">
+      <span class="ev-label">Meta description, como está no ar</span>Este
+      produto é uma ótima opção de brinde promocional e uma ferramenta perfeito
+      para fidelizar o seu cliente.
+    </div>
+
+    <p>
+      Há ainda um bloco de oferta com especificação de preço unitário no código
+      estruturado, com o valor vazio. A página declara ao Google que vende o
+      produto e não informa por quanto, o que a torna inelegível para o formato
+      rico e não entrega nada em troca.
+    </p>
+
+    <h3>Três descuidos que custam barato para corrigir</h3>
+    <ul>
+      <li>
+        <strong
+          >O índice de sitemap declara os endereços em texto não seguro</strong
+        >, enquanto o site responde em conexão segura.
+      </li>
+      <li>
+        <strong>O arquivo de robôs não aponta para o sitemap.</strong> São duas
+        linhas de configuração.
+      </li>
+      <li>
+        <strong>Existe uma categoria pública de nome interno</strong>, referente
+        a uma atualização de fornecedor feita em julho. Processo de bastidor
+        exposto como categoria de produto.
+      </li>
+    </ul>
+
+    <div class="flag good">
+      <span class="flag-tag">A boa notícia</span>
+      <p>
+        Os endereços são limpos e preserváveis. Produtos ficam sob o caminho de
+        brinde e categorias sob o caminho de brindes, com aninhamento. Manter os
+        endereços idênticos no site novo elimina a maior fonte de risco de uma
+        migração, que é redirecionamento faltando ou mal apontado.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">03</span>
+      <h2 class="sec-title">Quem realmente ganha a busca nesse mercado</h2>
+    </div>
+
+    <p>
+      A análise dos concorrentes trouxe a maior surpresa do levantamento. Quem
+      domina não são os fornecedores conhecidos, e sim duas empresas com
+      estratégias opostas.
+    </p>
+
+    <div class="scroll">
+      <table>
+        <caption>
+          Arquitetura dos concorrentes, medida pelos sitemaps
+        </caption>
+        <thead>
+          <tr>
+            <th>Empresa</th>
+            <th class="num">Total de URLs</th>
+            <th class="num">Palavras na categoria</th>
+            <th>Modelo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Luminati Brindes</td>
+            <td class="num">1.146</td>
+            <td class="num">4.726</td>
+            <td>Poucas páginas, cada uma excelente</td>
+          </tr>
+          <tr>
+            <td>Innovation Brindes</td>
+            <td class="num">~35.000</td>
+            <td class="num">8.456</td>
+            <td>Geração programática em massa</td>
+          </tr>
+          <tr class="row-us">
+            <td>Promo Brindes</td>
+            <td class="num">~11.000</td>
+            <td class="num">—</td>
+            <td>Volume sem intenção</td>
+          </tr>
+          <tr>
+            <td>Spot Gifts</td>
+            <td class="num">—</td>
+            <td class="num">99</td>
+            <td>Sem SEO, vende a revendedor</td>
+          </tr>
+          <tr>
+            <td>XBZ Brindes</td>
+            <td class="num">—</td>
+            <td class="num">822</td>
+            <td>Sem SEO, sitemap com erro de servidor</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>A lição da Luminati</h3>
+    <p>
+      Ela lidera com
+      <strong>mil cento e quarenta e seis endereços no site inteiro</strong>, e
+      cada um justifica sua existência. A página de canecas tem um título
+      principal, doze subtítulos e trinta e quatro sub-subtítulos, cobrindo
+      retorno do investimento, tipos de material, e quando usar gravação a laser
+      em vez de serigrafia.
+    </p>
+
+    <div class="strip">
+      <div>
+        <span class="big">17</span>
+        <h4>Perguntas frequentes</h4>
+        <p class="cap">
+          Marcadas no código estruturado, numa única página de categoria.
+        </p>
+      </div>
+      <div>
+        <span class="big">13</span>
+        <h4>Produtos com ação de cotação</h4>
+        <p class="cap">
+          Marcados como solicitação de orçamento, não como compra. É o padrão
+          correto para quem não mostra preço.
+        </p>
+      </div>
+      <div>
+        <span class="big">0</span>
+        <h4>Filtros indexáveis</h4>
+        <p class="cap">
+          O filtro de faixa de preço roda no navegador e não gera endereço. Zero
+          desperdício de rastreamento.
+        </p>
+      </div>
+    </div>
+
+    <p>
+      O contraste é direto. A Promo Brindes tem 5.407 páginas de tag com nome de
+      código de fornecedor e nenhum post de blog. O volume está invertido:
+      inchaço onde não importa e vazio onde a decisão acontece.
+    </p>
+
+    <h3>Os formatos que funcionam e estão abertos</h3>
+    <ul>
+      <li>
+        <strong>Página por cidade.</strong> A Luminati ocupa a primeira posição
+        para brindes em Curitiba com apenas oito páginas de cidade. A Promo
+        Brindes é de Goiânia e já tem uma página institucional que menciona
+        isso.
+      </li>
+      <li>
+        <strong>Página por data e por tema.</strong> SIPAT, Outubro Rosa, kit de
+        boas-vindas, dia de cada profissão. A busca por brinde de SIPAT tem
+        demanda anual confirmada e recorrente.
+      </li>
+      <li>
+        <strong>Página por segmento.</strong> A consulta sobre kit de
+        boas-vindas para recursos humanos não tem dominante. Espaço aberto.
+      </li>
+      <li>
+        <strong>Guias e conteúdo.</strong> As buscas informativas são vencidas
+        por empresas pequenas com blog. Nem Luminati nem Innovation aparecem
+        nelas.
+      </li>
+    </ul>
+
+    <div class="flag warn">
+      <span class="flag-tag">Não copie a Innovation</span>
+      <p>
+        As quinze mil e quinhentas páginas de artigo dela não têm nenhum código
+        estruturado e repetem o mesmo conteúdo com variação de palavra. É o
+        perfil exato que a política de abuso de conteúdo em escala do Google
+        descreve. Ranqueia hoje, e é uma aposta.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">04</span>
+      <h2 class="sec-title">A arquitetura recomendada</h2>
+    </div>
+
+    <p>
+      Sem carrinho, sem sessão e sem pagamento, o site é conteúdo quase
+      inteiramente estático. Isso decide a escolha técnica.
+    </p>
+
+    <div class="scroll">
+      <table>
+        <caption>
+          Tempo de geração das 5.453 páginas de produto
+        </caption>
+        <thead>
+          <tr>
+            <th>Ferramenta</th>
+            <th class="num">Build</th>
+            <th>Observação</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="row-us">
+            <td>Astro 7</td>
+            <td class="num">1 a 5 min</td>
+            <td>Recomendado. Geração estática completa</td>
+          </tr>
+          <tr>
+            <td>Next.js 16</td>
+            <td class="num">18 a 90 min</td>
+            <td>Exige geração parcial mais revalidação</td>
+          </tr>
+          <tr>
+            <td>Teto da Vercel</td>
+            <td class="num">45 min</td>
+            <td>Estourou, o deploy falha</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      O formulário de solicitação de orçamento entra como ilha dinâmica dentro
+      da página estática. Next.js continua sendo alternativa legítima se a
+      preferência for permanecer no React, e nesse caso vale manter desligado o
+      modo novo de cache, que torna o comportamento de indexação menos
+      previsível.
+    </p>
+
+    <div class="scroll">
+      <table>
+        <caption>
+          Custo mensal de operação, valores confirmados
+        </caption>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th class="num">Mensal</th>
+            <th>Nota</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Cloudflare Workers ou Pages</td>
+            <td class="num">US$ 5</td>
+            <td>Sem custo de tráfego de saída</td>
+          </tr>
+          <tr>
+            <td>Vercel Pro</td>
+            <td class="num">US$ 20</td>
+            <td>Melhor experiência, revalidação gerenciada</td>
+          </tr>
+          <tr>
+            <td>Imagens em Cloudflare com R2</td>
+            <td class="num">US$ 3 a 8</td>
+            <td>Caminho recomendado</td>
+          </tr>
+          <tr>
+            <td>Transformação de imagem no Supabase</td>
+            <td class="num">US$ 320</td>
+            <td>Descarte. Cobra por imagem de origem</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      Duas regras operacionais que evitam acidente: otimização de imagem nunca
+      roda durante o build, porque é o que mais quebra geração em escala; e
+      redirecionamento em massa nunca vai em arquivo de configuração da Vercel,
+      que tem teto de 2048 rotas por deploy, e sim numa tabela consultada em
+      tempo de requisição.
+    </p>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">05</span>
+      <h2 class="sec-title">O que comprar</h2>
+    </div>
+
+    <p>
+      A ideia de acelerar com template continua certa. Muda o tipo de template.
+      Boa parte do valor de um tema de loja está no carrinho e no checkout, que
+      este projeto descarta, então quase todo template de comércio é desperdício
+      aqui.
+    </p>
+
+    <div class="scroll">
+      <table>
+        <caption>
+          Kits avaliados, preços confirmados em setembro de 2026
+        </caption>
+        <thead>
+          <tr>
+            <th>Kit</th>
+            <th class="num">Preço</th>
+            <th>Veredito</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="row-us">
+            <td>Shadcnblocks Pro</td>
+            <td class="num">US$ 149</td>
+            <td>
+              Comprar. Cobre os oito tipos de bloco de catálogo, em versão Astro
+              e React
+            </td>
+          </tr>
+          <tr>
+            <td>ReUI</td>
+            <td class="num">Grátis</td>
+            <td>
+              Somar. Traz filtro facetado e grade de dados, a peça mais cara de
+              fazer do zero
+            </td>
+          </tr>
+          <tr>
+            <td>Origin UI</td>
+            <td class="num">Grátis</td>
+            <td>Somar. Campos e seletores para o formulário de orçamento</td>
+          </tr>
+          <tr>
+            <td>Tailwind Plus</td>
+            <td class="num">US$ 299</td>
+            <td>Opcional. Filtros de categoria mais maduros, mas redundante</td>
+          </tr>
+          <tr>
+            <td>Lexington Themes</td>
+            <td class="num">US$ 99</td>
+            <td>
+              Alternativa. Quarenta e cinco temas em Astro, inclui padrão de
+              diretório
+            </td>
+          </tr>
+          <tr>
+            <td>Aceternity, Magic UI, Tailark, Kokonut</td>
+            <td class="num">—</td>
+            <td>Não comprar. São páginas de venda de software, não catálogo</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="flag good">
+      <span class="flag-tag">Recomendação</span>
+      <p>
+        Shadcnblocks Pro por US$ 149, pagamento único, somado a ReUI e Origin UI
+        que são gratuitos e de licença permissiva. Estimativa de economia entre
+        três e cinco semanas de desenvolvimento, em grade de produto, ficha,
+        galeria, visualização rápida, páginas institucionais e sistema de
+        design.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">06</span>
+      <h2 class="sec-title">Riscos que precisam ser ditos antes de começar</h2>
+    </div>
+
+    <div class="flag crit">
+      <span class="flag-tag">Sem preço, sem resultado rico</span>
+      <p>
+        O formato rico de produto vendável exige preço maior que zero, e não
+        existe brecha. O caminho honesto é publicar a entidade de produto sem
+        bloco de oferta, e nunca inventar preço zero. Se o site atual exibe
+        estrela ou preço na busca, alguém está emitindo dado fictício, e isso é
+        passivo, não ativo. O ganho orgânico virá de velocidade, cobertura de
+        indexação e conteúdo próprio.
+      </p>
+    </div>
+
+    <div class="flag crit">
+      <span class="flag-tag">Conteúdo gerado por IA</span>
+      <p>
+        Usar IA para formatar dado que você já tem, como ficha técnica a partir
+        dos atributos reais do banco, é seguro e escala bem. Usar IA para
+        parafrasear a descrição do fornecedor em cinco mil produtos é
+        literalmente o exemplo citado na política de abuso de conteúdo em escala
+        do Google, atualizada em agosto de 2026. A recomendação é triagem:
+        conteúdo humano de verdade nos trezentos a oitocentos produtos que puxam
+        busca, e ficha factual curta no restante.
+      </p>
+    </div>
+
+    <div class="flag crit">
+      <span class="flag-tag">Saída da agência</span>
+      <p>
+        Este é o risco operacional, e ele é maior que o técnico. Verifique
+        primeiro, em silêncio, quem é o titular do domínio no Registro.br, onde
+        o registro de e-mail aponta hoje, e se há provedor de serviços
+        vinculado. A transferência de titularidade é gratuita, sai em dois dias
+        úteis, mas <strong>exige a assinatura do titular atual</strong>. Não
+        existe saída unilateral em domínio nacional.
+      </p>
+    </div>
+
+    <details>
+      <summary>Ordem correta da saída, e os erros mais caros</summary>
+      <ol>
+        <li>
+          <strong>Antes de avisar a agência</strong>, tire um backup completo e
+          levante domínio, registros de e-mail, acessos e licenças.
+        </li>
+        <li>
+          <strong>Migre o e-mail primeiro</strong>, com a hospedagem antiga
+          ainda ativa e paga. O serviço de migração copia, não move. Cancelar
+          antes de validar é perda irreversível.
+        </li>
+        <li>
+          <strong>Só depois troque os servidores de nome</strong>, com a zona
+          nova completa já preenchida, incluindo registro de e-mail e
+          autenticação de remetente. Mantenha os servidores antigos respondendo
+          por vinte e quatro horas, como o Registro.br exige.
+        </li>
+        <li>
+          <strong>Cancele a hospedagem antiga por último</strong>, de quinze a
+          trinta dias depois.
+        </li>
+      </ol>
+      <p>
+        Atenção a dois detalhes de licença. A licença do ThemeForest transfere
+        ao cliente, mas o código de compra permanece na conta da agência, e é
+        ele que libera atualização. E os plugins embutidos no tema, como o de
+        apresentação de slides, não recebem correção automática. A falha de
+        leitura arbitrária de arquivo divulgada nesse plugin em 2025 atingiu
+        justamente instalações nessa condição.
+      </p>
+    </details>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">07</span>
+      <h2 class="sec-title">Plano em quatro fases</h2>
+    </div>
+
+    <ol class="phases">
+      <li>
+        <span class="ph-n">F1</span>
+        <span class="ph-t">Assumir o controle</span>
+        <div class="ph-b">
+          <p>
+            Backup completo, diagnóstico de titularidade do domínio, inventário
+            de licenças e acessos. Nada de anunciar a saída antes disso.
+          </p>
+          <p>
+            Correções baratas no site atual que valem mesmo com ele saindo do
+            ar: apontar o sitemap no arquivo de robôs e remover a categoria de
+            nome interno.
+          </p>
+        </div>
+      </li>
+      <li>
+        <span class="ph-n">F2</span>
+        <span class="ph-t">Construir a vitrine</span>
+        <div class="ph-b">
+          <p>
+            Astro lendo a view pública do Supabase, com os blocos comprados.
+            Endereços idênticos aos atuais. Imagens fora do build, servidas por
+            Cloudflare.
+          </p>
+          <p>
+            As páginas de tag por código de fornecedor não são recriadas. Elas
+            saem com redirecionamento para a categoria correspondente.
+          </p>
+        </div>
+      </li>
+      <li>
+        <span class="ph-n">F3</span>
+        <span class="ph-t">Conectar o orçamento</span>
+        <div class="ph-b">
+          <p>
+            O formulário entra pelo mesmo padrão que a função de recebimento de
+            retorno do CRM já usa em produção: endpoint público, chave de API,
+            comparação em tempo constante, idempotência e registro de eventos.
+          </p>
+          <p>
+            O lead cai no Bitrix24 pelo sincronismo que já existe, com disjuntor
+            e resolução de credencial pelo banco.
+          </p>
+        </div>
+      </li>
+      <li>
+        <span class="ph-n">F4</span>
+        <span class="ph-t">Ganhar a busca</span>
+        <div class="ph-b">
+          <p>
+            Páginas por cidade, por data, por tema e por segmento, no modelo da
+            Luminati. Conteúdo humano nos produtos que puxam busca.
+          </p>
+          <p>
+            Em paralelo, cadastro no Bríndice, onde a Promo Brindes ainda não
+            está, e renegociação do contrato com o grupo dono do Free Shop com o
+            custo por cliente fechado na mão.
+          </p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <div class="notes">
+    <p>
+      <strong>Sobre as fontes.</strong> Os números do site atual e dos
+      concorrentes foram medidos diretamente por requisição pública aos
+      sitemaps, à API do WordPress e ao HTML das páginas, em 6 de setembro de
+      2026. Preços de ferramentas e serviços foram confirmados nas páginas
+      oficiais na mesma data.
+    </p>
+    <p>
+      <strong>O que não foi confirmado.</strong> Não há posições do Google: as
+      observações de ranqueamento vêm de índices alternativos e devem ser
+      tratadas como direção, não como medida. Não foi possível obter volume de
+      busca. Os preços de anúncio nos portais do setor não são publicados e só
+      saem por proposta comercial. A estimativa de semanas economizadas pelo kit
+      de blocos é julgamento de esforço, não dado verificado.
+    </p>
+  </div>
+</div>
