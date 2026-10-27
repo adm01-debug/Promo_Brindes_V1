@@ -1,8 +1,10 @@
 # Relatório de CI — Promo Brindes V1
 
-**Data da auditoria:** 27/10/2026  
-**Branch de trabalho:** `fix/ci-workflows` (criada a partir de `origin/main`)  
-**Commit-base:** `4c6095903b284e525a17a23683e3735c222176f3`  
+**Data da auditoria:** 27/10/2026
+
+**Branch de trabalho:** `fix/ci-workflows` (criada a partir de `origin/main`)
+
+**Commit-base:** `4c6095903b284e525a17a23683e3735c222176f3`
 **Idioma:** pt-BR
 
 ## Escopo e segurança
@@ -68,5 +70,8 @@ Ambiente local observado: Node `v24.19.0`, npm `11.17.0`; `.nvmrc` declara Node 
 
 ### Validação pós-commit e PR
 
-Pendente; será preenchida após o commit documental, a repetição integral de `npm run check`, a abertura do PR e a validação dos checks remotos.
-
+- Commit documental inicial: `f5ef8b3` (`docs(ci): registra baseline e resultado da auditoria`).
+- Repetição integral imediatamente após esse commit: `npm run check` **PASSOU (exit 0)**.
+- Comparação baseline × pós-commit: lint, typecheck, 459 testes Vitest, 60 testes Node, build, orçamento e E2E (123 aprovados / 5 skips previstos) sem queda nem erro novo.
+- Os 11 workflows cujo último run na `main` estava verde permaneceram verdes na amostra consultada; dois seguem sem run na `main` e não foram classificados como falha.
+- PR e nova validação após o commit final desta documentação: pendentes.
