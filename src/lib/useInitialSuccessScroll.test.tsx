@@ -27,4 +27,25 @@ describe('rolagem inicial da confirmação', () => {
     cancelAnimationFrame.mockRestore();
     vi.useRealTimers();
   });
+
+  it.each(['wheel', 'touchstart', 'pointerdown', 'keydown'])('respeita a interação %s antes das tentativas atrasadas', async (eventName) => {
+    vi.useFakeTimers();
+    const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+    const requestAnimationFrame = vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => window.setTimeout(() => callback(0), 16));
+    const cancelAnimationFrame = vi.spyOn(window, 'cancelAnimationFrame').mockImplementation((handle) => window.clearTimeout(handle));
+    const previousScrollBehavior = document.documentElement.style.scrollBehavior;
+    const { unmount } = renderHook(() => useInitialSuccessScroll(true));
+
+    expect(scrollTo).toHaveBeenCalledTimes(1);
+    await act(async () => { window.dispatchEvent(new Event(eventName)); });
+    await act(async () => { vi.runAllTimers(); });
+    expect(scrollTo).toHaveBeenCalledTimes(1);
+    expect(document.documentElement.style.scrollBehavior).toBe(previousScrollBehavior);
+
+    unmount();
+    scrollTo.mockRestore();
+    requestAnimationFrame.mockRestore();
+    cancelAnimationFrame.mockRestore();
+    vi.useRealTimers();
+  });
 });

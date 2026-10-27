@@ -3328,6 +3328,7 @@ p {
 .sp-confirm > div + div { border-top: 1px solid #d8d4ca; }
 .sp-confirm > div > svg:first-child { color: var(--green-dark); }
 .sp-confirm > div > svg:last-child { color: var(--green-dark); }
+.sp-confirm > div > svg.sp-confirm__pending { color: var(--muted); }
 .sp-confirm > div > span { display: grid; gap: 2px; }
 .sp-confirm strong { font-size: .78rem; }
 .sp-confirm small { color: var(--muted); font-size: .69rem; line-height: 1.4; }

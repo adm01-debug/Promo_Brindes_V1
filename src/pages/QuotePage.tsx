@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, CheckCircle2, Mail, MessageCircle, Minus, Plus, Printer, Send, ShieldCheck, ShoppingBag, Trash2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Clock3, Mail, MessageCircle, Minus, Plus, Printer, Send, ShieldCheck, ShoppingBag, Trash2 } from 'lucide-react';
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Seo } from '../components/Seo';
@@ -19,7 +19,7 @@ import type { QuoteBriefingForm, QuoteContact } from '../types';
 import { quoteDecisionGroupsEnabled } from '../lib/siteFeatureFlags';
 import { localDateInputValue } from '../lib/quoteCalendar';
 import { attachMyBriefingAssetsToQuote } from '../lib/briefingAssets';
-import { confirmationDeliveryLabel, quoteConfirmationTitle } from '../lib/quoteConfirmation';
+import { confirmationDeliveryLabel, quoteConfirmationTitle, type ConfirmationDeliveryStatus } from '../lib/quoteConfirmation';
 import { useInitialSuccessScroll } from '../lib/useInitialSuccessScroll';
 import { remainingItemsAfterSubmission, sameQuoteSelection, sameQuoteSelectionContext } from '../lib/quoteSubmission';
 
@@ -49,6 +49,12 @@ function browserLocationKey(): string {
   // Uma âncora só desloca a mesma página; ela não pode invalidar uma
   // solicitação que ainda pertence ao mesmo briefing.
   return `${window.location.pathname}${window.location.search}`;
+}
+
+function ConfirmationStatusIcon({ status }: { status: ConfirmationDeliveryStatus }) {
+  if (status === 'sent') return <CheckCircle2 size={18} aria-hidden="true" />;
+  if (status === 'pending') return <Clock3 size={18} className="sp-confirm__pending" aria-hidden="true" />;
+  return <Minus size={18} className="sp-confirm__pending" aria-hidden="true" />;
 }
 
 export default function QuotePage() {
@@ -386,8 +392,8 @@ export default function QuotePage() {
           {endpointSuccess && success.confirmations && (
             <section className="sp-confirm" aria-labelledby="success-confirmations-title" role="status">
               <h2 id="success-confirmations-title">Confirmações</h2>
-              <div><Mail size={19} aria-hidden="true" /><span><strong>E-mail</strong><small>{confirmationDeliveryLabel(success.confirmations.email)}</small></span><CheckCircle2 size={18} aria-hidden="true" /></div>
-              <div><MessageCircle size={19} aria-hidden="true" /><span><strong>WhatsApp</strong><small>{confirmationDeliveryLabel(success.confirmations.whatsapp)}</small></span>{success.confirmations.whatsapp === 'not_requested' ? <Minus size={18} aria-hidden="true" /> : <CheckCircle2 size={18} aria-hidden="true" />}</div>
+              <div><Mail size={19} aria-hidden="true" /><span><strong>E-mail</strong><small>{confirmationDeliveryLabel(success.confirmations.email)}</small></span><ConfirmationStatusIcon status={success.confirmations.email} /></div>
+              <div><MessageCircle size={19} aria-hidden="true" /><span><strong>WhatsApp</strong><small>{confirmationDeliveryLabel(success.confirmations.whatsapp)}</small></span><ConfirmationStatusIcon status={success.confirmations.whatsapp} /></div>
             </section>
           )}
 

@@ -562,6 +562,8 @@ test('envio confirmado remove contato e consentimento do rascunho da aba', async
   await expect(page.getByRole('heading', { name: 'O que acontece agora' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Confirmações' })).toBeVisible();
   await expect(page.getByText('Registrado para envio')).toHaveCount(2);
+  await expect(page.locator('.sp-confirm .lucide-clock-3')).toHaveCount(2);
+  await expect(page.locator('.sp-confirm .lucide-circle-check')).toHaveCount(0);
   const confirmationA11y = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
   expect(confirmationA11y.violations, 'Violações na confirmação do orçamento').toEqual([]);
   expect(submissions).toBe(1);
