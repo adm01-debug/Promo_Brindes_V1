@@ -54,24 +54,28 @@ Executado em worktree limpo no commit-base acima, antes de alterar arquivos rast
 | Playwright E2E | PASSOU — 123 aprovados, 5 skips previstos, 128 casos totais |
 | `npm run check` | **PASSOU — exit 0** |
 
-Ambiente local observado: Node `v24.19.0`, npm `11.17.0`; `.nvmrc` declara Node `24.15.0`, usado pelo runner GitHub. Essa diferença será considerada na reprodução final. `npm ci` também indicou `eslint@9.39.5` fora de suporte e 3 alertas high; não houve falha correspondente nos workflows da `main`, e nenhuma mudança de dependência foi feita.
+Ambiente local observado: Node `v24.19.0`, npm `11.17.0`; `.nvmrc` declara Node `24.15.0`, usado pelo runner GitHub. `npm ci` indicou `eslint@9.39.5` fora de suporte e 3 alertas high; o lint, build e testes passaram mesmo assim. A causa foi confirmada depois no check `validate` do PR: o próprio gate `npm audit --audit-level=high` falhou nas resoluções de `vite`, `undici` e `zod`.
 
 ## Diagnóstico e resultado final
 
 - O run original terminou com falha no passo de enforcement porque `check-catalog-public-contract.mjs` retornou exit 1. O workflow redireciona o diagnóstico interno para `GITHUB_STEP_SUMMARY`; o MCP informou que os logs/artifacts disponíveis não continham esse trecho específico. Nenhum artifact foi publicado. Assim, a evidência não permite diferenciar a causa interna entre divergência transitória e indisponibilidade pontual.
 - Reprodução read-only em 27/10/2026, com as mesmas variáveis públicas do repositório e contra o mesmo projeto canônico: **passou** — 36 colunas, 7.835 produtos inspecionados, nenhuma coluna proibida. Foram observados 2 swatches sem nome e 84 nomes duplicados; são avisos existentes de qualidade de dados, não falha do contrato.
 - Rerun via MCP do GitHub: tentativa 2 da execução `40468755170`, em 27/10/2026, terminou com **`conclusion=success`**. Link: https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40468755170
-- Conclusão operacional: falha não reproduzida; comportamento consistente com ocorrência transitória. Não houve alteração de código da aplicação, workflow, contrato ou banco, pois não foi demonstrada causa persistente. Nenhuma pendência externa bloqueante ativa; `PENDENCIAS.md` não é necessário nesta etapa.
+- Conclusão operacional: a falha da `main` não foi reproduzida; o rerun passou sem alteração de aplicação, workflow, contrato ou banco. A evidência disponível não identifica a causa transitória exata.
+- No PR #106, o check `validate` reproduziu uma falha distinta: `npm audit --audit-level=high` apontou três vulnerabilidades high corrigíveis dentro dos ranges existentes (`vite` 8.3.2, `undici` 8.10.2 e `zod` 4.6.5). O lockfile foi atualizado sem alteração de `package.json` ou upgrade major: versões finais `vite` 8.3.5, `undici` 8.12.3 e `zod` 4.6.7. `npm ci` seguido de `npm audit --audit-level=high` terminou com zero vulnerabilidades.
+- O check do Copilot pull request reviewer falhou por bloqueio externo de quota, HTTP 402: “You've reached your additional usage limit for your plan.” A causa e a ação necessária do administrador estão registradas em `PENDENCIAS.md`; enquanto esse check permanecer em falha, o PR não será mesclado, conforme a regra de merge definida para esta tarefa.
 
 ### Gaps conhecidos (não introduzidos por esta correção)
 
-- `npm ci` reportou 3 vulnerabilidades high e `eslint@9.39.5` fora de suporte. O baseline completo passa e nenhum workflow da `main` está falhando por dependência; não foi feito upgrade automático. Recomenda-se abrir auditoria separada, com identificação de pacote/alcance e mudança mínima, sem reduzir políticas de segurança.
+- `eslint@9.39.5` está fora de suporte segundo o aviso do npm. Não foi atualizado, pois não causou falha observada e exigiria uma mudança independente; registrar e avaliar em uma revisão própria sem upgrade major desnecessário.
 - O resumo de erro do workflow não preserva o log da sonda. A ocorrência foi recuperada por reprodução e rerun; como melhoria futura de observabilidade, avaliar publicar o diagnóstico sanitizado como artifact de curta retenção ou diretamente em `GITHUB_STEP_SUMMARY` (sem URL/key/secrets e sem linhas de dados de produto).
 
 ### Validação pós-commit e PR
 
 - Commit documental inicial: `f5ef8b3` (`docs(ci): registra baseline e resultado da auditoria`).
 - Repetição integral imediatamente após esse commit: `npm run check` **PASSOU (exit 0)**.
-- Comparação baseline × pós-commit: lint, typecheck, 459 testes Vitest, 60 testes Node, build, orçamento e E2E (123 aprovados / 5 skips previstos) sem queda nem erro novo.
+- Commit de correção da causa raiz do audit: `fa21a3d` (`fix(deps): atualiza pacotes com alertas high`). Somente `package-lock.json` foi alterado.
+- Depois da correção e novamente após o commit: `npm ci`, `npm audit --audit-level=high` e `npm run check` **PASSARAM**. Auditoria final: zero vulnerabilidades; 67 arquivos/459 testes Vitest, 60 testes Node e 123 E2E passaram, com os mesmos 5 skips previstos no baseline; lint, typecheck, build e orçamento passaram.
+- Comparação baseline × final: sem redução no número de testes aprovados, sem skips novos, sem erro de lint/typecheck/build e sem regressão de contrato ou comportamento.
 - Os 11 workflows cujo último run na `main` estava verde permaneceram verdes na amostra consultada; dois seguem sem run na `main` e não foram classificados como falha.
-- PR e nova validação após o commit final desta documentação: pendentes.
+- PR #106 permanece aberto aguardando checks após o push da correção; não foi mesclado enquanto houver check em falha. A falha externa de quota do Copilot está em `PENDENCIAS.md`.
