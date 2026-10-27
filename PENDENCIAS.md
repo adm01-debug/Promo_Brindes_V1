@@ -5,7 +5,7 @@ Atualizado em 27/10/2026. Idioma: pt-BR.
 ## Bloqueio externo — revisão automática do Copilot
 
 - **Workflow/check:** Copilot pull request reviewer, no PR #106.
-- **Execuções confirmadas:** [40529986790](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40529986790), [40531656095](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40531656095) e [40534134254](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40534134254) (última execução observada no PR #106).
+- **Execuções de referência:** [40529986790](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40529986790), [40531656095](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40531656095), [40534134254](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40534134254) e [40537958327](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40537958327). A execução 40537958327 reproduz o mesmo erro no SHA atual do PR.
 - **Status observado:** `failure`.
 - **Erro exato retornado:** HTTP 402 — “You've reached your additional usage limit for your plan.”
 - **Causa:** limite de uso adicional do plano do GitHub Copilot atingido. O mesmo erro foi reproduzido após novo push do PR; não é falha reproduzível no código deste PR.
