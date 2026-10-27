@@ -908,29 +908,6 @@ p {
   cursor: pointer;
 }
 
-.hero__proof {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px 24px;
-  margin: 23px 0 0;
-  padding: 0;
-  list-style: none;
-  color: #454c47;
-  font-size: 0.76rem;
-  font-weight: 650;
-}
-
-.hero__proof li {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-
-.hero__proof svg {
-  width: 16px;
-  color: var(--green-dark);
-}
-
 /* Categories */
 .category-section {
   background: var(--white);
@@ -1540,12 +1517,6 @@ p {
   cursor: pointer;
 }
 
-.catalog-search__hint {
-  margin: 10px 0 0;
-  color: #8f9691 !important;
-  font-size: 0.72rem;
-}
-
 .catalog-layout {
   display: grid;
   grid-template-columns: 265px minmax(0, 1fr);
@@ -1625,49 +1596,6 @@ p {
   color: #fff;
   background: var(--ink);
   border-color: var(--ink);
-}
-
-.category-filter {
-  max-height: min(48vh, 480px);
-  display: grid;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-}
-
-.category-filter button {
-  min-height: 42px;
-  display: flex;
-  align-items: center;
-  padding: 7px 4px;
-  text-align: left;
-  background: transparent;
-  border: 0;
-  border-bottom: 1px solid rgb(215 212 202 / 0.7);
-  font-size: 0.73rem;
-  line-height: 1.3;
-  cursor: pointer;
-}
-
-.category-filter button::before {
-  width: 14px;
-  height: 14px;
-  flex: 0 0 14px;
-  margin-right: 10px;
-  border: 1px solid #a7aaa5;
-  border-radius: 50%;
-  content: '';
-}
-
-.category-filter button:hover,
-.category-filter button.is-active {
-  color: var(--green-dark);
-  font-weight: 700;
-}
-
-.category-filter button.is-active::before {
-  background: var(--green);
-  border: 4px solid var(--ink);
 }
 
 .filter-reassurance {
@@ -1787,10 +1715,6 @@ p {
   background: transparent;
   border-color: transparent;
   text-decoration: underline;
-}
-
-.mobile-filters {
-  display: none;
 }
 
 .pagination {
@@ -3894,12 +3818,6 @@ p {
   .occasion-intro { max-width: 670px; }
   .catalog-layout { display: block; padding-top: 30px; }
   .catalog-filters { display: none; }
-  .mobile-filters { display: block; margin-bottom: 25px; background: #fff; border: 1px solid var(--line); border-radius: 12px; }
-  .mobile-filters summary { min-height: 52px; display: flex; align-items: center; gap: 9px; padding: 0 15px; font-size: 0.78rem; font-weight: 750; cursor: pointer; list-style: none; }
-  .mobile-filters summary::-webkit-details-marker { display: none; }
-  .mobile-filters summary span { min-width: 24px; height: 24px; display: grid; place-items: center; margin-left: auto; color: #fff; background: var(--ink); border-radius: 50%; font-size: 0.62rem; }
-  .mobile-filters .catalog-filters__content { padding: 0 15px 20px; border-top: 1px solid var(--line); }
-  .mobile-filters .category-filter { max-height: 300px; }
   .content-hero__grid { grid-template-columns: 1fr; align-items: start; }
   .content-hero__grid > p { max-width: 620px; }
   .about-steps { grid-template-columns: repeat(2, 1fr); }
@@ -3928,7 +3846,6 @@ p {
   .hero-search { height: auto; min-height: 58px; flex-wrap: wrap; padding: 0 0 0 15px; }
   .hero-search input { min-height: 56px; }
   .hero-search button { min-height: 48px; width: 100%; justify-content: center; border-radius: 0 0 13px 13px; }
-  .hero__proof { display: grid; }
   .section-heading--split { display: grid; align-items: start; gap: 20px; }
   .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 10px; }
   .product-card__body { padding: 13px; }
@@ -5066,11 +4983,6 @@ p {
   color: var(--ink);
   background: var(--acid);
   border-color: var(--ink);
-}
-
-.category-filter button.is-active::before {
-  background: var(--acid);
-  border-color: var(--blue);
 }
 
 .active-filters button {
