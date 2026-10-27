@@ -9,7 +9,7 @@ Graphify é uma ferramenta local de engenharia para navegar relações estrutura
 - `.graphifyignore` exclui variáveis de ambiente, chaves, saídas de build, ativos públicos, material de auditoria e artefatos do próprio Graphify.
 - `graphify-out/` é ignorado pelo Git. Configuração, comandos, testes e este runbook são versionados.
 - A promoção do grafo é atômica: um candidato é validado e examinado antes de substituir o último mapa válido.
-- A versão homologada permanece `graphifyy 0.9.48`. A `0.9.68` foi avaliada isoladamente e não substituiu o pin; veja [a avaliação comparativa](GRAPHIFY_0968_EVALUATION_20261005.md).
+- A versão homologada é `graphifyy 0.9.94`, após [comparação isolada com 0.9.48](GRAPHIFY_0994_EVALUATION_20261027.md). A avaliação anterior de `0.9.68` permanece [documentada](GRAPHIFY_0968_EVALUATION_20261005.md).
 
 ## Dois mapas, dois propósitos
 
@@ -48,7 +48,7 @@ Objetos SQL podem aparecer em várias migrations com o mesmo rótulo. Nesses cas
 
 ## Como interpretar o mapa
 
-O Graphify 0.9.48 usado aqui emite o grafo estrutural como **não direcionado** no comando headless. Assim, `graph:impact` é uma vizinhança técnica para orientar leitura e testes; não prova causalidade reversa nem substitui busca no código, testes ou revisão. A relação exibida é evidência estrutural, não autorização para alterar banco, infraestrutura ou o projeto interno Promo Gifts.
+O Graphify 0.9.94 usado aqui emite o grafo estrutural como **não direcionado** no comando headless. Assim, `graph:impact` é uma vizinhança técnica para orientar leitura e testes; não prova causalidade reversa nem substitui busca no código, testes ou revisão. A relação exibida é evidência estrutural, não autorização para alterar banco, infraestrutura ou o projeto interno Promo Gifts.
 
 Os termos do domínio em português recebem expansão controlada nas consultas: por exemplo, `orçamento` acrescenta `quote request` e `carrinho` acrescenta `quote cart`. A consulta é passada como argumento literal, nunca para um shell.
 
@@ -76,7 +76,7 @@ O hook nativo do Graphify não é instalado por padrão: ele reconstrói em segu
 
 ## Benchmark e relatório de pull request
 
-`docs/graphify-benchmark.json` contém dez perguntas representativas. `npm run graph:benchmark` exige que cada pergunta recupere, no mapa, o arquivo esperado e que a busca direta encontre o mesmo ponto de implementação. O resultado é salvo localmente em `graphify-out/BENCHMARK.md`. O mesmo benchmark foi executado sobre os candidatos `0.9.48` e `0.9.68` antes da decisão de manter a versão homologada.
+`docs/graphify-benchmark.json` contém dez perguntas representativas. `npm run graph:benchmark` exige que cada pergunta recupere, no mapa, o arquivo esperado e que a busca direta encontre o mesmo ponto de implementação. O resultado é salvo localmente em `graphify-out/BENCHMARK.md`. O benchmark foi executado sobre `0.9.48`, `0.9.68` e `0.9.94`; a comparação do último candidato inclui o corpus SQL separado.
 
 Em pull requests, o workflow também constrói o mapa da base em um worktree temporário e cria `graphify-out/BASE_HEAD_REPORT.md`. O relatório compara nós, relações e arquivos entre base e head; ele é publicado junto do artefato do workflow. É uma comparação estrutural — não afirma causalidade em um grafo não direcionado. As decisões arquiteturais vigentes estão em [Governança do fechamento](GOVERNANCA_FECHAMENTO.md).
 
