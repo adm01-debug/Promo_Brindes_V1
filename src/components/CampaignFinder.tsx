@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, Check, RotateCcw, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CalendarDays, Check, Hash, RotateCcw, Sparkles, UsersRound, X } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -23,15 +23,65 @@ export function CampaignFinder() {
   const navigate = useNavigate();
   const [selection, setSelection] = useState<CampaignSelection>({});
   const [stepIndex, setStepIndex] = useState(0);
+  const [summaryVisible, setSummaryVisible] = useState(false);
+  const [sequentialReview, setSequentialReview] = useState(false);
   const step = steps[stepIndex];
   if (!step) throw new Error('Etapa de briefing inválida.');
   const selectedCount = campaignSelectionCount(selection);
+  const summaryItems = [
+    { key: 'moment' as const, label: CAMPAIGN_MOMENTS.find((option) => option.value === selection.moment)?.label, eyebrow: 'Momento', icon: CalendarDays, stepIndex: 0 },
+    { key: 'audience' as const, label: CAMPAIGN_AUDIENCES.find((option) => option.value === selection.audience)?.label, eyebrow: 'Pessoas', icon: UsersRound, stepIndex: 1 },
+    { key: 'scale' as const, label: CAMPAIGN_SCALES.find((option) => option.value === selection.scale)?.label, eyebrow: 'Escala', icon: Hash, stepIndex: 2 },
+    { key: 'mood' as const, label: CAMPAIGN_MOODS.find((option) => option.value === selection.mood)?.label, eyebrow: 'Clima', icon: Sparkles, stepIndex: 3 },
+  ].filter((item) => item.label);
 
   function select(value: string) {
     const currentStep = steps[stepIndex];
     if (!currentStep) return;
-    setSelection((current) => ({ ...current, [currentStep.key]: value }));
+    const nextSelection = { ...selection, [currentStep.key]: value } as CampaignSelection;
+    setSelection(nextSelection);
+    if (sequentialReview) {
+      if (stepIndex < steps.length - 1) {
+        setStepIndex((current) => current + 1);
+      } else {
+        setSequentialReview(false);
+        setSummaryVisible(true);
+      }
+      return;
+    }
+    if (campaignSelectionCount(nextSelection) === steps.length) {
+      setSummaryVisible(true);
+      return;
+    }
     if (stepIndex < steps.length - 1) setStepIndex((current) => current + 1);
+  }
+
+  function editStep(index: number) {
+    setSequentialReview(false);
+    setSummaryVisible(false);
+    setStepIndex(index);
+  }
+
+  function reviewAll() {
+    setSequentialReview(true);
+    setSummaryVisible(false);
+    setStepIndex(0);
+  }
+
+  function removeSelection(key: keyof CampaignSelection, index: number) {
+    setSelection((current) => {
+      const next = { ...current };
+      delete next[key];
+      return next;
+    });
+    editStep(index);
+  }
+
+  function reset() {
+    setSelection({});
+    setStepIndex(0);
+    setSummaryVisible(false);
+    setSequentialReview(false);
   }
 
   function showResults() {
@@ -57,55 +107,85 @@ export function CampaignFinder() {
         </div>
 
         <div className="brief-finder__panel">
-          <div className="brief-finder__progress" aria-label={`Etapa ${stepIndex + 1} de ${steps.length}`}>
+          <div className="brief-finder__progress" aria-label={summaryVisible ? `Briefing concluído: ${selectedCount} de ${steps.length} escolhas` : `Etapa ${stepIndex + 1} de ${steps.length}`}>
             {steps.map((item, index) => (
               <button
                 key={item.key}
                 type="button"
-                className={`${index === stepIndex ? 'is-current' : ''} ${selection[item.key] ? 'is-complete' : ''}`}
-                onClick={() => setStepIndex(index)}
+                className={`${!summaryVisible && index === stepIndex ? 'is-current' : ''} ${selection[item.key] ? 'is-complete' : ''}`}
+                onClick={() => editStep(index)}
                 aria-label={`Ir para etapa ${index + 1}: ${(item.eyebrow.split(' / ')[1] || item.eyebrow).toLocaleLowerCase('pt-BR')}`}
+                aria-current={!summaryVisible && index === stepIndex ? 'step' : undefined}
               >
                 {selection[item.key] ? <Check size={13} /> : index + 1}
               </button>
             ))}
           </div>
 
-          <div className="brief-finder__question" aria-live="polite">
-            <span>{step.eyebrow}</span>
-            <h3>{step.title}</h3>
-          </div>
-          <div className="brief-finder__options">
-            {step.options.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                className={selection[step.key] === option.value ? 'is-selected' : ''}
-                aria-pressed={selection[step.key] === option.value}
-                onClick={() => select(option.value)}
-              >
-                <span>{option.label}</span>
-                <small>{option.description}</small>
-                {selection[step.key] === option.value && <Check size={18} />}
-              </button>
-            ))}
-          </div>
+          {summaryVisible ? (
+            <div className="brief-finder__summary" aria-live="polite">
+              <div className="brief-finder__summary-heading">
+                <span>SEU BRIEFING</span>
+                <h3>O que entendemos da sua campanha</h3>
+                <p>Confira antes de continuar. Você pode ajustar qualquer resposta.</p>
+              </div>
+              <div className="brief-finder__summary-grid">
+                {summaryItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <article key={item.key}>
+                      <Icon size={20} aria-hidden="true" />
+                      <div><small>{item.eyebrow}</small><strong>{item.label}</strong></div>
+                      <button type="button" onClick={() => removeSelection(item.key, item.stepIndex)} aria-label={`Remover ${item.label} e editar ${item.eyebrow.toLocaleLowerCase('pt-BR')}`}><X size={17} /></button>
+                    </article>
+                  );
+                })}
+              </div>
+              <div className="brief-finder__summary-actions">
+                <button type="button" className="button button--outline" onClick={reviewAll}>Ajustar respostas</button>
+                <button type="button" className="button button--green" onClick={showResults}>Ver minha curadoria <ArrowRight size={17} /></button>
+              </div>
+              <p className="brief-finder__summary-trust"><Check size={16} /> <strong>Sem cadastro.</strong> Você continua no controle.</p>
+            </div>
+          ) : (
+            <>
+              <div className="brief-finder__question" aria-live="polite">
+                <span>{step.eyebrow}</span>
+                <h3>{step.title}</h3>
+              </div>
+              <div className="brief-finder__options">
+                {step.options.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    className={selection[step.key] === option.value ? 'is-selected' : ''}
+                    aria-pressed={selection[step.key] === option.value}
+                    onClick={() => select(option.value)}
+                  >
+                    <span>{option.label}</span>
+                    <small>{option.description}</small>
+                    {selection[step.key] === option.value && <Check size={18} />}
+                  </button>
+                ))}
+              </div>
 
-          <div className="brief-finder__actions">
-            <button type="button" className="brief-finder__back" disabled={stepIndex === 0} onClick={() => setStepIndex((current) => Math.max(0, current - 1))}>
-              <ArrowLeft size={16} /> Voltar
-            </button>
-            <button type="button" className="brief-finder__skip" onClick={() => setStepIndex((current) => Math.min(steps.length - 1, current + 1))} disabled={stepIndex === steps.length - 1}>
-              Pular etapa
-            </button>
-            <button type="button" className="button button--green" disabled={!selectedCount} onClick={showResults}>
-              Ver minha curadoria <ArrowRight size={17} />
-            </button>
-          </div>
-          {selectedCount > 0 && (
-            <button className="brief-finder__reset" type="button" onClick={() => { setSelection({}); setStepIndex(0); }}>
-              <RotateCcw size={14} /> Recomeçar · {selectedCount} {selectedCount === 1 ? 'escolha feita' : 'escolhas feitas'}
-            </button>
+              <div className="brief-finder__actions">
+                <button type="button" className="brief-finder__back" disabled={stepIndex === 0} onClick={() => setStepIndex((current) => Math.max(0, current - 1))}>
+                  <ArrowLeft size={16} /> Voltar
+                </button>
+                <button type="button" className="brief-finder__skip" onClick={() => setStepIndex((current) => Math.min(steps.length - 1, current + 1))} disabled={stepIndex === steps.length - 1}>
+                  Pular etapa
+                </button>
+                <button type="button" className="button button--green" disabled={!selectedCount} onClick={showResults}>
+                  Ver minha curadoria <ArrowRight size={17} />
+                </button>
+              </div>
+              {selectedCount > 0 && (
+                <button className="brief-finder__reset" type="button" onClick={reset}>
+                  <RotateCcw size={14} /> Recomeçar · {selectedCount} {selectedCount === 1 ? 'escolha feita' : 'escolhas feitas'}
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
