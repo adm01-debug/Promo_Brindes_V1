@@ -124,12 +124,12 @@ export function CampaignFinder() {
 
           {summaryVisible ? (
             <div className="brief-finder__summary" aria-live="polite">
-              <div className="brief-finder__summary-heading">
+              <div className="bf-head">
                 <span>SEU BRIEFING</span>
                 <h3>O que entendemos da sua campanha</h3>
                 <p>Confira antes de continuar. Você pode ajustar qualquer resposta.</p>
               </div>
-              <div className="brief-finder__summary-grid">
+              <div className="bf-grid">
                 {summaryItems.map((item) => {
                   const Icon = item.icon;
                   return (
@@ -141,11 +141,11 @@ export function CampaignFinder() {
                   );
                 })}
               </div>
-              <div className="brief-finder__summary-actions">
+              <div className="bf-actions">
                 <button type="button" className="button button--outline" onClick={reviewAll}>Ajustar respostas</button>
                 <button type="button" className="button button--green" onClick={showResults}>Ver minha curadoria <ArrowRight size={17} /></button>
               </div>
-              <p className="brief-finder__summary-trust"><Check size={16} /> <strong>Sem cadastro.</strong> Você continua no controle.</p>
+              <p className="bf-trust"><Check size={16} /> <strong>Sem cadastro.</strong> Você continua no controle.</p>
             </div>
           ) : (
             <>

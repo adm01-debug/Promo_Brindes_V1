@@ -363,7 +363,7 @@ export default function QuotePage() {
     return (
       <div className="success-page container">
         <Seo title={endpointSuccess ? 'Solicitação recebida' : 'Solicitação preparada'} path="/orcamento" noIndex />
-        <div className="success-page__panel">
+        <div className="sp-panel">
           <span className="success-page__icon"><CheckCircle2 size={42} /></span>
           <span className="section-kicker">{endpointSuccess ? 'Solicitação recebida' : 'Briefing em movimento'}</span>
           <h1>{endpointSuccess ? quoteConfirmationTitle(success.contactName || '', success.itemCount ?? 0) : 'Seu e-mail está pronto.'}</h1>
@@ -371,7 +371,7 @@ export default function QuotePage() {
           {success.requestId && <span className="success-page__protocol">Protocolo: {success.requestId}</span>}
 
           {endpointSuccess && (
-            <section className="success-page__next" aria-labelledby="success-next-title">
+            <section className="sp-next" aria-labelledby="success-next-title">
               <h2 id="success-next-title">O que acontece agora</h2>
               <ol>
                 <li><span>1</span><div><strong>Analisamos sua seleção</strong><small>Entendemos referências, quantidades e contexto.</small></div></li>
@@ -384,14 +384,14 @@ export default function QuotePage() {
           {/* Estas linhas espelham apenas o estado devolvido pela API; não
           prometem uma cópia integral do briefing nem antecipam um envio. */}
           {endpointSuccess && success.confirmations && (
-            <section className="success-page__confirmations" aria-labelledby="success-confirmations-title" role="status">
+            <section className="sp-confirm" aria-labelledby="success-confirmations-title" role="status">
               <h2 id="success-confirmations-title">Confirmações</h2>
               <div><Mail size={19} aria-hidden="true" /><span><strong>E-mail</strong><small>{confirmationDeliveryLabel(success.confirmations.email)}</small></span><CheckCircle2 size={18} aria-hidden="true" /></div>
               <div><MessageCircle size={19} aria-hidden="true" /><span><strong>WhatsApp</strong><small>{confirmationDeliveryLabel(success.confirmations.whatsapp)}</small></span>{success.confirmations.whatsapp === 'not_requested' ? <Minus size={18} aria-hidden="true" /> : <CheckCircle2 size={18} aria-hidden="true" />}</div>
             </section>
           )}
 
-          {success.assets && <div className={`success-page__asset-status ${success.assets.status === 'pending' ? 'success-page__asset-status--warning' : ''}`} role="status"><strong>{success.assets.status === 'attached' ? 'Arquivos protegidos vinculados' : 'Orçamento recebido; vínculo dos arquivos pendente'}</strong><span>{success.assets.status === 'attached' ? `${success.assets.count} ${success.assets.count === 1 ? 'arquivo acompanha' : 'arquivos acompanham'} este briefing.` : 'Os arquivos continuam privados na sua conta. Tente vinculá-los novamente sem reenviar o orçamento.'}</span>{success.assets.status === 'pending' && <button type="button" className="text-button" onClick={() => void retryAssetAttachment()}>Tentar vincular novamente</button>}</div>}
+          {success.assets && <div className={`sp-asset ${success.assets.status === 'pending' ? 'sp-asset--warning' : ''}`} role="status"><strong>{success.assets.status === 'attached' ? 'Arquivos protegidos vinculados' : 'Orçamento recebido; vínculo dos arquivos pendente'}</strong><span>{success.assets.status === 'attached' ? `${success.assets.count} ${success.assets.count === 1 ? 'arquivo acompanha' : 'arquivos acompanham'} este briefing.` : 'Os arquivos continuam privados na sua conta. Tente vinculá-los novamente sem reenviar o orçamento.'}</span>{success.assets.status === 'pending' && <button type="button" className="text-button" onClick={() => void retryAssetAttachment()}>Tentar vincular novamente</button>}</div>}
           <div className="success-page__actions">
             {success.href && <a className="button button--green" href={success.href}><Mail size={18} /> Abrir e-mail novamente</a>}
             {endpointSuccess && <Link className="button button--green" to="/entrar?next=/minha-conta">Acompanhar meus orçamentos</Link>}
