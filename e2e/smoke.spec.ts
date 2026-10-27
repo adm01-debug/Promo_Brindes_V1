@@ -215,7 +215,7 @@ test('montador de kits preserva componentes e calcula a quantidade completa', as
   }
   await page.getByRole('button', { name: /2 a 4 itens Composição flexível/ }).click();
   await page.locator('.kit-product-grid > button').filter({ hasText: product.name }).click();
-  await expect(page.getByRole('button', { name: 'Item de rotina: escolher produto' })).toBeFocused();
+  await expect(page.getByRole('button', { name: '02 Item de rotina Escolher produto' })).toBeFocused();
   await expect(page.getByRole('button', { name: /Levar para o briefing/ })).toBeDisabled();
   await page.locator('.kit-product-grid > button').filter({ hasText: 'Garrafa térmica' }).click();
   await expect(page.getByRole('button', { name: /Levar para o briefing/ })).toBeEnabled();
