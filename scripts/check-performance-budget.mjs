@@ -62,7 +62,10 @@ try {
   // 28/09/2026. O teto de 265 KiB mantém 1,3 KiB de margem e é sempre medido
   // contra um rebuild explícito com essas flags;
   // entrada, carga inicial e maior chunk continuam limitados separadamente.
-  assertBudget('JavaScript total (Brotli)', javascriptBrotli, rawBytes(265));
+  // O resumo editável do briefing e a confirmação aprovada acrescentam 1,3 KiB
+  // nas rotas lazy (medição conjunta em 27/10/2026). Os tetos de entrada,
+  // carga inicial, maior chunk e bytes brutos permanecem independentes.
+  assertBudget('JavaScript total (Brotli)', javascriptBrotli, rawBytes(267));
   assertBudget('Bundle de entrada (Brotli)', entryBrotli, rawBytes(90));
   assertBudget('JavaScript inicial (Brotli)', initialJavascriptBrotli, rawBytes(150));
   assertBudget('Maior chunk JavaScript assíncrono (Brotli)', largestAsyncJavascriptBrotli, rawBytes(50));
