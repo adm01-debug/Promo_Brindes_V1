@@ -102,10 +102,10 @@ export async function postJson(endpoint: string, payload: unknown, label: string
     return { requestId, confirmations: body.confirmations };
   } catch (error) {
     if (error instanceof ClientRequestError) throw error;
-    if (externalSignal?.aborted) throw new Error('O envio foi cancelado.');
-    if (controller.signal.aborted) throw new Error('O envio demorou além do esperado. Tente novamente.');
+    if (externalSignal?.aborted) throw new Error('O envio foi cancelado.', { cause: error });
+    if (controller.signal.aborted) throw new Error('O envio demorou além do esperado. Tente novamente.', { cause: error });
     if (error instanceof Error && (error.message === 'O envio foi cancelado.' || error.message === 'O envio demorou além do esperado. Tente novamente.')) throw error;
-    throw new Error('Não conseguimos conectar ao serviço de envio. Verifique sua conexão e tente novamente.');
+    throw new Error('Não conseguimos conectar ao serviço de envio. Verifique sua conexão e tente novamente.', { cause: error });
   } finally {
     window.clearTimeout(timeout);
   }

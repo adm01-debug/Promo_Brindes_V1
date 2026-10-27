@@ -315,7 +315,7 @@ async function rest<T>(resource: string, params: URLSearchParams, signal?: Abort
     const data = await response.json() as T;
     return { data, total: parseContentRange(response.headers.get('content-range'), Array.isArray(data) ? data.length : 0) };
   } catch (error) {
-    if (controller.signal.aborted && !signal?.aborted) throw new Error('O catálogo demorou além do esperado. Tente novamente.');
+    if (controller.signal.aborted && !signal?.aborted) throw new Error('O catálogo demorou além do esperado. Tente novamente.', { cause: error });
     throw error;
   } finally {
     globalThis.clearTimeout(timeout);
