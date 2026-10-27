@@ -143,7 +143,7 @@ export default function ProductPage() {
 
         <div className="product-detail">
           <header className="product-heading">
-            <div className="product-info__topline"><span>{categoryName?.replaceAll(' | ', ' & ') || 'Radar Promo'}</span><div className="share-action"><button type="button" className="share-button" onClick={() => void shareProduct()} aria-label="Compartilhar produto"><Share2 size={17} /> Mandar para o time</button><span role="status" aria-live="polite">{shareStatus}</span></div></div>
+            <div className="product-info__topline"><span>{categoryName?.replaceAll(' | ', ' & ') || 'Radar Promo'}</span><div className="share-action"><button type="button" className="share-button" onClick={() => void shareProduct()} aria-label="Mandar para o time: compartilhar produto"><Share2 size={17} /> Mandar para o time</button><span role="status" aria-live="polite">{shareStatus}</span></div></div>
             <h1 id="product-title">{product.name}</h1>
             <div className="product-heading__meta"><span className="product-code">Cód. {product.sku}</span>{product.isKit ? <span className="badge badge--paper">{product.isNew ? 'Kit novo' : 'Kit corporativo'}</span> : product.isNew && <span className="badge badge--ink">Novidade</span>}</div>
           </header>
