@@ -24,7 +24,7 @@ A chave anônima também continua alcançando contratos legados mais amplos (`v_
 
 ## Rollout seguro
 
-A fase A foi concluída em 08/09/2026 com a migration `20260908190000_create_site_products_public_contract.sql`, aplicada manualmente no projeto canônico. O arquivo é mantido neste repositório como espelho somente-leitura em `docs/sql/canonical/` (movido de `supabase/migrations/` em 16/09/2026 — ver cabeçalho do arquivo para o motivo). Verificação read-only em 16/09/2026 confirmou que esta versão não consta no ledger de migrations do `Promo_Gifts_V4`; a incorporação ao SSOT canônico é decisão pendente do PO daquele repositório (issue de coordenação aberta). A validação por `pg_catalog` e pela API anônima confirmou:
+A fase A foi concluída em 08/09/2026 com a migration `20260908190000_create_site_products_public_contract.sql`, aplicada manualmente no projeto canônico. O arquivo é mantido neste repositório como espelho somente-leitura em `docs/sql/canonical/` (movido de `supabase/migrations/` em 16/09/2026 — ver cabeçalho do arquivo para o motivo). Em 16/09/2026, a verificação read-only não encontrou esta versão no ledger de migrations do `Promo_Gifts_V4`. Em 27/10/2026, o ledger do canônico registra o contrato como `20260908191530_site_products_public_contract_20260908`; o espelho mantém o nome original e não deve virar uma segunda migration da mesma view. A validação por `pg_catalog` e pela API anônima confirmou:
 
 - 36 colunas no contrato e zero campos proibidos;
 - 7.519 produtos ativos, com 7.519 IDs distintos;
@@ -59,7 +59,7 @@ order by 1, 2;
 
 Antes de retirar o acesso legado, será necessário substituir a origem de `v_site_products_public` por relações-base protegidas por RLS ou por outra fronteira de privilégio revisada. A view de transição usa `security_invoker` sobre a view legada; portanto, ainda depende da permissão de leitura nela.
 
-O arquivo aprovado está versionado neste projeto novo, mas ainda não consta no histórico de migrations do repositório canônico `Promo_Gifts_V4`, responsável pelo restante do schema. Para evitar drift em restore/db-push, a incorporação ao SSOT canônico deve ser decidida pelo PO e feita sem reaplicar a migration já registrada no banco.
+O contrato está registrado no ledger do canônico como `20260908191530_site_products_public_contract_20260908`. Para evitar drift em restore/db-push, nenhuma nova migration deve recriar a view a partir do espelho `20260908190000`.
 
 Na mesma transação do corte futuro, será preciso retirar `anon` da view legada, comprovar que a view mínima continua legível e só então efetivar o `commit`.
 
