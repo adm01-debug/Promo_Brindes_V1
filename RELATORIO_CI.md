@@ -95,3 +95,45 @@ Ambiente local observado: Node `v24.19.0`, npm `11.17.0`; `.nvmrc` declara Node 
 - **Validação local após integrar a `main`:** `npm ci`, `npm audit --audit-level high` e `npm run check` passaram; zero vulnerabilidades, 70 arquivos/470 testes Vitest, 123 E2E, os mesmos 5 skips, lint, typecheck, build e orçamento aprovados. O JS mediu 265,1 KiB Brotli, abaixo do teto de 267 KiB; não houve redução de testes aprovados.
 - **Outros navegadores:** `npm run test:e2e:cross-browser` passou com 116 testes em Firefox e WebKit e 12 skips previstos para cenários específicos de Chromium/celular.
 - **Risco residual:** o plugin alternativo está em versão 0.2.0. A versão foi fixada exatamente no lockfile; a manutenção e a futura compatibilidade com atualizações de ESLint devem ser acompanhadas em revisões de dependências.
+
+## Atualização da auditoria — 28/10/2026
+
+Esta atualização substitui o inventário operacional anterior para o estado mais recente da `main`. Fonte dos runs e resumos: GitHub MCP FOREVER. Critério aplicado: última execução de cada workflow na branch `main`, sem contar execuções de PR.
+
+| Workflow | Último status na `main` | Causa provável / observação | Execução |
+|---|---|---|---|
+| Canonical catalog public contract | `success` | Verde | [40650647501](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40650647501) |
+| CI health report | `success` | Verde | [40643227492](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40643227492) |
+| CodeQL security | `success` | Verde | [40621333294](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40621333294) |
+| Isolated site database | `success` | Verde; banco não foi acessado nem alterado nesta auditoria | [40621333273](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40621333273) |
+| Dependency review | sem execução na `main` | Acionado em PR; não classificado como falha | — |
+| Graphify structural map | `success` | Verde | [40621333427](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40621333427) |
+| Production drift detector | `success` | Verde | [40647793127](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40647793127) |
+| Quality gate | `success` | Verde | [40621333465](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40621333465) |
+| Release isolated database then Vercel | `success` | Verde | [40621333269](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40621333269) |
+| Secrets rotation reminder | `success` | Verde | [36840808991](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/36840808991) |
+| Stale branch cleanup | `success` | Verde | [40292946619](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40292946619) |
+| Workflow lint | sem execução na `main` | Sem run; não classificado como falha | — |
+| Running Copilot Code Review | `failure` | HTTP 402 por limite de uso adicional do Copilot; log também relata bloqueio de firewall para `api.github.com`. Sem correção segura no código deste repositório; ação externa registrada em `PENDENCIAS.md` | [40621337165](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40621337165) |
+| Dependabot Updates | `success` | Verde | [40575051208](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40575051208) |
+| Dependency Graph | `success` | Verde | [40577408213](https://github.com/adm01-debug/Promo_Brindes_V1/actions/runs/40577408213) |
+
+Resumo: **1 falha**, **12 workflows verdes**, **2 sem execução na `main`**. O job de Copilot é dinâmico e não possui arquivo versionado em `.github/workflows`; não se deve alterá-lo ou desativá-lo para mascarar a indisponibilidade da quota.
+
+### Baseline reproduzível no `main`
+
+Worktree limpo no commit `b49f7fcfd2a282b4de41ba0df60ed06cf4555bb3`, Node `v24.19.0`, npm `11.17.0`:
+
+| Verificação | Resultado baseline |
+|---|---|
+| `npm ci` | PASSOU; 0 vulnerabilidades no lockfile desta revisão |
+| ESLint (`npm run lint`, via `npm run check`) | PASSOU |
+| TypeScript (`npm run typecheck`, via `npm run check`) | PASSOU |
+| Vitest (`npm run test`, via `npm run check`) | PASSOU — 70 arquivos, 470 testes |
+| Testes Node auxiliares | PASSARAM — 60 testes nas verificações de migrations, catálogo, segurança e CI |
+| Build (`npm run build`, via `npm run check`) | PASSOU |
+| Orçamento de performance | PASSOU — entrada 95,0 KiB Brotli |
+| E2E Playwright desktop/mobile | PASSOU — 123 aprovados, 5 skips previstos, 128 casos |
+| `npm run check` | **PASSOU — exit 0** |
+
+O workflow de Copilot não foi corrigido no código: a causa fatal depende da quota da conta GitHub. A ocorrência mais recente, SHA `b49f7fc`, está registrada em `PENDENCIAS.md`, incluindo o erro HTTP 402 e as ações necessárias do responsável. Não houve alteração em aplicação, APIs, testes, workflow, banco, dados ou secrets nesta atualização.
