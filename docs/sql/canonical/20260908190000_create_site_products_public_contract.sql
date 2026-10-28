@@ -13,9 +13,10 @@
 --   2. Verificação read-only em 16/09/2026 (`supabase migration list --project-ref
 --      doufsxqlfjyuvxuezpln`) confirmou que esta versão (20260908190000) NÃO consta no
 --      ledger de migrations do projeto canônico — o SQL foi aplicado manualmente (fora
---      do CLI) e documentado em docs/DATABASE_PUBLIC_CONTRACT.md. Incorporar este
---      arquivo ao histórico de migrations do Promo_Gifts_V4 é decisão do PO daquele
---      repositório (issue de coordenação aberta em adm01-debug/Promo_Gifts_V4).
+--      do CLI) e documentado em docs/DATABASE_PUBLIC_CONTRACT.md.
+--      Atualização em 27/10/2026 (`list_migrations`, só leitura): o ledger do canônico
+--      registra este contrato como `20260908191530_site_products_public_contract_20260908`.
+--      Não criar outra migration para a mesma view; este espelho mantém o nome original.
 --
 -- Esta migração não revoga a view legada: esse corte exige primeiro o inventário de
 -- dependências por pg_catalog descrito em docs/DATABASE_PUBLIC_CONTRACT.md.
