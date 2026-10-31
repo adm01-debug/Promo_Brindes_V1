@@ -1,0 +1,37 @@
+﻿id,nome,estado,quem_destrava,evidencia_arquivo,origens,prioridade_negocio,cluster
+PF-01,Encaminhar orçamento ao time comercial (outbox comercial),NÃO INICIADO,DONO → ENG,"site-supabase/supabase/migrations/20260908230000_create_site_lead_storage.sql:89","MZ UX70/UX77; FE 031-034; P23:18; P24:35-36",CRÍTICA,atendimento-comercial
+PF-02,Responsável + SLA por pedido,BLOQUEADO,DONO,"site_private.quote_requests sem coluna assigned/due_at","MZ UX67/UX75; FE 035; P13:27",ALTA,atendimento-comercial
+PF-03,Back-office mínimo (mudar status / publicar proposta / triar ajustes),NÃO INICIADO,ENG,"site-supabase/supabase/tests/database/*.test.sql (único insert em proposal_documents)","MZ UX75-77/AC24; FE 017",CRÍTICA,atendimento-comercial
+PF-04,Cliente bloqueado após 3 ajustes pendentes (bug latente),DIVERGÊNCIA,ENG (com PF-03),"20260923120000_audit_security_reliability_hardening.sql:202-205","anexo 07 §1",ALTA,atendimento-comercial
+PF-05,Mensagens da equipe ao cliente + evento proposta_publicada,NÃO INICIADO,ENG,"20260909180000_create_customer_quote_portal.sql:30","anexo 07 §1/§7",MÉDIA,atendimento-comercial
+PF-06,Fale conosco com destino consumidor,PARCIAL,ENG (com PF-01),"api/contact-requests.ts gravado mas sem consumidor","FE 034",MÉDIA,atendimento-comercial
+PF-07,Confirmação por e-mail (Resend),BLOQUEADO (adiado),DONO,"api/notifications.ts:292-320","MZ UX68/LK45; FE 036-037",ALTA,notificacoes
+PF-08,Confirmação por WhatsApp (Cloud API),BLOQUEADO (adiado),DONO,"api/notifications.ts:322-374","MZ UX69; FE 038; CA 082",ALTA,notificacoes
+PF-09,Webhooks Resend/WhatsApp (+ bug 500→400),BLOQUEADO + BUG,DONO + ENG,"api/notification-events-resend.ts:58-59;111-116","FE 039",ALTA,notificacoes
+PF-10,Saúde da fila medida mesmo sem provedor (cron 503),NÃO INICIADO,ENG,"api/notifications.ts:642-646 vs :689","anexo 04 §6",ALTA,notificacoes
+PF-11,Corte de backlog / filtro spam antes de ligar provedores,NÃO INICIADO,ENG,"20260923200000_enrich_quote_confirmation_contract.sql:80-110","anexo 07 §7",MÉDIA,notificacoes
+PF-12,Lista de supressão + reprocessamento + purga de órfãos,NÃO INICIADO,ENG,"20260916140000_add_provider_event_precedence.sql:50-88","anexo 07 §5/§7",MÉDIA,notificacoes
+PF-13,Conteúdo das confirmações (resumo vs cópia integral),BLOQUEADO,DONO,"src/pages/QuotePage.tsx:357-364 vs api/notifications.ts:261-280","P13:31; P23:16-17",BAIXA,notificacoes
+PF-14,Tela diz registrada para envio quando e-mail está desligado,DIVERGÊNCIA,ENG,"src/pages/QuotePage.tsx (banner de confirmação)","FE 036",ALTA,notificacoes
+PF-15,Checkbox cópia WhatsApp sempre visível sem WhatsApp ligado,DIVERGÊNCIA,ENG + aprovação texto,"src/components/ConversationForm (campo opt_in_whatsapp_copy)","MZ UX69",ALTA,notificacoes
+PF-17,LGPD: apagamento completo (só SQL manual hoje),PARCIAL,ENG + jurídico,"erase_customer_data RPC sem apagamento de Storage/outbox","MZ AC22; FE 092",ALTA,privacidade-lgpd
+PF-30,LGPD: exportação de dados do titular,NÃO INICIADO,ENG,"0 ocorrências de export_customer/data_export em src/ api/","MZ AC23",ALTA,privacidade-lgpd
+PF-31,LGPD: autoexclusão pelo próprio cliente no portal,NÃO INICIADO,ENG,"portal não tem botão de autoexclusão","MZ AC24",ALTA,privacidade-lgpd
+PF-37,Briefing: troca de campanha silenciosa,NÃO INICIADO,ENG + mockup,"src/pages/QuotePage.tsx (sem aviso ao trocar campanha)","CA 037-040",MÉDIA,briefing-ux
+PF-38,Briefing: intenção vira filtro sem explicação ao cliente,NÃO INICIADO,ENG + mockup,"src/components/OccasionSelector","CA 038",MÉDIA,briefing-ux
+PF-39,Briefing: caminho para quem não sabe o que quer,NÃO INICIADO,ENG + mockup,"0 ocorrências de quiz/guia em src/components","CA 039-040",ALTA,briefing-ux
+PF-40,Briefing: resumo editável e confirmação (PR #94),PARCIAL (PR aberta),ENG,"PR #94 fechado sem merge - feat/carnegie-briefing-confirmation","CA 040",ALTA,briefing-ux
+PF-57,Conteúdo: catálogos PDF/revista cases fotos próprias,BLOQUEADO,CONTEÚDO,"public/brand/ vazio; Storage sem PDFs de catálogo","MZ LK05-10",ALTA,conteudo
+PF-58,Conteúdo: prova social e bastidores,BLOQUEADO,CONTEÚDO,"0 ocorrências de testimonials/depoimentos em src/","MZ LK11-15",MÉDIA,conteudo
+PF-59,Domínio oficial: canonical + sitemap + robots,BLOQUEADO,DONO,"vercel.json alias + sitemap apontando para promo-brindes-v1.vercel.app","MZ GR18",ALTA,seo
+PF-66,Secret scanning + push protection desligados,NÃO INICIADO,ENG,"gh api repos/.../vulnerability-alerts → disabled","AUD A-001/F-02",CRÍTICA,seguranca
+PF-69,Governança: único colaborador sem segundo revisor,BLOQUEADO,DONO,"0 CODEOWNERS; PRs #82-83 sem aprovação registrada","AUD A-022; FE 099",ALTA,governanca
+PF-75,Código morto (dead code identificado pelo Graphify),NÃO INICIADO,ENG,"graph:impact confirma nós isolados","GR; AUD",BAIXA,qualidade-tecnica
+PF-77,Merge de migrations sem recibo em produção,BLOQUEADO,DONO + ENG,"release.yml sem confirmação explícita pós-apply","AUD A-022",ALTA,governanca
+PF-86,Restore nunca ensaiado sem RPO/RTO Storage sem backup,BLOQUEADO,DONO,"RUNBOOK_INCIDENTES.md sem seção restore testado","FE 087",ALTA,confiabilidade
+PF-87,Crons sem vigia (notificações 503 ~96x/dia),NÃO INICIADO,ENG,"api/notifications.ts:642-646 retorna 503 antes de reportQueueHealth","FE 088",ALTA,confiabilidade
+PF-88,Alerta ops ausente quando cron falha,NÃO INICIADO,ENG,"OPERATIONS_ALERT_WEBHOOK_URL não configurado em produção","FE 088",ALTA,confiabilidade
+PF-94,PR #94 briefing Carnegie confirmação (fechada sem merge),PARCIAL (PR fechada),ENG,"PR #94 CLOSED 2026-10-11 feat/carnegie-briefing-confirmation","CA 040",ALTA,briefing-ux
+PF-106,Graphify: node_modules ausente quebra graph:* em CI limpo,PARCIAL CORRIGIDO,ENG,"scripts/graphify-quality.mjs:3 ERR_MODULE_NOT_FOUND corrigido após npm ci","GR",BAIXA,qualidade-tecnica
+PF-112,Código morto confirmado por graph:impact,NÃO INICIADO,ENG,"graph:impact retorna nós isolados","GR",BAIXA,qualidade-tecnica
+PF-128,Teste Vitest falhando (1 de 459),CONFIRMADO PENDENTE,ENG,"CI PR #110: 458/459 passed","AUD",MÉDIA,qualidade-tecnica
