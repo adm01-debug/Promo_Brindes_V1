@@ -1,0 +1,96 @@
+﻿{
+    "prs":  {
+                "mergeadas":  90,
+                "analisadas":  108,
+                "fechadas_sem_merge":  18,
+                "vereditos":  {
+                                  "DECISAO_HUMANA":  2,
+                                  "INCOMPLETO":  2,
+                                  "CONCLUIDO_COM_RESSALVA":  3,
+                                  "PENDENTE_DE_VERIFICACAO":  1,
+                                  "CONCLUIDO":  7
+                              },
+                "total_identificadas":  108,
+                "abertas":  0
+            },
+    "auditorias":  {
+                       "fontes_lidas":  22,
+                       "achados_por_situacao":  {
+                                                    "NAO_VERIFICADO":  8,
+                                                    "REINTRODUZIDO_POR_REGRESSAO":  1,
+                                                    "CONFIRMADO_E_PENDENTE":  7,
+                                                    "PARCIALMENTE_CORRIGIDO":  1,
+                                                    "SUPERADO":  1
+                                                },
+                       "achados_total":  18,
+                       "fontes_identificadas":  57
+                   },
+    "meta":  {
+                 "data_inicio":  "2026-10-31",
+                 "data_conclusao":  "2026-10-31",
+                 "repositorio":  "adm01-debug/Promo_Brindes_V1",
+                 "objetivo":  "Reconciliar copia local, branches, PRs e auditorias anteriores; gerar analise-prs/",
+                 "sha_main":  "b19311989efe273e47dd8949ef126225206ad208",
+                 "sessao":  "16a592e1-be41-4b16-b44a-d1efbc053a6b"
+             },
+    "pendencias_identificadas":  [
+                                     "A-001/F-02: VERCEL_TOKEN invalido em producao - verificar .github/workflows/release.yml",
+                                     "A-003: Regressao useOccasionFavorites.ts - verificar isolamento por titular",
+                                     "PF-01: Outbox comercial ausente - notificacao ao time quando orcamento chega",
+                                     "PF-10/PF-87/PF-88: Crons 503 sem log e sem alerta ops",
+                                     "Canonical catalog public contract: workflow falhando desde cc133bd0",
+                                     "PF-04: Bug latente de bloqueio permanente apos 3 ajustes",
+                                     "PF-66: Secret scanning e push protection desligados"
+                                 ],
+    "arquivos_gerados":  {
+                             "analise-prs/regras-de-negocio.md":  {
+                                                                      "pr":  "a-criar",
+                                                                      "status":  "PENDENTE_PUSH"
+                                                                  },
+                             "analise-prs/funcionalidades.csv":  {
+                                                                     "pr":  "a-criar",
+                                                                     "status":  "PENDENTE_PUSH"
+                                                                 },
+                             "analise-prs/baseline/ci-checks.md":  {
+                                                                       "pr":  "a-criar",
+                                                                       "status":  "PENDENTE_PUSH"
+                                                                   },
+                             "analise-prs/auditorias-anteriores.md":  {
+                                                                          "sha_commit":  "2f7a2c8",
+                                                                          "status":  "MERGEADO",
+                                                                          "pr":  110
+                                                                      },
+                             "analise-prs/prs.json":  {
+                                                          "sha_commit":  "52a9e23",
+                                                          "status":  "MERGEADO",
+                                                          "pr":  110
+                                                      },
+                             "analise-prs/progresso.json":  {
+                                                                "pr":  "a-criar",
+                                                                "status":  "PENDENTE_PUSH"
+                                                            },
+                             "analise-prs/prs.csv":  {
+                                                         "sha_commit":  "bf1ea38",
+                                                         "status":  "MERGEADO",
+                                                         "pr":  110
+                                                     },
+                             "analise-prs/fontes.json":  {
+                                                             "pr":  "a-criar",
+                                                             "status":  "PENDENTE_PUSH"
+                                                         },
+                             "analise-prs/decisoes.md":  {
+                                                             "pr":  "a-criar",
+                                                             "status":  "PENDENTE_PUSH"
+                                                         },
+                             "analise-prs/RELATORIO_PRS.md":  {
+                                                                  "pr":  "a-criar",
+                                                                  "status":  "PENDENTE_PUSH"
+                                                              }
+                         },
+    "branches":  {
+                     "nota":  "As 2 branches ahead sao residuo de squash merge - conteudo ja esta em main",
+                     "trabalho_inedito":  0,
+                     "com_commits_ahead_main":  2,
+                     "total_identificadas":  18
+                 }
+}

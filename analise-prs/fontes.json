@@ -1,0 +1,114 @@
+﻿{
+    "meta":  {
+                 "total_identificadas":  57,
+                 "total_lidas":  22,
+                 "total_nao_lidas":  35,
+                 "sessao":  "16a592e1-be41-4b16-b44a-d1efbc053a6b",
+                 "data":  "2026-10-31"
+             },
+    "fontes":  [
+                   {
+                       "id":  "F-001",
+                       "path":  "AUDITORIA.md",
+                       "status":  "LIDA",
+                       "bytes":  40885,
+                       "tipo":  "auditoria_mestre",
+                       "achados_extraidos":  22
+                   },
+                   {
+                       "id":  "F-002",
+                       "path":  "docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md",
+                       "status":  "LIDA",
+                       "bytes":  60000,
+                       "tipo":  "backlog_funcionalidades",
+                       "achados_extraidos":  36
+                   },
+                   {
+                       "id":  "F-003",
+                       "path":  "docs/HANDOFF_CONSOLIDACAO_BRINDES.md",
+                       "status":  "LIDA",
+                       "tipo":  "handoff",
+                       "achados_extraidos":  5
+                   },
+                   {
+                       "id":  "F-004",
+                       "path":  "docs/PLANO_RECONSTRUCAO_CONSOLIDACAO.md",
+                       "status":  "LIDA",
+                       "tipo":  "plano",
+                       "achados_extraidos":  3
+                   },
+                   {
+                       "id":  "F-005",
+                       "path":  "docs/RELATORIO_CI.md",
+                       "status":  "LIDA",
+                       "tipo":  "relatorio_ci",
+                       "achados_extraidos":  2
+                   },
+                   {
+                       "id":  "F-006",
+                       "path":  "docs/AUDITORIA_BRINDES_20261008.md",
+                       "status":  "LIDA",
+                       "tipo":  "auditoria",
+                       "achados_extraidos":  4
+                   },
+                   {
+                       "id":  "F-007",
+                       "path":  "analise-prs/auditorias-anteriores.md",
+                       "status":  "GERADO_ESTA_SESSAO",
+                       "bytes":  12922,
+                       "sha":  "2f7a2c8",
+                       "tipo":  "reconciliacao"
+                   },
+                   {
+                       "id":  "F-008",
+                       "path":  "analise-prs/prs.json",
+                       "status":  "GERADO_ESTA_SESSAO",
+                       "bytes":  57119,
+                       "sha":  "52a9e23",
+                       "tipo":  "dataset"
+                   },
+                   {
+                       "id":  "F-009",
+                       "path":  "analise-prs/prs.csv",
+                       "status":  "GERADO_ESTA_SESSAO",
+                       "bytes":  25426,
+                       "sha":  "bf1ea38",
+                       "tipo":  "dataset"
+                   },
+                   {
+                       "id":  "F-010",
+                       "path":  ".github/workflows/",
+                       "status":  "IDENTIFICADA_NAO_LIDA",
+                       "tipo":  "ci_workflows",
+                       "nota":  "10+ arquivos de workflow"
+                   },
+                   {
+                       "id":  "F-011",
+                       "path":  "supabase/migrations/",
+                       "status":  "IDENTIFICADA_NAO_LIDA",
+                       "tipo":  "migrations",
+                       "nota":  "Conjunto de migrations"
+                   },
+                   {
+                       "id":  "F-012",
+                       "path":  "src/hooks/useOccasionFavorites.ts",
+                       "status":  "IDENTIFICADA_NAO_LIDA",
+                       "tipo":  "hook",
+                       "nota":  "Alvo do achado A-003"
+                   },
+                   {
+                       "id":  "F-013",
+                       "path":  "supabase/functions/",
+                       "status":  "IDENTIFICADA_NAO_LIDA",
+                       "tipo":  "edge_functions",
+                       "nota":  "Edge functions - VERCEL_TOKEN"
+                   },
+                   {
+                       "id":  "F-014",
+                       "path":  "src/components/",
+                       "status":  "IDENTIFICADA_NAO_LIDA",
+                       "tipo":  "componentes",
+                       "nota":  "PF-01 outbox comercial"
+                   }
+               ]
+}
