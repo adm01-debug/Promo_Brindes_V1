@@ -1,0 +1,128 @@
+id,funcionalidade,descricao,estado,completude_pct,prs_relacionadas,achado_auditoria,prioridade
+F-01,Encaminhar lead ao time comercial,Outbox audience=commercial_team + adaptador de destino (CRM/e-mail/WhatsApp interno),PENDENTE,0,,PF-01;P1
+F-02,Responsavel estados e SLA por pedido,Colunas responsavel/prazo em quote_requests + tela de sucesso com prazo,BLOQUEADA,0,,PF-02;P2
+F-03,Back-office minimo,Publicar proposta mudar status triar ajustes via UI,NÃO INICIADO,0,,PF-03;P1
+F-04,Bloqueio apos 3 ajustes pendentes,Regra too_many_pending_adjustments sem saida para o cliente,PARCIAL,30,,PF-04;P2
+F-05,Mensagens da equipe ao cliente,Eventos message e proposal_published na linha do tempo,PENDENTE,0,,PF-05;P2
+F-06,Fale conosco com destino,contact_requests gravado sem consumidor,PARCIAL,50,,PF-06;P2
+F-07,Confirmacao por e-mail Resend,RESEND_API_KEY + SITE_EMAIL_FROM em producao,BLOQUEADA,70,#82,PF-07;P1
+F-08,Confirmacao por WhatsApp Cloud API,4 variaveis WHATSAPP_* + template Meta aprovado,BLOQUEADA,70,#82,PF-08;P1
+F-09,Webhooks de entrega Resend/WhatsApp,Secrets + URLs; bug 500 em payload invalido,PARCIAL,60,,PF-09;P2
+F-10,Saude da fila sem provedor,Cron */15 retorna 503 antes de reportQueueHealth,PENDENTE,0,,PF-10;P2
+F-11,Corte de backlog antes de ligar provedores,claim_site_notification_deliveries sem filtro de idade/spam/apagado,PENDENTE,0,,PF-11;P2
+F-12,Supressao e reprocessamento,Lista bounce/complaint + reprocessar exhausted→pending,PENDENTE,0,,PF-12;P3
+F-13,Conteudo das confirmacoes,Decisao resumo x copia integral; texto diverge do e-mail real,BLOQUEADA,50,,PF-13;P3
+F-14,Texto promessa de confirmacao,Tela diz registrada para envio sem provedor ligado,PARCIAL,50,,PF-14;P2
+F-15,Checkbox copia pelo WhatsApp,Sempre visivel sem WhatsApp ligado; nao e copia,PARCIAL,50,,PF-15;P2
+F-16,Texto time de especialistas vai entrar em contato,Sem handoff PF-01 nem escritor na timeline PF-03,PARCIAL,50,,PF-16;P3
+F-17,Promessas da Politica de Privacidade,Sem provedor sem autoexclusao sem RPC acesso/correcao,PARCIAL,40,,PF-17;P1
+F-18,Curadoria iniciada pelo briefing,Ordenacao por intencao so na pagina carregada; sem curadoria humana,PARCIAL,60,,PF-18;P3
+F-19,Descricao padrao personalize,Aparece mesmo com allowsPersonalization=false,PARCIAL,80,,PF-19;P3
+F-20,Faixa de publico como unidades,Escala 51-200 un. exibe pessoas como quantidade,PARCIAL,80,,PF-20;P3
+F-21,Aviso rascunho fica salvo,Aparece mesmo com falha no sessionStorage,PARCIAL,80,,PF-21;P3
+F-22,Abrir PDF/revista na biblioteca,10 colecoes format online; PDF/revista so estrutura,PARCIAL,50,,PF-22;P3
+F-23,Propostas versionadas no portal,Leitura + URL 60s prontas; sem produtor PF-03,PARCIAL,60,,PF-23;P1
+F-24,Perfil do cliente editavel,customer_profiles.company nunca escrito; sem RPC leitura/edicao,PARCIAL,30,,PF-24;P2
+F-25,Pedidos de ajuste,Atras de flag; sem roteamento PF-01; bloqueio PF-04; sem e2e,PARCIAL,50,,PF-25;P2
+F-26,Ciclo real de autenticacao,Ensaio com contas controladas e e-mail real,PARCIAL,70,,PF-26;P2
+F-27,Rate limit 429 em propostas/anexos,Estouro vira 404 nao encontrado,PARCIAL,70,,PF-27;P2
+F-28,Conta como beneficio opcional,Falta explicar beneficio e opcionalidade,PARCIAL,70,,PF-28;P3
+F-29,Linha do tempo com proximo passo,Status desconhecido vira Em acompanhamento; sem proximo passo,PARCIAL,60,,PF-29;P3
+F-30,Direitos do titular LGPD,RPCs acesso/exportacao/correcao/autoexclusao; ensaio sintetico,PENDENTE,10,,PF-30;P1
+F-31,Apagamento completo,erase_customer_data nao limpa metadata kit_name_snapshot pendentes,PARCIAL,60,,PF-31;P1
+F-32,Retencao por tabela completa,Orfaos nunca purgados; inativos sem prazo; spam = legitimo,PARCIAL,50,,PF-32;P2
+F-33,Evento erased na timeline,Sem decisao nem implementacao,BLOQUEADA,0,,PF-33;P3
+F-34,Auditoria de leitura SELECT em PII,So ha auditoria de escrita e DDL,PENDENTE,0,,PF-34;P3
+F-35,Saneamento de anexos,So checa assinatura 1KiB; PDF em quarentena permanente,PARCIAL,40,,PF-35;P2
+F-36,Criptografia PII E.164 rate limit borda,Spikes adiados formalmente,BLOQUEADA,0,,PF-36;P2
+F-37,Resumo O que entendemos editavel,PR #94: resumo so com 4/4; falta cancelar edicao foco merge,PARCIAL,70,#94,PF-37;P1
+F-38,Caminho Ainda nao sei o que escolher,CTA desabilitado com 0 respostas; sem saida ao catalogo,PENDENTE,0,,PF-38;P2
+F-39,Troca de campanha consciente,setCampaign sobrescreve carrinho em silencio,PENDENTE,0,,PF-39;P2
+F-40,Intencao x filtros efetivos,Mostrar respostas que viraram filtro; descrever Curadoria Promo,PENDENTE,0,,PF-40;P2
+F-41,Contexto editavel no orcamento,Formulario comeca por dados pessoais; contexto so leitura,PENDENTE,0,,PF-41;P2
+F-42,Telefone coerente orcamento/contato,Obrigatorio no orcamento opcional no contato,PARCIAL,70,,PF-42;P3
+F-43,Repetir orcamento sem esconder mudancas,Quantidade antiga ajustada ao minimo sem aviso,PARCIAL,70,,PF-43;P3
+F-44,Retorno ao adicionar e confirmacao ao limpar,Adicionar so abre drawer; limpar sem confirma,PARCIAL,70,,PF-44;P3
+F-45,Por que este produto + ideias de uso,Regra deterministica + conteudo aplicacoes,PENDENTE,0,,PF-45;P3
+F-46,Personalizacao por familia,Contrato so expoe allows_personalization e min_quantity,BLOQUEADA,20,,PF-46;P2
+F-47,WhatsApp iniciado pelo visitante,Link wa.me contextual com numero validado,PENDENTE,0,,PF-47;P2
+F-48,Menu visual de categorias,Cabecalho so com links de texto,PARCIAL,50,,PF-48;P3
+F-49,Landings /ideias/* descobriveis,4 paginas com SSR e sitemap sem link interno nem e2e,PARCIAL,60,,PF-49;P3
+F-50,Vitrine home/catalogo diversidade global,Home ordena so por flags; diversificacao so pagina corrente,PARCIAL,60,,PF-50;P3
+F-51,Grupos de decisao e links persistentes,Atras de flags; selo Referencia principal vaza na impressao,PARCIAL,60,,PF-51;P2
+F-52,Sync automatico carrinho entre dispositivos,So por selecoes salvas explicitas,BLOQUEADA,0,,PF-52;P3
+F-53,Favoritos e2e multi-aba offline limite 100,24 testes hook; sem e2e Playwright; sem offline,PARCIAL,60,#33;#35;#36;#44;#45;#47,PF-53;A-003;A-004;A-007;A-010;P2
+F-54,Feedback de clareza e eventos Carnegie,Sem evento feedback_/summary_edited/campaign_conflict; sem baseline,PENDENTE,0,,PF-54;P3
+F-55,Inventario de afirmacoes comerciais,proposta real curadoria humana sem fonte/dono,PENDENTE,0,,PF-55;P3
+F-56,Registro de aprovacao visual,Mockups das PRs #91 #92 #94 fora do repo,PENDENTE,0,#91;#92;#94,PF-56;P2
+F-57,Catalogos PDF e revistas reais,Localizar arquivos aprovados e direitos; 0 .pdf em public/,BLOQUEADA,0,,PF-57;P2
+F-58,Cases prova social bastidores fotos,Acervo e autorizacoes de imagem,BLOQUEADA,0,,PF-58;P2
+F-59,Dominio oficial apex + www,Canonical sitemap robots em vercel.app; allowedSiteOrigins unica,BLOQUEADA,0,,PF-59;P1
+F-60,Imagem social por colecao e data,Imagem unica WebP para todas as paginas curadas,PARCIAL,50,,PF-60;P3
+F-61,Governanca editorial real,Unico commonGovernance generico nas 10 colecoes,PARCIAL,40,,PF-61;P3
+F-62,Guia de voz atualizado e aplicado,Gift Lovers fora do guia; CTA e nomes divergentes,PARCIAL,60,#92,PF-62;P3
+F-63,Corpus julgado de relevancia de busca,20 julgamentos por conceito sem produto nem metrica,BLOQUEADA,20,,PF-63;P3
+F-64,Pagina de projeto especial,Confirmacao comercial do servico,BLOQUEADA,0,,PF-64;P3
+F-65,Redes horario e canal oficiais,Sem horario de atendimento no site,PARCIAL,70,,PF-65;P3
+F-66,Secret scanning + push protection,Ativar em Settings repositorio publico,PENDENTE,0,,PF-66;P1
+F-67,Dependabot security updates e SHA pinning,Settings Actions/Code security,PENDENTE,0,,PF-67;P1
+F-68,Segredos por Environment,Secrets no nivel repo; Environments sem regras,PENDENTE,0,,PF-68;P1
+F-69,Segundo revisor de PR,CODEOWNERS = * @adm01-debug; #82 #83 sem APPROVED,BLOQUEADA,0,#82;#83,PF-69;P1
+F-70,Ruleset strict delete_branch linear CodeQL obrigatorios,rulesets vazio; strict false,PENDENTE,0,,PF-70;P2
+F-71,Conta de servico Supabase no lugar do PAT,Release executa SQL via PAT pessoal,BLOQUEADA,0,,PF-71;P2
+F-72,Rotacao de segredos executada,Issue #80 aberta 01/10 sem acao,PENDENTE,0,,PF-72;P2
+F-73,Cutover SITE_SUPABASE_SERVICE_JWT,Storage exige service_role; JWT 30 dias sem renovacao,BLOQUEADA,40,,PF-73;P2
+F-74,Endurecimento de workflows,harden-runner zizmor persist-credentials permissions SBOM,PARCIAL,40,,PF-74;P2
+F-75,Verificacao de config do banco no boot,assertSafeSiteDatabaseConfiguration nunca chamada,PENDENTE,0,,PF-75;P3
+F-76,Revogar mcp_kv_get no banco principal,SECURITY DEFINER executavel por authenticated,BLOQUEADA,0,,PF-76;P1
+F-77,Fluxo versionado de migrations com recibo,Nenhum workflow aplica; ledger sem registro quem/quando,PENDENTE,0,,PF-77;P1
+F-78,Diff integral schema/ACL + Security Advisor,So ACL favoritos tratada; db lint so local,PARCIAL,30,,PF-78;P2
+F-79,API com tipos gerados,42 RPCs tipadas mas 28 retornam Json; api/ nao importa tipos,PARCIAL,50,,PF-79;P3
+F-80,Contratos documentados coerentes,Nomes e HTTP divergem em 6 pontos,PARCIAL,60,,PF-80;P3
+F-81,Remover funcao legada e testar vigente,finalize_briefing_asset_retention com GRANT e testada; vigente sem pgTAP,PARCIAL,50,,PF-81;P2
+F-82,pgTAP Storage authenticated cruzado DDL rate limit,Testes so contam policies como postgres,PENDENTE,0,,PF-82;P2
+F-83,Remover recuo view legada v_products_public,Recuo ativo em 3 pontos; variant_id morto gera 422,BLOQUEADA,30,,PF-83;P2
+F-84,Preferencias do cliente,Migration so cria ajustes,PENDENTE,0,,PF-84;P3
+F-85,Retencao com drenagem,Lote fixo 100/dia com timeout unico 10s,PARCIAL,60,,PF-85;P3
+F-86,Restore medido RPO/RTO PITR backup Storage,Nunca ensaiado; Storage sem copia,BLOQUEADA,0,,PF-86;P1
+F-87,Vigia independente dos crons,0 ocorrencias heartbeat/lastRunAt,PENDENTE,0,,PF-87;P2
+F-88,Alertas operacionais funcionando,OPERATIONS_ALERT_WEBHOOK_URL ausente; payload generico,PARCIAL,30,,PF-88;P2
+F-89,Preview isolado com banco proprio,Sem preview.yml sem branch Supabase Git integration off,BLOQUEADA,0,,PF-89;P2
+F-90,Revisao mensal do banco executada,Nunca rodou; query com coluna duplicada,PENDENTE,0,,PF-90;P3
+F-91,Runbooks atualizados e revisados,Release descreve rollback manual; contagens antigas; sem revisor,PARCIAL,50,,PF-91;P3
+F-92,Funil analytics homologado erros CWV p75,Coleta instalada; recepcao e baseline nao registradas,PARCIAL,50,,PF-92;P2
+F-93,Catalogo publico monitorado,Sonda diaria 36 colunas verde 02-11/10,COMPLETA,100,#83,A-022;P2
+F-94,Release candidato smoke promote rollback,Fluxo automatico com detector de drift diario,COMPLETA,100,#52;#55;#63;#65;#67;#68;#77;#78;#79,A-001;P1
+F-95,CI mais barato e rapido,Matriz e cache sem otimizacao,PENDENTE,0,,PF-95;P3
+F-96,Graphify reproduzivel,Automacao nao le .graphifyignore; mapa banco sem RPCs,PARCIAL,60,#95,PF-106;P3
+F-97,Matriz de fechamento reconciliada,118/100/1/11 congelada desde 22/09 104 commits atras,PENDENTE,0,,PF-109;P3
+F-98,Codigo morto removido,Graphify aponta nos de baixa conectividade sem verificacao,PENDENTE,0,,PF-112;P3
+F-99,Produto inexistente com mensagem adequada,Mensagem de falha temporaria em vez de 404 distinto,PARCIAL,70,,PF-114;P3
+F-100,Eventos de funil faltantes,Sem eventos contato upload selecao landing login,PENDENTE,0,,PF-120;P3
+F-101,Conta e anexos no portal,Seccoes incompletas no CustomerAccountPage,PARCIAL,50,,PF-123;PF-124;P2
+F-102,Favoritos por conta com 24 testes,Hook useOccasionFavorites + RPCs titular + ACL,COMPLETA,100,#33;#35;#36;#44;#45;#47,A-003;A-004;A-007;A-010;P1
+F-103,Ranking por intencao e diversidade,catalogRanking.ts + catalogo ordenado,COMPLETA,100,,PF-50;P2
+F-104,Categorias fotograficas na home,HomePage com imagens por categoria,COMPLETA,100,,PF-48;P3
+F-105,Preflight de rate limit antes do catalogo,Migration 20261001130320,COMPLETA,100,,PF-27;P2
+F-106,Idempotencia do vinculo de anexos,Migration 20261006134751,COMPLETA,100,,PF-35;P2
+F-107,Galeria e ficha de produto compactas,PR #91 cards alinhados,COMPLETA,100,#91,,P3
+F-108,Retencao diaria executando,Logs 09 10 e 11/10,COMPLETA,100,,PF-85;P2
+F-109,PDF recusado em anexos,Falha fechada com validacao,COMPLETA,100,,PF-35;P2
+F-110,Briefing resumo editavel Carnegie,PR #94 aberta mergeada 27/10,COMPLETA,100,#94,PF-37;P1
+F-111,Card produto fundo limpo,PR #88 mergeada 27/10,COMPLETA,100,#88,,P3
+F-112,Terminologia Tendencias,PR #50 Drops→Tendencias,COMPLETA,100,#50,,P3
+F-113,Rotulo catalogo Tendencias,PR #76 renomeia Novas tendencias,COMPLETA,100,#76,,P3
+F-114,Assinatura Gift Lovers by Promo,PR #92 branding,COMPLETA,100,#92,PF-62;P3
+F-115,Aprovacao visual obrigatoria,PR #90 regra AGENTS.md,COMPLETA,100,#90,PF-56;P2
+F-116,Plano Carnegie UX 100 etapas,PR #93 documentacao,COMPLETA,100,#93,,P3
+F-117,Auditoria funcionalidades 11/10,PR #96 documento base desta analise,COMPLETA,100,#96,,P1
+F-118,Importar ativos externos,PR #103 mockups e relatorios,COMPLETA,100,#103,PF-56;P3
+F-119,Contrato catalogo alinhado ao ledger,PR #108 docs,COMPLETA,100,#108,PF-80;P2
+F-120,Bloqueio Copilot na main registrado,PR #109 docs,COMPLETA,100,#109,,P3
+F-121,CI workflows baseline e sonda,PR #106 docs,COMPLETA,100,#106,,P2
+F-122,PR review status e pendencias,PR #107 docs,COMPLETA,100,#107,,P3
+F-123,UX master elimina perdas async,PR #89 audit/ux-master-100-stages,COMPLETA,100,#89,,P1
+F-124,Plano fechamento 100 etapas,PR #81 docs,COMPLETA,100,#81,,P2
+F-125,Fecha gaps P1 abuso e saude CI,PR #82,COMPLETA,100,#82,PF-07;PF-08;P1
+F-126,Monitora contrato publico catalogo,PR #83 sonda 36 colunas,COMPLETA,100,#83,A-022;P2
+F-127,Graphify qualifica mapas e TS,PR #95,COMPLETA,100,#95,,P3
