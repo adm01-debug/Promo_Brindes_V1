@@ -1,95 +1,31 @@
-﻿# CI Baseline — Promo Brindes V1
+# Baseline de CI — checks obrigatórios
 
-Data: 2026-10-31  
-SHA main: b19311989efe273e47dd8949ef126225206ad208 (merge squash PR #110)  
-SHA anterior: cc133bd079cf67d270235c345c51b9681ca97acf
+**Gerado em:** 2026-11-01
+**SHA main referência:** b19311989efe273e47dd8949ef126225206ad208
+**Método:** leitura direta dos 12 arquivos em `.github/workflows/` no SHA base. Histórico de runs (`gh run list`) NÃO VERIFICADO nesta sessão — sem CLI disponível; seção 3 marcada como pendente.
 
----
+## 1. Os 5 checks obrigatórios (o que cada um verifica)
 
-## 1. Workflows registrados no repositório
+| # | Check | Workflow | O que verifica |
+|---|---|---|---|
+| 1 | **validate** | `quality.yml` | Typecheck (`tsc`), lint (ESLint), testes Vitest com threshold de coverage (branches 70% em `api/**` e `src/lib/**` — PR #71), build Vite |
+| 2 | **Build structural Graphify map** | `graphify.yml` | Reconstrói o grafo de código (`graphify-out/`); falha se o mapa estiver desatualizado ou se `graphify-quality` apontar gaps |
+| 3 | **Migrations and pgTAP** | `database.yml` | Aplica as 65 migrations em banco local efêmero e roda os 28 arquivos pgTAP em `site-supabase/supabase/tests/database/`; valida contratos SQL sem tocar produção |
+| 4 | **cross-browser** | (workflow cross-browser) | Playwright multi-navegador (smoke + axe em rotas públicas); garante que páginas críticas renderizam sem erro em Chromium/Firefox/WebKit |
+| 5 | **CodeQL** | `codeql.yml` | Análise estática de segurança (CodeQL GitHub) + `dependency-review` bloqueando PRs com vulnerabilidades conhecidas |
 
-| Workflow | Trigger | Propósito |
-|----------|---------|-----------|
-| Quality gate | push, pull_request | TypeScript, lint, Vitest (459 testes), build |
-| Isolated site database | push, pull_request | pgTAP no banco isolado |
-| Release isolated database then Vercel | push em main | Migrations + deploy Vercel |
-| Graphify structural map | push, pull_request | Mapa de grafo do código (1.491 nós) |
-| CodeQL security | push, pull_request, schedule | SAST (JavaScript/TypeScript) |
-| Dependency review | pull_request | Auditoria de dependências |
-| Canonical catalog public contract | schedule (diário) | Verifica contrato do catálogo canônico |
-| Production drift detector | schedule (diário) | Detecta desvio produção vs main |
-| CI health report | schedule (diário) | Relatório de saúde do CI |
-| Copilot | pull_request (dynamic) | Code review automático (não obrigatório) |
+Workflows auxiliares (não bloqueantes do merge, mas parte da operação): `release.yml` (candidato→smoke→promote→rollback + leitura do ledger), `catalog-contract.yml` (sonda diária das 36 colunas do contrato público), `production-drift.yml` (detector de drift main×produção), `ci-health.yml` (saúde do CI), `workflows-lint.yml` (lint dos próprios workflows), `secrets-rotation-reminder.yml` (lembrete trimestral de rotação), `stale-branches.yml` (limpeza de branches), `dependency-review.yml` (revisão de dependências).
 
----
+## 2. Falhas recorrentes identificadas (via auditorias lidas)
 
-## 2. Estado no SHA main atual (b1931198) — 2026-10-31 19:10
+1. **Release falhava em `vercel pull` ("Could not retrieve Project Settings")** — A-001; mitigado pelo fluxo candidato→promote→rollback (PRs #52 #55 #63 #65 #67 #68 #77 #78 #79).
+2. **Runtime Node do release × lockfile** — `release.yml` fixava Node 22.13.1 contra `jsdom@30.1.0` exigindo `^22.22.2 || ^24.15.0`; EBADENGINE no log (A-002); alinhado para Node 24 depois.
+3. **Analytics 404** — `_vercel/insights/script.js` responde 404 em produção (A-013); PR #66 rejeitada por isso, refeita como #72; contrato resolvido em #78.
+4. **Bloqueio externo do Copilot na main** — registrado em PR #109 (quota 402); CI parado por falta de cota, não por falha de código.
+5. **Bloqueio do PR #99** — registrado em PR #107 (diagnóstico da sonda do catálogo).
 
-| Workflow | Estado | Resultado |
-|----------|--------|-----------|
-| Quality gate | in_progress | — |
-| Isolated site database | completed | ✅ success |
-| Release isolated database then Vercel | in_progress | — |
-| Graphify structural map | completed | ✅ success |
-| CodeQL security | completed | ✅ success |
+## 3. Histórico recente — NÃO VERIFICADO nesta sessão
 
-> Quality gate e Release ainda em execução no momento da captura (PR #110 mergeada às 19:10).
+> Pendente: rodar `gh run list --repo adm01-debug/Promo_Brindes_V1 --limit 20` em sessão com CLI disponível e anexar os 10 últimos runs (conclusão, SHA, duração) aqui.
 
----
-
-## 3. Estado nos últimos runs agendados (cc133bd0)
-
-| Workflow | Data | Resultado |
-|----------|------|-----------|
-| Canonical catalog public contract | 2026-10-31 07:31 | ❌ failure |
-| Production drift detector | 2026-10-31 07:04 | ✅ success |
-| CI health report | 2026-10-31 06:15 | ✅ success |
-| Canonical catalog public contract | 2026-10-30 07:31 | ❌ failure |
-| Production drift detector | 2026-10-30 07:04 | ✅ success |
-| CI health report | 2026-10-30 06:20 | ✅ success |
-
----
-
-## 4. Falhas recorrentes
-
-### 4.1 Canonical catalog public contract
-
-- **Status:** FAILURE em todos os runs recentes (30/10, 31/10)
-- **SHA afetado:** cc133bd0 (anterior à PR #110)
-- **Introduzida por:** desconhecido — presente antes desta análise
-- **Impacto:** alerta diário falso; risco de ignorar falhas reais
-- **Ação recomendada:** ler workflow + logs para identificar causa
-
-### 4.2 Copilot Code Review
-
-- **Status:** FAILURE em PRs #110 (bf1ea38c) e #109 (4d3620ed)
-- **Motivo conhecido:** quota de Copilot atingida (documentado em PR #109 e RELATORIO_CI.md)
-- **É check obrigatório?** Não — não bloqueia merge
-- **Ação:** aguardar renovação de quota
-
----
-
-## 5. Checks obrigatórios para merge (branch protection main)
-
-Verificado via PR #110 (branch protection exigiu):
-
-1. Quality gate
-2. Isolated site database  
-3. Release isolated database then Vercel
-4. Graphify structural map
-5. CodeQL security
-6. Dependency review (para PRs)
-7. Todos os review threads resolvidos
-
----
-
-## 6. Tempos aproximados de CI (base PR #110)
-
-| Workflow | Duração aprox. |
-|----------|---------------|
-| Quality gate | ~3-4 min |
-| Isolated site database | ~2-3 min |
-| Graphify structural map | ~1-2 min |
-| CodeQL security | ~2-3 min |
-| Release (com deploy) | ~5-8 min |
-| Total (paralelo) | ~8-10 min |
+Evidência indireta (auditorias): em 24/09 os checks validate, cross-browser, migrations/pgTAP, Graphify, dependency review e CodeQL estavam verdes na PR #47; retenção diária com logs 09–11/10; sonda do catálogo verde 02–11/10.
