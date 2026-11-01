@@ -1,0 +1,36 @@
+{
+  "data_analise": "2026-11-01",
+  "main_sha": "b19311989efe273e47dd8949ef126225206ad208",
+  "prs_total": 109,
+  "prs_analisadas": 109,
+  "prs_mergeadas_nesta_sessao": 0,
+  "prs_open_restantes": 0,
+  "documentos_gerados": [
+    "analise-prs/funcionalidades.csv",
+    "analise-prs/regras-de-negocio.md",
+    "analise-prs/RELATORIO_PRS.md",
+    "analise-prs/progresso.json",
+    "analise-prs/decisoes.md",
+    "analise-prs/fontes.json",
+    "analise-prs/baseline/ci-checks.md"
+  ],
+  "achados_pendentes": [
+    "PF-01: nenhum aviso ao time comercial (NAO INICIADO, depende de D1)",
+    "PF-03: sem back-office minimo (NAO INICIADO, engenharia apos D1)",
+    "PF-07/PF-08: Resend/WhatsApp desligados (BLOQUEADO, credenciais do dono)",
+    "PF-59: dominio oficial indefinido (BLOQUEADO, decisao do dono)",
+    "PF-66/PF-67/PF-68: secret scanning + Dependabot security + secrets por environment (NAO INICIADO, custo zero)",
+    "PF-69: segundo revisor de PR (BLOQUEADO, pessoa)",
+    "PF-76: mcp_kv_get SECURITY DEFINER no banco principal (BLOQUEADO, repo interno)",
+    "PF-77: migrations sem fluxo versionado/recibo (NAO INICIADO)",
+    "PF-86: restore nunca ensaiado (BLOQUEADO, meta RPO/RTO + custo)",
+    "A-003/A-004/A-007/A-010: favoritos concorrencia/cache/promocao (padroes ainda no codigo)",
+    "A-013: Analytics 404 (persiste)",
+    "A-022: view minima nao restringe chave publica (limite de correcao: depende do PO)"
+  ],
+  "proximos_passos": [
+    "Onda 0 custo zero: ativar secret scanning + push protection + Dependabot security + SHA pinning + strict (PF-66/PF-67/PF-70)",
+    "D1 do dono (destino do lead) para destravar PF-01 -> PF-03 -> PF-04/PF-05 (ciclo comercial completo)",
+    "D2 do dono (credenciais Resend/WhatsApp) com PF-11 antes de ligar (corte de backlog)"
+  ]
+}
