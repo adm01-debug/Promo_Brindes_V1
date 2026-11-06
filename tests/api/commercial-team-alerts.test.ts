@@ -42,7 +42,7 @@ function databaseResponse(): Response {
 
 /** Responde todas as RPC do banco com 'true' e (opcionalmente) o claim do job. */
 function commercialFetchMock(job?: unknown, webhookStatus = 202) {
-  return vi.fn(async (url: string | URL) => {
+  return vi.fn(async (url: string | URL, _init?: RequestInit) => {
     const target = String(url);
     if (target === WEBHOOK_URL) return new Response('', { status: webhookStatus });
     if (target.includes('/claim_site_commercial_team_alert')) {
@@ -69,7 +69,7 @@ describe('alerta comercial de orçamento (PF-01)', () => {
       expect(job).not.toBeNull();
       expect(job?.recipientEmail).toBe('ana@empresa.com.br');
       expect(job?.attempt).toBe(2);
-      expect(job?.items[0].name).toBe('Mochila Grande');
+      expect(job?.items[0]?.name).toBe('Mochila Grande');
     });
   });
 
@@ -84,7 +84,7 @@ describe('alerta comercial de orçamento (PF-01)', () => {
       expect(fetchMock).not.toHaveBeenCalled();
     });
 
-    it('recusa endpoint que não seja HTTPS, sem conexão', async () => {
+    it('recusa endpoint que não seja HTTPS, sem conexëão', async () => {
       configureSiteDatabase();
       vi.stubEnv('COMMERCIAL_TEAM_WEBHOOK_URL', 'http://comercial.promobrindes.com.br/hook');
       const fetchMock = commercialFetchMock(validJob());
@@ -92,7 +92,7 @@ describe('alerta comercial de orçamento (PF-01)', () => {
 
       const controller = new AbortController();
       await expect(deliverCommercialAlertJob(validJob(), controller.signal)).resolves.toBe('pending');
-      expect(fetchMock.mock.calls.filter(([url]) => String(url) === 'http://comercial.promobrindes.com.br/hook')).toHaveLength(0);
+      expect(fetchMock.mock.calls.filter(([url]) => String(url) === 'http://commercial.promobrindes.com.br/hook')).toHaveLength(0);
     });
 
     it('não reenvia quando a tentativa anterior já registrou aceite do provedor', async () => {
@@ -132,7 +132,7 @@ describe('alerta comercial de orçamento (PF-01)', () => {
     });
 
     it('o timeout da entrega é menor que o orçamento da rodada do cron', () => {
-      expect(COMMERCIAL_ALERT_TIMEOUT_MS).toBeLessThan(10_000);
+      expect(COMMERCIAL_ALERT_TIMEOUTT_MS).toBeLessThan(10_000);
     });
   });
 

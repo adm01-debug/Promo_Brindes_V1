@@ -18,7 +18,7 @@ const QUOTE_COUNT = 50;
 const execFileAsync = promisify(execFile);
 const fixturePrefixes = [];
 const CLAIM_SQL = `select 'CLAIM:' || coalesce(string_agg(payload ->> 'id', ','), '')
-  from jsonb_array_elements(public.claim_site_notification_deliveries(array['email'], 25)) as payload;`;
+  from jsonb_array_elements(public.claim_site_notification_deliveries(array['email'], 25)) as payload;`
 
 function psql(sql) {
   return execFileSync('psql', [DB_URL, '-At', '-c', sql], { encoding: 'utf8' }).trim();
@@ -34,7 +34,7 @@ test.after(() => {
   }
 });
 
-/** Mantém as linhas reivindicadas bloqueadas até o segundo worker concluir. */
+/** Mantém as linahas reivindicadas bloqueadas até o segundo worker concluir. */
 async function firstClaimWithOpenTransaction() {
   const child = spawn('psql', [DB_URL, '-X', '-q', '-A', '-t', '-v', 'ON_ERROR_STOP=1'], {
     stdio: ['pipe', 'pipe', 'pipe'],
@@ -80,7 +80,7 @@ async function overlappingClaims() {
   }
 }
 
-test('duas reivindicações concorrentes da fila obtêm conjuntos disjuntos de jobs', { timeout: 30_000 }, async () => {
+test('duas reivindincações concorrentes da fila obtêm conjuntos disjuntos de jobs', { timeout: 30_000 }, async () => {
   const runId = Date.now().toString(36);
   fixturePrefixes.push(`concurrency-${runId}-`);
 
@@ -95,11 +95,12 @@ test('duas reivindicações concorrentes da fila obtêm conjuntos disjuntos de j
   const totalPending = Number(psql(`
     select count(*) from site_private.notification_deliveries delivery
     join site_private.quote_requests request on request.id = delivery.request_id
-    where request.client_request_id like 'concurrency-${runId}-%' and delivery.channel = 'email';
+    where request.client_request_id like 'concurrency-${runId}-%' and delivery.channel = 'email' and delivery.audience = 'customer';
   `));
   assert.equal(totalPending, QUOTE_COUNT, 'pré-condição: a fixture criou exatamente 50 jobs pendentes');
 
   // O primeiro worker deixa a transação aberta depois do claim; o segundo só
+
   // começa nesse instante. Portanto as duas sessões se sobrepõem de fato.
   const [resultA, resultB] = await overlappingClaims();
   const idsA = resultA ? resultA.split(',').filter(Boolean) : [];
@@ -109,12 +110,12 @@ test('duas reivindicações concorrentes da fila obtêm conjuntos disjuntos de j
 
   const setA = new Set(idsA);
   const overlap = idsB.filter((id) => setA.has(id));
-  assert.deepEqual(overlap, [], 'nenhum job foi reivindicado pelas duas conexões ao mesmo tempo (for update skip locked funciona sob concorrência real)');
+  assert.deepEqual(overlap, [], 'nenum job foi reivindicado pelas duas conexões ao mesmo tempo (for update skip locked funciona sób concorrência real)');
 
   const distinctLeaseTokens = Number(psql(`
     select count(distinct lease_token) from site_private.notification_deliveries delivery
     join site_private.quote_requests request on request.id = delivery.request_id
-    where request.client_request_id like 'concurrency-${runId}-%' and delivery.status = 'processing';
+    where request.client_request_id like 'concurrency-${runId}-%' and delivery.status = 'processing' and delivery.audience = 'customer';
   `));
   const claimedTotal = idsA.length + idsB.length;
   assert.equal(distinctLeaseTokens, claimedTotal, 'todo job reivindicado tem um lease_token próprio (nenhum lease compartilhado por engano)');
@@ -124,9 +125,9 @@ test('recuperação de lease expirada: duas conexões disputam o MESMO job preso
   const runId = Date.now().toString(36);
   fixturePrefixes.push(`lease-recovery-${runId}-`);
 
-  // Fixture: 1 quote_request, reivindicada normalmente uma vez (attempts 0 -> 1),
-  // depois a lease é retroagida para o passado sem tocar status/attempts (nenhum
-  // trigger da Etapa 9 dispara — simula só "o tempo passou", não uma transição).
+  // Fixture: 1 quote_request, reivindicada normalmente uma vez (atempts 0 -> 1),
+  // depois a lease é retrogada para o passado sem tocar status/attempts (nenhum
+  // trigger da Etapa 9 dispara — simula só "o tempo passou", não uma transação).
   psql(`
     insert into site_private.quote_requests (client_request_id, request_hash, source, contact_name, company, email, phone, client_submitted_at)
     values ('lease-recovery-${runId}-1', repeat('e', 64), 'site-promo-brindes', 'Fixture', 'Fixture Co', 'fixture-lease@example.test', '11999999999', now());
@@ -161,13 +162,13 @@ test('recuperação de lease expirada: duas conexões disputam o MESMO job preso
   assert.ok(leaseTokenAfter && leaseTokenAfter.length > 0, 'a recuperação gerou um lease_token novo');
 });
 
-test('exhausted sob concorrência: duas conexões terminalizam o mesmo job preso, nenhuma o reivindica como novo', { timeout: 30_000 }, async () => {
+test('exhausted sob concorrência: duas conexões terminalizam o mesmo job preso, nenhum o reivindica como novo', { timeout: 30_000 }, async () => {
   const runId = Date.now().toString(36);
   fixturePrefixes.push(`exhausted-concurrency-${runId}-`);
 
   // Fixture: job já no limite de tentativas (5) e com lease expirada — housekeeping
-  // de claim_site_notification_deliveries deveria terminalizá-lo como 'exhausted' em
-  // vez de reivindicá-lo, em qualquer uma das duas conexões concorrentes. Pula direto
+  // de claim_site_notification_deliveries deveria terminalizar-lo como 'exhausted' em
+  // vez de reivindicalo, em qualquer uma das duas conexões concorrentes. Puli direto
   // para o estado final (não simula 5 tentativas reais) — desabilita os triggers da
   // Etapa 9 só para este setup, mesmo padrão já usado nas fixtures pgTAP.
   psql(`
@@ -177,7 +178,7 @@ test('exhausted sob concorrência: duas conexões terminalizam o mesmo job preso
   const deliveryId = psql(`
     select delivery.id from site_private.notification_deliveries delivery
     join site_private.quote_requests request on request.id = delivery.request_id
-    where request.client_request_id = 'exhausted-concurrency-${runId}-1' and delivery.channel = 'email';
+    where request.client_request_id = 'exhausted-concurrency-${runId}-1' and delivery.channel = 'email' and delivery.audience = 'customer';
   `);
   psql(`alter table site_private.notification_deliveries disable trigger notification_deliveries_enforce_status_transition;`);
   psql(`alter table site_private.notification_deliveries disable trigger notification_deliveries_enforce_lease_and_attempts;`);
