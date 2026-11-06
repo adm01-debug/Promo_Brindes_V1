@@ -50,13 +50,13 @@ select is(
   (select count(*) from site_private.notification_deliveries delivery
    join site_private.quote_requests request on request.id = delivery.request_id
    where request.client_request_id = 'notification-outbox-quote-1'),
-  2::bigint,
-  'opt-in explícito cria e-mail e WhatsApp'
+  3::bigint,
+  'opt-in explícito enfileira confirmação e alerta comercial'
 );
 select is(
   (select count(*) from site_private.notification_deliveries delivery
    join site_private.quote_requests request on request.id = delivery.request_id
-   where request.client_request_id = 'notification-outbox-quote-1' and delivery.channel = 'email'),
+   where request.client_request_id = 'notification-outbox-quote-1' and delivery.channel = 'email' and delivery.audience = 'customer'),
   1::bigint,
   'cópia por e-mail é única'
 );
@@ -121,7 +121,7 @@ select ok(
   (select delivery.claimed_at is not null and delivery.lease_expires_at > delivery.claimed_at
    from site_private.notification_deliveries delivery
    join site_private.quote_requests request on request.id = delivery.request_id
-   where request.client_request_id = 'notification-outbox-quote-1' and delivery.channel = 'email'),
+   where request.client_request_id = 'notification-outbox-quote-1' and delivery.channel = 'email' and delivery.audience = 'customer'),
   'reivindicação grava claimed_at e lease_expires_at no futuro (Etapa 10)'
 );
 
@@ -139,7 +139,7 @@ select is(
 select is(
   (select delivery.status from site_private.notification_deliveries delivery
    join site_private.quote_requests request on request.id = delivery.request_id
-   where request.client_request_id = 'notification-outbox-quote-1' and delivery.channel = 'email'),
+   where request.client_request_id = 'notification-outbox-quote-1' and delivery.channel = 'email' and delivery.audience = 'customer'),
   'processing',
   'reivindicação ativa não é afetada por uma finalização com lease errado'
 );
@@ -156,14 +156,14 @@ select ok(
 select is(
   (select delivery.status from site_private.notification_deliveries delivery
    join site_private.quote_requests request on request.id = delivery.request_id
-   where request.client_request_id = 'notification-outbox-quote-1' and delivery.channel = 'email'),
+   where request.client_request_id = 'notification-outbox-quote-1' and delivery.channel = 'email' and delivery.audience = 'customer'),
   'sent',
   'entrega finalizada permanece auditável'
 );
 select is(
   (select delivery.lease_expires_at from site_private.notification_deliveries delivery
    join site_private.quote_requests request on request.id = delivery.request_id
-   where request.client_request_id = 'notification-outbox-quote-1' and delivery.channel = 'email'),
+   where request.client_request_id = 'notification-outbox-quote-1' and delivery.channel = 'email' and delivery.audience = 'customer'),
   null,
   'finalização limpa lease_expires_at junto com lease_token (Etapa 10)'
 );
@@ -229,7 +229,7 @@ insert into claimed_jobs_2 select public.claim_site_notification_deliveries(arra
 select is(
   (select delivery.status from site_private.notification_deliveries delivery
    join site_private.quote_requests request on request.id = delivery.request_id
-   where request.client_request_id = 'notification-outbox-quote-2' and delivery.channel = 'email'),
+   where request.client_request_id = 'notification-outbox-quote-2' and delivery.channel = 'email' and delivery.audience = 'customer'),
   'exhausted',
   'job preso com tentativas esgotadas termina em exhausted, não fica em processing (R03)'
 );
@@ -239,7 +239,7 @@ select ok(
     where (job ->> 'id')::uuid = (
       select delivery.id from site_private.notification_deliveries delivery
       join site_private.quote_requests request on request.id = delivery.request_id
-      where request.client_request_id = 'notification-outbox-quote-2' and delivery.channel = 'email'
+      where request.client_request_id = 'notification-outbox-quote-2' and delivery.channel = 'email' and delivery.audience = 'customer'
     )
   ),
   'job exhausted não é devolvido como reivindicação nova'
@@ -264,7 +264,7 @@ alter table site_private.notification_deliveries enable trigger notification_del
 select is(
   (select delivery.status from site_private.notification_deliveries delivery
    join site_private.quote_requests request on request.id = delivery.request_id
-   where request.client_request_id = 'notification-outbox-quote-2' and delivery.channel = 'email'),
+   where request.client_request_id = 'notification-outbox-quote-2' and delivery.channel = 'email' and delivery.audience = 'customer'),
   'processing',
   'pré-condição: job preso com tentativas restantes'
 );
@@ -275,14 +275,14 @@ insert into claimed_jobs_3 select public.claim_site_notification_deliveries(arra
 select is(
   (select delivery.status from site_private.notification_deliveries delivery
    join site_private.quote_requests request on request.id = delivery.request_id
-   where request.client_request_id = 'notification-outbox-quote-2' and delivery.channel = 'email'),
+   where request.client_request_id = 'notification-outbox-quote-2' and delivery.channel = 'email' and delivery.audience = 'customer'),
   'processing',
   'job preso com tentativas restantes é reclamado (não exhausted) — recuperação real (R03)'
 );
 select is(
   (select delivery.attempts from site_private.notification_deliveries delivery
    join site_private.quote_requests request on request.id = delivery.request_id
-   where request.client_request_id = 'notification-outbox-quote-2' and delivery.channel = 'email'),
+   where request.client_request_id = 'notification-outbox-quote-2' and delivery.channel = 'email' and delivery.audience = 'customer'),
   4::smallint,
   'reivindicação de recuperação conta como nova tentativa'
 );
@@ -291,7 +291,7 @@ select ok(
    where (job ->> 'id')::uuid = (
      select delivery.id from site_private.notification_deliveries delivery
      join site_private.quote_requests request on request.id = delivery.request_id
-     where request.client_request_id = 'notification-outbox-quote-2' and delivery.channel = 'email'
+     where request.client_request_id = 'notification-outbox-quote-2' and delivery.channel = 'email' and delivery.audience = 'customer'
    )) is not null,
   'job recuperado recebe um lease_token novo'
 );

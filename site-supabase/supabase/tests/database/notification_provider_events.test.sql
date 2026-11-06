@@ -63,14 +63,14 @@ alter table site_private.notification_deliveries disable trigger notification_de
 update site_private.notification_deliveries delivery
 set status = 'sent', provider = 'resend', provider_message_id = 'resend-msg-events-1'
 from site_private.quote_requests request
-where request.id = delivery.request_id and request.client_request_id = 'provider-events-quote-1' and delivery.channel = 'email';
+where request.id = delivery.request_id and request.client_request_id = 'provider-events-quote-1' and delivery.channel = 'email' and delivery.audience = 'customer';
 alter table site_private.notification_deliveries enable trigger notification_deliveries_enforce_status_transition;
 alter table site_private.notification_deliveries enable trigger notification_deliveries_enforce_lease_and_attempts;
 
 select is(
   (select delivery.provider_message_id from site_private.notification_deliveries delivery
    join site_private.quote_requests request on request.id = delivery.request_id
-   where request.client_request_id = 'provider-events-quote-1' and delivery.channel = 'email'),
+   where request.client_request_id = 'provider-events-quote-1' and delivery.channel = 'email' and delivery.audience = 'customer'),
   'resend-msg-events-1',
   'pré-condição: entrega aceita pelo provedor com provider_message_id conhecido'
 );
@@ -84,14 +84,14 @@ select is(
 select is(
   (select delivery.delivery_state from site_private.notification_deliveries delivery
    join site_private.quote_requests request on request.id = delivery.request_id
-   where request.client_request_id = 'provider-events-quote-1' and delivery.channel = 'email'),
+   where request.client_request_id = 'provider-events-quote-1' and delivery.channel = 'email' and delivery.audience = 'customer'),
   'delivered',
   'delivery_state grava delivered'
 );
 select isnt(
   (select delivery.delivery_state_at from site_private.notification_deliveries delivery
    join site_private.quote_requests request on request.id = delivery.request_id
-   where request.client_request_id = 'provider-events-quote-1' and delivery.channel = 'email'),
+   where request.client_request_id = 'provider-events-quote-1' and delivery.channel = 'email' and delivery.audience = 'customer'),
   null,
   'delivery_state_at é preenchido'
 );
@@ -116,21 +116,21 @@ select is(
 select is(
   (select delivery.delivery_state from site_private.notification_deliveries delivery
    join site_private.quote_requests request on request.id = delivery.request_id
-   where request.client_request_id = 'provider-events-quote-1' and delivery.channel = 'email'),
+   where request.client_request_id = 'provider-events-quote-1' and delivery.channel = 'email' and delivery.audience = 'customer'),
   'bounced',
   'delivery_state passa de delivered para bounced (Etapa 20)'
 );
 select is(
   (select delivery.bounce_reason from site_private.notification_deliveries delivery
    join site_private.quote_requests request on request.id = delivery.request_id
-   where request.client_request_id = 'provider-events-quote-1' and delivery.channel = 'email'),
+   where request.client_request_id = 'provider-events-quote-1' and delivery.channel = 'email' and delivery.audience = 'customer'),
   'HardBounce',
   'bounce_reason é gravado quando o bounced corrige o delivered anterior'
 );
 select isnt(
   (select delivery.delivery_state_source_event_id from site_private.notification_deliveries delivery
    join site_private.quote_requests request on request.id = delivery.request_id
-   where request.client_request_id = 'provider-events-quote-1' and delivery.channel = 'email'),
+   where request.client_request_id = 'provider-events-quote-1' and delivery.channel = 'email' and delivery.audience = 'customer'),
   null,
   'delivery_state_source_event_id rastreia qual evento determinou o estado atual (Etapa 20)'
 );
@@ -150,7 +150,7 @@ select is(
 select is(
   (select delivery.delivery_state from site_private.notification_deliveries delivery
    join site_private.quote_requests request on request.id = delivery.request_id
-   where request.client_request_id = 'provider-events-quote-1' and delivery.channel = 'email'),
+   where request.client_request_id = 'provider-events-quote-1' and delivery.channel = 'email' and delivery.audience = 'customer'),
   'bounced',
   'delivery_state permanece bounced após as duas tentativas de sobrescrita'
 );
@@ -166,14 +166,14 @@ select is(
 select isnt(
   (select delivery.complained_at from site_private.notification_deliveries delivery
    join site_private.quote_requests request on request.id = delivery.request_id
-   where request.client_request_id = 'provider-events-quote-1' and delivery.channel = 'email'),
+   where request.client_request_id = 'provider-events-quote-1' and delivery.channel = 'email' and delivery.audience = 'customer'),
   null,
   'complained_at é preenchido'
 );
 select is(
   (select delivery.delivery_state from site_private.notification_deliveries delivery
    join site_private.quote_requests request on request.id = delivery.request_id
-   where request.client_request_id = 'provider-events-quote-1' and delivery.channel = 'email'),
+   where request.client_request_id = 'provider-events-quote-1' and delivery.channel = 'email' and delivery.audience = 'customer'),
   'bounced',
   'delivery_state permanece bounced após a reclamação'
 );
