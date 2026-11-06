@@ -10,6 +10,7 @@ import { REQUEST_TIMEOUT_MS as RETENTION_TIMEOUT_MS } from '../../api/retention.
 import { REQUEST_TIMEOUT_MS as CUSTOMER_PROPOSALS_TIMEOUT_MS } from '../../api/customer-proposals.js';
 import { REQUEST_TIMEOUT_MS as BRIEFING_ASSETS_TIMEOUT_MS } from '../../api/briefing-assets.js';
 import { REQUEST_TIMEOUT_MS as SITEMAP_TIMEOUT_MS } from '../../api/sitemap.js';
+import { COMMERCIAL_ALERTS_TIMEOUT_MS as COMMERCIAL_ALERTS_BUDGET_MS } from '../../api/commercial-alerts.js';
 import { LEAD_TOTAL_TIME_BUDGET_MS, MIN_CONFIRMATION_WINDOW_MS } from '../../api/_lib/leadHandler.js';
 
 // deliverQuoteConfirmationsNow (api/notifications.ts): 7s por canal, mas os
@@ -70,6 +71,10 @@ describe('Etapa 24: maxDuration em vercel.json cobre o pior caso real de cada ro
 
   it('api/retention.ts', () => {
     expect(RETENTION_TIMEOUT_MS).toBeLessThan(maxDurationMs('api/retention.ts'));
+  });
+
+  it('api/commercial-alerts.ts (PF-01)', () => {
+    expect(COMMERCIAL_ALERTS_BUDGET_MS).toBeLessThan(maxDurationMs('api/commercial-alerts.ts'));
   });
 
   it('api/customer-proposals.ts', () => {
