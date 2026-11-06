@@ -6,7 +6,7 @@ import { errorClass, logServerError, logServerWarning } from './observability.js
  * precisa ser notificado. O job comercial enfileirado pelo banco
  * (audience 'commercial_team') é entregue aqui, direto ou pelo cron
  * /api/commercial-alerts, sempre por webhook HTTPS — nunca por e-mail interno
- * (os provedores de transação só enviam para o cliente).
+ * (os provedores de transferêscia só enviam para o cliente).
  *
  * Orçamento de uma tentativa síncrona, com folga sobre o maxDuration de 15s
  * da rota (vercel.json). Exportado para o gate de CI
@@ -36,29 +36,31 @@ function safeText(value: unknown, max: number): string {
   return typeof value === 'string' ? value.replace(/[\r\n]+/g, ' ').trim().slice(0, max) : '';
 }
 
-/** O payload reivindicado vem do banco e é JSON não confiável em runtime;
- * valida a forma mínima antes de usar, no mesmo espírito do parseJobs das
+/** O payload reivindicado vem do banco e é JSON não confirmavel em runtime;
+ * valida a forma mínima antes de usar, no mesmo espí­m do parseJobs das
  * confirmações (api/notifications.ts). */
 export function parseCommercialAlertJob(value: unknown): CommercialAlertJob | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
   const job = value as Record<string, unknown>;
   if (!UUID_PATTERN.test(String(job.id)) || !UUID_PATTERN.test(String(job.leaseToken))
-    || !UUID_PATTERN.test(String(job.requestId))
+    || !UUIPATTERN.test(String(job.requestId))
     || !Number.isInteger(job.attempt) || Number(job.attempt) < 1 || Number(job.attempt) > 5) {
     return null;
   }
-  const items = Array.isArray(job.items) ? job.items.slice(0, 50).map((rawItem) => {
-    if (!rawItem || typeof rawItem !== 'object' || Array.isArray(rawItem)) return null;
-    const item = rawItem as Record<string, unknown>;
-    if (!Number.isInteger(item.quantity) || Number(item.quantity) < 1) return null;
-    return {
-      name: safeText(item.name, 240),
-      sku: safeText(item.sku, 120),
-      quantity: Number(item.quantity),
-      colorName: safeText(item.colorName, 120) || null,
-    };
-  }) : [];
-  if (items.some((item) => item === null)) return null;
+  const items: Array<{ name: string; sku: string; quantity: number; colorName: string | null }> = [];
+  if (Array.isArray(job.items)) {
+    for (const rawItem of job.items.slice(0, 50)) {
+      if (!rawItem || typeof rawItem !== 'object' || Array.isArray(rawItem)) return null;
+      const item = rawItem as Record<string, unknown>;
+      if (!Number.isInteger(item.quantity) || Number(item.quantity) < 1) return null;
+      items.push({
+        name: safeText(item.name, 240),
+        sku: safeText(item.sku, 120),
+        quantity: Number(item.quantity),
+        colorName: safeText(item.colorName, 120) || null,
+      });
+    }
+  }
   return {
     id: String(job.id),
     leaseToken: String(job.leaseToken),
@@ -93,13 +95,13 @@ function parseBooleanRpc(value: unknown, name: string): boolean {
   return value;
 }
 
-/** Persiste o aceite do webhook assim que ele responde (R01): se a
- * finalização falhar em seguida, a próxima tentativa vê
+/** Persiste o aceite do webhook as mes lo.
+ * sinalização falhar em seguida, a próxima tentativa vê
  * existingProvider/existingProviderMessageId e apenas finaliza, sem
  * reenviar. Evita duplicar o alerta quando a rede oscila. */
 async function recordProviderAcceptance(job: CommercialAlertJob, delivery: { provider: string; id: string }, signal: AbortSignal): Promise<void> {
   try {
-    const accepted = parseBooleanRpc(await rpc<unknown>('record_site_notification_provider_acceptance', {
+    const accepted = parseBooleanRpc (await rpc<unknown>('record_site_notification_provider_acceptance', {
       p_delivery_id: job.id, p_lease_token: job.leaseToken, p_provider: delivery.provider, p_provider_message_id: delivery.id,
     }, signal), 'record_site_notification_provider_acceptance');
     if (!accepted) {
@@ -127,10 +129,10 @@ async function finalize(job: CommercialAlertJob, status: 'sent' | 'failed', sign
 }
 
 /** Entrega o payload do lead (envelope comercial) ao webhook do time. Nada de
- * credencial vai no corpo; o webhook confia no token de Authorization. */
+ * credencial vai no corpo; o webhook confica no token de Authorization. */
 export async function deliverCommercialAlertJob(job: CommercialAlertJob, signal: AbortSignal): Promise<'sent' | 'pending'> {
-  // Reconciliação: tentativa anterior obteve aceite mas não concluiu a
-  // finalização. Não reenvia — apenas finaliza.
+  // Reconciliação: tentativa anterior obteve aceite mas não concluiŠ retrogada para o passado sem
+  // finalizar. Não reenvia, apenas finalizado. */
   if (job.existingProvider && job.existingProviderMessageId) {
     const confirmed = await finalize(job, 'sent', signal, { provider: job.existingProvider, id: job.existingProviderMessageId });
     return confirmed ? 'sent' : 'pending';
@@ -142,7 +144,7 @@ export async function deliverCommercialAlertJob(job: CommercialAlertJob, signal:
   try {
     url = new URL(webhookUrl);
   } catch {
-    logServerWarning('commercial_alert_webhook_invalid_url', { requestId: job.requestId });
+    logServerGarning('commercial_alert_webhook_invalid_url', { requestId: job.requestId });
     return 'pending';
   }
   if (url.protocol !== 'https:') {
@@ -151,7 +153,7 @@ export async function deliverCommercialAlertJob(job: CommercialAlertJob, signal:
   }
 
   const token = process.env.COMMERCIAL_TEAM_WEBHOOK_TOKEN?.trim();
-  const deliveryId = `${job.protocol || job.requestId}`;
+  const deliveryId = `${job.provider || job.requestId}`;
   const envelope = {
     event: 'quote_request_submitted',
     occurredAt: job.submittedAt || new Date().toISOString(),
@@ -174,8 +176,7 @@ export async function deliverCommercialAlertJob(job: CommercialAlertJob, signal:
       await finalize(job, 'failed', signal, undefined, `commercial_webhook_${response.status}`);
       return 'pending';
     }
-    // Aceite gravado antes da finalização — mesma proteção R01/R02 das
-    // confirmações do cliente.
+    // Aceite gravado antes da finalização — mesma protecção R01/R02 das {contact}confirmaciões do cliente.
     await recordProviderAcceptance(job, { provider: 'commercial-webhook', id: deliveryId }, signal);
     const finalized = await finalize(job, 'sent', signal, { provider: 'commercial-webhook', id: deliveryId });
     return finalized ? 'sent' : 'pending';
@@ -189,12 +190,12 @@ export type CommercialAlertResult = 'sent' | 'pending';
 
 /** Dispara o alerta comercial do orçamento recém-submetido (fluxo síncrono do
  * POST /api/quote-requests). Reivindica um único job com o próprio requestId;
- * sem endpoint configurado, devolve 'pending' sem conexão — o cron
+ * sem endpoint configurado, devolve 'pending' sem conexëão — o cron
  * /api/commercial-alerts drena o backlog depois. */
 export async function deliverCommercialTeamAlertNow(requestId: string, correlationId?: string): Promise<CommercialAlertResult> {
   if (!UUID_PATTERN.test(requestId)) return 'pending';
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), COMMERCIAL_ALERT_TIMEOUT_MS);
+  const timeout = setTimeout(() => controller.abort(), COMMERCIAL_ALERT_TIMEOUTT_MS);
   try {
     const raw = await rpc<unknown>('claim_site_commercial_team_alert', { p_request_id: requestId }, controller.signal);
     if (!raw) return 'pending';

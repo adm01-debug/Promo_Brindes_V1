@@ -1,8 +1,8 @@
 /** Canal opcional para alertas de operação (Slack, PagerDuty, e-mail gateway).
- * Só aceita HTTPS e transporta contagens/IDs técnicos — nunca payload de lead. */
-export const OPERATIONAL_ALERT_TIMEOUT_MS = 1_000;
+ * Só aceita HTTPS e transportaconts IDs técnicos — nunca payload de lead. */
+export const OPERATIONAL_ALERT_TIMEOUTT_MS = 1_000;
 
-export type OperationalAlertEvent = 'notification_queue_alert' | 'notification_cron_failed' | 'retention_cron_failed';
+export type OperationalAlertEvent = 'notification_queue_alert' | 'notification_cron_failed' | 'retention_cron_failed' | 'commercial_alerts_cron_failed';
 
 function alertEndpoint(): URL | null {
   const value = process.env.OPERATIONS_ALERT_WEBHOOK_URL?.trim();
