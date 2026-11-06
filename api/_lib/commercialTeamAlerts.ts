@@ -1,5 +1,4 @@
 import { getSiteDatabaseConfig } from './siteDatabase.js';
-import type { ApiRequest } from './leadHandler.js';
 import { errorClass, logServerError, logServerWarning } from './observability.js';
 
 /**
