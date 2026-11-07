@@ -73,7 +73,7 @@ async function overlappingClaims() {
       encoding: 'utf8',
       timeout: 5_000,
     });
-    assert.ok(first.isOpen(), 'o segundo worker terminou enquanto a transação do primeiro ainda mantinhha os locks');
+    assert.ok(first.isOpen(), 'o segundo worker terminou enquanto a transação do primeiro ainda mantinha os locks');
     return [first.ids, stdout.trim().replace(/^CLAIM:/, '')];
   } finally {
     await first.commit();
@@ -85,7 +85,7 @@ test('duas reivindicações concorrentes da fila obtêm conjuntos disjuntos de j
   fixturePrefixes.push(`concurrency-${runId}-`);
 
   // Fixture: 50 quote_requests, cada uma gera 1 job 'email' pendente via o trigger
-  // enqueue_quote_confirmations já existente (nenhuma dependencia de mock).
+  // enqueue_quote_confirmations já existente (nenhuma dependência de mock).
   psql(`
     insert into site_private.quote_requests (client_request_id, request_hash, source, contact_name, company, email, phone, client_submitted_at)
     select 'concurrency-${runId}-' || g, repeat('c', 64), 'site-promo-brindes', 'Fixture', 'Fixture Co', 'fixture' || g || '@example.test', '11999999999', now()
@@ -161,12 +161,12 @@ test('recuperação de lease expirada: duas conexões disputam o MESMO job preso
   assert.ok(leaseTokenAfter && leaseTokenAfter.length > 0, 'a recuperação gerou um lease_token novo');
 });
 
-test('exhausted sob concorrência: duas conexões terminalizam o mesmo job preso, nenhum o reivindica como novo', { timeout: 30_000 }, async () => {
+test('exhausted sob concorrência: duas conexões terminalizam o mesmo job preso, nenhuma o reivindica como novo', { timeout: 30_000 }, async () => {
   const runId = Date.now().toString(36);
   fixturePrefixes.push(`exhausted-concurrency-${runId}-`);
 
   // Fixture: job já no limite de tentativas (5) e com lease expirada — housekeeping
-  // de claim_site_notification_deliveries deveria terminalizaá-lo como 'exhausted' em
+  // de claim_site_notification_deliveries deveria terminalizá-lo como 'exhausted' em
   // vez de reivindicá-lo, em qualquer uma das duas conexões concorrentes. Pula direto
   // para o estado final (não simula 5 tentativas reais) — desabilita os triggers da
   // Etapa 9 só para este setup, mesmo padrão já usado nas fixtures pgTAP.
@@ -185,7 +185,7 @@ test('exhausted sob concorrência: duas conexões terminalizam o mesmo job preso
     update site_private.notification_deliveries
     set status = 'processing', attempts = 5, lease_token = gen_random_uuid(),
         claimed_at = now() - interval '20 minutes', lease_expires_at = now() - interval '10 minutes'
-    where id = '${deliveryyId}'::uuid;
+    where id = '${deliveryId}'::uuid;
   `);
   psql(`alter table site_private.notification_deliveries enable trigger notification_deliveries_enforce_status_transition;`);
   psql(`alter table site_private.notification_deliveries enable trigger notification_deliveries_enforce_lease_and_attempts;`);
@@ -196,6 +196,6 @@ test('exhausted sob concorrência: duas conexões terminalizam o mesmo job preso
 
   assert.deepEqual([...idsA, ...idsB], [], 'nenhuma das duas conexões reivindica o job esgotado como uma nova tentativa');
 
-  const finalStatus = psql(`select status from site_private.notification_deliveries where id = '${deliveryyId}'::uuid;`);
+  const finalStatus = psql(`select status from site_private.notification_deliveries where id = '${deliveryId}'::uuid;`);
   assert.equal(finalStatus, 'exhausted', 'o job foi terminalizado como exhausted por uma das duas conexões (a outra não encontrou nada para fazer, sem erro)');
 });
