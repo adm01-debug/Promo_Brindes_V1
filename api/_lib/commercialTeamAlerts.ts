@@ -37,7 +37,7 @@ function safeText(value: unknown, max: number): string {
 }
 
 /** O payload reivindicado vem do banco e √© JSON n√£o confi√°vel em runtime;
- * valida a forma m√≠nima antes de usar, no mesmo esp√©rito do parseJobs das
+ * valida a forma m√≠nima antes de usar, no mesmo esp√≠rito do parseJobs das
  * confirma√ß√µes (api/notifications.ts). */
 export function parseCommercialAlertJob(value: unknown): CommercialAlertJob | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
@@ -78,4 +78,140 @@ export function parseCommercialAlertJob(value: unknown): CommercialAlertJob | nu
   };
 }
 
-async function rpc<T>(name: string, body: Record<strieπú∞Å’π≠πΩ›∏¯∞ÅÕ•ùπÖ∞ËÅâΩ…—M•ùπÖ∞§ËÅA…Ωµ•ÕîÒP¯ÅÏ(ÄÅçΩπÕ–ÅçΩπô•úÄÙÅùï—M•—ïÖ—ÖâÖÕïΩπô•ú†§Ï(ÄÅçΩπÕ–Å…ïÕ¡ΩπÕîÄÙÅÖ›Ö•–Åôï—ç†°ÄëÌçΩπô•úπ’…±ÙΩ…ïÕ–ΩÿƒΩ…¡åºëÌπÖµïıÄ∞ÅÏ(ÄÄÄÅµï—°ΩêËÄùA=MPú∞(ÄÄÄÅ°ïÖëï…ÃËÅÏÅÖ¡•≠ï‰ËÅçΩπô•úπÕï…Ÿ•çï…ïëïπ—•Ö∞∞Å’—°Ω…•ÈÖ—•Ω∏ËÅÅ	ïÖ…ï»ÄëÌçΩπô•úπÕï…Ÿ•çï…ïëïπ—•Ö±ıÄ∞ÄùΩπ—ïπ–µQÂ¡îúËÄùÖ¡¡±•çÖ—•Ω∏Ω©ÕΩ∏ú∞Åççï¡–ËÄùÖ¡¡±•çÖ—•Ω∏Ω©ÕΩ∏úÅÙ∞(ÄÄÄÅâΩë‰ËÅ)M=8πÕ—…•πù•ô‰°âΩë‰§∞(ÄÄÄÅÕ•ùπÖ∞∞(ÄÅÙ§Ï(ÄÅ•òÄ†Ö…ïÕ¡ΩπÕîπΩ¨§Å—°…Ω‹Åπï‹Å……Ω»°ÅçΩµµï…ç•Ö±}Ö±ï…—|ëÌπÖµïı}ôÖ•±ïëÄ§Ï(ÄÅ…ï—’…∏Å…ïÕ¡ΩπÕîπ©ÕΩ∏†§ÅÖÃÅA…Ωµ•ÕîÒP¯Ï)Ù()ô’πç—•Ω∏Å¡Ö…Õï	ΩΩ±ïÖπI¡å°ŸÖ±’îËÅ’π≠πΩ›∏∞ÅπÖµîËÅÕ—…•πú§ËÅâΩΩ±ïÖ∏ÅÏ(ÄÅ•òÄ°—Â¡ïΩòÅŸÖ±’îÄÑÙÙÄùâΩΩ±ïÖ∏ú§Å—°…Ω‹Åπï‹Å……Ω»°ÅçΩµµï…ç•Ö±}Ö±ï…—}•πŸÖ±•ë|ëÌπÖµïı}…ïÕ¡ΩπÕïÄ§Ï(ÄÅ…ï—’…∏ÅŸÖ±’îÏ)Ù((º®®ÅAï…Õ•Õ—îÅºÅÖçï•—îÅëºÅ›ïâ°ΩΩ¨ÅÖÕÕ•¥Å≈’îÅï±îÅ…ïÕ¡ΩπëîÄ°H¿ƒ§ËÅÕîÅÑ(Ä®Åô•πÖ±•ÈáüçºÅôÖ±°Ö»Åï¥ÅÕïù’•ëÑ∞ÅÑÅ¡ÀÕ·•µÑÅ—ïπ—Ö—•ŸÑÅ€®(Ä®Åï·•Õ—•πùA…ΩŸ•ëï»Ωï·•Õ—•πùA…ΩŸ•ëï…5ïÕÕÖùï%êÅîÅÖ¡ïπÖÃÅô•πÖ±•ÈÑ∞ÅÕï¥(Ä®Å…ïïπŸ•Ö»∏ÅŸ•—ÑÅë’¡±•çÖ»ÅºÅÖ±ï…—ÑÅ≈’ÖπëºÅÑÅ…ïëîÅΩÕç•±Ñ∏Ä®º)ÖÕÂπåÅô’πç—•Ω∏Å…ïçΩ…ëA…ΩŸ•ëï…ççï¡—Öπçî°©ΩàËÅΩµµï…ç•Ö±±ï…—)Ωà∞Åëï±•Ÿï…‰ËÅÏÅ¡…ΩŸ•ëï»ËÅÕ—…•πúÏÅ•êËÅÕ—…•πúÅÙ∞ÅÕ•ùπÖ∞ËÅâΩ…—M•ùπÖ∞§ËÅA…Ωµ•ÕîÒŸΩ•ê¯ÅÏ(ÄÅ—…‰ÅÏ(ÄÄÄÅçΩπÕ–ÅÖççï¡—ïêÄÙÅ¡Ö…Õï	ΩΩ±ïÖπI¡å°Ö›Ö•–Å…¡åÒ’π≠πΩ›∏¯†ù…ïçΩ…ë}Õ•—ï}πΩ—•ô•çÖ—•Ωπ}¡…ΩŸ•ëï…}Öççï¡—Öπçîú∞ÅÏ(ÄÄÄÄÄÅ¡}ëï±•Ÿï…Â}•êËÅ©Ωàπ•ê∞Å¡}±ïÖÕï}—Ω≠ï∏ËÅ©Ωàπ±ïÖÕïQΩ≠ï∏∞Å¡}¡…ΩŸ•ëï»ËÅëï±•Ÿï…‰π¡…ΩŸ•ëï»∞Å¡}¡…ΩŸ•ëï…}µïÕÕÖùï}•êËÅëï±•Ÿï…‰π•ê∞(ÄÄÄÅÙ∞ÅÕ•ùπÖ∞§∞Äù…ïçΩ…ë}Õ•—ï}πΩ—•ô•çÖ—•Ωπ}¡…ΩŸ•ëï…}Öççï¡—Öπçîú§Ï(ÄÄÄÅ•òÄ†ÖÖççï¡—ïê§ÅÏ(ÄÄÄÄÄÅ±ΩùMï…Ÿï…]Ö…π•πú†ùçΩµµï…ç•Ö±}Ö±ï…—}¡…ΩŸ•ëï…}Öççï¡—Öπçï}’πçΩπô•…µïêú∞ÅÏÅ…ï≈’ïÕ—%êËÅ©Ωàπ…ï≈’ïÕ—%ê∞Åï……Ω…±ÖÕÃËÄù±ïÖÕï}πΩ—}çΩπô•…µïêúÅÙ§Ï(ÄÄÄÅÙ(ÄÅÙÅçÖ—ç†Ä°ï……Ω»§ÅÏ(ÄÄÄÅ±ΩùMï…Ÿï…]Ö…π•πú†ùçΩµµï…ç•Ö±}Ö±ï…—}¡…ΩŸ•ëï…}Öççï¡—Öπçï}’πçΩπô•…µïêú∞ÅÏÅ…ï≈’ïÕ—%êËÅ©Ωàπ…ï≈’ïÕ—%ê∞Åï……Ω…±ÖÕÃËÅï……Ω…±ÖÕÃ°ï……Ω»§ÅÙ§Ï(ÄÅÙ)Ù()ÖÕÂπåÅô’πç—•Ω∏Åô•πÖ±•Èî°©ΩàËÅΩµµï…ç•Ö±±ï…—)Ωà∞ÅÕ—Ö—’ÃËÄùÕïπ–úÅÄùôÖ•±ïêú∞ÅÕ•ùπÖ∞ËÅâΩ…—M•ùπÖ∞∞Åëï±•Ÿï…‰¸ËÅÏÅ¡…ΩŸ•ëï»ËÅÕ—…•πúÏÅ•êËÅÕ—…•πúÅÙ∞Åï……Ω…Ωëî¸ËÅÕ—…•πú§ËÅA…Ωµ•ÕîÒâΩΩ±ïÖ∏¯ÅÏ(ÄÅ—…‰ÅÏ(ÄÄÄÅçΩπÕ–Å…ïÕ’±–ÄÙÅÖ›Ö•–Å…¡åÒ’π≠πΩ›∏¯†ùô•πÖ±•Èï}Õ•—ï}πΩ—•ô•çÖ—•Ωπ}ëï±•Ÿï…‰ú∞ÅÏ(ÄÄÄÄÄÅ¡}ëï±•Ÿï…Â}•êËÅ©Ωàπ•ê∞(ÄÄÄÄÄÅ¡}±ïÖÕï}—Ω≠ï∏ËÅ©Ωàπ±ïÖÕïQΩ≠ï∏∞(ÄÄÄÄÄÅ¡}Õ—Ö—’ÃËÅÕ—Ö—’Ã∞(ÄÄÄÄÄÅ¡}¡…ΩŸ•ëï»ËÅëï±•Ÿï…‰¸π¡…ΩŸ•ëï»ÅÒÅπ’±∞∞(ÄÄÄÄÄÅ¡}¡…ΩŸ•ëï…}µïÕÕÖùï}•êËÅëï±•Ÿï…‰¸π•êÅÒÅπ’±∞∞(ÄÄÄÄÄÅ¡}ï……Ω…}çΩëîËÅï……Ω…Ωëî¸πÕ±•çî†¿∞Äƒ»¿§ÅÒÅπ’±∞∞(ÄÄÄÅÙ∞ÅÕ•ùπÖ∞§Ï(ÄÄÄÅ…ï—’…∏Å¡Ö…Õï	ΩΩ±ïÖπI¡å°ïÕ’±–∞Äùô•πÖ±•Èï}Õ•—ï}πΩ—•ô•çÖ—•Ωπ}ëï±•Ÿï…‰ú§Ï(ÄÅÙÅçÖ—ç†ÅÏ(ÄÄÄÅ…ï—’…∏ÅôÖ±ÕîÏ(ÄÅÙ)Ù((º®®Åπ—…ïùÑÅºÅ¡ÖÂ±ΩÖêÅëºÅ±ïÖêÄ°ïπŸï±Ω¡îÅçΩµï…ç•Ö∞§ÅÖºÅ›ïâ°ΩΩ¨ÅëºÅ—•µî∏Å9ÖëÑÅëî(Ä®Åç…ïëïπç•Ö∞ÅŸÖ§ÅπºÅçΩ…¡ºÏÅºÅ›ïâ°ΩΩ¨ÅçΩπô•ÑÅπºÅ—Ω≠ï∏ÅëîÅ’—°Ω…•ÈÖ—•Ω∏∏Ä®º)ï·¡Ω…–ÅÖÕÂπåÅô’πç—•Ω∏Åëï±•Ÿï…Ωµµï…ç•Ö±±ï…—)Ωà°©ΩàËÅΩµµï…ç•Ö±±ï…—)Ωà∞ÅÕ•ùπÖ∞ËÅâΩ…—M•ùπÖ∞§ËÅA…Ωµ•ÕîùÕïπ–úÅÄù¡ïπë•πúú¯ÅÏ(ÄÄººÅIïçΩπç•±•áüçºËÅ—ïπ—Ö—•ŸÑÅÖπ—ï…•Ω»ÅΩâ—ïŸîÅÖçï•—îÅµÖÃÅªçºÅçΩπç±’•‘ÅÑ(ÄÄººÅô•πÖ±•Èáüçº∏Å;çºÅ…ïïπŸ•ÑÉäLÅÖ¡ïπÖÃÅô•πÖ±•ÈÑ∏(ÄÅ•òÄ°©Ωàπï·•Õ—•πùA…ΩŸ•ëï»ÄòòÅ©Ωàπï·•Õ—•πùA…ΩŸ•ëï…5ïÕÕÖùï%ê§ÅÏ(ÄÄÄÅçΩπÕ–ÅçΩπô•…µïêÄÙÅÖ›Ö•–Åô•πÖ±•Èî°©Ωà∞ÄùÕïπ–ú∞ÅÕ•ùπÖ∞∞ÅÏÅ¡…ΩŸ•ëï»ËÅ©Ωàπï·•Õ—•πùA…ΩŸ•ëï»∞Å•êËÅ©Ωàπï·•Õ—•πùA…ΩŸ•ëï…5ïÕÕÖùï%êÅÙ§Ï(ÄÄÄÅ…ï—’…∏ÅçΩπô•…µïêÄ¸ÄùÕïπ–úÄËÄù¡ïπë•πúúÏ(ÄÅÙ((ÄÅçΩπÕ–Å›ïâ°ΩΩ≠U…∞ÄÙÅ¡…ΩçïÕÃπïπÿπ=55I%1}Q5}]	!==-}UI0¸π—…•¥†§Ï(ÄÅ•òÄ†Ö›ïâ°ΩΩ≠U…∞§Å…ï—’…∏Äù¡ïπë•πúúÏ(ÄÅ±ï–Å’…∞ËÅUI0Ï(ÄÅ—…‰ÅÏ(ÄÄÄÅ’…∞ÄÙÅπï‹ÅUI0°›ïâ°ΩΩ≠U…∞§Ï(ÄÅÙÅçÖ—ç†ÅÏ(ÄÄÄÅ±ΩùMï…Ÿï…]Ö…π•πú†ùçΩµµï…ç•Ö±}Ö±ï…—}›ïâ°ΩΩ≠}•πŸÖ±•ë}’…∞ú∞ÅÏÅ…ï≈’ïÕ—%êËÅ©Ωàπ…ï≈’ïÕ—%êÅÙ§Ï(ÄÄÄÅ…ï—’…∏Äù¡ïπë•πúúÏ(ÄÅÙ(ÄÅ•òÄ°’…∞π¡…Ω—ΩçΩ∞ÄÑÙÙÄù°——¡ÃËú§ÅÏ(ÄÄÄÅ±ΩùMï…Ÿï…]Ö…π•πú†ùçΩµµï…ç•Ö±}Ö±ï…—}›ïâ°ΩΩ≠}πΩ—}°——¡Ãú∞ÅÏÅ…ï≈’ïÕ—%êËÅ©Ωàπ…ï≈’ïÕ—%êÅÙ§Ï(ÄÄÄÅ…ï—’…∏Äù¡ïπë•πúúÏ(ÄÅÙ((ÄÅçΩπÕ–Å—Ω≠ï∏ÄÙÅ¡…ΩçïÕÃπïπÿπ=55I%1}Q5}]	!==-}Q=-8¸π—…•¥†§Ï(ÄÅçΩπÕ–Åëï±•Ÿï…Â%êÄÙÅÄëÌ©Ωàπ¡…Ω—ΩçΩ∞ÅÒÅ©Ωàπ…ï≈’ïÕ—%ëıÄÏ(ÄÅçΩπÕ–ÅïπŸï±Ω¡îÄÙÅÏ(ÄÄÄÅïŸïπ–ËÄù≈’Ω—ï}…ï≈’ïÕ—}Õ’âµ•——ïêú∞(ÄÄÄÅΩçç’……ïë–ËÅ©ΩàπÕ’âµ•——ïë–ÅÒÅπï‹ÅÖ—î†§π—Ω%M=M—…•πú†§∞(ÄÄÄÅ¡…Ω—ΩçΩ∞ËÅ©Ωàπ¡…Ω—ΩçΩ∞∞(ÄÄÄÅ…ï≈’ïÕ—%êËÅ©Ωàπ…ï≈’ïÕ—%ê∞(ÄÄÄÅçΩπ—Öç–ËÅÏÅπÖµîËÅ©ΩàπçΩπ—Öç—9Öµî∞ÅïµÖ•∞ËÅ©Ωàπ…ïç•¡•ïπ—µÖ•∞∞Å¡°ΩπîËÅ©Ωàπ…ïç•¡•ïπ—A°Ωπî∞ÅçΩµ¡Öπ‰ËÅ©ΩàπçΩµ¡Öπ‰ÅÙ∞(ÄÄÄÅ•—ïµÃËÅ©Ωàπ•—ïµÃ∞(ÄÅÙÏ(ÄÅ—…‰ÅÏ(ÄÄÄÅçΩπÕ–Å…ïÕ¡ΩπÕîÄÙÅÖ›Ö•–Åôï—ç†°’…∞∞ÅÏ(ÄÄÄÄÄÅµï—°ΩêËÄùA=MPú∞(ÄÄÄÄÄÅ°ïÖëï…ÃËÅÏ(ÄÄÄÄÄÄÄÄùΩπ—ïπ–µQÂ¡îúËÄùÖ¡¡±•çÖ—•Ω∏Ω©ÕΩ∏ú∞(ÄÄÄÄÄÄÄÄ∏∏∏°—Ω≠ï∏Ä¸ÅÏÅ’—°Ω…•ÈÖ—•Ω∏ËÅÅ	ïÖ…ï»ÄëÌ—Ω≠ïπıÄÅÙÄËÅÌÙ§∞(ÄÄÄÄÄÅÙ∞(ÄÄÄÄÄÅâΩë‰ËÅ)M=8πÕ—…•πù•ô‰°ïπŸï±Ω¡î§∞(ÄÄÄÄÄÅÕ•ùπÖ∞∞(ÄÄÄÅÙ§Ï(ÄÄÄÅ•òÄ†Ö…ïÕ¡ΩπÕîπΩ¨§ÅÏ(ÄÄÄÄÄÅÖ›Ö•–Åô•πÖ±•Èî°©Ωà∞ÄùôÖ•±ïêú∞ÅÕ•ùπÖ∞∞Å’πëïô•πïê∞ÅÅçΩµµï…ç•Ö±}›ïâ°ΩΩ≠|ëÌ…ïÕ¡ΩπÕîπÕ—Ö—’ÕıÄ§Ï(ÄÄÄÄÄÅ…ï—’…∏Äù¡ïπë•πúúÏ(ÄÄÄÅÙ(ÄÄÄÄººÅçï•—îÅù…ÖŸÖëºÅÖπ—ïÃÅëÑÅô•πÖ±•ÈáüçºÉäLÅµïÕµÑÅ¡…Ω—ïèüçºÅH¿ƒΩH¿»ÅëÖÃ(ÄÄÄÄººÅçΩπô•…µáü’ïÃÅëºÅç±•ïπ—î∏(ÄÄÄÅÖ›Ö•–Å…ïçΩ…ëA…ΩŸ•ëï…ççï¡—Öπçî°©Ωà∞ÅÏÅ¡…ΩŸ•ëï»ËÄùçΩµµï…ç•Ö∞µ›ïâ°ΩΩ¨ú∞Å•êËÅëï±•Ÿï…Â%êÅÙ∞ÅÕ•ùπÖ∞§Ï(ÄÄÄÅçΩπÕ–Åô•πÖ±•ÈïêÄÙÅÖ›Ö•–Åô•πÖ±•Èî°©Ωà∞ÄùÕïπ–ú∞ÅÕ•ùπÖ∞∞ÅÏÅ¡…ΩŸ•ëï»ËÄùçΩµµï…ç•Ö∞µ›ïâ°ΩΩ¨ú∞Å•êËÅëï±•Ÿï…Â%êÅÙ§Ï(ÄÄÄÅ…ï—’…∏Åô•πÖ±•ÈïêÄ¸ÄùÕïπ–úÄËÄù¡ïπë•πúúÏ(ÄÅÙÅçÖ—ç†Ä°ï……Ω»§ÅÏ(ÄÄÄÅ±ΩùMï…Ÿï…]Ö…π•πú†ùçΩµµï…ç•Ö±}Ö±ï…—}›ïâ°ΩΩ≠}ôÖ•±ïêú∞ÅÏÅ…ï≈’ïÕ—%êËÅ©Ωàπ…ï≈’ïÕ—%ê∞Åï……Ω…±ÖÕÃËÅï……Ω…±ÖÕÃ°ï……Ω»§ÅÙ§Ï(ÄÄÄÅ…ï—’…∏Äù¡ïπë•πúúÏ(ÄÅÙ)Ù()ï·¡Ω…–Å—Â¡îÅΩµµï…ç•Ö±±ï…—IïÕ’±–ÄÙÄùÕïπ–úÅÄù¡ïπë•πúúÏ((º®®Å•Õ¡Ö…ÑÅºÅÖ±ï…—ÑÅçΩµï…ç•Ö∞ÅëºÅΩÀùÖµïπ—ºÅ…ïè•¥µÕ’âµï—•ëºÄ°ô±’·ºÅœµπç…ΩπºÅëº(Ä®ÅA=MPÄΩÖ¡§Ω≈’Ω—îµ…ï≈’ïÕ—Ã§∏ÅIï•Ÿ•πë•çÑÅ’¥ÉÈπ•çºÅ©ΩàÅçΩ¥ÅºÅ¡ÀÕ¡…•ºÅ…ï≈’ïÕ—%êÏ(Ä®ÅÕï¥Åïπë¡Ω•π–ÅçΩπô•ù’…Öëº∞ÅëïŸΩ±ŸîÄù¡ïπë•πúúÅÕï¥ÅçΩπï„çºÉäPÅºÅç…Ω∏(Ä®ÄΩÖ¡§ΩçΩµµï…ç•Ö∞µÖ±ï…—ÃÅë…ïπÑÅºÅâÖç≠±ΩúÅëï¡Ω•Ã∏Ä®º)ï·¡Ω…–ÅÖÕÂπåÅô’πç—•Ω∏Åëï±•Ÿï…Ωµµï…ç•Ö±QïÖµ±ï…—9Ω‹°…ï≈’ïÕ—%êËÅÕ—…•πú∞ÅçΩ……ï±Ö—•Ωπ%ê¸ËÅÕ—…•πú§ËÅA…Ωµ•ÕîÒΩµµï…ç•Ö±±ï…—IïÕ’±–¯ÅÏ(ÄÅ•òÄ†ÖUU%}AQQI8π—ïÕ–°…ï≈’ïÕ—%ê§§Å…ï—’…∏Äù¡ïπë•πúúÏ(ÄÅçΩπÕ–ÅçΩπ—…Ω±±ï»ÄÙÅπï‹ÅâΩ…—Ωπ—…Ω±±ï»†§Ï(ÄÅçΩπÕ–Å—•µïΩ’–ÄÙÅÕï—Q•µïΩ’–††§ÄÙ¯ÅçΩπ—…Ω±±ï»πÖâΩ…–†§∞Å=55I%1}1IQ}Q%5=UQ}5L§Ï(ÄÅ—…‰ÅÏ(ÄÄÄÅçΩπÕ–Å…Ö‹ÄÙÅÖ›Ö•–Å…¡åÒ’π≠πΩ›∏¯†ùç±Ö•µ}Õ•—ï}çΩµµï…ç•Ö±}—ïÖµ}Ö±ï…–ú∞ÅÏÅ¡}…ï≈’ïÕ—}•êËÅ…ï≈’ïÕ—%êÅÙ∞ÅçΩπ—…Ω±±ï»πÕ•ùπÖ∞§Ï(ÄÄÄÅ•òÄ†Ö…Ö‹§Å…ï—’…∏Äù¡ïπë•πúúÏ(ÄÄÄÅçΩπÕ–Å©ΩàÄÙÅ¡Ö…ÕïΩµµï…ç•Ö±±ï…—)Ωà°…Ö‹§Ï(ÄÄÄÅ•òÄ†Ö©Ωà§ÅÏ(ÄÄÄÄÄÅ±ΩùMï…Ÿï…]Ö…π•πú†ùçΩµµï…ç•Ö±}Ö±ï…—}•πŸÖ±•ë}¡ÖÂ±ΩÖêú∞ÅÏÅ…ï≈’ïÕ—%ê∞ÅçΩ……ï±Ö—•Ωπ%êËÅçΩ……ï±Ö—•Ωπ%êÅÒÅπ’±∞ÅÙ§Ï(ÄÄÄÄÄÅ…ï—’…∏Äù¡ïπë•πúúÏ(ÄÄÄÅÙ(ÄÄÄÅçΩπÕ–ÅΩ’—çΩµîÄÙÅÖ›Ö•–Åëï±•Ÿï…Ωµµï…ç•Ö±±ï…—)Ωà°©Ωà∞ÅçΩπ—…Ω±±ï»πÕ•ùπÖ∞§Ï(ÄÄÄÅçΩπÕΩ±îπ•πôº†ùçΩµµï…ç•Ö±}Ö±ï…—}çΩµ¡±ï—ïêú∞ÅÏÅ…ï≈’ïÕ—%ê∞ÅçΩ……ï±Ö—•Ωπ%êËÅçΩ……ï±Ö—•Ωπ%êÅÒÅπ’±∞∞ÅΩ’—çΩµîÅÙ§Ï(ÄÄÄÅ…ï—’…∏ÅΩ’—çΩµîÏ(ÄÅÙÅçÖ—ç†Ä°ï……Ω»§ÅÏ(ÄÄÄÅ±ΩùMï…Ÿï………Ω»†ùçΩµµï…ç•Ö±}Ö±ï…—}ôÖ•±ïêú∞ÅÏÅ…ï≈’ïÕ—%ê∞ÅçΩ……ï±Ö—•Ωπ%êËÅçΩ……ï±Ö—•Ωπ%êÅÒÅπ’±∞∞Åï……Ω…±ÖÕÃËÅï……Ω…±ÖÕÃ°ï……Ω»§ÅÙ§Ï(ÄÄÄÅ…ï—’…∏Äù¡ïπë•πúúÏ(ÄÅÙÅô•πÖ±±‰ÅÏ(ÄÄÄÅç±ïÖ…Q•µïΩ’–°—•µïΩ’–§Ï(ÄÅÙ)Ù(
+async function rpc<T>(name: string, body: Record<string, unknown>, signal: AbortSignal): Promise<T> {
+  const config = getSiteDatabaseConfig();
+  const response = await fetch(`${config.url}/rest/v1/rpc/${name}`, {
+    method: 'POST',
+    headers: { apikey: config.serviceCredential, Authorization: `Bearer ${config.serviceCredential}`, 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify(body),
+    signal,
+  });
+  if (!response.ok) throw new Error(`commercial_alert_${name}_failed`);
+  return response.json() as Promise<T>;
+}
+
+function parseBooleanRpc(value: unknown, name: string): boolean {
+  if (typeof value !== 'boolean') throw new Error(`commercial_alert_invalid_${name}_response`);
+  return value;
+}
+
+/** Persiste o aceite do webhook assim que ele responde (R01): se a
+ * finaliza√ß√£o falhar em seguida, a pr√≥xima tentativa v√™
+ * existingProvider/existingProviderMessageId e apenas finaliza, sem
+ * reenviar. Evita duplicar o alerta quando a rede oscila. */
+async function recordProviderAcceptance(job: CommercialAlertJob, delivery: { provider: string; id: string }, signal: AbortSignal): Promise<void> {
+  try {
+    const accepted = parseBooleanRpc(await rpc<unknown>('record_site_notification_provider_acceptance', {
+      p_delivery_id: job.id, p_lease_token: job.leaseToken, p_provider: delivery.provider, p_provider_message_id: delivery.id,
+    }, signal), 'record_site_notification_provider_acceptance');
+    if (!accepted) {
+      logServerWarning('commercial_alert_provider_acceptance_unconfirmed', { requestId: job.requestId, errorClass: 'lease_not_confirmed' });
+    }
+  } catch (error) {
+    logServerWarning('commercial_alert_provider_acceptance_unconfirmed', { requestId: job.requestId, errorClass: errorClass(error) });
+  }
+}
+
+async function finalize(job: CommercialAlertJob, status: 'sent' | 'failed', signal: AbortSignal, delivery?: { provider: string; id: string }, errorCode?: string): Promise<boolean> {
+  try {
+    const result = await rpc<unknown>('finalize_site_notification_delivery', {
+      p_delivery_id: job.id,
+      p_lease_token: job.leaseToken,
+      p_status: status,
+      p_provider: delivery?.provider || null,
+      p_provider_message_id: delivery?.id || null,
+      p_error_code: errorCode?.slice(0, 120) || null,
+    }, signal);
+    return parseBooleanRpc(result, 'finalize_site_notification_delivery');
+  } catch {
+    return false;
+  }
+}
+
+/** Entrega o payload do lead (envelope comercial) ao webhook do time. Nada de
+ * credencial vai no corpo; o webhook confia no token de Authorization. */
+export async function deliverCommercialAlertJob(job: CommercialAlertJob, signal: AbortSignal): Promise<'sent' | 'pending'> {
+  // Reconcilia√ß√£o: tentativa anterior obteve aceite mas n√£o concluiu a
+  // finaliza√ß√£o. N√£o reenvia ‚Äî apenas finaliza.
+  if (job.existingProvider && job.existingProviderMessageId) {
+    const confirmed = await finalize(job, 'sent', signal, { provider: job.existingProvider, id: job.existingProviderMessageId });
+    return confirmed ? 'sent' : 'pending';
+  }
+
+  const webhookUrl = process.env.COMMERCIAL_TEAM_WEBHOOK_URL?.trim();
+  if (!webhookUrl) return 'pending';
+  let url: URL;
+  try {
+    url = new URL(webhookUrl);
+  } catch {
+    logServerWarning('commercial_alert_webhook_invalid_url', { requestId: job.requestId });
+    return 'pending';
+  }
+  if (url.protocol !== 'https:') {
+    logServerWarning('commercial_alert_webhook_not_https', { requestId: job.requestId });
+    return 'pending';
+  }
+
+  const token = process.env.COMMERCIAL_TEAM_WEBHOOK_TOKEN?.trim();
+  const deliveryId = `${job.protocol || job.requestId}`;
+  const envelope = {
+    event: 'quote_request_submitted',
+    occurredAt: job.submittedAt || new Date().toISOString(),
+    protocol: job.protocol,
+    requestId: job.requestId,
+    contact: { name: job.contactName, email: job.recipientEmail, phone: job.recipientPhone, company: job.company },
+    items: job.items,
+  };
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(envelope),
+      signal,
+    });
+    if (!response.ok) {
+      await finalize(job, 'failed', signal, undefined, `commercial_webhook_${response.status}`);
+      return 'pending';
+    }
+    // Aceite gravado antes da finaliza√ß√£o ‚Äî mesma prote√ß√£o R01/R02 das
+    // confirma√ß√µes do cliente.
+    await recordProviderAcceptance(job, { provider: 'commercial-webhook', id: deliveryId }, signal);
+    const finalized = await finalize(job, 'sent', signal, { provider: 'commercial-webhook', id: deliveryId });
+    return finalized ? 'sent' : 'pending';
+  } catch (error) {
+    logServerWarning('commercial_alert_webhook_failed', { requestId: job.requestId, errorClass: errorClass(error) });
+    return 'pending';
+  }
+}
+
+export type CommercialAlertResult = 'sent' | 'pending';
+
+/** Dispara o alerta comercial do or√ßamento rec√©m-submetido (fluxo s√≠ncrono do
+ * POST /api/quote-requests). Reivindica um √∫nico job com o pr√≥prio requestId;
+ * sem endpoint configurado, devolve 'pending' sem conex√£o ‚Äî o cron
+ * /api/commercial-alerts drena o backlog depois. */
+export async function deliverCommercialTeamAlertNow(requestId: string, correlationId?: string): Promise<CommercialAlertResult> {
+  if (!UUID_PATTERN.test(requestId)) return 'pending';
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), COMMERCIAL_ALERT_TIMEOUT_MS);
+  try {
+    const raw = await rpc<unknown>('claim_site_commercial_team_alert', { p_request_id: requestId }, controller.signal);
+    if (!raw) return 'pending';
+    const job = parseCommercialAlertJob(raw);
+    if (!job) {
+      logServerWarning('commercial_alert_invalid_payload', { requestId, correlationId: correlationId || null });
+      return 'pending';
+    }
+    const outcome = await deliverCommercialAlertJob(job, controller.signal);
+    console.info('commercial_alert_completed', { requestId, correlationId: correlationId || null, outcome });
+    return outcome;
+  } catch (error) {
+    logServerError('commercial_alert_failed', { requestId, correlationId: correlationId || null, errorClass: errorClass(error) });
+    return 'pending';
+  } finally {
+    clearTimeout(timeout);
+  }
+}
