@@ -181,8 +181,8 @@ select is(
   (select count(*)::integer from site_private.notification_deliveries
    where status = 'processing' and lease_expires_at <= now()
      and request_id in (select id from site_private.quote_requests where client_request_id like 'query-plan-fixture-%')),
-  6,
-  'pré-condição: seis leases sintéticas realmente expiraram'
+  12,
+  'pré-condição: doze leases sintéticas realmente expiraram'
 );
 
 select is(
