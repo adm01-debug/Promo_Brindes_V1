@@ -1,8 +1,682 @@
-type Json = boolean | number | string | null ? { [key: string]: Json | Json[]
-type Database = {
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export type Database = {
   public: {
     Tables: {
-      _retention_buckets: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      apply_site_notification_provider_event: {
+        Args: {
+          p_bounce_reason?: string
+          p_event_type: string
+          p_occurred_at: string
+          p_provider: string
+          p_provider_event_id: string
+          p_provider_message_id: string
+        }
+        Returns: Json
+      }
+      attach_my_briefing_assets_to_quote: {
+        Args: { p_asset_ids: string[]; p_request_id: string }
+        Returns: number
+      }
+      can_delete_my_unverified_briefing_asset_path: {
+        Args: { p_path: string }
+        Returns: boolean
+      }
+      claim_my_quote_requests: { Args: never; Returns: Json }
+      claim_site_commercial_team_alert: { Args: { p_request_id: string }; Returns: Json }
+      claim_site_commercial_team_alerts: { Args: { p_batch_size?: number }; Returns: Json }
+      claim_site_notification_deliveries: {
+        Args: { p_batch_size?: number; p_channels: string[] }
+        Returns: Json
+      }
+      claim_site_quote_notification: {
+        Args: { p_channel: string; p_request_id: string }
+        Returns: Json
+      }
+      confirm_site_briefing_asset_verification: {
+        Args: {
+          p_id: string
+          p_mime_type: string
+          p_size_bytes: number
+          p_storage_path: string
+        }
+        Returns: string
+      }
+      create_my_briefing_asset: {
+        Args: {
+          p_kind?: string
+          p_mime_type: string
+          p_original_name: string
+          p_size_bytes: number
+        }
+        Returns: Json
+      }
+      create_site_contact_request: {
+        Args: { p_payload: Json; p_request_meta: Json }
+        Returns: Json
+      }
+      create_site_quote_request: {
+        Args: { p_payload: Json; p_request_meta: Json }
+        Returns: Json
+      }
+      create_site_shared_selection: {
+        Args: {
+          p_identifier_hash: string
+          p_items: Json
+          p_management_token_hash: string
+        }
+        Returns: Json
+      }
+      delete_my_briefing_asset: { Args: { p_id: string }; Returns: boolean }
+      delete_my_selection: {
+        Args: { p_expected_version: number; p_id: string }
+        Returns: boolean
+      }
+      erase_customer_data: { Args: { p_email: string }; Returns: Json }
+      finalize_briefing_asset_retention: {
+        Args: { p_batch_size?: number; p_storage_paths: string[] }
+        Returns: number
+      }
+      finalize_site_data_retention: {
+        Args: {
+          p_batch_size?: number
+          p_quote_ids: string[]
+          p_storage_paths: string[]
+        }
+        Returns: Json
+      }
+      finalize_site_notification_delivery: {
+        Args: {
+          p_delivery_id: string
+          p_error_code?: string
+          p_lease_token: string
+          p_provider?: string
+          p_provider_message_id?: string
+          p_retry_after_seconds?: number
+          p_status: string
+        }
+        Returns: boolean
+      }
+      finalize_site_storage_retention: {
+        Args: { p_batch_size?: number; p_objects: Json }
+        Returns: Json
+      }
+      get_briefing_asset_retention_candidates: {
+        Args: { p_batch_size?: number }
+        Returns: Json
+      }
+      get_my_briefing_asset_verification: {
+        Args: { p_id: string }
+        Returns: Json
+      }
+      get_my_proposal_document: {
+        Args: { p_proposal_id: string }
+        Returns: Json
+      }
+      get_my_quote_request: { Args: { p_request_id: string }; Returns: Json }
+      get_my_quote_requests: {
+        Args: {
+          p_limit?: number
+          p_offset?: number
+          p_search?: string
+          p_status?: string
+        }
+        Returns: Json
+      }
+      get_site_data_retention_candidates: {
+        Args: { p_batch_size?: number }
+        Returns: Json
+      }
+      get_site_shared_selection: {
+        Args: { p_identifier_hash: string; p_token: string }
+        Returns: Json
+      }
+      list_my_briefing_assets: { Args: never; Returns: Json }
+      list_my_occasion_favorites: { Args: never; Returns: Json }
+      list_my_selections: {
+        Args: { p_include_archived?: boolean }
+        Returns: Json
+      }
+      matches_my_briefing_asset_upload: {
+        Args: { p_metadata: Json; p_path: string }
+        Returns: boolean
+      }
+      owns_my_briefing_asset_path: {
+        Args: { p_path: string }
+        Returns: boolean
+      }
+      preflight_site_lead_request: {
+        Args: {
+          p_client_request_id: string
+          p_identifier_hash: string
+          p_request_kind: string
+        }
+        Returns: boolean
+      }
+      purge_archived_customer_selections: {
+        Args: { p_batch_size?: number }
+        Returns: number
+      }
+      purge_site_admin_audit_logs: {
+        Args: { p_batch_size?: number; p_retention_days?: number }
+        Returns: Json
+      }
+      record_site_notification_dispatch_started: {
+        Args: { p_delivery_id: string; p_lease_token: string }
+        Returns: boolean
+      }
+      record_site_notification_provider_acceptance: {
+        Args: {
+          p_delivery_id: string
+          p_lease_token: string
+          p_provider: string
+          p_provider_message_id: string
+        }
+        Returns: boolean
+      }
+      reject_site_briefing_asset_verification: {
+        Args: { p_id: string; p_storage_path: string }
+        Returns: boolean
+      }
+      request_my_quote_adjustment: {
+        Args: {
+          p_client_request_id: string
+          p_message: string
+          p_request_id: string
+        }
+        Returns: Json
+      }
+      revoke_site_shared_selection: {
+        Args: {
+          p_identifier_hash: string
+          p_management_token_hash: string
+          p_token: string
+        }
+        Returns: Json
+      }
+      save_my_selection: {
+        Args: {
+          p_campaign?: Json
+          p_expected_version?: number
+          p_id?: string
+          p_references: Json
+          p_title: string
+        }
+        Returns: Json
+      }
+      set_my_occasion_favorite: {
+        Args: { p_occasion_id: string; p_saved: boolean }
+        Returns: Json
+      }
+      set_my_selection_archived: {
+        Args: { p_archived: boolean; p_expected_version: number; p_id: string }
+        Returns: Json
+      }
+      site_notification_queue_health: { Args: never; Returns: Json }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+  site_private: {
+    Tables: {
+      admin_audit_log: {
+        Row: {
+          application_name: string | null
+          id: number
+          occurred_at: string
+          operation: string
+          performed_by: string
+          row_id: string | null
+          table_name: string
+        }
+        Insert: {
+          application_name?: string | null
+          id?: never
+          occurred_at?: string
+          operation: string
+          performed_by: string
+          row_id?: string | null
+          table_name: string
+        }
+        Update: {
+          application_name?: string | null
+          id?: never
+          occurred_at?: string
+          operation?: string
+          performed_by?: string
+          row_id?: string | null
+          table_name?: string
+        }
+        Relationships: []
+      }
+      admin_ddl_log: {
+        Row: {
+          command_tag: string
+          id: number
+          object_type: string | null
+          occurred_at: string
+          performed_by: string
+          schema_name: string | null
+        }
+        Insert: {
+          command_tag: string
+          id?: never
+          object_type?: string | null
+          occurred_at?: string
+          performed_by: string
+          schema_name?: string | null
+        }
+        Update: {
+          command_tag?: string
+          id?: never
+          object_type?: string | null
+          occurred_at?: string
+          performed_by?: string
+          schema_name?: string | null
+        }
+        Relationships: []
+      }
+      consent_receipts: {
+        Row: {
+          accepted: boolean
+          client_accepted_at: string
+          contact_request_id: string | null
+          id: string
+          notice_version: string
+          purpose: string
+          quote_request_id: string | null
+          request_kind: string
+          server_recorded_at: string
+        }
+        Insert: {
+          accepted: boolean
+          client_accepted_at: string
+          contact_request_id?: string | null
+          id?: string
+          notice_version: string
+          purpose?: string
+          quote_request_id?: string | null
+          request_kind: string
+          server_recorded_at?: string
+        }
+        Update: {
+          accepted?: boolean
+          client_accepted_at?: string
+          contact_request_id?: string | null
+          id?: string
+          notice_version?: string
+          purpose?: string
+          quote_request_id?: string | null
+          request_kind?: string
+          server_recorded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consent_receipts_contact_request_id_fkey"
+            columns: ["contact_request_id"]
+            isOneToOne: false
+            referencedRelation: "contact_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consent_receipts_quote_request_id_fkey"
+            columns: ["quote_request_id"]
+            isOneToOne: false
+            referencedRelation: "quote_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact_requests: {
+        Row: {
+          client_request_id: string
+          client_submitted_at: string
+          contact_name: string
+          created_at: string
+          email: string
+          id: string
+          message: string | null
+          page_url: string | null
+          phone: string | null
+          preferred_channel: string | null
+          request_hash: string
+          request_metadata: Json
+          retention_until: string
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          client_request_id: string
+          client_submitted_at: string
+          contact_name: string
+          created_at?: string
+          email: string
+          id?: string
+          message?: string | null
+          page_url?: string | null
+          phone?: string | null
+          preferred_channel?: string | null
+          request_hash: string
+          request_metadata?: Json
+          retention_until?: string
+          source: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          client_request_id?: string
+          client_submitted_at?: string
+          contact_name?: string
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string | null
+          page_url?: string | null
+          phone?: string | null
+          preferred_channel?: string | null
+          request_hash?: string
+          request_metadata?: Json
+          retention_until?: string
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      customer_briefing_assets: {
+        Row: {
+          created_at: string
+          customer_user_id: string
+          expires_at: string
+          id: string
+          kind: string
+          mime_type: string
+          original_name: string
+          quote_request_id: string | null
+          size_bytes: number
+          storage_bucket: string
+          storage_path: string
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_user_id: string
+          expires_at?: string
+          id?: string
+          kind: string
+          mime_type: string
+          original_name: string
+          quote_request_id?: string | null
+          size_bytes: number
+          storage_bucket?: string
+          storage_path: string
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_user_id?: string
+          expires_at?: string
+          id?: string
+          kind?: string
+          mime_type?: string
+          original_name?: string
+          quote_request_id?: string | null
+          size_bytes?: number
+          storage_bucket?: string
+          storage_path?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_briefing_assets_quote_request_id_fkey"
+            columns: ["quote_request_id"]
+            isOneToOne: false
+            referencedRelation: "quote_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_occasion_favorites: {
+        Row: {
+          created_at: string
+          customer_user_id: string
+          occasion_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_user_id: string
+          occasion_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_user_id?: string
+          occasion_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      customer_profiles: {
+        Row: {
+          company: string | null
+          created_at: string
+          display_name: string | null
+          updated_at: string
+          user_id: string
+          verified_email: string
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          display_name?: string | null
+          updated_at?: string
+          user_id: string
+          verified_email: string
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          display_name?: string | null
+          updated_at?: string
+          user_id?: string
+          verified_email?: string
+        }
+        Relationships: []
+      }
+      customer_selections: {
+        Row: {
+          archived_at: string | null
+          campaign: Json | null
+          created_at: string
+          customer_user_id: string
+          id: string
+          product_references: Json
+          title: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          archived_at?: string | null
+          campaign?: Json | null
+          created_at?: string
+          customer_user_id: string
+          id?: string
+          product_references: Json
+          title: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          archived_at?: string | null
+          campaign?: Json | null
+          created_at?: string
+          customer_user_id?: string
+          id?: string
+          product_references?: Json
+          title?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
+      erased_customer_identities: {
+        Row: {
+          auth_users_deleted: number
+          email_sha256: string
+          erased_at: string
+        }
+        Insert: {
+          auth_users_deleted?: number
+          email_sha256: string
+          erased_at?: string
+        }
+        Update: {
+          auth_users_deleted?: number
+          email_sha256?: string
+          erased_at?: string
+        }
+        Relationships: []
+      }
+      notification_deliveries: {
+        Row: {
+          attempts: number
+          audience: string
+          bounce_reason: string | null
+          channel: string
+          claimed_at: string | null
+          complained_at: string | null
+          created_at: string
+          delivery_state: string | null
+          delivery_state_at: string | null
+          delivery_state_source_event_id: string | null
+          id: string
+          last_error_at: string | null
+          last_error_code: string | null
+          lease_expires_at: string | null
+          lease_token: string | null
+          next_attempt_at: string
+          provider: string | null
+          provider_message_id: string | null
+          request_id: string
+          request_kind: string
+          sent_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          audience: string
+          bounce_reason?: string | null
+          channel: string
+          claimed_at?: string | null
+          complained_at?: string | null
+          created_at?: string
+          delivery_state?: string | null
+          delivery_state_at?: string | null
+          delivery_state_source_event_id?: string | null
+          id?: string
+          last_error_at?: string | null
+          last_error_code?: string | null
+          lease_expires_at?: string | null
+          lease_token?: string | null
+          next_attempt_at?: string
+          provider?: string | null
+          provider_message_id?: string | null
+          request_id: string
+          request_kind: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          audience?: string
+          bounce_reason?: string | null
+          channel?: string
+          claimed_at?: string | null
+          complained_at?: string | null
+          created_at?: string
+          delivery_state?: string | null
+          delivery_state_at?: string | null
+          delivery_state_source_event_id?: string | null
+          id?: string
+          last_error_at?: string | null
+          last_error_code?: string | null
+          lease_expires_at?: string | null
+          lease_token?: string | null
+          next_attempt_at?: string
+          provider?: string | null
+          provider_message_id?: string | null
+          request_id?: string
+          request_kind?: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_deliveries_delivery_state_source_event_id_fkey"
+            columns: ["delivery_state_source_event_id"]
+            isOneToOne: false
+            referencedRelation: "notification_provider_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_provider_events: {
+        Row: {
+          delivery_id: string | null
+          event_type: string
+          id: string
+          provider: string
+          provider_event_id: string
+          received_at: string
+        }
+        Insert: {
+          delivery_id?: string | null
+          event_type: string
+          id?: string
+          provider: string
+          provider_event_id: string
+          received_at?: string
+        }
+        Update: {
+          delivery_id?: string | null
+          event_type?: string
+          id?: string
+          provider?: string
+          provider_event_id?: string
+          received_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_provider_events_delivery_id_fkey"
+            columns: ["delivery_id"]
+            isOneToOne: false
+            referencedRelation: "notification_deliveries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      proposal_documents: {
         Row: {
           created_at: string
           id: string
@@ -321,7 +995,7 @@ type Database = {
           identifier_hash?: string
           request_count?: number
           updated_at?: string
-          window_started_at: string
+          window_started_at?: string
         }
         Relationships: []
       }
@@ -349,7 +1023,7 @@ type Database = {
           expires_at?: string
           items?: Json
           management_token_hash?: string
-          revoked_at: string | null
+          revoked_at?: string | null
           token?: string
           updated_at?: string
         }
@@ -440,7 +1114,7 @@ type Database = {
           batch_max: number
           lease_timeout: string
           max_attempts: number
-          retry_base_secondsz: number
+          retry_base_seconds: number
           retry_cap_seconds: number
         }[]
       }
