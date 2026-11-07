@@ -1,6 +1,6 @@
 # Dicionário de dados — site_private (Etapa 35)
 
-Gerado por `npm run db:site:dictionary` a partir de `pg_description` no banco local, na versão do schema da migration mais recente (2026-10-06). Não editar à mão — a fonte de verdade é o comentário na migration (`comment on table`/`comment on column`); rode o script de novo depois de qualquer mudança de schema.
+Gerado por `npm run db:site:dictionary` a partir de `pg_description` no banco local, na versão do schema da migration mais recente (2026-11-06). Não editar à mão — a fonte de verdade é o comentário na migration (`comment on table`/`comment on column`); rode o script de novo depois de qualquer mudança de schema.
 
 ## Tabelas
 
@@ -137,7 +137,7 @@ Túmulos SHA-256 irreversíveis de identidades apagadas por solicitação LGPD; 
 |---|---|---|
 | `email_sha256` | `text` | SHA-256 hexadecimal do e-mail normalizado; nunca armazena o endereço original. |
 | `erased_at` | `timestamp with time zone` | — |
-| `auth_users_deleted` | `integer` | Maior quantidade de contas Auth removidas nas execuções idempotentes deste apagamento. |
+| `auth_users_deleted` | integer` | Maior quantidade de contas Auth removidas nas execuções idempotentes deste apagamento. |
 
 ### `site_private.notification_deliveries`
 
@@ -165,9 +165,9 @@ Auditoria de entregas futuras. WhatsApp exige consentimento específico antes da
 | `delivery_state_at` | `timestamp with time zone` | — |
 | `bounce_reason` | `text` | Categoria curta fornecida pelo provedor (ex. Resend bounce.type, Meta errors[].title) — não é texto livre do usuário. |
 | `complained_at` | `timestamp with time zone` | Reclamação de spam (Etapa 30), independente de delivery_state: uma mensagem pode ser entregue e só depois reclamada. |
-| `claimed_at` | `timestamp with time zone` | Instante da reivindicação corrente (Etapa 10). Histórico: não é limpo na finalização, só na próxima reivindicação. |
+| `claimed_at` | `timestamp with time zone` | Instante da reivindicação corrente (Etapa 10). Histórico: não é limpo na finalização, sóna próxima reivindicação. |
 | `lease_expires_at` | `timestamp with time zone` | Prazo da reivindicação corrente (Etapa 10). Substitui a inferência antiga por updated_at, que record_site_notification_provider_acceptance prorrogava sem essa ser uma decisão explícita. Null sempre que status <> processing (Etapa 9). |
-| `delivery_state_source_event_id` | `uuid` | Etapa 20: qual evento de webhook determinou o delivery_state atual — rastreabilidade quando um bounced tardio sobrescreve um delivered anterior. |
+| `delivery_state_source_event_id` | `uuid` | Etapa 20: qual evento de webhook determinou o delivery_state atual — rastreabilidade quando um bounced tardio sobresceve um delivered anterior. |
 
 ### `site_private.notification_provider_events`
 
@@ -255,7 +255,7 @@ _Sem comment on table — considerar adicionar um na próxima migration que toca
 | `description` | `text` | — |
 | `audience` | `text` | — |
 | `created_at` | `timestamp with time zone` | — |
-| `sequence` | `bigint` | Ordem de inserção monotônica (Etapa 7). Usar em vez de created_at para ordenar eventos do mesmo pedido: created_at é fixo por transação e não desempata eventos inseridos juntos. |
+| `sequence` | `bigint` | Ordem de inserção monotônica (Etapa 7). Usar em vez de created_at para ordenar eventos do mesmo pedido: created_at é fixo por transacção e nao desempata eventos inseridos juntos. |
 
 ### `site_private.quote_requests`
 
@@ -315,11 +315,10 @@ _Sem comment on table — considerar adicionar um na próxima migration que toca
 |---|---|---|
 | `token` | `uuid` | — |
 | `management_token_hash` | `text` | — |
-| `items` | `jsonb` | Referências compartilhadas por link; preserva prioridade, grupo, nome e multiplicadores de kit. Nomes escolhidos pelo cliente também ficam visíveis ao destinatário. |
+| `items` | `jsonb` | Referências compartilhadas por link; preserva prioridade, grupo, nome e multiplicadores de kit. Nomes escolhidos pelo cliente também ficam visiveis ao destinatário. |
 | `expires_at` | `timestamp with time zone` | — |
 | `revoked_at` | `timestamp with time zone` | — |
 | `created_at` | `timestamp with time zone` | — |
-| `updated_at` | `timestamp with time zone` | — |
 
 ### `site_private.status_transitions`
 
@@ -345,10 +344,12 @@ Fila mínima de objetos privados para remoção pela Storage API; não contém c
 
 | Função | Argumentos | Comentário |
 |---|---|---|
-| `apply_site_notification_provider_event` | `p_provider text, p_provider_message_id text, p_event_type text, p_provider_event_id text, p_occurred_at timestamp with time zone, p_bounce_reason text` | Aplica evento de webhook de forma idempotente (Etapa 30 do plano anterior). delivered só grava se delivery_state ainda for null; bounced grava se null OU se o estado atual for delivered — um bounce tardio corrige um delivered otimista (Etapa 20 do plano de correções). complained é independente e idempotente via coalesce. |
+| `apply_site_notification_provider_event` | `p_provider text, p_provider_message_id text, p_event_type text, p_provider_event_id text, p_occurred_at timestamp with time zone, p_bounce_reason text | Aplica evento de webhook de forma idempotente (Etapa 30 do plano anterior). delivered só grava se delivery_state ainda for null; bounced grava se null OU se o estado atual for delivered — um bounce tardio corrige um delivered otimista (Etapa 20 do plano de correções). complained é independente e idempotente via coalesce. |
 | `attach_my_briefing_assets_to_quote` | `p_request_id uuid, p_asset_ids uuid[]` | — |
 | `can_delete_my_unverified_briefing_asset_path` | `p_path text` | Permite limpeza direta somente antes da verificação; depois dela a exclusão ocorre pela fila server-side. |
 | `claim_my_quote_requests` | `` | Associa solicitações sem titular somente após confirmação do e-mail da identidade autenticada. |
+| claim_site_commercial_team_alert | p_request_id uuid | Reivindica o alerta comercial de um orcamento especifico, sem filtrar por canal. |
+| claim_site_commercial_team_alerts | p_batch_size integer | Reivindica lotes de alertas comerciais pendentes para o cron de entrega. |
 | `claim_site_notification_deliveries` | `p_channels text[], p_batch_size integer` | Reivindica notificações com lease e devolve o contrato estruturado da confirmação, sem notas livres ou dados privados desnecessários ao e-mail. |
 | `claim_site_quote_notification` | `p_request_id uuid, p_channel text` | Reivindicação imediata com o mesmo contrato estruturado da fila; não recupera jobs processing presos. |
 | `confirm_site_briefing_asset_verification` | `p_id uuid, p_storage_path text, p_mime_type text, p_size_bytes integer` | — |
