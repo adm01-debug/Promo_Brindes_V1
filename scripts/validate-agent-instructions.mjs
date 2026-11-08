@@ -19,13 +19,14 @@ export const SKILL_FILES = [
   `.agents/skills/${SKILL_NAME}/SKILL.md`,
 ];
 export const REQUIRED_SECTIONS = [
-  '## Projeto',
-  '## Comandos',
-  '## Como trabalhar',
+  '## Postura',
   '## Bugs e funcionalidades',
-  '## Banco, CI e segurança',
   '## Comunicação',
   '## Fluxo Git',
+  '## Banco',
+  '## Serviços',
+  '## Stack e comandos',
+  '## Grafo de código',
 ];
 export const SET_SHRINK_THRESHOLD = 0.3;
 export const FILE_SHRINK_THRESHOLD = 0.5;
