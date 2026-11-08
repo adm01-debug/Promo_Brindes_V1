@@ -2,6 +2,7 @@
 
 Regras do dono para qualquer agente de IA. Se `docs/` contradisser, este arquivo vence (docs antigos são histórico). Responda sempre em PT-BR.
 Versão enxuta do texto-mestre adm01-debug (2026-11-02); íntegra em `docs/agentes/texto-mestre-adm01-debug.md`.
+Referência longa fica em `docs/agentes/<tema>.md`, citada aqui como "ler quando <situação>"; divergiu da realidade → corrija no mesmo PR do fix.
 
 ## Projeto
 
@@ -10,9 +11,11 @@ Versão enxuta do texto-mestre adm01-debug (2026-11-02); íntegra em `docs/agent
 - Supabase **canônico** `doufsxqlfjyuvxuezpln` (catálogo): somente leitura via views `v_site_products_public`/`v_products_public`; sem migrations daqui; MCP `SUPABASE - GESTÃO DE PRODUTOS`; contrato quebrou → `docs/RUNBOOK_BANCO_PRINCIPAL.md`.
 - Supabase **isolado do site** `xlzmclcjdncjfdrjxclt` (leads, área do cliente): migrations em `site-supabase/supabase/migrations`, pgTAP em `site-supabase/supabase/tests/database`.
 - Não altere o projeto interno Promo Gifts (`Promo_Gifts_V4`) por este site.
-- Pastas: `src/`, `api/`, `shared/`, `site-supabase/`, `scripts/`, `tests/`, `e2e/`; `vercel.json`; `.env.example`; `docs/RUNBOOK_*`, `docs/DATABASE_*`; `graphify-out/` ignorado.
+- Regras de domínio que o código não deixa óbvio (lead, fila de notificação, webhook de provedor, seleção compartilhada, retenção): `docs/agentes/regras-dominio.md`.
+- Pastas: `src/`, `api/`, `shared/`, `site-supabase/`, `scripts/`, `tests/`, `e2e/`; `vercel.json`; `.env.example`; `docs/RUNBOOK_*`, `docs/DATABASE_*`; `graphify-out/` ignorado. Onde fica o quê: `docs/agentes/mapa-repo.md`.
+- Convenções de código e commit: `.claude/skills/promo-brindes-v1/SKILL.md` (cópia idêntica em `.agents/skills/promo-brindes-v1/SKILL.md` para o Codex). Hooks de sessão e guardas do grafo: `.claude/settings.json` + `.claude/hooks/session-start.sh`; baseline do Codex em `.codex/`.
 
-## Comandos
+## Comandos — detalhe em `docs/agentes/mapa-repo.md`
 
 - `npm run dev` · `lint` · `typecheck` · `test` · `test:e2e` · `build` · `check` (gate completo).
 - Banco do site: `npm run db:site:guard` (bloqueia o ref canônico) → `npm run db:site:dry-run` → `SUPABASE_WORKDIR=site-supabase npx supabase@latest db push`. Nunca `db reset --linked`.
@@ -32,16 +35,16 @@ Versão enxuta do texto-mestre adm01-debug (2026-11-02); íntegra em `docs/agent
 ## Bugs e funcionalidades
 
 - Diagnóstico antes de patch: logs e estado real, ponto exato (arquivo:linha), causa declarada. Várias causas → liste todas, corrija a pedida.
-- Antes da PR: typecheck/lint/testes dos arquivos tocados. Só erro seu conta; erro herdado do `main` vai para "Próximos passos".
+- Antes da PR: typecheck/lint/testes dos arquivos tocados. Mexeu em `AGENTS.md`, `CLAUDE.md`, `docs/agentes/*.md` ou nos skills → `npm run agents:instructions:check`. Só erro seu conta; erro herdado do `main` vai para "Próximos passos".
 - "Pronto" (bug) = PR mergeada + deploy confirmado + comportamento verificado (log, query ou request real). Faltou um → diga onde parou.
 - "Pronta" (feature) = integrada ponta a ponta: UI, rota, serviço, tabela com RLS, estados erro/loading/vazio, handlers e submit. Sem mock, hardcode, TODO. Fluxo pela metade não é pronto. Não coube → entregue o funcional e liste o que falta, em ordem, com arquivos.
 - Mudança visual: mockup (desktop e celular quando afetar ambos) aprovado explicitamente pelo dono antes de tocar o código; íntegra em `docs/agentes/aprovacao-visual-design.md`. Fix só funcional dispensa mockup.
 
-## Banco, CI e segurança
+## Banco, CI e segurança — ler `docs/agentes/banco.md` antes de SQL ou migration, `docs/agentes/github-ci.md` antes de workflow/settings, `docs/agentes/vercel-deploy.md` antes de confirmar deploy
 
 - Migration `YYYYMMDDHHMMSS_descricao.sql`, aditiva; nunca reverta schema destrutivamente em produção. `release.yml` exige ledger remoto idêntico às migrations do repo; divergiu → `docs/RUNBOOK_RECONCILIACAO_LEDGER.md`.
 - Merge em `main` = produção. Deploy Git da Vercel desligado; `release.yml` faz ledger → build do SHA → promoção → smoke. Falha/rollback → `docs/RUNBOOK_RELEASE.md`.
-- Checks obrigatórios: `validate` e `cross-browser` (quality.yml), `Migrations and pgTAP` (database.yml), `Build structural Graphify map` (graphify.yml). CODEOWNERS: `@adm01-debug` revisa toda PR.
+- Checks obrigatórios: `validate` e `cross-browser` (quality.yml), `Migrations and pgTAP` (database.yml), `Build structural Graphify map` (graphify.yml). CODEOWNERS pede review de `@adm01-debug` em toda PR, mas o merge não exige aprovação; `strict` e conversa de review aberta bloqueiam (perímetro em `docs/agentes/github-ci.md`).
 - Mudou estado de requisito do ledger? `docs/GOVERNANCA_FECHAMENTO.md` + `npm run ledger:check`.
 - Segredos só em env/secret do serviço (nomes em `.env.example`). Nunca secret em `VITE_*`; nunca commite `.env.local`, chaves de API ou service_role; nunca imprima token, secret ou variável sensível em output ou commit. Preview usa projeto Supabase próprio.
 
@@ -52,7 +55,7 @@ Versão enxuta do texto-mestre adm01-debug (2026-11-02); íntegra em `docs/agent
 - Destrutivo de verdade: uma linha ("isso apaga X, sem volta — confirma?").
 - Fim de execução: exatamente 3 "Próximos passos" por impacto (`N. [título] — [por quê] · [arquivo/camada]`), do que viu nesta sessão, executáveis via MCP, para não-dev. Nada genérico ("adicionar testes", "melhorar docs", "revisar segurança"). É um menu: `1`, `APROVADO 2`, "todos" ou o bloco devolvido = executar na ordem, sem reconfirmar. Só consulta, sugestões que o dono já rejeitou ou nada pendente → `Próximos passos: nada pendente neste escopo.`
 
-## Fluxo Git
+## Fluxo Git — detalhe em `docs/agentes/github-ci.md`
 
 Escrita no GitHub: MCP **`GITHUB - MCP - FOREVER`** (o padrão dá 403 em write; `git push`/`gh` só com repo autorizado).
 
