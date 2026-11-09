@@ -3,10 +3,10 @@
 // Zero dependências. Node >= 18. Genérico: funciona em qualquer repositório.
 //   JS/TS (React, Next, Vue, Svelte, Nuxt, Remix, Astro, Express/Hono/Fastify/Nest), Python
 //   (FastAPI/Flask/Django), e qualquer outra linguagem recebe pelo menos contagens, docs,
-//   scripts, workflows, git e baseline. Backends: Supabase (migrations/types/edges/config),
-//   Prisma, Drizzle, TypeORM, SQL solto.
+//   scripts, workflows, git e baseline. Backends: Supabase (migrations/types/edges/config, na raiz
+//   ou em subpasta), funções serverless por arquivo (Vercel api/), Prisma, Drizzle, TypeORM, SQL solto.
 //
-// Uso: node scripts/ai-context/gerar.mjs [--root <dir>] [--out <dir>] [--quiet]
+// Uso: node scripts/ai-context/gerar.mjs [--root <dir>] [--out <dir>] [--quiet] [--help]
 // Config opcional na raiz do repo: ai-context.config.json
 //   { "out": "inventario/ia", "skipDirs": [...], "srcDirs": [...], "menuFiles": [...],
 //     "routeFiles": [...], "aliases": { "@/": "src/" }, "typesFile": "...", "maxFileMB": 8, "publicacao": "texto do rodapé do INDEX.md" }
@@ -18,19 +18,41 @@ import crypto from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 
 const FORMAT_VERSION = 2;
+const USO = `Uso: node scripts/ai-context/gerar.mjs [--root <dir>] [--out <dir>] [--quiet] [--help]
+  --root <dir>  raiz do repositório a ler (padrão: env AI_CONTEXT_ROOT ou o diretório atual)
+  --out <dir>   pasta de saída; caminho relativo é resolvido contra a raiz
+                (padrão: env AI_CONTEXT_DIR, ai-context.config.json → out ou inventario/ia)
+  --quiet       não imprime o progresso (erros continuam em stderr)
+  --help, -h    mostra esta ajuda e sai sem gerar nada
+Saída: 0 = gerado (seção que falhou fica em manifest.json → erros e em stderr);
+       1 = não conseguiu escrever a saída; 2 = argumento ou caminho inválido (nada é escrito).`;
+const fatal = (code, msg) => { console.error(`[contexto-ia] ERRO: ${msg}`); process.exit(code); };
 const args = process.argv.slice(2);
-const argOf = (k, d) => { const i = args.indexOf(k); return i >= 0 && args[i + 1] ? args[i + 1] : d; };
-const ROOT = path.resolve(argOf('--root', process.env.AI_CONTEXT_ROOT || process.cwd()));
-const QUIET = args.includes('--quiet');
+const OPT = {};
+for (let i = 0; i < args.length; i++) {
+  const eq = args[i].startsWith('--') ? args[i].indexOf('=') : -1;
+  const k = eq > 0 ? args[i].slice(0, eq) : args[i];
+  if (k === '--help' || k === '-h') { console.log(USO); process.exit(0); }
+  else if (k === '--quiet') OPT.quiet = true;
+  else if (k === '--root' || k === '--out') {
+    const v = eq > 0 ? args[i].slice(eq + 1) : args[++i];
+    if (!v || (eq < 0 && v.startsWith('--'))) fatal(2, `${k} exige um valor.\n${USO}`);
+    OPT[k.slice(2)] = v;
+  } else fatal(2, `argumento desconhecido: ${args[i]}\n${USO}`);
+}
+const ROOT = path.resolve(OPT.root || process.env.AI_CONTEXT_ROOT || process.cwd());
+if (!fs.existsSync(ROOT) || !fs.statSync(ROOT).isDirectory()) fatal(2, `a raiz ${ROOT} não existe ou não é um diretório.`);
+const QUIET = !!OPT.quiet;
 const log = (...m) => { if (!QUIET) console.log('[contexto-ia]', ...m); };
 const ERROS = [];
-const secao = (nome, fn, fallback) => { try { return fn(); } catch (e) { ERROS.push({ secao: nome, erro: String((e && e.stack) || e).split('\n').slice(0, 3).join(' | ') }); log(`ERRO na seção ${nome}: ${e && e.message}`); return fallback; } };
+const secao = (nome, fn, fallback) => { try { return fn(); } catch (e) { ERROS.push({ secao: nome, erro: String((e && e.stack) || e).split('\n').slice(0, 3).join(' | ') }); console.error(`[contexto-ia] ERRO na seção ${nome}: ${e && e.message}`); return fallback; } };
 
 // ---------- util ----------
 const rel = (p) => path.relative(ROOT, p).split(path.sep).join('/');
 const abs = (p) => path.join(ROOT, p);
 const CFG = (() => { try { return JSON.parse(fs.readFileSync(abs('ai-context.config.json'), 'utf8')); } catch { return {}; } })();
-const OUT = path.resolve(ROOT, argOf('--out', process.env.AI_CONTEXT_DIR || CFG.out || 'inventario/ia'));
+const OUT = path.resolve(ROOT, OPT.out || process.env.AI_CONTEXT_DIR || CFG.out || 'inventario/ia');
+if (OUT === ROOT || ROOT.startsWith(OUT.endsWith(path.sep) ? OUT : OUT + path.sep)) fatal(2, `a saída (${OUT}) não pode ser a raiz do repositório nem uma pasta acima dela.`);
 const OUT_REL = rel(OUT);
 const MAX_FILE_BYTES = (CFG.maxFileMB || 8) * 1024 * 1024;
 // Rodapé do INDEX.md: onde este contexto é publicado. Genérico por padrão; cada repo descreve o seu
@@ -38,13 +60,21 @@ const MAX_FILE_BYTES = (CFG.maxFileMB || 8) * 1024 * 1024;
 const PUBLICACAO = process.env.AI_CONTEXT_PUBLICACAO || CFG.publicacao || 'Publicado pelo workflow de contexto do repositório (ver .github/workflows).';
 const exists = (p) => fs.existsSync(abs(p));
 const readText = (p) => { try { const a = path.isAbsolute(p) ? p : abs(p); if (fs.statSync(a).size > MAX_FILE_BYTES) return ''; return fs.readFileSync(a, 'utf8'); } catch { return ''; } };
+// Arquivo pode sumir entre o walk e a leitura (outro processo mexendo na árvore): vira "não lido", não derruba o gerador.
+const sizeOf = (p) => { try { return fs.statSync(abs(p)).size; } catch { return Infinity; } };
 const readJson = (p) => { try { return JSON.parse(readText(p).replace(/^﻿/, '')); } catch { return null; } };
+const stripJsonc = (s) => s.replace(/"(?:\\.|[^"\\])*"|\/\/[^\n]*|\/\*[\s\S]*?\*\//g, (m) => (m[0] === '"' ? m : '')).replace(/,(\s*[}\]])/g, '$1');
+// tsconfig/jsconfig aceitam comentários e vírgula sobrando (JSONC); JSON.parse puro descartaria o arquivo inteiro.
+const readJsonc = (p) => readJson(p) ?? (() => { try { return JSON.parse(stripJsonc(readText(p).replace(/^\uFEFF/, ''))); } catch { return null; } })();
 const uniq = (a) => [...new Set(a)].sort();
+// Ordenação com locale fixo: localeCompare segue LANG/LC_ALL do ambiente e mudaria a saída de máquina para máquina.
+const cmp = new Intl.Collator('en').compare;
+const escRe = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const sortObj = (o) => Object.fromEntries(Object.entries(o).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
 const sha = (s) => crypto.createHash('sha256').update(s).digest('hex').slice(0, 16);
 const countLines = (s) => (s ? s.split('\n').length : 0);
 const git = (...args) => { try { return execFileSync('git', args, { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 64 * 1024 * 1024 }).trim(); } catch { return ''; } };
-const stripComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:\\'"`])\/\/[^\n]*/g, '$1');
+const stripComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, '')).replace(/(^|[^:\\'"`])\/\/[^\n]*/g, '$1');
 const cap = (arr, n = 200) => arr.slice(0, n);
 const allMatches = (re, s, g = 1) => { const out = []; re.lastIndex = 0; let m; while ((m = re.exec(s))) out.push(m[g]); return out; };
 const byCount = (arr) => Object.entries(arr.reduce((a, k) => { a[k] = (a[k] || 0) + 1; return a; }, {})).sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1));
@@ -69,6 +99,14 @@ const ALL = [];
 })(ROOT);
 ALL.sort();
 const FILESET = new Set(ALL);
+// O projeto Supabase pode viver em subpasta (<app>/supabase): migrations, config.toml, functions e testes pgTAP seguem essa raiz.
+// Uma pasta supabase/ na raiz só com .temp do CLI (ignorada pelo walk) não conta.
+const SUPA_DIR = ALL.some((f) => f.startsWith('supabase/')) ? 'supabase' : ALL.map((f) => (/^((?:[^/]+\/){1,2}supabase)\/(?:config\.toml|migrations\/[^/]+\.sql)$/.exec(f) || [])[1]).find(Boolean) || 'supabase';
+const isCurrentSql = (f) => f.endsWith('.sql') && !/(^|\/)(_foreign|_superseded)\//.test(f);
+const migDir = [`${SUPA_DIR}/migrations`, 'migrations', 'db/migrations', 'database/migrations', 'prisma/migrations', 'drizzle', 'sql', 'db'].find((d) => exists(d) && ALL.some((f) => f.startsWith(d + '/') && isCurrentSql(f)));
+// Funções SQL expostas (schema public): literal com um desses nomes em arquivo que fala com RPC conta como chamada,
+// porque helpers do tipo rpc(nome) / `/rest/v1/rpc/${nome}` escondem o nome do `.rpc('...')`.
+const SQL_FUNCS = new Set(ALL.filter((f) => isCurrentSql(f) && (migDir ? f.startsWith(migDir + '/') : !/supabase\/tests|\/tests?\//.test(f))).flatMap((f) => allMatches(/create\s+(?:or\s+replace\s+)?function\s+(?:public\.)?"?(\w+)"?\s*\(/gi, readText(f))));
 log(`arquivos no repo: ${ALL.length}`);
 
 // ---------- linguagens / stack ----------
@@ -87,15 +125,21 @@ const workspaces = (() => {
   const w = Array.isArray(pkg.workspaces) ? pkg.workspaces : (pkg.workspaces && pkg.workspaces.packages) || []; const dirs = [];
   for (const g of w) { const base = g.replace(/\/?\*+.*$/, ''); if (!exists(base)) continue; for (const d of fs.readdirSync(abs(base))) { const pj = `${base}/${d}/package.json`; if (FILESET.has(pj)) { const p = readJson(pj) || {}; dirs.push({ pasta: `${base}/${d}`, nome: p.name || null, scripts: Object.keys(p.scripts || {}) }); } } }
   for (const pj of ALL.filter((f) => /^(apps|packages|services|libs)\/[^/]+\/package\.json$/.test(f))) if (!dirs.some((d) => `${d.pasta}/package.json` === pj)) { const p = readJson(pj) || {}; dirs.push({ pasta: dirOf(pj), nome: p.name || null, scripts: Object.keys(p.scripts || {}) }); }
-  return dirs.sort((a, b) => a.pasta.localeCompare(b.pasta));
+  return dirs.sort((a, b) => cmp(a.pasta, b.pasta));
 })();
 const SRC_DIRS = CFG.srcDirs || uniq([...['src', 'app', 'lib', 'server', 'client', 'backend', 'frontend'].filter((d) => exists(d)), ...workspaces.flatMap((w) => [`${w.pasta}/src`, `${w.pasta}/app`].filter((d) => exists(d)))]);
 const isSrc = (f) => SRC_DIRS.some((d) => f.startsWith(d + '/')) && !/^(supabase|netlify)\/functions\//.test(f);
+// Exemplos, testes e ferramentas continuam no inventário, mas não provam uso pela aplicação.
+// srcDirs explícito permite tratar uma raiz de ferramentas como código de aplicação.
+const TOOLING_ROOT = /^(?:(?:apps|packages|services|libs)\/[^/]+\/)?(?:scripts|bin|tools|\.github|docs|inventario|analise|examples?|samples?)\//;
+// Arquivo de configuração de ferramenta (eslint/vite/playwright.config.*) também não é aplicação.
+const isTooling = (f) => (TOOLING_ROOT.test(f) || /(^|\/)[\w.-]+\.config\.[cm]?[jt]s$/.test(f)) && !isSrc(f);
+const vercelJson = readJson('vercel.json');
 const stack = {
   linguagens: langCounts.slice(0, 8).map(([l, n]) => `${l} (${n})`),
   linguagem_principal: (langCounts.find(([l]) => !['Markdown', 'JSON', 'YAML', 'TOML', 'CSS', 'SCSS', 'HTML', 'Shell', 'SQL'].includes(l)) || ['n/d'])[0],
   framework: has('next') ? 'Next.js' : has('nuxt') ? 'Nuxt' : has('@sveltejs/kit') ? 'SvelteKit' : has('@remix-run/react') ? 'Remix' : has('astro') ? 'Astro' : has('@angular/core') ? 'Angular' : has('react') ? 'React' : has('vue') ? 'Vue' : has('svelte') ? 'Svelte' : hasPy('fastapi') ? 'FastAPI' : hasPy('django') ? 'Django' : hasPy('flask') ? 'Flask' : 'não detectado',
-  backend_http: [has('express') && 'express', has('hono') && 'hono', has('fastify') && 'fastify', has('koa') && 'koa', has('@nestjs/core') && 'nestjs', hasPy('fastapi') && 'fastapi', hasPy('flask') && 'flask', hasPy('django') && 'django'].filter(Boolean),
+  backend_http: [has('express') && 'express', has('hono') && 'hono', has('fastify') && 'fastify', has('koa') && 'koa', has('@nestjs/core') && 'nestjs', hasPy('fastapi') && 'fastapi', hasPy('flask') && 'flask', hasPy('django') && 'django', exists('vercel.json') && ALL.some((f) => /^api\/[^_./][^/]*\.(ts|js|py|go)$/.test(f)) && 'vercel-functions'].filter(Boolean),
   bundler: has('vite') ? 'Vite' : has('next') ? 'Next' : has('webpack') ? 'webpack' : has('esbuild') ? 'esbuild' : 'não detectado',
   roteador: has('react-router-dom') || has('react-router') ? 'react-router' : has('vue-router') ? 'vue-router' : has('@tanstack/react-router') ? 'tanstack-router' : has('next') || has('nuxt') || has('@sveltejs/kit') || has('@remix-run/react') || has('astro') ? 'file-system' : 'não detectado',
   banco: exists('supabase') || has('@supabase/supabase-js') || hasPy('supabase') ? 'Supabase' : exists('prisma') || has('@prisma/client') ? 'Prisma' : has('drizzle-orm') ? 'Drizzle' : has('typeorm') ? 'TypeORM' : has('mongoose') ? 'Mongoose' : hasPy('sqlalchemy') ? 'SQLAlchemy' : hasPy('django') ? 'Django ORM' : 'não detectado',
@@ -113,15 +157,17 @@ const stack = {
 // ---------- aliases (tsconfig raiz + por pacote + ~ + baseUrl) ----------
 const aliasesByBase = {};
 for (const tc of ALL.filter((f) => /(^|\/)(tsconfig[\w.-]*|jsconfig)\.json$/.test(f))) {
-  const j = readJson(tc) || {}; const co = j.compilerOptions || {}; const base = dirOf(tc) === '.' ? '' : dirOf(tc) + '/';
+  const j = readJsonc(tc) || {}; const co = j.compilerOptions || {}; const base = dirOf(tc) === '.' ? '' : dirOf(tc) + '/';
   const bu = co.baseUrl ? path.posix.normalize(base + co.baseUrl).replace(/^\.\/?/, '').replace(/^\.$/, '') : null;
   const map = aliasesByBase[base] || (aliasesByBase[base] = {});
   for (const [k, v] of Object.entries(co.paths || {})) { const t = String((v || [])[0] || '').replace(/^\.\//, '').replace(/\*$/, ''); map[k.replace(/\*$/, '')] = path.posix.normalize((bu ? bu + '/' : base) + t).replace(/^\.\//, '').replace(/^\.$/, ''); }
   if (bu) map.__baseUrl__ = bu;
 }
 for (const [a, t] of Object.entries(CFG.aliases || {})) (aliasesByBase[''] = aliasesByBase[''] || {})[a] = t;
-if (!Object.keys(aliasesByBase[''] || {}).filter((k) => k !== '__baseUrl__').length && exists('src')) (aliasesByBase[''] = aliasesByBase[''] || {})['@/'] = 'src/';
-if (exists('src') && !(aliasesByBase[''] || {})['~/']) (aliasesByBase[''] = aliasesByBase[''] || {})['~/'] = has('nuxt') ? '' : 'src/';
+// Fallback só para resolver imports quando o repo não declara alias; não entra em convencoes.json → alias_imports.
+const ALIAS_FALLBACK = new Set();
+if (!Object.keys(aliasesByBase[''] || {}).filter((k) => k !== '__baseUrl__').length && exists('src')) { (aliasesByBase[''] = aliasesByBase[''] || {})['@/'] = 'src/'; ALIAS_FALLBACK.add('@/'); }
+if (exists('src') && !(aliasesByBase[''] || {})['~/']) { (aliasesByBase[''] = aliasesByBase[''] || {})['~/'] = has('nuxt') ? '' : 'src/'; ALIAS_FALLBACK.add('~/'); }
 const aliasesFor = (f) => Object.keys(aliasesByBase).filter((b) => f.startsWith(b)).sort((a, b) => b.length - a.length).map((b) => aliasesByBase[b]);
 const isAliasSpec = (f, spec) => aliasesFor(f).some((m) => Object.keys(m).some((a) => a !== '__baseUrl__' && spec.startsWith(a)));
 const RESOLVE_EXT = [...CODE_EXT, '.d.ts', '.json'];
@@ -153,7 +199,8 @@ const RE = {
   req: /require\(\s*['"]([^'"]+)['"]\s*\)/g,
   hook: /\b(use[A-Z]\w*)\s*\(/g,
   from: /\.from\(\s*['"`]([\w.]+)['"`]/g,
-  rpc: /\.rpc\(\s*['"`](\w+)['"`]/g,
+  rpc: /(?:\.|\b)rpc\s*(?:<[^()]*?>)?\s*\(\s*(?:[\w.]+\s*,\s*){0,3}['"`](\w+)['"`]/g,
+  rpcUrl: /\/rest\/v1\/rpc\/(\w+)/g,
   invoke: /functions\.invoke\(\s*['"`]([\w-]+)['"`]/g,
   fnUrl: /\/functions\/v1\/([\w-]+)/g,
   envVite: /import\.meta\.env\.(\w+)/g,
@@ -166,7 +213,7 @@ const RE = {
   channel: /\.channel\(\s*['"`]([^'"`]+)['"`]/g,
   urlHost: /https?:\/\/([a-z0-9.-]+\.[a-z]{2,})(?=[/'"`\s)?]|$)/gi,
   flag: /(?:isFeatureEnabled|useFeatureFlag|useFlag|useFeature|getFlag|featureFlag|isEnabled)\(\s*['"`]([\w.:-]+)['"`]/g,
-  flagEnv: /\b(?:VITE_|NEXT_PUBLIC_|REACT_APP_|PUBLIC_)?(FEATURE_[A-Z0-9_]+|FF_[A-Z0-9_]+|ENABLE_[A-Z0-9_]+)\b/g,
+  flagEnv: /\b(?:VITE_|NEXT_PUBLIC_|REACT_APP_|PUBLIC_)?(FEATURE_[A-Z0-9_]+|FF_[A-Z0-9_]+|ENABLE_[A-Z0-9_]+|[A-Z][A-Z0-9_]*_ENABLED)\b/g,
   role: /\b(?:role|roles|papel|userRole|requiredRole|allowedRoles|hasRole|requireRole)\b\s*(?:[:=!]=?=?|\(|\.includes\(|:\s*\[)\s*\[?\s*['"`](\w+)['"`]/g,
   zod: /\b(?:z|zod)\.object\(/g,
   prisma: /\bprisma\.(\w+)\.(?:findMany|findFirst|findUnique|create|update|delete|upsert|count|aggregate)/g,
@@ -175,6 +222,8 @@ const RE = {
   nestRoute: /@(Get|Post|Put|Patch|Delete|All)\(\s*(?:['"`]([^'"`]*)['"`])?\s*\)/g,
   nestCtrl: /@Controller\(\s*(?:['"`]([^'"`]*)['"`])?\s*\)/,
 };
+// role="status" / role: 'dialog' são papéis WAI-ARIA de acessibilidade, não papéis de permissão.
+const ARIA_ROLES = new Set('alert alertdialog application article banner button cell checkbox columnheader combobox complementary contentinfo definition dialog directory document feed figure form grid gridcell group heading img link list listbox listitem log main marquee math menu menubar menuitem menuitemcheckbox menuitemradio meter navigation none note option presentation progressbar radio radiogroup region row rowgroup rowheader scrollbar search searchbox separator slider spinbutton status switch tab table tablist tabpanel term textbox timer toolbar tooltip tree treegrid treeitem'.split(' '));
 const envNames = (s) => uniq([...allMatches(RE.envVite, s), ...allMatches(RE.envNode, s), ...allMatches(RE.envDeno, s)]);
 for (const f of CODE_FILES) secao(`arquivo:${f}`, () => {
   const raw = readText(f);
@@ -194,10 +243,10 @@ for (const f of CODE_FILES) secao(`arquivo:${f}`, () => {
   for (const m of src.matchAll(RE.nestRoute)) rotasHttp.push({ metodo: m[1].toUpperCase(), caminho: '/' + [ctrl, m[2]].filter(Boolean).join('/').replace(/\/+/g, '/').replace(/^\//, '') });
   FILE.set(f, {
     linhas: countLines(raw), bytes: Buffer.byteLength(raw), imports: local, externos: external, exports: exportsNamed, export_default: expDef[0] || (/export\s+default\b/.test(src) ? '(anônimo)' : null),
-    hooks: uniq(allMatches(RE.hook, src)), tabelas: uniq([...allMatches(RE.from, src), ...allMatches(RE.prisma, src)]), rpcs: uniq(allMatches(RE.rpc, src)),
+    hooks: uniq(allMatches(RE.hook, src)), tabelas: uniq([...allMatches(RE.from, src), ...allMatches(RE.prisma, src)]), rpcs: uniq([...allMatches(RE.rpc, src), ...allMatches(RE.rpcUrl, src), ...(SQL_FUNCS.size && /rpc/i.test(src) ? allMatches(/['"`](\w+)['"`]/g, src).filter((x) => SQL_FUNCS.has(x)) : [])]),
     edges: uniq([...allMatches(RE.invoke, src), ...allMatches(RE.fnUrl, src)]), env: envNames(src), buckets: uniq(allMatches(RE.storage, src)), canais_realtime: uniq(allMatches(RE.channel, src)),
     hosts_externos: uniq(allMatches(RE.urlHost, src).map((h) => h.toLowerCase())).filter((h) => !/localhost|example\.(com|org)|w3\.org|schema\.org|github\.com|npmjs\.com|deno\.land|esm\.sh|jsdelivr|unpkg/.test(h)),
-    flags: uniq([...allMatches(RE.flag, src), ...allMatches(RE.flagEnv, src)]), papeis: uniq(allMatches(RE.role, src)), zod: (src.match(RE.zod) || []).length,
+    flags: uniq([...allMatches(RE.flag, src), ...allMatches(RE.flagEnv, src)]), papeis: uniq([...src.matchAll(RE.role)].filter((m) => !(ARIA_ROLES.has(m[1]) && /^role\s*[:=](?!=)/.test(m[0]))).map((m) => m[1])), zod: (src.match(RE.zod) || []).length,
     rotas_http: rotasHttp, drizzle: uniq(allMatches(RE.drizzleTable, src)),
     todos, teste: isTest, story: isStory,
     componente: temJsx && !isTest && !isStory && (exportsNamed.some((e) => /^[A-Z]/.test(e)) || /\.(vue|svelte|astro)$/.test(f)),
@@ -262,13 +311,13 @@ const localHooks = (hooks) => hooks.filter((h) => HOOK_FILES_BY_NAME.has(h));
 const hooksOut = secao('hooks', () => {
   const out = [];
   for (const [f, d] of FILE) {
-    if (d.teste) continue;
+    if (d.teste || isTooling(f)) continue;
     const names = d.exports.filter((e) => /^use[A-Z]/.test(e));
     if (!names.length && !d.hook_arquivo) continue;
     for (const n of names) if (!HOOK_FILES_BY_NAME.has(n)) HOOK_FILES_BY_NAME.set(n, f);
     out.push({ arquivo: f, hooks_exportados: names, linhas: d.linhas, dominio: dominioDe(f), tabelas: d.tabelas, rpcs: d.rpcs, edges: d.edges, hooks_internos: d.hooks.filter((h) => !names.includes(h)), canais_realtime: d.canais_realtime, usado_por: usedBy(f).length, usado_por_arquivos: cap(usedBy(f), 30), coberto_por_testes: 0 });
   }
-  return out.sort((a, b) => a.arquivo.localeCompare(b.arquivo));
+  return out.sort((a, b) => cmp(a.arquivo, b.arquivo));
 }, []);
 
 // ---------- rotas / telas ----------
@@ -318,7 +367,7 @@ secao('rotas-jsx', () => {
       if (!comp) { const inner = tags[tags.length - 1]; if (inner && !/^(Navigate|Redirect)$/.test(inner)) { comp = inner; file = componentFile(inner, rf); } }
       const redir = /<(?:Navigate|Redirect)\b[^>]*\bto=["']([^"']+)["']/.exec(attrs);
       const paiProtegido = parent ? !!rotas.find((r) => r.caminho === parent && r.definida_em === rf && r.protegida) : false;
-      if (p || isIndex) rotas.push(mk({ caminho: full, componente: comp, arquivo: file, protegida: tags.some((w) => /Protected|Private|Auth|Guard|Require|Admin/i.test(w)) || paiProtegido, wrappers: tags.filter((t) => t !== comp), pai: parent, indice: isIndex, definida_em: rf, lazy: comp ? lazyMap.has(comp) : false, tipo: redir && !comp ? 'redirect' : 'tela', redireciona: redir ? redir[1] : null }));
+      if (p || isIndex) rotas.push(mk({ caminho: full, componente: comp, arquivo: file, protegida: tags.some((w) => w !== comp && /Protected|Private|Auth|Guard|Require|Admin/i.test(w)) || paiProtegido, wrappers: tags.filter((t) => t !== comp), pai: parent, indice: isIndex, definida_em: rf, lazy: comp ? lazyMap.has(comp) : false, tipo: redir && !comp ? 'redirect' : 'tela', redireciona: redir ? redir[1] : null }));
       if (!self) stack.push(full);
     }
     const scanObjs = (text, parent, depth) => {
@@ -345,13 +394,12 @@ secao('rotas-fs', () => {
     else if ((m = /^(?:src\/)?server\/api\/(.+)\.(ts|js)$/.exec(f)) && has('nuxt')) rotas.push(mk({ caminho: '/api/' + dyn(m[1].replace(/\.(get|post|put|delete|patch)$/, '').replace(/(^|\/)index$/, '')), componente: baseOf(f), arquivo: f, definida_em: 'nuxt', tipo: 'api' }));
     else if ((m = /^app\/routes\/(.+)\.(tsx|jsx|ts|js)$/.exec(f)) && has('@remix-run/react')) rotas.push(mk({ caminho: '/' + m[1].replace(/\./g, '/').replace(/(^|\/)_index$/, '').replace(/\$(\w+)/g, ':$1'), componente: baseOf(f), arquivo: f, definida_em: 'remix' }));
     else if ((m = /^src\/pages\/(.+)\.(astro|md|mdx)$/.exec(f)) && has('astro')) rotas.push(mk({ caminho: '/' + dyn(m[1].replace(/(^|\/)index$/, '')), componente: baseOf(f), arquivo: f, definida_em: 'astro' }));
-    else if ((m = /^api\/(.+)\.(ts|js|py|go)$/.exec(f)) && exists('vercel.json')) rotas.push(mk({ caminho: '/api/' + dyn(m[1].replace(/(^|\/)index$/, '')), componente: baseOf(f), arquivo: f, definida_em: 'vercel/api', tipo: 'api' }));
+    else if ((m = /^api\/(.+)\.(ts|js|py|go)$/.exec(f)) && exists('vercel.json') && !/(^|\/)[_.]/.test(m[1]) && !TEST_RE.test(f) && !f.endsWith('.d.ts')) rotas.push(mk({ caminho: '/api/' + dyn(m[1].replace(/(^|\/)index$/, '')), componente: baseOf(f), arquivo: f, definida_em: 'vercel/api', tipo: 'api' }));
     else if ((m = /^(?:netlify\/)?functions\/([\w-]+)\.(ts|js)$/.exec(f)) && exists('netlify.toml')) rotas.push(mk({ caminho: '/.netlify/functions/' + m[1], componente: m[1], arquivo: f, definida_em: 'netlify', tipo: 'api' }));
   }
 });
 const apiHttp = [];
-for (const [f, d] of [...FILE, ...PY]) for (const r of d.rotas_http || []) apiHttp.push({ ...r, arquivo: f, tabelas: d.tabelas || [], env: d.env || [] });
-apiHttp.sort((a, b) => a.caminho.localeCompare(b.caminho) || a.metodo.localeCompare(b.metodo) || a.arquivo.localeCompare(b.arquivo));
+for (const [f, d] of [...FILE, ...PY]) if (!d.teste && !d.story && !isTooling(f)) for (const r of d.rotas_http || []) apiHttp.push({ ...r, arquivo: f, tabelas: d.tabelas || [], env: d.env || [] });
 const vistas = [];
 secao('vistas', () => {
   for (const [f, d] of FILE) {
@@ -365,15 +413,33 @@ secao('vistas', () => {
     while ((m = re3.exec(src))) { const tags = [...m[2].matchAll(/<(?:[A-Z]\w*\.)?([A-Z]\w*)/g)].map((x) => x[1]).filter((t) => !/Boundary|Provider|Suspense|Fragment/.test(t)); for (const t of tags) { const fl = lazyMap.has(t) ? lazyMap.get(t) : componentFile(t, f, true); if (fl) { vistas.push({ id: m[1], componente: t, arquivo: fl, registrada_em: f }); break; } } }
   }
 });
-const vistasUniq = Object.values(Object.fromEntries(vistas.map((v) => [v.id + '|' + v.componente, v]))).sort((a, b) => a.id.localeCompare(b.id));
+const vistasUniq = Object.values(Object.fromEntries(vistas.map((v) => [v.id + '|' + v.componente, v]))).sort((a, b) => cmp(a.id, b.id));
 const enrich = (r) => {
   if (!r.arquivo || !FILE.has(r.arquivo)) return { ...r, hooks: [], hooks_locais: [], tabelas: [], rpcs: [], edges: [], canais_realtime: [], flags: [], papeis: [], arquivos_puxados: 0 };
   const files = [r.arquivo, ...closure(r.arquivo)]; const a = aggregate(files);
   return { ...r, hooks: a.hooks, hooks_locais: localHooks(a.hooks), tabelas: a.tabelas, rpcs: a.rpcs, edges: a.edges, canais_realtime: a.canais_realtime, flags: a.flags, papeis: a.papeis, arquivos_puxados: files.length - 1 };
 };
 const rotasDedup = Object.values(Object.fromEntries(rotas.map((r) => [`${r.caminho}|${r.componente}|${r.definida_em}`, r])));
-const rotasEnriched = rotasDedup.sort((a, b) => a.caminho.localeCompare(b.caminho) || (a.indice ? 1 : 0) - (b.indice ? 1 : 0) || a.tipo.localeCompare(b.tipo) || a.definida_em.localeCompare(b.definida_em)).map(enrich);
+const rotasEnriched = rotasDedup.sort((a, b) => cmp(a.caminho, b.caminho) || (a.indice ? 1 : 0) - (b.indice ? 1 : 0) || cmp(a.tipo, b.tipo) || cmp(a.definida_em, b.definida_em)).map(enrich);
 const vistasEnriched = vistasUniq.map(enrich);
+// Função serverless por arquivo (Vercel api/): não há app.get(); o método vem do teste de request.method no handler
+// (ou no módulo que ele importa) e tabelas/rpcs/env são do fecho transitivo, porque a entrada costuma só delegar.
+secao('rotas-serverless', () => {
+  const vj = vercelJson || {};
+  const metodosDe = (src) => uniq([...[...src.matchAll(/\breq(?:uest)?\.method\s*[!=]==?\s*['"`]([A-Z]+)['"`]/g)].map((m) => m[1]), ...[...src.matchAll(/\[([^\]]*)\]\s*\.includes\(\s*req(?:uest)?\.method\b/g)].flatMap((m) => m[1].match(/[A-Z]+/g) || [])]);
+  for (const r of rotasEnriched.filter((x) => x.definida_em === 'vercel/api' && FILE.has(x.arquivo))) {
+    const d = FILE.get(r.arquivo); const a = aggregate([r.arquivo, ...closure(r.arquivo)]);
+    let metodos = metodosDe(d.conteudo); if (!metodos.length) metodos = uniq(d.imports.flatMap((i) => metodosDe(FILE.get(i)?.conteudo || '')));
+    const cita = new RegExp(escRe(r.caminho) + '(?![\\w/-])');
+    apiHttp.push({
+      metodo: metodos.join(',') || 'ANY', caminho: r.caminho, arquivo: r.arquivo, tabelas: a.tabelas, env: a.env, rpcs: a.rpcs, diretos: { tabelas: d.tabelas, rpcs: d.rpcs, env: d.env }, origem: 'vercel/api',
+      rewrites_de: (vj.rewrites || []).filter((w) => String(w.destination || '').split('?')[0] === r.caminho).map((w) => w.source),
+      cron: ((vj.crons || []).find((cj) => cj.path === r.caminho) || {}).schedule || null, max_duration: ((vj.functions || {})[r.arquivo] || {}).maxDuration ?? null,
+      chamada_por: [...FILE.entries()].filter(([f, d2]) => f !== r.arquivo && !d2.teste && !d2.story && !isTooling(f) && cita.test(d2.conteudo)).map(([f]) => f),
+    });
+  }
+});
+apiHttp.sort((a, b) => cmp(a.caminho, b.caminho) || cmp(a.metodo, b.metodo) || cmp(a.arquivo, b.arquivo));
 
 // ---------- menu ----------
 const menu = [];
@@ -397,18 +463,18 @@ secao('menu', () => {
     }
   }
 });
-const menuUniq = Object.values(Object.fromEntries(menu.map((v) => [v.destino + '|' + v.rotulo, v]))).sort((a, b) => (a.grupo || '').localeCompare(b.grupo || '') || a.rotulo.localeCompare(b.rotulo));
+const menuUniq = Object.values(Object.fromEntries(menu.map((v) => [v.destino + '|' + v.rotulo, v]))).sort((a, b) => cmp(a.grupo || '', b.grupo || '') || cmp(a.rotulo, b.rotulo));
 const norm = (p) => String(p).replace(/^\//, '').replace(/\/$/, '').split('?')[0];
 const resolveDestino = (dest) => rotasEnriched.find((r) => r.caminho === dest) || vistasEnriched.find((v) => v.id === dest) || rotasEnriched.find((r) => norm(r.caminho) === norm(dest)) || vistasEnriched.find((v) => norm(v.id) === norm(dest)) || null;
 
 // ---------- módulos ----------
 const dominios = new Map();
 for (const f of [...FILE.keys(), ...PY.keys()]) { const dom = dominioDe(f); if (!dom) continue; if (!dominios.has(dom)) dominios.set(dom, []); dominios.get(dom).push(f); }
-const modulos = secao('modulos', () => [...dominios.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([dom, files]) => {
+const modulos = secao('modulos', () => [...dominios.entries()].sort(([a], [b]) => cmp(a, b)).map(([dom, files]) => {
   const prod = files.filter((f) => !anyFile(f).teste);
   const direto = aggregate(prod);
   const a = aggregate(uniq(prod.flatMap((f) => [f, ...closure(f)])));
-  const telas = [...rotasEnriched, ...vistasEnriched].filter((r) => r.arquivo && dominioDe(r.arquivo) === dom);
+  const telas = [...rotasEnriched, ...vistasEnriched].filter((r) => r.arquivo && r.definida_em !== 'vercel/api' && dominioDe(r.arquivo) === dom);
   const itensMenu = menuUniq.filter((mi) => { const t = resolveDestino(mi.destino); return t && telas.includes(t); });
   return {
     modulo: dom, arquivos: prod.length, testes: files.length - prod.length, linhas: prod.reduce((s, f) => s + anyFile(f).linhas, 0),
@@ -429,18 +495,17 @@ const componentes = secao('componentes', () => [...FILE.entries()].filter(([, d]
   arquivo: f, exports: d.exports.filter((e) => /^[A-Z]/.test(e)), export_default: d.export_default, linhas: d.linhas, dominio: dominioDe(f),
   hooks_locais: localHooks(d.hooks), tabelas: d.tabelas, edges: d.edges, usado_por: usedBy(f).length,
   orfao: usedBy(f).length === 0 && !rotasEnriched.some((r) => r.arquivo === f) && !vistasEnriched.some((v) => v.arquivo === f) && !lazyTargets.has(f) && !/^(?:src\/)?(?:app|pages|routes)\//.test(f),
-})).sort((a, b) => a.arquivo.localeCompare(b.arquivo)), []);
+})).sort((a, b) => cmp(a.arquivo, b.arquivo)), []);
 const nomesComp = {};
 for (const co of componentes) for (const e of co.exports) (nomesComp[e] = nomesComp[e] || []).push(co.arquivo);
 const componentesDuplicados = sortObj(Object.fromEntries(Object.entries(nomesComp).filter(([k, v]) => v.length > 1 && !/^(Index|Page|Layout|App|Default|Root|Props)$/.test(k))));
 
 // ---------- banco (SQL em ordem de statement) ----------
-const banco = { tabelas: {}, funcoes: new Set(), triggers: [], views: new Set(), enums: {}, extensoes: new Set(), migrations: 0, fonte: [], cron: [], buckets_sql: new Set(), seeds: [], ddl_dinamico: 0 };
+const banco = { tabelas: {}, funcoes: new Map(), triggers: [], views: new Set(), enums: {}, extensoes: new Set(), migrations: 0, fonte: [], cron: [], buckets_sql: new Set(), seeds: [], ddl_dinamico: 0 };
 let SQL_TEXT_LOWER = '';
-const isCurrentSql = (f) => f.endsWith('.sql') && !/(^|\/)(_foreign|_superseded)\//.test(f);
-const migDir = ['supabase/migrations', 'migrations', 'db/migrations', 'database/migrations', 'prisma/migrations', 'drizzle', 'sql', 'db'].find((d) => exists(d) && ALL.some((f) => f.startsWith(d + '/') && isCurrentSql(f)));
 const tname = (name) => { const n = name.replace(/"/g, ''); return /^public\./i.test(n) ? n.slice(7) : n; };
 const T = (name) => { const n = tname(name); if (!banco.tabelas[n]) banco.tabelas[n] = { colunas: {}, rls: false, policies: [], indices: [], fks: [], criada_em: null }; return banco.tabelas[n]; };
+const aridade = (st, from) => { const i0 = st.indexOf('(', from); if (i0 < 0) return null; let depth = 0, n = 0, vazio = true; for (let i = i0; i < st.length; i++) { const ch = st[i]; if (ch === '(') depth++; else if (ch === ')') { if (--depth === 0) return vazio ? 0 : n + 1; } else if (ch === ',' && depth === 1) n++; else if (!/\s/.test(ch)) vazio = false; } return null; };
 const splitStatements = (text) => { const out = []; let cur = '', q = null; for (let i = 0; i < text.length; i++) { const ch = text[i]; if (q) { cur += ch; if (ch === q) { if (text[i + 1] === q) { cur += q; i++; } else q = null; } continue; } if (ch === "'" || ch === '"') { q = ch; cur += ch; continue; } if (ch === ';') { out.push(cur); cur = ''; continue; } cur += ch; } out.push(cur); return out; };
 const parseCols = (body, table) => {
   let depth = 0, cur = ''; const parts = [];
@@ -504,18 +569,18 @@ secao('banco-sql', () => {
       if ((m = /^create\s+(unique\s+)?index\s+(?:concurrently\s+)?(?:if\s+not\s+exists\s+)?("?\w+"?)\s+on\s+(?:only\s+)?((?:"?\w+"?\.)?"?\w+"?)\s*(?:using\s+\w+\s*)?\(([^)]+)\)/i.exec(st))) {
         const t = T(m[3]); const nome = m[2].replace(/"/g, ''); t.indices = t.indices.filter((i) => i.nome !== nome); t.indices.push({ nome, colunas: m[4].replace(/\s+/g, ' ').trim(), unico: !!m[1] }); continue;
       }
-      if ((m = /^drop\s+index\s+(?:concurrently\s+)?(?:if\s+exists\s+)?(?:public\.)?"?(\w+)"?/i.exec(st))) { for (const t of Object.values(banco.tabelas)) t.indices = t.indices.filter((i) => i.nome !== m[1]); continue; }
-      if ((m = /^create\s+(?:or\s+replace\s+)?(?:function|procedure)\s+(?:public\.)?"?(\w+)"?/i.exec(st))) { banco.funcoes.add(m[1]); continue; }
-      if ((m = /^drop\s+(?:function|procedure)\s+(?:if\s+exists\s+)?(?:public\.)?"?(\w+)"?/i.exec(st))) { banco.funcoes.delete(m[1]); continue; }
-      if ((m = /^create\s+(?:or\s+replace\s+)?trigger\s+"?(\w+)"?\s+(before|after|instead\s+of)\s+([\w\s]+?)\s+on\s+((?:"?\w+"?\.)?"?\w+"?)[\s\S]*?execute\s+(?:function|procedure)\s+(?:public\.)?"?(\w+)"?/i.exec(st))) {
+      if ((m = /^drop\s+index\s+(?:concurrently\s+)?(?:if\s+exists\s+)?(?:"?\w+"?\.)?"?(\w+)"?/i.exec(st))) { for (const t of Object.values(banco.tabelas)) t.indices = t.indices.filter((i) => i.nome !== m[1]); continue; }
+      if ((m = /^create\s+(?:or\s+replace\s+)?(?:function|procedure)\s+((?:"?\w+"?\.)?"?\w+"?)/i.exec(st))) { const fn = tname(m[1]); if (!banco.funcoes.has(fn)) banco.funcoes.set(fn, new Set()); banco.funcoes.get(fn).add(aridade(st, m[0].length)); continue; }
+      if ((m = /^drop\s+(?:function|procedure)\s+(?:if\s+exists\s+)?((?:"?\w+"?\.)?"?\w+"?)/i.exec(st))) { const fn = tname(m[1]); const ar = aridade(st, m[0].length); const sobrecargas = banco.funcoes.get(fn); if (sobrecargas && ar !== null && sobrecargas.has(ar) && sobrecargas.size > 1) sobrecargas.delete(ar); else banco.funcoes.delete(fn); continue; }
+      if ((m = /^create\s+(?:or\s+replace\s+)?trigger\s+"?(\w+)"?\s+(before|after|instead\s+of)\s+([\w\s]+?)\s+on\s+((?:"?\w+"?\.)?"?\w+"?)[\s\S]*?execute\s+(?:function|procedure)\s+((?:"?\w+"?\.)?"?\w+"?)/i.exec(st))) {
         const tb = tname(m[4]); banco.triggers = banco.triggers.filter((t) => !(t.nome === m[1] && t.tabela === tb));
-        banco.triggers.push({ nome: m[1], quando: m[2].toLowerCase(), evento: m[3].replace(/\s+/g, ' ').toLowerCase(), tabela: tb, funcao: m[5] }); continue;
+        banco.triggers.push({ nome: m[1], quando: m[2].toLowerCase(), evento: m[3].replace(/\s+/g, ' ').toLowerCase(), tabela: tb, funcao: tname(m[5]) }); continue;
       }
       if ((m = /^drop\s+trigger\s+(?:if\s+exists\s+)?"?(\w+)"?\s+on\s+((?:"?\w+"?\.)?"?\w+"?)/i.exec(st))) { const tb = tname(m[2]); banco.triggers = banco.triggers.filter((t) => !(t.nome === m[1] && t.tabela === tb)); continue; }
-      if ((m = /^create\s+(?:or\s+replace\s+)?(?:materialized\s+)?view\s+(?:public\.)?"?(\w+)"?/i.exec(st))) { banco.views.add(m[1]); continue; }
-      if ((m = /^drop\s+(?:materialized\s+)?view\s+(?:if\s+exists\s+)?(?:public\.)?"?(\w+)"?/i.exec(st))) { banco.views.delete(m[1]); continue; }
-      if ((m = /^create\s+type\s+(?:public\.)?"?(\w+)"?\s+as\s+enum\s*\(([^)]*)\)/i.exec(st))) { banco.enums[m[1]] = m[2].split(',').map((v) => v.trim().replace(/'/g, '')).filter(Boolean); continue; }
-      if ((m = /^alter\s+type\s+(?:public\.)?"?(\w+)"?\s+add\s+value\s+(?:if\s+not\s+exists\s+)?'([^']+)'/i.exec(st))) { (banco.enums[m[1]] = banco.enums[m[1]] || []).push(m[2]); continue; }
+      if ((m = /^create\s+(?:or\s+replace\s+)?(?:materialized\s+)?view\s+((?:"?\w+"?\.)?"?\w+"?)/i.exec(st))) { banco.views.add(tname(m[1])); continue; }
+      if ((m = /^drop\s+(?:materialized\s+)?view\s+(?:if\s+exists\s+)?((?:"?\w+"?\.)?"?\w+"?)/i.exec(st))) { banco.views.delete(tname(m[1])); continue; }
+      if ((m = /^create\s+type\s+((?:"?\w+"?\.)?"?\w+"?)\s+as\s+enum\s*\(([^)]*)\)/i.exec(st))) { banco.enums[tname(m[1])] = m[2].split(',').map((v) => v.trim().replace(/'/g, '')).filter(Boolean); continue; }
+      if ((m = /^alter\s+type\s+((?:"?\w+"?\.)?"?\w+"?)\s+add\s+value\s+(?:if\s+not\s+exists\s+)?'([^']+)'/i.exec(st))) { (banco.enums[tname(m[1])] = banco.enums[tname(m[1])] || []).push(m[2]); continue; }
       if ((m = /^create\s+extension\s+(?:if\s+not\s+exists\s+)?"?([\w-]+)"?/i.exec(st))) { banco.extensoes.add(m[1]); continue; }
       if ((m = /^insert\s+into\s+storage\.buckets\s*\(([^)]*)\)\s*values\s*\(\s*'([^']+)'/i.exec(st))) { banco.buckets_sql.add(m[2]); continue; }
       if ((m = /cron\.schedule\s*\(\s*'([^']+)'\s*,\s*'([^']+)'/i.exec(st))) { const ex = banco.cron.findIndex((cj) => cj.nome === m[1]); const job = { nome: m[1], agenda: m[2], migration: path.posix.basename(f) }; if (ex >= 0) banco.cron[ex] = job; else banco.cron.push(job); continue; }
@@ -533,8 +598,9 @@ secao('banco-orm', () => {
     while ((m = re.exec(s))) { const t = T(m[1]); t.criada_em = path.posix.basename(f); for (const l of m[2].split('\n')) { const cm = /^\s*(\w+)\s+([\w[\]?]+)(.*)$/.exec(l); if (cm && !cm[1].startsWith('@')) { const ref = /@relation/.test(cm[3]) ? cm[2].replace(/[[\]?]/g, '') : null; t.colunas[cm[1]] = { tipo: cm[2].toLowerCase(), nn: !cm[2].endsWith('?'), pk: /@id/.test(cm[3]), default: (/@default\(([^)]*)\)/.exec(cm[3]) || [])[1] || null, ref }; if (ref) t.fks.push({ coluna: cm[1], ref }); } } }
     const re2 = /enum\s+(\w+)\s*\{([^}]*)\}/g; while ((m = re2.exec(s))) banco.enums[m[1]] = m[2].split(/\s+/).map((x) => x.trim()).filter((x) => /^\w+$/.test(x) && !/^@/.test(x));
   }
-  for (const [f, d] of FILE) for (const t of d.drizzle) { const tb = T(t); tb.criada_em = tb.criada_em || f; if (!banco.fonte.includes('drizzle')) banco.fonte.push('drizzle'); const m = new RegExp(`(?:pgTable|mysqlTable|sqliteTable)\\(\\s*['"]${t}['"]\\s*,\\s*\\{([^}]*)\\}`).exec(d.conteudo); if (m) for (const cm of m[1].matchAll(/(\w+)\s*:\s*(\w+)\(/g)) tb.colunas[cm[1]] = tb.colunas[cm[1]] || { tipo: cm[2], nn: /notNull/.test(m[1]), pk: false, default: null, ref: null }; }
-  for (const [f, d] of FILE) { let m; const re = /@Entity\(\s*(?:['"](\w+)['"])?\s*\)[\s\S]*?class\s+(\w+)/g; while ((m = re.exec(d.conteudo))) { const tb = T(m[1] || m[2]); tb.criada_em = tb.criada_em || f; if (!banco.fonte.includes('typeorm')) banco.fonte.push('typeorm'); for (const cm of d.conteudo.matchAll(/@(?:Primary\w*|Column|CreateDateColumn|UpdateDateColumn)\([^)]*\)\s*\n\s*(\w+)\s*[?!]?:\s*([\w[\]]+)/g)) tb.colunas[cm[1]] = tb.colunas[cm[1]] || { tipo: cm[2].toLowerCase(), nn: true, pk: false, default: null, ref: null }; } }
+  const codigoOrm = [...FILE].filter(([f, d]) => !d.teste && !d.story && !isTooling(f));
+  for (const [f, d] of codigoOrm) for (const t of d.drizzle) { const tb = T(t); tb.criada_em = tb.criada_em || f; if (!banco.fonte.includes('drizzle')) banco.fonte.push('drizzle'); const m = new RegExp(`(?:pgTable|mysqlTable|sqliteTable)\\(\\s*['"]${t}['"]\\s*,\\s*\\{([^}]*)\\}`).exec(d.conteudo); if (m) for (const cm of m[1].matchAll(/(\w+)\s*:\s*(\w+)\(/g)) tb.colunas[cm[1]] = tb.colunas[cm[1]] || { tipo: cm[2], nn: /notNull/.test(m[1]), pk: false, default: null, ref: null }; }
+  for (const [f, d] of codigoOrm) { let m; const re = /@Entity\(\s*(?:['"](\w+)['"])?\s*\)[\s\S]*?class\s+(\w+)/g; while ((m = re.exec(d.conteudo))) { const tb = T(m[1] || m[2]); tb.criada_em = tb.criada_em || f; if (!banco.fonte.includes('typeorm')) banco.fonte.push('typeorm'); for (const cm of d.conteudo.matchAll(/@(?:Primary\w*|Column|CreateDateColumn|UpdateDateColumn)\([^)]*\)\s*\n\s*(\w+)\s*[?!]?:\s*([\w[\]]+)/g)) tb.colunas[cm[1]] = tb.colunas[cm[1]] || { tipo: cm[2].toLowerCase(), nn: true, pk: false, default: null, ref: null }; } }
   for (const [f, d] of PY) for (const cls of d.modelos) { const tb = T(cls); tb.criada_em = tb.criada_em || f; if (!banco.fonte.includes('python-models')) banco.fonte.push('python-models'); }
 });
 const tabelasTypes = {};
@@ -543,36 +609,37 @@ secao('banco-types', () => {
   if (!typesFile) return;
   const src = readText(typesFile); if (!src) { ERROS.push({ secao: 'banco-types', erro: `${typesFile} maior que ${MAX_FILE_BYTES / 1048576} MB; aumente maxFileMB em ai-context.config.json` }); return; }
   banco.fonte.push(typesFile);
-  const ti = src.indexOf('Tables: {', src.indexOf('public: {')); if (ti < 0) return;
-  let i = ti + 'Tables: {'.length, depth = 1, body = '';
-  while (i < src.length && depth > 0) { const ch = src[i++]; if (ch === '{') depth++; if (ch === '}') depth--; if (depth > 0) body += ch; }
-  const re = /(\w+):\s*\{\s*Row:\s*\{/g; let m;
-  while ((m = re.exec(body))) { let j = re.lastIndex, d2 = 1, row = ''; while (j < body.length && d2 > 0) { const ch = body[j++]; if (ch === '{') d2++; if (ch === '}') d2--; if (d2 > 0) row += ch; } const campos = []; let dd = 0, cur = ''; for (const ch of row) { if (ch === '{' || ch === '[' || ch === '(') dd++; if (ch === '}' || ch === ']' || ch === ')') dd--; if ((ch === ';' || ch === '\n') && dd === 0) { campos.push(cur); cur = ''; } else cur += ch; } campos.push(cur); tabelasTypes[m[1]] = Object.fromEntries(campos.map((cmp) => /^\s*(\w+)\??:\s*([\s\S]+?)\s*$/.exec(cmp)).filter(Boolean).map((cm) => [cm[1], cm[2].replace(/\s+/g, ' ')])); }
+  const reSchema = /(\w+):\s*\{\s*Tables:\s*\{/g; let sm;
+  while ((sm = reSchema.exec(src))) {
+    const schema = sm[1] === 'public' ? '' : sm[1] + '.';
+    let i = reSchema.lastIndex, depth = 1, body = '';
+    while (i < src.length && depth > 0) { const ch = src[i++]; if (ch === '{') depth++; if (ch === '}') depth--; if (depth > 0) body += ch; }
+    reSchema.lastIndex = i;
+    const re = /(\w+):\s*\{\s*Row:\s*\{/g; let m;
+    while ((m = re.exec(body))) { let j = re.lastIndex, d2 = 1, row = ''; while (j < body.length && d2 > 0) { const ch = body[j++]; if (ch === '{') d2++; if (ch === '}') d2--; if (d2 > 0) row += ch; } const campos = []; let dd = 0, cur = ''; for (const ch of row) { if (ch === '{' || ch === '[' || ch === '(') dd++; if (ch === '}' || ch === ']' || ch === ')') dd--; if ((ch === ';' || ch === '\n') && dd === 0) { campos.push(cur); cur = ''; } else cur += ch; } campos.push(cur); tabelasTypes[schema + m[1]] = Object.fromEntries(campos.map((cmp) => /^\s*(\w+)\??:\s*([\s\S]+?)\s*$/.exec(cmp)).filter(Boolean).map((cm) => [cm[1], cm[2].replace(/\s+/g, ' ')])); }
+  }
 });
 for (const [t, cols] of Object.entries(tabelasTypes)) T(t).colunas_types = cols;
-const EDGE_DIR = ['supabase/functions', 'functions', 'netlify/functions', 'edge-functions'].find((d) => exists(d)) || 'supabase/functions';
-// Exemplos, testes e ferramentas continuam no inventário, mas não provam uso pela aplicação.
-// srcDirs explícito permite tratar uma raiz de ferramentas como código de aplicação.
-const TOOLING_ROOT = /^(?:(?:apps|packages|services|libs)\/[^/]+\/)?(?:scripts|bin|tools|\.github|docs|inventario|analise|examples?|samples?)\//;
-const appFiles = [...FILE.entries()].filter(([f, d]) => !d.teste && !d.story && (isSrc(f) || !TOOLING_ROOT.test(f)));
+const EDGE_DIR = [`${SUPA_DIR}/functions`, 'functions', 'netlify/functions', 'edge-functions'].find((d) => exists(d)) || `${SUPA_DIR}/functions`;
+const appFiles = [...FILE.entries()].filter(([f, d]) => !d.teste && !d.story && !isTooling(f));
 const tabelasUsadas = new Map();
 for (const [f, d] of appFiles) for (const t of d.tabelas) { if (!tabelasUsadas.has(t)) tabelasUsadas.set(t, { front: [], edges: [] }); (f.startsWith(EDGE_DIR) ? tabelasUsadas.get(t).edges : tabelasUsadas.get(t).front).push(f); }
 const bancoOut = {
-  fonte: uniq(banco.fonte), migrations: banco.migrations, seeds: banco.seeds, avisos: banco.ddl_dinamico ? [`${banco.ddl_dinamico} bloco(s) com DDL dinâmico (EXECUTE format/...) não modelado — policies/colunas criadas dinamicamente podem faltar; confira no banco vivo`] : [], extensoes: [...banco.extensoes].sort(), enums: sortObj(banco.enums), views: [...banco.views].sort(), funcoes: [...banco.funcoes].sort(),
-  triggers: banco.triggers.sort((a, b) => a.tabela.localeCompare(b.tabela) || a.nome.localeCompare(b.nome)),
-  cron_jobs: banco.cron.sort((a, b) => a.nome.localeCompare(b.nome)),
+  fonte: uniq(banco.fonte), migrations: banco.migrations, seeds: banco.seeds, avisos: banco.ddl_dinamico ? [`${banco.ddl_dinamico} bloco(s) com DDL dinâmico (EXECUTE format/...) não modelado — policies/colunas criadas dinamicamente podem faltar; confira no banco vivo`] : [], extensoes: [...banco.extensoes].sort(), enums: sortObj(banco.enums), views: [...banco.views].sort(), funcoes: [...banco.funcoes.keys()].sort(),
+  triggers: banco.triggers.sort((a, b) => cmp(a.tabela, b.tabela) || cmp(a.nome, b.nome)),
+  cron_jobs: banco.cron.sort((a, b) => cmp(a.nome, b.nome)),
   buckets: uniq([...banco.buckets_sql, ...[...FILE.values()].flatMap((d) => d.buckets)]).map((b) => ({ nome: b, criado_em_sql: banco.buckets_sql.has(b), usado_em: [...FILE.values()].filter((d) => d.buckets.includes(b)).length })),
   tabelas: sortObj(Object.fromEntries(Object.entries(banco.tabelas).map(([n, t]) => {
     const uso = tabelasUsadas.get(n) || { front: [], edges: [] };
     const cols = Object.keys(t.colunas); const colsT = t.colunas_types ? Object.keys(t.colunas_types) : null;
-    return [n, { ...t, colunas: sortObj(t.colunas), colunas_types: t.colunas_types ? sortObj(t.colunas_types) : undefined, drift: colsT && cols.length ? { so_na_migration: cols.filter((cc) => !colsT.includes(cc)), so_no_types: colsT.filter((cc) => !cols.includes(cc)) } : undefined, policies: t.policies.sort((a, b) => a.nome.localeCompare(b.nome)), indices: t.indices.sort((a, b) => a.nome.localeCompare(b.nome)), fks: uniq(t.fks.map((x) => `${x.coluna}->${x.ref}`)), usada_no_front: uniq(uso.front).length, usada_em_edges: uniq(uso.edges.map((f) => f.split('/').slice(-2)[0])), triggers: banco.triggers.filter((tr) => tr.tabela === n).map((tr) => tr.nome), sem_rls: !t.rls && !n.includes('.') && !!t.criada_em && /\.sql$/.test(t.criada_em), nao_usada: !uso.front.length && !uso.edges.length }];
+    return [n, { ...t, colunas: sortObj(t.colunas), colunas_types: t.colunas_types ? sortObj(t.colunas_types) : undefined, drift: colsT && cols.length ? { so_na_migration: cols.filter((cc) => !colsT.includes(cc)), so_no_types: colsT.filter((cc) => !cols.includes(cc)) } : undefined, policies: t.policies.sort((a, b) => cmp(a.nome, b.nome)), indices: t.indices.sort((a, b) => cmp(a.nome, b.nome)), fks: uniq(t.fks.map((x) => `${x.coluna}->${x.ref}`)), usada_no_front: uniq(uso.front).length, usada_em_edges: uniq(uso.edges.map((f) => f.split('/').slice(-2)[0])), triggers: banco.triggers.filter((tr) => tr.tabela === n).map((tr) => tr.nome), sem_rls: !t.rls && !n.includes('.') && !!t.criada_em && /\.sql$/.test(t.criada_em), nao_usada: !uso.front.length && !uso.edges.length }];
   }))),
   tabelas_usadas_no_codigo_sem_definicao: uniq([...tabelasUsadas.keys()]).filter((t) => !banco.tabelas[t] && !banco.views.has(t)),
   rpcs_usadas_no_codigo: uniq(appFiles.flatMap(([, d]) => d.rpcs)).map((r) => ({ nome: r, definida: banco.funcoes.has(r), usada_em: appFiles.filter(([, d]) => d.rpcs.includes(r)).length })),
 };
 
 // ---------- edge functions / serverless ----------
-const configToml = readText('supabase/config.toml');
+const configToml = readText(`${SUPA_DIR}/config.toml`);
 const verifyJwt = {}; { const re = /\[functions\.([\w-]+)\]\s*\n(?:[^[]*?)verify_jwt\s*=\s*(true|false)/g; let m; while ((m = re.exec(configToml))) verifyJwt[m[1]] = m[2] === 'true'; }
 const edges = secao('edges', () => {
   const out = [];
@@ -611,37 +678,40 @@ const workflows = secao('workflows', () => ALL.filter((f) => /^\.github\/workflo
   const jobs = [...(y.split(/^jobs:/m)[1] || '').matchAll(/^\s{2}([\w-]+):\s*$/gm)].map((m) => m[1]);
   const branches = uniq([...onBlock.matchAll(/branches:\s*\[([^\]]*)\]/g)].flatMap((m) => m[1].split(',').map((s) => s.trim().replace(/['"]/g, ''))).concat([...onBlock.matchAll(/branches:\s*\n((?:\s+-\s*.+\n)+)/g)].flatMap((m) => (m[1].match(/-\s*(\S+)/g) || []).map((x) => x.replace(/-\s*/, '').replace(/['"]/g, '')))).filter(Boolean));
   return { arquivo: f, nome: name, gatilhos, crons: [...y.matchAll(/cron:\s*['"]([^'"]+)['"]/g)].map((m) => m[1]), branches, jobs, permissoes: (/^permissions:[ \t]*\n((?:[ \t]+[\w-]+:[^\n]*\n)+)/m.exec(y) || [])[1]?.trim().split('\n').map((l) => l.trim()) || [], scripts_usados: uniq([...y.matchAll(/(?:node|bash|sh|npx tsx|bun|python3?|deno run)\s+((?:scripts|\.github|tools|bin)\/[\w./-]+)/g)].map((m) => m[1])), npm_scripts: uniq([...y.matchAll(/(?:npm|bun|pnpm|yarn)\s+(?:run\s+)?([\w:-]+)/g)].map((m) => m[1]).filter((s) => pkg.scripts && pkg.scripts[s])), secrets: uniq([...y.matchAll(/secrets\.(\w+)/g)].map((m) => m[1])), actions: uniq([...y.matchAll(/uses:\s*([\w./-]+)@/g)].map((m) => m[1])) };
-}).sort((a, b) => a.arquivo.localeCompare(b.arquivo)), []);
-const TEXT_CORPUS = ALL.filter((o) => /\.(mjs|cjs|js|ts|tsx|sh|ya?ml|json|md|toml|py)$/.test(o) && !o.startsWith(OUT_REL)).map((o) => [o, FILE.get(o)?.conteudo ?? (fs.statSync(abs(o)).size < 512 * 1024 ? readText(o) : '')]);
+}).sort((a, b) => cmp(a.arquivo, b.arquivo)), []);
+const TEXT_CORPUS = ALL.filter((o) => /\.(mjs|cjs|js|ts|tsx|sh|ya?ml|json|md|toml|py)$/.test(o) && !o.startsWith(OUT_REL)).map((o) => [o, FILE.get(o)?.conteudo ?? (sizeOf(o) < 512 * 1024 ? readText(o) : '')]);
 const scriptsRepo = secao('scripts', () => ALL.filter((f) => /^(scripts|bin|tools|\.github\/scripts)\//.test(f) && /\.(mjs|cjs|js|ts|sh|py|sql|ps1)$/.test(f) && !TEST_RE.test(f)).map((f) => {
   const src = readText(f); const first = src.split('\n').slice(0, 15).map((l) => l.trim()).filter((l) => /^(\/\/|#|\*|\/\*|""")/.test(l) && !/^#!/.test(l) && !/eslint|@ts-|^\*\/|^"""$/.test(l)).map((l) => l.replace(/^(\/\/|#|\*|\/\*|""")\s?/, '')).filter(Boolean);
   const bn = path.posix.basename(f);
-  const usadoPorNpm = Object.entries(pkg.scripts || {}).filter(([, v]) => v.includes(f) || v.includes(bn)).map(([k]) => k);
+  const citaBn = new RegExp(`(^|[\\s/'"=])${escRe(bn)}($|[\\s'"])`);
+  const usadoPorNpm = Object.entries(pkg.scripts || {}).filter(([, v]) => v.includes(f) || citaBn.test(v)).map(([k]) => k);
   const usadoPorWf = workflows.filter((w) => w.scripts_usados.includes(f)).map((w) => path.posix.basename(w.arquivo));
   return { arquivo: f, descricao: first.slice(0, 2).join(' ').slice(0, 200) || null, linhas: countLines(src), env: envNames(src), npm_scripts: usadoPorNpm, workflows: usadoPorWf, orfao: !usadoPorNpm.length && !usadoPorWf.length && !TEXT_CORPUS.some(([o, t]) => o !== f && t.includes(bn)) };
 }), []);
 const envExample = uniq(ALL.filter((f) => /(^|\/)\.env\.(example|sample|template)$/.test(f)).flatMap((f) => [...readText(f).matchAll(/^\s*(?:export\s+)?([A-Z][A-Z0-9_]+)\s*=/gm)].map((m) => m[1])));
+const envCitadas = new Set(ALL.filter((f) => /(^|\/)\.env\.(example|sample|template)$/.test(f)).flatMap((f) => readText(f).match(/\b[A-Z][A-Z0-9_]{2,}\b/g) || []));
+// Definidas pelo runtime/plataforma (Node, Vite, Vercel, Netlify, GitHub Actions): não pertencem ao .env.example.
+const ENV_PLATAFORMA = /^(NODE_ENV|CI|MODE|DEV|PROD|SSR|VERCEL|VERCEL_\w+|NETLIFY|NETLIFY_\w+|GITHUB_\w+|RUNNER_\w+)$/;
 const envUsadas = uniq([...FILE.entries()].filter(([f]) => isSrc(f)).flatMap(([, d]) => d.env));
 const envPython = uniq([...PY.values()].flatMap((d) => d.env));
 const envEdges = uniq([...FILE.entries()].filter(([f]) => f.startsWith(EDGE_DIR)).flatMap(([, d]) => d.env));
-const configs = ALL.filter((cf) => /^(vite|next|nuxt|svelte|astro|vitest|jest|playwright|cypress|eslint|prettier|tailwind|postcss|webpack|tsup|rollup|babel|commitlint|lint-staged|knip|dependency-cruiser)\.config\.[cm]?[jt]s$|^(tsconfig[\w.-]*|jsconfig|biome|deno|components|renovate|\.?release|lerna|nx|turbo|package)\.json$|^(vercel\.json|netlify\.toml|fly\.toml|render\.yaml|wrangler\.toml|serverless\.yml|Dockerfile[\w.-]*|docker-(compose|stack)[\w.-]*\.ya?ml|supabase\/config\.toml|\.nvmrc|\.python-version|pyproject\.toml|setup\.cfg|Makefile|\.husky\/[\w-]+|CODEOWNERS|\.github\/CODEOWNERS|\.github\/dependabot\.ya?ml|\.github\/PULL_REQUEST_TEMPLATE\.md|\.editorconfig|\.prettierrc[\w.]*|\.eslintrc[\w.]*|\.gitlab-ci\.yml|ai-context\.config\.json)$/.test(cf));
+const configs = ALL.filter((cf) => /^(vite|next|nuxt|svelte|astro|vitest|jest|playwright|cypress|eslint|prettier|tailwind|postcss|webpack|tsup|rollup|babel|commitlint|lint-staged|knip|dependency-cruiser)\.config\.[cm]?[jt]s$|^(tsconfig[\w.-]*|jsconfig|biome|deno|components|renovate|\.?release|lerna|nx|turbo|package)\.json$|^(vercel\.json|netlify\.toml|fly\.toml|render\.yaml|wrangler\.toml|serverless\.yml|Dockerfile[\w.-]*|docker-(compose|stack)[\w.-]*\.ya?ml|supabase\/config\.toml|\.nvmrc|\.python-version|pyproject\.toml|setup\.cfg|Makefile|\.husky\/[\w-]+|CODEOWNERS|\.github\/CODEOWNERS|\.github\/dependabot\.ya?ml|\.github\/PULL_REQUEST_TEMPLATE\.md|\.editorconfig|\.prettierrc[\w.]*|\.eslintrc[\w.]*|\.gitlab-ci\.yml|ai-context\.config\.json)$/.test(cf) || cf === `${SUPA_DIR}/config.toml`);
 const docTitle = (f) => { const s = readText(f); return (/^#\s+(.+)$/m.exec(s) || [])[1]?.trim().slice(0, 100) || null; };
 const docsRaiz = ALL.filter((f) => /^[A-Za-z][\w.-]*\.md$/.test(f) || /^docs\/[^/]+\.md$/.test(f) || /^\.github\/[\w-]+\.md$/.test(f)).map((f) => ({ arquivo: f, titulo: docTitle(f), linhas: countLines(readText(f)) }));
 const docsProfundos = byCount(ALL.filter((f) => /^docs\/.+\/.+\.md$/.test(f)).map((f) => f.split('/').slice(0, 2).join('/'))).map(([pasta, n]) => ({ pasta, arquivos_md: n }));
 const dockerfiles = ALL.filter((f) => /(^|\/)Dockerfile[\w.-]*$/.test(f)).map((f) => ({ arquivo: f, base: uniq(allMatches(/^FROM\s+([^\s]+)/gm, readText(f))), portas: uniq(allMatches(/^EXPOSE\s+(\d+)/gm, readText(f))) }));
 const composes = ALL.filter((f) => /docker-(compose|stack)[\w.-]*\.ya?ml$/.test(f)).map((f) => ({ arquivo: f, servicos: [...(readText(f).split(/^services:/m)[1] || '').matchAll(/^\s{2}([\w-]+):\s*$/gm)].map((m) => m[1]) }));
-const vercelJson = readJson('vercel.json');
 const changelogTopo = (() => { const s = readText(ALL.find((f) => /^CHANGELOG\.md$/i.test(f)) || ''); const m = /^##\s+(.+)$/m.exec(s); return m ? m[1].trim() : null; })();
 const integracoes = secao('integracoes', () => {
   const SDK = { stripe: 'Stripe', '@stripe/stripe-js': 'Stripe', twilio: 'Twilio', openai: 'OpenAI', '@anthropic-ai/sdk': 'Anthropic', '@google/generative-ai': 'Gemini', '@elevenlabs/react': 'ElevenLabs', '@sentry/react': 'Sentry', '@sentry/node': 'Sentry', '@sentry/nextjs': 'Sentry', 'posthog-js': 'PostHog', mixpanel: 'Mixpanel', '@segment/analytics-next': 'Segment', resend: 'Resend', nodemailer: 'SMTP', '@sendgrid/mail': 'SendGrid', 'aws-sdk': 'AWS', '@aws-sdk/client-s3': 'AWS S3', firebase: 'Firebase', 'firebase-admin': 'Firebase', '@upstash/redis': 'Upstash', ioredis: 'Redis', redis: 'Redis', 'socket.io': 'Socket.IO', pusher: 'Pusher', 'web-push': 'Web Push', '@vercel/analytics': 'Vercel Analytics', 'next-auth': 'NextAuth', '@clerk/nextjs': 'Clerk', '@auth0/auth0-react': 'Auth0', axios: 'HTTP (axios)', i18next: 'i18next', 'react-i18next': 'i18next', zod: 'zod', '@tanstack/react-query': 'react-query', 'googleapis': 'Google APIs', '@supabase/supabase-js': 'Supabase' };
-  const sdks = Object.keys(deps).filter((d) => SDK[d]).map((d) => ({ pacote: d, servico: SDK[d], versao: deps[d] })).sort((a, b) => a.servico.localeCompare(b.servico) || a.pacote.localeCompare(b.pacote));
-  const hosts = byCount([...FILE.values()].flatMap((d) => d.hosts_externos)).map(([h, n]) => ({ host: h, arquivos: n }));
+  const sdks = Object.keys(deps).filter((d) => SDK[d]).map((d) => ({ pacote: d, servico: SDK[d], versao: deps[d] })).sort((a, b) => cmp(a.servico, b.servico) || cmp(a.pacote, b.pacote));
+  const hosts = byCount(appFiles.flatMap(([, d]) => d.hosts_externos)).map(([h, n]) => ({ host: h, arquivos: n }));
   const envHints = uniq([...envUsadas, ...envEdges, ...envExample]).filter((e) => /(API_KEY|TOKEN|SECRET|WEBHOOK|DSN|SID|CLIENT_ID|SMTP|S3|BUCKET|STRIPE|TWILIO|OPENAI|ELEVEN|SENTRY|EVOLUTION|WHATSAPP|GMAIL|GOOGLE|FIREBASE|REDIS|RESEND)/i.test(e));
-  const webhooks = edges.filter((e) => !e.verify_jwt).map((e) => e.nome).concat(apiHttp.filter((r) => /webhook|callback|hook/i.test(r.caminho)).map((r) => `${r.metodo} ${r.caminho}`));
-  return { sdks, hosts_externos: hosts, env_de_integracao: envHints, webhooks_recebidos: uniq(webhooks), realtime: uniq([...FILE.values()].flatMap((d) => d.canais_realtime)) };
+  const webhooks = edges.filter((e) => !e.verify_jwt).map((e) => e.nome).concat(apiHttp.filter((r) => /webhook|callback|hook/i.test(r.caminho) || ((r.diretos || r).env || []).some((e) => /WEBHOOK_(SECRET|VERIFY)/.test(e))).map((r) => `${r.metodo} ${r.caminho}`));
+  return { sdks, hosts_externos: hosts, env_de_integracao: envHints, webhooks_recebidos: uniq(webhooks), realtime: uniq(appFiles.flatMap(([, d]) => d.canais_realtime)) };
 }, { sdks: [], hosts_externos: [], env_de_integracao: [], webhooks_recebidos: [], realtime: [] });
 const permissoes = secao('permissoes', () => ({
-  papeis_no_codigo: byCount([...FILE.values()].flatMap((d) => d.papeis)).map(([p, n]) => ({ papel: p, ocorrencias: n })),
+  papeis_no_codigo: byCount(appFiles.flatMap(([, d]) => d.papeis)).map(([p, n]) => ({ papel: p, ocorrencias: n })),
   enums_de_papel: Object.entries(banco.enums).filter(([k]) => /role|papel|perfil|permission/i.test(k)).map(([k, v]) => ({ enum: k, valores: v })),
   rpcs_de_autorizacao: bancoOut.rpcs_usadas_no_codigo.filter((r) => /admin|role|permission|can_|has_|is_|auth/i.test(r.nome)).map((r) => r.nome),
   guards: uniq([...FILE.entries()].filter(([, d]) => d.componente && /Protected|Guard|RequireAuth|RequireRole|PrivateRoute|Authorized/.test(d.exports.join(' '))).map(([f]) => f)),
@@ -649,7 +719,7 @@ const permissoes = secao('permissoes', () => ({
   menu_com_papeis: menuUniq.filter((m) => m.papeis.length).map((m) => ({ rotulo: m.rotulo, papeis: m.papeis })),
   tabelas_sem_rls: Object.entries(bancoOut.tabelas).filter(([, t]) => t.sem_rls).map(([n]) => n),
 }), {});
-const flags = secao('flags', () => { const all = byCount([...FILE.values()].flatMap((d) => d.flags)); return { total: all.length, flags: all.map(([f, n]) => ({ flag: f, arquivos: n })), tabelas_de_flag: Object.keys(bancoOut.tabelas).filter((t) => /flag|feature|toggle|setting/i.test(t)) }; }, { total: 0, flags: [], tabelas_de_flag: [] });
+const flags = secao('flags', () => { const all = byCount(appFiles.flatMap(([, d]) => d.flags)); return { total: all.length, flags: all.map(([f, n]) => ({ flag: f, arquivos: n })), tabelas_de_flag: Object.keys(bancoOut.tabelas).filter((t) => /flag|feature|toggle|setting/i.test(t)) }; }, { total: 0, flags: [], tabelas_de_flag: [] });
 const providers = secao('providers', () => { const entry = ALL.find((f) => /^(?:src\/)?(main|index)\.[tj]sx$/.test(f)) || ALL.find((f) => /^(?:src\/)?(App|app|root|_app)\.[tj]sx$/.test(f)) || ALL.find((f) => /^(?:src\/)?app\/layout\.tsx$/.test(f)); if (!entry) return { entrada: null, providers: [] }; const files = [entry, ...closure(entry).filter((f) => /App\.[tj]sx$|providers?\//i.test(f)).slice(0, 10)]; return { entrada: entry, providers: uniq(files.flatMap((f) => allMatches(/<([A-Z]\w*(?:Provider|Context|Boundary|Router|Client|Store)\b[\w.]*)/g, FILE.get(f)?.conteudo || ''))) }; }, { entrada: null, providers: [] });
 const i18n = secao('i18n', () => { const arqs = ALL.filter((f) => /(^|\/)(i18n|locales?|lang|translations?)\/.+\.(json|ts|js|yml|yaml)$/.test(f)); const LANG = /^[a-z]{2}(?:[-_][A-Za-z]{2,4})?$/; const idiomas = uniq(arqs.map((f) => { const partes = f.split('/'); const i = partes.findIndex((p0) => /^(i18n|locales?|lang|translations?)$/.test(p0)); const resto = partes.slice(i + 1); const b0 = baseOf(f).split('.')[0]; return resto.slice(0, -1).find((p0) => LANG.test(p0)) || (LANG.test(b0) ? b0 : null); }).filter(Boolean)); return { arquivos: arqs.length, idiomas, lib: [has('i18next') && 'i18next', has('react-intl') && 'react-intl', has('vue-i18n') && 'vue-i18n', has('next-intl') && 'next-intl'].filter(Boolean) }; }, { arquivos: 0, idiomas: [], lib: [] });
 const ferramentas = {
@@ -657,7 +727,7 @@ const ferramentas = {
   python: pyReqs.size ? { dependencias: [...pyReqs].sort().slice(0, 80) } : null,
   configs, workflows, hooks_git: ALL.filter((f) => f.startsWith('.husky/') && !f.includes('/_/')).map((f) => ({ arquivo: f, comandos: readText(f).split('\n').filter((l) => l.trim() && !l.startsWith('#')).slice(0, 5) })),
   docs_raiz: docsRaiz, docs_em_subpastas: docsProfundos, changelog_topo: changelogTopo,
-  env: { declaradas_no_env_example: envExample, usadas_no_front: envUsadas, usadas_nas_edges: envEdges, usadas_no_python: envPython, usadas_mas_nao_declaradas: envUsadas.filter((e) => !envExample.includes(e)), secrets_em_workflows: uniq(workflows.flatMap((w) => w.secrets)) },
+  env: { declaradas_no_env_example: envExample, usadas_no_front: envUsadas, usadas_nas_edges: envEdges, usadas_no_python: envPython, usadas_mas_nao_declaradas: envUsadas.filter((e) => !envExample.includes(e) && !envCitadas.has(e) && !ENV_PLATAFORMA.test(e)), secrets_em_workflows: uniq(workflows.flatMap((w) => w.secrets)) },
   deploy: { alvos: stack.deploy, dockerfiles, compose: composes, vercel: vercelJson ? { framework: vercelJson.framework || null, build: vercelJson.buildCommand || null, rewrites: (vercelJson.rewrites || []).length, redirects: (vercelJson.redirects || []).length, headers: (vercelJson.headers || []).length, ignore_command: vercelJson.ignoreCommand || null, crons: (vercelJson.crons || []).map((cj) => `${cj.schedule} ${cj.path}`) } : null },
   integracoes, permissoes, feature_flags: flags, providers, i18n,
 };
@@ -669,11 +739,11 @@ for (const [, d] of testFiles) for (const i of d.imports) { if (anyFile(i)?.test
 for (const h of hooksOut) h.coberto_por_testes = cobertoPor.get(h.arquivo) || 0;
 const tipoTeste = (f) => (/(^|\/)(e2e|cypress|playwright)\/|\.e2e\./.test(f) ? 'e2e' : /contract/.test(f) ? 'contrato' : /\/qa\//.test(f) ? 'qa' : /\.py$/.test(f) ? 'pytest' : 'unit');
 const testes = secao('testes', () => ({
-  frameworks: stack.testes, total: testFiles.length + ALL.filter((f) => /^supabase\/tests\/.*\.sql$/.test(f)).length,
+  frameworks: stack.testes, total: testFiles.length + ALL.filter((f) => f.startsWith(`${SUPA_DIR}/tests/`) && f.endsWith('.sql')).length,
   por_tipo: sortObj(testFiles.reduce((acc, [f]) => { const t = tipoTeste(f); acc[t] = (acc[t] || 0) + 1; return acc; }, {})),
   onde_ficam: byCount(testFiles.map(([f]) => (/__tests__\//.test(f) ? 'co-localizado (__tests__)' : /\.(test|spec)\./.test(f) && !/^(tests?|e2e|qa)\//.test(f) ? 'co-localizado (*.test)' : /^e2e\//.test(f) ? 'e2e/' : /^tests?\//.test(f) ? 'tests/' : 'outro'))).map(([k, n]) => ({ padrao: k, arquivos: n })),
-  arquivos: testFiles.map(([f, d]) => ({ arquivo: f, tipo: tipoTeste(f), linhas: d.linhas, testa: d.imports.filter((i) => !anyFile(i)?.teste), casos: d.conteudo ? (d.conteudo.match(/\b(?:it|test)(?:\.(?:each|only|skip|concurrent|todo))?\s*\(/g) || []).length : (d.defs || []).filter((x) => /^test_/.test(x)).length })).sort((a, b) => a.arquivo.localeCompare(b.arquivo)),
-  sql: ALL.filter((f) => /^supabase\/tests\/.*\.sql$/.test(f)),
+  arquivos: testFiles.map(([f, d]) => ({ arquivo: f, tipo: tipoTeste(f), linhas: d.linhas, testa: d.imports.filter((i) => !anyFile(i)?.teste), casos: d.conteudo ? (d.conteudo.match(/\b(?:it|test)(?:\.(?:each|only|skip|concurrent|todo))?\s*\(/g) || []).length : (d.defs || []).filter((x) => /^test_/.test(x)).length })).sort((a, b) => cmp(a.arquivo, b.arquivo)),
+  sql: ALL.filter((f) => f.startsWith(`${SUPA_DIR}/tests/`) && f.endsWith('.sql')),
   cobertura_por_arquivo: sortObj(Object.fromEntries(cobertoPor)),
   sem_teste: { telas: uniq(rotasEnriched.filter((r) => r.arquivo && !cobertoPor.has(r.arquivo)).map((r) => r.arquivo)), hooks: hooksOut.filter((h) => !h.coberto_por_testes).map((h) => h.arquivo), edges: edges.filter((e) => !e.testes).map((e) => e.nome), servicos: [] },
 }), { total: 0, por_tipo: {}, onde_ficam: [], arquivos: [], sql: [], cobertura_por_arquivo: {}, sem_teste: { telas: [], hooks: [], edges: [], servicos: [] } });
@@ -684,8 +754,8 @@ const camadaDe = (f) => { const dom = dominioDe(f); if (!dom) return null; const
 const logica = secao('logica', () => [...FILE.entries()].filter(([f, d]) => camadaDe(f) && !d.teste && !d.componente).map(([f, d]) => ({
   arquivo: f, camada: camadaDe(f), exports: d.exports, export_default: d.export_default, linhas: d.linhas, tabelas: d.tabelas, rpcs: d.rpcs, edges: d.edges, env: d.env, externos: d.externos, zod_schemas: d.zod, flags: d.flags, papeis: d.papeis,
   usado_por: usedBy(f).length, usado_por_modulos: uniq(usedBy(f).map(dominioDe).filter(Boolean)), coberto_por_testes: cobertoPor.get(f) || 0,
-  orfao: usedBy(f).length === 0 && !/index\.[tj]sx?$|main\.[tj]sx?$|\.d\.ts$|\.config\./.test(f),
-})).concat([...PY.entries()].filter(([f, d]) => !d.teste && !/^(docs|qa|analise|inventario|examples?|samples?)\//.test(f)).map(([f, d]) => ({ arquivo: f, camada: camadaDe(f) || 'python', exports: [...d.defs, ...d.classes], linhas: d.linhas, tabelas: [], rpcs: [], edges: [], env: d.env, externos: d.externos, rotas_http: d.rotas_http.length, usado_por: usedBy(f).length, usado_por_modulos: uniq(usedBy(f).map(dominioDe).filter(Boolean)), coberto_por_testes: cobertoPor.get(f) || 0, orfao: usedBy(f).length === 0 && !/__init__|main\.py|manage\.py|app\.py|wsgi|asgi/.test(f) }))).sort((a, b) => a.arquivo.localeCompare(b.arquivo)), []);
+  orfao: usedBy(f).length === 0 && !/index\.[tj]sx?$|main\.[tj]sx?$|\.d\.ts$|\.config\./.test(f) && !rotasEnriched.some((r) => r.arquivo === f),
+})).concat([...PY.entries()].filter(([f, d]) => !d.teste && !/^(docs|qa|analise|inventario|examples?|samples?)\//.test(f)).map(([f, d]) => ({ arquivo: f, camada: camadaDe(f) || 'python', exports: [...d.defs, ...d.classes], linhas: d.linhas, tabelas: [], rpcs: [], edges: [], env: d.env, externos: d.externos, rotas_http: d.rotas_http.length, usado_por: usedBy(f).length, usado_por_modulos: uniq(usedBy(f).map(dominioDe).filter(Boolean)), coberto_por_testes: cobertoPor.get(f) || 0, orfao: usedBy(f).length === 0 && !/__init__|main\.py|manage\.py|app\.py|wsgi|asgi/.test(f) && !scriptsRepo.some((sr) => sr.arquivo === f && !sr.orfao) }))).sort((a, b) => cmp(a.arquivo, b.arquivo)), []);
 testes.sem_teste.servicos = logica.filter((l) => !l.coberto_por_testes && l.usado_por > 0 && /^serv/.test(l.camada || '')).map((l) => l.arquivo);
 
 // ---------- grafo ----------
@@ -703,13 +773,13 @@ const grafo = secao('grafo', () => {
     }
   };
   for (const f of prodFiles) if (!ord.has(f)) tarjan(f);
-  const entradas = new Set([...rotasEnriched.map((r) => r.arquivo), ...vistasEnriched.map((v) => v.arquivo), ...edges.map((e) => e.entrada), ...lazyTargets, ...ALL.filter((f) => /^(src\/)?(main|index|App|app|server|worker)\.[tj]sx?$|^scripts\/|^(src\/)?(app|pages|routes)\//.test(f) || /(^|\/)(main|app|manage|wsgi|asgi|__main__)\.py$/.test(f))].filter(Boolean));
+  const entradas = new Set([...rotasEnriched.map((r) => r.arquivo), ...vistasEnriched.map((v) => v.arquivo), ...edges.map((e) => e.entrada), ...lazyTargets, ...ALL.filter((f) => /^(src\/)?(main|index|App|app|server|worker)\.[tj]sx?$|^scripts\/|^public\/|^(src\/)?(app|pages|routes)\//.test(f) || isTooling(f) || /(^|\/)(main|app|manage|wsgi|asgi|__main__)\.py$/.test(f))].filter(Boolean));
   return {
     nos: prodFiles.length, arestas: prodFiles.reduce((s, f) => s + importsOf(f).length, 0),
-    hubs: [...USED_BY.entries()].filter(([f]) => anyFile(f) && !anyFile(f).teste).map(([f, u]) => ({ arquivo: f, importado_por: u.length })).sort((a, b) => b.importado_por - a.importado_por || a.arquivo.localeCompare(b.arquivo)).slice(0, 40),
-    ciclos: { total: sccs.length, maiores: sccs.sort((a, b) => b.length - a.length || a[0].localeCompare(b[0])).slice(0, 15).map((comp) => ({ tamanho: comp.length, arquivos: comp.slice(0, 12) })) },
+    hubs: [...USED_BY.entries()].filter(([f]) => anyFile(f) && !anyFile(f).teste).map(([f, u]) => ({ arquivo: f, importado_por: u.length })).sort((a, b) => b.importado_por - a.importado_por || cmp(a.arquivo, b.arquivo)).slice(0, 40),
+    ciclos: { total: sccs.length, maiores: sccs.sort((a, b) => b.length - a.length || cmp(a[0], b[0])).slice(0, 15).map((comp) => ({ tamanho: comp.length, arquivos: comp.slice(0, 12) })) },
     orfaos: prodFiles.filter((f) => !usedBy(f).length && !entradas.has(f) && !/\.d\.ts$|\.config\.|_shared\/|\/types\/|\.stories\./.test(f)).slice(0, 300),
-    modulos_mais_acoplados: modulos.map((m) => ({ modulo: m.modulo, depende_de: m.depende_de_modulos.length, importado_por: m.importado_por_outros_modulos.length })).sort((a, b) => b.depende_de + b.importado_por - (a.depende_de + a.importado_por) || a.modulo.localeCompare(b.modulo)).slice(0, 20),
+    modulos_mais_acoplados: modulos.map((m) => ({ modulo: m.modulo, depende_de: m.depende_de_modulos.length, importado_por: m.importado_por_outros_modulos.length })).sort((a, b) => b.depende_de + b.importado_por - (a.depende_de + a.importado_por) || cmp(a.modulo, b.modulo)).slice(0, 20),
     arestas_em: `${OUT_REL}/grafo-arestas.json`,
   };
 }, { nos: 0, arestas: 0, hubs: [], ciclos: { total: 0, maiores: [] }, orfaos: [], modulos_mais_acoplados: [] });
@@ -719,11 +789,20 @@ const grafoArestas = Object.fromEntries(prodFiles.filter((f) => importsOf(f).len
 const graphify = secao('graphify', () => {
   const gdir = CFG.graphifyDir || 'graphify-out';
   const gjson = `${gdir}/graph.json`;
-  const base = { presente: false, como_gerar: 'uvx --from "graphifyy[sql]" graphify update .  (ou: bun run graph:update); saída em graphify-out/ — graph.json e graph.html NÃO são versionados (dezenas de MB); use `graphify query/path/explain` localmente', relatorio: FILESET.has(`${gdir}/GRAPH_REPORT.md`) ? `${gdir}/GRAPH_REPORT.md` : null };
+  // Repo com wrapper próprio (npm scripts graph:*) manda nele; o CLI direto só vale quando não há wrapper.
+  const npmRun = (sc) => (pkg.scripts && pkg.scripts[sc] ? `${['bun', 'pnpm', 'yarn'].includes(stack.gerenciador_pacotes) ? stack.gerenciador_pacotes : 'npm'} run ${sc}` : null);
+  const base = {
+    presente: false,
+    como_gerar: npmRun('graph:update') ? `${npmRun('graph:update')} (wrapper do repositório; não rode o CLI do graphify direto); saída em ${gdir}/, não versionada` : `uvx --from "graphifyy[sql]" graphify update .; saída em ${gdir}/ — graph.json e graph.html NÃO são versionados (dezenas de MB)`,
+    como_consultar: npmRun('graph:query') ? [`${npmRun('graph:query')} -- "<pergunta>"`, npmRun('graph:path') && `${npmRun('graph:path')} -- "<A>" "<B>"`, npmRun('graph:explain') && `${npmRun('graph:explain')} -- "<X>"`].filter(Boolean) : ['graphify query "<pergunta>"', 'graphify path "<A>" "<B>"', 'graphify explain "<X>"'],
+    relatorio: fs.existsSync(abs(`${gdir}/GRAPH_REPORT.md`)) ? `${gdir}/GRAPH_REPORT.md` : null,
+  };
   if (!fs.existsSync(abs(gjson))) return base;
   const stat = fs.statSync(abs(gjson)); if (stat.size > 400 * 1024 * 1024) return { ...base, presente: true, erro: `graph.json com ${Math.round(stat.size / 1048576)} MB — acima do limite de leitura` };
   const g = JSON.parse(fs.readFileSync(abs(gjson), 'utf8'));
   const nodes = g.nodes || [], links = g.links || [];
+  // graph.json nem sempre traz o commit; wrappers gravam em project-meta.json ao lado.
+  const commitGrafo = g.built_at_commit || (readJson(`${gdir}/project-meta.json`) || {}).commit || null;
   const deg = new Map(); for (const l of links) { deg.set(l.source, (deg.get(l.source) || 0) + 1); deg.set(l.target, (deg.get(l.target) || 0) + 1); }
   const byId = new Map(nodes.map((n) => [n.id, n]));
   const comm = new Map();
@@ -734,7 +813,7 @@ const graphify = secao('graphify', () => {
   const chamadas = new Map(); for (const l of links) if (l.relation === 'calls') { const t = byId.get(l.target); const key = t ? `${t.label} (${t.source_file || '?'})` : l.target; chamadas.set(key, (chamadas.get(key) || 0) + 1); }
   const arquivoComunidade = {}; for (const n of nodes) if (n.source_file && n.community_name && !arquivoComunidade[n.source_file]) arquivoComunidade[n.source_file] = n.community_name;
   return {
-    ...base, presente: true, commit_do_grafo: g.built_at_commit || null, grafo_atual: !!(g.built_at_commit && gitInfoCommit() && g.built_at_commit === gitInfoCommit()),
+    ...base, presente: true, commit_do_grafo: commitGrafo, grafo_atual: !!(commitGrafo && gitInfoCommit() && commitGrafo === gitInfoCommit()),
     nos: nodes.length, arestas: links.length, comunidades_total: comm.size, relacoes: sortObj(Object.fromEntries(byCount(links.map((l) => l.relation || '?')))), origem: sortObj(Object.fromEntries(byCount(links.map((l) => l.confidence || '?')))),
     comunidades, hubs, mais_chamados: [...chamadas.entries()].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)).slice(0, 60).map(([k, n]) => ({ simbolo: k, chamadas: n })),
     arquivos_com_mais_simbolos: [...porArquivo.entries()].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)).slice(0, 40).map(([f, n]) => ({ arquivo: f, simbolos: n })),
@@ -749,12 +828,15 @@ const convencoes = secao('convencoes', () => {
   const nameStyle = (files) => { if (!files.length) return null; const n = byCount(files.map((f) => { const b = baseOf(f); return /^[A-Z][a-zA-Z0-9]*$/.test(b) ? 'PascalCase' : /^[a-z][a-zA-Z0-9]*$/.test(b) ? 'camelCase' : /^[a-z0-9]+(-[a-z0-9]+)+$/.test(b) ? 'kebab-case' : /_/.test(b) ? 'snake_case' : 'outro'; })); return `${n[0][0]} (${Math.round((n[0][1] / files.length) * 100)}%)`; };
   const topDir = (files) => byCount(files.map((f) => f.split('/').slice(0, 2).join('/'))).slice(0, 3).map(([d, n]) => `${d} (${n})`);
   const barrels = ALL.filter((f) => /(^|\/)index\.[tj]s$/.test(f) && (FILE.get(f)?.conteudo || '').split('\n').filter((l) => /^export\s/.test(l)).length >= 3).length;
-  const tc = readJson('tsconfig.json') || readJson('tsconfig.app.json') || {}; const co = tc.compilerOptions || {};
+  // tsconfig raiz "solution" (só references) não tem compilerOptions: vale o primeiro referenciado que tiver.
+  const tcRaiz = readJsonc('tsconfig.json') || {};
+  const tcs = [tcRaiz, ...(Array.isArray(tcRaiz.references) ? tcRaiz.references : []).map((r) => { const p = path.posix.normalize(String((r && r.path) || '')); return readJsonc(/\.json$/.test(p) ? p : `${p}/tsconfig.json`); }), readJsonc('tsconfig.app.json')];
+  const co = (tcs.find((x) => x && x.compilerOptions && Object.keys(x.compilerOptions).length) || {}).compilerOptions || {};
   const subj = git('log', '-50', '--format=%s').split('\n').filter(Boolean);
   return {
-    onde_ficam: { telas: topDir(uniq([...rotasEnriched, ...vistasEnriched].map((r) => r.arquivo).filter(Boolean))), componentes: topDir(comps), hooks: topDir(hooksOut.map((h) => h.arquivo)), servicos_logica: topDir(logica.map((l) => l.arquivo)), testes: testes.onde_ficam.slice(0, 3).map((t) => `${t.padrao} (${t.arquivos})`), edge_functions: edges.length ? EDGE_DIR : null, migrations: migDir || null, scripts: topDir(scriptsRepo.map((s) => s.arquivo)), docs: byCount(docsRaiz.map((d) => dirOf(d.arquivo))).slice(0, 3).map(([d, n]) => `${d === '.' ? '(raiz)' : d} (${n})`) },
+    onde_ficam: { telas: topDir(uniq([...rotasEnriched, ...vistasEnriched].filter((r) => r.tipo !== 'api').map((r) => r.arquivo).filter(Boolean))), componentes: topDir(comps), hooks: topDir(hooksOut.map((h) => h.arquivo)), servicos_logica: topDir(logica.map((l) => l.arquivo)), testes: testes.onde_ficam.slice(0, 3).map((t) => `${t.padrao} (${t.arquivos})`), edge_functions: edges.length ? EDGE_DIR : null, migrations: migDir || null, scripts: topDir(scriptsRepo.map((s) => s.arquivo)), docs: byCount(docsRaiz.map((d) => dirOf(d.arquivo))).slice(0, 3).map(([d, n]) => `${d === '.' ? '(raiz)' : d} (${n})`) },
     nomenclatura: { componentes: nameStyle(comps), hooks: hooksOut.length ? 'use + PascalCase' : null, servicos: nameStyle(logica.map((l) => l.arquivo)), edge_functions: nameStyle(edges.map((e) => e.nome)), tabelas: nameStyle(Object.keys(bancoOut.tabelas)) },
-    barrels_index: barrels, extensao_componentes: byCount(comps.map((f) => path.extname(f))).map(([e, n]) => `${e} (${n})`), alias_imports: Object.fromEntries(Object.entries(aliasesByBase).map(([b, m]) => [b || '(raiz)', m])),
+    barrels_index: barrels, extensao_componentes: byCount(comps.map((f) => path.extname(f))).map(([e, n]) => `${e} (${n})`), alias_imports: Object.fromEntries(Object.entries(aliasesByBase).map(([b, m]) => [b || '(raiz)', b ? m : Object.fromEntries(Object.entries(m).filter(([a]) => !ALIAS_FALLBACK.has(a)))]).filter(([, m]) => Object.keys(m).length)),
     commits: { convencao: exists('commitlint.config.js') || exists('.commitlintrc.json') || has('@commitlint/cli') ? 'commitlint' : subj.filter((s) => /^(feat|fix|chore|docs|refactor|test|ci|build|perf|infra|style)(\(.+\))?!?:/.test(s)).length > subj.length / 2 ? 'conventional commits (observado)' : 'livre', exemplos: subj.slice(0, 5) },
     pr_template: ALL.find((f) => /PULL_REQUEST_TEMPLATE/i.test(f)) || null, codeowners: ALL.find((f) => /CODEOWNERS$/.test(f)) || null, contributing: ALL.find((f) => /^CONTRIBUTING\.md$/i.test(f)) || null,
     instrucoes_agentes: ALL.filter((f) => /^(CLAUDE|AGENTS|GEMINI|\.cursorrules)(\.md)?$|^\.github\/copilot-instructions\.md$|^\.claude\/[^/]+\.md$|^\.cursor\/rules\//i.test(f)),
@@ -764,7 +846,7 @@ const convencoes = secao('convencoes', () => {
 
 // ---------- baseline ----------
 const gitInfo = secao('git', () => ({
-  commit: git('rev-parse', 'HEAD') || null, branch: git('rev-parse', '--abbrev-ref', 'HEAD') || null, data_commit: git('log', '-1', '--format=%cI') || null, remote: git('remote', 'get-url', 'origin').replace(/\/\/[^@]+@/, '//') || null,
+  commit: git('rev-parse', 'HEAD') || null, branch: git('rev-parse', '--abbrev-ref', 'HEAD') || null, data_commit: (() => { const ct = Number(git('log', '-1', '--format=%ct')); return ct ? new Date(ct * 1000).toISOString().replace('.000Z', 'Z') : null; })(), remote: git('remote', 'get-url', 'origin').replace(/\/\/[^@]+@/, '//') || null,
   ultimos_commits: git('log', '-25', '--format=%h|%cs|%s').split('\n').filter(Boolean).map((l) => { const [h, d, ...s] = l.split('|'); return { sha: h, data: d, assunto: s.join('|').slice(0, 120) }; }),
   arquivos_mudados_7d: uniq(git('log', '--since=7.days', '--name-only', '--format=').split('\n').filter(Boolean)).length,
   pastas_mais_mudadas_30d: byCount(git('log', '--since=30.days', '--name-only', '--format=').split('\n').filter(Boolean).map((f) => f.split('/').slice(0, 3).join('/'))).slice(0, 15).map(([pasta, n]) => ({ pasta, mudancas: n })),
@@ -778,13 +860,13 @@ const baseline = {
   git: gitInfo,
   contagens: { arquivos_total: ALL.length, arquivos_codigo: CODE_FILES.length + PY_FILES.length, linhas_codigo: allDocs.reduce((s, d) => s + d.linhas, 0), rotas: rotasEnriched.length, rotas_http_backend: apiHttp.length, vistas_por_id: vistasEnriched.length, itens_menu: menuUniq.length, modulos: modulos.length, componentes: componentes.length, hooks: hooksOut.length, edge_functions: edges.length, tabelas: Object.keys(bancoOut.tabelas).length, migrations: bancoOut.migrations, cron_jobs: bancoOut.cron_jobs.length, testes: testes.total, workflows: workflows.length, scripts: scriptsRepo.length, docs_md: ALL.filter((f) => f.endsWith('.md')).length },
   por_pasta: sortObj(byDir),
-  maiores_arquivos: [...FILE.entries(), ...PY.entries()].filter(([, d]) => !d.teste).map(([f, d]) => ({ arquivo: f, linhas: d.linhas })).sort((a, b) => b.linhas - a.linhas || a.arquivo.localeCompare(b.arquivo)).slice(0, 25),
+  maiores_arquivos: [...FILE.entries(), ...PY.entries()].filter(([, d]) => !d.teste).map(([f, d]) => ({ arquivo: f, linhas: d.linhas })).sort((a, b) => b.linhas - a.linhas || cmp(a.arquivo, b.arquivo)).slice(0, 25),
   qualidade: { any: [...FILE.values()].reduce((s, d) => s + d.any_count, 0), console_log: [...FILE.values()].reduce((s, d) => s + d.console_count, 0), ts_ignore: [...FILE.values()].reduce((s, d) => s + d.ts_ignore, 0), eslint_disable: [...FILE.values()].reduce((s, d) => s + d.eslint_disable, 0), todos: allDocs.reduce((s, d) => s + d.todos.length, 0), arquivos_acima_500_linhas: allDocs.filter((d) => !d.teste && d.linhas > 500).length },
   todos: cap([...FILE.entries(), ...PY.entries()].flatMap(([f, d]) => d.todos.map((t) => ({ arquivo: f, ...t }))), 300),
   alertas: {
     rotas_sem_arquivo: rotasEnriched.filter((r) => !r.arquivo && r.tipo === 'tela').map((r) => r.caminho),
     componentes_ambiguos: [...ambiguos].sort(),
-    menu_sem_destino: menuUniq.filter((m) => !resolveDestino(m.destino)).map((m) => `${m.rotulo} -> ${m.destino}`),
+    menu_sem_destino: menuUniq.filter((m) => !/^(?:https?:|mailto:|tel:|\/\/|#)/i.test(m.destino) && !resolveDestino(m.destino)).map((m) => `${m.rotulo} -> ${m.destino}`),
     edges_orfas: edges.filter((e) => e.orfa).map((e) => e.nome),
     edges_chamadas_sem_pasta: edgesSemPasta,
     tabelas_sem_rls: Object.entries(bancoOut.tabelas).filter(([, t]) => t.sem_rls).map(([n]) => n),
@@ -802,7 +884,6 @@ const baseline = {
 };
 
 // ---------- escrita ----------
-fs.mkdirSync(OUT, { recursive: true });
 const AVISO = 'GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.';
 const c = baseline.contagens;
 const files = {
@@ -823,7 +904,8 @@ const files = {
   'baseline.json': { aviso: AVISO, format_version: FORMAT_VERSION, ...baseline },
 };
 const hashes = {};
-for (const [name, data] of Object.entries(files)) { const txt = JSON.stringify(data, null, 1) + '\n'; fs.writeFileSync(path.join(OUT, name), txt); hashes[name] = sha(txt); }
+const textos = {};
+for (const [name, data] of Object.entries(files)) { const txt = JSON.stringify(data, null, 1) + '\n'; textos[name] = txt; hashes[name] = sha(txt); }
 const li = (arr, f = (x) => x) => (arr.length ? arr.map((x) => `- ${f(x)}`).join('\n') : '- (nenhum)');
 const kv = (o) => Object.entries(o || {}).map(([k, v]) => `- ${k}: ${Array.isArray(v) ? v.join(', ') || 'n/d' : v && typeof v === 'object' ? JSON.stringify(v) : v ?? 'n/d'}`).join('\n');
 const indexMd = `# Contexto do projeto para agentes de IA
@@ -834,7 +916,7 @@ ${PUBLICACAO} Gere local com \`node scripts/ai-context/gerar.mjs\`. Commit-base:
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → \`rotas.json\` (url/vista/menu → arquivo → hooks → tabelas → edges; \`rotas_http_backend\` para APIs) e \`modulos.json\` (módulo inteiro + dependências entre módulos).
 2. **Hook/serviço/lógica** → \`hooks.json\`, \`logica.json\` (quem usa, o que toca, se tem teste).
-3. **Edge function / serverless** → \`edge-functions.json\` (verify_jwt, tabelas, env, quem chama, órfãs).
+3. **Edge function** → \`edge-functions.json\` (verify_jwt, tabelas, env, quem chama, órfãs). **Função serverless por arquivo** (Vercel \`api/\`) → \`rotas.json → rotas_http_backend\` (método, rpcs/tabelas/env do fecho e \`diretos\`, rewrites, cron, quem chama).
 4. **Banco** → \`banco.json\` (colunas, RLS, policies, índices, FKs, triggers, cron jobs, buckets, drift migration×types, uso no código) — visão do código; para o banco vivo use o MCP.
 5. **Antes de criar arquivo** → \`convencoes.json\` (onde ficam as coisas, nomenclatura, alias), \`componentes.json\` (nomes duplicados, órfãos), \`grafo.json\` (hubs, ciclos de import) e \`grafo-graphify.json\` (grafo por AST: comunidades, símbolos mais chamados, comunidade de cada arquivo).
 6. **CI/scripts/deploy/env/integrações/permissões/flags** → \`ferramentas.json\` e \`scripts.json\`.
@@ -863,7 +945,7 @@ ${modulos.filter((m) => m.itens_menu.length || m.telas.length || m.rotas_http.le
 ${li(rotasEnriched, (r) => `\`${r.caminho}\` [${r.tipo}] → ${r.arquivo || '**ARQUIVO NÃO RESOLVIDO**'}${r.protegida ? ' (protegida)' : ''}`)}
 
 ## Rotas HTTP de backend
-${li(cap(apiHttp, 150), (r) => `\`${r.metodo} ${r.caminho}\` → ${r.arquivo}`)}${apiHttp.length > 150 ? `\n- … (+${apiHttp.length - 150} em rotas.json)` : ''}
+${li(cap(apiHttp, 150), (r) => `\`${r.metodo} ${r.caminho}\` → ${r.arquivo}${[r.rewrites_de && r.rewrites_de.length ? `rewrites: ${r.rewrites_de.slice(0, 5).join(', ')}${r.rewrites_de.length > 5 ? ` +${r.rewrites_de.length - 5}` : ''}` : '', r.cron ? `cron ${r.cron}` : ''].filter(Boolean).map((x) => ` (${x})`).join('')}`)}${apiHttp.length > 150 ? `\n- … (+${apiHttp.length - 150} em rotas.json)` : ''}
 
 ## Vistas por id (menu/ViewRouter → arquivo)
 ${li(vistasEnriched, (v) => `\`${v.id}\` → ${v.arquivo || '**NÃO RESOLVIDO**'}`)}
@@ -890,10 +972,10 @@ ${li([...bancoOut.cron_jobs.map((j) => `\`${j.nome}\` ${j.agenda}${j.chama_edge 
 ${Object.entries(baseline.alertas).map(([k, v]) => `- ${k}: ${Array.isArray(v) ? v.length + (v.length ? ' — ex.: ' + v.slice(0, 3).join(', ') : '') : v}`).join('\n')}
 
 ## Grafo de código (graphify)
-${graphify.presente ? `- ${graphify.nos} nós · ${graphify.arestas} arestas · ${graphify.comunidades_total} comunidades · grafo do commit \`${(graphify.commit_do_grafo || '').slice(0, 8)}\`${graphify.grafo_atual ? '' : ' (DESATUALIZADO em relação ao HEAD)'}
+${graphify.presente ? `- ${graphify.nos} nós · ${graphify.arestas} arestas · ${graphify.comunidades_total} comunidades · ${graphify.commit_do_grafo ? `grafo do commit \`${graphify.commit_do_grafo.slice(0, 8)}\`${graphify.grafo_atual ? '' : ' (DESATUALIZADO em relação ao HEAD)'}` : 'commit do grafo não informado (confira se está atual antes de confiar)'}
 - comunidades maiores: ${(graphify.comunidades || []).slice(0, 12).map((cm) => `${cm.nome} (${cm.nos})`).join(', ')}
 - símbolos mais chamados: ${(graphify.mais_chamados || []).slice(0, 12).map((x) => x.simbolo).join(', ')}
-- consulta local: \`graphify query "<pergunta>"\`, \`graphify path "<A>" "<B>"\`, \`graphify explain "<X>"\`${graphify.relatorio ? `; relatório: \`${graphify.relatorio}\`` : ''}` : `- não gerado neste run. ${graphify.como_gerar}`}
+- consulta local: ${graphify.como_consultar.map((x) => `\`${x}\``).join(', ')}${graphify.relatorio ? `; relatório: \`${graphify.relatorio}\`` : ''}` : `- não gerado neste run. ${graphify.como_gerar}`}
 
 ## Hotspots (arquivos mais alterados, 90 dias)
 ${li((gitInfo.arquivos_mais_mudados_90d || []).slice(0, 15), (x) => `${x.arquivo} (${x.mudancas})`)}
@@ -916,8 +998,13 @@ ${li((gitInfo.ultimos_commits || []).slice(0, 15), (x) => `${x.data} \`${x.sha}\
 ${Object.keys(files).map((f) => `- \`${OUT_REL}/${f}\``).join('\n')}
 - \`${OUT_REL}/manifest.json\` (commit, data, hashes, erros — único arquivo com data/hora)
 `;
-fs.writeFileSync(path.join(OUT, 'INDEX.md'), indexMd);
+textos['INDEX.md'] = indexMd;
 hashes['INDEX.md'] = sha(indexMd);
-fs.writeFileSync(path.join(OUT, 'manifest.json'), JSON.stringify({ aviso: AVISO, format_version: FORMAT_VERSION, gerado_em: new Date().toISOString(), commit: gitInfo.commit || null, branch: gitInfo.branch || null, gerador: 'scripts/ai-context/gerar.mjs', node: process.version, arquivos: sortObj(hashes), contagens: c, erros: ERROS }, null, 1) + '\n');
+textos['manifest.json'] = JSON.stringify({ aviso: AVISO, format_version: FORMAT_VERSION, gerado_em: new Date().toISOString(), commit: gitInfo.commit || null, branch: gitInfo.branch || null, gerador: 'scripts/ai-context/gerar.mjs', node: process.version, arquivos: sortObj(hashes), contagens: c, erros: ERROS }, null, 1) + '\n';
+// Só escreve depois de tudo montado; manifest.json por último (é ele que o workflow usa para saber se já gerou este commit).
+try {
+  fs.mkdirSync(OUT, { recursive: true });
+  for (const [name, txt] of Object.entries(textos)) fs.writeFileSync(path.join(OUT, name), txt);
+} catch (e) { fatal(1, `não foi possível escrever em ${OUT}: ${e && e.message}`); }
 log(`escrito em ${OUT_REL}/ (${Object.keys(files).length + 2} arquivos)${ERROS.length ? `; ${ERROS.length} erro(s) de seção` : ''}`);
 log(`rotas=${c.rotas} http=${c.rotas_http_backend} vistas=${c.vistas_por_id} menu=${c.itens_menu} modulos=${c.modulos} hooks=${c.hooks} edges=${c.edge_functions} tabelas=${c.tabelas} cron=${c.cron_jobs} testes=${c.testes}`);

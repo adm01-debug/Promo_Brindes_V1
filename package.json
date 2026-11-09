@@ -74,6 +74,7 @@
     "test:graphify": "node --test tests/graphify-tools.node.mjs",
     "contexto:ia": "node scripts/ai-context/gerar.mjs --out docs/contexto/codigo",
     "contexto:ia:test": "node --test scripts/ai-context/gerar.unit.mjs",
+    "contexto:ia:cenarios": "node scripts/ai-context/cenarios.mjs",
     "contexto:regras": "python3 scripts/regras_negocio/generate.py --repo . --out docs/contexto/regras --profile regras --schema-snapshot docs/contexto/supabase --index-path docs/contexto/00-INDEX.md --no-pointer && python3 scripts/regras_negocio/indice.py --repo . --out docs/contexto/00-INDEX.md --remote adm01-debug/Promo_Brindes_V1 --fonte \"banco real=docs/contexto/supabase\" --fonte \"código=docs/contexto/codigo\" --fonte \"regras de negócio=docs/contexto/regras\"",
     "contexto:regras:test": "python3 scripts/regras_negocio/test_generate.py",
     "contexto:banco:test": "python3 scripts/supabase_snapshot/test_snapshot.py",
