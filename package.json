@@ -21,7 +21,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test --project=desktop-chromium --project=mobile-chromium",
     "test:e2e:cross-browser": "playwright test --project=desktop-firefox --project=desktop-webkit --workers=1",
-    "check": "npm run lint && npm run typecheck && npm run test && npm run agents:instructions:check && npm run test:agent-instructions && npm run test:migration-names && npm run test:error-catalog && npm run test:site-api-jwt && npm run test:timing-safe-secrets && npm run test:supabase-db-query && npm run test:ci-health && npm run test:release-url && npm run test:catalog-contract && npm run build && npm run check:performance-budget && npm run test:e2e",
+    "check": "npm run lint && npm run typecheck && npm run test && npm run agents:instructions:check && npm run test:agent-instructions && npm run test:migration-names && npm run test:error-catalog && npm run test:site-api-jwt && npm run test:timing-safe-secrets && npm run test:supabase-db-query && npm run test:ci-health && npm run test:release-url && npm run test:catalog-contract && npm run test:inventario && npm run contexto:test && npm run build && npm run check:performance-budget && npm run test:e2e",
     "db:migration-names:check": "node scripts/validate-migration-names.mjs",
     "test:migration-names": "node --test tests/validate-migration-names.node.mjs",
     "db:site:error-catalog:check": "node scripts/validate-error-catalog.mjs",
@@ -64,7 +64,16 @@
     "graph:db:tree": "node scripts/graphify.mjs db-tree",
     "graph:benchmark": "node scripts/graphify.mjs benchmark",
     "graph:compare": "node scripts/graphify.mjs compare",
-    "test:graphify": "node --test tests/graphify-tools.node.mjs"
+    "test:graphify": "node --test tests/graphify-tools.node.mjs",
+    "contexto:ia": "node scripts/ai-context/gerar.mjs --out docs/contexto/codigo",
+    "contexto:ia:test": "node --test scripts/ai-context/gerar.unit.mjs",
+    "contexto:regras": "python3 scripts/regras_negocio/generate.py --repo . --out docs/contexto/regras --profile regras --schema-snapshot docs/contexto/supabase --index-path docs/contexto/00-INDEX.md --no-pointer && python3 scripts/regras_negocio/indice.py --repo . --out docs/contexto/00-INDEX.md --remote adm01-debug/Promo_Brindes_V1 --fonte \"banco real=docs/contexto/supabase\" --fonte \"código=docs/contexto/codigo\" --fonte \"regras de negócio=docs/contexto/regras\"",
+    "contexto:regras:test": "python3 scripts/regras_negocio/test_generate.py",
+    "contexto:banco:test": "python3 scripts/supabase_snapshot/test_snapshot.py",
+    "contexto:test": "npm run contexto:ia:test && npm run contexto:regras:test && npm run contexto:banco:test",
+    "inventario:banco": "node scripts/inventario/gerar-banco.mjs",
+    "inventario:mudou": "node scripts/inventario/mudou-conteudo.mjs",
+    "test:inventario": "node --test tests/inventario-estado.node.mjs"
   },
   "dependencies": {
     "@fontsource/inter": "^5.3.0",

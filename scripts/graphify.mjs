@@ -553,6 +553,12 @@ export function normalizeQuery(raw) {
     retém: 'retention site_retention',
     retem: 'retention site_retention',
     'dados antigos': 'retention site_retention',
+    // GR40-10 (benchmark) pergunta sobre o próprio Graphify: "mapa técnico" é termo genérico
+    // demais e, com mais arquivos em scripts/ (contexto para agentes, 2026-11), perde a
+    // scripts/graphify.mjs na truncagem do orçamento padrão de consulta. Mesmo padrão de
+    // desambiguação das demais entradas — não é bump no orçamento global.
+    'mapa técnico': 'graphify.mjs build benchmark',
+    'mapa tecnico': 'graphify.mjs build benchmark',
   };
   const expanded = Object.entries(aliases)
     .filter(([term]) => text.toLocaleLowerCase('pt-BR').includes(term))
