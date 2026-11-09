@@ -17,6 +17,7 @@ const MIGRATIONS_DIR = path.join(ROOT, 'site-supabase', 'supabase', 'migrations'
 function latestMigrationDate() {
   const files = readdirSync(MIGRATIONS_DIR).filter((f) => /^\d{14}_.+\.sql$/.test(f));
   const latest = files.sort().at(-1);
+  if (!latest) throw new Error(`nenhuma migration <14 dígitos>_<descrição>.sql em ${MIGRATIONS_DIR}; não há versão de schema para registrar.`);
   const stamp = latest.slice(0, 8);
   return `${stamp.slice(0, 4)}-${stamp.slice(4, 6)}-${stamp.slice(6, 8)}`;
 }
@@ -29,6 +30,12 @@ function sanitize(id) {
   // Mermaid não aceita hífen/ponto em identificadores de entidade sem aspas em todo
   // renderer — troca por underscore para máxima compatibilidade.
   return id.replace(/[^a-zA-Z0-9_]/g, '_');
+}
+
+// regclass::text devolve o nome entre aspas quando ele tem caractere especial; sem tirá-las
+// a relação apontaria para uma entidade diferente da declarada pela lista de tabelas.
+function unquote(id) {
+  return id.replace(/^"(.*)"$/, '$1');
 }
 
 function main() {
@@ -66,7 +73,7 @@ function main() {
     // to_table_raw pode vir qualificado (auth.users) ou não (site_private.x sem aspas
     // se o nome não tiver caractere especial) — normaliza os dois casos.
     const toTable = toTableRaw.includes('.') ? toTableRaw.split('.').pop() : toTableRaw;
-    lines.push(`  ${sanitize(fromTable)} }o--|| ${sanitize(toTable)} : references`);
+    lines.push(`  ${sanitize(unquote(fromTable))} }o--|| ${sanitize(unquote(toTable))} : references`);
   }
 
   lines.push('```', '');
@@ -77,4 +84,9 @@ function main() {
   console.log(`Escrito ${OUT_FILE} (${tables.length} tabelas, ${foreignKeys.length} relações).`);
 }
 
-main();
+try {
+  main();
+} catch (error) {
+  console.error(`db:site:schema-doc falhou: ${error instanceof Error ? error.message : String(error)}`);
+  process.exitCode = 1;
+}

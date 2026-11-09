@@ -1,5 +1,10 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 import {
   EXPECTED_CATALOG_COLUMNS,
   checkCatalogPublicContract,
@@ -289,4 +294,220 @@ test('falha fechado para outro projeto ou chave privilegiada', async (t) => {
   const payload = Buffer.from(JSON.stringify({ role: 'service_role' })).toString('base64url');
   process.env.VITE_SUPABASE_PUBLISHABLE_KEY = `${header}.${payload}.fixture`;
   await assert.rejects(() => checkCatalogPublicContract(), /ausente ou privilegiada/);
+});
+
+const NO_DELAY = { retryDelaysMs: [0, 0] };
+
+function canonicalEnv(t) {
+  restoreEnvAfter(t);
+  process.env.VITE_SUPABASE_URL = 'https://doufsxqlfjyuvxuezpln.supabase.co';
+  process.env.VITE_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_fixture';
+}
+
+function networkError(code) {
+  return new TypeError('fetch failed', { cause: Object.assign(new Error(`connect ${code}`), { code }) });
+}
+
+// Catálogo saudável de um produto; `intercept` pode trocar a resposta de qualquer requisição.
+function healthyFetch(intercept = () => null) {
+  const requests = [];
+  const fetchMock = async (url) => {
+    const select = url.searchParams.get('select');
+    const kind = url.pathname === '/rest/v1/v_products_public' ? 'baseline'
+      : select === 'id' ? 'site-count'
+        : select?.startsWith('id,') ? 'probe'
+          : 'scan';
+    requests.push(kind);
+    const intercepted = await intercept(kind, requests.filter((entry) => entry === kind).length, url);
+    if (intercepted) return intercepted;
+    if (kind === 'probe') return deniedResponse();
+    if (kind !== 'scan') return baselineResponse(1);
+    return catalogResponse(url.searchParams.has('id') ? [] : [validRow()], 1);
+  };
+  return { fetchMock, requests, count: (kind) => requests.filter((entry) => entry === kind).length };
+}
+
+test('sonda de coluna proibida não conta erro do servidor como recusa (falha fechada)', async (t) => {
+  canonicalEnv(t);
+  for (const status of [500, 502, 503, 429, 408]) {
+    const { fetchMock, count } = healthyFetch((kind) => (kind === 'probe' ? new Response('indisponível', { status }) : null));
+    await assert.rejects(
+      () => checkCatalogPublicContract(fetchMock, NO_DELAY),
+      new RegExp(`Contrato inconclusivo: a sonda da coluna proibida sale_price respondeu HTTP ${status}\\.`),
+    );
+    assert.equal(count('probe'), 3, 'a sonda é repetida antes de desistir');
+  }
+});
+
+test('sonda de coluna proibida aceita como recusa somente resposta 4xx do PostgREST', async (t) => {
+  canonicalEnv(t);
+  for (const status of [400, 401, 403, 404]) {
+    const { fetchMock, count } = healthyFetch((kind) => (kind === 'probe' ? new Response('{}', { status }) : null));
+    assert.equal((await checkCatalogPublicContract(fetchMock, NO_DELAY)).inspectedRows, 1);
+    assert.equal(count('probe'), 4);
+  }
+  const leaking = healthyFetch((kind, nth) => (kind === 'probe' && nth === 3 ? catalogResponse([{ id: 'x', supplier_id: 'y' }], 1) : null));
+  await assert.rejects(() => checkCatalogPublicContract(leaking.fetchMock, NO_DELAY), /Contrato inseguro: a coluna proibida supplier_id pode ser selecionada/);
+});
+
+test('repete leitura após falha transitória de rede, 5xx ou 429 e aprova quando a origem se recupera', async (t) => {
+  canonicalEnv(t);
+  const { fetchMock, count } = healthyFetch((kind, nth) => {
+    if (kind === 'baseline' && nth === 1) throw networkError('ECONNRESET');
+    if (kind === 'scan' && nth === 1) return new Response('bad gateway', { status: 502 });
+    if (kind === 'site-count' && nth === 1) return new Response('{}', { status: 429 });
+    if (kind === 'probe' && nth === 2) throw new DOMException('The operation was aborted due to timeout', 'TimeoutError');
+    if (kind === 'probe' && nth === 4) return new Response('{}', { status: 503 });
+    return null;
+  });
+  assert.deepEqual(await checkCatalogPublicContract(fetchMock, NO_DELAY), {
+    inspectedRows: 1,
+    columns: 36,
+    warnings: { blankSwatchNames: 0, duplicateSwatchNames: 0 },
+  });
+  assert.equal(count('baseline'), 3);
+  assert.equal(count('scan'), 3);
+  assert.equal(count('site-count'), 2);
+  assert.equal(count('probe'), 6);
+});
+
+test('falha de rede persistente reprova com causa e recurso, depois de três tentativas', async (t) => {
+  canonicalEnv(t);
+  const refused = healthyFetch(() => { throw networkError('ECONNREFUSED'); });
+  await assert.rejects(
+    () => checkCatalogPublicContract(refused.fetchMock, NO_DELAY),
+    /^Error: Contrato indisponível: falha de rede ao consultar v_products_public após 3 tentativa\(s\) \(ECONNREFUSED\)\.$/,
+  );
+  assert.equal(refused.requests.length, 3);
+  const timeout = healthyFetch((kind) => { if (kind === 'scan') throw new DOMException('The operation was aborted due to timeout', 'TimeoutError'); return null; });
+  await assert.rejects(
+    () => checkCatalogPublicContract(timeout.fetchMock, NO_DELAY),
+    /falha de rede ao consultar v_site_products_public após 3 tentativa\(s\) \(TimeoutError: The operation was aborted due to timeout\)/,
+  );
+  const once = healthyFetch(() => { throw networkError('ENOTFOUND'); });
+  await assert.rejects(() => checkCatalogPublicContract(once.fetchMock, { retryDelaysMs: [] }), /após 1 tentativa\(s\) \(ENOTFOUND\)/);
+  assert.equal(once.requests.length, 1);
+});
+
+test('erro HTTP persistente reprova com o status; 4xx não é repetido', async (t) => {
+  canonicalEnv(t);
+  const down = healthyFetch((kind) => (kind === 'scan' ? new Response('erro', { status: 500 }) : null));
+  await assert.rejects(() => checkCatalogPublicContract(down.fetchMock, NO_DELAY), /Contrato indisponível: v_site_products_public respondeu HTTP 500\./);
+  assert.equal(down.count('scan'), 3);
+  const unauthorized = healthyFetch((kind) => (kind === 'baseline' ? new Response('{}', { status: 401 }) : null));
+  await assert.rejects(() => checkCatalogPublicContract(unauthorized.fetchMock, NO_DELAY), /Contrato inconclusivo: v_products_public respondeu HTTP 401\./);
+  assert.equal(unauthorized.requests.length, 1);
+});
+
+test('erro que não é de rede atravessa sem repetição nem disfarce', async (t) => {
+  canonicalEnv(t);
+  const broken = healthyFetch(() => { throw new RangeError('defeito no chamador'); });
+  await assert.rejects(() => checkCatalogPublicContract(broken.fetchMock, NO_DELAY), (error) => error instanceof RangeError);
+  assert.equal(broken.requests.length, 1);
+});
+
+test('resposta sem contagem exata, corpo que não é JSON ou não é lista é reprovada', async (t) => {
+  canonicalEnv(t);
+  const noRange = healthyFetch((kind) => (kind === 'baseline' ? new Response('[]', { status: 200 }) : null));
+  await assert.rejects(() => checkCatalogPublicContract(noRange.fetchMock, NO_DELAY), /v_products_public não informou contagem exata/);
+  const unknownTotal = healthyFetch((kind) => (kind === 'baseline' ? new Response('[]', { status: 200, headers: { 'content-range': '0-0/*' } }) : null));
+  await assert.rejects(() => checkCatalogPublicContract(unknownTotal.fetchMock, NO_DELAY), /não informou contagem exata/);
+  for (const body of ['<html>gateway</html>', '{"message":"ok"}', 'null', '']) {
+    const html = healthyFetch((kind) => (kind === 'scan' ? new Response(body, { status: 200, headers: { 'content-range': '0-0/1' } }) : null));
+    await assert.rejects(() => checkCatalogPublicContract(html.fetchMock, NO_DELAY), /a resposta do catálogo não é uma lista/);
+  }
+  const empty = healthyFetch((kind) => (kind === 'scan' ? catalogResponse([], 0) : kind === 'probe' ? null : baselineResponse(0)));
+  await assert.rejects(() => checkCatalogPublicContract(empty.fetchMock, NO_DELAY), /não devolveu produto algum para inspeção/);
+});
+
+test('configuração ausente, malformada ou apontando para outra origem é recusada antes de qualquer requisição', async (t) => {
+  restoreEnvAfter(t);
+  const neverFetch = async () => assert.fail('não deveria fazer requisição');
+  const cases = [
+    [undefined, 'sb_publishable_fixture', /VITE_SUPABASE_URL ausente/],
+    ['   ', 'sb_publishable_fixture', /VITE_SUPABASE_URL ausente/],
+    ['doufsxqlfjyuvxuezpln.supabase.co', 'sb_publishable_fixture', /VITE_SUPABASE_URL inválida/],
+    ['não é url', 'sb_publishable_fixture', /VITE_SUPABASE_URL inválida/],
+    ['http://doufsxqlfjyuvxuezpln.supabase.co', 'sb_publishable_fixture', /Alvo recusado/],
+    ['https://doufsxqlfjyuvxuezpln.supabase.co:8443', 'sb_publishable_fixture', /Alvo recusado/],
+    ['https://doufsxqlfjyuvxuezpln.supabase.co@exemplo.test', 'sb_publishable_fixture', /Alvo recusado/],
+    ['https://doufsxqlfjyuvxuezpln.supabase.co.exemplo.test', 'sb_publishable_fixture', /Alvo recusado/],
+    ['https://doufsxqlfjyuvxuezpln.supabase.co', undefined, /ausente ou privilegiada/],
+    ['https://doufsxqlfjyuvxuezpln.supabase.co', '  ', /ausente ou privilegiada/],
+    ['https://doufsxqlfjyuvxuezpln.supabase.co', 'a.b.c', /ausente ou privilegiada/],
+    ['https://doufsxqlfjyuvxuezpln.supabase.co', `x.${Buffer.from('"anon"').toString('base64url')}.y`, /ausente ou privilegiada/],
+  ];
+  for (const [url, key, pattern] of cases) {
+    if (url === undefined) delete process.env.VITE_SUPABASE_URL;
+    else process.env.VITE_SUPABASE_URL = url;
+    if (key === undefined) delete process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+    else process.env.VITE_SUPABASE_PUBLISHABLE_KEY = key;
+    await assert.rejects(() => checkCatalogPublicContract(neverFetch, NO_DELAY), pattern, `${url} / ${key}`);
+  }
+  process.env.VITE_SUPABASE_URL = ' https://DOUFSXQLFJYUVXUEZPLN.supabase.co/rest/v1/?x=1 ';
+  process.env.VITE_SUPABASE_PUBLISHABLE_KEY = ' sb_publishable_fixture ';
+  assert.equal((await checkCatalogPublicContract(healthyFetch().fetchMock, NO_DELAY)).inspectedRows, 1, 'caminho, caixa do host e espaços em volta não mudam a origem');
+});
+
+// CLI de ponta a ponta sem rede: um módulo pré-carregado troca o fetch global por um
+// catálogo falso. A origem continua travada no projeto canônico pelo próprio script.
+const SCRIPT = fileURLToPath(new URL('../scripts/check-catalog-public-contract.mjs', import.meta.url));
+
+function runCli(t, { mode, scriptPath = SCRIPT, env = {} }) {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'catalog contract é-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const preload = path.join(directory, 'fake-fetch.mjs');
+  const columns = JSON.stringify(EXPECTED_CATALOG_COLUMNS);
+  fs.writeFileSync(preload, `
+const columns = ${columns};
+const row = { ...Object.fromEntries(columns.map((column) => [column, null])), id: '11111111-1111-4111-8111-111111111111', name: 'Mochila', sku: 'MO-42', slug: 'mochila', images: [], materials: [], colors: [], color_swatches: [{ color_name: ' ' }], is_active: true };
+const json = (body, total) => new Response(JSON.stringify(body), { status: 200, headers: { 'content-range': body.length ? '0-0/' + total : '*/' + total } });
+globalThis.fetch = async (input) => {
+  const url = new URL(input);
+  if (url.origin !== 'https://doufsxqlfjyuvxuezpln.supabase.co') throw new Error('origem inesperada: ' + url.origin);
+  if (${JSON.stringify(mode)} === 'offline') throw new TypeError('fetch failed', { cause: Object.assign(new Error('getaddrinfo ENOTFOUND'), { code: 'ENOTFOUND' }) });
+  const select = url.searchParams.get('select');
+  if (select === 'id') return json([{ id: row.id }], 1);
+  if (select.startsWith('id,')) return new Response('{"code":"42703"}', { status: 400 });
+  if (${JSON.stringify(mode)} === 'leak' && !url.searchParams.has('id')) return json([{ ...row, sale_price: 10 }], 1);
+  return json(url.searchParams.has('id') ? [] : [row], 1);
+};
+`);
+  const link = path.join(directory, 'atalho.mjs');
+  fs.symlinkSync(SCRIPT, link);
+  const cleanEnv = { ...process.env };
+  delete cleanEnv.VITE_SUPABASE_URL;
+  delete cleanEnv.VITE_SUPABASE_PUBLISHABLE_KEY;
+  return spawnSync(process.execPath, ['--import', preload, scriptPath === 'symlink' ? link : scriptPath], {
+    cwd: os.tmpdir(),
+    encoding: 'utf8',
+    timeout: 60_000,
+    env: { ...cleanEnv, VITE_SUPABASE_URL: 'https://doufsxqlfjyuvxuezpln.supabase.co', VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_fixture', ...env },
+  });
+}
+
+test('CLI: contrato íntegro sai com código 0, resultado e avisos em stdout', (t) => {
+  for (const scriptPath of [SCRIPT, 'symlink']) {
+    const result = runCli(t, { mode: 'ok', scriptPath });
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout, 'Contrato público aprovado: 36 colunas, 1 produtos inspecionados, nenhuma coluna proibida.\nAvisos de qualidade da origem: 1 swatch(es) sem nome e 0 nome(s) duplicado(s).\n');
+    assert.equal(result.stderr, '');
+  }
+});
+
+test('CLI: vazamento, origem fora do ar e configuração ausente saem com código 1 e uma linha em stderr', (t) => {
+  const leak = runCli(t, { mode: 'leak' });
+  assert.equal(leak.status, 1);
+  assert.equal(leak.stdout, '');
+  assert.equal(leak.stderr, 'Contrato inseguro: produto 1 expõe colunas proibidas: sale_price.\n');
+
+  const offline = runCli(t, { mode: 'offline' });
+  assert.equal(offline.status, 1);
+  assert.equal(offline.stderr, 'Contrato indisponível: falha de rede ao consultar v_products_public após 3 tentativa(s) (ENOTFOUND).\n');
+
+  for (const scriptPath of [SCRIPT, 'symlink']) {
+    const unconfigured = runCli(t, { mode: 'ok', scriptPath, env: { VITE_SUPABASE_URL: '' } });
+    assert.equal(unconfigured.status, 1, 'por symlink a sonda também tem de rodar, não sair com 0 em silêncio');
+    assert.equal(unconfigured.stderr, 'VITE_SUPABASE_URL ausente.\n');
+  }
 });

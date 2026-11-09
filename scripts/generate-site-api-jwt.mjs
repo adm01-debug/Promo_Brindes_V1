@@ -23,10 +23,36 @@ function signHs256(secret, headerAndPayload) {
   return base64url(createHmac('sha256', secret).update(headerAndPayload).digest());
 }
 
+const USAGE = [
+  'Uso: SITE_SUPABASE_JWT_SECRET=... [SITE_SUPABASE_JWT_TTL_DAYS=30] node scripts/generate-site-api-jwt.mjs',
+  '',
+  `Gera em stdout um JWT HS256 com role=${ROLE} para o projeto ${PROJECT_REF}; avisos vão para stderr.`,
+  '  SITE_SUPABASE_JWT_SECRET    Legacy JWT Secret do projeto (Settings > API > JWT Settings). Obrigatória.',
+  `  SITE_SUPABASE_JWT_TTL_DAYS  Validade em dias, inteiro de 1 a ${MAX_TTL_DAYS} (padrão ${DEFAULT_TTL_DAYS}).`,
+  'O script não aceita argumentos além de --help: tudo é configurado por variável de ambiente.',
+].join('\n');
+
+function looksLikeApiKey(secret) {
+  return /^sb_(secret|publishable)_/.test(secret) || /^eyJ[\w-]*\.[\w-]+\.[\w-]+$/.test(secret);
+}
+
 function main() {
+  const args = process.argv.slice(2);
+  if (args.length === 1 && (args[0] === '--help' || args[0] === '-h')) {
+    console.log(USAGE);
+    return;
+  }
+  if (args.length > 0) {
+    console.error(`Argumento não reconhecido: ${args[0]}\n\n${USAGE}`);
+    process.exit(1);
+  }
   const secret = process.env.SITE_SUPABASE_JWT_SECRET?.trim();
   if (!secret) {
     console.error('Defina SITE_SUPABASE_JWT_SECRET (Legacy JWT Secret do projeto) antes de rodar este script.');
+    process.exit(1);
+  }
+  if (looksLikeApiKey(secret)) {
+    console.error('SITE_SUPABASE_JWT_SECRET parece uma chave de API (anon/service_role/sb_*), não o Legacy JWT Secret: um token assinado com ela seria recusado pelo Supabase. Copie o valor de Settings > API > JWT Settings.');
     process.exit(1);
   }
   const ttlDays = Number(process.env.SITE_SUPABASE_JWT_TTL_DAYS?.trim() || DEFAULT_TTL_DAYS);

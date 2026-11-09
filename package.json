@@ -21,7 +21,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test --project=desktop-chromium --project=mobile-chromium",
     "test:e2e:cross-browser": "playwright test --project=desktop-firefox --project=desktop-webkit --workers=1",
-    "check": "npm run lint && npm run typecheck && npm run test && npm run agents:instructions:check && npm run test:agent-instructions && npm run test:migration-names && npm run test:error-catalog && npm run test:site-api-jwt && npm run test:timing-safe-secrets && npm run test:supabase-db-query && npm run test:ci-health && npm run test:release-url && npm run test:smoke-deployment && npm run test:stage-app-shell && npm run test:performance-budget && npm run test:catalog-contract && npm run test:inventario && npm run contexto:test && npm run build && npm run check:performance-budget && npm run test:e2e",
+    "check": "npm run lint && npm run typecheck && npm run test && npm run agents:instructions:check && npm run test:agent-instructions && npm run test:migration-names && npm run test:error-catalog && npm run test:site-api-jwt && npm run test:timing-safe-secrets && npm run test:supabase-db-query && npm run test:ci-health && npm run test:release-url && npm run test:smoke-deployment && npm run test:stage-app-shell && npm run test:performance-budget && npm run test:site-guard && npm run test:database-docs && npm run test:soak-queue && npm run test:shared-selection-sql && npm run test:catalog-contract && npm run test:inventario && npm run contexto:test && npm run build && npm run check:performance-budget && npm run test:e2e",
     "db:migration-names:check": "node scripts/validate-migration-names.mjs",
     "test:migration-names": "node --test tests/validate-migration-names.node.mjs",
     "db:site:error-catalog:check": "node scripts/validate-error-catalog.mjs",
@@ -34,6 +34,10 @@
     "test:smoke-deployment": "node --test tests/smoke-deployment.node.mjs",
     "test:stage-app-shell": "node --test tests/stage-app-shell.node.mjs",
     "test:performance-budget": "node --test tests/check-performance-budget.node.mjs",
+    "test:site-guard": "node --test tests/validate-site-supabase-target.node.mjs",
+    "test:database-docs": "node --test tests/generate-database-docs.node.mjs",
+    "test:soak-queue": "node --test tests/soak-test-notification-queue.node.mjs",
+    "test:shared-selection-sql": "node --test tests/verify-shared-selection-contract.node.mjs",
     "test:catalog-contract": "node --test tests/catalog-public-contract.node.mjs",
     "check:catalog-contract": "node scripts/check-catalog-public-contract.mjs",
     "agents:instructions:check": "node scripts/validate-agent-instructions.mjs",
@@ -76,7 +80,8 @@
     "contexto:test": "npm run contexto:ia:test && npm run contexto:regras:test && npm run contexto:banco:test",
     "inventario:banco": "node scripts/inventario/gerar-banco.mjs",
     "inventario:mudou": "node scripts/inventario/mudou-conteudo.mjs",
-    "test:inventario": "node --test tests/inventario-estado.node.mjs"
+    "test:inventario": "node --test tests/inventario-estado.node.mjs",
+    "test:inventario:banco-sql": "node --test tests/inventario-banco-sql.node.mjs"
   },
   "dependencies": {
     "@fontsource/inter": "^5.3.0",

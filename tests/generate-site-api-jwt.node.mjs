@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { createHmac } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -57,4 +57,78 @@ test('segredos diferentes produzem assinaturas diferentes para o mesmo payload (
   const [, , sigA] = outputA.split('.');
   const [, , sigB] = outputB.split('.');
   assert.notEqual(sigA, sigB);
+});
+
+function run(env = {}, args = []) {
+  const cleanEnv = { ...process.env };
+  delete cleanEnv.SITE_SUPABASE_JWT_SECRET;
+  delete cleanEnv.SITE_SUPABASE_JWT_TTL_DAYS;
+  return spawnSync(process.execPath, [SCRIPT, ...args], { env: { ...cleanEnv, ...env }, encoding: 'utf8' });
+}
+
+test('stdout contém somente o JWT; avisos e instruções vão para stderr e nunca repetem o segredo', () => {
+  const fakeSecret = 'fixture-secret-nao-e-uma-credencial-real-so-para-este-teste';
+  const result = run({ SITE_SUPABASE_JWT_SECRET: `  ${fakeSecret}\n` });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /^[\w-]+\.[\w-]+\.[\w-]+\n$/);
+  assert.match(result.stderr, /Token gerado para role=site_api, ref=xlzmclcjdncjfdrjxclt, TTL=30 dias, expira em \d{4}-\d{2}-\d{2}\./);
+  assert.doesNotMatch(result.stdout + result.stderr, new RegExp(fakeSecret));
+  const [headerAndPayload, signature] = [result.stdout.trim().split('.').slice(0, 2).join('.'), result.stdout.trim().split('.')[2]];
+  assert.equal(signature, createHmac('sha256', fakeSecret).update(headerAndPayload).digest('base64url'), 'espaços em volta do segredo são descartados antes de assinar');
+});
+
+test('segredo ausente, vazio ou só com espaços sai com código 1, sem token em stdout', () => {
+  for (const env of [{}, { SITE_SUPABASE_JWT_SECRET: '' }, { SITE_SUPABASE_JWT_SECRET: ' \t\n' }]) {
+    const result = run(env);
+    assert.equal(result.status, 1);
+    assert.equal(result.stdout, '');
+    assert.match(result.stderr, /Defina SITE_SUPABASE_JWT_SECRET/);
+  }
+});
+
+test('TTL fora do intervalo ou não inteiro sai com código 1; limites 1 e 90 são aceitos', () => {
+  const secret = { SITE_SUPABASE_JWT_SECRET: 'segredo-fixture-ttl' };
+  for (const ttl of ['0', '-1', '91', '1.5', 'abc', '7 dias', 'Infinity', 'NaN']) {
+    const result = run({ ...secret, SITE_SUPABASE_JWT_TTL_DAYS: ttl });
+    assert.equal(result.status, 1, `TTL=${ttl}`);
+    assert.equal(result.stdout, '', `TTL=${ttl}`);
+    assert.match(result.stderr, /SITE_SUPABASE_JWT_TTL_DAYS deve ser um inteiro entre 1 e 90/);
+  }
+  for (const [ttl, days] of [['1', 1], ['90', 90], [' 7 ', 7], ['', 30]]) {
+    const result = run({ ...secret, SITE_SUPABASE_JWT_TTL_DAYS: ttl });
+    assert.equal(result.status, 0, `TTL=${JSON.stringify(ttl)}: ${result.stderr}`);
+    const payload = JSON.parse(base64urlDecode(result.stdout.trim().split('.')[1]).toString('utf8'));
+    assert.equal(payload.exp - payload.iat, days * 24 * 60 * 60);
+    assert.ok(Math.abs(payload.iat - Date.now() / 1000) < 60, 'iat é o instante da geração');
+  }
+});
+
+test('recusa chave de API colada no lugar do Legacy JWT Secret, sem ecoar o valor', () => {
+  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
+  const payload = Buffer.from(JSON.stringify({ role: 'service_role' })).toString('base64url');
+  for (const wrong of [`${header}.${payload}.assinatura-fixture`, 'sb_secret_fixture-nao-e-credencial', 'sb_publishable_fixture']) {
+    const result = run({ SITE_SUPABASE_JWT_SECRET: wrong });
+    assert.equal(result.status, 1, wrong);
+    assert.equal(result.stdout, '');
+    assert.match(result.stderr, /parece uma chave de API/);
+    assert.doesNotMatch(result.stderr, /fixture/);
+  }
+});
+
+test('--help mostra o uso sem exigir segredo; argumento desconhecido é erro e não gera token', () => {
+  for (const flag of ['--help', '-h']) {
+    const help = run({}, [flag]);
+    assert.equal(help.status, 0);
+    assert.match(help.stdout, /^Uso: SITE_SUPABASE_JWT_SECRET=/);
+    assert.equal(help.stderr, '');
+  }
+  const unknown = run({ SITE_SUPABASE_JWT_SECRET: 'segredo-fixture-args' }, ['7']);
+  assert.equal(unknown.status, 1);
+  assert.equal(unknown.stdout, '');
+  assert.match(unknown.stderr, /^Argumento não reconhecido: 7\n/);
+});
+
+test('cada execução gera um jti novo', () => {
+  const jti = () => JSON.parse(base64urlDecode(run({ SITE_SUPABASE_JWT_SECRET: 'segredo-fixture-jti' }).stdout.trim().split('.')[1]).toString('utf8')).jti;
+  assert.notEqual(jti(), jti());
 });

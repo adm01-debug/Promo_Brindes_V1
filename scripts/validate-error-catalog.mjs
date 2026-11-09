@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync, readdirSync, realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
@@ -17,8 +17,10 @@ const CATALOG_FILE = path.join(ROOT, 'docs', 'DATABASE_FUNCTION_CONTRACTS.md');
 // Mesmos dois padrões documentados no cabeçalho do catálogo: mensagem literal
 // (`message = 'token'`) e mensagem via format() com um prefixo fixo em snake_case
 // antes do primeiro `:`/espaço/vírgula interpolado (`message = format('token...`).
-const LITERAL_MESSAGE_PATTERN = /message\s*=\s*'([a-z_]+)'/g;
-const FORMAT_MESSAGE_PATTERN = /message\s*=\s*format\('([a-z_]+)/g;
+// O token aceita dígitos: com `[a-z_]+` uma mensagem como `invalid_mod11_input` não
+// casava e ficava fora da conferência.
+const LITERAL_MESSAGE_PATTERN = /message\s*=\s*'([a-z0-9_]+)'/g;
+const FORMAT_MESSAGE_PATTERN = /message\s*=\s*format\('([a-z0-9_]+)/g;
 
 export function extractErrorMessagesFromSql(sql) {
   const messages = new Set();
@@ -35,22 +37,35 @@ export function findUndocumentedErrorMessages(
 ) {
   const catalog = readFile(catalogFile, 'utf8');
   const allMessages = new Set();
+  let migrationFiles = 0;
 
   for (const name of readDir(migrationsDir)) {
     if (!name.endsWith('.sql')) continue;
+    migrationFiles += 1;
     const sql = readFile(path.join(migrationsDir, name), 'utf8');
     for (const message of extractErrorMessagesFromSql(sql)) allMessages.add(message);
   }
+  if (migrationFiles === 0) {
+    throw new Error(`Nenhuma migration .sql encontrada em ${migrationsDir} — nada foi verificado.`);
+  }
 
+  // O token documentado termina onde o da migration termina: `invalid_token_format` no
+  // catálogo não documenta `invalid_token`. O sufixo livre (`: ...`) do format() continua aceito.
   const undocumented = [...allMessages]
-    .filter((message) => !catalog.includes(`\`${message}`))
+    .filter((message) => !new RegExp(`\`${message}(?![a-z0-9_])`).test(catalog))
     .sort();
 
   return undocumented;
 }
 
 function runCli() {
-  const undocumented = findUndocumentedErrorMessages();
+  let undocumented;
+  try {
+    undocumented = findUndocumentedErrorMessages();
+  } catch (error) {
+    console.error(`Catálogo de erros não verificado: ${error instanceof Error ? error.message : String(error)}`);
+    process.exit(1);
+  }
   if (undocumented.length > 0) {
     console.error('Mensagens de erro sem entrada no catálogo (docs/DATABASE_FUNCTION_CONTRACTS.md):');
     for (const message of undocumented) {
@@ -62,6 +77,16 @@ function runCli() {
   console.log('Catálogo de erros em docs/DATABASE_FUNCTION_CONTRACTS.md cobre todas as mensagens encontradas nas migrations.');
 }
 
-if (path.resolve(process.argv[1] ?? '') === fileURLToPath(import.meta.url)) {
+function isMainModule() {
+  // realpath: por um caminho com symlink, argv[1] difere de import.meta.url e o guard
+  // sairia com código 0 sem validar nada.
+  try {
+    return Boolean(process.argv[1]) && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url));
+  } catch {
+    return false;
+  }
+}
+
+if (isMainModule()) {
   runCli();
 }

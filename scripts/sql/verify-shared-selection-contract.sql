@@ -1,5 +1,8 @@
 -- Ensaio transacional: somente no banco isolado do site, após db:site:guard.
 -- Não envia mensagens, não usa PII e reverte link/rate limit ao terminar.
+-- Uso: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/sql/verify-shared-selection-contract.sql
+-- Sem ON_ERROR_STOP o psql sai com código 0 mesmo se o ensaio falhar; só vale como aprovado
+-- quando a linha shared_selection_roundtrip_and_revocation_verified = t aparece.
 begin;
 set local statement_timeout = '8s';
 set local lock_timeout = '2s';
