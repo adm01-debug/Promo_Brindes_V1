@@ -6,16 +6,29 @@ Introspecta um projeto Supabase (Postgres + Management API) e grava um retrato
 completo, determinístico e sem dados pessoais em Markdown/JSON/SQL, pensado
 para ser lido por agentes de IA antes de planejar ou executar tarefas.
 
+Uso:
+  python3 snapshot.py            coleta e grava em SNAPSHOT_DIR (configuração só por variáveis de ambiente)
+  python3 snapshot.py --help     mostra esta ajuda e sai sem conectar
+
+Códigos de saída: 0 = snapshot gravado (pode ser parcial: ver errors.md); 1 = banco inacessível,
+nenhuma seção coletada ou outra coleta gravando na mesma pasta (nada é sobrescrito);
+2 = configuração inválida (nada é coletado).
+
 Garantias:
-  * Somente leitura no banco (sessão read-only, statement_timeout, lock_timeout).
-  * Nunca grava linhas de tabelas, valores de segredos, chaves, senhas ou DSN.
+  * Somente leitura no banco: cada seção roda em uma transação READ ONLY própria, com
+    statement_timeout, lock_timeout e row_security = off locais à transação (SET LOCAL). Nada fica
+    na sessão, então vale também em pooler transaction mode e não vaza para outras conexões.
+  * Nunca grava linhas de tabelas, valores de segredos, chaves, senhas ou DSN — nem em log,
+    mensagem de erro ou traceback.
   * Saída estrutural determinística (ordenada, sem timestamps, sem métricas
     voláteis) -> o git só registra commit quando algo REAL mudou.
     Métricas voláteis (linhas, bytes, scans, contagens, execuções de cron,
     saúde) ficam separadas em stats.md / stats.json / cron-runs.md.
   * Cada seção é isolada: falha em uma não derruba as outras. Uma seção que
     falhou é carregada da coleta anterior (com aviso), nunca registrada como
-    "tudo removido" no CHANGELOG.
+    "tudo removido" no CHANGELOG. Sem coleta anterior, a seção sai marcada como
+    NÃO VERIFICADO — nunca como "não existe".
+  * RLS nunca filtra a coleta em silêncio: sem BYPASSRLS a seção falha (errors.md).
   * CHANGELOG.md recebe um diff semântico por categoria a cada mudança.
 
 Variáveis de ambiente:
@@ -23,6 +36,8 @@ Variáveis de ambiente:
   SUPABASE_PROJECT_REF       (opcional)   ref do projeto -> habilita Management API
   SUPABASE_ACCESS_TOKEN      (opcional)   personal access token da Management API
   SNAPSHOT_DIR               (default docs/supabase)
+  SNAPSHOT_EXPECTED_REF      (opcional)   ref que a conexão DEVE usar; outro projeto ou ref não identificável aborta (exit 2)
+  SNAPSHOT_FORBIDDEN_REFS    (opcional)   refs proibidos, separados por vírgula; se a conexão citar um deles aborta (exit 2)
   SNAPSHOT_EXCLUDE_SCHEMAS   schemas extras a ignorar, separados por vírgula
   SNAPSHOT_INCLUDE_SCHEMAS   schemas internos do Supabase a FORÇAR inclusão (ex.: "graphql_public")
   PGDUMP_SCHEMAS             (default "public") schemas do pg_dump --schema-only
@@ -47,12 +62,22 @@ import shutil
 import subprocess
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 from decimal import Decimal
 from typing import Any, Callable
 
-import psycopg
-from psycopg.rows import dict_row
+try:
+    import fcntl
+except ImportError:  # Windows: sem trava de pasta, o resto funciona igual
+    fcntl = None  # type: ignore[assignment]
+
+try:
+    import psycopg
+    from psycopg.rows import dict_row
+except ModuleNotFoundError:  # --help e o aviso de instalação não podem depender do driver
+    psycopg = None  # type: ignore[assignment]
+    dict_row = None
 
 # --------------------------------------------------------------------------- #
 # Config
@@ -79,6 +104,8 @@ def env_int(name: str, default: int, minimum: int) -> int:
 DB_URL = os.environ.get("SUPABASE_DB_URL", "").strip()
 PROJECT_REF = os.environ.get("SUPABASE_PROJECT_REF", "").strip()
 ACCESS_TOKEN = os.environ.get("SUPABASE_ACCESS_TOKEN", "").strip()
+EXPECTED_REF = os.environ.get("SNAPSHOT_EXPECTED_REF", "").strip()
+FORBIDDEN_REFS = {r.strip() for r in os.environ.get("SNAPSHOT_FORBIDDEN_REFS", "").split(",") if r.strip()}
 OUT = pathlib.Path(os.environ.get("SNAPSHOT_DIR", "docs/supabase")).resolve()
 PGDUMP_SCHEMAS = [s.strip() for s in os.environ.get("PGDUMP_SCHEMAS", "public").split(",") if s.strip()]
 GEN_TYPES = os.environ.get("GEN_TYPES", "true").lower() in ("1", "true", "yes")
@@ -175,11 +202,133 @@ def prepare_output_directory() -> None:
     else:
         OUT.mkdir(parents=True)
 
+    lock_output_directory()
     (OUT / OUTPUT_MARKER).write_text(OUTPUT_MARKER_CONTENT, encoding="utf-8")
 
 
+_OUTPUT_LOCK: Any = None
+
+
+def lock_output_directory() -> None:
+    """Uma coleta por pasta: a segunda sai na hora em vez de apagar o que a primeira está gravando."""
+    global _OUTPUT_LOCK
+    if fcntl is None:
+        return
+    handle = open(OUT / OUTPUT_MARKER, "a", encoding="utf-8")  # noqa: SIM115 — fica aberto até o fim da coleta
+    try:
+        fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        handle.close()
+        raise RuntimeError(f"Outra coleta está gravando em {OUT}. Nada foi alterado.") from None
+    except OSError:
+        pass  # sistema de arquivos sem flock: segue sem trava
+    _OUTPUT_LOCK = handle
+
+
+def release_output_lock() -> None:
+    global _OUTPUT_LOCK
+    if _OUTPUT_LOCK is not None:
+        _OUTPUT_LOCK.close()
+        _OUTPUT_LOCK = None
+
+
+PERCENT_HINT = ("Na senha, codifique os caracteres especiais: @ → %40, : → %3A, / → %2F, ? → %3F, "
+                "# → %23, espaço → %20, % → %25.")
+_KV_PAIR = r"""([A-Za-z_][A-Za-z0-9_]*)\s*=\s*('(?:[^'\\]|\\.)*'|(?:[^\s'\\]|\\.)+)"""
+
+
+def dsn_problem(dsn: str) -> str | None:
+    """Valida a forma da connection string sem entregá-la ao driver.
+
+    As mensagens de erro do libpq/psycopg para DSN malformada citam pedaços do texto recebido
+    (inclusive da senha); por isso uma DSN ambígua é recusada aqui, sem ecoar nada do valor.
+    """
+    if re.search(r"[\x00-\x1f\x7f]", dsn):
+        return "contém quebra de linha ou caractere de controle"
+    if re.match(r"postgres(?:ql)?://", dsn):  # como o libpq: só em minúsculas
+        if re.search(r"\s", dsn):
+            return "a URI contém espaço. " + PERCENT_HINT
+        if re.search(r"%(?![0-9A-Fa-f]{2})|%00", dsn):
+            return "a URI contém '%' fora de uma sequência %XX válida. " + PERCENT_HINT
+        rest = dsn.split("://", 1)[1]
+        authority = re.split(r"[/?]", rest, maxsplit=1)[0]
+        tail = rest[len(authority):]
+        if authority.count("@") > 1 or "@" in tail:
+            return "a URI é ambígua: há '@', '/' ou '?' sem codificação no usuário/senha. " + PERCENT_HINT
+        for hostspec in authority.rsplit("@", 1)[-1].split(","):
+            if not re.fullmatch(r"(?:\[[^\]]*\]|[^:\[\]]*)(?::\d{0,5})?", hostspec):
+                return "host/porta inválidos (provável ':' sem codificação na senha). " + PERCENT_HINT
+        query = tail.split("?", 1)[1] if "?" in tail else ""
+        if any(part.count("=") != 1 for part in query.split("&") if part):
+            return "parâmetros após '?' devem ter a forma chave=valor"
+        return None
+    if re.fullmatch(rf"\s*(?:{_KV_PAIR}\s*)+", dsn):
+        return None
+    return "não é uma URI postgresql://… nem uma lista de pares chave=valor"
+
+
+def dsn_parts(dsn: str) -> dict[str, Any]:
+    """Usuário, senha e hosts de uma DSN já validada por dsn_problem (mesma regra de corte do libpq)."""
+    if re.match(r"postgres(?:ql)?://", dsn):
+        authority = re.split(r"[/?]", dsn.split("://", 1)[1], maxsplit=1)[0]
+        userinfo, _, hosts = authority.rpartition("@")
+        user, _, password = userinfo.partition(":")
+        query = dsn.split("?", 1)[1] if "?" in dsn else ""
+        return {"user": urllib.parse.unquote(user), "password": password,
+                "hosts": [urllib.parse.unquote(re.sub(r":\d*$", "", h)).strip("[]") for h in hosts.split(",")],
+                "options": urllib.parse.unquote(next((p.split("=", 1)[1] for p in query.split("&") if p.startswith("options=")), ""))}
+    pairs = {k: (v[1:-1] if v.startswith("'") else v).replace("\\'", "'").replace("\\\\", "\\")
+             for k, v in re.findall(_KV_PAIR, dsn)}
+    return {"user": pairs.get("user", ""), "password": pairs.get("password", ""),
+            "hosts": [h for h in pairs.get("host", "").split(",") if h], "options": pairs.get("options", "")}
+
+
+def detect_project_ref(dsn: str) -> str:
+    """Ref do projeto Supabase citado na conexão (pooler `postgres.<ref>`, `db.<ref>.supabase.co` ou options=reference)."""
+    parts = dsn_parts(dsn)
+    candidates = [re.fullmatch(r"[^.]+\.([a-z0-9]{20})", parts["user"]),
+                  re.search(r"(?:^|[\s,])reference=([a-z0-9]{20})(?:$|[\s,])", parts["options"])]
+    candidates += [re.fullmatch(r"(?:db\.)?([a-z0-9]{20})\.supabase\.[a-z]+", host) for host in parts["hosts"]]
+    return next((m.group(1) for m in candidates if m), "")
+
+
+def target_problem() -> str | None:
+    """Falha fechada quando a conexão aponta (ou pode apontar) para o projeto errado."""
+    ref = detect_project_ref(DB_URL)
+    cited = urllib.parse.unquote(DB_URL).lower()
+    for forbidden in sorted(FORBIDDEN_REFS):
+        if forbidden.lower() in cited or forbidden in (PROJECT_REF, EXPECTED_REF):
+            return f"BLOQUEADO: a configuração cita o projeto {forbidden}, listado em SNAPSHOT_FORBIDDEN_REFS."
+    if EXPECTED_REF and ref != EXPECTED_REF:
+        found = (f"aponta para {ref}" if ref else
+                 "não identifica o projeto (use o pooler `postgres.<ref>@…` ou o host `db.<ref>.supabase.co`)")
+        return f"BLOQUEADO: SNAPSHOT_EXPECTED_REF={EXPECTED_REF}, mas a conexão {found}."
+    if PROJECT_REF and ((ref and ref != PROJECT_REF) or (EXPECTED_REF and EXPECTED_REF != PROJECT_REF)):
+        return (f"BLOQUEADO: SUPABASE_PROJECT_REF={PROJECT_REF} não corresponde ao projeto da conexão "
+                f"({ref or EXPECTED_REF}).")
+    return None
+
+
+def secret_literals() -> list[str]:
+    """Valores que nunca podem aparecer em log, arquivo ou mensagem de erro."""
+    literals = {DB_URL, ACCESS_TOKEN}
+    if DB_URL and dsn_problem(DB_URL) is None:
+        # A senha também pode vir como parâmetro da URI (?password=…).
+        for password in (dsn_parts(DB_URL)["password"], *re.findall(r"[?&]password=([^&]*)", DB_URL)):
+            literals |= {password, urllib.parse.unquote(password)}
+    return sorted((value for value in literals if len(value) >= 4), key=len, reverse=True)
+
+
+def sanitize(text: str) -> str:
+    """Remove a DSN, a senha (crua e decodificada) e o token antes de qualquer saída; depois aplica o scrub."""
+    for literal in secret_literals():
+        text = text.replace(literal, "[REDACTED]")
+    return scrub(text)
+
+
 def record_error(section: str, err: Exception | str) -> None:
-    text = str(err).strip().splitlines()[0] if str(err).strip() else repr(err)
+    # Exceções de driver e de subprocess carregam a linha de comando/DSN na mensagem.
+    text = sanitize(str(err).strip().splitlines()[0] if str(err).strip() else repr(err))
     ERRORS.append({"section": section, "error": text[:500]})
     log(f"ERRO em {section}: {text[:300]}")
 
@@ -272,7 +421,13 @@ def uslug(text: str, scope: str = "") -> str:
 
 def write(path: pathlib.Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content if content.endswith("\n") else content + "\n", encoding="utf-8")
+    # Troca atômica: uma interrupção nunca deixa arquivo truncado (snapshot.json é a base da próxima coleta).
+    temporary = path.with_name(f".{path.name}.tmp-{os.getpid()}")
+    try:
+        temporary.write_text(content if content.endswith("\n") else content + "\n", encoding="utf-8")
+        os.replace(temporary, path)
+    finally:
+        temporary.unlink(missing_ok=True)
 
 
 def redact(obj: Any) -> Any:
@@ -304,19 +459,23 @@ def group(rows, keyfn):
 SCRUB_RULES: list[tuple[re.Pattern, str]] = [
     # JWT (3 partes) — anon/service_role keys do Supabase
     (re.compile(r"eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{5,}"), "[REDACTED_JWT]"),
-    # chaves novas do Supabase
-    (re.compile(r"sb_(?:secret|publishable)_[A-Za-z0-9_-]{8,}"), "[REDACTED_KEY]"),
+    # chaves novas do Supabase e personal access token da Management API
+    (re.compile(r"sb_(?:secret|publishable)_[A-Za-z0-9_-]{8,}|\bsbp_[A-Za-z0-9]{32,}"), "[REDACTED_KEY]"),
     # Authorization: Bearer <token>  /  apikey: <token>
     (re.compile(r"(?i)(bearer\s+)[A-Za-z0-9._~+/=-]{16,}"), r"\1[REDACTED]"),
     # valor precisa parecer token: >= 16 chars, sem espaço, com pelo menos um dígito (evita redigir prosa)
     (re.compile(r"""(?i)((?:apikey|api_key|x-api-key|authorization|token|secret|password|passwd|service_role_key|anon_key)\s*["']?\s*[:=]\s*["']?)(?=[^"'\s,;)}]*\d)[^"'\s,;)}]{16,}"""), r"\1[REDACTED]"),
     # PASSWORD 'x' em DDL de role
     (re.compile(r"(?i)(password\s+)'[^']*'"), r"\1'[REDACTED]'"),
-    # DSN com senha
-    (re.compile(r"(\w+://[^/\s:@]+:)[^@\s]+(@)"), r"\1[REDACTED]\2"),
+    # DSN com senha: vai até o último '@' da autoridade (senha pode conter '@') e não deixa `usuario:x@`,
+    # forma que o guard de segredos do workflow interpretaria como credencial e abortaria a publicação.
+    (re.compile(r"(\w+://)[^/\s:@]+:[^/\s]*@"), r"\1[REDACTED]@"),
     # chaves de provedores comuns
     (re.compile(r"\b(?:sk-[A-Za-z0-9_-]{20,}|sk_live_[A-Za-z0-9]{10,}|sk_test_[A-Za-z0-9]{10,}|ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|AKIA[0-9A-Z]{16}|xox[baprs]-[A-Za-z0-9-]{10,})\b"), "[REDACTED_KEY]"),
 ]
+
+
+PERSONAL_DATA_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+|(?<!\d)\d{10,}(?!\d)")
 
 
 def scrub(text: str) -> str:
@@ -354,12 +513,23 @@ def has_table(conn, schema: str, table: str) -> bool:
                         "WHERE n.nspname = %s AND c.relname = %s", (schema, table)))
 
 
+# Limites locais à transação: valem em pooler transaction mode (a transação inteira usa um único backend) e
+# não sobrevivem ao COMMIT, então nunca contaminam a conexão que o pooler devolve à aplicação.
+# row_security = off transforma o filtro silencioso do RLS em erro: sem BYPASSRLS a seção falha em vez de
+# publicar "zero linhas" (cron.job, storage.buckets, auth.users têm RLS no Supabase).
+# O SELECT final fixa o primeiro snapshot: depois dele o Postgres recusa voltar a transação para READ WRITE.
+TX_GUARD = ("SET TRANSACTION READ ONLY; SET LOCAL statement_timeout = '90s'; "
+            "SET LOCAL lock_timeout = '5s'; SET LOCAL row_security = off; SELECT 1")
+
+
 def section(name: str, volatile: bool = False):
     """Isola falhas por seção. volatile=True -> vai para stats.*, fora do snapshot estrutural."""
     def deco(fn):
         def wrapper(conn):
             try:
-                data = fn(conn)
+                with conn.transaction():
+                    conn.execute(TX_GUARD)
+                    data = fn(conn)
                 log(f"{name}: ok ({len(data) if hasattr(data, '__len__') else 1})")
                 return data
             except Exception as e:  # noqa: BLE001
@@ -377,9 +547,11 @@ def section(name: str, volatile: bool = False):
 
 @section("server")
 def get_server(conn):
+    # reset_val = valor fora desta transação (aqui statement_timeout é o limite da própria coleta);
+    # lower(): o parâmetro se chama "TimeZone" no catálogo.
     rows = q(conn, """
-        SELECT name, setting FROM pg_settings
-        WHERE name IN ('server_version','max_connections','timezone','statement_timeout','idle_in_transaction_session_timeout',
+        SELECT lower(name) AS name, reset_val AS setting FROM pg_settings
+        WHERE lower(name) IN ('server_version','max_connections','timezone','statement_timeout','idle_in_transaction_session_timeout',
                        'shared_buffers','work_mem','maintenance_work_mem','max_wal_size','log_min_duration_statement',
                        'default_transaction_isolation','wal_level','max_worker_processes','max_parallel_workers')
         ORDER BY name""")
@@ -444,9 +616,11 @@ def get_constraints(conn):
                CASE con.contype WHEN 'p' THEN 'PRIMARY KEY' WHEN 'f' THEN 'FOREIGN KEY' WHEN 'u' THEN 'UNIQUE'
                     WHEN 'c' THEN 'CHECK' WHEN 'x' THEN 'EXCLUDE' ELSE con.contype::text END AS type,
                pg_get_constraintdef(con.oid, true) AS definition,
-               ARRAY(SELECT a.attname FROM unnest(con.conkey) k JOIN pg_attribute a ON a.attrelid = con.conrelid AND a.attnum = k) AS columns,
+               ARRAY(SELECT a.attname FROM unnest(con.conkey) WITH ORDINALITY k(attnum, ord)
+                     JOIN pg_attribute a ON a.attrelid = con.conrelid AND a.attnum = k.attnum ORDER BY k.ord) AS columns,
                fn.nspname AS ref_schema, fc.relname AS ref_table,
-               ARRAY(SELECT a.attname FROM unnest(con.confkey) k JOIN pg_attribute a ON a.attrelid = con.confrelid AND a.attnum = k) AS ref_columns,
+               ARRAY(SELECT a.attname FROM unnest(con.confkey) WITH ORDINALITY k(attnum, ord)
+                     JOIN pg_attribute a ON a.attrelid = con.confrelid AND a.attnum = k.attnum ORDER BY k.ord) AS ref_columns,
                CASE con.confdeltype WHEN 'a' THEN 'NO ACTION' WHEN 'r' THEN 'RESTRICT' WHEN 'c' THEN 'CASCADE'
                     WHEN 'n' THEN 'SET NULL' WHEN 'd' THEN 'SET DEFAULT' END AS on_delete,
                CASE con.confupdtype WHEN 'a' THEN 'NO ACTION' WHEN 'r' THEN 'RESTRICT' WHEN 'c' THEN 'CASCADE'
@@ -565,7 +739,7 @@ def get_types(conn):
     domains = q(conn, f"""
         SELECT n.nspname AS schema, t.typname AS name, 'domain' AS kind, NULL AS values,
                format_type(t.typbasetype, t.typtypmod)
-                 || COALESCE(' ' || (SELECT string_agg(pg_get_constraintdef(c.oid), ' ') FROM pg_constraint c WHERE c.contypid = t.oid), '') AS definition
+                 || COALESCE(' ' || (SELECT string_agg(pg_get_constraintdef(c.oid), ' ' ORDER BY c.conname) FROM pg_constraint c WHERE c.contypid = t.oid), '') AS definition
         FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace
         WHERE t.typtype = 'd' AND {excluded_sql()}""")
     composites = q(conn, f"""
@@ -602,20 +776,29 @@ def get_sequences(conn):
 @section("grants")
 def get_grants(conn):
     sys_roles = ", ".join("'" + r + "'" for r in sorted(SYSTEM_ROLES))
+    # ACL direto do catálogo: information_schema.role_table_grants/column_privileges só mostram grants em que o
+    # usuário da conexão é grantor/grantee — um role de leitura publicaria "nenhum grant" sem erro algum.
+    table_privileges = "'DELETE','INSERT','REFERENCES','SELECT','TRIGGER','TRUNCATE','UPDATE'"
     tables = q(conn, f"""
-        SELECT table_schema AS schema, table_name AS "table", grantee,
-               string_agg(privilege_type, ', ' ORDER BY privilege_type) AS privileges
-        FROM information_schema.role_table_grants
-        WHERE grantee NOT IN ({sys_roles}) AND ({excluded_sql('table_schema')} OR table_schema IN ('storage'))
+        SELECT schema, "table", grantee, string_agg(DISTINCT privilege_type, ', ' ORDER BY privilege_type) AS privileges
+        FROM (SELECT n.nspname AS schema, c.relname AS "table", a.privilege_type,
+                     CASE WHEN a.grantee = 0 THEN 'PUBLIC' ELSE pg_get_userbyid(a.grantee) END AS grantee
+              FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+              CROSS JOIN LATERAL aclexplode(COALESCE(c.relacl, acldefault('r', c.relowner))) a
+              WHERE c.relkind IN ('r','v','f','p') AND a.privilege_type IN ({table_privileges})
+                AND ({excluded_sql()} OR n.nspname IN ('storage'))) g
+        WHERE grantee NOT IN ({sys_roles})
         GROUP BY 1, 2, 3 ORDER BY 1, 2, 3""")
     columns = q(conn, f"""
-        SELECT table_schema AS schema, table_name AS "table", column_name AS "column", grantee,
-               string_agg(privilege_type, ', ' ORDER BY privilege_type) AS privileges
-        FROM information_schema.column_privileges cp
-        WHERE grantee NOT IN ({sys_roles}) AND {excluded_sql('table_schema')}
-          AND NOT EXISTS (SELECT 1 FROM information_schema.role_table_grants g
-                          WHERE g.table_schema = cp.table_schema AND g.table_name = cp.table_name
-                            AND g.grantee = cp.grantee AND g.privilege_type = cp.privilege_type)
+        SELECT schema, "table", "column", grantee, string_agg(DISTINCT privilege_type, ', ' ORDER BY privilege_type) AS privileges
+        FROM (SELECT n.nspname AS schema, c.relname AS "table", at.attname AS "column", a.privilege_type,
+                     CASE WHEN a.grantee = 0 THEN 'PUBLIC' ELSE pg_get_userbyid(a.grantee) END AS grantee
+              FROM pg_attribute at JOIN pg_class c ON c.oid = at.attrelid JOIN pg_namespace n ON n.oid = c.relnamespace
+              CROSS JOIN LATERAL aclexplode(at.attacl) a
+              WHERE at.attnum > 0 AND NOT at.attisdropped AND c.relkind IN ('r','v','f','p') AND {excluded_sql()}
+                AND NOT EXISTS (SELECT 1 FROM aclexplode(COALESCE(c.relacl, acldefault('r', c.relowner))) t
+                                WHERE t.grantee = a.grantee AND t.privilege_type = a.privilege_type)) g
+        WHERE grantee NOT IN ({sys_roles})
         GROUP BY 1, 2, 3, 4 ORDER BY 1, 2, 3, 4""")
     sequences = q(conn, f"""
         SELECT n.nspname AS schema, c.relname AS sequence, r.rolname AS grantee,
@@ -667,12 +850,17 @@ def get_cron(conn):
 def get_cron_runs(conn):
     if not has_ext(conn, "pg_cron"):
         return []
-    return q(conn, """
+    runs = q(conn, """
         SELECT jobid, runid, status, start_time, end_time,
                EXTRACT(EPOCH FROM (end_time - start_time))::numeric(10,2) AS seconds, left(return_message, 300) AS return_message
         FROM (SELECT *, row_number() OVER (PARTITION BY jobid ORDER BY start_time DESC) AS rn
                 FROM cron.job_run_details WHERE start_time > now() - interval '7 days') t
         WHERE rn <= %s ORDER BY jobid, start_time DESC""", (CRON_RUNS_PER_JOB,))
+    for run in runs:
+        # Mensagem de erro de job é texto livre e pode citar o valor da linha que falhou (e-mail, telefone, CPF).
+        if run.get("return_message"):
+            run["return_message"] = PERSONAL_DATA_RE.sub("[REDACTED_PII]", run["return_message"])
+    return runs
 
 
 @section("queues")
@@ -750,7 +938,8 @@ def get_lints(conn):
                     "detail": "Sem chave primária: Realtime/replicação e updates por linha ficam frágeis."})
     for r in q(conn, f"""
         SELECT n.nspname AS schema, c.relname AS "table", con.conname,
-               ARRAY(SELECT a.attname FROM unnest(con.conkey) k JOIN pg_attribute a ON a.attrelid = con.conrelid AND a.attnum = k) AS cols
+               ARRAY(SELECT a.attname FROM unnest(con.conkey) WITH ORDINALITY k(attnum, ord)
+                     JOIN pg_attribute a ON a.attrelid = con.conrelid AND a.attnum = k.attnum ORDER BY k.ord) AS cols
         FROM pg_constraint con JOIN pg_class c ON c.oid = con.conrelid JOIN pg_namespace n ON n.oid = c.relnamespace
         WHERE con.contype = 'f' AND {excluded_sql()}
           AND NOT EXISTS (SELECT 1 FROM pg_index ix WHERE ix.indrelid = con.conrelid
@@ -837,47 +1026,55 @@ def get_db_stats(conn):
         SELECT n.nspname AS schema, sum(pg_total_relation_size(c.oid)) AS bytes
         FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
         WHERE c.relkind IN ('r','p','m') AND {excluded_sql()} GROUP BY 1 ORDER BY 2 DESC""")
-    out["storage"] = q(conn, """
-        SELECT bucket_id, count(*) AS objects, COALESCE(sum((metadata->>'size')::bigint), 0) AS bytes
-        FROM storage.objects GROUP BY 1 ORDER BY 1""")
-    # Role sem SELECT em auth.* (ex.: role de leitura do workflow) nao pode derrubar a secao inteira:
+    # Role sem SELECT em storage.*/auth.* (ex.: role de leitura do workflow) nao pode derrubar a secao inteira:
     # em producao isso apagava tamanho do banco, conexoes, storage e filas de stats.md.
+    # Cada bloco opcional roda em savepoint: o erro dele nao aborta a transacao da secao.
     try:
-        out["auth"] = {
-            "users_total": q(conn, "SELECT count(*) AS c FROM auth.users")[0]["c"],
-            "users_confirmed": q(conn, "SELECT count(*) AS c FROM auth.users WHERE email_confirmed_at IS NOT NULL OR phone_confirmed_at IS NOT NULL")[0]["c"],
-            "users_last_30d": q(conn, "SELECT count(*) AS c FROM auth.users WHERE created_at > now() - interval '30 days'")[0]["c"],
-            "identities_by_provider": q(conn, "SELECT provider, count(*) AS users FROM auth.identities GROUP BY 1 ORDER BY 1"),
-            "mfa_factors": q(conn, "SELECT factor_type, status, count(*) AS total FROM auth.mfa_factors GROUP BY 1, 2 ORDER BY 1, 2"),
-        }
+        with conn.transaction():
+            out["storage"] = q(conn, """
+                SELECT bucket_id, count(*) AS objects, COALESCE(sum((metadata->>'size')::bigint), 0) AS bytes
+                FROM storage.objects GROUP BY 1 ORDER BY 1""")
+    except Exception as e:  # noqa: BLE001
+        record_error("db_stats.storage", e)
+        out["storage"] = []
+    try:
+        with conn.transaction():
+            out["auth"] = {
+                "users_total": q(conn, "SELECT count(*) AS c FROM auth.users")[0]["c"],
+                "users_confirmed": q(conn, "SELECT count(*) AS c FROM auth.users WHERE email_confirmed_at IS NOT NULL OR phone_confirmed_at IS NOT NULL")[0]["c"],
+                "users_last_30d": q(conn, "SELECT count(*) AS c FROM auth.users WHERE created_at > now() - interval '30 days'")[0]["c"],
+                "identities_by_provider": q(conn, "SELECT provider, count(*) AS users FROM auth.identities GROUP BY 1 ORDER BY 1"),
+                "mfa_factors": q(conn, "SELECT factor_type, status, count(*) AS total FROM auth.mfa_factors GROUP BY 1, 2 ORDER BY 1, 2"),
+            }
     except Exception as e:  # noqa: BLE001
         record_error("db_stats.auth", e)
         out["auth"] = {}
     out["queues"] = q(conn, "SELECT queue_name, queue_length, newest_msg_age_sec, oldest_msg_age_sec, total_messages FROM pgmq.metrics_all() ORDER BY 1") if has_ext(conn, "pgmq") else []
     if STAT_STATEMENTS_TOP > 0:
         try:
-            extension = q(conn, """
-                SELECT n.nspname AS schema FROM pg_catalog.pg_extension e
-                JOIN pg_catalog.pg_namespace n ON n.oid = e.extnamespace
-                WHERE e.extname = 'pg_stat_statements'""")
-            if extension:
-                # A extensão pode estar fora do search_path. Delimitar/escapar o
-                # identificador preserva schemas com aspas, espaços ou palavras SQL.
-                schema = '"' + extension[0]["schema"].replace('"', '""') + '"'
-                # TOP já é int na configuração. Sem binds, '%' no identificador
-                # não é interpretado pelo psycopg como placeholder.
-                top_queries = q(conn, f"""
-                    SELECT r.rolname AS role, calls, round(total_exec_time::numeric, 0) AS total_ms, round(mean_exec_time::numeric, 2) AS mean_ms,
-                           rows, left(regexp_replace(query, '\\s+', ' ', 'g'), 220) AS query
-                    FROM {schema}.pg_stat_statements s JOIN pg_roles r ON r.oid = s.userid
-                    WHERE s.dbid = (SELECT oid FROM pg_database WHERE datname = current_database())
-                      AND r.rolname NOT IN ('supabase_admin','supabase_auth_admin','supabase_storage_admin','supabase_replication_admin')
-                      AND query NOT ILIKE '%pg_stat_statements%'
-                      AND query ~* '^\\s*(select|with|insert|update|delete|merge)\\y'   -- utilitários (CREATE ROLE ... PASSWORD) não são normalizados
-                    ORDER BY total_exec_time DESC LIMIT {STAT_STATEMENTS_TOP}""")
-                for row in top_queries:
-                    row["query"] = re.sub(r"'(?:[^']|'')*'", "'?'", row["query"])  # literais que escaparam da normalização
-                out["top_queries"] = top_queries
+            with conn.transaction():
+                extension = q(conn, """
+                    SELECT n.nspname AS schema FROM pg_catalog.pg_extension e
+                    JOIN pg_catalog.pg_namespace n ON n.oid = e.extnamespace
+                    WHERE e.extname = 'pg_stat_statements'""")
+                if extension:
+                    # A extensão pode estar fora do search_path. Delimitar/escapar o
+                    # identificador preserva schemas com aspas, espaços ou palavras SQL.
+                    schema = '"' + extension[0]["schema"].replace('"', '""') + '"'
+                    # TOP já é int na configuração. Sem binds, '%' no identificador
+                    # não é interpretado pelo psycopg como placeholder.
+                    top_queries = q(conn, f"""
+                        SELECT r.rolname AS role, calls, round(total_exec_time::numeric, 0) AS total_ms, round(mean_exec_time::numeric, 2) AS mean_ms,
+                               rows, left(regexp_replace(query, '\\s+', ' ', 'g'), 220) AS query
+                        FROM {schema}.pg_stat_statements s JOIN pg_roles r ON r.oid = s.userid
+                        WHERE s.dbid = (SELECT oid FROM pg_database WHERE datname = current_database())
+                          AND r.rolname NOT IN ('supabase_admin','supabase_auth_admin','supabase_storage_admin','supabase_replication_admin')
+                          AND query NOT ILIKE '%pg_stat_statements%'
+                          AND query ~* '^\\s*(select|with|insert|update|delete|merge)\\y'   -- utilitários (CREATE ROLE ... PASSWORD) não são normalizados
+                        ORDER BY total_exec_time DESC LIMIT {STAT_STATEMENTS_TOP}""")
+                    for row in top_queries:
+                        row["query"] = re.sub(r"'(?:[^']|'')*'", "'?'", row["query"])  # literais que escaparam da normalização
+                    out["top_queries"] = top_queries
         except Exception as e:  # noqa: BLE001
             record_error("db_stats.top_queries", e)
     return out
@@ -897,9 +1094,10 @@ def introspect_db(previous_db: dict | None) -> tuple[dict[str, Any], dict[str, A
     # prepare_threshold=None: compatível com pooler em transaction mode (sem prepared statements).
     with psycopg.connect(DB_URL, connect_timeout=30, application_name="supabase-snapshot",
                          prepare_threshold=None, autocommit=True) as conn:
-        conn.execute("SET default_transaction_read_only = on")
-        conn.execute("SET statement_timeout = '90s'")
-        conn.execute("SET lock_timeout = '5s'")
+        # Sem SET de sessão: em pooler transaction mode ele não acompanha as consultas seguintes e ficaria
+        # na conexão devolvida à aplicação. O driver abre cada transação como BEGIN READ ONLY e a seção
+        # repete a garantia com TX_GUARD.
+        conn.read_only = True
         for fn in DB_SECTIONS:
             data = fn(conn)
             if getattr(fn, "volatile", False):
@@ -924,7 +1122,8 @@ def api(path: str) -> Any:
         return json.loads(body.decode("utf-8")) if body else None
 
 
-def api_section(name: str, path: str, transform=lambda x: x, optional: bool = False):
+def api_section(name: str, path: str, transform=lambda x: x, optional: bool = False, previous: Any = None):
+    """previous = valor da coleta anterior: uma falha (rede, 401, 5xx) o reaproveita em vez de registrar remoção."""
     try:
         data = transform(api(path))
         log(f"api {name}: ok")
@@ -936,7 +1135,10 @@ def api_section(name: str, path: str, transform=lambda x: x, optional: bool = Fa
         record_error(f"api.{name}", f"HTTP {e.code} em {path}")
     except Exception as e:  # noqa: BLE001
         record_error(f"api.{name}", e)
-    return None
+    if previous is not None:
+        CARRIED.append(f"api.{name}")
+        log(f"api {name}: reaproveitado da coleta anterior")
+    return previous
 
 
 def introspect_api(previous_api: dict | None) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -947,25 +1149,28 @@ def introspect_api(previous_api: dict | None) -> tuple[dict[str, Any], dict[str,
     ref = PROJECT_REF
     out: dict[str, Any] = {"enabled": True, "ref": ref, "url": f"https://{ref}.supabase.co"}
     stats: dict[str, Any] = {}
+    # Só reaproveita a coleta anterior do mesmo projeto.
+    old = previous_api if isinstance(previous_api, dict) and previous_api.get("ref") == ref else {}
 
     def keep(d, keys):
         return {k: d.get(k) for k in keys} if isinstance(d, dict) else d
 
-    out["project"] = api_section("project", f"/projects/{ref}", lambda p: keep(p, ("id", "name", "region", "status", "created_at", "organization_id")))
+    out["project"] = api_section("project", f"/projects/{ref}", lambda p: keep(p, ("id", "name", "region", "status", "created_at", "organization_id")), previous=old.get("project"))
     out["edge_functions"] = api_section("edge_functions", f"/projects/{ref}/functions", lambda fs: sorted(
         [keep(f, ("slug", "name", "status", "version", "verify_jwt", "import_map", "entrypoint_path", "import_map_path", "created_at", "updated_at")) for f in fs],
-        key=lambda f: f["slug"] or "")) or []
-    out["secrets_names"] = api_section("secrets", f"/projects/{ref}/secrets", lambda s: sorted(x.get("name") for x in s if isinstance(x, dict)))
-    out["auth_config"] = api_section("auth_config", f"/projects/{ref}/config/auth", redact)
-    out["postgrest_config"] = api_section("postgrest_config", f"/projects/{ref}/postgrest", redact)
-    out["postgres_config"] = api_section("postgres_config", f"/projects/{ref}/config/database/postgres", redact, optional=True)
-    out["pooler_config"] = api_section("pooler_config", f"/projects/{ref}/config/database/pooler", redact)
-    out["storage_config"] = api_section("storage_config", f"/projects/{ref}/config/storage", redact, optional=True)
-    out["network_restrictions"] = api_section("network_restrictions", f"/projects/{ref}/network-restrictions", redact, optional=True)
-    out["ssl_enforcement"] = api_section("ssl_enforcement", f"/projects/{ref}/ssl-enforcement", redact, optional=True)
-    out["custom_hostname"] = api_section("custom_hostname", f"/projects/{ref}/custom-hostname", redact, optional=True)
+        key=lambda f: f["slug"] or ""), previous=old.get("edge_functions")) or []
+    out["secrets_names"] = api_section("secrets", f"/projects/{ref}/secrets", lambda s: sorted(x.get("name") for x in s if isinstance(x, dict)), previous=old.get("secrets_names"))
+    out["auth_config"] = api_section("auth_config", f"/projects/{ref}/config/auth", redact, previous=old.get("auth_config"))
+    out["postgrest_config"] = api_section("postgrest_config", f"/projects/{ref}/postgrest", redact, previous=old.get("postgrest_config"))
+    out["postgres_config"] = api_section("postgres_config", f"/projects/{ref}/config/database/postgres", redact, optional=True, previous=old.get("postgres_config"))
+    out["pooler_config"] = api_section("pooler_config", f"/projects/{ref}/config/database/pooler", redact, previous=old.get("pooler_config"))
+    out["storage_config"] = api_section("storage_config", f"/projects/{ref}/config/storage", redact, optional=True, previous=old.get("storage_config"))
+    out["network_restrictions"] = api_section("network_restrictions", f"/projects/{ref}/network-restrictions", redact, optional=True, previous=old.get("network_restrictions"))
+    out["ssl_enforcement"] = api_section("ssl_enforcement", f"/projects/{ref}/ssl-enforcement", redact, optional=True, previous=old.get("ssl_enforcement"))
+    out["custom_hostname"] = api_section("custom_hostname", f"/projects/{ref}/custom-hostname", redact, optional=True, previous=old.get("custom_hostname"))
     out["branches"] = api_section("branches", f"/projects/{ref}/branches",
-                                  lambda bs: [keep(b, ("id", "name", "git_branch", "status", "is_default", "persistent")) for b in bs], optional=True)
+                                  lambda bs: [keep(b, ("id", "name", "git_branch", "status", "is_default", "persistent")) for b in bs], optional=True,
+                                  previous=old.get("branches"))
     backups = api_section("backups", f"/projects/{ref}/database/backups", redact, optional=True)
     out["backups_config"] = keep(backups, ("region", "pitr_enabled", "walg_enabled")) if isinstance(backups, dict) else None
     stats["backups"] = backups
@@ -1231,8 +1436,26 @@ def banner(name: str) -> str:
     if name in CARRIED:
         return f"> ⚠️ Seção `{name}` não pôde ser atualizada nesta coleta (ver errors.md); mostrando a versão anterior.\n\n"
     if any(e["section"] == name for e in ERRORS):
-        return f"> ⚠️ Seção `{name}` indisponível nesta coleta e sem versão anterior (ver errors.md).\n\n"
+        return (f"> ⚠️ **NÃO VERIFICADO** — seção `{name}` indisponível nesta coleta e sem versão anterior (ver errors.md). "
+                "Vazio abaixo não significa que o objeto não existe.\n\n")
     return ""
+
+
+def banners(*names: str) -> str:
+    return "".join(banner(name) for name in names)
+
+
+def count_or_nd(value: Any) -> Any:
+    """Quantidade de uma seção; `n/d` quando ela não foi coletada (None), nunca 0."""
+    return len(value) if value is not None else "n/d"
+
+
+UNAVAILABLE = "_Coleta indisponível; nenhuma versão anterior foi encontrada._\n"
+
+
+def schema_dir(schema: str) -> str:
+    """Pasta do schema; schemas distintos que colidem no slug não compartilham a pasta."""
+    return uslug(schema, "schemas")
 
 
 def callers_status_table(states: dict[str, str] | None) -> str:
@@ -1266,14 +1489,17 @@ def render_tables(db: dict) -> None:
     index_rows = []
     for t in tables:
         key = (t["schema"], t["name"])
-        rel = f"tables/{slug(t['schema'])}/{uslug(t['name'], 'tables/' + t['schema'])}.md"
+        rel = f"tables/{schema_dir(t['schema'])}/{uslug(t['name'], 'tables/' + t['schema'])}.md"
+        n_policies = len(pol.get(key, [])) if db.get("policies") is not None else "n/d"
+        in_realtime = (key in rt) if db.get("realtime") is not None else "n/d"
         index_rows.append([f"[{t['schema']}.{t['name']}]({rel})", t["kind"] + (" (partição)" if t["is_partition"] else ""),
-                           t["rls_enabled"], len(pol.get(key, [])), len(cols.get(key, [])), key in rt, t.get("comment")])
+                           t["rls_enabled"], n_policies, len(cols.get(key, [])) if db.get("columns") is not None else "n/d",
+                           in_realtime, t.get("comment")])
         md = [f"# {t['schema']}.{t['name']}\n"]
         if t.get("comment"):
             md.append(f"> {t['comment']}\n")
         props = [["tipo", t["kind"]], ["owner", t["owner"]], ["RLS habilitado", t["rls_enabled"]], ["RLS forçado (owner)", t["rls_forced"]],
-                 ["policies", len(pol.get(key, []))], ["realtime (publication)", key in rt], ["replica identity", t["replica_identity"]],
+                 ["policies", n_policies], ["realtime (publication)", in_realtime], ["replica identity", t["replica_identity"]],
                  ["vem de extensão", t["from_extension"]]]
         if t["partition_key"]:
             props.append(["chave de partição", code(t["partition_key"])])
@@ -1282,41 +1508,44 @@ def render_tables(db: dict) -> None:
         if used_by_views.get(key):
             props.append(["usada por views", ", ".join(sorted(used_by_views[key]))])
         md.append(md_table(["propriedade", "valor"], props))
-        md.append("\n## Colunas\n")
+        md.append("\n## Colunas\n" + ("\n" + banner("columns") if banner("columns") else ""))
         md.append(md_table(["#", "coluna", "tipo", "nullable", "default", "identity/generated", "comentário"], [
             [c["position"], code(c["name"]), code(c["type"]), c["nullable"], code(c["default"]),
              c.get("identity") or c.get("generated") or "", c.get("comment")] for c in cols.get(key, [])]))
-        md.append("\n## Constraints\n")
+        md.append("\n## Constraints\n" + ("\n" + banner("constraints") if banner("constraints") else ""))
         md.append(md_table(["nome", "tipo", "definição", "on delete", "on update", "validada"],
                            [[c["name"], c["type"], code(c["definition"]), c["on_delete"] or "", c["on_update"] or "", c["validated"]] for c in cons.get(key, [])]))
         if fks_in.get(key):
             md.append("\n## Referenciada por (FKs de outras tabelas)\n")
             md.append(md_table(["tabela", "constraint", "colunas", "on delete"],
                                [[f"{c['schema']}.{c['table']}", c["name"], c["columns"], c["on_delete"]] for c in fks_in[key]]))
-        md.append("\n## Índices\n")
+        md.append("\n## Índices\n" + ("\n" + banner("indexes") if banner("indexes") else ""))
         md.append(md_table(["nome", "método", "colunas", "único", "válido", "predicado", "definição"],
                            [[i["name"], i["method"], i["columns"], i["is_unique"], i["is_valid"], code(i["predicate"]), code(i["definition"])] for i in idx.get(key, [])]))
-        md.append("\n## Policies (RLS)\n")
+        md.append("\n## Policies (RLS)\n" + ("\n" + banner("policies") if banner("policies") else ""))
         if not t["rls_enabled"]:
             md.append("> ⚠️ RLS **desabilitado** nesta tabela.\n\n")
+        elif db.get("policies") is None:
+            pass  # sem coleta de policies não há como afirmar que a tabela não tem nenhuma
         elif not pol.get(key):
             md.append("> ⚠️ RLS habilitado **sem policies**: nenhum acesso via API (anon/authenticated).\n\n")
         for p in pol.get(key, []):
             md.append(f"### `{p['name']}`\n")
             md.append(md_table(["campo", "valor"], [["comando", p["cmd"]], ["tipo", p["permissive"]], ["roles", p["roles"]],
                                                      ["USING", code(p["using"])], ["WITH CHECK", code(p["with_check"])]]))
-        md.append("\n## Triggers\n")
+        md.append("\n## Triggers\n" + ("\n" + banner("triggers") if banner("triggers") else ""))
         md.append(md_table(["nome", "timing", "eventos", "nível", "status", "função"],
                            [[x["name"], x["timing"], x["events"], x["level"], x["status"], x["function"]] for x in trg.get(key, [])]))
-        md.append("\n## Grants\n")
+        md.append("\n## Grants\n" + ("\n" + banner("grants") if banner("grants") else ""))
         md.append(md_table(["role", "privilégios"], [[g["grantee"], g["privileges"]] for g in grants.get(key, [])]))
         if colgrants.get(key):
             md.append("\nGrants por coluna:\n\n" + md_table(["coluna", "role", "privilégios"], [[g["column"], g["grantee"], g["privileges"]] for g in colgrants[key]]))
         write(OUT / rel, "\n".join(md))
 
-    write(OUT / "tables.md", "# Tabelas\n\n" + banner("tables") + "Um arquivo por tabela em `tables/<schema>/<tabela>.md` "
+    write(OUT / "tables.md", "# Tabelas\n\n" + banners("tables", "columns", "policies", "realtime") + "Um arquivo por tabela em `tables/<schema>/<tabela>.md` "
           "(colunas, constraints, índices, RLS/policies, triggers, grants). Métricas de volume em `stats.md`.\n\n"
-          + md_table(["tabela", "tipo", "RLS", "policies", "colunas", "realtime", "comentário"], index_rows))
+          + (md_table(["tabela", "tipo", "RLS", "policies", "colunas", "realtime", "comentário"], index_rows)
+             if db.get("tables") is not None else UNAVAILABLE))
 
     # Triggers em schemas internos (auth/storage) que não têm arquivo de tabela
     ext = [x for x in db.get("triggers") or [] if x["schema"] in ("auth", "storage")]
@@ -1328,7 +1557,7 @@ def render_tables(db: dict) -> None:
 
 def render_relationships(db: dict) -> None:
     fks = [c for c in (db.get("constraints") or []) if c["type"] == "FOREIGN KEY"]
-    md = ["# Relacionamentos (chaves estrangeiras)\n", banner("constraints"),
+    md = ["# Relacionamentos (chaves estrangeiras)\n", banners("constraints", "tables", "columns"),
           md_table(["de", "colunas", "para", "colunas", "on delete", "on update"],
                    [[f"{c['schema']}.{c['table']}", c["columns"], f"{c['ref_schema']}.{c['ref_table']}", c["ref_columns"], c["on_delete"], c["on_update"]] for c in fks])]
     tables = [t for t in (db.get("tables") or []) if not t["is_partition"]]
@@ -1365,13 +1594,14 @@ def render_simple(db: dict, api_: dict, caller_sources: dict[str, str] | None = 
                                                  ["opções", ", ".join(v["options"] or [])], ["depende de", v["depends_on"]],
                                                  ["populada", v["populated"] if v["kind"] == "materialized" else "n/a"], ["comentário", v["comment"]]]))
         md.append(f"\n```sql\n{(v['definition'] or '').strip()}\n```\n")
-    write(OUT / "views.md", "\n".join(md) if len(md) > 2 else "# Views\n\n_nenhuma_\n")
+    write(OUT / "views.md", "\n".join(md) if len(md) > 2 else
+          "# Views\n\n" + banner("views") + (UNAVAILABLE if db.get("views") is None else "_nenhuma_\n"))
 
     # Functions
     rows = []
     missing_function_sql = 0
     for f in db.get("functions") or []:
-        rel = f"functions/{slug(f['schema'])}/{slug(f['name'] + '__' + sha(f['args']))}.sql"
+        rel = f"functions/{schema_dir(f['schema'])}/{uslug(f['name'] + '__' + sha(f['args']), 'functions/' + f['schema'])}.sql"
         if f.get("definition"):
             write(OUT / rel, f["definition"].strip())
         sql_available = bool(f.get("definition")) or ("functions" in CARRIED and (OUT / rel).is_file())
@@ -1476,16 +1706,19 @@ def render_simple(db: dict, api_: dict, caller_sources: dict[str, str] | None = 
 
     # Cron / queues
     cron = db.get("cron") or {}
-    if not cron.get("installed"):
-        write(OUT / "cron.md", "# Cron (pg_cron)\n\n_extensão pg_cron não instalada_\n")
+    if db.get("cron") is None:
+        write(OUT / "cron.md", "# Cron (pg_cron)\n\n" + banner("cron") + UNAVAILABLE)
+    elif not cron.get("installed"):
+        write(OUT / "cron.md", "# Cron (pg_cron)\n\n" + banner("cron") + "_extensão pg_cron não instalada_\n")
     else:
         write(OUT / "cron.md", "# Cron (pg_cron)\n\n" + banner("cron") + "Horários em UTC. Execuções recentes em `cron-runs.md`.\n\n" + md_table(
             ["id", "nome", "schedule", "ativo", "database", "usuário", "comando"],
             [[j["jobid"], j["jobname"], code(j["schedule"]), j["active"], j["database"], j["username"], code(j["command"])] for j in cron.get("jobs") or []]))
     qs = db.get("queues") or {}
-    write(OUT / "queues.md", "# Queues (pgmq)\n\n" + (banner("queues") + md_table(
+    write(OUT / "queues.md", "# Queues (pgmq)\n\n" + banner("queues") + (md_table(
         ["fila", "particionada", "unlogged", "criada em"],
-        [[x["queue_name"], x["is_partitioned"], x["is_unlogged"], x["created_at"]] for x in qs.get("queues") or []]) if qs.get("installed") else "_extensão pgmq não instalada_\n"))
+        [[x["queue_name"], x["is_partitioned"], x["is_unlogged"], x["created_at"]] for x in qs.get("queues") or []]) if qs.get("installed")
+        else UNAVAILABLE if db.get("queues") is None else "_extensão pgmq não instalada_\n"))
 
     # Migrations
     rows = []
@@ -1547,7 +1780,7 @@ def render_simple(db: dict, api_: dict, caller_sources: dict[str, str] | None = 
 
     # Edge functions + project config
     if api_.get("enabled"):
-        md = ["# Edge Functions\n", f"URL base: `{api_['url']}/functions/v1/<slug>`. Metadados por função em `edge-functions/<slug>/README.md`. "
+        md = ["# Edge Functions\n", banners("api.edge_functions", "api.secrets") + f"URL base: `{api_['url']}/functions/v1/<slug>`. Metadados por função em `edge-functions/<slug>/README.md`. "
               "A Management API devolve só o bundle compilado; o fonte canônico é `supabase/functions/<slug>/` no repo.\n",
               md_table(["slug", "nome", "status", "versão", "verify_jwt", "entrypoint"],
                        [[f["slug"], f["name"], f["status"], f["version"], f["verify_jwt"], f["entrypoint_path"]] for f in api_.get("edge_functions") or []])]
@@ -1572,20 +1805,20 @@ def render_stats(stats: dict, api_stats: dict, db: dict) -> None:
     ds = stats.get("db_stats") or {}
     md = ["# Métricas (voláteis — mudam sem alteração de schema)\n",
           "Valores aproximados de propósito, para não gerar commits a cada coleta. Fora de `snapshot.json`; o bruto está em `stats.json`.\n",
-          "## Banco\n", md_table(["métrica", "valor"], [["tamanho", human_bytes(ds.get("database_bytes"))]] +
+          "## Banco\n", banner("db_stats") + md_table(["métrica", "valor"], [["tamanho", human_bytes(ds.get("database_bytes"))]] +
                                  [[f"schema {s['schema']}", human_bytes(s["bytes"])] for s in ds.get("schema_bytes") or []]),
           "\n## Tabelas (ordenadas por tamanho)\n",
-          md_table(["tabela", "linhas (~)", "total", "heap", "índices", "linhas mortas (~)", "seq scans (~)", "idx scans (~)", "último autovacuum"],
+          banner("table_stats") + md_table(["tabela", "linhas (~)", "total", "heap", "índices", "linhas mortas (~)", "seq scans (~)", "idx scans (~)", "último autovacuum"],
                    [[f"{t['schema']}.{t['name']}", approx(t["est_rows"]), human_bytes(t["total_bytes"]), human_bytes(t["heap_bytes"]),
                      human_bytes(t["index_bytes"]), approx(t["dead_rows"]), approx(t["seq_scan"]), approx(t["idx_scan"]),
                      str(t["last_autovacuum"])[:10] if t["last_autovacuum"] else ""] for t in ts]),
           "\n## Índices nunca usados (candidatos a remoção; ignore PK/UNIQUE)\n",
-          md_table(["índice", "tabela", "tamanho"], [[i["name"], f"{i['schema']}.{i['table']}", human_bytes(i["bytes"])]
+          banner("index_stats") + md_table(["índice", "tabela", "tamanho"], [[i["name"], f"{i['schema']}.{i['table']}", human_bytes(i["bytes"])]
                                                      for i in ist if i["scans"] == 0 and not i["is_unique"] and not i["is_primary"] and i["bytes"] > 65536]),
-          "\n## Storage\n", md_table(["bucket", "objetos (~)", "tamanho"], [[s["bucket_id"], approx(s["objects"]), human_bytes(s["bytes"])] for s in ds.get("storage") or []]),
+          "\n## Storage\n", banner("db_stats.storage") + md_table(["bucket", "objetos (~)", "tamanho"], [[s["bucket_id"], approx(s["objects"]), human_bytes(s["bytes"])] for s in ds.get("storage") or []]),
           "\n## Auth (agregados)\n"]
     a = ds.get("auth") or {}
-    md.append(md_table(["métrica", "valor"], [["usuários (~)", approx(a.get("users_total"))], ["confirmados (~)", approx(a.get("users_confirmed"))],
+    md.append(banner("db_stats.auth") + md_table(["métrica", "valor"], [["usuários (~)", approx(a.get("users_total"))], ["confirmados (~)", approx(a.get("users_confirmed"))],
                                             ["criados últimos 30d (~)", approx(a.get("users_last_30d"))]]))
     md.append(md_table(["provider", "usuários (~)"], [[i["provider"], approx(i["users"])] for i in a.get("identities_by_provider") or []]))
     if ds.get("queues"):
@@ -1604,7 +1837,7 @@ def render_stats(stats: dict, api_stats: dict, db: dict) -> None:
     # cron runs
     jobs = ((db.get("cron") or {}).get("jobs")) or []
     runs = group(stats.get("cron_runs"), lambda r: r["jobid"])
-    md = ["# Cron — execuções recentes\n", f"Últimas {CRON_RUNS_PER_JOB} por job (7 dias). Definições em `cron.md`.\n"]
+    md = ["# Cron — execuções recentes\n", banners("cron", "cron_runs") + f"Últimas {CRON_RUNS_PER_JOB} por job (7 dias). Definições em `cron.md`.\n"]
     for j in jobs:
         md.append(f"\n## {j['jobid']} · {j['jobname'] or '(sem nome)'}\n")
         md.append(md_table(["início (UTC)", "status", "duração (s)", "mensagem"],
@@ -1617,13 +1850,15 @@ def render_readme(snap: dict, api_: dict, caller_sources: dict[str, str] | None 
     cron = db.get("cron") or {}
     lints = db.get("lints") or []
     counts = [
-        ["tabelas", len(db.get("tables") or [])], ["colunas", len(db.get("columns") or [])], ["views", len(db.get("views") or [])],
-        ["functions", len(db["functions"]) if db.get("functions") is not None else "n/d"], ["triggers", len(db.get("triggers") or [])], ["policies (RLS)", len(db.get("policies") or [])],
-        ["índices", len(db.get("indexes") or [])], ["tipos/enums", len(db.get("types") or [])], ["extensões", len(db.get("extensions") or [])],
-        ["cron jobs", len(cron.get("jobs") or [])], ["filas pgmq", len(((db.get("queues") or {}).get("queues")) or [])],
-        ["migrations", len(db["migrations"]) if db.get("migrations") is not None else "n/d"], ["buckets", len(db.get("storage") or [])],
-        ["edge functions", len(api_.get("edge_functions") or []) if api_.get("enabled") else "n/d"], ["webhooks", len(db.get("webhooks") or [])],
-        ["lints ALTA", sum(1 for l in lints if l["severity"] == "ALTA")], ["lints total", len(lints)],
+        ["tabelas", count_or_nd(db.get("tables"))], ["colunas", count_or_nd(db.get("columns"))], ["views", count_or_nd(db.get("views"))],
+        ["functions", count_or_nd(db.get("functions"))], ["triggers", count_or_nd(db.get("triggers"))], ["policies (RLS)", count_or_nd(db.get("policies"))],
+        ["índices", count_or_nd(db.get("indexes"))], ["tipos/enums", count_or_nd(db.get("types"))], ["extensões", count_or_nd(db.get("extensions"))],
+        ["cron jobs", len(cron.get("jobs") or []) if db.get("cron") is not None else "n/d"],
+        ["filas pgmq", len(((db.get("queues") or {}).get("queues")) or []) if db.get("queues") is not None else "n/d"],
+        ["migrations", count_or_nd(db.get("migrations"))], ["buckets", count_or_nd(db.get("storage"))],
+        ["edge functions", len(api_.get("edge_functions") or []) if api_.get("enabled") else "n/d"], ["webhooks", count_or_nd(db.get("webhooks"))],
+        ["lints ALTA", sum(1 for l in lints if l["severity"] == "ALTA") if db.get("lints") is not None else "n/d"],
+        ["lints total", count_or_nd(db.get("lints"))],
     ]
     server = db.get("server") or {}
     md = [
@@ -1642,9 +1877,10 @@ def render_readme(snap: dict, api_: dict, caller_sources: dict[str, str] | None 
         "8. `snapshot.json` = tudo estrutural em JSON para busca programática; `stats.json` = métricas brutas.\n",
         "## Resumo\n", md_table(["categoria", "quantidade"], counts),
         callers_status_table(caller_sources),
-        "\n## Servidor\n", md_table(["propriedade", "valor"], [
+        "\n## Servidor\n", banner("server") + md_table(["propriedade", "valor"], [
             ["Postgres", server.get("server_version")], ["database", server.get("database")], ["timezone", server.get("timezone")],
             ["max_connections", server.get("max_connections")], ["statement_timeout (global)", server.get("statement_timeout")],
+            ["ref do projeto (conexão)", project_ref() or "n/d"],
             ["projeto", (api_.get("project") or {}).get("name") if api_.get("enabled") else "n/d"],
             ["região", (api_.get("project") or {}).get("region") if api_.get("enabled") else "n/d"], ["URL", api_.get("url") or "n/d"]]),
         "\n## Arquivos\n", "| arquivo | conteúdo |\n|---|---|",
@@ -1701,17 +1937,55 @@ def update_changelog(diff: list[tuple[str, str, list[str]]], previous_existed: b
 # Main
 # --------------------------------------------------------------------------- #
 
-def main() -> int:
+def project_ref() -> str:
+    """Ref do projeto coletado: o citado na conexão ou, na falta dele, SUPABASE_PROJECT_REF."""
+    return (detect_project_ref(DB_URL) if DB_URL and dsn_problem(DB_URL) is None else "") or PROJECT_REF
+
+
+def main(argv: list[str] | None = None) -> int:
+    try:
+        return run(argv)
+    finally:
+        release_output_lock()
+
+
+def run(argv: list[str] | None = None) -> int:
+    if any(argument in ("-h", "--help") for argument in argv or []):
+        print((__doc__ or "").strip())
+        return 0
+    if argv:
+        # O argumento não é ecoado: quem erra a chamada costuma colar a connection string aqui.
+        print("Argumento não reconhecido. Este script só aceita --help; a configuração vem de "
+              "variáveis de ambiente (SUPABASE_DB_URL, SNAPSHOT_DIR…).", file=sys.stderr)
+        return 2
     if CONFIG_ERRORS:
         print("Configuração inválida: " + "; ".join(CONFIG_ERRORS), file=sys.stderr)
         return 2
     if not DB_URL:
         print("SUPABASE_DB_URL não definido", file=sys.stderr)
         return 2
+    problem = dsn_problem(DB_URL)
+    if problem:
+        print(f"Configuração inválida: SUPABASE_DB_URL {problem} (o valor não é exibido por conter a senha)", file=sys.stderr)
+        return 2
+    problem = target_problem()
+    if problem:
+        print(f"Configuração inválida: {problem} Nada foi coletado.", file=sys.stderr)
+        return 2
+    if psycopg is None:
+        print("Dependência ausente: psycopg. Instale com "
+              "`python3 -m pip install -r scripts/supabase_snapshot/requirements.txt`.", file=sys.stderr)
+        return 2
     try:
         prepare_output_directory()
     except ValueError as error:
         print(f"Configuração inválida: {error}", file=sys.stderr)
+        return 2
+    except RuntimeError as error:
+        print(str(error), file=sys.stderr)
+        return 1
+    except OSError as error:
+        print(f"Configuração inválida: não foi possível preparar SNAPSHOT_DIR ({OUT}): {error.strerror or error}", file=sys.stderr)
         return 2
 
     previous = None
@@ -1724,8 +1998,16 @@ def main() -> int:
         except Exception:  # noqa: BLE001
             previous = None
 
-    db, stats = introspect_db((previous or {}).get("db"))
-    if all(v is None for v in db.values()):
+    log(f"projeto da conexão: {project_ref() or 'não identificado'}")
+    try:
+        db, stats = introspect_db((previous or {}).get("db"))
+    except Exception as error:  # noqa: BLE001 — credencial inválida, rede fora, timeout, conexão derrubada
+        # Sem traceback: a mensagem do driver passa pelo sanitize antes de qualquer saída.
+        detail = " ".join(sanitize(str(error)).split())[:500] or "sem detalhe"
+        print(f"Falha ao coletar o banco ({type(error).__name__}): {detail}. Nada foi sobrescrito.", file=sys.stderr)
+        return 1
+    # Seção reaproveitada não é coleta: se nenhuma seção estrutural respondeu agora, o frescor não é renovado.
+    if not any(value is not None and name not in CARRIED for name, value in db.items()):
         log("Banco inteiro indisponível — nada será sobrescrito.")
         return 1
 
@@ -1780,6 +2062,7 @@ def main() -> int:
         "produtor": "supabase-snapshot", "gerador": "scripts/supabase_snapshot/snapshot.py",
         "gerado_em": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "entrada": "README.md", "erros": ERRORS, "carried": CARRIED,
+        **({"projeto": project_ref()} if project_ref() else {}),
     }))
 
     log(f"concluído: {len(diff)} grupos de mudança, {len(ERRORS)} erros, {len(CARRIED)} seções reaproveitadas, saída em {OUT}")
@@ -1787,4 +2070,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(sys.argv[1:]))
