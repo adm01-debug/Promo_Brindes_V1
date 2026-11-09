@@ -1,0 +1,86 @@
+{
+ "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
+ "format_version": 2,
+ "onde_ficam": {
+  "telas": [
+   "src/pages (18)",
+   "api/_lib (13)",
+   "api/briefing-assets.ts (1)"
+  ],
+  "componentes": [
+   "src/components (19)",
+   "src/pages (18)",
+   "src/context (2)"
+  ],
+  "hooks": [
+   "src/lib (4)",
+   "src/context (2)",
+   "scripts/ai-context (1)"
+  ],
+  "servicos_logica": [
+   "src/lib (43)",
+   "api/_lib (13)",
+   "src/context (3)"
+  ],
+  "testes": [
+   "co-localizado (*.test) (51)",
+   "tests/ (32)",
+   "outro (4)"
+  ],
+  "edge_functions": null,
+  "migrations": null,
+  "scripts": [
+   "scripts/inventario (3)",
+   "scripts/regras_negocio (3)",
+   "scripts/ai-context (2)"
+  ],
+  "docs": [
+   "docs (68)",
+   "(raiz) (9)",
+   ".github (1)"
+  ]
+ },
+ "nomenclatura": {
+  "componentes": "PascalCase (100%)",
+  "hooks": "use + PascalCase",
+  "servicos": "camelCase (87%)",
+  "edge_functions": null,
+  "tabelas": "snake_case (92%)"
+ },
+ "barrels_index": 0,
+ "extensao_componentes": [
+  ".tsx (40)"
+ ],
+ "alias_imports": {
+  "(raiz)": {
+   "@/": "src/",
+   "~/": "src/"
+  }
+ },
+ "commits": {
+  "convencao": "conventional commits (observado)",
+  "exemplos": [
+   "feat(scripts): porta scripts autônomos de contexto de IA do Zapp Web V2",
+   "security: guard falha fechado, sem injeção de arg e regex de backtick (#124)",
+   "chore: iguala a forma do AGENTS.md à do Zapp Web V2 (#120)",
+   "chore: replica o padrão de instruções para agentes do Zapp Web V2 (#119)",
+   "fix: correções da revisão de fidelidade (instruções) (#118)"
+  ]
+ },
+ "pr_template": ".github/pull_request_template.md",
+ "codeowners": ".github/CODEOWNERS",
+ "contributing": null,
+ "instrucoes_agentes": [
+  "AGENTS.md",
+  "CLAUDE.md"
+ ],
+ "typescript": {
+  "strict": false,
+  "noImplicitAny": null,
+  "tsconfigs": [
+   "tsconfig.app.json",
+   "tsconfig.json",
+   "tsconfig.node.json"
+  ]
+ }
+}

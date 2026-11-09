@@ -1,0 +1,384 @@
+{
+ "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
+ "format_version": 2,
+ "total": 29,
+ "scripts": [
+  {
+   "arquivo": "scripts/_lib/supabaseDbQuery.mjs",
+   "descricao": "`supabase db query --output-format json` mistura o JSON do resultado com outras mensagens do CLI (banner de conexão, aviso de nova versão) na mesma stdout, e o",
+   "linhas": 93,
+   "env": [],
+   "npm_scripts": [],
+   "workflows": [],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/ai-context/cenarios.mjs",
+   "descricao": "Simulação de cenários do gerador: monta centenas de repositórios sintéticos (variantes de SQL, rotas, menus, edges, workflows, monorepo, Python, arquivos corrompidos, fuzz) e confere:",
+   "linhas": 173,
+   "env": [
+    "A",
+    "K",
+    "NODE_ENV",
+    "SCRIPT_ONLY",
+    "SRK",
+    "SUPABASE_URL",
+    "VITE_A",
+    "VITE_C",
+    "VITE_FEATURE_X",
+    "X"
+   ],
+   "npm_scripts": [],
+   "workflows": [],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/ai-context/gerar.mjs",
+   "descricao": "Gera o contexto de projeto para agentes de IA (padrão: inventario/ia/*). Zero dependências. Node >= 18. Genérico: funciona em qualquer repositório.",
+   "linhas": 924,
+   "env": [
+    "AI_CONTEXT_DIR",
+    "AI_CONTEXT_PUBLICACAO",
+    "AI_CONTEXT_ROOT"
+   ],
+   "npm_scripts": [
+    "contexto:ia"
+   ],
+   "workflows": [
+    "contexto.yml"
+   ],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/check-catalog-public-contract.mjs",
+   "descricao": null,
+   "linhas": 342,
+   "env": [
+    "VITE_SUPABASE_PUBLISHABLE_KEY",
+    "VITE_SUPABASE_URL"
+   ],
+   "npm_scripts": [
+    "check:catalog-contract"
+   ],
+   "workflows": [
+    "catalog-contract.yml"
+   ],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/check-performance-budget.mjs",
+   "descricao": null,
+   "linhas": 83,
+   "env": [],
+   "npm_scripts": [
+    "check:performance-budget"
+   ],
+   "workflows": [],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/ci-health-metrics.mjs",
+   "descricao": null,
+   "linhas": 54,
+   "env": [],
+   "npm_scripts": [],
+   "workflows": [
+    "ci-health.yml"
+   ],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/generate-database-dictionary.mjs",
+   "descricao": "Etapa 35 do plano de correções: gera docs/DATABASE_DICTIONARY.md a partir dos comentários reais do banco local (pg_description), não de memória — evita o",
+   "linhas": 103,
+   "env": [],
+   "npm_scripts": [
+    "db:site:dictionary"
+   ],
+   "workflows": [],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/generate-database-schema-doc.mjs",
+   "descricao": "Etapa 48 do plano de correções: gera docs/DATABASE_SCHEMA.md (ERD em Mermaid) a partir de pg_constraint no banco local — mesma filosofia da Etapa 35 (gerado, não",
+   "linhas": 81,
+   "env": [],
+   "npm_scripts": [
+    "db:site:schema-doc"
+   ],
+   "workflows": [],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/generate-site-api-jwt.mjs",
+   "descricao": "Etapa 25 do plano de correções: gera um JWT de serviço com role:site_api, assinado com o Legacy JWT Secret do projeto isolado do site (Settings > API > JWT Settings no",
+   "linhas": 60,
+   "env": [
+    "SITE_SUPABASE_JWT_SECRET",
+    "SITE_SUPABASE_JWT_TTL_DAYS"
+   ],
+   "npm_scripts": [
+    "db:site:generate-site-api-jwt"
+   ],
+   "workflows": [],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/graphify-quality.mjs",
+   "descricao": null,
+   "linhas": 364,
+   "env": [],
+   "npm_scripts": [],
+   "workflows": [],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/graphify.mjs",
+   "descricao": null,
+   "linhas": 810,
+   "env": [
+    "GRAPHIFY_BIN"
+   ],
+   "npm_scripts": [
+    "graph:doctor",
+    "graph:build",
+    "graph:update",
+    "graph:status",
+    "graph:check",
+    "graph:query",
+    "graph:path",
+    "graph:explain",
+    "graph:impact",
+    "graph:tree",
+    "graph:db:query",
+    "graph:db:path",
+    "graph:db:explain",
+    "graph:db:tree",
+    "graph:benchmark",
+    "graph:compare"
+   ],
+   "workflows": [],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/inventario/banco.sql",
+   "descricao": null,
+   "linhas": 257,
+   "env": [],
+   "npm_scripts": [],
+   "workflows": [],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/inventario/gerar-banco.mjs",
+   "descricao": "* Inventario do banco do site -> inventario/estado/banco.json (fonte de consulta dos agentes).",
+   "linhas": 379,
+   "env": [
+    "INVENTARIO_PERMITIR_OUTRO_PROJETO",
+    "SUPABASE_ACCESS_TOKEN",
+    "SUPABASE_API_URL",
+    "SUPABASE_PROJECT_REF"
+   ],
+   "npm_scripts": [
+    "inventario:banco"
+   ],
+   "workflows": [
+    "inventario-estado-semanal.yml"
+   ],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/inventario/mudou-conteudo.mjs",
+   "descricao": "* O inventario mudou de verdade? Compara cada arquivo de inventario/estado/ com a versao do",
+   "linhas": 93,
+   "env": [],
+   "npm_scripts": [
+    "inventario:mudou"
+   ],
+   "workflows": [
+    "inventario-estado-semanal.yml"
+   ],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/normalize-vercel-deployment-url.mjs",
+   "descricao": null,
+   "linhas": 36,
+   "env": [],
+   "npm_scripts": [],
+   "workflows": [
+    "release.yml"
+   ],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/regras_negocio/generate.py",
+   "descricao": null,
+   "linhas": 2138,
+   "env": [],
+   "npm_scripts": [
+    "contexto:regras",
+    "contexto:regras:test"
+   ],
+   "workflows": [
+    "contexto.yml"
+   ],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/regras_negocio/indice.py",
+   "descricao": null,
+   "linhas": 237,
+   "env": [],
+   "npm_scripts": [
+    "contexto:regras"
+   ],
+   "workflows": [
+    "contexto.yml"
+   ],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/regras_negocio/publish.sh",
+   "descricao": "Publica docs/ai-context gerados: commit + push na branch padrão, ou PR quando a branch é protegida. Variáveis:",
+   "linhas": 195,
+   "env": [],
+   "npm_scripts": [],
+   "workflows": [],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/smoke-deployment.mjs",
+   "descricao": null,
+   "linhas": 57,
+   "env": [
+    "SMOKE_BASE_URL"
+   ],
+   "npm_scripts": [
+    "smoke:deployment"
+   ],
+   "workflows": [],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/soak-test-notification-queue.mjs",
+   "descricao": "Etapa 38 do plano de correções (docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260916.md): confirma ou recalibra o",
+   "linhas": 223,
+   "env": [
+    "SOAK_FAILURE_RATE",
+    "SOAK_JOB_COUNT"
+   ],
+   "npm_scripts": [
+    "db:site:soak-test"
+   ],
+   "workflows": [],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/sql/verify-shared-selection-contract.sql",
+   "descricao": null,
+   "linhas": 30,
+   "env": [],
+   "npm_scripts": [],
+   "workflows": [],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/stage-app-shell.mjs",
+   "descricao": null,
+   "linhas": 15,
+   "env": [],
+   "npm_scripts": [
+    "build"
+   ],
+   "workflows": [],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/supabase_snapshot/snapshot.py",
+   "descricao": "Somente leitura no banco (sessão read-only, statement_timeout, lock_timeout). Nunca grava linhas de tabelas, valores de segredos, chaves, senhas ou DSN.",
+   "linhas": 1791,
+   "env": [],
+   "npm_scripts": [
+    "contexto:banco:test"
+   ],
+   "workflows": [
+    "contexto.yml"
+   ],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/validate-agent-instructions.mjs",
+   "descricao": "Guarda das instruções para agentes: AGENTS.md (regras) + CLAUDE.md (só `@AGENTS.md`) + docs/agentes/*.md (referência) + os dois skills do repo.",
+   "linhas": 200,
+   "env": [
+    "AGENT_INSTRUCTIONS_ALLOW_NO_BASE",
+    "AGENT_INSTRUCTIONS_BASE"
+   ],
+   "npm_scripts": [
+    "agents:instructions:check"
+   ],
+   "workflows": [],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/validate-closure-ledger.mjs",
+   "descricao": null,
+   "linhas": 74,
+   "env": [],
+   "npm_scripts": [
+    "ledger:check"
+   ],
+   "workflows": [],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/validate-error-catalog.mjs",
+   "descricao": "Etapa 22 do plano de correções (docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260916.md): docs/DATABASE_FUNCTION_CONTRACTS.md documenta um catálogo de erros gerado por",
+   "linhas": 68,
+   "env": [],
+   "npm_scripts": [
+    "db:site:error-catalog:check"
+   ],
+   "workflows": [
+    "database.yml"
+   ],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/validate-migration-names.mjs",
+   "descricao": "Etapa 4 do plano de correções (docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260916.md): o incidente de 15/09/2026 (timestamps com underscore, ex.: 20260908_230000) só foi",
+   "linhas": 117,
+   "env": [],
+   "npm_scripts": [
+    "db:migration-names:check"
+   ],
+   "workflows": [
+    "database.yml"
+   ],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/validate-site-supabase-target.mjs",
+   "descricao": null,
+   "linhas": 19,
+   "env": [],
+   "npm_scripts": [
+    "db:site:guard"
+   ],
+   "workflows": [],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/verify-vercel-artifact.mjs",
+   "descricao": null,
+   "linhas": 48,
+   "env": [],
+   "npm_scripts": [],
+   "workflows": [
+    "release.yml"
+   ],
+   "orfao": false
+  }
+ ]
+}

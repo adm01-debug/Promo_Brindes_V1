@@ -1,0 +1,2352 @@
+{
+ "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
+ "format_version": 2,
+ "nota": "Reconstruído de migrations/schemas/types do repo — visão do CÓDIGO, não do banco vivo. `drift` compara colunas (migrations) com colunas_types (types.ts).",
+ "fonte": [
+  "*.sql",
+  "drizzle",
+  "src/types/site-database.types.ts",
+  "typeorm"
+ ],
+ "migrations": 73,
+ "seeds": [],
+ "avisos": [
+  "4 bloco(s) com DDL dinâmico (EXECUTE format/...) não modelado — policies/colunas criadas dinamicamente podem faltar; confira no banco vivo"
+ ],
+ "extensoes": [],
+ "enums": {},
+ "views": [
+  "v_site_products_public"
+ ],
+ "funcoes": [
+  "apply_site_notification_provider_event",
+  "attach_my_briefing_assets_to_quote",
+  "can_delete_my_unverified_briefing_asset_path",
+  "claim_my_quote_requests",
+  "claim_site_notification_deliveries",
+  "claim_site_quote_notification",
+  "confirm_site_briefing_asset_verification",
+  "create_my_briefing_asset",
+  "create_site_contact_request",
+  "create_site_quote_request",
+  "create_site_shared_selection",
+  "delete_my_briefing_asset",
+  "delete_my_selection",
+  "erase_customer_data",
+  "finalize_briefing_asset_retention",
+  "finalize_site_data_retention",
+  "finalize_site_notification_delivery",
+  "finalize_site_storage_retention",
+  "get_briefing_asset_retention_candidates",
+  "get_my_briefing_asset_verification",
+  "get_my_proposal_document",
+  "get_my_quote_request",
+  "get_my_quote_requests",
+  "get_site_data_retention_candidates",
+  "list_my_briefing_assets",
+  "list_my_occasion_favorites",
+  "list_my_selections",
+  "matches_my_briefing_asset_upload",
+  "owns_my_briefing_asset_path",
+  "preflight_site_lead_request",
+  "purge_archived_customer_selections",
+  "purge_site_admin_audit_logs",
+  "record_site_notification_dispatch_started",
+  "record_site_notification_provider_acceptance",
+  "reject_site_briefing_asset_verification",
+  "request_my_quote_adjustment",
+  "rls_auto_enable",
+  "save_my_selection",
+  "set_my_occasion_favorite",
+  "set_my_selection_archived",
+  "site_notification_queue_health",
+  "site_private"
+ ],
+ "triggers": [
+  {
+   "nome": "contact_requests_enforce_status_transition",
+   "quando": "before",
+   "evento": "update of status",
+   "tabela": "site_private.contact_requests",
+   "funcao": "site_private"
+  },
+  {
+   "nome": "contact_requests_set_updated_at",
+   "quando": "before",
+   "evento": "update",
+   "tabela": "site_private.contact_requests",
+   "funcao": "site_private"
+  },
+  {
+   "nome": "customer_briefing_assets_queue_deletion",
+   "quando": "before",
+   "evento": "delete",
+   "tabela": "site_private.customer_briefing_assets",
+   "funcao": "site_private"
+  },
+  {
+   "nome": "customer_briefing_assets_require_verification",
+   "quando": "before",
+   "evento": "update of quote_request_id",
+   "tabela": "site_private.customer_briefing_assets",
+   "funcao": "site_private"
+  },
+  {
+   "nome": "customer_briefing_assets_require_verification_on_insert",
+   "quando": "before",
+   "evento": "insert",
+   "tabela": "site_private.customer_briefing_assets",
+   "funcao": "site_private"
+  },
+  {
+   "nome": "customer_profile_asset_erasure",
+   "quando": "after",
+   "evento": "update of verified_email",
+   "tabela": "site_private.customer_profiles",
+   "funcao": "site_private"
+  },
+  {
+   "nome": "customer_profile_occasion_favorite_erasure",
+   "quando": "after",
+   "evento": "update of verified_email",
+   "tabela": "site_private.customer_profiles",
+   "funcao": "site_private"
+  },
+  {
+   "nome": "customer_profile_selection_erasure",
+   "quando": "after",
+   "evento": "update of verified_email",
+   "tabela": "site_private.customer_profiles",
+   "funcao": "site_private"
+  },
+  {
+   "nome": "customer_profiles_set_updated_at",
+   "quando": "before",
+   "evento": "update",
+   "tabela": "site_private.customer_profiles",
+   "funcao": "site_private"
+  },
+  {
+   "nome": "customer_selections_validate_kit_insert",
+   "quando": "before",
+   "evento": "insert",
+   "tabela": "site_private.customer_selections",
+   "funcao": "site_private"
+  },
+  {
+   "nome": "customer_selections_validate_kit_update",
+   "quando": "before",
+   "evento": "update of product_references",
+   "tabela": "site_private.customer_selections",
+   "funcao": "site_private"
+  },
+  {
+   "nome": "notification_deliveries_enforce_status_transition",
+   "quando": "before",
+   "evento": "update of status",
+   "tabela": "site_private.notification_deliveries",
+   "funcao": "site_private"
+  },
+  {
+   "nome": "notification_deliveries_set_updated_at",
+   "quando": "before",
+   "evento": "update",
+   "tabela": "site_private.notification_deliveries",
+   "funcao": "site_private"
+  },
+  {
+   "nome": "quote_adjustment_requests_set_updated_at",
+   "quando": "before",
+   "evento": "update",
+   "tabela": "site_private.quote_adjustment_requests",
+   "funcao": "site_private"
+  },
+  {
+   "nome": "quote_requests_assign_protocol",
+   "quando": "before",
+   "evento": "insert",
+   "tabela": "site_private.quote_requests",
+   "funcao": "site_private"
+  },
+  {
+   "nome": "quote_requests_enforce_status_transition",
+   "quando": "before",
+   "evento": "update of status",
+   "tabela": "site_private.quote_requests",
+   "funcao": "site_private"
+  },
+  {
+   "nome": "quote_requests_enqueue_confirmations",
+   "quando": "after",
+   "evento": "insert",
+   "tabela": "site_private.quote_requests",
+   "funcao": "site_private"
+  },
+  {
+   "nome": "quote_requests_record_customer_event",
+   "quando": "after",
+   "evento": "insert or update of status",
+   "tabela": "site_private.quote_requests",
+   "funcao": "site_private"
+  },
+  {
+   "nome": "quote_requests_set_updated_at",
+   "quando": "before",
+   "evento": "update",
+   "tabela": "site_private.quote_requests",
+   "funcao": "site_private"
+  },
+  {
+   "nome": "shared_selection_rate_limits_set_updated_at",
+   "quando": "before",
+   "evento": "update",
+   "tabela": "site_private.shared_selection_rate_limits",
+   "funcao": "site_private"
+  },
+  {
+   "nome": "shared_selections_set_updated_at",
+   "quando": "before",
+   "evento": "update",
+   "tabela": "site_private.shared_selections",
+   "funcao": "site_private"
+  },
+  {
+   "nome": "shared_selections_validate_kit_insert",
+   "quando": "before",
+   "evento": "insert",
+   "tabela": "site_private.shared_selections",
+   "funcao": "site_private"
+  },
+  {
+   "nome": "shared_selections_validate_kit_update",
+   "quando": "before",
+   "evento": "update of items",
+   "tabela": "site_private.shared_selections",
+   "funcao": "site_private"
+  }
+ ],
+ "cron_jobs": [],
+ "buckets": [
+  {
+   "nome": "customer-briefing-assets",
+   "criado_em_sql": true,
+   "usado_em": 0
+  },
+  {
+   "nome": "customer-proposals",
+   "criado_em_sql": true,
+   "usado_em": 0
+  },
+  {
+   "nome": "quote_requests",
+   "criado_em_sql": false,
+   "usado_em": 1
+  }
+ ],
+ "tabelas": {
+  "kit_quote_requests": {
+   "colunas": {},
+   "rls": false,
+   "policies": [],
+   "indices": [
+    {
+     "nome": "kit_quote_requests_quote_id_idx",
+     "colunas": "quote_id",
+     "unico": false
+    },
+    {
+     "nome": "kit_quote_requests_user_id_idx",
+     "colunas": "user_id",
+     "unico": false
+    }
+   ],
+   "fks": [],
+   "criada_em": null,
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [],
+   "sem_rls": false,
+   "nao_usada": true
+  },
+  "kit_save_requests": {
+   "colunas": {},
+   "rls": false,
+   "policies": [],
+   "indices": [
+    {
+     "nome": "kit_save_requests_kit_id_idx",
+     "colunas": "kit_id",
+     "unico": false
+    },
+    {
+     "nome": "kit_save_requests_user_id_idx",
+     "colunas": "user_id",
+     "unico": false
+    }
+   ],
+   "fks": [],
+   "criada_em": null,
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [],
+   "sem_rls": false,
+   "nao_usada": true
+  },
+  "site_private.admin_audit_log": {
+   "colunas": {
+    "application_name": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "id": {
+     "tipo": "bigint",
+     "nn": false,
+     "pk": true,
+     "default": null,
+     "ref": null
+    },
+    "occurred_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    },
+    "operation": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "performed_by": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "row_id": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "table_name": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    }
+   },
+   "rls": true,
+   "policies": [],
+   "indices": [
+    {
+     "nome": "admin_audit_log_occurred_idx",
+     "colunas": "occurred_at, id",
+     "unico": false
+    }
+   ],
+   "fks": [],
+   "criada_em": "20260916210000_add_admin_write_audit.sql",
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [],
+   "sem_rls": false,
+   "nao_usada": true
+  },
+  "site_private.admin_ddl_log": {
+   "colunas": {
+    "command_tag": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "id": {
+     "tipo": "bigint",
+     "nn": false,
+     "pk": true,
+     "default": null,
+     "ref": null
+    },
+    "object_type": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "occurred_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    },
+    "performed_by": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "schema_name": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    }
+   },
+   "rls": true,
+   "policies": [],
+   "indices": [
+    {
+     "nome": "admin_ddl_log_occurred_idx",
+     "colunas": "occurred_at, id",
+     "unico": false
+    }
+   ],
+   "fks": [],
+   "criada_em": "20260916210000_add_admin_write_audit.sql",
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [],
+   "sem_rls": false,
+   "nao_usada": true
+  },
+  "site_private.consent_receipts": {
+   "colunas": {
+    "accepted": {
+     "tipo": "boolean",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "client_accepted_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "contact_request_id": {
+     "tipo": "uuid",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": "site_private"
+    },
+    "id": {
+     "tipo": "uuid",
+     "nn": false,
+     "pk": true,
+     "default": "gen_random_uuid()",
+     "ref": null
+    },
+    "notice_version": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "purpose": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": "'commercial_contact'",
+     "ref": null
+    },
+    "quote_request_id": {
+     "tipo": "uuid",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": "site_private"
+    },
+    "request_kind": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "server_recorded_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    }
+   },
+   "rls": true,
+   "policies": [],
+   "indices": [
+    {
+     "nome": "consent_receipts_contact_request_id_idx",
+     "colunas": "contact_request_id",
+     "unico": false
+    },
+    {
+     "nome": "consent_receipts_quote_request_id_idx",
+     "colunas": "quote_request_id",
+     "unico": false
+    },
+    {
+     "nome": "consent_receipts_server_recorded_at_idx",
+     "colunas": "server_recorded_at desc",
+     "unico": false
+    }
+   ],
+   "fks": [
+    "contact_request_id->site_private",
+    "quote_request_id->site_private"
+   ],
+   "criada_em": "20260908230000_create_site_lead_storage.sql",
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [],
+   "sem_rls": false,
+   "nao_usada": true
+  },
+  "site_private.contact_requests": {
+   "colunas": {
+    "client_request_id": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "client_submitted_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "contact_name": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "created_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    },
+    "email": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "id": {
+     "tipo": "uuid",
+     "nn": false,
+     "pk": true,
+     "default": "gen_random_uuid()",
+     "ref": null
+    },
+    "message": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "page_url": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "phone": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "preferred_channel": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "request_hash": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "request_metadata": {
+     "tipo": "jsonb",
+     "nn": true,
+     "pk": false,
+     "default": "'{}'::jsonb",
+     "ref": null
+    },
+    "retention_until": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "(now() + interval '24 months')",
+     "ref": null
+    },
+    "source": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "status": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": "'new'",
+     "ref": null
+    },
+    "updated_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    }
+   },
+   "rls": true,
+   "policies": [],
+   "indices": [
+    {
+     "nome": "contact_requests_created_at_idx",
+     "colunas": "created_at desc",
+     "unico": false
+    },
+    {
+     "nome": "contact_requests_retention_idx",
+     "colunas": "retention_until",
+     "unico": false
+    },
+    {
+     "nome": "contact_requests_status_created_at_idx",
+     "colunas": "status, created_at desc",
+     "unico": false
+    }
+   ],
+   "fks": [],
+   "criada_em": "20260908230000_create_site_lead_storage.sql",
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [
+    "contact_requests_enforce_status_transition",
+    "contact_requests_set_updated_at"
+   ],
+   "sem_rls": false,
+   "nao_usada": true
+  },
+  "site_private.customer_briefing_assets": {
+   "colunas": {
+    "created_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    },
+    "customer_user_id": {
+     "tipo": "uuid",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": "auth"
+    },
+    "expires_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "(now() + interval '30 days')",
+     "ref": null
+    },
+    "id": {
+     "tipo": "uuid",
+     "nn": false,
+     "pk": true,
+     "default": "gen_random_uuid()",
+     "ref": null
+    },
+    "kind": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "mime_type": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "original_name": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "quote_request_id": {
+     "tipo": "uuid",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": "site_private"
+    },
+    "size_bytes": {
+     "tipo": "integer",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "storage_bucket": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": "'customer-briefing-assets'",
+     "ref": null
+    },
+    "storage_path": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "verified_at": {
+     "tipo": "timestamptz",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    }
+   },
+   "rls": true,
+   "policies": [],
+   "indices": [
+    {
+     "nome": "customer_briefing_assets_expiry_idx",
+     "colunas": "expires_at, id",
+     "unico": false
+    },
+    {
+     "nome": "customer_briefing_assets_owner_created_idx",
+     "colunas": "customer_user_id, created_at desc, id",
+     "unico": false
+    },
+    {
+     "nome": "customer_briefing_assets_quote_idx",
+     "colunas": "quote_request_id",
+     "unico": false
+    }
+   ],
+   "fks": [
+    "customer_user_id->auth",
+    "quote_request_id->site_private"
+   ],
+   "criada_em": "20260922150000_add_private_briefing_assets.sql",
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [
+    "customer_briefing_assets_queue_deletion",
+    "customer_briefing_assets_require_verification",
+    "customer_briefing_assets_require_verification_on_insert"
+   ],
+   "sem_rls": false,
+   "nao_usada": true
+  },
+  "site_private.customer_occasion_favorites": {
+   "colunas": {
+    "created_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    },
+    "customer_user_id": {
+     "tipo": "uuid",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": "auth"
+    },
+    "occasion_id": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "updated_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    }
+   },
+   "rls": true,
+   "policies": [],
+   "indices": [
+    {
+     "nome": "customer_occasion_favorites_owner_updated_idx",
+     "colunas": "customer_user_id, updated_at desc, occasion_id",
+     "unico": false
+    }
+   ],
+   "fks": [
+    "customer_user_id->auth"
+   ],
+   "criada_em": "20260923130000_add_customer_occasion_favorites.sql",
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [],
+   "sem_rls": false,
+   "nao_usada": true
+  },
+  "site_private.customer_profiles": {
+   "colunas": {
+    "company": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "created_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    },
+    "display_name": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "updated_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    },
+    "user_id": {
+     "tipo": "uuid",
+     "nn": false,
+     "pk": true,
+     "default": null,
+     "ref": "auth"
+    },
+    "verified_email": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    }
+   },
+   "rls": true,
+   "policies": [],
+   "indices": [
+    {
+     "nome": "customer_profiles_verified_email_idx",
+     "colunas": "lower(verified_email",
+     "unico": true
+    }
+   ],
+   "fks": [
+    "user_id->auth"
+   ],
+   "criada_em": "20260909180000_create_customer_quote_portal.sql",
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [
+    "customer_profile_asset_erasure",
+    "customer_profile_occasion_favorite_erasure",
+    "customer_profile_selection_erasure",
+    "customer_profiles_set_updated_at"
+   ],
+   "sem_rls": false,
+   "nao_usada": true
+  },
+  "site_private.customer_selections": {
+   "colunas": {
+    "archived_at": {
+     "tipo": "timestamptz",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "campaign": {
+     "tipo": "jsonb",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "created_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    },
+    "customer_user_id": {
+     "tipo": "uuid",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": "auth"
+    },
+    "id": {
+     "tipo": "uuid",
+     "nn": false,
+     "pk": true,
+     "default": "gen_random_uuid()",
+     "ref": null
+    },
+    "product_references": {
+     "tipo": "jsonb",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "title": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "updated_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    },
+    "version": {
+     "tipo": "integer",
+     "nn": true,
+     "pk": false,
+     "default": "1",
+     "ref": null
+    }
+   },
+   "rls": true,
+   "policies": [],
+   "indices": [
+    {
+     "nome": "customer_selections_archived_idx",
+     "colunas": "archived_at",
+     "unico": false
+    },
+    {
+     "nome": "customer_selections_owner_updated_idx",
+     "colunas": "customer_user_id, updated_at desc, id",
+     "unico": false
+    }
+   ],
+   "fks": [
+    "customer_user_id->auth"
+   ],
+   "criada_em": "20260922130000_add_customer_selections.sql",
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [
+    "customer_selections_validate_kit_insert",
+    "customer_selections_validate_kit_update"
+   ],
+   "sem_rls": false,
+   "nao_usada": true
+  },
+  "site_private.erased_customer_identities": {
+   "colunas": {
+    "auth_users_deleted": {
+     "tipo": "integer",
+     "nn": true,
+     "pk": false,
+     "default": "0",
+     "ref": null
+    },
+    "email_sha256": {
+     "tipo": "text",
+     "nn": false,
+     "pk": true,
+     "default": null,
+     "ref": null
+    },
+    "erased_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    }
+   },
+   "rls": true,
+   "policies": [],
+   "indices": [],
+   "fks": [],
+   "criada_em": "20260923120000_audit_security_reliability_hardening.sql",
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [],
+   "sem_rls": false,
+   "nao_usada": true
+  },
+  "site_private.notification_deliveries": {
+   "colunas": {
+    "attempts": {
+     "tipo": "smallint",
+     "nn": true,
+     "pk": false,
+     "default": "0",
+     "ref": null
+    },
+    "audience": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "bounce_reason": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "channel": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "claimed_at": {
+     "tipo": "timestamptz",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "complained_at": {
+     "tipo": "timestamptz",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "created_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    },
+    "delivery_state": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "delivery_state_at": {
+     "tipo": "timestamptz",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "delivery_state_source_event_id": {
+     "tipo": "uuid",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": "site_private"
+    },
+    "id": {
+     "tipo": "uuid",
+     "nn": false,
+     "pk": true,
+     "default": "gen_random_uuid()",
+     "ref": null
+    },
+    "last_error_at": {
+     "tipo": "timestamptz",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "last_error_code": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "lease_expires_at": {
+     "tipo": "timestamptz",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "lease_token": {
+     "tipo": "uuid",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "next_attempt_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    },
+    "provider": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "provider_message_id": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "request_id": {
+     "tipo": "uuid",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "request_kind": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "sent_at": {
+     "tipo": "timestamptz",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "status": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": "'pending'",
+     "ref": null
+    },
+    "updated_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    }
+   },
+   "rls": true,
+   "policies": [],
+   "indices": [
+    {
+     "nome": "notification_deliveries_delivery_state_source_event_idx",
+     "colunas": "delivery_state_source_event_id",
+     "unico": false
+    },
+    {
+     "nome": "notification_deliveries_pending_idx",
+     "colunas": "status, created_at",
+     "unico": false
+    },
+    {
+     "nome": "notification_deliveries_processing_lease_idx",
+     "colunas": "lease_expires_at",
+     "unico": false
+    },
+    {
+     "nome": "notification_deliveries_provider_lookup_idx",
+     "colunas": "provider, provider_message_id",
+     "unico": false
+    },
+    {
+     "nome": "notification_deliveries_provider_message_key",
+     "colunas": "provider, provider_message_id",
+     "unico": true
+    },
+    {
+     "nome": "notification_deliveries_retry_idx",
+     "colunas": "next_attempt_at, created_at",
+     "unico": false
+    }
+   ],
+   "fks": [
+    "delivery_state_source_event_id->site_private"
+   ],
+   "criada_em": "20260908230000_create_site_lead_storage.sql",
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [
+    "notification_deliveries_enforce_status_transition",
+    "notification_deliveries_set_updated_at"
+   ],
+   "sem_rls": false,
+   "nao_usada": true
+  },
+  "site_private.notification_provider_events": {
+   "colunas": {
+    "delivery_id": {
+     "tipo": "uuid",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": "site_private"
+    },
+    "event_type": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "id": {
+     "tipo": "uuid",
+     "nn": false,
+     "pk": true,
+     "default": "gen_random_uuid()",
+     "ref": null
+    },
+    "provider": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "provider_event_id": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "received_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    }
+   },
+   "rls": true,
+   "policies": [],
+   "indices": [
+    {
+     "nome": "notification_provider_events_delivery_id_idx",
+     "colunas": "delivery_id",
+     "unico": false
+    }
+   ],
+   "fks": [
+    "delivery_id->site_private"
+   ],
+   "criada_em": "20260915150000_add_notification_delivery_events.sql",
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [],
+   "sem_rls": false,
+   "nao_usada": true
+  },
+  "site_private.proposal_documents": {
+   "colunas": {
+    "created_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    },
+    "id": {
+     "tipo": "uuid",
+     "nn": false,
+     "pk": true,
+     "default": "gen_random_uuid()",
+     "ref": null
+    },
+    "published_at": {
+     "tipo": "timestamptz",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "quote_request_id": {
+     "tipo": "uuid",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": "site_private"
+    },
+    "storage_bucket": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": "'customer-proposals'",
+     "ref": null
+    },
+    "storage_path": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "superseded_at": {
+     "tipo": "timestamptz",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "title": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "valid_until": {
+     "tipo": "date",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "version": {
+     "tipo": "integer",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    }
+   },
+   "rls": true,
+   "policies": [],
+   "indices": [
+    {
+     "nome": "proposal_documents_published_idx",
+     "colunas": "quote_request_id, published_at desc",
+     "unico": false
+    }
+   ],
+   "fks": [
+    "quote_request_id->site_private"
+   ],
+   "criada_em": "20260909180000_create_customer_quote_portal.sql",
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [],
+   "sem_rls": false,
+   "nao_usada": true
+  },
+  "site_private.quote_adjustment_requests": {
+   "colunas": {
+    "client_request_id": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "created_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    },
+    "id": {
+     "tipo": "uuid",
+     "nn": false,
+     "pk": true,
+     "default": "gen_random_uuid()",
+     "ref": null
+    },
+    "message": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "quote_request_id": {
+     "tipo": "uuid",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": "site_private"
+    },
+    "requested_by": {
+     "tipo": "uuid",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": "auth"
+    },
+    "status": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": "'new'",
+     "ref": null
+    },
+    "updated_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    }
+   },
+   "rls": true,
+   "policies": [],
+   "indices": [
+    {
+     "nome": "quote_adjustment_requests_requested_by_idx",
+     "colunas": "requested_by",
+     "unico": false
+    },
+    {
+     "nome": "quote_adjustments_request_created_idx",
+     "colunas": "quote_request_id, created_at desc",
+     "unico": false
+    }
+   ],
+   "fks": [
+    "quote_request_id->site_private",
+    "requested_by->auth"
+   ],
+   "criada_em": "20260910130000_customer_adjustments_and_preferences.sql",
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [
+    "quote_adjustment_requests_set_updated_at"
+   ],
+   "sem_rls": false,
+   "nao_usada": true
+  },
+  "site_private.quote_items": {
+   "colunas": {
+    "color_hex_snapshot": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "color_name_snapshot": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "created_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    },
+    "decision_group_snapshot": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": "'primary'",
+     "ref": null
+    },
+    "id": {
+     "tipo": "uuid",
+     "nn": false,
+     "pk": true,
+     "default": "gen_random_uuid()",
+     "ref": null
+    },
+    "image_url_snapshot": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "item_key": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "kit_group_id": {
+     "tipo": "uuid",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "kit_name_snapshot": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "kit_quantity_snapshot": {
+     "tipo": "integer",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "minimum_quantity_snapshot": {
+     "tipo": "integer",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "position": {
+     "tipo": "smallint",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "product_name_snapshot": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "product_slug": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "quantity": {
+     "tipo": "integer",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "quote_request_id": {
+     "tipo": "uuid",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": "site_private"
+    },
+    "sku_snapshot": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "source_product_id": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "units_per_kit_snapshot": {
+     "tipo": "integer",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "variant_id_snapshot": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    }
+   },
+   "rls": true,
+   "policies": [],
+   "indices": [
+    {
+     "nome": "quote_items_kit_group_idx",
+     "colunas": "quote_request_id, kit_group_id, position",
+     "unico": false
+    },
+    {
+     "nome": "quote_items_product_id_idx",
+     "colunas": "source_product_id",
+     "unico": false
+    }
+   ],
+   "fks": [
+    "quote_request_id->site_private"
+   ],
+   "criada_em": "20260908230000_create_site_lead_storage.sql",
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [],
+   "sem_rls": false,
+   "nao_usada": true
+  },
+  "site_private.quote_request_events": {
+   "colunas": {
+    "audience": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": "'customer'",
+     "ref": null
+    },
+    "created_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    },
+    "description": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "event_type": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "id": {
+     "tipo": "uuid",
+     "nn": false,
+     "pk": true,
+     "default": "gen_random_uuid()",
+     "ref": null
+    },
+    "quote_request_id": {
+     "tipo": "uuid",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": "site_private"
+    },
+    "sequence": {
+     "tipo": "bigint",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "status": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "title": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    }
+   },
+   "rls": true,
+   "policies": [],
+   "indices": [
+    {
+     "nome": "quote_request_events_request_created_idx",
+     "colunas": "quote_request_id, created_at desc",
+     "unico": false
+    },
+    {
+     "nome": "quote_request_events_request_sequence_idx",
+     "colunas": "quote_request_id, sequence desc",
+     "unico": false
+    }
+   ],
+   "fks": [
+    "quote_request_id->site_private"
+   ],
+   "criada_em": "20260909180000_create_customer_quote_portal.sql",
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [],
+   "sem_rls": false,
+   "nao_usada": true
+  },
+  "site_private.quote_requests": {
+   "colunas": {
+    "city": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "client_request_id": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "client_submitted_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "company": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "contact_name": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "created_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    },
+    "customer_user_id": {
+     "tipo": "uuid",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": "auth"
+    },
+    "desired_deadline": {
+     "tipo": "date",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "email": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "id": {
+     "tipo": "uuid",
+     "nn": false,
+     "pk": true,
+     "default": "gen_random_uuid()",
+     "ref": null
+    },
+    "notes": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "page_url": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "phone": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "protocol": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "request_hash": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "request_metadata": {
+     "tipo": "jsonb",
+     "nn": true,
+     "pk": false,
+     "default": "'{}'::jsonb",
+     "ref": null
+    },
+    "retention_until": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "(now() + interval '24 months')",
+     "ref": null
+    },
+    "source": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "status": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": "'new'",
+     "ref": null
+    },
+    "updated_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    }
+   },
+   "rls": true,
+   "policies": [],
+   "indices": [
+    {
+     "nome": "quote_requests_created_at_idx",
+     "colunas": "created_at desc",
+     "unico": false
+    },
+    {
+     "nome": "quote_requests_customer_created_idx",
+     "colunas": "customer_user_id, created_at desc",
+     "unico": false
+    },
+    {
+     "nome": "quote_requests_customer_owner_idx",
+     "colunas": "customer_user_id",
+     "unico": false
+    },
+    {
+     "nome": "quote_requests_retention_idx",
+     "colunas": "retention_until",
+     "unico": false
+    },
+    {
+     "nome": "quote_requests_status_created_at_idx",
+     "colunas": "status, created_at desc",
+     "unico": false
+    },
+    {
+     "nome": "quote_requests_unclaimed_email_idx",
+     "colunas": "lower(email",
+     "unico": false
+    }
+   ],
+   "fks": [
+    "customer_user_id->auth"
+   ],
+   "criada_em": "20260908230000_create_site_lead_storage.sql",
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [
+    "quote_requests_assign_protocol",
+    "quote_requests_enforce_status_transition",
+    "quote_requests_enqueue_confirmations",
+    "quote_requests_record_customer_event",
+    "quote_requests_set_updated_at"
+   ],
+   "sem_rls": false,
+   "nao_usada": true
+  },
+  "site_private.rate_limit_buckets": {
+   "colunas": {
+    "identifier_hash": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "request_count": {
+     "tipo": "integer",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "request_kind": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "updated_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    },
+    "window_started_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    }
+   },
+   "rls": true,
+   "policies": [],
+   "indices": [
+    {
+     "nome": "rate_limit_buckets_updated_at_idx",
+     "colunas": "updated_at",
+     "unico": false
+    }
+   ],
+   "fks": [],
+   "criada_em": "20260908230000_create_site_lead_storage.sql",
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [],
+   "sem_rls": false,
+   "nao_usada": true
+  },
+  "site_private.shared_selection_rate_limits": {
+   "colunas": {
+    "identifier_hash": {
+     "tipo": "text",
+     "nn": false,
+     "pk": true,
+     "default": null,
+     "ref": null
+    },
+    "request_count": {
+     "tipo": "integer",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "updated_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    },
+    "window_started_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    }
+   },
+   "rls": true,
+   "policies": [],
+   "indices": [],
+   "fks": [],
+   "criada_em": "20260911170000_add_revocable_shared_selections.sql",
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [
+    "shared_selection_rate_limits_set_updated_at"
+   ],
+   "sem_rls": false,
+   "nao_usada": true
+  },
+  "site_private.shared_selections": {
+   "colunas": {
+    "created_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    },
+    "expires_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "(now() + interval '30 days')",
+     "ref": null
+    },
+    "items": {
+     "tipo": "jsonb",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "management_token_hash": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "revoked_at": {
+     "tipo": "timestamptz",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "token": {
+     "tipo": "uuid",
+     "nn": false,
+     "pk": true,
+     "default": "gen_random_uuid()",
+     "ref": null
+    },
+    "updated_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    }
+   },
+   "rls": true,
+   "policies": [],
+   "indices": [
+    {
+     "nome": "shared_selections_active_idx",
+     "colunas": "expires_at",
+     "unico": false
+    }
+   ],
+   "fks": [],
+   "criada_em": "20260911170000_add_revocable_shared_selections.sql",
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [
+    "shared_selections_set_updated_at",
+    "shared_selections_validate_kit_insert",
+    "shared_selections_validate_kit_update"
+   ],
+   "sem_rls": false,
+   "nao_usada": true
+  },
+  "site_private.status_transitions": {
+   "colunas": {
+    "entity": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "from_status": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "to_status": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    }
+   },
+   "rls": true,
+   "policies": [],
+   "indices": [],
+   "fks": [],
+   "criada_em": "20260916100000_add_quote_event_sequence_and_status_state_machine.sql",
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [],
+   "sem_rls": false,
+   "nao_usada": true
+  },
+  "site_private.storage_deletion_queue": {
+   "colunas": {
+    "bucket": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "object_path": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "queued_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    }
+   },
+   "rls": true,
+   "policies": [],
+   "indices": [],
+   "fks": [],
+   "criada_em": "20260922150000_add_private_briefing_assets.sql",
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [],
+   "sem_rls": false,
+   "nao_usada": true
+  },
+  "storage.objects": {
+   "colunas": {},
+   "rls": false,
+   "policies": [
+    {
+     "nome": "customer_briefing_assets_delete_own",
+     "comando": "delete",
+     "para": "authenticated",
+     "tipo": "permissive"
+    },
+    {
+     "nome": "customer_briefing_assets_insert_own",
+     "comando": "insert",
+     "para": "authenticated",
+     "tipo": "permissive"
+    },
+    {
+     "nome": "customer_briefing_assets_select_own",
+     "comando": "select",
+     "para": "authenticated",
+     "tipo": "permissive"
+    }
+   ],
+   "indices": [],
+   "fks": [],
+   "criada_em": null,
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [],
+   "sem_rls": false,
+   "nao_usada": true
+  },
+  "system_settings": {
+   "colunas": {},
+   "rls": false,
+   "policies": [
+    {
+     "nome": "system_settings_admin_delete",
+     "comando": "delete",
+     "para": "authenticated",
+     "tipo": "permissive"
+    },
+    {
+     "nome": "system_settings_admin_insert",
+     "comando": "insert",
+     "para": "authenticated",
+     "tipo": "permissive"
+    },
+    {
+     "nome": "system_settings_admin_update",
+     "comando": "update",
+     "para": "authenticated",
+     "tipo": "permissive"
+    },
+    {
+     "nome": "system_settings_read",
+     "comando": "select",
+     "para": "anon, authenticated",
+     "tipo": "permissive"
+    }
+   ],
+   "indices": [],
+   "fks": [],
+   "criada_em": null,
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [],
+   "sem_rls": false,
+   "nao_usada": true
+  },
+  "users": {
+   "colunas": {
+    "id": {
+     "tipo": "uuid",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "name": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    }
+   },
+   "rls": false,
+   "policies": [],
+   "indices": [],
+   "fks": [],
+   "criada_em": "scripts/ai-context/cenarios.mjs",
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [],
+   "sem_rls": false,
+   "nao_usada": true
+  }
+ },
+ "tabelas_usadas_no_codigo_sem_definicao": [],
+ "rpcs_usadas_no_codigo": [
+  {
+   "nome": "attach_my_briefing_assets_to_quote",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "claim_my_quote_requests",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "create_my_briefing_asset",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "delete_my_briefing_asset",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "delete_my_selection",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "get_my_quote_request",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "get_my_quote_requests",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "list_my_briefing_assets",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "list_my_occasion_favorites",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "list_my_selections",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "request_my_quote_adjustment",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "save_my_selection",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "set_my_occasion_favorite",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "set_my_selection_archived",
+   "definida": true,
+   "usada_em": 1
+  }
+ ]
+}

@@ -1,0 +1,778 @@
+{
+ "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
+ "format_version": 2,
+ "git": {
+  "commit": "713ebe472995e96a19079f97ffa9edbc3d589dee",
+  "branch": "main",
+  "data_commit": "2026-11-09T03:02:23-03:00",
+  "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
+  "ultimos_commits": [
+   {
+    "sha": "713ebe4",
+    "data": "2026-11-09",
+    "assunto": "feat(scripts): porta scripts autônomos de contexto de IA do Zapp Web V2"
+   },
+   {
+    "sha": "d44baf5",
+    "data": "2026-11-09",
+    "assunto": "security: guard falha fechado, sem injeção de arg e regex de backtick (#124)"
+   },
+   {
+    "sha": "3c3cc11",
+    "data": "2026-11-08",
+    "assunto": "chore: iguala a forma do AGENTS.md à do Zapp Web V2 (#120)"
+   },
+   {
+    "sha": "75ba0fa",
+    "data": "2026-11-08",
+    "assunto": "chore: replica o padrão de instruções para agentes do Zapp Web V2 (#119)"
+   },
+   {
+    "sha": "cae3b2e",
+    "data": "2026-11-07",
+    "assunto": "fix: correções da revisão de fidelidade (instruções) (#118)"
+   },
+   {
+    "sha": "e676bb3",
+    "data": "2026-11-07",
+    "assunto": "chore(deps): bump the npm-minor-and-patch group with 4 updates (#114)"
+   },
+   {
+    "sha": "ae62613",
+    "data": "2026-11-07",
+    "assunto": "chore: instruções enxutas para agentes (AGENTS.md único, CLAUDE.md importa) (#117)"
+   },
+   {
+    "sha": "56d86a4",
+    "data": "2026-11-02",
+    "assunto": "chore: AGENTS.md com o texto-mestre adm01-debug (seções 1-7) (#115)"
+   },
+   {
+    "sha": "28b3d88",
+    "data": "2026-10-31",
+    "assunto": "docs: completa analise-prs com 7 arquivos complementares (#111)"
+   },
+   {
+    "sha": "b193119",
+    "data": "2026-10-31",
+    "assunto": "docs: inventário de auditorias anteriores e dataset de PRs (analise-prs/) (#110)"
+   },
+   {
+    "sha": "cc133bd",
+    "data": "2026-10-29",
+    "assunto": "docs(ci): registra falha de quota do Copilot na main (#109)"
+   },
+   {
+    "sha": "b49f7fc",
+    "data": "2026-10-27",
+    "assunto": "chore: alinha documentos do contrato do catálogo ao ledger canônico (#108)"
+   },
+   {
+    "sha": "e7ebf1b",
+    "data": "2026-10-27",
+    "assunto": "fix(ci): compatibiliza ESLint 10 com regras de acessibilidade"
+   },
+   {
+    "sha": "153192c",
+    "data": "2026-10-27",
+    "assunto": "docs(ci): registra bloqueio do ESLint 10 e atualiza pendências"
+   },
+   {
+    "sha": "7100e1c",
+    "data": "2026-10-27",
+    "assunto": "feat(ux): resumo editável e confirmação do briefing"
+   },
+   {
+    "sha": "a8f3076",
+    "data": "2026-10-27",
+    "assunto": "chore(graphify): atualiza para 0.9.94 com benchmark e pin alinhado"
+   },
+   {
+    "sha": "fb534ed",
+    "data": "2026-10-27",
+    "assunto": "chore(deps): atualiza dependências e rótulos acessíveis"
+   },
+   {
+    "sha": "b62ca89",
+    "data": "2026-10-27",
+    "assunto": "docs(auditoria): incorpora inventário de funcionalidades pendentes"
+   },
+   {
+    "sha": "8e412de",
+    "data": "2026-10-27",
+    "assunto": "chore(ci): atualiza ações do GitHub com checks verdes"
+   },
+   {
+    "sha": "dea319e",
+    "data": "2026-10-27",
+    "assunto": "fix(ci): registra baseline e corrige dependências da sonda do catálogo"
+   },
+   {
+    "sha": "217f785",
+    "data": "2026-10-27",
+    "assunto": "fix(catalog): remove padrão atrás das fotos dos produtos (#88)"
+   },
+   {
+    "sha": "4c60959",
+    "data": "2026-10-20",
+    "assunto": "docs(ativos): importa mockups e relatório que estavam fora do repo (#103)"
+   },
+   {
+    "sha": "3f82233",
+    "data": "2026-10-06",
+    "assunto": "fix(ux): elimina perdas de dados em fluxos assíncronos (#89)"
+   },
+   {
+    "sha": "77f0ff1",
+    "data": "2026-10-06",
+    "assunto": "feat(brand): adiciona assinatura Gift Lovers by Promo (#92)"
+   },
+   {
+    "sha": "62a38b3",
+    "data": "2026-10-06",
+    "assunto": "docs(ux): plano Carnegie de experiência em 100 etapas (#93)"
+   }
+  ],
+  "arquivos_mudados_7d": 53,
+  "pastas_mais_mudadas_30d": [
+   {
+    "pasta": "docs/audits/pending-features-20261011",
+    "mudancas": 10
+   },
+   {
+    "pasta": "AGENTS.md",
+    "mudancas": 6
+   },
+   {
+    "pasta": "package.json",
+    "mudancas": 6
+   },
+   {
+    "pasta": "PENDENCIAS.md",
+    "mudancas": 4
+   },
+   {
+    "pasta": "package-lock.json",
+    "mudancas": 4
+   },
+   {
+    "pasta": "RELATORIO_CI.md",
+    "mudancas": 3
+   },
+   {
+    "pasta": "scripts/validate-agent-instructions.mjs",
+    "mudancas": 3
+   },
+   {
+    "pasta": ".agents/skills/promo-brindes-v1",
+    "mudancas": 2
+   },
+   {
+    "pasta": "CLAUDE.md",
+    "mudancas": 2
+   },
+   {
+    "pasta": "docs/agentes/regras-dominio.md",
+    "mudancas": 2
+   },
+   {
+    "pasta": "docs/contexto/regras",
+    "mudancas": 2
+   },
+   {
+    "pasta": "e2e/smoke.spec.ts",
+    "mudancas": 2
+   },
+   {
+    "pasta": "eslint.config.js",
+    "mudancas": 2
+   },
+   {
+    "pasta": "src/styles.css",
+    "mudancas": 2
+   },
+   {
+    "pasta": "tests/validate-agent-instructions.node.mjs",
+    "mudancas": 2
+   }
+  ],
+  "arquivos_mais_mudados_90d": [
+   {
+    "arquivo": "package.json",
+    "mudancas": 55
+   },
+   {
+    "arquivo": "e2e/smoke.spec.ts",
+    "mudancas": 53
+   },
+   {
+    "arquivo": "src/styles.css",
+    "mudancas": 33
+   },
+   {
+    "arquivo": "package-lock.json",
+    "mudancas": 30
+   },
+   {
+    "arquivo": "vercel.json",
+    "mudancas": 24
+   },
+   {
+    "arquivo": "src/components/Layout.tsx",
+    "mudancas": 22
+   },
+   {
+    "arquivo": "src/pages/QuotePage.tsx",
+    "mudancas": 22
+   },
+   {
+    "arquivo": "site-supabase/supabase/tests/database/lead_storage.test.sql",
+    "mudancas": 21
+   },
+   {
+    "arquivo": ".github/workflows/quality.yml",
+    "mudancas": 20
+   },
+   {
+    "arquivo": "docs/DATABASE_DICTIONARY.md",
+    "mudancas": 20
+   },
+   {
+    "arquivo": "tests/api/lead-requests.test.ts",
+    "mudancas": 19
+   },
+   {
+    "arquivo": ".github/workflows/release.yml",
+    "mudancas": 18
+   },
+   {
+    "arquivo": "src/App.tsx",
+    "mudancas": 17
+   },
+   {
+    "arquivo": ".github/workflows/database.yml",
+    "mudancas": 16
+   },
+   {
+    "arquivo": "api/_lib/siteDatabase.ts",
+    "mudancas": 16
+   },
+   {
+    "arquivo": ".github/workflows/graphify.yml",
+    "mudancas": 15
+   },
+   {
+    "arquivo": "api/notifications.ts",
+    "mudancas": 15
+   },
+   {
+    "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
+    "mudancas": 15
+   },
+   {
+    "arquivo": ".env.example",
+    "mudancas": 14
+   },
+   {
+    "arquivo": "api/_lib/leadHandler.ts",
+    "mudancas": 14
+   },
+   {
+    "arquivo": "docs/DATABASE_SCHEMA.md",
+    "mudancas": 14
+   },
+   {
+    "arquivo": "src/components/QuoteDrawer.tsx",
+    "mudancas": 14
+   },
+   {
+    "arquivo": "src/pages/ProductPage.tsx",
+    "mudancas": 14
+   },
+   {
+    "arquivo": "src/context/QuoteCartContext.test.ts",
+    "mudancas": 13
+   },
+   {
+    "arquivo": "src/context/QuoteCartContext.tsx",
+    "mudancas": 13
+   }
+  ],
+  "autores_30d": [
+   {
+    "autor": "adm01-debug",
+    "commits": 17
+   },
+   {
+    "autor": "dependabot[bot]",
+    "commits": 5
+   }
+  ]
+ },
+ "contagens": {
+  "arquivos_total": 649,
+  "arquivos_codigo": 249,
+  "linhas_codigo": 37705,
+  "rotas": 44,
+  "rotas_http_backend": 12,
+  "vistas_por_id": 0,
+  "itens_menu": 11,
+  "modulos": 9,
+  "componentes": 40,
+  "hooks": 7,
+  "edge_functions": 0,
+  "tabelas": 26,
+  "migrations": 73,
+  "cron_jobs": 0,
+  "testes": 89,
+  "workflows": 14,
+  "scripts": 29,
+  "docs_md": 113
+ },
+ "por_pasta": {
+  "api/_lib": {
+   "arquivos": 13,
+   "linhas": 1667
+  },
+  "api/briefing-assets.ts": {
+   "arquivos": 1,
+   "linhas": 177
+  },
+  "api/contact-requests.ts": {
+   "arquivos": 1,
+   "linhas": 6
+  },
+  "api/customer-proposals.ts": {
+   "arquivos": 1,
+   "linhas": 137
+  },
+  "api/not-found.ts": {
+   "arquivos": 1,
+   "linhas": 28
+  },
+  "api/notification-events-resend.ts": {
+   "arquivos": 1,
+   "linhas": 122
+  },
+  "api/notification-events-whatsapp.ts": {
+   "arquivos": 1,
+   "linhas": 170
+  },
+  "api/notifications.ts": {
+   "arquivos": 1,
+   "linhas": 698
+  },
+  "api/product-page.ts": {
+   "arquivos": 1,
+   "linhas": 79
+  },
+  "api/quote-requests.ts": {
+   "arquivos": 1,
+   "linhas": 6
+  },
+  "api/retention.ts": {
+   "arquivos": 1,
+   "linhas": 192
+  },
+  "api/shared-selections.ts": {
+   "arquivos": 1,
+   "linhas": 87
+  },
+  "api/site-page.ts": {
+   "arquivos": 1,
+   "linhas": 124
+  },
+  "api/sitemap.ts": {
+   "arquivos": 1,
+   "linhas": 194
+  },
+  "docs/audits": {
+   "arquivos": 12,
+   "linhas": 967
+  },
+  "e2e/product-detail.spec.ts": {
+   "arquivos": 1,
+   "linhas": 156
+  },
+  "e2e/smoke.spec.ts": {
+   "arquivos": 1,
+   "linhas": 1489
+  },
+  "eslint.config.js": {
+   "arquivos": 1,
+   "linhas": 133
+  },
+  "playwright.config.ts": {
+   "arquivos": 1,
+   "linhas": 34
+  },
+  "public/hero-preload.js": {
+   "arquivos": 1,
+   "linhas": 13
+  },
+  "scripts/_lib": {
+   "arquivos": 1,
+   "linhas": 93
+  },
+  "scripts/ai-context": {
+   "arquivos": 3,
+   "linhas": 1458
+  },
+  "scripts/check-catalog-public-contract.mjs": {
+   "arquivos": 1,
+   "linhas": 342
+  },
+  "scripts/check-performance-budget.mjs": {
+   "arquivos": 1,
+   "linhas": 83
+  },
+  "scripts/ci-health-metrics.mjs": {
+   "arquivos": 1,
+   "linhas": 54
+  },
+  "scripts/generate-database-dictionary.mjs": {
+   "arquivos": 1,
+   "linhas": 103
+  },
+  "scripts/generate-database-schema-doc.mjs": {
+   "arquivos": 1,
+   "linhas": 81
+  },
+  "scripts/generate-site-api-jwt.mjs": {
+   "arquivos": 1,
+   "linhas": 60
+  },
+  "scripts/graphify-quality.mjs": {
+   "arquivos": 1,
+   "linhas": 364
+  },
+  "scripts/graphify.mjs": {
+   "arquivos": 1,
+   "linhas": 810
+  },
+  "scripts/inventario": {
+   "arquivos": 2,
+   "linhas": 472
+  },
+  "scripts/normalize-vercel-deployment-url.mjs": {
+   "arquivos": 1,
+   "linhas": 36
+  },
+  "scripts/regras_negocio": {
+   "arquivos": 3,
+   "linhas": 2539
+  },
+  "scripts/smoke-deployment.mjs": {
+   "arquivos": 1,
+   "linhas": 57
+  },
+  "scripts/soak-test-notification-queue.mjs": {
+   "arquivos": 1,
+   "linhas": 223
+  },
+  "scripts/stage-app-shell.mjs": {
+   "arquivos": 1,
+   "linhas": 15
+  },
+  "scripts/supabase_snapshot": {
+   "arquivos": 2,
+   "linhas": 2669
+  },
+  "scripts/validate-agent-instructions.mjs": {
+   "arquivos": 1,
+   "linhas": 200
+  },
+  "scripts/validate-closure-ledger.mjs": {
+   "arquivos": 1,
+   "linhas": 74
+  },
+  "scripts/validate-error-catalog.mjs": {
+   "arquivos": 1,
+   "linhas": 68
+  },
+  "scripts/validate-migration-names.mjs": {
+   "arquivos": 1,
+   "linhas": 117
+  },
+  "scripts/validate-site-supabase-target.mjs": {
+   "arquivos": 1,
+   "linhas": 19
+  },
+  "scripts/verify-vercel-artifact.mjs": {
+   "arquivos": 1,
+   "linhas": 48
+  },
+  "shared/campaignYears.ts": {
+   "arquivos": 1,
+   "linhas": 23
+  },
+  "shared/catalogEditorial.ts": {
+   "arquivos": 1,
+   "linhas": 91
+  },
+  "src/App.tsx": {
+   "arquivos": 1,
+   "linhas": 138
+  },
+  "src/components": {
+   "arquivos": 29,
+   "linhas": 2952
+  },
+  "src/context": {
+   "arquivos": 7,
+   "linhas": 749
+  },
+  "src/lib": {
+   "arquivos": 79,
+   "linhas": 7613
+  },
+  "src/main.tsx": {
+   "arquivos": 1,
+   "linhas": 10
+  },
+  "src/pages": {
+   "arquivos": 22,
+   "linhas": 3066
+  },
+  "src/test": {
+   "arquivos": 1,
+   "linhas": 2
+  },
+  "src/types": {
+   "arquivos": 1,
+   "linhas": 1258
+  },
+  "src/types.ts": {
+   "arquivos": 1,
+   "linhas": 168
+  },
+  "tests/api": {
+   "arquivos": 17,
+   "linhas": 3251
+  },
+  "tests/catalog-public-contract.node.mjs": {
+   "arquivos": 1,
+   "linhas": 293
+  },
+  "tests/ci-health-metrics.node.mjs": {
+   "arquivos": 1,
+   "linhas": 93
+  },
+  "tests/closure-ledger.node.mjs": {
+   "arquivos": 1,
+   "linhas": 40
+  },
+  "tests/generate-site-api-jwt.node.mjs": {
+   "arquivos": 1,
+   "linhas": 61
+  },
+  "tests/graphify-tools.node.mjs": {
+   "arquivos": 1,
+   "linhas": 284
+  },
+  "tests/inventario-estado.node.mjs": {
+   "arquivos": 1,
+   "linhas": 271
+  },
+  "tests/normalize-vercel-deployment-url.node.mjs": {
+   "arquivos": 1,
+   "linhas": 43
+  },
+  "tests/queue-concurrency.node.mjs": {
+   "arquivos": 1,
+   "linhas": 202
+  },
+  "tests/scripts": {
+   "arquivos": 2,
+   "linhas": 154
+  },
+  "tests/supabase-db-query.node.mjs": {
+   "arquivos": 1,
+   "linhas": 67
+  },
+  "tests/timing-safe-secret-comparisons.node.mjs": {
+   "arquivos": 1,
+   "linhas": 65
+  },
+  "tests/validate-agent-instructions.node.mjs": {
+   "arquivos": 1,
+   "linhas": 133
+  },
+  "tests/validate-error-catalog.node.mjs": {
+   "arquivos": 1,
+   "linhas": 51
+  },
+  "tests/validate-migration-names.node.mjs": {
+   "arquivos": 1,
+   "linhas": 97
+  },
+  "vite.config.ts": {
+   "arquivos": 1,
+   "linhas": 66
+  }
+ },
+ "maiores_arquivos": [
+  {
+   "arquivo": "scripts/regras_negocio/generate.py",
+   "linhas": 2138
+  },
+  {
+   "arquivo": "scripts/supabase_snapshot/snapshot.py",
+   "linhas": 1791
+  },
+  {
+   "arquivo": "src/types/site-database.types.ts",
+   "linhas": 1258
+  },
+  {
+   "arquivo": "scripts/ai-context/gerar.mjs",
+   "linhas": 924
+  },
+  {
+   "arquivo": "scripts/graphify.mjs",
+   "linhas": 810
+  },
+  {
+   "arquivo": "api/notifications.ts",
+   "linhas": 698
+  },
+  {
+   "arquivo": "src/lib/catalog.ts",
+   "linhas": 506
+  },
+  {
+   "arquivo": "src/pages/QuotePage.tsx",
+   "linhas": 503
+  },
+  {
+   "arquivo": "api/_lib/contracts.ts",
+   "linhas": 417
+  },
+  {
+   "arquivo": "src/lib/useOccasionFavorites.ts",
+   "linhas": 416
+  },
+  {
+   "arquivo": "scripts/inventario/gerar-banco.mjs",
+   "linhas": 379
+  },
+  {
+   "arquivo": "src/pages/HomePage.tsx",
+   "linhas": 371
+  },
+  {
+   "arquivo": "scripts/graphify-quality.mjs",
+   "linhas": 364
+  },
+  {
+   "arquivo": "src/pages/CommemorativeDatesPage.tsx",
+   "linhas": 351
+  },
+  {
+   "arquivo": "scripts/check-catalog-public-contract.mjs",
+   "linhas": 342
+  },
+  {
+   "arquivo": "src/lib/commemorativeDates.ts",
+   "linhas": 336
+  },
+  {
+   "arquivo": "src/lib/sharedSelection.ts",
+   "linhas": 332
+  },
+  {
+   "arquivo": "src/pages/CatalogsPage.tsx",
+   "linhas": 304
+  },
+  {
+   "arquivo": "src/components/QuoteDrawer.tsx",
+   "linhas": 287
+  },
+  {
+   "arquivo": "docs/audits/plan-review-20260912/build_matrix.py",
+   "linhas": 286
+  },
+  {
+   "arquivo": "src/lib/useCatalogPageState.ts",
+   "linhas": 282
+  },
+  {
+   "arquivo": "api/_lib/siteDatabase.ts",
+   "linhas": 281
+  },
+  {
+   "arquivo": "src/components/Layout.tsx",
+   "linhas": 273
+  },
+  {
+   "arquivo": "src/lib/customerQuoteContract.ts",
+   "linhas": 255
+  },
+  {
+   "arquivo": "src/components/CatalogFilterPanel.tsx",
+   "linhas": 246
+  }
+ ],
+ "qualidade": {
+  "any": 3,
+  "console_log": 58,
+  "ts_ignore": 0,
+  "eslint_disable": 1,
+  "todos": 3,
+  "arquivos_acima_500_linhas": 8
+ },
+ "todos": [
+  {
+   "arquivo": "scripts/ai-context/gerar.mjs",
+   "linha": 188,
+   "tipo": "TODO",
+   "texto": "|FIXME|HACK|XXX)\\b[:\\s-]*([^\\n]{0,100})/.exec(line); if (m) todos.push({ linha: ln, tipo: m[1], text"
+  },
+  {
+   "arquivo": "scripts/ai-context/gerar.mjs",
+   "linha": 222,
+   "tipo": "TODO",
+   "texto": "|FIXME|HACK|XXX)\\b[:\\s-]*([^\\n]{0,100})/.exec(l); return m ? { linha: i + 1, tipo: m[1], texto: m[2]"
+  },
+  {
+   "arquivo": "scripts/regras_negocio/generate.py",
+   "linha": 570,
+   "tipo": "TODO",
+   "texto": "\", \"http\", \"import\")) and \"://\" not in c:"
+  }
+ ],
+ "alertas": {
+  "rotas_sem_arquivo": [],
+  "componentes_ambiguos": [],
+  "menu_sem_destino": [
+   "Facebook -> https://facebook.com/PromoBrindesBR",
+   "Instagram -> https://instagram.com/promobrindesBR",
+   "Pinterest -> https://br.pinterest.com/ppromobrindes/",
+   "YouTube -> https://youtube.com/channel/UCqITISXs4OioGbSEVVRGaMw"
+  ],
+  "edges_orfas": [],
+  "edges_chamadas_sem_pasta": [],
+  "tabelas_sem_rls": [],
+  "tabelas_usadas_sem_definicao": [],
+  "tabelas_com_drift_migration_vs_types": [],
+  "rpcs_sem_definicao": [],
+  "componentes_orfaos": [],
+  "componentes_com_nome_duplicado": [],
+  "scripts_orfaos": [],
+  "env_usadas_nao_declaradas": [
+   "CATALOG_SUPABASE_PUBLISHABLE_KEY",
+   "NODE_ENV",
+   "SITE_PREVIEW_SUPABASE_PROJECT_REF",
+   "SITE_TEST_APP_SHELL",
+   "VERCEL_ENV",
+   "VERCEL_URL",
+   "VITE_SITE_DEPLOYMENT_ENV",
+   "VITE_SITE_PREVIEW_PROJECT_REF"
+  ],
+  "ciclos_de_import": 1,
+  "possiveis_segredos_no_codigo": [
+   "scripts/ai-context/cenarios.mjs:102"
+  ]
+ },
+ "erros_do_gerador": []
+}

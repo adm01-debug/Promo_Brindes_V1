@@ -1,0 +1,241 @@
+{
+ "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
+ "format_version": 2,
+ "nos": 160,
+ "arestas": 344,
+ "hubs": [
+  {
+   "arquivo": "src/types.ts",
+   "importado_por": 45
+  },
+  {
+   "arquivo": "src/components/Seo.tsx",
+   "importado_por": 19
+  },
+  {
+   "arquivo": "src/lib/analytics.ts",
+   "importado_por": 19
+  },
+  {
+   "arquivo": "api/_lib/leadHandler.ts",
+   "importado_por": 14
+  },
+  {
+   "arquivo": "src/context/quoteCart.ts",
+   "importado_por": 12
+  },
+  {
+   "arquivo": "src/context/customerAuth.ts",
+   "importado_por": 11
+  },
+  {
+   "arquivo": "src/lib/campaignBrief.ts",
+   "importado_por": 11
+  },
+  {
+   "arquivo": "api/_lib/siteDatabase.ts",
+   "importado_por": 10
+  },
+  {
+   "arquivo": "src/lib/catalog.ts",
+   "importado_por": 10
+  },
+  {
+   "arquivo": "src/lib/quoteItems.ts",
+   "importado_por": 10
+  },
+  {
+   "arquivo": "src/lib/search.ts",
+   "importado_por": 9
+  },
+  {
+   "arquivo": "src/lib/images.ts",
+   "importado_por": 8
+  },
+  {
+   "arquivo": "src/lib/quoteBriefing.ts",
+   "importado_por": 8
+  },
+  {
+   "arquivo": "src/lib/siteSupabase.ts",
+   "importado_por": 8
+  },
+  {
+   "arquivo": "src/lib/customerAccount.ts",
+   "importado_por": 7
+  },
+  {
+   "arquivo": "src/lib/hooks.ts",
+   "importado_por": 7
+  },
+  {
+   "arquivo": "src/lib/http.ts",
+   "importado_por": 7
+  },
+  {
+   "arquivo": "shared/catalogEditorial.ts",
+   "importado_por": 6
+  },
+  {
+   "arquivo": "src/lib/catalogFilters.ts",
+   "importado_por": 6
+  },
+  {
+   "arquivo": "api/_lib/siteOrigin.ts",
+   "importado_por": 5
+  },
+  {
+   "arquivo": "shared/campaignYears.ts",
+   "importado_por": 5
+  },
+  {
+   "arquivo": "src/components/CatalogFeedback.tsx",
+   "importado_por": 5
+  },
+  {
+   "arquivo": "src/lib/siteRpc.ts",
+   "importado_por": 5
+  },
+  {
+   "arquivo": "api/_lib/contracts.ts",
+   "importado_por": 4
+  },
+  {
+   "arquivo": "api/_lib/pageShell.ts",
+   "importado_por": 4
+  },
+  {
+   "arquivo": "api/_lib/publicProductPage.ts",
+   "importado_por": 4
+  },
+  {
+   "arquivo": "src/components/ContextualFaq.tsx",
+   "importado_por": 4
+  },
+  {
+   "arquivo": "src/components/ProductCard.tsx",
+   "importado_por": 4
+  },
+  {
+   "arquivo": "src/components/SearchAutocomplete.tsx",
+   "importado_por": 4
+  },
+  {
+   "arquivo": "src/lib/briefingAssets.ts",
+   "importado_por": 4
+  },
+  {
+   "arquivo": "src/lib/campaignPresets.ts",
+   "importado_por": 4
+  },
+  {
+   "arquivo": "src/lib/catalogRanking.ts",
+   "importado_por": 4
+  },
+  {
+   "arquivo": "src/lib/quoteRepeat.ts",
+   "importado_por": 4
+  },
+  {
+   "arquivo": "src/lib/sharedSelection.ts",
+   "importado_por": 4
+  },
+  {
+   "arquivo": "src/lib/siteFeatureFlags.ts",
+   "importado_por": 4
+  },
+  {
+   "arquivo": "src/lib/siteSupabaseConfig.ts",
+   "importado_por": 4
+  },
+  {
+   "arquivo": "src/lib/useOccasionFavorites.ts",
+   "importado_por": 4
+  },
+  {
+   "arquivo": "api/_lib/catalogValidation.ts",
+   "importado_por": 3
+  },
+  {
+   "arquivo": "api/_lib/curatedPagePreviews.ts",
+   "importado_por": 3
+  },
+  {
+   "arquivo": "api/_lib/observability.ts",
+   "importado_por": 3
+  }
+ ],
+ "ciclos": {
+  "total": 1,
+  "maiores": [
+   {
+    "tamanho": 2,
+    "arquivos": [
+     "api/_lib/leadHandler.ts",
+     "api/notifications.ts"
+    ]
+   }
+  ]
+ },
+ "orfaos": [
+  "docs/audits/closure-review-20260912/build-matrix.mjs",
+  "docs/audits/closure-review-20260912/logout.mjs",
+  "docs/audits/closure-review-20260912/notifications.mjs",
+  "docs/audits/plan-review-20260912/build_matrix.py",
+  "docs/audits/plan-review-20260912/reproduce.mjs",
+  "docs/audits/plan-review-20260922/reproduce.mjs",
+  "docs/audits/plan-review-20260923/findings.probe.tsx",
+  "docs/audits/plan-review-20260924/favorites.probe.tsx",
+  "docs/audits/plan-review-20260928/favorites.probe.tsx",
+  "public/hero-preload.js",
+  "src/lib/searchRelevance.ts"
+ ],
+ "modulos_mais_acoplados": [
+  {
+   "modulo": "lib",
+   "depende_de": 3,
+   "importado_por": 3
+  },
+  {
+   "modulo": "context",
+   "depende_de": 1,
+   "importado_por": 3
+  },
+  {
+   "modulo": "pages",
+   "depende_de": 4,
+   "importado_por": 0
+  },
+  {
+   "modulo": "shared",
+   "depende_de": 0,
+   "importado_por": 4
+  },
+  {
+   "modulo": "api",
+   "depende_de": 2,
+   "importado_por": 1
+  },
+  {
+   "modulo": "api/_lib",
+   "depende_de": 2,
+   "importado_por": 1
+  },
+  {
+   "modulo": "components",
+   "depende_de": 2,
+   "importado_por": 1
+  },
+  {
+   "modulo": "types",
+   "depende_de": 0,
+   "importado_por": 1
+  },
+  {
+   "modulo": "test",
+   "depende_de": 0,
+   "importado_por": 0
+  }
+ ],
+ "arestas_em": "docs/contexto/codigo/grafo-arestas.json"
+}

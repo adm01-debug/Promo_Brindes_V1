@@ -1,0 +1,554 @@
+{
+ "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
+ "format_version": 2,
+ "arestas": {
+  "api/_lib/catalogValidation.ts": [
+   "api/_lib/contracts.ts"
+  ],
+  "api/_lib/contracts.ts": [
+   "api/_lib/siteOrigin.ts"
+  ],
+  "api/_lib/curatedPagePreviews.ts": [
+   "shared/catalogEditorial.ts"
+  ],
+  "api/_lib/leadHandler.ts": [
+   "api/_lib/catalogValidation.ts",
+   "api/_lib/contracts.ts",
+   "api/_lib/observability.ts",
+   "api/_lib/siteDatabase.ts",
+   "api/_lib/siteOrigin.ts",
+   "api/notifications.ts"
+  ],
+  "api/_lib/publicProductPage.ts": [
+   "api/_lib/pageShell.ts"
+  ],
+  "api/_lib/sharedSelections.ts": [
+   "api/_lib/siteDatabase.ts"
+  ],
+  "api/_lib/siteDatabase.ts": [
+   "api/_lib/contracts.ts"
+  ],
+  "api/briefing-assets.ts": [
+   "api/_lib/fileSignatures.ts",
+   "api/_lib/leadHandler.ts",
+   "api/_lib/siteDatabase.ts",
+   "api/_lib/siteOrigin.ts"
+  ],
+  "api/contact-requests.ts": [
+   "api/_lib/leadHandler.ts"
+  ],
+  "api/customer-proposals.ts": [
+   "api/_lib/leadHandler.ts",
+   "api/_lib/siteDatabase.ts",
+   "api/_lib/siteOrigin.ts"
+  ],
+  "api/not-found.ts": [
+   "api/_lib/publicProductPage.ts"
+  ],
+  "api/notification-events-resend.ts": [
+   "api/_lib/siteDatabase.ts",
+   "api/_lib/webhookSignature.ts"
+  ],
+  "api/notification-events-whatsapp.ts": [
+   "api/_lib/siteDatabase.ts",
+   "api/_lib/webhookSignature.ts"
+  ],
+  "api/notifications.ts": [
+   "api/_lib/leadHandler.ts",
+   "api/_lib/observability.ts",
+   "api/_lib/operationalAlerts.ts",
+   "api/_lib/siteDatabase.ts"
+  ],
+  "api/product-page.ts": [
+   "api/_lib/pageShell.ts",
+   "api/_lib/publicProductPage.ts"
+  ],
+  "api/quote-requests.ts": [
+   "api/_lib/leadHandler.ts"
+  ],
+  "api/retention.ts": [
+   "api/_lib/leadHandler.ts",
+   "api/_lib/observability.ts",
+   "api/_lib/operationalAlerts.ts",
+   "api/_lib/siteDatabase.ts"
+  ],
+  "api/shared-selections.ts": [
+   "api/_lib/leadHandler.ts",
+   "api/_lib/sharedSelections.ts",
+   "api/_lib/siteDatabase.ts",
+   "api/_lib/siteOrigin.ts"
+  ],
+  "api/site-page.ts": [
+   "api/_lib/curatedPagePreviews.ts",
+   "api/_lib/pageShell.ts",
+   "api/_lib/publicProductPage.ts",
+   "shared/campaignYears.ts",
+   "shared/catalogEditorial.ts"
+  ],
+  "api/sitemap.ts": [
+   "api/_lib/curatedPagePreviews.ts",
+   "shared/campaignYears.ts"
+  ],
+  "docs/audits/plan-review-20260923/findings.probe.tsx": [
+   "src/lib/catalogRanking.ts",
+   "src/lib/useCatalogPageState.ts",
+   "src/pages/CommemorativeDatesPage.tsx",
+   "src/types.ts"
+  ],
+  "docs/audits/plan-review-20260923/vitest.config.ts": [
+   "vite.config.ts"
+  ],
+  "docs/audits/plan-review-20260924/favorites.probe.tsx": [
+   "src/lib/useOccasionFavorites.ts"
+  ],
+  "docs/audits/plan-review-20260924/vitest.config.ts": [
+   "vite.config.ts"
+  ],
+  "docs/audits/plan-review-20260928/favorites.probe.tsx": [
+   "src/lib/useOccasionFavorites.ts"
+  ],
+  "docs/audits/plan-review-20260928/vitest.config.ts": [
+   "vite.config.ts"
+  ],
+  "scripts/ai-context/cenarios.mjs": [
+   "src/types.ts"
+  ],
+  "scripts/generate-database-dictionary.mjs": [
+   "scripts/_lib/supabaseDbQuery.mjs"
+  ],
+  "scripts/generate-database-schema-doc.mjs": [
+   "scripts/_lib/supabaseDbQuery.mjs"
+  ],
+  "scripts/graphify.mjs": [
+   "scripts/graphify-quality.mjs"
+  ],
+  "src/App.tsx": [
+   "src/components/AppErrorBoundary.tsx",
+   "src/components/Layout.tsx",
+   "src/context/CustomerAuthContext.tsx",
+   "src/context/QuoteCartContext.tsx",
+   "src/lib/analytics.ts",
+   "src/lib/scrollRestoration.ts",
+   "src/pages/AboutPage.tsx",
+   "src/pages/AuthConfirmPage.tsx",
+   "src/pages/CatalogPage.tsx",
+   "src/pages/CatalogsPage.tsx",
+   "src/pages/CommemorativeDatesPage.tsx",
+   "src/pages/ContactPage.tsx",
+   "src/pages/CustomerAccountPage.tsx",
+   "src/pages/CustomerLoginPage.tsx",
+   "src/pages/CustomerQuotePage.tsx",
+   "src/pages/HomePage.tsx",
+   "src/pages/IdeaLandingPage.tsx",
+   "src/pages/KitBuilderPage.tsx",
+   "src/pages/NotFoundPage.tsx",
+   "src/pages/PrivacyPage.tsx",
+   "src/pages/ProductPage.tsx",
+   "src/pages/QuotePage.tsx",
+   "src/pages/SetPasswordPage.tsx",
+   "src/pages/SharedSelectionPage.tsx"
+  ],
+  "src/components/AppErrorBoundary.tsx": [
+   "src/lib/clientObservability.ts"
+  ],
+  "src/components/BriefingAssetUploader.tsx": [
+   "src/context/customerAuth.ts",
+   "src/lib/briefingAssets.ts"
+  ],
+  "src/components/CampaignFinder.tsx": [
+   "src/lib/analytics.ts",
+   "src/lib/campaignPresets.ts"
+  ],
+  "src/components/CatalogComparisonTray.tsx": [
+   "src/lib/images.ts",
+   "src/types.ts"
+  ],
+  "src/components/CatalogFilterPanel.tsx": [
+   "src/lib/catalogFilters.ts",
+   "src/types.ts"
+  ],
+  "src/components/ContextualFaq.tsx": [
+   "src/lib/analytics.ts"
+  ],
+  "src/components/ConversationForm.tsx": [
+   "src/lib/contactRequest.ts",
+   "src/lib/http.ts",
+   "src/types.ts"
+  ],
+  "src/components/CustomerRoute.tsx": [
+   "src/components/Seo.tsx",
+   "src/context/customerAuth.ts"
+  ],
+  "src/components/FoldText.tsx": [
+   "src/components/FoldText.css"
+  ],
+  "src/components/GiftLoversSignature.tsx": [
+   "src/components/GiftLoversSignature.css"
+  ],
+  "src/components/GlitchText.tsx": [
+   "src/components/GlitchText.css"
+  ],
+  "src/components/Layout.tsx": [
+   "src/components/GiftLoversSignature.tsx",
+   "src/components/QuoteDrawer.tsx",
+   "src/components/SearchAutocomplete.tsx",
+   "src/context/quoteCart.ts",
+   "src/lib/analytics.ts",
+   "src/lib/hooks.ts",
+   "src/lib/siteSupabaseConfig.ts"
+  ],
+  "src/components/ProductCard.tsx": [
+   "src/context/quoteCart.ts",
+   "src/lib/images.ts",
+   "src/lib/productBadges.ts",
+   "src/types.ts"
+  ],
+  "src/components/ProductGallery.tsx": [
+   "src/lib/images.ts"
+  ],
+  "src/components/QuoteDrawer.tsx": [
+   "src/context/quoteCart.ts",
+   "src/lib/analytics.ts",
+   "src/lib/images.ts",
+   "src/lib/sharedSelection.ts",
+   "src/lib/siteFeatureFlags.ts"
+  ],
+  "src/components/SavedSelections.tsx": [
+   "src/context/quoteCart.ts",
+   "src/lib/customerSelections.ts"
+  ],
+  "src/components/SearchAutocomplete.tsx": [
+   "src/lib/search.ts",
+   "src/types.ts"
+  ],
+  "src/context/CustomerAuthContext.tsx": [
+   "src/context/customerAuth.ts",
+   "src/lib/clientObservability.ts",
+   "src/lib/customerAccount.ts",
+   "src/lib/personalDataReset.ts",
+   "src/lib/siteSupabase.ts",
+   "src/lib/siteSupabaseConfig.ts"
+  ],
+  "src/context/QuoteCartContext.tsx": [
+   "src/context/quoteCart.ts",
+   "src/context/quoteCartReducer.ts",
+   "src/lib/analytics.ts",
+   "src/lib/campaignBrief.ts",
+   "src/lib/catalog.ts",
+   "src/lib/quoteItems.ts",
+   "src/types.ts"
+  ],
+  "src/context/quoteCart.ts": [
+   "src/types.ts"
+  ],
+  "src/context/quoteCartReducer.ts": [
+   "src/lib/campaignBrief.ts",
+   "src/lib/quoteItems.ts",
+   "src/types.ts"
+  ],
+  "src/lib/briefingAssets.ts": [
+   "src/lib/siteRpc.ts",
+   "src/lib/siteSupabase.ts"
+  ],
+  "src/lib/campaignBrief.ts": [
+   "src/types.ts"
+  ],
+  "src/lib/campaignPresets.ts": [
+   "src/lib/search.ts",
+   "src/types.ts"
+  ],
+  "src/lib/catalog.ts": [
+   "src/lib/catalogFilters.ts",
+   "src/lib/productBadges.ts",
+   "src/lib/search.ts",
+   "src/types.ts"
+  ],
+  "src/lib/catalogComparison.ts": [
+   "src/types.ts"
+  ],
+  "src/lib/catalogFilters.ts": [
+   "src/types.ts"
+  ],
+  "src/lib/catalogLibrary.ts": [
+   "shared/catalogEditorial.ts",
+   "src/lib/catalog.ts",
+   "src/lib/search.ts"
+  ],
+  "src/lib/catalogRanking.ts": [
+   "src/lib/campaignPresets.ts",
+   "src/lib/search.ts",
+   "src/types.ts"
+  ],
+  "src/lib/clientObservability.ts": [
+   "src/lib/analytics.ts"
+  ],
+  "src/lib/commemorativeDates.ts": [
+   "src/lib/search.ts"
+  ],
+  "src/lib/contactRequest.ts": [
+   "src/lib/http.ts",
+   "src/lib/quoteRequest.ts",
+   "src/types.ts"
+  ],
+  "src/lib/customerAccount.ts": [
+   "src/lib/customerQuoteContract.ts",
+   "src/lib/siteRpc.ts",
+   "src/lib/siteSupabase.ts"
+  ],
+  "src/lib/customerOccasionFavorites.ts": [
+   "src/lib/siteRpc.ts",
+   "src/lib/siteSupabase.ts"
+  ],
+  "src/lib/customerQuoteContract.ts": [
+   "src/lib/quoteItems.ts",
+   "src/types.ts"
+  ],
+  "src/lib/customerSelections.ts": [
+   "src/lib/campaignBrief.ts",
+   "src/lib/catalog.ts",
+   "src/lib/quoteItems.ts",
+   "src/lib/sharedSelection.ts",
+   "src/lib/siteRpc.ts",
+   "src/lib/siteSupabase.ts",
+   "src/types.ts",
+   "src/types/site-database.types.ts"
+  ],
+  "src/lib/hooks.ts": [
+   "src/lib/catalog.ts",
+   "src/types.ts"
+  ],
+  "src/lib/ideaLandings.ts": [
+   "src/lib/catalog.ts"
+  ],
+  "src/lib/kitBuilder.ts": [
+   "src/lib/quoteItems.ts",
+   "src/types.ts"
+  ],
+  "src/lib/personalDataReset.ts": [
+   "src/lib/http.ts",
+   "src/lib/quoteDraft.ts",
+   "src/lib/quoteRepeat.ts"
+  ],
+  "src/lib/quoteBriefing.ts": [
+   "src/types.ts"
+  ],
+  "src/lib/quoteDraft.ts": [
+   "src/lib/quoteBriefing.ts",
+   "src/types.ts"
+  ],
+  "src/lib/quoteItems.ts": [
+   "src/types.ts"
+  ],
+  "src/lib/quoteRepeat.ts": [
+   "src/lib/campaignBrief.ts",
+   "src/lib/quoteBriefing.ts",
+   "src/types.ts"
+  ],
+  "src/lib/quoteRequest.ts": [
+   "src/lib/campaignBrief.ts",
+   "src/lib/http.ts",
+   "src/lib/quoteBriefing.ts",
+   "src/lib/quoteItems.ts",
+   "src/types.ts"
+  ],
+  "src/lib/quoteSubmission.ts": [
+   "src/types.ts"
+  ],
+  "src/lib/search.ts": [
+   "src/types.ts"
+  ],
+  "src/lib/searchRelevance.ts": [
+   "src/lib/search.ts"
+  ],
+  "src/lib/sharedSelection.ts": [
+   "src/lib/quoteItems.ts",
+   "src/types.ts"
+  ],
+  "src/lib/siteSupabase.ts": [
+   "src/lib/siteSupabaseConfig.ts",
+   "src/types/site-database.types.ts"
+  ],
+  "src/lib/useCatalogPageState.ts": [
+   "src/context/quoteCart.ts",
+   "src/lib/analytics.ts",
+   "src/lib/campaignBrief.ts",
+   "src/lib/campaignPresets.ts",
+   "src/lib/catalog.ts",
+   "src/lib/catalogComparison.ts",
+   "src/lib/catalogFilters.ts",
+   "src/lib/catalogRanking.ts",
+   "src/lib/hooks.ts",
+   "src/lib/search.ts",
+   "src/types.ts"
+  ],
+  "src/lib/useOccasionFavorites.ts": [
+   "src/lib/customerOccasionFavorites.ts"
+  ],
+  "src/main.tsx": [
+   "src/App.tsx",
+   "src/styles.css"
+  ],
+  "src/pages/AboutPage.tsx": [
+   "src/components/Seo.tsx"
+  ],
+  "src/pages/AuthConfirmPage.tsx": [
+   "src/components/Seo.tsx",
+   "src/context/customerAuth.ts",
+   "src/lib/customerAccount.ts"
+  ],
+  "src/pages/CatalogPage.tsx": [
+   "src/components/CatalogComparisonTray.tsx",
+   "src/components/CatalogFeedback.tsx",
+   "src/components/CatalogFilterPanel.tsx",
+   "src/components/ContextualFaq.tsx",
+   "src/components/ProductCard.tsx",
+   "src/components/SearchAutocomplete.tsx",
+   "src/components/Seo.tsx",
+   "src/lib/analytics.ts",
+   "src/lib/catalogFilters.ts",
+   "src/lib/useCatalogPageState.ts"
+  ],
+  "src/pages/CatalogsPage.tsx": [
+   "shared/catalogEditorial.ts",
+   "src/components/Seo.tsx",
+   "src/lib/analytics.ts",
+   "src/lib/catalogLibrary.ts",
+   "src/lib/hooks.ts",
+   "src/lib/images.ts"
+  ],
+  "src/pages/CommemorativeDatesPage.tsx": [
+   "shared/campaignYears.ts",
+   "src/components/Seo.tsx",
+   "src/context/customerAuth.ts",
+   "src/lib/analytics.ts",
+   "src/lib/campaignBrief.ts",
+   "src/lib/commemorativeDates.ts",
+   "src/lib/useOccasionFavorites.ts"
+  ],
+  "src/pages/ContactPage.tsx": [
+   "src/components/ConversationForm.tsx",
+   "src/components/Seo.tsx"
+  ],
+  "src/pages/CustomerAccountPage.tsx": [
+   "src/components/CustomerRoute.tsx",
+   "src/components/SavedSelections.tsx",
+   "src/components/Seo.tsx",
+   "src/context/customerAuth.ts",
+   "src/lib/analytics.ts",
+   "src/lib/customerAccount.ts",
+   "src/lib/images.ts"
+  ],
+  "src/pages/CustomerLoginPage.tsx": [
+   "src/components/Seo.tsx",
+   "src/context/customerAuth.ts",
+   "src/lib/analytics.ts",
+   "src/lib/customerAccount.ts",
+   "src/lib/customerAuthRedirect.ts",
+   "src/lib/siteSupabase.ts"
+  ],
+  "src/pages/CustomerQuotePage.tsx": [
+   "src/components/CustomerRoute.tsx",
+   "src/components/Seo.tsx",
+   "src/context/customerAuth.ts",
+   "src/context/quoteCart.ts",
+   "src/lib/analytics.ts",
+   "src/lib/campaignBrief.ts",
+   "src/lib/catalog.ts",
+   "src/lib/customerAccount.ts",
+   "src/lib/http.ts",
+   "src/lib/quoteBriefing.ts",
+   "src/lib/quoteItems.ts",
+   "src/lib/quoteRepeat.ts",
+   "src/lib/siteFeatureFlags.ts",
+   "src/lib/siteSupabase.ts"
+  ],
+  "src/pages/HomePage.tsx": [
+   "src/components/CampaignFinder.tsx",
+   "src/components/CatalogFeedback.tsx",
+   "src/components/ConversationForm.tsx",
+   "src/components/FoldText.tsx",
+   "src/components/GiftLoversSignature.tsx",
+   "src/components/GlitchText.tsx",
+   "src/components/ProductCard.tsx",
+   "src/components/SearchAutocomplete.tsx",
+   "src/components/Seo.tsx",
+   "src/lib/analytics.ts",
+   "src/lib/catalogFilters.ts",
+   "src/lib/hooks.ts",
+   "src/types.ts"
+  ],
+  "src/pages/IdeaLandingPage.tsx": [
+   "src/components/CatalogFeedback.tsx",
+   "src/components/ContextualFaq.tsx",
+   "src/components/ProductCard.tsx",
+   "src/components/Seo.tsx",
+   "src/lib/hooks.ts",
+   "src/lib/ideaLandings.ts"
+  ],
+  "src/pages/KitBuilderPage.tsx": [
+   "src/components/Seo.tsx",
+   "src/context/quoteCart.ts",
+   "src/lib/analytics.ts",
+   "src/lib/hooks.ts",
+   "src/lib/images.ts",
+   "src/lib/kitBuilder.ts",
+   "src/types.ts"
+  ],
+  "src/pages/NotFoundPage.tsx": [
+   "src/components/Seo.tsx"
+  ],
+  "src/pages/PrivacyPage.tsx": [
+   "src/components/Seo.tsx"
+  ],
+  "src/pages/ProductPage.tsx": [
+   "src/components/CatalogFeedback.tsx",
+   "src/components/ContextualFaq.tsx",
+   "src/components/ProductCard.tsx",
+   "src/components/ProductDescription.tsx",
+   "src/components/ProductGallery.tsx",
+   "src/components/Seo.tsx",
+   "src/context/quoteCart.ts",
+   "src/lib/analytics.ts",
+   "src/lib/catalog.ts",
+   "src/lib/catalogRanking.ts",
+   "src/lib/hooks.ts",
+   "src/types.ts"
+  ],
+  "src/pages/QuotePage.tsx": [
+   "src/components/BriefingAssetUploader.tsx",
+   "src/components/ContextualFaq.tsx",
+   "src/components/Seo.tsx",
+   "src/context/customerAuth.ts",
+   "src/context/quoteCart.ts",
+   "src/lib/analytics.ts",
+   "src/lib/briefingAssets.ts",
+   "src/lib/campaignBrief.ts",
+   "src/lib/http.ts",
+   "src/lib/images.ts",
+   "src/lib/personalDataReset.ts",
+   "src/lib/quoteBriefing.ts",
+   "src/lib/quoteCalendar.ts",
+   "src/lib/quoteConfirmation.ts",
+   "src/lib/quoteDraft.ts",
+   "src/lib/quoteRepeat.ts",
+   "src/lib/quoteRequest.ts",
+   "src/lib/quoteSubmission.ts",
+   "src/lib/siteFeatureFlags.ts",
+   "src/lib/useInitialSuccessScroll.ts",
+   "src/types.ts"
+  ],
+  "src/pages/SetPasswordPage.tsx": [
+   "src/components/Seo.tsx",
+   "src/context/customerAuth.ts",
+   "src/lib/siteSupabase.ts"
+  ],
+  "src/pages/SharedSelectionPage.tsx": [
+   "src/components/Seo.tsx",
+   "src/context/quoteCart.ts",
+   "src/lib/catalog.ts",
+   "src/lib/sharedSelection.ts",
+   "src/lib/siteFeatureFlags.ts",
+   "src/types.ts"
+  ]
+ }
+}

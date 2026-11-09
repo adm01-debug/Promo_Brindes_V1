@@ -1,0 +1,203 @@
+{
+ "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
+ "format_version": 2,
+ "total": 7,
+ "hooks": [
+  {
+   "arquivo": "scripts/ai-context/cenarios.mjs",
+   "hooks_exportados": [
+    "useA",
+    "useB",
+    "useC",
+    "useX"
+   ],
+   "linhas": 173,
+   "dominio": null,
+   "tabelas": [
+    "a",
+    "fantasma",
+    "so_teste",
+    "t",
+    "t1",
+    "tx"
+   ],
+   "rpcs": [
+    "r1"
+   ],
+   "edges": [
+    "inexistente",
+    "other",
+    "tick"
+   ],
+   "hooks_internos": [
+    "useFeatureFlag"
+   ],
+   "canais_realtime": [],
+   "usado_por": 0,
+   "usado_por_arquivos": [],
+   "coberto_por_testes": 0
+  },
+  {
+   "arquivo": "src/context/customerAuth.ts",
+   "hooks_exportados": [
+    "useCustomerAuth"
+   ],
+   "linhas": 22,
+   "dominio": "context",
+   "tabelas": [],
+   "rpcs": [],
+   "edges": [],
+   "hooks_internos": [
+    "useContext"
+   ],
+   "canais_realtime": [],
+   "usado_por": 10,
+   "usado_por_arquivos": [
+    "src/components/BriefingAssetUploader.tsx",
+    "src/components/CustomerRoute.tsx",
+    "src/context/CustomerAuthContext.tsx",
+    "src/pages/AuthConfirmPage.tsx",
+    "src/pages/CommemorativeDatesPage.tsx",
+    "src/pages/CustomerAccountPage.tsx",
+    "src/pages/CustomerLoginPage.tsx",
+    "src/pages/CustomerQuotePage.tsx",
+    "src/pages/QuotePage.tsx",
+    "src/pages/SetPasswordPage.tsx"
+   ],
+   "coberto_por_testes": 1
+  },
+  {
+   "arquivo": "src/context/quoteCart.ts",
+   "hooks_exportados": [
+    "useQuoteCart"
+   ],
+   "linhas": 40,
+   "dominio": "context",
+   "tabelas": [],
+   "rpcs": [],
+   "edges": [],
+   "hooks_internos": [
+    "useContext"
+   ],
+   "canais_realtime": [],
+   "usado_por": 11,
+   "usado_por_arquivos": [
+    "src/components/Layout.tsx",
+    "src/components/ProductCard.tsx",
+    "src/components/QuoteDrawer.tsx",
+    "src/components/SavedSelections.tsx",
+    "src/context/QuoteCartContext.tsx",
+    "src/lib/useCatalogPageState.ts",
+    "src/pages/CustomerQuotePage.tsx",
+    "src/pages/KitBuilderPage.tsx",
+    "src/pages/ProductPage.tsx",
+    "src/pages/QuotePage.tsx",
+    "src/pages/SharedSelectionPage.tsx"
+   ],
+   "coberto_por_testes": 1
+  },
+  {
+   "arquivo": "src/lib/hooks.ts",
+   "hooks_exportados": [
+    "useAllCategories",
+    "useCatalog",
+    "useCategories",
+    "useProduct"
+   ],
+   "linhas": 93,
+   "dominio": "lib",
+   "tabelas": [],
+   "rpcs": [],
+   "edges": [],
+   "hooks_internos": [
+    "useEffect"
+   ],
+   "canais_realtime": [],
+   "usado_por": 7,
+   "usado_por_arquivos": [
+    "src/components/Layout.tsx",
+    "src/lib/useCatalogPageState.ts",
+    "src/pages/CatalogsPage.tsx",
+    "src/pages/HomePage.tsx",
+    "src/pages/IdeaLandingPage.tsx",
+    "src/pages/KitBuilderPage.tsx",
+    "src/pages/ProductPage.tsx"
+   ],
+   "coberto_por_testes": 0
+  },
+  {
+   "arquivo": "src/lib/useCatalogPageState.ts",
+   "hooks_exportados": [
+    "useCatalogPageState"
+   ],
+   "linhas": 282,
+   "dominio": "lib",
+   "tabelas": [],
+   "rpcs": [],
+   "edges": [],
+   "hooks_internos": [
+    "useAllCategories",
+    "useCatalog",
+    "useEffect",
+    "useMemo",
+    "useQuoteCart",
+    "useRef",
+    "useSearchParams",
+    "useState"
+   ],
+   "canais_realtime": [],
+   "usado_por": 2,
+   "usado_por_arquivos": [
+    "docs/audits/plan-review-20260923/findings.probe.tsx",
+    "src/pages/CatalogPage.tsx"
+   ],
+   "coberto_por_testes": 1
+  },
+  {
+   "arquivo": "src/lib/useInitialSuccessScroll.ts",
+   "hooks_exportados": [
+    "useInitialSuccessScroll"
+   ],
+   "linhas": 47,
+   "dominio": "lib",
+   "tabelas": [],
+   "rpcs": [],
+   "edges": [],
+   "hooks_internos": [
+    "useEffect"
+   ],
+   "canais_realtime": [],
+   "usado_por": 1,
+   "usado_por_arquivos": [
+    "src/pages/QuotePage.tsx"
+   ],
+   "coberto_por_testes": 1
+  },
+  {
+   "arquivo": "src/lib/useOccasionFavorites.ts",
+   "hooks_exportados": [
+    "useOccasionFavorites"
+   ],
+   "linhas": 416,
+   "dominio": "lib",
+   "tabelas": [],
+   "rpcs": [],
+   "edges": [],
+   "hooks_internos": [
+    "useCallback",
+    "useEffect",
+    "useLayoutEffect",
+    "useRef",
+    "useState"
+   ],
+   "canais_realtime": [],
+   "usado_por": 3,
+   "usado_por_arquivos": [
+    "docs/audits/plan-review-20260924/favorites.probe.tsx",
+    "docs/audits/plan-review-20260928/favorites.probe.tsx",
+    "src/pages/CommemorativeDatesPage.tsx"
+   ],
+   "coberto_por_testes": 1
+  }
+ ]
+}

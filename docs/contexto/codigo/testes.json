@@ -1,0 +1,980 @@
+{
+ "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
+ "format_version": 2,
+ "frameworks": [
+  "vitest",
+  "playwright"
+ ],
+ "total": 89,
+ "por_tipo": {
+  "contrato": 1,
+  "e2e": 2,
+  "pytest": 2,
+  "unit": 84
+ },
+ "onde_ficam": [
+  {
+   "padrao": "co-localizado (*.test)",
+   "arquivos": 51
+  },
+  {
+   "padrao": "tests/",
+   "arquivos": 32
+  },
+  {
+   "padrao": "outro",
+   "arquivos": 4
+  },
+  {
+   "padrao": "e2e/",
+   "arquivos": 2
+  }
+ ],
+ "arquivos": [
+  {
+   "arquivo": "e2e/product-detail.spec.ts",
+   "tipo": "e2e",
+   "linhas": 156,
+   "testa": [],
+   "casos": 9
+  },
+  {
+   "arquivo": "e2e/smoke.spec.ts",
+   "tipo": "e2e",
+   "linhas": 1489,
+   "testa": [],
+   "casos": 62
+  },
+  {
+   "arquivo": "scripts/ai-context/gerar.unit.mjs",
+   "tipo": "unit",
+   "linhas": 361,
+   "testa": [],
+   "casos": 18
+  },
+  {
+   "arquivo": "scripts/regras_negocio/test_generate.py",
+   "tipo": "pytest",
+   "linhas": 164,
+   "testa": [],
+   "casos": 0
+  },
+  {
+   "arquivo": "scripts/supabase_snapshot/test_snapshot.py",
+   "tipo": "pytest",
+   "linhas": 878,
+   "testa": [],
+   "casos": 0
+  },
+  {
+   "arquivo": "src/components/AppErrorBoundary.test.tsx",
+   "tipo": "unit",
+   "linhas": 19,
+   "testa": [
+    "src/components/AppErrorBoundary.tsx"
+   ],
+   "casos": 1
+  },
+  {
+   "arquivo": "src/components/BriefingAssetUploader.test.tsx",
+   "tipo": "unit",
+   "linhas": 80,
+   "testa": [
+    "src/components/BriefingAssetUploader.tsx",
+    "src/lib/briefingAssets.ts"
+   ],
+   "casos": 4
+  },
+  {
+   "arquivo": "src/components/CampaignFinder.test.tsx",
+   "tipo": "unit",
+   "linhas": 58,
+   "testa": [
+    "src/components/CampaignFinder.tsx"
+   ],
+   "casos": 3
+  },
+  {
+   "arquivo": "src/components/CatalogFeedback.test.tsx",
+   "tipo": "unit",
+   "linhas": 14,
+   "testa": [
+    "src/components/CatalogFeedback.tsx"
+   ],
+   "casos": 1
+  },
+  {
+   "arquivo": "src/components/ConversationForm.test.tsx",
+   "tipo": "unit",
+   "linhas": 34,
+   "testa": [
+    "src/components/ConversationForm.tsx"
+   ],
+   "casos": 1
+  },
+  {
+   "arquivo": "src/components/ProductDescription.test.tsx",
+   "tipo": "unit",
+   "linhas": 83,
+   "testa": [
+    "src/components/ProductDescription.tsx"
+   ],
+   "casos": 9
+  },
+  {
+   "arquivo": "src/components/QuoteDrawer.test.tsx",
+   "tipo": "unit",
+   "linhas": 42,
+   "testa": [
+    "src/components/QuoteDrawer.tsx",
+    "src/context/QuoteCartContext.tsx",
+    "src/context/quoteCart.ts"
+   ],
+   "casos": 1
+  },
+  {
+   "arquivo": "src/components/SavedSelections.test.tsx",
+   "tipo": "unit",
+   "linhas": 93,
+   "testa": [
+    "src/components/SavedSelections.tsx"
+   ],
+   "casos": 4
+  },
+  {
+   "arquivo": "src/components/SearchAutocomplete.test.tsx",
+   "tipo": "unit",
+   "linhas": 53,
+   "testa": [
+    "src/components/SearchAutocomplete.tsx"
+   ],
+   "casos": 2
+  },
+  {
+   "arquivo": "src/context/CustomerAuthContext.test.tsx",
+   "tipo": "unit",
+   "linhas": 116,
+   "testa": [
+    "src/context/CustomerAuthContext.tsx",
+    "src/context/customerAuth.ts"
+   ],
+   "casos": 5
+  },
+  {
+   "arquivo": "src/context/QuoteCartContext.test.ts",
+   "tipo": "unit",
+   "linhas": 163,
+   "testa": [
+    "src/context/quoteCartReducer.ts",
+    "src/lib/quoteItems.ts",
+    "src/types.ts"
+   ],
+   "casos": 18
+  },
+  {
+   "arquivo": "src/lib/analytics.test.ts",
+   "tipo": "unit",
+   "linhas": 66,
+   "testa": [
+    "src/lib/analytics.ts"
+   ],
+   "casos": 6
+  },
+  {
+   "arquivo": "src/lib/briefingAssets.test.ts",
+   "tipo": "unit",
+   "linhas": 41,
+   "testa": [
+    "src/lib/briefingAssets.ts"
+   ],
+   "casos": 3
+  },
+  {
+   "arquivo": "src/lib/campaignBrief.test.ts",
+   "tipo": "unit",
+   "linhas": 16,
+   "testa": [
+    "src/lib/campaignBrief.ts"
+   ],
+   "casos": 2
+  },
+  {
+   "arquivo": "src/lib/campaignPresets.test.ts",
+   "tipo": "unit",
+   "linhas": 66,
+   "testa": [
+    "src/lib/campaignPresets.ts"
+   ],
+   "casos": 5
+  },
+  {
+   "arquivo": "src/lib/catalog.test.ts",
+   "tipo": "unit",
+   "linhas": 256,
+   "testa": [
+    "src/lib/catalog.ts"
+   ],
+   "casos": 23
+  },
+  {
+   "arquivo": "src/lib/catalogComparison.test.ts",
+   "tipo": "unit",
+   "linhas": 23,
+   "testa": [
+    "src/lib/catalogComparison.ts",
+    "src/types.ts"
+   ],
+   "casos": 2
+  },
+  {
+   "arquivo": "src/lib/catalogFilters.test.ts",
+   "tipo": "unit",
+   "linhas": 59,
+   "testa": [
+    "src/lib/catalogFilters.ts"
+   ],
+   "casos": 5
+  },
+  {
+   "arquivo": "src/lib/catalogLibrary.test.ts",
+   "tipo": "unit",
+   "linhas": 74,
+   "testa": [
+    "shared/catalogEditorial.ts",
+    "src/lib/catalogLibrary.ts"
+   ],
+   "casos": 8
+  },
+  {
+   "arquivo": "src/lib/catalogRanking.test.ts",
+   "tipo": "unit",
+   "linhas": 62,
+   "testa": [
+    "src/lib/catalogRanking.ts",
+    "src/types.ts"
+   ],
+   "casos": 5
+  },
+  {
+   "arquivo": "src/lib/clientObservability.test.ts",
+   "tipo": "unit",
+   "linhas": 38,
+   "testa": [
+    "src/lib/clientObservability.ts"
+   ],
+   "casos": 2
+  },
+  {
+   "arquivo": "src/lib/commemorativeDates.test.ts",
+   "tipo": "unit",
+   "linhas": 47,
+   "testa": [
+    "src/lib/commemorativeDates.ts"
+   ],
+   "casos": 6
+  },
+  {
+   "arquivo": "src/lib/contactRequest.test.ts",
+   "tipo": "unit",
+   "linhas": 60,
+   "testa": [
+    "src/lib/contactRequest.ts"
+   ],
+   "casos": 6
+  },
+  {
+   "arquivo": "src/lib/customerAccount.rpc.test.ts",
+   "tipo": "unit",
+   "linhas": 53,
+   "testa": [
+    "src/lib/customerAccount.ts"
+   ],
+   "casos": 4
+  },
+  {
+   "arquivo": "src/lib/customerAccount.test.ts",
+   "tipo": "unit",
+   "linhas": 32,
+   "testa": [
+    "src/lib/customerAccount.ts"
+   ],
+   "casos": 4
+  },
+  {
+   "arquivo": "src/lib/customerOccasionFavorites.test.ts",
+   "tipo": "unit",
+   "linhas": 42,
+   "testa": [
+    "src/lib/customerOccasionFavorites.ts"
+   ],
+   "casos": 5
+  },
+  {
+   "arquivo": "src/lib/customerQuoteContract.test.ts",
+   "tipo": "unit",
+   "linhas": 65,
+   "testa": [
+    "src/lib/campaignBrief.ts",
+    "src/lib/customerQuoteContract.ts",
+    "src/lib/quoteBriefing.ts"
+   ],
+   "casos": 3
+  },
+  {
+   "arquivo": "src/lib/customerSelections.test.ts",
+   "tipo": "unit",
+   "linhas": 68,
+   "testa": [
+    "src/lib/customerSelections.ts",
+    "src/types.ts"
+   ],
+   "casos": 5
+  },
+  {
+   "arquivo": "src/lib/http.test.ts",
+   "tipo": "unit",
+   "linhas": 74,
+   "testa": [
+    "src/lib/http.ts"
+   ],
+   "casos": 8
+  },
+  {
+   "arquivo": "src/lib/kitBuilder.test.ts",
+   "tipo": "unit",
+   "linhas": 54,
+   "testa": [
+    "src/lib/kitBuilder.ts",
+    "src/types.ts"
+   ],
+   "casos": 6
+  },
+  {
+   "arquivo": "src/lib/productBadges.test.ts",
+   "tipo": "unit",
+   "linhas": 39,
+   "testa": [
+    "src/lib/productBadges.ts"
+   ],
+   "casos": 3
+  },
+  {
+   "arquivo": "src/lib/quoteBriefing.test.ts",
+   "tipo": "unit",
+   "linhas": 54,
+   "testa": [
+    "src/lib/quoteBriefing.ts"
+   ],
+   "casos": 5
+  },
+  {
+   "arquivo": "src/lib/quoteConfirmation.test.ts",
+   "tipo": "unit",
+   "linhas": 18,
+   "testa": [
+    "src/lib/quoteConfirmation.ts"
+   ],
+   "casos": 3
+  },
+  {
+   "arquivo": "src/lib/quoteDraft.test.ts",
+   "tipo": "unit",
+   "linhas": 23,
+   "testa": [
+    "src/lib/quoteBriefing.ts",
+    "src/lib/quoteDraft.ts"
+   ],
+   "casos": 2
+  },
+  {
+   "arquivo": "src/lib/quoteItems.test.ts",
+   "tipo": "unit",
+   "linhas": 58,
+   "testa": [
+    "src/lib/quoteItems.ts",
+    "src/types.ts"
+   ],
+   "casos": 6
+  },
+  {
+   "arquivo": "src/lib/quoteRepeat.test.ts",
+   "tipo": "unit",
+   "linhas": 26,
+   "testa": [
+    "src/lib/personalDataReset.ts",
+    "src/lib/quoteRepeat.ts"
+   ],
+   "casos": 2
+  },
+  {
+   "arquivo": "src/lib/quoteRequest.test.ts",
+   "tipo": "unit",
+   "linhas": 82,
+   "testa": [
+    "src/lib/quoteRequest.ts",
+    "src/types.ts"
+   ],
+   "casos": 6
+  },
+  {
+   "arquivo": "src/lib/quoteSubmission.test.ts",
+   "tipo": "unit",
+   "linhas": 58,
+   "testa": [
+    "src/lib/quoteSubmission.ts",
+    "src/types.ts"
+   ],
+   "casos": 6
+  },
+  {
+   "arquivo": "src/lib/scrollRestoration.test.ts",
+   "tipo": "unit",
+   "linhas": 67,
+   "testa": [
+    "src/lib/scrollRestoration.ts"
+   ],
+   "casos": 3
+  },
+  {
+   "arquivo": "src/lib/search.test.ts",
+   "tipo": "unit",
+   "linhas": 55,
+   "testa": [
+    "src/lib/search.ts"
+   ],
+   "casos": 9
+  },
+  {
+   "arquivo": "src/lib/searchRelevance.test.ts",
+   "tipo": "unit",
+   "linhas": 17,
+   "testa": [
+    "src/lib/searchRelevance.ts"
+   ],
+   "casos": 2
+  },
+  {
+   "arquivo": "src/lib/sharedSelection.test.ts",
+   "tipo": "unit",
+   "linhas": 196,
+   "testa": [
+    "src/lib/sharedSelection.ts",
+    "src/types.ts"
+   ],
+   "casos": 13
+  },
+  {
+   "arquivo": "src/lib/siteRpc.test.ts",
+   "tipo": "unit",
+   "linhas": 55,
+   "testa": [
+    "src/lib/siteRpc.ts"
+   ],
+   "casos": 3
+  },
+  {
+   "arquivo": "src/lib/siteSupabase.test.ts",
+   "tipo": "unit",
+   "linhas": 30,
+   "testa": [
+    "src/lib/siteSupabaseConfig.ts"
+   ],
+   "casos": 3
+  },
+  {
+   "arquivo": "src/lib/useCatalogPageState.test.tsx",
+   "tipo": "unit",
+   "linhas": 64,
+   "testa": [
+    "src/lib/useCatalogPageState.ts",
+    "src/types.ts"
+   ],
+   "casos": 2
+  },
+  {
+   "arquivo": "src/lib/useInitialSuccessScroll.test.tsx",
+   "tipo": "unit",
+   "linhas": 52,
+   "testa": [
+    "src/lib/useInitialSuccessScroll.ts"
+   ],
+   "casos": 2
+  },
+  {
+   "arquivo": "src/lib/useOccasionFavorites.test.tsx",
+   "tipo": "unit",
+   "linhas": 438,
+   "testa": [
+    "src/lib/useOccasionFavorites.ts"
+   ],
+   "casos": 24
+  },
+  {
+   "arquivo": "src/pages/AuthConfirmPage.test.tsx",
+   "tipo": "unit",
+   "linhas": 66,
+   "testa": [
+    "src/pages/AuthConfirmPage.tsx"
+   ],
+   "casos": 4
+  },
+  {
+   "arquivo": "src/pages/CommemorativeDatesPage.test.tsx",
+   "tipo": "unit",
+   "linhas": 111,
+   "testa": [
+    "src/pages/CommemorativeDatesPage.tsx"
+   ],
+   "casos": 4
+  },
+  {
+   "arquivo": "src/pages/CustomerLoginPage.test.tsx",
+   "tipo": "unit",
+   "linhas": 9,
+   "testa": [
+    "src/lib/customerAuthRedirect.ts"
+   ],
+   "casos": 1
+  },
+  {
+   "arquivo": "src/pages/QuotePage.test.ts",
+   "tipo": "unit",
+   "linhas": 14,
+   "testa": [
+    "src/lib/quoteCalendar.ts"
+   ],
+   "casos": 2
+  },
+  {
+   "arquivo": "src/test/setup.ts",
+   "tipo": "unit",
+   "linhas": 2,
+   "testa": [],
+   "casos": 0
+  },
+  {
+   "arquivo": "tests/api/briefing-assets.test.ts",
+   "tipo": "unit",
+   "linhas": 195,
+   "testa": [
+    "api/_lib/fileSignatures.ts",
+    "api/_lib/leadHandler.ts",
+    "api/briefing-assets.ts"
+   ],
+   "casos": 11
+  },
+  {
+   "arquivo": "tests/api/campaign-years.test.ts",
+   "tipo": "unit",
+   "linhas": 18,
+   "testa": [
+    "shared/campaignYears.ts"
+   ],
+   "casos": 2
+  },
+  {
+   "arquivo": "tests/api/catalog-validation.test.ts",
+   "tipo": "unit",
+   "linhas": 66,
+   "testa": [
+    "api/_lib/catalogValidation.ts",
+    "api/_lib/contracts.ts"
+   ],
+   "casos": 4
+  },
+  {
+   "arquivo": "tests/api/curated-page-previews.test.ts",
+   "tipo": "unit",
+   "linhas": 28,
+   "testa": [
+    "api/_lib/curatedPagePreviews.ts",
+    "shared/catalogEditorial.ts"
+   ],
+   "casos": 2
+  },
+  {
+   "arquivo": "tests/api/customer-proposals.test.ts",
+   "tipo": "unit",
+   "linhas": 147,
+   "testa": [
+    "api/_lib/leadHandler.ts",
+    "api/customer-proposals.ts"
+   ],
+   "casos": 7
+  },
+  {
+   "arquivo": "tests/api/lead-requests.test.ts",
+   "tipo": "unit",
+   "linhas": 713,
+   "testa": [
+    "api/_lib/leadHandler.ts",
+    "api/contact-requests.ts",
+    "api/quote-requests.ts"
+   ],
+   "casos": 35
+  },
+  {
+   "arquivo": "tests/api/maxDuration.test.ts",
+   "tipo": "unit",
+   "linhas": 110,
+   "testa": [
+    "api/_lib/catalogValidation.ts",
+    "api/_lib/leadHandler.ts",
+    "api/_lib/publicProductPage.ts",
+    "api/_lib/sharedSelections.ts",
+    "api/_lib/siteDatabase.ts",
+    "api/briefing-assets.ts",
+    "api/customer-proposals.ts",
+    "api/notifications.ts",
+    "api/retention.ts",
+    "api/sitemap.ts"
+   ],
+   "casos": 14
+  },
+  {
+   "arquivo": "tests/api/notification-events-resend.test.ts",
+   "tipo": "unit",
+   "linhas": 159,
+   "testa": [
+    "api/notification-events-resend.ts"
+   ],
+   "casos": 13
+  },
+  {
+   "arquivo": "tests/api/notification-events-whatsapp.test.ts",
+   "tipo": "unit",
+   "linhas": 203,
+   "testa": [
+    "api/notification-events-whatsapp.ts"
+   ],
+   "casos": 15
+  },
+  {
+   "arquivo": "tests/api/notifications.test.ts",
+   "tipo": "unit",
+   "linhas": 605,
+   "testa": [
+    "api/_lib/leadHandler.ts",
+    "api/notifications.ts"
+   ],
+   "casos": 25
+  },
+  {
+   "arquivo": "tests/api/operationalAlerts.test.ts",
+   "tipo": "unit",
+   "linhas": 29,
+   "testa": [
+    "api/_lib/operationalAlerts.ts"
+   ],
+   "casos": 2
+  },
+  {
+   "arquivo": "tests/api/product-page.test.ts",
+   "tipo": "unit",
+   "linhas": 122,
+   "testa": [
+    "api/_lib/pageShell.ts",
+    "api/not-found.ts",
+    "api/product-page.ts"
+   ],
+   "casos": 6
+  },
+  {
+   "arquivo": "tests/api/retention.test.ts",
+   "tipo": "unit",
+   "linhas": 293,
+   "testa": [
+    "api/_lib/leadHandler.ts",
+    "api/retention.ts"
+   ],
+   "casos": 12
+  },
+  {
+   "arquivo": "tests/api/shared-selections.test.ts",
+   "tipo": "unit",
+   "linhas": 212,
+   "testa": [
+    "api/_lib/leadHandler.ts",
+    "api/shared-selections.ts"
+   ],
+   "casos": 9
+  },
+  {
+   "arquivo": "tests/api/site-page.test.ts",
+   "tipo": "unit",
+   "linhas": 133,
+   "testa": [
+    "api/site-page.ts"
+   ],
+   "casos": 6
+  },
+  {
+   "arquivo": "tests/api/sitemap.test.ts",
+   "tipo": "unit",
+   "linhas": 133,
+   "testa": [
+    "api/sitemap.ts",
+    "shared/campaignYears.ts"
+   ],
+   "casos": 7
+  },
+  {
+   "arquivo": "tests/api/webhookSignature.test.ts",
+   "tipo": "unit",
+   "linhas": 85,
+   "testa": [
+    "api/_lib/webhookSignature.ts"
+   ],
+   "casos": 11
+  },
+  {
+   "arquivo": "tests/catalog-public-contract.node.mjs",
+   "tipo": "contrato",
+   "linhas": 293,
+   "testa": [
+    "scripts/check-catalog-public-contract.mjs"
+   ],
+   "casos": 15
+  },
+  {
+   "arquivo": "tests/ci-health-metrics.node.mjs",
+   "tipo": "unit",
+   "linhas": 93,
+   "testa": [
+    "scripts/ci-health-metrics.mjs"
+   ],
+   "casos": 7
+  },
+  {
+   "arquivo": "tests/closure-ledger.node.mjs",
+   "tipo": "unit",
+   "linhas": 40,
+   "testa": [
+    "scripts/validate-closure-ledger.mjs"
+   ],
+   "casos": 6
+  },
+  {
+   "arquivo": "tests/generate-site-api-jwt.node.mjs",
+   "tipo": "unit",
+   "linhas": 61,
+   "testa": [],
+   "casos": 4
+  },
+  {
+   "arquivo": "tests/graphify-tools.node.mjs",
+   "tipo": "unit",
+   "linhas": 284,
+   "testa": [
+    "scripts/graphify.mjs"
+   ],
+   "casos": 17
+  },
+  {
+   "arquivo": "tests/inventario-estado.node.mjs",
+   "tipo": "unit",
+   "linhas": 271,
+   "testa": [
+    "scripts/inventario/gerar-banco.mjs",
+    "scripts/inventario/mudou-conteudo.mjs"
+   ],
+   "casos": 26
+  },
+  {
+   "arquivo": "tests/normalize-vercel-deployment-url.node.mjs",
+   "tipo": "unit",
+   "linhas": 43,
+   "testa": [
+    "scripts/normalize-vercel-deployment-url.mjs"
+   ],
+   "casos": 4
+  },
+  {
+   "arquivo": "tests/queue-concurrency.node.mjs",
+   "tipo": "unit",
+   "linhas": 202,
+   "testa": [],
+   "casos": 3
+  },
+  {
+   "arquivo": "tests/scripts/release-workflow.test.ts",
+   "tipo": "unit",
+   "linhas": 52,
+   "testa": [],
+   "casos": 4
+  },
+  {
+   "arquivo": "tests/scripts/verify-vercel-artifact.test.ts",
+   "tipo": "unit",
+   "linhas": 102,
+   "testa": [],
+   "casos": 6
+  },
+  {
+   "arquivo": "tests/supabase-db-query.node.mjs",
+   "tipo": "unit",
+   "linhas": 67,
+   "testa": [
+    "scripts/_lib/supabaseDbQuery.mjs"
+   ],
+   "casos": 11
+  },
+  {
+   "arquivo": "tests/timing-safe-secret-comparisons.node.mjs",
+   "tipo": "unit",
+   "linhas": 65,
+   "testa": [],
+   "casos": 4
+  },
+  {
+   "arquivo": "tests/validate-agent-instructions.node.mjs",
+   "tipo": "unit",
+   "linhas": 133,
+   "testa": [
+    "scripts/validate-agent-instructions.mjs"
+   ],
+   "casos": 13
+  },
+  {
+   "arquivo": "tests/validate-error-catalog.node.mjs",
+   "tipo": "unit",
+   "linhas": 51,
+   "testa": [
+    "scripts/validate-error-catalog.mjs"
+   ],
+   "casos": 6
+  },
+  {
+   "arquivo": "tests/validate-migration-names.node.mjs",
+   "tipo": "unit",
+   "linhas": 97,
+   "testa": [
+    "scripts/validate-migration-names.mjs"
+   ],
+   "casos": 12
+  }
+ ],
+ "sql": [],
+ "cobertura_por_arquivo": {
+  "api/_lib/catalogValidation.ts": 2,
+  "api/_lib/contracts.ts": 1,
+  "api/_lib/curatedPagePreviews.ts": 1,
+  "api/_lib/fileSignatures.ts": 1,
+  "api/_lib/leadHandler.ts": 7,
+  "api/_lib/operationalAlerts.ts": 1,
+  "api/_lib/pageShell.ts": 1,
+  "api/_lib/publicProductPage.ts": 1,
+  "api/_lib/sharedSelections.ts": 1,
+  "api/_lib/siteDatabase.ts": 1,
+  "api/_lib/webhookSignature.ts": 1,
+  "api/briefing-assets.ts": 2,
+  "api/contact-requests.ts": 1,
+  "api/customer-proposals.ts": 2,
+  "api/not-found.ts": 1,
+  "api/notification-events-resend.ts": 1,
+  "api/notification-events-whatsapp.ts": 1,
+  "api/notifications.ts": 2,
+  "api/product-page.ts": 1,
+  "api/quote-requests.ts": 1,
+  "api/retention.ts": 2,
+  "api/shared-selections.ts": 1,
+  "api/site-page.ts": 1,
+  "api/sitemap.ts": 2,
+  "scripts/_lib/supabaseDbQuery.mjs": 1,
+  "scripts/check-catalog-public-contract.mjs": 1,
+  "scripts/ci-health-metrics.mjs": 1,
+  "scripts/graphify.mjs": 1,
+  "scripts/inventario/gerar-banco.mjs": 1,
+  "scripts/inventario/mudou-conteudo.mjs": 1,
+  "scripts/normalize-vercel-deployment-url.mjs": 1,
+  "scripts/validate-agent-instructions.mjs": 1,
+  "scripts/validate-closure-ledger.mjs": 1,
+  "scripts/validate-error-catalog.mjs": 1,
+  "scripts/validate-migration-names.mjs": 1,
+  "shared/campaignYears.ts": 2,
+  "shared/catalogEditorial.ts": 2,
+  "src/components/AppErrorBoundary.tsx": 1,
+  "src/components/BriefingAssetUploader.tsx": 1,
+  "src/components/CampaignFinder.tsx": 1,
+  "src/components/CatalogFeedback.tsx": 1,
+  "src/components/ConversationForm.tsx": 1,
+  "src/components/ProductDescription.tsx": 1,
+  "src/components/QuoteDrawer.tsx": 1,
+  "src/components/SavedSelections.tsx": 1,
+  "src/components/SearchAutocomplete.tsx": 1,
+  "src/context/CustomerAuthContext.tsx": 1,
+  "src/context/QuoteCartContext.tsx": 1,
+  "src/context/customerAuth.ts": 1,
+  "src/context/quoteCart.ts": 1,
+  "src/context/quoteCartReducer.ts": 1,
+  "src/lib/analytics.ts": 1,
+  "src/lib/briefingAssets.ts": 2,
+  "src/lib/campaignBrief.ts": 2,
+  "src/lib/campaignPresets.ts": 1,
+  "src/lib/catalog.ts": 1,
+  "src/lib/catalogComparison.ts": 1,
+  "src/lib/catalogFilters.ts": 1,
+  "src/lib/catalogLibrary.ts": 1,
+  "src/lib/catalogRanking.ts": 1,
+  "src/lib/clientObservability.ts": 1,
+  "src/lib/commemorativeDates.ts": 1,
+  "src/lib/contactRequest.ts": 1,
+  "src/lib/customerAccount.ts": 2,
+  "src/lib/customerAuthRedirect.ts": 1,
+  "src/lib/customerOccasionFavorites.ts": 1,
+  "src/lib/customerQuoteContract.ts": 1,
+  "src/lib/customerSelections.ts": 1,
+  "src/lib/http.ts": 1,
+  "src/lib/kitBuilder.ts": 1,
+  "src/lib/personalDataReset.ts": 1,
+  "src/lib/productBadges.ts": 1,
+  "src/lib/quoteBriefing.ts": 3,
+  "src/lib/quoteCalendar.ts": 1,
+  "src/lib/quoteConfirmation.ts": 1,
+  "src/lib/quoteDraft.ts": 1,
+  "src/lib/quoteItems.ts": 2,
+  "src/lib/quoteRepeat.ts": 1,
+  "src/lib/quoteRequest.ts": 1,
+  "src/lib/quoteSubmission.ts": 1,
+  "src/lib/scrollRestoration.ts": 1,
+  "src/lib/search.ts": 1,
+  "src/lib/searchRelevance.ts": 1,
+  "src/lib/sharedSelection.ts": 1,
+  "src/lib/siteRpc.ts": 1,
+  "src/lib/siteSupabaseConfig.ts": 1,
+  "src/lib/useCatalogPageState.ts": 1,
+  "src/lib/useInitialSuccessScroll.ts": 1,
+  "src/lib/useOccasionFavorites.ts": 1,
+  "src/pages/AuthConfirmPage.tsx": 1,
+  "src/pages/CommemorativeDatesPage.tsx": 1,
+  "src/types.ts": 10
+ },
+ "sem_teste": {
+  "telas": [
+   "api/_lib/observability.ts",
+   "api/_lib/siteOrigin.ts",
+   "src/pages/AboutPage.tsx",
+   "src/pages/CatalogPage.tsx",
+   "src/pages/CatalogsPage.tsx",
+   "src/pages/ContactPage.tsx",
+   "src/pages/CustomerAccountPage.tsx",
+   "src/pages/CustomerLoginPage.tsx",
+   "src/pages/CustomerQuotePage.tsx",
+   "src/pages/HomePage.tsx",
+   "src/pages/IdeaLandingPage.tsx",
+   "src/pages/KitBuilderPage.tsx",
+   "src/pages/NotFoundPage.tsx",
+   "src/pages/PrivacyPage.tsx",
+   "src/pages/ProductPage.tsx",
+   "src/pages/QuotePage.tsx",
+   "src/pages/SetPasswordPage.tsx",
+   "src/pages/SharedSelectionPage.tsx"
+  ],
+  "hooks": [
+   "scripts/ai-context/cenarios.mjs",
+   "src/lib/hooks.ts"
+  ],
+  "edges": [],
+  "servicos": []
+ }
+}

@@ -1,0 +1,623 @@
+{
+ "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
+ "format_version": 2,
+ "total": 40,
+ "orfaos": 0,
+ "nomes_duplicados": {},
+ "componentes": [
+  {
+   "arquivo": "src/App.tsx",
+   "exports": [
+    "App"
+   ],
+   "export_default": "App",
+   "linhas": 138,
+   "dominio": null,
+   "hooks_locais": [],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/components/AppErrorBoundary.tsx",
+   "exports": [
+    "AppErrorBoundary"
+   ],
+   "export_default": null,
+   "linhas": 41,
+   "dominio": "components",
+   "hooks_locais": [],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/components/BriefingAssetUploader.tsx",
+   "exports": [
+    "BriefingAssetUploader"
+   ],
+   "export_default": null,
+   "linhas": 146,
+   "dominio": "components",
+   "hooks_locais": [
+    "useCustomerAuth"
+   ],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/components/CampaignFinder.tsx",
+   "exports": [
+    "CampaignFinder"
+   ],
+   "export_default": null,
+   "linhas": 195,
+   "dominio": "components",
+   "hooks_locais": [],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/components/CatalogComparisonTray.tsx",
+   "exports": [
+    "CatalogComparisonTray"
+   ],
+   "export_default": null,
+   "linhas": 72,
+   "dominio": "components",
+   "hooks_locais": [],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/components/CatalogFeedback.tsx",
+   "exports": [
+    "CatalogEmpty",
+    "CatalogError",
+    "ProductGridSkeleton"
+   ],
+   "export_default": null,
+   "linhas": 43,
+   "dominio": "components",
+   "hooks_locais": [],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 4,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/components/CatalogFilterPanel.tsx",
+   "exports": [
+    "CatalogFilterPanel"
+   ],
+   "export_default": null,
+   "linhas": 246,
+   "dominio": "components",
+   "hooks_locais": [],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/components/ContextualFaq.tsx",
+   "exports": [
+    "ContextualFaq"
+   ],
+   "export_default": null,
+   "linhas": 55,
+   "dominio": "components",
+   "hooks_locais": [],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 4,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/components/ConversationForm.tsx",
+   "exports": [
+    "ConversationForm"
+   ],
+   "export_default": null,
+   "linhas": 146,
+   "dominio": "components",
+   "hooks_locais": [],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 2,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/components/CustomerRoute.tsx",
+   "exports": [
+    "CustomerRoute"
+   ],
+   "export_default": null,
+   "linhas": 16,
+   "dominio": "components",
+   "hooks_locais": [
+    "useCustomerAuth"
+   ],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 2,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/components/FoldText.tsx",
+   "exports": [
+    "FoldText",
+    "FoldTextProps"
+   ],
+   "export_default": null,
+   "linhas": 181,
+   "dominio": "components",
+   "hooks_locais": [],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/components/GiftLoversSignature.tsx",
+   "exports": [
+    "GiftLoversSignature"
+   ],
+   "export_default": null,
+   "linhas": 11,
+   "dominio": "components",
+   "hooks_locais": [],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 2,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/components/GlitchText.tsx",
+   "exports": [
+    "GlitchText"
+   ],
+   "export_default": null,
+   "linhas": 72,
+   "dominio": "components",
+   "hooks_locais": [],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/components/Layout.tsx",
+   "exports": [
+    "Layout"
+   ],
+   "export_default": null,
+   "linhas": 273,
+   "dominio": "components",
+   "hooks_locais": [
+    "useCategories",
+    "useQuoteCart"
+   ],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/components/ProductCard.tsx",
+   "exports": [
+    "ProductCard"
+   ],
+   "export_default": null,
+   "linhas": 96,
+   "dominio": "components",
+   "hooks_locais": [
+    "useQuoteCart"
+   ],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 4,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/components/ProductDescription.tsx",
+   "exports": [
+    "ProductDescription"
+   ],
+   "export_default": null,
+   "linhas": 49,
+   "dominio": "components",
+   "hooks_locais": [],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/components/ProductGallery.tsx",
+   "exports": [
+    "ProductGallery"
+   ],
+   "export_default": null,
+   "linhas": 100,
+   "dominio": "components",
+   "hooks_locais": [],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/components/QuoteDrawer.tsx",
+   "exports": [
+    "QuoteDrawer"
+   ],
+   "export_default": null,
+   "linhas": 287,
+   "dominio": "components",
+   "hooks_locais": [
+    "useQuoteCart"
+   ],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/components/SavedSelections.tsx",
+   "exports": [
+    "SavedSelections"
+   ],
+   "export_default": null,
+   "linhas": 236,
+   "dominio": "components",
+   "hooks_locais": [
+    "useQuoteCart"
+   ],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/components/SearchAutocomplete.tsx",
+   "exports": [
+    "SearchAutocomplete"
+   ],
+   "export_default": null,
+   "linhas": 140,
+   "dominio": "components",
+   "hooks_locais": [],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 3,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/context/CustomerAuthContext.tsx",
+   "exports": [
+    "CustomerAuthProvider"
+   ],
+   "export_default": null,
+   "linhas": 106,
+   "dominio": "context",
+   "hooks_locais": [],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/context/QuoteCartContext.tsx",
+   "exports": [
+    "QuoteCartProvider"
+   ],
+   "export_default": null,
+   "linhas": 171,
+   "dominio": "context",
+   "hooks_locais": [],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/pages/AboutPage.tsx",
+   "exports": [
+    "AboutPage"
+   ],
+   "export_default": "AboutPage",
+   "linhas": 42,
+   "dominio": "pages",
+   "hooks_locais": [],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/pages/AuthConfirmPage.tsx",
+   "exports": [
+    "AuthConfirmPage"
+   ],
+   "export_default": "AuthConfirmPage",
+   "linhas": 39,
+   "dominio": "pages",
+   "hooks_locais": [
+    "useCustomerAuth"
+   ],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/pages/CatalogPage.tsx",
+   "exports": [
+    "CatalogPage"
+   ],
+   "export_default": "CatalogPage",
+   "linhas": 88,
+   "dominio": "pages",
+   "hooks_locais": [
+    "useCatalogPageState"
+   ],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/pages/CatalogsPage.tsx",
+   "exports": [
+    "CatalogsPage"
+   ],
+   "export_default": "CatalogsPage",
+   "linhas": 304,
+   "dominio": "pages",
+   "hooks_locais": [
+    "useCatalog"
+   ],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/pages/CommemorativeDatesPage.tsx",
+   "exports": [
+    "CommemorativeDatesPage"
+   ],
+   "export_default": "CommemorativeDatesPage",
+   "linhas": 351,
+   "dominio": "pages",
+   "hooks_locais": [
+    "useCustomerAuth",
+    "useOccasionFavorites"
+   ],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 2,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/pages/ContactPage.tsx",
+   "exports": [
+    "ContactPage"
+   ],
+   "export_default": "ContactPage",
+   "linhas": 29,
+   "dominio": "pages",
+   "hooks_locais": [],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/pages/CustomerAccountPage.tsx",
+   "exports": [
+    "CustomerAccountPage"
+   ],
+   "export_default": "CustomerAccountPage",
+   "linhas": 103,
+   "dominio": "pages",
+   "hooks_locais": [
+    "useCustomerAuth"
+   ],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/pages/CustomerLoginPage.tsx",
+   "exports": [
+    "CustomerLoginPage"
+   ],
+   "export_default": "CustomerLoginPage",
+   "linhas": 138,
+   "dominio": "pages",
+   "hooks_locais": [
+    "useCustomerAuth"
+   ],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/pages/CustomerQuotePage.tsx",
+   "exports": [
+    "CustomerQuotePage"
+   ],
+   "export_default": "CustomerQuotePage",
+   "linhas": 245,
+   "dominio": "pages",
+   "hooks_locais": [
+    "useCustomerAuth",
+    "useQuoteCart"
+   ],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/pages/HomePage.tsx",
+   "exports": [
+    "HomePage"
+   ],
+   "export_default": "HomePage",
+   "linhas": 371,
+   "dominio": "pages",
+   "hooks_locais": [
+    "useAllCategories",
+    "useCatalog",
+    "useCategories"
+   ],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/pages/IdeaLandingPage.tsx",
+   "exports": [
+    "IdeaLandingPage"
+   ],
+   "export_default": "IdeaLandingPage",
+   "linhas": 26,
+   "dominio": "pages",
+   "hooks_locais": [
+    "useCatalog"
+   ],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/pages/KitBuilderPage.tsx",
+   "exports": [
+    "KitBuilderPage"
+   ],
+   "export_default": "KitBuilderPage",
+   "linhas": 131,
+   "dominio": "pages",
+   "hooks_locais": [
+    "useCatalog",
+    "useQuoteCart"
+   ],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/pages/NotFoundPage.tsx",
+   "exports": [
+    "NotFoundPage"
+   ],
+   "export_default": "NotFoundPage",
+   "linhas": 8,
+   "dominio": "pages",
+   "hooks_locais": [],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/pages/PrivacyPage.tsx",
+   "exports": [
+    "PrivacyPage"
+   ],
+   "export_default": "PrivacyPage",
+   "linhas": 23,
+   "dominio": "pages",
+   "hooks_locais": [],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/pages/ProductPage.tsx",
+   "exports": [
+    "ProductPage"
+   ],
+   "export_default": "ProductPage",
+   "linhas": 224,
+   "dominio": "pages",
+   "hooks_locais": [
+    "useCatalog",
+    "useCategories",
+    "useProduct",
+    "useQuoteCart"
+   ],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/pages/QuotePage.tsx",
+   "exports": [
+    "QuotePage"
+   ],
+   "export_default": "QuotePage",
+   "linhas": 503,
+   "dominio": "pages",
+   "hooks_locais": [
+    "useCustomerAuth",
+    "useInitialSuccessScroll",
+    "useQuoteCart"
+   ],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/pages/SetPasswordPage.tsx",
+   "exports": [
+    "SetPasswordPage"
+   ],
+   "export_default": "SetPasswordPage",
+   "linhas": 42,
+   "dominio": "pages",
+   "hooks_locais": [
+    "useCustomerAuth"
+   ],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/pages/SharedSelectionPage.tsx",
+   "exports": [
+    "SharedSelectionPage"
+   ],
+   "export_default": "SharedSelectionPage",
+   "linhas": 199,
+   "dominio": "pages",
+   "hooks_locais": [
+    "useQuoteCart"
+   ],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  }
+ ]
+}

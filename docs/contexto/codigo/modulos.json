@@ -1,0 +1,610 @@
+{
+ "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
+ "format_version": 2,
+ "descricao": "menu → módulo (pasta de domínio) → telas/rotas → hooks → edge functions → tabelas → dependências entre módulos. edges/tabelas/rpcs são TRANSITIVOS (tudo que os arquivos do módulo puxam); `diretos` tem só o que está escrito nos arquivos do próprio módulo.",
+ "modulos": [
+  {
+   "modulo": "api",
+   "arquivos": 13,
+   "testes": 0,
+   "linhas": 2020,
+   "itens_menu": [],
+   "telas": [
+    "/api/briefing-assets",
+    "/api/contact-requests",
+    "/api/customer-proposals",
+    "/api/not-found",
+    "/api/notification-events-resend",
+    "/api/notification-events-whatsapp",
+    "/api/notifications",
+    "/api/product-page",
+    "/api/quote-requests",
+    "/api/retention",
+    "/api/shared-selections",
+    "/api/site-page",
+    "/api/sitemap"
+   ],
+   "rotas_http": [],
+   "componentes": 0,
+   "hooks_locais": [],
+   "hooks_definidos": [],
+   "edges": [],
+   "tabelas": [],
+   "rpcs": [],
+   "buckets": [],
+   "canais_realtime": [],
+   "env": [
+    "CATALOG_SUPABASE_PUBLISHABLE_KEY",
+    "CRON_SECRET",
+    "NODE_ENV",
+    "OPERATIONS_ALERT_WEBHOOK_TOKEN",
+    "OPERATIONS_ALERT_WEBHOOK_URL",
+    "RESEND_API_KEY",
+    "RESEND_WEBHOOK_SECRET",
+    "SITE_EMAIL_FROM",
+    "SITE_PREVIEW_SUPABASE_PROJECT_REF",
+    "SITE_PUBLIC_ORIGIN",
+    "SITE_REQUEST_HASH_SALT",
+    "SITE_SUPABASE_SECRET_KEY",
+    "SITE_SUPABASE_SERVICE_JWT",
+    "SITE_SUPABASE_URL",
+    "SITE_TEST_APP_SHELL",
+    "VERCEL_ENV",
+    "VERCEL_URL",
+    "VITE_PRODUCT_CATALOG_RESOURCE",
+    "VITE_PUBLIC_URL",
+    "VITE_SUPABASE_PUBLISHABLE_KEY",
+    "WHATSAPP_ACCESS_TOKEN",
+    "WHATSAPP_APP_SECRET",
+    "WHATSAPP_GRAPH_API_VERSION",
+    "WHATSAPP_PHONE_NUMBER_ID",
+    "WHATSAPP_QUOTE_TEMPLATE",
+    "WHATSAPP_WEBHOOK_VERIFY_TOKEN"
+   ],
+   "flags": [],
+   "papeis": [
+    "anon"
+   ],
+   "diretos": {
+    "edges": [],
+    "tabelas": [],
+    "rpcs": []
+   },
+   "importado_por_outros_modulos": [
+    "api/_lib"
+   ],
+   "depende_de_modulos": [
+    "api/_lib",
+    "shared"
+   ],
+   "pacotes_externos": [
+    "node:crypto"
+   ]
+  },
+  {
+   "modulo": "api/_lib",
+   "arquivos": 13,
+   "testes": 0,
+   "linhas": 1667,
+   "itens_menu": [],
+   "telas": [
+    "/api/_lib/catalogValidation",
+    "/api/_lib/contracts",
+    "/api/_lib/curatedPagePreviews",
+    "/api/_lib/fileSignatures",
+    "/api/_lib/leadHandler",
+    "/api/_lib/observability",
+    "/api/_lib/operationalAlerts",
+    "/api/_lib/pageShell",
+    "/api/_lib/publicProductPage",
+    "/api/_lib/sharedSelections",
+    "/api/_lib/siteDatabase",
+    "/api/_lib/siteOrigin",
+    "/api/_lib/webhookSignature"
+   ],
+   "rotas_http": [],
+   "componentes": 0,
+   "hooks_locais": [],
+   "hooks_definidos": [],
+   "edges": [],
+   "tabelas": [],
+   "rpcs": [],
+   "buckets": [],
+   "canais_realtime": [],
+   "env": [
+    "CATALOG_SUPABASE_PUBLISHABLE_KEY",
+    "CRON_SECRET",
+    "NODE_ENV",
+    "OPERATIONS_ALERT_WEBHOOK_TOKEN",
+    "OPERATIONS_ALERT_WEBHOOK_URL",
+    "RESEND_API_KEY",
+    "SITE_EMAIL_FROM",
+    "SITE_PREVIEW_SUPABASE_PROJECT_REF",
+    "SITE_PUBLIC_ORIGIN",
+    "SITE_REQUEST_HASH_SALT",
+    "SITE_SUPABASE_SECRET_KEY",
+    "SITE_SUPABASE_SERVICE_JWT",
+    "SITE_SUPABASE_URL",
+    "SITE_TEST_APP_SHELL",
+    "VERCEL_ENV",
+    "VERCEL_URL",
+    "VITE_PRODUCT_CATALOG_RESOURCE",
+    "VITE_PUBLIC_URL",
+    "VITE_SUPABASE_PUBLISHABLE_KEY",
+    "WHATSAPP_ACCESS_TOKEN",
+    "WHATSAPP_GRAPH_API_VERSION",
+    "WHATSAPP_PHONE_NUMBER_ID",
+    "WHATSAPP_QUOTE_TEMPLATE"
+   ],
+   "flags": [],
+   "papeis": [
+    "anon"
+   ],
+   "diretos": {
+    "edges": [],
+    "tabelas": [],
+    "rpcs": []
+   },
+   "importado_por_outros_modulos": [
+    "api"
+   ],
+   "depende_de_modulos": [
+    "api",
+    "shared"
+   ],
+   "pacotes_externos": [
+    "node:crypto",
+    "node:fs",
+    "node:path"
+   ]
+  },
+  {
+   "modulo": "components",
+   "arquivos": 20,
+   "testes": 9,
+   "linhas": 2476,
+   "itens_menu": [],
+   "telas": [],
+   "rotas_http": [],
+   "componentes": 19,
+   "hooks_locais": [
+    "useAllCategories",
+    "useCatalog",
+    "useCategories",
+    "useCustomerAuth",
+    "useProduct",
+    "useQuoteCart"
+   ],
+   "hooks_definidos": [],
+   "edges": [],
+   "tabelas": [],
+   "rpcs": [
+    "attach_my_briefing_assets_to_quote",
+    "create_my_briefing_asset",
+    "delete_my_briefing_asset",
+    "delete_my_selection",
+    "list_my_briefing_assets",
+    "list_my_selections",
+    "save_my_selection",
+    "set_my_selection_archived"
+   ],
+   "buckets": [],
+   "canais_realtime": [],
+   "env": [
+    "VITE_CONTACT_EMAIL",
+    "VITE_CONTACT_REQUEST_ENDPOINT",
+    "VITE_CUSTOMER_ADJUSTMENTS_ENABLED",
+    "VITE_PERSISTENT_SHARED_SELECTIONS_ENABLED",
+    "VITE_PRODUCT_CATALOG_RESOURCE",
+    "VITE_PUBLIC_URL",
+    "VITE_QUOTE_DECISION_GROUPS_ENABLED",
+    "VITE_QUOTE_REQUEST_ENDPOINT",
+    "VITE_SITE_DEPLOYMENT_ENV",
+    "VITE_SITE_PREVIEW_PROJECT_REF",
+    "VITE_SITE_SUPABASE_PUBLISHABLE_KEY",
+    "VITE_SITE_SUPABASE_URL",
+    "VITE_SUPABASE_PUBLISHABLE_KEY",
+    "VITE_SUPABASE_URL"
+   ],
+   "flags": [],
+   "papeis": [
+    "alert",
+    "alertdialog",
+    "anon",
+    "combobox",
+    "dialog",
+    "group",
+    "listbox",
+    "option",
+    "presentation",
+    "region",
+    "search",
+    "status"
+   ],
+   "diretos": {
+    "edges": [],
+    "tabelas": [],
+    "rpcs": []
+   },
+   "importado_por_outros_modulos": [
+    "pages"
+   ],
+   "depende_de_modulos": [
+    "context",
+    "lib"
+   ],
+   "pacotes_externos": [
+    "gsap",
+    "lucide-react",
+    "react-router-dom"
+   ]
+  },
+  {
+   "modulo": "context",
+   "arquivos": 5,
+   "testes": 2,
+   "linhas": 470,
+   "itens_menu": [],
+   "telas": [],
+   "rotas_http": [],
+   "componentes": 2,
+   "hooks_locais": [
+    "useCustomerAuth",
+    "useQuoteCart"
+   ],
+   "hooks_definidos": [
+    "useCustomerAuth",
+    "useQuoteCart"
+   ],
+   "edges": [],
+   "tabelas": [],
+   "rpcs": [
+    "claim_my_quote_requests",
+    "get_my_quote_request",
+    "get_my_quote_requests",
+    "request_my_quote_adjustment"
+   ],
+   "buckets": [],
+   "canais_realtime": [],
+   "env": [
+    "VITE_PRODUCT_CATALOG_RESOURCE",
+    "VITE_SITE_DEPLOYMENT_ENV",
+    "VITE_SITE_PREVIEW_PROJECT_REF",
+    "VITE_SITE_SUPABASE_PUBLISHABLE_KEY",
+    "VITE_SITE_SUPABASE_URL",
+    "VITE_SUPABASE_PUBLISHABLE_KEY",
+    "VITE_SUPABASE_URL"
+   ],
+   "flags": [],
+   "papeis": [
+    "anon"
+   ],
+   "diretos": {
+    "edges": [],
+    "tabelas": [],
+    "rpcs": []
+   },
+   "importado_por_outros_modulos": [
+    "components",
+    "lib",
+    "pages"
+   ],
+   "depende_de_modulos": [
+    "lib"
+   ],
+   "pacotes_externos": [
+    "@supabase/supabase-js"
+   ]
+  },
+  {
+   "modulo": "lib",
+   "arquivos": 43,
+   "testes": 36,
+   "linhas": 5085,
+   "itens_menu": [],
+   "telas": [],
+   "rotas_http": [],
+   "componentes": 0,
+   "hooks_locais": [
+    "useAllCategories",
+    "useCatalog",
+    "useCatalogPageState",
+    "useCategories",
+    "useInitialSuccessScroll",
+    "useOccasionFavorites",
+    "useProduct",
+    "useQuoteCart"
+   ],
+   "hooks_definidos": [
+    "useAllCategories",
+    "useCatalog",
+    "useCategories",
+    "useProduct",
+    "useCatalogPageState",
+    "useInitialSuccessScroll",
+    "useOccasionFavorites"
+   ],
+   "edges": [],
+   "tabelas": [],
+   "rpcs": [
+    "attach_my_briefing_assets_to_quote",
+    "claim_my_quote_requests",
+    "create_my_briefing_asset",
+    "delete_my_briefing_asset",
+    "delete_my_selection",
+    "get_my_quote_request",
+    "get_my_quote_requests",
+    "list_my_briefing_assets",
+    "list_my_occasion_favorites",
+    "list_my_selections",
+    "request_my_quote_adjustment",
+    "save_my_selection",
+    "set_my_occasion_favorite",
+    "set_my_selection_archived"
+   ],
+   "buckets": [],
+   "canais_realtime": [],
+   "env": [
+    "VITE_CONTACT_EMAIL",
+    "VITE_CONTACT_REQUEST_ENDPOINT",
+    "VITE_CUSTOMER_ADJUSTMENTS_ENABLED",
+    "VITE_PERSISTENT_SHARED_SELECTIONS_ENABLED",
+    "VITE_PRODUCT_CATALOG_RESOURCE",
+    "VITE_QUOTE_DECISION_GROUPS_ENABLED",
+    "VITE_QUOTE_REQUEST_ENDPOINT",
+    "VITE_SITE_DEPLOYMENT_ENV",
+    "VITE_SITE_PREVIEW_PROJECT_REF",
+    "VITE_SITE_SUPABASE_PUBLISHABLE_KEY",
+    "VITE_SITE_SUPABASE_URL",
+    "VITE_SUPABASE_PUBLISHABLE_KEY",
+    "VITE_SUPABASE_URL"
+   ],
+   "flags": [],
+   "papeis": [
+    "anon"
+   ],
+   "diretos": {
+    "edges": [],
+    "tabelas": [],
+    "rpcs": [
+     "attach_my_briefing_assets_to_quote",
+     "claim_my_quote_requests",
+     "create_my_briefing_asset",
+     "delete_my_briefing_asset",
+     "delete_my_selection",
+     "get_my_quote_request",
+     "get_my_quote_requests",
+     "list_my_briefing_assets",
+     "list_my_occasion_favorites",
+     "list_my_selections",
+     "request_my_quote_adjustment",
+     "save_my_selection",
+     "set_my_occasion_favorite",
+     "set_my_selection_archived"
+    ]
+   },
+   "importado_por_outros_modulos": [
+    "components",
+    "context",
+    "pages"
+   ],
+   "depende_de_modulos": [
+    "context",
+    "shared",
+    "types"
+   ],
+   "pacotes_externos": [
+    "@supabase/supabase-js",
+    "@vercel/analytics",
+    "react-router-dom"
+   ]
+  },
+  {
+   "modulo": "pages",
+   "arquivos": 18,
+   "testes": 4,
+   "linhas": 2866,
+   "itens_menu": [
+    "Catálogos",
+    "Como funciona",
+    "Datas comemorativas",
+    "Fale com a gente",
+    "Monte seu kit",
+    "Radar de produtos",
+    "Tendências"
+   ],
+   "telas": [
+    "/",
+    "/*",
+    "/auth/confirm",
+    "/catalogo",
+    "/catalogos",
+    "/contato",
+    "/datas-comemorativas",
+    "/definir-senha",
+    "/entrar",
+    "/ideias/:topic",
+    "/minha-conta",
+    "/minha-conta/orcamentos/:id",
+    "/montar-kit",
+    "/orcamento",
+    "/privacidade",
+    "/produto/:identifier",
+    "/selecoes/compartilhada",
+    "/sobre"
+   ],
+   "rotas_http": [],
+   "componentes": 18,
+   "hooks_locais": [
+    "useAllCategories",
+    "useCatalog",
+    "useCatalogPageState",
+    "useCategories",
+    "useCustomerAuth",
+    "useInitialSuccessScroll",
+    "useOccasionFavorites",
+    "useProduct",
+    "useQuoteCart"
+   ],
+   "hooks_definidos": [],
+   "edges": [],
+   "tabelas": [],
+   "rpcs": [
+    "attach_my_briefing_assets_to_quote",
+    "claim_my_quote_requests",
+    "create_my_briefing_asset",
+    "delete_my_briefing_asset",
+    "delete_my_selection",
+    "get_my_quote_request",
+    "get_my_quote_requests",
+    "list_my_briefing_assets",
+    "list_my_occasion_favorites",
+    "list_my_selections",
+    "request_my_quote_adjustment",
+    "save_my_selection",
+    "set_my_occasion_favorite",
+    "set_my_selection_archived"
+   ],
+   "buckets": [],
+   "canais_realtime": [],
+   "env": [
+    "VITE_CONTACT_EMAIL",
+    "VITE_CONTACT_REQUEST_ENDPOINT",
+    "VITE_CUSTOMER_ADJUSTMENTS_ENABLED",
+    "VITE_PERSISTENT_SHARED_SELECTIONS_ENABLED",
+    "VITE_PRODUCT_CATALOG_RESOURCE",
+    "VITE_PUBLIC_URL",
+    "VITE_QUOTE_DECISION_GROUPS_ENABLED",
+    "VITE_QUOTE_REQUEST_ENDPOINT",
+    "VITE_SITE_DEPLOYMENT_ENV",
+    "VITE_SITE_PREVIEW_PROJECT_REF",
+    "VITE_SITE_SUPABASE_PUBLISHABLE_KEY",
+    "VITE_SITE_SUPABASE_URL",
+    "VITE_SUPABASE_PUBLISHABLE_KEY",
+    "VITE_SUPABASE_URL"
+   ],
+   "flags": [],
+   "papeis": [
+    "alert",
+    "alertdialog",
+    "anon",
+    "combobox",
+    "dialog",
+    "group",
+    "listbox",
+    "option",
+    "presentation",
+    "region",
+    "search",
+    "status"
+   ],
+   "diretos": {
+    "edges": [],
+    "tabelas": [],
+    "rpcs": []
+   },
+   "importado_por_outros_modulos": [],
+   "depende_de_modulos": [
+    "components",
+    "context",
+    "lib",
+    "shared"
+   ],
+   "pacotes_externos": [
+    "lucide-react",
+    "react-router-dom"
+   ]
+  },
+  {
+   "modulo": "shared",
+   "arquivos": 2,
+   "testes": 0,
+   "linhas": 114,
+   "itens_menu": [],
+   "telas": [],
+   "rotas_http": [],
+   "componentes": 0,
+   "hooks_locais": [],
+   "hooks_definidos": [],
+   "edges": [],
+   "tabelas": [],
+   "rpcs": [],
+   "buckets": [],
+   "canais_realtime": [],
+   "env": [],
+   "flags": [],
+   "papeis": [],
+   "diretos": {
+    "edges": [],
+    "tabelas": [],
+    "rpcs": []
+   },
+   "importado_por_outros_modulos": [
+    "api",
+    "api/_lib",
+    "lib",
+    "pages"
+   ],
+   "depende_de_modulos": [],
+   "pacotes_externos": []
+  },
+  {
+   "modulo": "test",
+   "arquivos": 0,
+   "testes": 1,
+   "linhas": 0,
+   "itens_menu": [],
+   "telas": [],
+   "rotas_http": [],
+   "componentes": 0,
+   "hooks_locais": [],
+   "hooks_definidos": [],
+   "edges": [],
+   "tabelas": [],
+   "rpcs": [],
+   "buckets": [],
+   "canais_realtime": [],
+   "env": [],
+   "flags": [],
+   "papeis": [],
+   "diretos": {
+    "edges": [],
+    "tabelas": [],
+    "rpcs": []
+   },
+   "importado_por_outros_modulos": [],
+   "depende_de_modulos": [],
+   "pacotes_externos": []
+  },
+  {
+   "modulo": "types",
+   "arquivos": 1,
+   "testes": 0,
+   "linhas": 1258,
+   "itens_menu": [],
+   "telas": [],
+   "rotas_http": [],
+   "componentes": 0,
+   "hooks_locais": [],
+   "hooks_definidos": [],
+   "edges": [],
+   "tabelas": [],
+   "rpcs": [],
+   "buckets": [],
+   "canais_realtime": [],
+   "env": [],
+   "flags": [],
+   "papeis": [],
+   "diretos": {
+    "edges": [],
+    "tabelas": [],
+    "rpcs": []
+   },
+   "importado_por_outros_modulos": [
+    "lib"
+   ],
+   "depende_de_modulos": [],
+   "pacotes_externos": []
+  }
+ ]
+}
