@@ -8,8 +8,10 @@
 -- Imprime UMA linha com UM JSON. So SELECT em catalogo e contagem de linhas; nada de texto
 -- livre que possa carregar segredo: de cron.job sai so o nome das funcoes chamadas (nome
 -- seguido de "("), nunca o `command` inteiro, que pode ter URL/cabecalho/token; da fila de
--- notificacao saem apenas contagens e codigos de erro, nunca destinatario ou payload.
--- Ordem de toda lista e explicita para o diff entre execucoes ser estavel.
+-- notificacao saem apenas contagens e codigos de erro, nunca destinatario ou payload
+-- (`last_error_code` e texto livre no banco: o que nao tem forma de codigo sai como
+-- 'fora_do_padrao'). Ordem de toda lista e explicita, com desempate, para o diff entre
+-- execucoes ser estavel.
 --
 -- Schemas: as tabelas do site vivem em `site_private`; `public` guarda as funcoes/views
 -- chamadas pelo PostgREST (hoje sem tabela). Os dois sao inventariados.
@@ -27,6 +29,7 @@ schemas AS (SELECT unnest(ARRAY['site_private', 'public']) AS nspname),
 base AS (
   SELECT c.oid, n.nspname AS esquema, c.relname AS nome,
          c.relrowsecurity AS rls, c.relforcerowsecurity AS rls_forcado,
+         row_security_active(c.oid) AS leitura_filtrada,
          c.reltuples, pg_total_relation_size(c.oid)::bigint AS bytes
     FROM pg_class c
     JOIN pg_namespace n ON n.oid = c.relnamespace
@@ -88,7 +91,7 @@ cron_sql AS (
       'disponivel', true,
       'jobs', (
         SELECT coalesce(jsonb_agg(jsonb_build_object(
-                 'nome', j.jobname,
+                 'nome', coalesce(j.jobname, 'job_' || j.jobid),
                  'agenda', j.schedule,
                  'ativo', j.active,
                  'chama', (SELECT coalesce(jsonb_agg(DISTINCT m[1] ORDER BY m[1]), '[]'::jsonb)
@@ -102,7 +105,7 @@ cron_sql AS (
                                            ELSE round(100.0 * pj.falhas_7d / pj.exec_7d, 1) END,
                  'ultima_falha', to_char(pj.ultima_falha AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
                  'duracao_max_s_7d', pj.duracao_max_s_7d
-               ) ORDER BY j.jobname), '[]'::jsonb)
+               ) ORDER BY coalesce(j.jobname, 'job_' || j.jobid), j.jobid), '[]'::jsonb)
           FROM cron.job j LEFT JOIN por_job pj ON pj.jobid = j.jobid
       ),
       -- Hora com mais da metade das execucoes falhando: o cron ficou parado naquela hora.
@@ -169,6 +172,12 @@ SELECT jsonb_build_object(
                      WHERE (e ->> 'ativo')::boolean),
     'ledger_registros', (SELECT (j ->> 'registros')::bigint FROM ledger),
     'ledger_versao_max', (SELECT j ->> 'versao_max' FROM ledger),
+    -- Relacoes desta consulta que o papel atual le SOB RLS. 0 = o papel ignora RLS (e o caso do
+    -- endpoint read-only da Management API). Acima de 0, contagens e filas sairiam 0 falsos sem
+    -- erro nenhum: o gerar-banco.mjs recusa a resposta em vez de publicar "nao existe".
+    'leitura_filtrada_por_rls', (SELECT count(*) FROM tabelas WHERE leitura_filtrada)
+                                + coalesce(row_security_active(to_regclass('cron.job'))::int, 0)
+                                + coalesce(row_security_active(to_regclass('cron.job_run_details'))::int, 0),
     'extensoes', (SELECT jsonb_object_agg(extname, extversion ORDER BY extname) FROM pg_extension),
     'max_connections', current_setting('max_connections')::int,
     'tamanho_bytes', pg_database_size(current_database())
@@ -186,7 +195,10 @@ SELECT jsonb_build_object(
              'linhas', t.linhas,
              'linhas_exatas', t.linhas_exatas,
              'bytes', t.bytes,
-             'citada_no_banco', EXISTS (SELECT 1 FROM corpos c WHERE c.txt ~ ('\m' || t.nome || '\M'))
+             -- O nome entra numa regex: o que nao e letra, digito ou _ vai escapado. Sem isso
+             -- uma tabela "a$b" nunca casa e uma "x(y" derruba a consulta inteira.
+             'citada_no_banco', EXISTS (SELECT 1 FROM corpos c
+                                         WHERE c.txt ~ ('\m' || regexp_replace(t.nome, '([^[:alnum:]_])', '\\\1', 'g') || '\M'))
            ) ORDER BY t.esquema, t.nome), '[]'::jsonb)
       FROM tabelas t
       LEFT JOIN policies p ON p.esquema = t.esquema AND p.nome = t.nome
@@ -213,7 +225,7 @@ SELECT jsonb_build_object(
              'search_path_fixo', p.proconfig IS NOT NULL
                                  AND EXISTS (SELECT 1 FROM unnest(p.proconfig) c
                                               WHERE c LIKE 'search\_path=%')
-           ) ORDER BY n.nspname, p.proname), '[]'::jsonb)
+           ) ORDER BY n.nspname, p.proname, pg_get_function_identity_arguments(p.oid)), '[]'::jsonb)
       FROM pg_proc p
       JOIN pg_namespace n ON n.oid = p.pronamespace
      WHERE n.nspname IN (SELECT nspname FROM schemas) AND p.prokind IN ('f', 'p')
@@ -231,17 +243,23 @@ SELECT jsonb_build_object(
         FROM (SELECT status, count(*)::int AS n
                 FROM site_private.notification_deliveries GROUP BY status) s
     ),
+    -- So o que ainda vai ser tentado: 'pending'/'failed' com a proxima tentativa vencida, ou
+    -- 'processing' com o lease vencido (mesma regra de claim_site_notification_deliveries).
+    -- 'sent', 'cancelled' e 'exhausted' sao estados finais: o next_attempt_at deles fica no
+    -- passado para sempre e nao e fila travada.
     'notificacao_vencidas', (
       SELECT count(*)::int FROM site_private.notification_deliveries
-       WHERE status NOT IN ('sent', 'delivered')
-         AND next_attempt_at <= now() - interval '15 minutes'
+       WHERE (status IN ('pending', 'failed') AND next_attempt_at <= now() - interval '15 minutes')
+          OR (status = 'processing' AND lease_expires_at <= now() - interval '15 minutes')
     ),
     'notificacao_tentativas_max', (
       SELECT coalesce(max(attempts), 0)::int FROM site_private.notification_deliveries
     ),
     'notificacao_erros_7d', (
       SELECT coalesce(jsonb_object_agg(codigo, n ORDER BY codigo), '{}'::jsonb)
-        FROM (SELECT coalesce(last_error_code, 'sem_codigo') AS codigo, count(*)::int AS n
+        FROM (SELECT CASE WHEN last_error_code IS NULL THEN 'sem_codigo'
+                          WHEN last_error_code ~ '^[A-Za-z][A-Za-z0-9_.:-]{0,79}$' THEN last_error_code
+                          ELSE 'fora_do_padrao' END AS codigo, count(*)::int AS n
                 FROM site_private.notification_deliveries
                WHERE last_error_at > now() - interval '7 days' GROUP BY 1) s
     ),
