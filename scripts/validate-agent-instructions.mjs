@@ -45,9 +45,12 @@ export function validateClaudeImport(content) {
 
 // Toda referência docs/agentes/<arquivo>.md citada no AGENTS.md precisa existir, e todo arquivo da
 // pasta precisa ser citado — referência órfã é instrução que ninguém lê.
+// Exige crases ao redor (todas as citações reais no AGENTS.md são `docs/agentes/x.md`): sem isso,
+// uma URL para outro repo (.../blob/main/docs/agentes/x.md) ou um exemplo dentro de bloco de código
+// casava como citação real, mascarando órfãs de verdade (falso negativo).
 export function validateDocReferences(agentsContent, docFileNames) {
   const cited = new Set(
-    [...agentsContent.matchAll(/docs\/agentes\/([A-Za-z0-9._-]+\.md)/g)].map((match) => match[1]),
+    [...agentsContent.matchAll(/`docs\/agentes\/([A-Za-z0-9._-]+\.md)`/g)].map((match) => match[1]),
   );
   const present = new Set(docFileNames);
   const errors = [];
@@ -115,6 +118,12 @@ function currentSizes() {
 }
 
 function baseSizes(ref) {
+  // `ref` vira argumento isolado do `ls-tree` abaixo: um valor começando com "-" seria lido como
+  // flag do git, não como ref. Não é injeção de shell (execFileSync não usa shell), mas é entrada
+  // inesperada que merece falhar alto em vez de se comportar de um jeito não previsto.
+  if (ref.startsWith('-')) {
+    throw new Error(`ref inválida ("${ref}"): não pode começar com "-".`);
+  }
   const size = (file) => {
     try {
       return Number.parseInt(execFileSync('git', ['cat-file', '-s', `${ref}:${file}`], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(), 10);
@@ -155,14 +164,35 @@ function main() {
   else errors.push(...validateSkillCopies(SKILL_FILES.map((file) => readFileSync(file, 'utf8'))));
   const current = currentSizes();
   const ref = process.env.AGENT_INSTRUCTIONS_BASE || 'HEAD';
-  errors.push(...validateShrink(current, baseSizes(ref)));
+  let base;
+  try {
+    base = baseSizes(ref);
+  } catch (error) {
+    errors.push(error.message);
+    base = undefined;
+  }
+  // Base que não resolve (ref inexistente, fora de repo git, git ausente do PATH) pulava a
+  // comparação de tamanho e imprimia "OK" com exit 0 — um apagamento de docs/agentes/ passava
+  // inteiro. Falha de propósito; AGENT_INSTRUCTIONS_ALLOW_NO_BASE=1 é a saída explícita para quem
+  // precisar mesmo assim rodar sem base — e, mesmo nesse caso, qualquer erro já acumulado acima
+  // (seção ausente, skill divergente) continua bloqueando, não é mascarado.
+  let semComparacaoDeTamanho = false;
+  if (base) {
+    errors.push(...validateShrink(current, base));
+  } else if (process.env.AGENT_INSTRUCTIONS_ALLOW_NO_BASE === '1') {
+    semComparacaoDeTamanho = true;
+  } else {
+    errors.push(
+      `Base "${ref}" não resolveu (ref inexistente, fora de repo git ou git ausente). A comparação de tamanho não rodou, então um apagamento passaria: recusando até que AGENT_INSTRUCTIONS_ALLOW_NO_BASE=1 seja passado explicitamente.`,
+    );
+  }
 
   if (errors.length > 0) {
     for (const error of errors) console.error(`::error::${error}`);
     process.exit(1);
   }
   console.log(
-    `Instruções para agentes OK: ${REQUIRED_SECTIONS.length} seções, ${docFileNamesOnDisk().length} arquivos em ${DOCS_DIR}/, skills idênticos; conjunto com ${current.total} bytes (base ${ref}).`,
+    `Instruções para agentes OK: ${REQUIRED_SECTIONS.length} seções, ${docFileNamesOnDisk().length} arquivos em ${DOCS_DIR}/, skills idênticos; conjunto com ${current.total} bytes${semComparacaoDeTamanho ? ' (comparação de tamanho pulada: AGENT_INSTRUCTIONS_ALLOW_NO_BASE=1)' : ` (base ${ref})`}.`,
   );
 }
 

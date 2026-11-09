@@ -26,7 +26,10 @@ site. Qualquer tela que sugira preço, carrinho ou checkout está fora do produt
   `BATCH_SIZE = 10`; `OVERALL_TIME_BUDGET_MS = 25_000` + `QUEUE_HEALTH_TIMEOUT_MS = 3_000` +
   alerta operacional precisam caber no `maxDuration: 30` declarado em `vercel.json` — isso é cobrado por
   `tests/api/maxDuration.test.ts`. **Mudar um dos números sem o outro quebra o teste de propósito.**
-- Limite de **5 tentativas** antes de `exhausted` (`api/notifications.ts`); sinal de saúde da fila e
+- Limite de **5 tentativas** antes de `exhausted`, definido e aplicado **no banco**
+  (`site_private.notification_policy()`, migration
+  `20260916110000_add_notification_queue_policy_lease_and_backoff.sql:50`), não em `api/notifications.ts`;
+  sinal de saúde da fila e
   alerta quando há job elegível velho. Calibração registrada em
   `docs/RELATORIO_SOAK_TEST_FILA_20260916.md`; concorrência em `npm run test:queue-concurrency`.
 - As rotas de cron (`/api/notifications`, `/api/retention`) só respondem com
