@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "713ebe472995e96a19079f97ffa9edbc3d589dee",
+  "commit": "7eb1b5dd28cf63498cdbe5d785ca0b8a9a481b45",
   "branch": "main",
-  "data_commit": "2026-11-09T03:02:23-03:00",
+  "data_commit": "2026-11-09T10:17:10Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "7eb1b5d",
+    "data": "2026-11-09",
+    "assunto": "chore(deps): bump graphifyy para 0.9.97 com o companheiro casado (#123)"
+   },
    {
     "sha": "713ebe4",
     "data": "2026-11-09",
@@ -126,14 +131,9 @@
     "sha": "77f0ff1",
     "data": "2026-10-06",
     "assunto": "feat(brand): adiciona assinatura Gift Lovers by Promo (#92)"
-   },
-   {
-    "sha": "62a38b3",
-    "data": "2026-10-06",
-    "assunto": "docs(ux): plano Carnegie de experiência em 100 etapas (#93)"
    }
   ],
-  "arquivos_mudados_7d": 53,
+  "arquivos_mudados_7d": 55,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "docs/audits/pending-features-20261011",
@@ -168,6 +168,10 @@
     "mudancas": 2
    },
    {
+    "pasta": ".graphify.project.json",
+    "mudancas": 2
+   },
+   {
     "pasta": "CLAUDE.md",
     "mudancas": 2
    },
@@ -188,11 +192,7 @@
     "mudancas": 2
    },
    {
-    "pasta": "src/styles.css",
-    "mudancas": 2
-   },
-   {
-    "pasta": "tests/validate-agent-instructions.node.mjs",
+    "pasta": "requirements-graphify.txt",
     "mudancas": 2
    }
   ],
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 17
+    "commits": 18
    },
    {
     "autor": "dependabot[bot]",

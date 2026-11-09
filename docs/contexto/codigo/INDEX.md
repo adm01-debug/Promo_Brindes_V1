@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `713ebe472995e96a19079f97ffa9edbc3d589dee` (2026-11-09T03:02:23-03:00).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `7eb1b5dd28cf63498cdbe5d785ca0b8a9a481b45` (2026-11-09T10:17:10Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -361,6 +361,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-09 `7eb1b5d` chore(deps): bump graphifyy para 0.9.97 com o companheiro casado (#123)
 - 2026-11-09 `713ebe4` feat(scripts): porta scripts autônomos de contexto de IA do Zapp Web V2
 - 2026-11-09 `d44baf5` security: guard falha fechado, sem injeção de arg e regex de backtick (#124)
 - 2026-11-08 `3c3cc11` chore: iguala a forma do AGENTS.md à do Zapp Web V2 (#120)
@@ -375,7 +376,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-10-27 `b49f7fc` chore: alinha documentos do contrato do catálogo ao ledger canônico (#108)
 - 2026-10-27 `e7ebf1b` fix(ci): compatibiliza ESLint 10 com regras de acessibilidade
 - 2026-10-27 `153192c` docs(ci): registra bloqueio do ESLint 10 e atualiza pendências
-- 2026-10-27 `7100e1c` feat(ux): resumo editável e confirmação do briefing
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`
