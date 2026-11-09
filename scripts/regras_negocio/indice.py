@@ -103,13 +103,22 @@ def producer_health(d: Path, man: dict) -> tuple[str, list[str]]:
 
 def entry_file(d: Path, man: dict) -> str:
     cand = man.get("entrada") or man.get("entry") or ""
-    if cand and (d / cand).exists():
+    # o manifest é dado de outro produtor: só vale um arquivo que exista dentro da pasta da fonte
+    if isinstance(cand, str) and cand and (d / cand).is_file() and (d / cand).resolve().is_relative_to(d.resolve()):
         return cand
     for name in ("00-INDEX.md", "INDEX.md", "README.md", "index.md"):
         if (d / name).exists():
             return name
     mds = sorted(p.name for p in d.glob("*.md"))
     return mds[0] if mds else ""
+
+
+FUTURE_TOLERANCE_MIN = 5  # relógios de runners diferentes divergem alguns segundos; mais que isso é data inválida
+
+
+def fail(msg: str) -> int:
+    print(f"[indice] ERRO: {msg}", file=sys.stderr)
+    return 2
 
 
 def main() -> int:
@@ -123,9 +132,26 @@ def main() -> int:
     ap.add_argument("--head", default="", help="sha do commit de código de referência (default: HEAD do --repo); use quando o índice é montado numa branch gerada")
     args = ap.parse_args()
     root = Path(args.repo).resolve()
+    if not root.is_dir():
+        return fail(f"--repo {args.repo!r} não é um diretório existente")
+    if not args.out.strip():
+        return fail("--out vazio — informe o arquivo do índice (ex.: docs/contexto/00-INDEX.md)")
     out = (root / args.out).resolve()
+    if out.is_dir():
+        return fail(f"--out {args.out!r} é um diretório — informe o caminho do arquivo do índice")
+    if args.stale_min < 0:
+        return fail(f"--stale-min {args.stale_min} inválido — use minutos >= 0")
+    if not args.fonte:
+        return fail('nenhuma --fonte informada — um índice sem fontes não aponta para nada (use --fonte "NOME=CAMINHO[@BRANCH]")')
+    repo_slug = re.compile(r"[\w.-]+/[\w.-]+")
+    if args.remote and not repo_slug.fullmatch(args.remote):
+        return fail(f"--remote {args.remote!r} inválido — esperado owner/repo")
     remote = args.remote or re.sub(r"^.*github\.com[:/]|\.git$", "", git(root, "config", "--get", "remote.origin.url"))
+    if not repo_slug.fullmatch(remote):
+        remote = ""  # origin que não é do GitHub: sem URL raw em vez de uma URL inventada
     now = datetime.now(timezone.utc)
+    if args.head and not re.fullmatch(r"[0-9a-fA-F]{7,64}", args.head):
+        return fail(f"--head {args.head!r} inválido — esperado o sha (hex) de um commit")
     head = args.head or git(root, "rev-parse", "HEAD")
 
     fontes = []
@@ -134,9 +160,16 @@ def main() -> int:
             print(f"[indice] fonte inválida: {spec}", file=sys.stderr); return 2
         nome, resto = spec.split("=", 1)
         caminho, _, branch = resto.partition("@")
-        nome, caminho, branch = nome.strip(), caminho.strip().strip("/"), branch.strip()
+        nome, caminho, branch = " ".join(nome.split()), caminho.strip().strip("/"), branch.strip()
+        if not nome or not caminho:
+            return fail(f"fonte inválida: {spec!r} — nome e caminho são obrigatórios (NOME=CAMINHO[@BRANCH])")
+        if any(f["nome"] == nome for f in fontes):
+            return fail(f"fonte repetida: {nome!r} — cada fonte tem um único dono")
         d = root / caminho
-        local = d.is_dir() and any(d.iterdir())
+        if d.resolve() == root or not d.resolve().is_relative_to(root):
+            return fail(f"fonte inválida: {spec!r} — o caminho precisa ser uma pasta dentro do repositório")
+        # manual/ é texto humano que vive na main: sozinha não prova que o produtor rodou
+        local = d.is_dir() and any(p.name != "manual" for p in d.iterdir())
         man = read_manifest(d) if local else {}
         gerado = parse_dt(man.get("gerado_em") or man.get("generated_at") or man.get("timestamp") or man.get("data"))
         if local and not gerado:
@@ -150,9 +183,16 @@ def main() -> int:
                 gerado = parse_dt(git(root, "log", "-1", "--format=%cI", "--", caminho))
         idade_min = int((now - gerado).total_seconds() // 60) if gerado else None
         commit = man.get("commit") or man.get("sha") or ""
+        if not isinstance(commit, str):
+            commit = ""
         status, avisos = producer_health(d, man) if local else ("ok", [])
         if not local:
             status = "não disponível neste checkout" if branch else "ainda não gerado"
+        if idade_min is not None and idade_min < -FUTURE_TOLERANCE_MIN:
+            avisos.append(f"data da coleta no futuro ({gerado.strftime('%Y-%m-%d %H:%M UTC')})")
+            status, idade_min = "não verificável", None
+        elif idade_min is not None:
+            idade_min = max(idade_min, 0)
         mesmo_commit = (isinstance(commit, str) and isinstance(head, str)
                         and min(len(commit), len(head)) >= 7
                         and (head.startswith(commit) or commit.startswith(head)))
@@ -167,9 +207,14 @@ def main() -> int:
             avisos.append(f"gerado no commit `{str(commit)[:7]}`, HEAD é `{head[:7]}`")
             if status == "ok":
                 status = "desatualizado"
+        if local and idade_min is None and not atual_por_commit and status == "ok":
+            # sem data nem commit conferível não dá para afirmar que a fonte está atual
+            avisos.append("sem data de coleta verificável")
+            status = "não verificável"
         arquivos = sorted(p.relative_to(d).as_posix() for p in d.rglob("*") if p.is_file() and p.suffix in (".md", ".json") and not p.name.startswith(".")) if local else []
         fontes.append({"nome": nome, "caminho": caminho, "branch": branch, "local": local, "manifest": man, "gerado": gerado, "idade_min": idade_min,
-                       "commit": commit, "status": status, "avisos": avisos, "arquivos": arquivos, "entrada": entry_file(d, man) if local else ""})
+                       "commit": commit, "status": status, "avisos": avisos, "arquivos": arquivos, "entrada": entry_file(d, man) if local else "",
+                       "so_manual": d.is_dir() and not local and (d / "manual").is_dir()})
 
     def como_ler(f):
         if f["local"]:
@@ -178,10 +223,13 @@ def main() -> int:
             raw = f"https://raw.githubusercontent.com/{remote}/{f['branch']}/{f['caminho']}/" if remote else ""
             return (f"branch `{f['branch']}`: `git fetch origin {f['branch']} && git show origin/{f['branch']}:{f['caminho']}/<arquivo>`"
                     + (f" · MCP `get_file(ref={f['branch']})` · raw `{raw}<arquivo>`" if raw else ""))
+        if f["so_manual"]:
+            return f"`{f['caminho']}/` (só `manual/`, escrito por humanos — o produtor ainda não rodou)"
         return f"`{f['caminho']}/` (ainda não existe — o produtor não rodou)"
 
+    cel = lambda t: str(t).replace("|", "\\|").replace("\n", " ")
     L = []
-    L.append(f"# {args.titulo}\n")
+    L.append(f"# {' '.join(args.titulo.split())}\n")
     L.append(f"> Gerado automaticamente por indice.py · {now.strftime('%Y-%m-%d %H:%M UTC')} · HEAD `{head[:10] or 'n/d'}` · Não edite à mão.\n")
     L.append("Um sistema, três fontes de verdade, três produtores independentes. **Leia este arquivo e vá direto à fonte certa.** "
              "Cada fato tem um dono: se duas fontes discordarem, vale o dono.\n")
@@ -199,7 +247,7 @@ def main() -> int:
             estado += f" · {f['idade_min']} min atrás" if f["idade_min"] < 120 else f" · {f['idade_min'] // 60}h atrás"
         if f["avisos"]:
             estado += " · ⚠️ " + "; ".join(f["avisos"])
-        L.append(f"| {desc} | **{nome}** | {como_ler(f)} | {estado} |")
+        L.append(f"| {cel(desc)} | **{cel(nome)}** | {cel(como_ler(f))} | {cel(estado)} |")
     L.append("")
     L.append("## Ordem de leitura antes de qualquer tarefa ou planejamento\n")
     for i, nome in enumerate([n for n in ORDEM if n in by] + [n for n in by if n not in ORDEM], 1):
