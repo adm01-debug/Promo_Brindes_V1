@@ -1,0 +1,163 @@
+# docs:
+#   gatilho: agendado (segunda 10:23 UTC) e dispatch
+#   prova: inventario/estado/banco.json regerado do banco do site (somente leitura, Management API) cruzado com o codigo
+#   falha: o job fica vermelho e o inventario nao e atualizado
+#   avisa: PR automation/inventario-estado com o inventario novo
+# nao-e-bug:
+#   - sem-pr: inventario sem mudanca de conteudo (so carimbo de data ou telemetria de 7 dias) nao abre PR
+#   - checks-action-required: PR aberto com GITHUB_TOKEN nasce com os checks travados; o passo seguinte os libera
+name: Inventário do estado real (semanal)
+
+# Refaz inventario/estado/banco.json a partir do banco ISOLADO DO SITE (somente leitura,
+# Management API) e do código (`.from()` e `.rpc()` em src/, api/ e shared/), e abre PR se algo
+# mudou. Nunca faz push direto em main — entrega via PR na branch automation/inventario-estado.
+#
+# Por que existe, tendo o `contexto.yml`: o snapshot completo do banco (docs/contexto/supabase/)
+# depende do secret SITE_SUPABASE_DB_URL. Este inventário usa o SUPABASE_ACCESS_TOKEN que o repo
+# já tem (o mesmo que o release.yml usa para conferir o ledger) e entrega o que um agente precisa
+# antes de mexer no banco: tabela sem RLS, RLS sem policy, tabela órfã, cron falhando, fila de
+# notificação travada e RPC exposta que ninguém chama.
+#
+# Secrets:
+#   - SUPABASE_ACCESS_TOKEN (já existe; usado também pelo release.yml): só leitura aqui —
+#     POST /database/query/read-only no projeto xlzmclcjdncjfdrjxclt.
+
+on:
+  schedule:
+    - cron: '23 10 * * 1' # segunda 10:23 UTC (07:23 BRT), fora do minuto 0 e dos outros crons do repo
+  workflow_dispatch:
+
+concurrency:
+  group: inventario-estado-semanal
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash --noprofile --norc -euo pipefail {0}
+
+jobs:
+  gerar:
+    name: Refazer inventario/estado
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:  # zizmor: ignore[excessive-permissions]
+      contents: write       # branch do PR
+      pull-requests: write  # abrir/atualizar o PR
+      actions: write        # liberar os checks do PR aberto com GITHUB_TOKEN
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Guarda do inventário (funções puras, sem banco)
+        run: node --test tests/inventario-estado.node.mjs
+
+      - name: Inventário do banco (somente leitura)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          if [ -z "${SUPABASE_ACCESS_TOKEN:-}" ]; then
+            echo "::error::SUPABASE_ACCESS_TOKEN ausente."
+            exit 1
+          fi
+          node scripts/inventario/gerar-banco.mjs
+
+      - name: Decidir se vale PR
+        id: mudou
+        # Compara o JSON sem os carimbos de data e sem a telemetria de janela rolante, contra o
+        # HEAD. Filtrar linhas do diff não serve: o arquivo é regravado inteiro a cada coleta.
+        run: |
+          valor="$(node scripts/inventario/mudou-conteudo.mjs)"
+          echo "valor=$valor" >> "$GITHUB_OUTPUT"
+          if [ "$valor" != "true" ]; then
+            echo "Inventário sem mudança de conteúdo — nenhum PR a abrir."
+          fi
+
+      - name: Abrir ou atualizar PR do inventário
+        id: pull-request
+        if: steps.mudou.outputs.valor == 'true'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        env:
+          HUSKY: '0'  # Evita que um hook do Husky bloqueie o push interno da action
+        with:
+          token: ${{ github.token }}
+          base: main
+          branch: automation/inventario-estado
+          delete-branch: true
+          commit-message: 'chore: inventario do estado real [auto]'
+          title: 'chore: inventário do estado real (semanal)'
+          body: |
+            Inventário refeito automaticamente por `.github/workflows/inventario-estado-semanal.yml`:
+            banco do site (somente leitura, Management API) + código. Só `inventario/estado/banco.json`.
+
+            - main de origem: `${{ github.sha }}`
+            - run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          labels: inventario
+          add-paths: |
+            inventario/estado/banco.json
+
+      # PR aberto com GITHUB_TOKEN não dispara workflows: os checks nascem em action_required.
+      - name: Destravar os checks do PR do inventário
+        if: steps.pull-request.outputs.pull-request-number != ''
+        continue-on-error: true
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          PR_HEAD_SHA: ${{ steps.pull-request.outputs.pull-request-head-sha }}
+        with:
+          script: |
+            const headSha = process.env.PR_HEAD_SHA;
+            if (!headSha) {
+              core.warning('create-pull-request nao devolveu o head sha; nada a destravar.');
+              return;
+            }
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            let pendentes = [];
+            for (let tentativa = 1; tentativa <= 6; tentativa += 1) {
+              const { data } = await github.rest.actions.listWorkflowRunsForRepo({
+                owner,
+                repo,
+                head_sha: headSha,
+                head_branch: 'automation/inventario-estado',
+                status: 'action_required',
+                per_page: 20,
+              });
+              pendentes = data.workflow_runs || [];
+              if (pendentes.length > 0) break;
+              await new Promise((resolve) => setTimeout(resolve, 10000));
+            }
+            const liberados = [];
+            const recusados = [];
+            for (const run of pendentes) {
+              try {
+                await github.rest.actions.approveWorkflowRun({ owner, repo, run_id: run.id });
+                liberados.push(run.name);
+              } catch (error) {
+                recusados.push(`${run.name} (${error.status})`);
+              }
+            }
+            await core.summary.addRaw([
+              '### Checks do PR do inventário',
+              `- head sha: \`${headSha}\``,
+              `- liberados: ${liberados.length > 0 ? liberados.join(', ') : 'nenhum'}`,
+              ...(recusados.length > 0 ? [`- recusados: ${recusados.join(', ')} — aprovar na aba Actions`] : []),
+            ].join('\n')).write();
+
+      - name: Upload do inventário
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: inventario-estado-${{ github.run_id }}
+          path: inventario/estado/
+          retention-days: 14
+          if-no-files-found: warn
