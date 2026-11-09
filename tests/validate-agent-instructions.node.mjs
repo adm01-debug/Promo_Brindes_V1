@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import {
   AGENTS_FILE,
   CLAUDE_FILE,
@@ -83,6 +85,48 @@ test('barra um único arquivo esvaziado ou apagado, mesmo com o total dentro do 
   assert.match(apagado[0], /sumiu/);
 });
 
-test('sem base (ref inexistente) a comparação é no-op', () => {
+test('sem base (ref inexistente) a comparação de validateShrink em si é no-op — quem decide falhar é main()', () => {
   assert.deepEqual(validateShrink({ total: 1, byFile: { 'AGENTS.md': 1 } }, null), []);
+});
+
+test('ignora referência dentro de URL ou texto sem crase — exige `docs/agentes/x.md` literal', () => {
+  const urlDeOutroRepo = 'Veja https://github.com/outraorg/outro/blob/main/docs/agentes/pago-mock.md.';
+  assert.deepEqual(validateDocReferences(urlDeOutroRepo, []), []);
+  const errosOrfaMascarada = validateDocReferences(urlDeOutroRepo, ['pago-mock.md']);
+  assert.equal(errosOrfaMascarada.length, 1);
+  assert.match(errosOrfaMascarada[0], /referência órfã/);
+});
+
+const SCRIPT = fileURLToPath(new URL('../scripts/validate-agent-instructions.mjs', import.meta.url));
+
+test('main(): base que não resolve falha de propósito (fail-closed), não passa OK em silêncio', () => {
+  assert.throws(() =>
+    execFileSync('node', [SCRIPT], {
+      env: { ...process.env, AGENT_INSTRUCTIONS_BASE: 'refs/heads/essa-ref-nao-existe-para-o-teste' },
+      stdio: 'pipe',
+    }),
+  );
+});
+
+test('main(): AGENT_INSTRUCTIONS_ALLOW_NO_BASE=1 permite rodar sem base, mas não mascara seção obrigatória ausente', () => {
+  const output = execFileSync('node', [SCRIPT], {
+    env: {
+      ...process.env,
+      AGENT_INSTRUCTIONS_BASE: 'refs/heads/essa-ref-nao-existe-para-o-teste',
+      AGENT_INSTRUCTIONS_ALLOW_NO_BASE: '1',
+    },
+    stdio: 'pipe',
+  }).toString();
+  assert.match(output, /comparação de tamanho pulada/);
+});
+
+test('main(): ref começando com "-" é rejeitada antes de chegar ao git', () => {
+  let stderr = '';
+  try {
+    execFileSync('node', [SCRIPT], { env: { ...process.env, AGENT_INSTRUCTIONS_BASE: '--upload-pack=evil' }, stdio: 'pipe' });
+    assert.fail('deveria ter lançado');
+  } catch (error) {
+    stderr = error.stderr.toString();
+  }
+  assert.match(stderr, /não pode começar com "-"/);
 });
