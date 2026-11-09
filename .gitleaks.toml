@@ -9,3 +9,4 @@ useDefault = true
 [[allowlists]]
 description = "Fixture sintética histórica do teste Graphify"
 commits = ["3bac17e4107149563ea24e8f582c5df3071f3e98"]
+

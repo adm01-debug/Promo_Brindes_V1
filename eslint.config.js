@@ -100,6 +100,22 @@ export default tseslint.config(
     languageOptions: { globals: globals.node, ecmaVersion: 2023, sourceType: 'module' },
   },
 
+  // --- Produtor de contexto portado do Zapp Web V2 (scripts/ai-context/): mantido
+  // IDÊNTICO ao original para que correção feita lá entre aqui (e vice-versa) sem
+  // conflito. São regras de estilo sobre código que já roda em CI nos dois repos;
+  // o que pega bug de verdade (no-undef, no-cond-assign, ...) continua ligado.
+  // Ver docs/agentes/contexto-agentes.md ("Ao mexer nos geradores"). ---
+  {
+    files: ['scripts/ai-context/**/*.mjs'],
+    rules: {
+      'no-empty': 'off',
+      'no-irregular-whitespace': 'off',
+      'no-sparse-arrays': 'off',
+      'no-useless-assignment': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+    },
+  },
+
   // --- Diagnósticos de auditoria (.mjs): processo Node que pilota o Playwright,
   // mas com callbacks de page.evaluate() cujo corpo roda no navegador. O arquivo
   // mistura os dois escopos de identificadores por natureza do padrão evaluate(). ---

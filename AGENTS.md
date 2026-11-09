@@ -12,6 +12,7 @@ Referência longa fica em `docs/agentes/<tema>.md`, citada aqui como "ler quando
 - Diff mínimo, zero churn: causa raiz, não reescrita. Não refatore, renomeie, "melhore" nem comente o que não foi pedido. Dependência nova ou bump major só se indispensável — avise na PR.
 - `APROVADO` = execute o plano exatamente como descrito, sem reconfirmar.
 - Uma tarefa por vez, cada uma com sua branch/PR. Outro bug? Anote em "Próximos passos", não conserte. Travou → reporte o erro exato e pare; não contorne regra. Antes de concluir, releia o pedido.
+- Antes de qualquer tarefa: `git fetch origin contexto && git show origin/contexto:docs/contexto/00-INDEX.md` — estado real do banco, do código e das regras, regerado a cada 10 min. Detalhe em `docs/agentes/contexto-agentes.md`.
 - Tokens: leia só o trecho necessário; grafo antes de busca textual; exploração ampla → subagente. Sem tool "por garantia" nem código não aplicado. Princípio: qualidade + velocidade.
 - Segredos só em env/secret do serviço (nomes em `.env.example`). Nunca secret em `VITE_*`; nunca commite `.env.local`, chaves de API ou service_role; nunca imprima token, secret ou variável sensível em output ou commit. Preview usa projeto Supabase próprio.
 - Nunca: narrar o que faz; perguntar "quer que eu faça?" após o pedido; sugerir passo manual do dono quando há MCP; plano de 12 fases para fix de 20 linhas; ler o repo inteiro para achar 1 função.
@@ -70,6 +71,7 @@ Escrita no GitHub: MCP **`GITHUB - MCP - FOREVER`** (o padrão dá 403 em write;
 - Pastas: `src/`, `api/`, `shared/`, `site-supabase/`, `scripts/`, `tests/`, `e2e/`; `vercel.json`; `.env.example`; `docs/RUNBOOK_*`, `docs/DATABASE_*`; `graphify-out/` ignorado. Onde fica o quê: `docs/agentes/mapa-repo.md`.
 - Convenções de código e commit: `.claude/skills/promo-brindes-v1/SKILL.md` (cópia idêntica em `.agents/skills/promo-brindes-v1/SKILL.md` para o Codex). Hooks de sessão e guardas do grafo: `.claude/settings.json` + `.claude/hooks/session-start.sh`; baseline do Codex em `.codex/`.
 - `npm run dev` · `lint` · `typecheck` · `test` · `test:e2e` · `build` · `check` (gate completo, o mesmo do check `validate`).
+- Contexto para agentes: `npm run contexto:ia` · `contexto:regras` · `inventario:banco` · `contexto:test` · `test:inventario`. Publicação automática na branch `contexto` (`contexto.yml`, 10 min) e no PR `automation/inventario-estado` (semanal); regras humanas em `docs/contexto/regras/manual/`. Nunca abra PR da branch `contexto`.
 
 ## Grafo de código (graphify)
 
