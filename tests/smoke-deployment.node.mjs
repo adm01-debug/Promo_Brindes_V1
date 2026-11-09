@@ -40,18 +40,20 @@ function healthyRoutes() {
 }
 
 async function deployment(overrides = {}) {
-  const routes = { ...healthyRoutes(), ...overrides };
-  const hits = {};
+  // Map em vez de objeto: o caminho vem do request e não pode escolher propriedade.
+  const routes = new Map(Object.entries({ ...healthyRoutes(), ...overrides }));
+  const counts = new Map();
   const server = http.createServer((request, response) => {
     const path = request.url.split('?')[0];
-    hits[path] = (hits[path] || 0) + 1;
-    const handler = routes[path] ?? reply(404, { ...security, 'content-type': 'text/html; charset=utf-8' }, shell);
-    handler(request, response, hits[path]);
+    const count = (counts.get(path) ?? 0) + 1;
+    counts.set(path, count);
+    const handler = routes.get(path) ?? reply(404, { ...security, 'content-type': 'text/html; charset=utf-8' }, shell);
+    handler(request, response, count);
   });
   await new Promise((resolveListen) => server.listen(0, '127.0.0.1', resolveListen));
   return {
     origin: `http://127.0.0.1:${server.address().port}`,
-    hits,
+    get hits() { return Object.fromEntries(counts); },
     async close() {
       server.closeAllConnections();
       await new Promise((resolveClose) => server.close(resolveClose));
