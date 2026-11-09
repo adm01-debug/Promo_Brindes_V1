@@ -149,6 +149,10 @@ export function stageCorpusFiles(root, destination, files) {
   for (const relative of files) {
     const source = path.join(root, relative);
     const target = path.join(destination, relative);
+    const inside = path.relative(destination, target);
+    if (!inside || inside === '..' || inside.startsWith(`..${path.sep}`) || path.isAbsolute(inside)) {
+      throw new Error(`Corpus Graphify inválido: caminho fora do diretório de staging (${relative}).`);
+    }
     fs.mkdirSync(path.dirname(target), { recursive: true });
     fs.copyFileSync(source, target);
   }
@@ -326,8 +330,10 @@ export function normalizeGraphReport(reportPath, graphPath, { title, updateComma
   const graph = JSON.parse(fs.readFileSync(graphPath, 'utf8'));
   const metrics = projectGapMetrics(graph);
   let report = fs.readFileSync(reportPath, 'utf8');
-  report = report.replace(/^# Graph Report - .*$/mu, `# Relatório Graphify — ${title}`);
-  report = report.replace(/^- Run `graphify update \.` after code changes \(no API cost\)\.$/mu, `- Após mudanças no código, execute \`${updateCommand}\` pelo wrapper seguro do projeto.`);
+  // Substituições por função: um rótulo de nó como `$` formaria, junto da crase que o envolve,
+  // o padrão especial "$`" de String.replace e duplicaria o início do relatório dentro da seção.
+  report = report.replace(/^# Graph Report - .*$/mu, () => `# Relatório Graphify — ${title}`);
+  report = report.replace(/^- Run `graphify update \.` after code changes \(no API cost\)\.$/mu, () => `- Após mudanças no código, execute \`${updateCommand}\` pelo wrapper seguro do projeto.`);
   const labels = metrics.lowConnectivityNodes.slice(0, 5).map((node) => `\`${node.label}\``).join(', ');
   const suffix = metrics.lowConnectivityNodes.length > 5 ? ` (+${metrics.lowConnectivityNodes.length - 5} outros)` : '';
   const section = [
@@ -338,10 +344,11 @@ export function normalizeGraphReport(reportPath, graphPath, { title, updateComma
     `- **${quantity(metrics.excludedConfigurationNodes, 'nó de dependência/configuração excluído', 'nós de dependências/configuração excluídos')} desta métrica.**`,
     `- **${quantity(metrics.excludedConceptNodes, 'nó conceitual ou sem arquivo-fonte local excluído', 'nós conceituais ou sem arquivo-fonte local excluídos')} desta métrica.**`,
   ].join('\n');
-  if (/## Knowledge Gaps[\s\S]*?(?=\n## |$)/u.test(report)) {
-    report = report.replace(/## Knowledge Gaps[\s\S]*?(?=\n## |$)/u, section);
+  const gapsSection = /## (?:Knowledge Gaps|Lacunas de conhecimento — filtro do projeto)[\s\S]*?(?=\n## |\n?$)/u;
+  if (gapsSection.test(report)) {
+    report = report.replace(gapsSection, () => section);
   } else if (/\n## Suggested Questions/u.test(report)) {
-    report = report.replace(/\n## Suggested Questions/u, `\n${section}\n\n## Suggested Questions`);
+    report = report.replace(/\n## Suggested Questions/u, () => `\n${section}\n\n## Suggested Questions`);
   } else {
     report = `${report.trimEnd()}\n\n${section}\n`;
   }
