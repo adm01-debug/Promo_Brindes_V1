@@ -48,6 +48,12 @@ const SAFE_GRAPH_FILES = new Set([
   'project-meta.json',
 ]);
 const SAFE_GRAPH_DIRECTORIES = new Set(['database']);
+// Arquivos que .claude/hooks/session-start.sh mantém abertos dentro do diretório de saída
+// enquanto o build roda. A promoção troca o diretório inteiro; sem carregá-los (mesmo inode)
+// o log da sessão some e o flock do hook deixa de valer no meio do build.
+const SESSION_SIDECAR_FILES = Object.freeze(['.session-start.log', '.session-start.lock']);
+const DEFAULT_COMMAND_TIMEOUT_MS = 10 * 60 * 1000;
+const COMMAND_MAX_BUFFER_BYTES = 64 * 1024 * 1024;
 const SENSITIVE_PATTERNS = [
   { name: 'Supabase personal access token', pattern: /sbp_[A-Za-z0-9_]{16,}/i },
   { name: 'GitHub token', pattern: /gh[pousr]_[A-Za-z0-9_]{20,}/i },
@@ -85,16 +91,30 @@ export function readProjectConfig(root = PROJECT_ROOT) {
     if (typeof config[field] !== 'string' || !config[field]) throw new Error(`Configuração Graphify inválida: ${field}.`);
   }
   if (config.mode !== 'code-only') throw new Error('Configuração Graphify inválida: somente mode=code-only é permitido na automação.');
+  for (const field of ['outputDirectory', 'workspaceDirectory']) {
+    const segments = config[field].split(/[\\/]/).filter((segment) => segment && segment !== '.');
+    if (path.isAbsolute(config[field]) || /^[A-Za-z]:/.test(config[field]) || segments.length === 0 || segments.includes('..')) {
+      throw new Error(`Configuração Graphify inválida: ${field} deve ser um subdiretório relativo dentro da raiz do projeto.`);
+    }
+  }
   if (!Array.isArray(config.sourceRoots) || config.sourceRoots.length === 0) throw new Error('Configuração Graphify inválida: sourceRoots.');
   if (!Array.isArray(config.databaseSourceRoots) || config.databaseSourceRoots.length === 0) throw new Error('Configuração Graphify inválida: databaseSourceRoots.');
   if (!Number.isInteger(config.maxWorkers) || config.maxWorkers < 1 || config.maxWorkers > 8) throw new Error('Configuração Graphify inválida: maxWorkers deve estar entre 1 e 8.');
   return config;
 }
 
+function commandTimeoutMs() {
+  const configured = Number(process.env.GRAPHIFY_TIMEOUT_MS);
+  return Number.isFinite(configured) && configured > 0 ? configured : DEFAULT_COMMAND_TIMEOUT_MS;
+}
+
 function run(command, args, { cwd = PROJECT_ROOT, quiet = false } = {}) {
+  const timeout = commandTimeoutMs();
   const result = spawnSync(command, args, {
     cwd,
     encoding: 'utf8',
+    timeout,
+    maxBuffer: COMMAND_MAX_BUFFER_BYTES,
     env: {
       ...process.env,
       PYTHONHASHSEED: '0',
@@ -105,13 +125,19 @@ function run(command, args, { cwd = PROJECT_ROOT, quiet = false } = {}) {
     if (result.stdout) process.stdout.write(result.stdout);
     if (result.stderr) process.stderr.write(result.stderr);
   }
+  if (result.error?.code === 'ENOENT') {
+    throw new Error(`CLI \`${command}\` não encontrado. Instale a versão fixada com \`python -m pip install -r requirements-graphify.txt\` ou aponte GRAPHIFY_BIN para o executável.`, { cause: result.error });
+  }
+  if (result.error?.code === 'ETIMEDOUT') {
+    throw new Error(`${command} ${args[0] ?? ''} excedeu ${Math.round(timeout / 1000)}s e foi interrompido (ajuste com GRAPHIFY_TIMEOUT_MS).`, { cause: result.error });
+  }
   if (result.error) throw result.error;
-  if (result.status !== 0) throw new Error(`${command} falhou com código ${result.status ?? 'desconhecido'}.`);
+  if (result.status !== 0) throw new Error(`${command} falhou com ${result.signal ? `sinal ${result.signal}` : `código ${result.status ?? 'desconhecido'}`}.`);
   return result.stdout ?? '';
 }
 
 function graphifyCommand() {
-  return process.env.GRAPHIFY_BIN || 'graphify';
+  return (process.env.GRAPHIFY_BIN ?? '').trim() || 'graphify';
 }
 
 function git(args) {
@@ -153,8 +179,9 @@ function listSourceFiles(root, roots) {
     if (!isAllowed || normalized.includes('/..') || normalized.startsWith('../')) return false;
     const absolute = path.resolve(root, normalized);
     ensureWithinRoot(root, absolute);
-    const stat = fs.lstatSync(absolute);
-    return stat.isFile() && !stat.isSymbolicLink() && CODE_EXTENSIONS.has(path.extname(normalized).toLowerCase());
+    // `git ls-files -c` ainda lista o arquivo rastreado que foi apagado do disco sem `git rm`.
+    const stat = fs.lstatSync(absolute, { throwIfNoEntry: false });
+    return Boolean(stat) && stat.isFile() && !stat.isSymbolicLink() && CODE_EXTENSIONS.has(path.extname(normalized).toLowerCase());
   });
 }
 
@@ -183,7 +210,16 @@ function sourceFingerprint(root, config) {
     // The TypeScript compiler is part of the graph extractor. Hashing both
     // dependency manifests invalidates an artifact when its parser version or
     // resolved dependency tree changes even if application sources do not.
-    hash: fingerprintEntries([...entries, ...GRAPH_FINGERPRINT_CONFIG_FILES], (relative) => fs.readFileSync(path.join(root, relative))),
+    hash: fingerprintEntries([...entries, ...GRAPH_FINGERPRINT_CONFIG_FILES], (relative) => {
+      try {
+        return fs.readFileSync(path.join(root, relative));
+      } catch (error) {
+        // Remover um arquivo de configuração opcional (.graphifyrc, .graphifyignore) muda a
+        // impressão digital; não pode impedir o status nem a reconstrução.
+        if (error?.code === 'ENOENT' && GRAPH_FINGERPRINT_CONFIG_FILES.includes(relative)) return '\u0000ausente';
+        throw error;
+      }
+    }),
   };
 }
 
@@ -256,6 +292,8 @@ export function compareGraphStructures(baseGraph, headGraph) {
 }
 
 function graphComparisonMarkdown(comparison, { basePath, headPath }) {
+  // As chaves de relação usam NUL como separador interno; no Markdown ele vira um byte binário.
+  const edgeLabel = (value) => value.split('\u0000').join(comparison.head.directed ? ' → ' : ' — ');
   const section = (title, values) => [
     `## ${title}`,
     '',
@@ -277,8 +315,8 @@ function graphComparisonMarkdown(comparison, { basePath, headPath }) {
     section(`Arquivos removidos (${comparison.removedSources.length})`, comparison.removedSources),
     section(`Nós adicionados (${comparison.addedNodes.length})`, comparison.addedNodes.slice(0, 100)),
     section(`Nós removidos (${comparison.removedNodes.length})`, comparison.removedNodes.slice(0, 100)),
-    section(`Relações adicionadas (${comparison.addedEdges.length})`, comparison.addedEdges.slice(0, 100)),
-    section(`Relações removidas (${comparison.removedEdges.length})`, comparison.removedEdges.slice(0, 100)),
+    section(`Relações adicionadas (${comparison.addedEdges.length})`, comparison.addedEdges.slice(0, 100).map(edgeLabel)),
+    section(`Relações removidas (${comparison.removedEdges.length})`, comparison.removedEdges.slice(0, 100).map(edgeLabel)),
   ].join('\n');
 }
 
@@ -338,21 +376,39 @@ function removeUnsafeCandidateArtifacts(candidateDirectory) {
   }
 }
 
+/**
+ * Um build morto por sinal (timeout do hook de sessão, cancelamento do CI, Ctrl+C) não passa
+ * pelo `finally` e deixa a trava para trás. Só é dado como morto o dono registrado neste mesmo
+ * host cujo PID não existe mais; qualquer dúvida mantém a trava até o limite de idade.
+ */
+function lockOwnerIsGone() {
+  try {
+    const owner = JSON.parse(fs.readFileSync(LOCK_PATH, 'utf8'));
+    if (owner?.host !== os.hostname() || !Number.isInteger(owner.pid) || owner.pid <= 0) return false;
+    if (owner.pid === process.pid) return true;
+    process.kill(owner.pid, 0);
+    return false;
+  } catch (error) {
+    return error?.code === 'ESRCH';
+  }
+}
+
 function acquireLock(config) {
   const workDirectory = path.join(PROJECT_ROOT, config.workspaceDirectory);
+  fs.mkdirSync(path.dirname(LOCK_PATH), { recursive: true });
   fs.mkdirSync(workDirectory, { recursive: true });
   try {
     const fd = fs.openSync(LOCK_PATH, 'wx');
-    fs.writeFileSync(fd, JSON.stringify({ pid: process.pid, createdAt: new Date().toISOString() }));
+    fs.writeFileSync(fd, JSON.stringify({ pid: process.pid, host: os.hostname(), createdAt: new Date().toISOString() }));
     fs.closeSync(fd);
   } catch (error) {
     if (error?.code !== 'EEXIST') throw error;
-    const ageMs = Date.now() - fs.statSync(LOCK_PATH).mtimeMs;
-    if (ageMs > 30 * 60 * 1000) {
+    const lockStat = fs.statSync(LOCK_PATH, { throwIfNoEntry: false });
+    if (!lockStat || Date.now() - lockStat.mtimeMs > 30 * 60 * 1000 || lockOwnerIsGone()) {
       fs.rmSync(LOCK_PATH, { force: true });
       return acquireLock(config);
     }
-    throw new Error('Outra geração Graphify está em andamento. Aguarde-a terminar; nenhum artefato foi alterado.', { cause: error });
+    throw new Error(`Outra geração Graphify está em andamento. Aguarde-a terminar; nenhum artefato foi alterado. Se nenhum processo estiver gerando, remova ${path.relative(PROJECT_ROOT, LOCK_PATH)}.`, { cause: error });
   }
   return workDirectory;
 }
@@ -405,7 +461,16 @@ export function promoteCandidate(candidateDirectory, outputDirectory) {
     fs.cpSync(candidateDirectory, stagedDirectory, { recursive: true, errorOnExist: true, force: false });
     if (hadPrevious) fs.renameSync(outputDirectory, backupDirectory);
     fs.renameSync(stagedDirectory, outputDirectory);
-    if (hadPrevious) fs.rmSync(backupDirectory, { recursive: true, force: true });
+    if (hadPrevious) {
+      for (const name of SESSION_SIDECAR_FILES) {
+        try {
+          if (!fs.existsSync(path.join(outputDirectory, name))) fs.renameSync(path.join(backupDirectory, name), path.join(outputDirectory, name));
+        } catch {
+          // Sidecar ausente ou ilegível nunca invalida um grafo já promovido.
+        }
+      }
+      fs.rmSync(backupDirectory, { recursive: true, force: true });
+    }
   } catch (error) {
     if (!fs.existsSync(outputDirectory) && fs.existsSync(backupDirectory)) fs.renameSync(backupDirectory, outputDirectory);
     throw error;
@@ -418,11 +483,12 @@ function build() {
   const root = assertSafeRoot();
   const config = readProjectConfig(root);
   acquireLock(config);
-  // O corpus temporário fica fora da árvore do repositório para que regras de
-  // ignore do próprio projeto não possam ocultar os arquivos explicitamente
-  // selecionados pelo wrapper.
-  const candidateRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'promo-brindes-graphify-'));
+  let candidateRoot = '';
   try {
+    // O corpus temporário fica fora da árvore do repositório para que regras de
+    // ignore do próprio projeto não possam ocultar os arquivos explicitamente
+    // selecionados pelo wrapper.
+    candidateRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'promo-brindes-graphify-'));
     console.log('Graphify: extração estrutural local (sem IA, rede ou Supabase).');
     const fingerprint = sourceFingerprint(root, config);
     const separated = splitGraphSourceFiles([...fingerprint.mainFiles, ...fingerprint.databaseFiles]);
@@ -481,7 +547,7 @@ function build() {
     console.log(`Grafo de banco promovido: ${databaseHealth.nodes} nós, ${databaseHealth.links} relações.`);
     console.log(`Abra ${path.join(config.outputDirectory, 'graph.html')} ou ${path.join(config.outputDirectory, 'GRAPH_TREE.html')} localmente.`);
   } finally {
-    fs.rmSync(candidateRoot, { recursive: true, force: true });
+    if (candidateRoot) fs.rmSync(candidateRoot, { recursive: true, force: true });
     releaseLock();
   }
 }
@@ -773,6 +839,10 @@ function doctor() {
 
 function help() {
   console.log('Uso: node scripts/graphify.mjs <doctor|build|update|status|check|query|path|explain|impact|tree|db-query|db-path|db-explain|db-tree|benchmark|compare> [texto]');
+  console.log('  path|db-path "<origem>" "<destino>" · explain|db-explain|impact "<nó>" · query|db-query "<pergunta>"');
+  console.log('  compare --base <base.json> --head <head.json> [--output graphify-out/<relatório>.md]');
+  console.log('Pelo npm: npm run graph:<comando> -- <argumentos> (db-query vira graph:db:query).');
+  console.log('check sai com código 1 quando o grafo está ausente, inválido ou defasado; qualquer falha sai com 1.');
   console.log('A automação é code-only, local e não acessa Supabase.');
 }
 
@@ -794,12 +864,30 @@ function main() {
     case 'db-tree': return tree({ database: true });
     case 'benchmark': return benchmark();
     case 'compare': return compare();
-    case 'help': return help();
+    case 'help':
+    case '--help':
+    case '-h': return help();
     default: throw new Error(`Comando Graphify desconhecido: ${COMMAND}.`);
   }
 }
 
-if (path.resolve(process.argv[1] ?? '') === fileURLToPath(import.meta.url)) {
+function isMainModule() {
+  // Comparar caminhos reais: chamado por um caminho com symlink, o texto de argv[1] difere do
+  // módulo carregado e o wrapper sairia com código 0 sem executar nada.
+  try {
+    return fs.realpathSync(process.argv[1] ?? '') === fs.realpathSync(fileURLToPath(import.meta.url));
+  } catch {
+    return false;
+  }
+}
+
+if (isMainModule()) {
+  // `npm run graph:query -- "..." | head` fecha o pipe antes do fim da saída.
+  for (const stream of [process.stdout, process.stderr]) {
+    stream.on('error', (error) => {
+      if (error?.code !== 'EPIPE') throw error;
+    });
+  }
   try {
     main();
   } catch (error) {

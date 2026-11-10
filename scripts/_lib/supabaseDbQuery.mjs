@@ -67,8 +67,19 @@ export function findBalancedJsonValues(raw) {
   return values;
 }
 
+// O padrão do Node (1 MiB) estoura com ENOBUFS assim que o catálogo cresce; o primeiro
+// `npx` ainda pode baixar o binário do CLI, por isso o limite de tempo é folgado.
+const MAX_OUTPUT_BYTES = 256 * 1024 * 1024;
+const DEFAULT_TIMEOUT_MS = 5 * 60 * 1000;
+const MAX_ERROR_OUTPUT_CHARS = 2_000;
+
+function isRowList(value) {
+  return Array.isArray(value) && value.every((row) => row !== null && typeof row === 'object' && !Array.isArray(row));
+}
+
 export function extractRows(raw) {
   const candidates = findBalancedJsonValues(raw);
+  let sawEmptyList = false;
   for (const candidate of candidates) {
     let parsed;
     try {
@@ -76,17 +87,49 @@ export function extractRows(raw) {
     } catch {
       continue;
     }
-    if (Array.isArray(parsed)) return parsed;
-    if (Array.isArray(parsed?.rows)) return parsed.rows;
+    if (parsed !== null && !Array.isArray(parsed) && Array.isArray(parsed.rows)) return parsed.rows;
+    // Linhas são sempre objetos: um `[1]` solto num aviso do CLI não é resultado, e um
+    // `[]` só vale como resultado vazio se nenhum candidato com linhas aparecer depois.
+    if (!isRowList(parsed)) continue;
+    if (parsed.length > 0) return parsed;
+    sawEmptyList = true;
   }
-  throw new Error(`Nenhuma lista de linhas encontrada na saída do supabase CLI: ${raw}`);
+  if (sawEmptyList) return [];
+  const shown = raw.length > MAX_ERROR_OUTPUT_CHARS ? `${raw.slice(0, MAX_ERROR_OUTPUT_CHARS)}… (${raw.length} caracteres no total)` : raw;
+  throw new Error(`Nenhuma lista de linhas encontrada na saída do supabase CLI: ${shown}`);
 }
 
-export function runSupabaseDbQuery(sql, { cwd, cliVersion = '2.115.0', workdir = 'site-supabase' } = {}) {
-  const raw = execFileSync('npx', [`supabase@${cliVersion}`, 'db', 'query', '--local', '--output-format', 'json', sql], {
-    cwd,
-    env: { ...process.env, SUPABASE_WORKDIR: workdir },
-    encoding: 'utf8',
-  });
+function describeCliFailure(error, { workdir, timeoutMs }) {
+  if (error.code === 'ENOENT') return 'supabase db query não pôde ser executado: npx não encontrado no PATH.';
+  if (error.code === 'ETIMEDOUT') {
+    return `supabase db query não respondeu em ${Math.round(timeoutMs / 1000)}s e foi interrompido. O banco local está no ar? (SUPABASE_WORKDIR=${workdir} supabase start)`;
+  }
+  if (error.code === 'ENOBUFS') return `supabase db query devolveu mais de ${MAX_OUTPUT_BYTES / 1024 / 1024} MiB; reduza a consulta.`;
+  const outcome = error.status !== null && error.status !== undefined ? `código ${error.status}` : `sinal ${error.signal ?? 'desconhecido'}`;
+  return `supabase db query --local falhou (${outcome}; a saída de erro do CLI está acima). O banco local está no ar? (SUPABASE_WORKDIR=${workdir} supabase start)`;
+}
+
+export function runSupabaseDbQuery(sql, {
+  cwd,
+  cliVersion = '2.115.0',
+  workdir = 'site-supabase',
+  timeoutMs = DEFAULT_TIMEOUT_MS,
+  exec = execFileSync,
+} = {}) {
+  if (typeof sql !== 'string' || !sql.trim()) throw new Error('runSupabaseDbQuery: SQL vazio.');
+  // O SQL vai como argumento posicional: começando com "-" o CLI o leria como flag.
+  if (sql.startsWith('-')) throw new Error('runSupabaseDbQuery: o SQL não pode começar com "-".');
+  let raw;
+  try {
+    raw = exec('npx', [`supabase@${cliVersion}`, 'db', 'query', '--local', '--output-format', 'json', sql], {
+      cwd,
+      env: { ...process.env, SUPABASE_WORKDIR: workdir },
+      encoding: 'utf8',
+      maxBuffer: MAX_OUTPUT_BYTES,
+      timeout: timeoutMs,
+    });
+  } catch (error) {
+    throw new Error(describeCliFailure(error, { workdir, timeoutMs }), { cause: error });
+  }
   return extractRows(raw);
 }

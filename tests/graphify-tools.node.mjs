@@ -3,6 +3,11 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { execFileSync, spawn, spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+// O hook de sessão depende do wrapper (promoção preserva o log dele) e não tem npm script
+// próprio: os testes dele entram aqui para rodar em `npm run test:graphify` e no graphify.yml.
+import './session-start-hook.node.mjs';
 import {
   GRAPH_FINGERPRINT_CONFIG_FILES,
   compareGraphStructures,
@@ -15,9 +20,11 @@ import {
   normalizeQuery,
   projectGapMetrics,
   promoteCandidate,
+  readProjectConfig,
   resolveGraphNode,
   shortestGraphPath,
   splitGraphSourceFiles,
+  stageCorpusFiles,
   validateGraph,
   validateSeparatedCorpora,
 } from '../scripts/graphify.mjs';
@@ -279,5 +286,325 @@ test('varredura bloqueia famílias adicionais de token antes do upload', () => {
     assert.deepEqual(kinds.sort(), ['AWS access key', 'GitHub token', 'Vercel token']);
   } finally {
     fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));
+const WRAPPER = path.join(REPO_ROOT, 'scripts', 'graphify.mjs');
+
+function runCli(script, args, { cwd = REPO_ROOT, env = {} } = {}) {
+  const result = spawnSync(process.execPath, [script, ...args], { cwd, encoding: 'utf8', env: { ...process.env, ...env } });
+  return { status: result.status, stdout: result.stdout, stderr: result.stderr };
+}
+
+function gitIn(cwd, ...args) {
+  const env = { ...process.env };
+  for (const name of ['GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE']) delete env[name];
+  return execFileSync('git', ['-c', 'user.email=teste@example.invalid', '-c', 'user.name=teste', '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', ...args], { cwd, env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+}
+
+function writeStub(file, body) {
+  fs.writeFileSync(file, `#!/bin/sh\n${body}\n`, { mode: 0o755 });
+  return file;
+}
+
+/**
+ * Cópia mínima e isolada do projeto: o wrapper deriva a raiz do próprio caminho, então os
+ * cenários de CLI rodam sobre esta cópia, com um `graphify` falso e sem tocar no grafo real.
+ */
+function makeProjectFixture() {
+  const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'graphify-project-')));
+  fs.mkdirSync(path.join(root, 'scripts'));
+  for (const name of ['graphify.mjs', 'graphify-quality.mjs']) fs.copyFileSync(path.join(REPO_ROOT, 'scripts', name), path.join(root, 'scripts', name));
+  fs.symlinkSync(path.join(REPO_ROOT, 'node_modules'), path.join(root, 'node_modules'), 'dir');
+  fs.copyFileSync(path.join(REPO_ROOT, '.graphify.project.json'), path.join(root, '.graphify.project.json'));
+  fs.writeFileSync(path.join(root, 'package.json'), '{"name":"site-promo-brindes"}\n');
+  fs.writeFileSync(path.join(root, 'package-lock.json'), '{}\n');
+  fs.writeFileSync(path.join(root, '.graphifyignore'), 'dist/\n');
+  fs.writeFileSync(path.join(root, '.graphifyrc'), 'viz_node_limit=2500\n');
+  fs.writeFileSync(path.join(root, '.gitignore'), 'node_modules\ngraphify-out/\n.graphify-work/\nbin/\n');
+  fs.mkdirSync(path.join(root, 'src'));
+  fs.writeFileSync(path.join(root, 'src', 'a.ts'), 'export const a = 1;\n');
+  fs.writeFileSync(path.join(root, 'src', 'b.ts'), 'export const b = 2;\n');
+  fs.mkdirSync(path.join(root, 'site-supabase', 'supabase', 'migrations'), { recursive: true });
+  fs.writeFileSync(path.join(root, 'site-supabase', 'supabase', 'migrations', '001.sql'), 'select 1;\n');
+  gitIn(root, 'init', '-q', '-b', 'main', '.');
+  gitIn(root, 'add', '-A');
+  gitIn(root, 'commit', '-q', '-m', 'base');
+  const output = path.join(root, 'graphify-out');
+  fs.mkdirSync(path.join(output, 'database'), { recursive: true });
+  const nodes = ['a', 'b', 'c'].map((id) => ({ id, label: `${id}.ts`, source_file: `src/${id}.ts`, source_location: 'L1' }));
+  fs.writeFileSync(path.join(output, 'graph.json'), JSON.stringify({ directed: false, nodes, links: [{ source: 'a', target: 'b', relation: 'imports' }, { source: 'a', target: 'c', relation: 'imports' }] }));
+  fs.writeFileSync(path.join(output, 'database', 'graph.json'), JSON.stringify({ directed: false, nodes: [{ id: 'm', label: '001.sql', source_file: 'site-supabase/supabase/migrations/001.sql' }], links: [] }));
+  fs.writeFileSync(path.join(output, 'project-meta.json'), JSON.stringify({ project: 'Promo_Brindes_V1', mode: 'code-only', graphifyVersion: 'graphify 0.0.0-teste', sourceFingerprint: 'antigo', generatedAt: '2026-01-01T00:00:00.000Z', commit: 'abc', databaseGraph: { nodes: 1, links: 0 } }));
+  fs.mkdirSync(path.join(root, 'bin'));
+  const graphify = writeStub(path.join(root, 'bin', 'graphify'), 'if [ "$1" = "--version" ]; then echo "graphify 0.0.0-teste"; exit 0; fi\necho "stub: $1 indisponível" >&2\nexit 3');
+  const wrapper = path.join(root, 'scripts', 'graphify.mjs');
+  return {
+    root,
+    graphify,
+    lockPath: path.join(root, '.graphify-work', 'build.lock'),
+    run: (args, env = {}) => runCli(wrapper, args, { cwd: root, env: { GRAPHIFY_BIN: graphify, ...env } }),
+    cleanup: () => fs.rmSync(root, { recursive: true, force: true }),
+  };
+}
+
+test('CLI chamado por caminho com symlink executa em vez de sair com 0 em silêncio', () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'graphify-symlink-'));
+  try {
+    const link = path.join(directory, 'repo');
+    fs.symlinkSync(REPO_ROOT, link, 'dir');
+    const result = runCli(path.join(link, 'scripts', 'graphify.mjs'), ['comando-inexistente']);
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /Comando Graphify desconhecido: comando-inexistente/);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('--help e -h mostram o uso com código 0; comando desconhecido continua falhando', () => {
+  for (const flag of ['--help', '-h', 'help']) {
+    const result = runCli(WRAPPER, [flag]);
+    assert.equal(result.status, 0, flag);
+    assert.match(result.stdout, /^Uso: node scripts\/graphify\.mjs </);
+    assert.match(result.stdout, /compare --base/);
+  }
+  assert.equal(runCli(WRAPPER, ['--versao']).status, 1);
+});
+
+test('relatório de comparação é texto: relações sem o separador NUL interno', () => {
+  const directory = makeTestDirectory('test-compare-');
+  try {
+    const base = { directed: false, nodes: [{ id: 'a', source_file: 'src/a.ts' }, { id: 'b', source_file: 'src/b.ts' }], links: [] };
+    const head = { ...base, links: [{ source: 'b', target: 'a' }] };
+    fs.writeFileSync(path.join(directory, 'base.json'), JSON.stringify(base));
+    fs.writeFileSync(path.join(directory, 'head.json'), JSON.stringify(head));
+    const output = path.join(directory, 'REPORT.md');
+    const result = runCli(WRAPPER, ['compare', '--base', path.join(directory, 'base.json'), '--head', path.join(directory, 'head.json'), '--output', output]);
+    assert.equal(result.status, 0, result.stderr);
+    const report = fs.readFileSync(output, 'utf8');
+    assert.equal(report.includes('\u0000'), false, 'relatório Markdown não pode conter NUL');
+    assert.match(report, /^- `a — b`$/m);
+    assert.match(report, /## Relações adicionadas \(1\)/);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('comparação recusa saída fora da raiz e argumentos ausentes', () => {
+  const outside = path.join(os.tmpdir(), 'graphify-fora-da-raiz.md');
+  const graph = path.join(makeTestDirectory('test-compare-args-'), 'graph.json');
+  try {
+    fs.writeFileSync(graph, JSON.stringify({ directed: false, nodes: [{ id: 'a' }], links: [] }));
+    const refused = runCli(WRAPPER, ['compare', '--base', graph, '--head', graph, '--output', outside]);
+    assert.equal(refused.status, 1);
+    assert.match(refused.stderr, /fora da raiz/);
+    assert.equal(fs.existsSync(outside), false);
+    assert.match(runCli(WRAPPER, ['compare', '--base', graph]).stderr, /Informe o arquivo --head/);
+    assert.match(runCli(WRAPPER, ['compare', '--base', '--head', graph]).stderr, /Informe o arquivo --base/);
+  } finally {
+    fs.rmSync(path.dirname(graph), { recursive: true, force: true });
+  }
+});
+
+test('rótulo com cifrão não corrompe o relatório e a normalização é idempotente', () => {
+  const directory = makeTestDirectory('test-report-dollar-');
+  try {
+    const graphPath = path.join(directory, 'graph.json');
+    const reportPath = path.join(directory, 'GRAPH_REPORT.md');
+    fs.writeFileSync(graphPath, JSON.stringify({
+      directed: false,
+      nodes: [
+        { id: 'file', label: 'jquery.ts', source_file: 'src/jquery.ts' },
+        { id: 'dollar', label: '$', source_file: 'src/jquery.ts' },
+        { id: 'match', label: '$&', source_file: 'src/jquery.ts' },
+      ],
+      links: [],
+    }));
+    fs.writeFileSync(reportPath, '# Graph Report - candidato\n\nMARCADOR-DE-INICIO\n\n## Knowledge Gaps\n- noise\n\n## Suggested Questions\nMARCADOR-DE-FIM\n');
+    const options = { title: 'Promo Brindes', updateCommand: 'npm run graph:update' };
+    normalizeGraphReport(reportPath, graphPath, options);
+    const report = fs.readFileSync(reportPath, 'utf8');
+    assert.equal(report.split('MARCADOR-DE-INICIO').length - 1, 1, 'o início do relatório não pode ser duplicado dentro da seção');
+    assert.equal(report.split('MARCADOR-DE-FIM').length - 1, 1);
+    assert.match(report, /2 nós de baixa conectividade:\*\* `\$`, `\$&`/);
+    normalizeGraphReport(reportPath, graphPath, options);
+    assert.equal(fs.readFileSync(reportPath, 'utf8'), report, 'segunda normalização não pode acrescentar outra seção');
+
+    const bare = path.join(directory, 'BARE.md');
+    fs.writeFileSync(bare, '# Graph Report - candidato\n\ncorpo\n');
+    normalizeGraphReport(bare, graphPath, options);
+    const first = fs.readFileSync(bare, 'utf8');
+    normalizeGraphReport(bare, graphPath, options);
+    assert.equal(fs.readFileSync(bare, 'utf8'), first);
+    assert.equal(first.split('## Lacunas de conhecimento').length - 1, 1);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('staging do corpus recusa caminho que escapa do diretório de destino', () => {
+  const directory = makeTestDirectory('test-stage-');
+  try {
+    fs.mkdirSync(path.join(directory, 'root', 'src'), { recursive: true });
+    fs.writeFileSync(path.join(directory, 'root', 'src', 'a.ts'), 'export const a = 1;\n');
+    fs.writeFileSync(path.join(directory, 'segredo.txt'), 'fora do corpus');
+    const destination = path.join(directory, 'destino', 'corpus');
+    assert.throws(() => stageCorpusFiles(path.join(directory, 'root'), destination, ['src/a.ts', '../segredo.txt']), /fora do diretório de staging/);
+    assert.equal(fs.existsSync(path.join(directory, 'destino', 'segredo.txt')), false);
+    assert.equal(fs.readFileSync(path.join(destination, 'src', 'a.ts'), 'utf8'), 'export const a = 1;\n');
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('promoção carrega log e trava do hook de sessão no mesmo inode e descarta o resto', () => {
+  const directory = makeTestDirectory('test-promote-sidecar-');
+  const candidate = path.join(directory, 'candidato');
+  const destination = path.join(directory, 'graphify-out');
+  let logFd;
+  try {
+    fs.mkdirSync(candidate);
+    fs.writeFileSync(path.join(candidate, 'graph.json'), '{"novo":true}\n');
+    fs.mkdirSync(destination);
+    fs.writeFileSync(path.join(destination, 'graph.json'), '{"antigo":true}\n');
+    fs.writeFileSync(path.join(destination, '.session-built-commit'), 'abc\n');
+    fs.writeFileSync(path.join(destination, '.session-start.lock'), '');
+    logFd = fs.openSync(path.join(destination, '.session-start.log'), 'a');
+    fs.writeSync(logFd, 'antes do build\n');
+    const lockInode = fs.statSync(path.join(destination, '.session-start.lock')).ino;
+    promoteCandidate(candidate, destination);
+    // O hook continua escrevendo pelo descritor aberto antes da troca do diretório.
+    fs.writeSync(logFd, 'depois do build\n');
+    assert.equal(fs.readFileSync(path.join(destination, '.session-start.log'), 'utf8'), 'antes do build\ndepois do build\n');
+    assert.equal(fs.statSync(path.join(destination, '.session-start.lock')).ino, lockInode);
+    assert.equal(fs.readFileSync(path.join(destination, 'graph.json'), 'utf8'), '{"novo":true}\n');
+    assert.equal(fs.existsSync(path.join(destination, '.session-built-commit')), false);
+    assert.equal(fs.existsSync(`${destination}.previous`), false);
+  } finally {
+    if (logFd !== undefined) fs.closeSync(logFd);
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('configuração recusa diretório de saída ou de trabalho fora da raiz', () => {
+  const directory = makeTestDirectory('test-config-');
+  try {
+    const valid = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, '.graphify.project.json'), 'utf8'));
+    const write = (overrides) => fs.writeFileSync(path.join(directory, '.graphify.project.json'), JSON.stringify({ ...valid, ...overrides }));
+    write({});
+    assert.equal(readProjectConfig(directory).outputDirectory, 'graphify-out');
+    for (const outputDirectory of ['..', '../fora', 'graphify-out/../..', '/tmp/fora', '.', './']) {
+      write({ outputDirectory });
+      assert.throws(() => readProjectConfig(directory), /outputDirectory deve ser um subdiretório relativo/, outputDirectory);
+    }
+    write({ workspaceDirectory: '../.graphify-work' });
+    assert.throws(() => readProjectConfig(directory), /workspaceDirectory deve ser um subdiretório relativo/);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('status sobrevive a arquivo rastreado apagado do disco e a configuração opcional removida', () => {
+  const project = makeProjectFixture();
+  try {
+    assert.match(project.run(['status']).stdout, /^Graphify: DEFASADO — arquivos de engenharia ou configuração mudaram/);
+    fs.rmSync(path.join(project.root, 'src', 'b.ts'));
+    const deleted = project.run(['status']);
+    assert.equal(deleted.status, 0, deleted.stderr);
+    assert.match(deleted.stdout, /^Graphify: DEFASADO/);
+    fs.rmSync(path.join(project.root, '.graphifyrc'));
+    const withoutOptionalConfig = project.run(['check']);
+    assert.match(withoutOptionalConfig.stdout, /^Graphify: DEFASADO/);
+    assert.equal(withoutOptionalConfig.stderr, '');
+    assert.equal(withoutOptionalConfig.status, 1, 'check continua falhando quando o grafo está defasado');
+  } finally {
+    project.cleanup();
+  }
+});
+
+test('CLI ausente gera instrução de instalação em vez de ENOENT cru', () => {
+  const project = makeProjectFixture();
+  try {
+    const result = project.run(['status'], { GRAPHIFY_BIN: path.join(project.root, 'bin', 'nao-existe') });
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /não encontrado\. Instale a versão fixada com `python -m pip install -r requirements-graphify\.txt`/);
+    assert.doesNotMatch(result.stderr, /spawnSync/);
+  } finally {
+    project.cleanup();
+  }
+});
+
+test('subprocesso travado é interrompido pelo limite de tempo com mensagem acionável', () => {
+  const project = makeProjectFixture();
+  try {
+    const slow = writeStub(path.join(project.root, 'bin', 'graphify-lento'), 'exec sleep 30');
+    const startedAt = Date.now();
+    const result = project.run(['status'], { GRAPHIFY_BIN: slow, GRAPHIFY_TIMEOUT_MS: '300' });
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /excedeu .*GRAPHIFY_TIMEOUT_MS/);
+    assert.ok(Date.now() - startedAt < 15_000, 'não pode esperar o subprocesso terminar sozinho');
+  } finally {
+    project.cleanup();
+  }
+});
+
+test('trava de build órfã (processo morto) é recuperada; trava de processo vivo é respeitada', () => {
+  const project = makeProjectFixture();
+  try {
+    fs.mkdirSync(path.dirname(project.lockPath), { recursive: true });
+    const deadPid = spawnSync(process.execPath, ['-e', '']).pid;
+    fs.writeFileSync(project.lockPath, JSON.stringify({ pid: deadPid, host: os.hostname(), createdAt: new Date().toISOString() }));
+    const recovered = project.run(['build']);
+    assert.doesNotMatch(recovered.stderr, /Outra geração Graphify/);
+    assert.match(recovered.stderr, /falhou com código 3/, 'passou da trava e parou só no graphify falso');
+    assert.throws(() => fs.readFileSync(project.lockPath), { code: 'ENOENT' }, 'trava liberada depois da falha');
+    assert.ok(fs.existsSync(path.join(project.root, 'graphify-out', 'graph.json')), 'grafo anterior permanece');
+
+    const alive = JSON.stringify({ pid: process.pid, host: os.hostname(), createdAt: new Date().toISOString() });
+    fs.writeFileSync(project.lockPath, alive);
+    const busy = project.run(['build']);
+    assert.equal(busy.status, 1);
+    assert.match(busy.stderr, /Outra geração Graphify está em andamento/);
+    assert.equal(fs.readFileSync(project.lockPath, 'utf8'), alive, 'trava alheia não pode ser removida');
+
+    fs.writeFileSync(project.lockPath, JSON.stringify({ pid: deadPid, host: 'outro-host', createdAt: new Date().toISOString() }));
+    assert.match(project.run(['build']).stderr, /Outra geração Graphify está em andamento/, 'PID de outro host não prova nada');
+  } finally {
+    project.cleanup();
+  }
+});
+
+test('falha ao criar o diretório temporário não deixa a trava de build para trás', () => {
+  const project = makeProjectFixture();
+  try {
+    const result = project.run(['build'], { TMPDIR: path.join(project.root, 'tmp-inexistente') });
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /mkdtemp/);
+    assert.equal(fs.existsSync(project.lockPath), false);
+  } finally {
+    project.cleanup();
+  }
+});
+
+test('saída cortada pelo leitor (| head) não derruba o CLI com EPIPE', async () => {
+  const project = makeProjectFixture();
+  try {
+    // Como `head -1`: o leitor recebe a primeira linha (console.log) e fecha o pipe antes do
+    // repasse da saída do graphify, feito com process.stdout.write — que propaga o EPIPE.
+    const graphify = writeStub(path.join(project.root, 'bin', 'graphify-consulta'), 'sleep 1\necho "NODE a.ts [src=src/a.ts loc=L1]"');
+    const child = spawn(process.execPath, [path.join(project.root, 'scripts', 'graphify.mjs'), 'query', 'a'], {
+      cwd: project.root,
+      env: { ...process.env, GRAPHIFY_BIN: graphify },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    child.stdout.once('data', () => child.stdout.destroy());
+    let stderr = '';
+    child.stderr.on('data', (chunk) => { stderr += chunk; });
+    const status = await new Promise((resolve) => child.on('close', resolve));
+    assert.doesNotMatch(stderr, /EPIPE|Unhandled 'error' event/);
+    assert.equal(status, 0);
+  } finally {
+    project.cleanup();
   }
 });

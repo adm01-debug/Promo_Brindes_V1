@@ -1,6 +1,7 @@
 node_modules
 dist
 api/_lib/app-shell.generated.html
+api/_lib/app-shell.generated.html.*.tmp
 .env*
 !.env.example
 .DS_Store

@@ -1,4 +1,5 @@
-import { pathToFileURL } from 'node:url';
+import { realpathSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 const CANONICAL_CATALOG_ORIGIN = 'https://doufsxqlfjyuvxuezpln.supabase.co';
 
@@ -82,6 +83,10 @@ const NULLABLE_TEXT_COLUMNS = [
 
 const CATALOG_PAGE_SIZE = 1_000;
 const FORBIDDEN_PROBE_COLUMNS = ['sale_price', 'stock_quantity', 'supplier_id', 'variant_id'];
+const REQUEST_TIMEOUT_MS = 10_000;
+// Uma oscilação de rede ou um 5xx/429 isolado não é divergência de contrato: cada leitura
+// é repetida antes de reprovar a sonda diária.
+const DEFAULT_RETRY_DELAYS_MS = Object.freeze([500, 1_500]);
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -209,6 +214,38 @@ export function validateCatalogPublicContract(rows, { seenProductIds = new Set()
   };
 }
 
+function isTransientStatus(status) {
+  return status >= 500 || status === 408 || status === 429;
+}
+
+function isNetworkFailure(error) {
+  return error instanceof TypeError || error?.name === 'TimeoutError' || error?.name === 'AbortError';
+}
+
+function describeNetworkFailure(error) {
+  return error?.cause?.code ?? error?.cause?.message ?? `${error?.name ?? 'Error'}: ${error?.message ?? error}`;
+}
+
+async function request(fetchImplementation, url, headers, resource, retryDelaysMs) {
+  for (let attempt = 0; ; attempt += 1) {
+    let response;
+    let failure;
+    try {
+      response = await fetchImplementation(url, { headers, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
+    } catch (error) {
+      if (!isNetworkFailure(error)) throw error;
+      failure = error;
+    }
+    if (failure === undefined && !isTransientStatus(response.status)) return response;
+    if (attempt >= retryDelaysMs.length) {
+      if (failure === undefined) return response;
+      throw new Error(`Contrato indisponível: falha de rede ao consultar ${resource} após ${attempt + 1} tentativa(s) (${describeNetworkFailure(failure)}).`);
+    }
+    await response?.body?.cancel().catch(() => {});
+    await new Promise((resolve) => { setTimeout(resolve, retryDelaysMs[attempt]); });
+  }
+}
+
 function catalogConfig() {
   const rawUrl = process.env.VITE_SUPABASE_URL?.trim();
   const key = process.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
@@ -223,38 +260,55 @@ function catalogConfig() {
     }
   }
   assert(isPublicKey, 'VITE_SUPABASE_PUBLISHABLE_KEY ausente ou privilegiada.');
-  const origin = new URL(rawUrl).origin;
+  let origin;
+  try {
+    origin = new URL(rawUrl).origin;
+  } catch {
+    throw new Error('VITE_SUPABASE_URL inválida: não é uma URL absoluta.');
+  }
   assert(origin === CANONICAL_CATALOG_ORIGIN, `Alvo recusado: esperado ${CANONICAL_CATALOG_ORIGIN}; recebido ${origin}.`);
   return { origin, key };
 }
 
-async function fetchExactCount(fetchImplementation, origin, key, resource, activeOnly = false) {
+async function fetchExactCount(fetchImplementation, origin, key, resource, activeOnly, retryDelaysMs) {
   const url = new URL(`/rest/v1/${resource}`, origin);
   url.searchParams.set('select', 'id');
   if (activeOnly) url.searchParams.set('is_active', 'eq.true');
   url.searchParams.set('limit', '1');
-  const response = await fetchImplementation(url, {
-    headers: { apikey: key, Authorization: `Bearer ${key}`, Accept: 'application/json', Prefer: 'count=exact' },
-    signal: AbortSignal.timeout(10_000),
-  });
+  const response = await request(
+    fetchImplementation,
+    url,
+    { apikey: key, Authorization: `Bearer ${key}`, Accept: 'application/json', Prefer: 'count=exact' },
+    resource,
+    retryDelaysMs,
+  );
   if (!response.ok) throw new Error(`Contrato inconclusivo: ${resource} respondeu HTTP ${response.status}.`);
   return exactCount(response, resource);
 }
 
-async function probeForbiddenSelections(fetchImplementation, origin, key) {
+async function probeForbiddenSelections(fetchImplementation, origin, key, retryDelaysMs) {
   for (const column of FORBIDDEN_PROBE_COLUMNS) {
     const url = new URL('/rest/v1/v_site_products_public', origin);
     url.searchParams.set('select', `id,${column}`);
     url.searchParams.set('limit', '1');
-    const response = await fetchImplementation(url, {
-      headers: { apikey: key, Authorization: `Bearer ${key}`, Accept: 'application/json' },
-      signal: AbortSignal.timeout(10_000),
-    });
+    const response = await request(
+      fetchImplementation,
+      url,
+      { apikey: key, Authorization: `Bearer ${key}`, Accept: 'application/json' },
+      'v_site_products_public',
+      retryDelaysMs,
+    );
     assert(!response.ok, `Contrato inseguro: a coluna proibida ${column} pode ser selecionada explicitamente.`);
+    // Só uma recusa do próprio PostgREST (4xx) prova que a coluna não pode ser lida;
+    // um 5xx ou 429 não diz nada sobre o contrato e não pode contar como aprovação.
+    assert(
+      response.status >= 400 && response.status < 500 && !isTransientStatus(response.status),
+      `Contrato inconclusivo: a sonda da coluna proibida ${column} respondeu HTTP ${response.status}.`,
+    );
   }
 }
 
-async function scanCatalog(fetchImplementation, origin, key, baselineTotal) {
+async function scanCatalog(fetchImplementation, origin, key, baselineTotal, retryDelaysMs) {
   let inspectedRows = 0;
   let lastId = '';
   let siteTotal = null;
@@ -275,15 +329,18 @@ async function scanCatalog(fetchImplementation, origin, key, baselineTotal) {
     // Cursor imutável por UUID: evita saltos de offset se o catálogo mudar
     // enquanto a leitura percorre as páginas e funciona mesmo com max-rows baixo.
     if (lastId) url.searchParams.set('id', `gt.${lastId}`);
-    const response = await fetchImplementation(url, {
-      headers: {
+    const response = await request(
+      fetchImplementation,
+      url,
+      {
         apikey: key,
         Authorization: `Bearer ${key}`,
         Accept: 'application/json',
         ...(siteTotal === null ? { Prefer: 'count=exact' } : {}),
       },
-      signal: AbortSignal.timeout(10_000),
-    });
+      'v_site_products_public',
+      retryDelaysMs,
+    );
     if (!response.ok) throw new Error(`Contrato indisponível: v_site_products_public respondeu HTTP ${response.status}.`);
     if (siteTotal === null) siteTotal = exactCount(response, 'v_site_products_public');
     const rows = await response.json().catch(() => null);
@@ -306,17 +363,17 @@ async function scanCatalog(fetchImplementation, origin, key, baselineTotal) {
   throw new Error(`Contrato inconclusivo: paginação não terminou após ${requests} requisições para ${siteTotal ?? baselineTotal} linhas observadas.`);
 }
 
-export async function checkCatalogPublicContract(fetchImplementation = fetch) {
+export async function checkCatalogPublicContract(fetchImplementation = fetch, { retryDelaysMs = DEFAULT_RETRY_DELAYS_MS } = {}) {
   const { origin, key } = catalogConfig();
   let lastDrift = '';
 
   for (let attempt = 1; attempt <= 2; attempt += 1) {
-    const baselineBefore = await fetchExactCount(fetchImplementation, origin, key, 'v_products_public', true);
-    const scan = await scanCatalog(fetchImplementation, origin, key, baselineBefore);
-    const siteAfter = await fetchExactCount(fetchImplementation, origin, key, 'v_site_products_public');
-    const baselineAfter = await fetchExactCount(fetchImplementation, origin, key, 'v_products_public', true);
+    const baselineBefore = await fetchExactCount(fetchImplementation, origin, key, 'v_products_public', true, retryDelaysMs);
+    const scan = await scanCatalog(fetchImplementation, origin, key, baselineBefore, retryDelaysMs);
+    const siteAfter = await fetchExactCount(fetchImplementation, origin, key, 'v_site_products_public', false, retryDelaysMs);
+    const baselineAfter = await fetchExactCount(fetchImplementation, origin, key, 'v_products_public', true, retryDelaysMs);
     if (scan.siteTotal === siteAfter && baselineBefore === baselineAfter && siteAfter === baselineAfter) {
-      await probeForbiddenSelections(fetchImplementation, origin, key);
+      await probeForbiddenSelections(fetchImplementation, origin, key, retryDelaysMs);
       return { inspectedRows: scan.inspectedRows, columns: scan.columns, warnings: scan.warnings };
     }
     lastDrift = `tentativa ${attempt}: site ${scan.siteTotal}→${siteAfter}; referência ${baselineBefore}→${baselineAfter}`;
@@ -333,7 +390,17 @@ async function runCli() {
   }
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+function isMainModule() {
+  // realpath: por um caminho com symlink, argv[1] difere de import.meta.url e a sonda
+  // sairia com código 0 sem consultar nada.
+  try {
+    return Boolean(process.argv[1]) && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url));
+  } catch {
+    return false;
+  }
+}
+
+if (isMainModule()) {
   runCli().catch((error) => {
     process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
     process.exitCode = 1;
