@@ -495,16 +495,15 @@ export function salvarInventario(texto, saida = SAIDA) {
     throw new Error('a saida tem algo com cara de credencial; nada foi gravado. Revise banco.sql.');
   }
   fs.mkdirSync(path.dirname(saida), { recursive: true });
-  // Grava ao lado e renomeia: quem le (mudou-conteudo.mjs, o PR) nunca ve o arquivo pela metade.
-  const temporario = path.join(path.dirname(saida), `.${path.basename(saida)}.${process.pid}.tmp`);
+  // Grava num diretório privado ao lado e renomeia: quem le (mudou-conteudo.mjs, o PR) nunca ve o
+  // arquivo pela metade, e dois processos nunca disputam o mesmo temporario (mkdtemp e unico).
+  const diretorio = fs.mkdtempSync(path.join(path.dirname(saida), '.banco-'));
   try {
-    // Criação exclusiva: um temporário antigo (mesmo PID reaproveitado) é removido antes, nunca reescrito.
-    fs.rmSync(temporario, { force: true });
-    fs.writeFileSync(temporario, texto, { flag: 'wx' });
+    const temporario = path.join(diretorio, path.basename(saida));
+    fs.writeFileSync(temporario, texto);
     fs.renameSync(temporario, saida);
-  } catch (error) {
-    fs.rmSync(temporario, { force: true });
-    throw error;
+  } finally {
+    fs.rmSync(diretorio, { recursive: true, force: true });
   }
 }
 
