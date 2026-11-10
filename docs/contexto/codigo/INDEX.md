@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `223e6558a8b920bdbd8f668aed511f02aa236de6` (2026-11-10T20:08:31Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `432582af89b8e618c041cf923e7b8945409e7634` (2026-11-10T20:22:05Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -167,10 +167,10 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - não gerado neste run. npm run graph:update (wrapper do repositório; não rode o CLI do graphify direto); saída em graphify-out/, não versionada
 
 ## Hotspots (arquivos mais alterados, 90 dias)
-- package.json (56)
+- package.json (57)
 - e2e/smoke.spec.ts (53)
 - src/styles.css (33)
-- package-lock.json (30)
+- package-lock.json (31)
 - vercel.json (24)
 - src/components/Layout.tsx (22)
 - src/pages/QuotePage.tsx (22)
@@ -358,6 +358,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-10 `432582a` chore(deps): bump jsdom from 30.1.3 to 31.0.0 (#128)
 - 2026-11-10 `223e655` fix: endurece e cobre com testes todos os scripts do repositório (#130)
 - 2026-11-10 `860a0a0` infra: liga a comparação real do guard de instruções no CI (#121)
 - 2026-11-10 `af5cfd1` chore(deps): bump the actions-minor-and-patch group with 2 updates (#125)
@@ -372,7 +373,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-02 `56d86a4` chore: AGENTS.md com o texto-mestre adm01-debug (seções 1-7) (#115)
 - 2026-10-31 `28b3d88` docs: completa analise-prs com 7 arquivos complementares (#111)
 - 2026-10-31 `b193119` docs: inventário de auditorias anteriores e dataset de PRs (analise-prs/) (#110)
-- 2026-10-29 `cc133bd` docs(ci): registra falha de quota do Copilot na main (#109)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

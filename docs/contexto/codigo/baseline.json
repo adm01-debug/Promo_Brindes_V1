@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "223e6558a8b920bdbd8f668aed511f02aa236de6",
+  "commit": "432582af89b8e618c041cf923e7b8945409e7634",
   "branch": "main",
-  "data_commit": "2026-11-10T20:08:31Z",
+  "data_commit": "2026-11-10T20:22:05Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "432582a",
+    "data": "2026-11-10",
+    "assunto": "chore(deps): bump jsdom from 30.1.3 to 31.0.0 (#128)"
+   },
    {
     "sha": "223e655",
     "data": "2026-11-10",
@@ -126,11 +131,6 @@
     "sha": "dea319e",
     "data": "2026-10-27",
     "assunto": "fix(ci): registra baseline e corrige dependências da sonda do catálogo"
-   },
-   {
-    "sha": "217f785",
-    "data": "2026-10-27",
-    "assunto": "fix(catalog): remove padrão atrás das fotos dos produtos (#88)"
    }
   ],
   "arquivos_mudados_7d": 97,
@@ -141,18 +141,18 @@
    },
    {
     "pasta": "package.json",
-    "mudancas": 7
+    "mudancas": 8
    },
    {
     "pasta": "AGENTS.md",
     "mudancas": 6
    },
    {
-    "pasta": "PENDENCIAS.md",
-    "mudancas": 4
+    "pasta": "package-lock.json",
+    "mudancas": 5
    },
    {
-    "pasta": "package-lock.json",
+    "pasta": "PENDENCIAS.md",
     "mudancas": 4
    },
    {
@@ -199,7 +199,7 @@
   "arquivos_mais_mudados_90d": [
    {
     "arquivo": "package.json",
-    "mudancas": 56
+    "mudancas": 57
    },
    {
     "arquivo": "e2e/smoke.spec.ts",
@@ -211,7 +211,7 @@
    },
    {
     "arquivo": "package-lock.json",
-    "mudancas": 30
+    "mudancas": 31
    },
    {
     "arquivo": "vercel.json",
@@ -305,7 +305,7 @@
    },
    {
     "autor": "dependabot[bot]",
-    "commits": 6
+    "commits": 7
    }
   ]
  },
