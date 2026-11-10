@@ -4,10 +4,13 @@ import { spawnSync } from "node:child_process";
 import {
   appendFileSync,
   chmodSync,
+  closeSync,
   cpSync,
   existsSync,
+  fstatSync,
   mkdirSync,
   mkdtempSync,
+  openSync,
   readFileSync,
   renameSync,
   rmSync,
@@ -637,7 +640,13 @@ test("info/exclude append e reversao preservam inode e linhas concorrentes", (t)
   t.after(() => rmSync(dir, { recursive: true, force: true }));
   const file = join(dir, "exclude");
   writeFileSync(file, "# contexto original\n*.local\n");
-  const inode = statSync(file).ino;
+  const fd = openSync(file, "r");
+  let inode;
+  try {
+    inode = fstatSync(fd).ino;
+  } finally {
+    closeSync(fd);
+  }
   const addition = appendExclude(file, () =>
     appendFileSync(file, "concurrent-before\n"),
   );
