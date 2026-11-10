@@ -1,18 +1,18 @@
-# Relatório Final — Análise das 108 PRs (#1..#110)
+# Relatório Final — Análise das 107 PRs (#1..#109; #75 e #80 inexistentes)
 
 **Gerado em:** 2026-11-01
 **SHA main referência:** b19311989efe273e47dd8949ef126225206ad208
-**Base:** `analise-prs/prs.csv` (109 linhas: #1..#109; #75 ausente na numeração), `analise-prs/prs.json`, `analise-prs/auditorias-anteriores.md`
+**Base:** `analise-prs/prs.csv` (107 registros: #1..#109; #75 e #80 ausentes na numeração), `analise-prs/prs.json`, `analise-prs/auditorias-anteriores.md`
 
-> Nota de contagem: o repositório contém PRs numeradas de #1 a #109 (a #75 não existe; #110 citada no escopo refere-se à PR de inventário `auditorias-anteriores.md`/`prs.json`/`prs.csv` criada na sessão anterior e já mergeada). Total analisado: **109 PRs**.
+> Nota de contagem: o repositório contém PRs numeradas de #1 a #109 (a #75 e a #80 não existem na numeração; #110 e #111 são PRs de documentação desta análise, já mergeadas). Total analisado: **107 PRs**.
 
 ---
 
 ## 1. Sumário executivo
 
-- **Mergeadas:** 91 PRs (83%). **Fechadas sem merge:** 18 PRs (17%). **Abertas restantes:** 0.
+- **Mergeadas:** 89 PRs (83%). **Fechadas sem merge:** 18 PRs (17%). **Abertas restantes:** 0.
 - **O que foi feito:** hardening de banco (ledger, ACLs, idempotência), favoritos por conta com 24 testes, contratos runtime das RPCs, release automatizado (candidato→smoke→promote→rollback + drift diário), sonda diária do contrato do catálogo, terminologia Tendências, ficha de produto compacta, assinatura Gift Lovers, regra de aprovação visual, planos Carnegie/UX/fechamento documentados, auditoria de funcionalidades 11/10, importação de ativos externos.
-- **O que foi descartado:** 18 PRs fechadas sem merge — 13 dependabot (superseded por versões mais novas), 5 agente-copilot (superseded por rebase ou rejeitadas: analytics-enable, ci-critical-tests ×2, release-curl-analytics).
+- **O que foi descartado:** 18 PRs fechadas sem merge — 14 dependabot (superseded por versões mais novas), 4 agente-copilot (superseded por rebase ou rejeitadas: analytics-enable, ci-critical-tests ×2, release-curl-analytics).
 - **Estado geral:** o ciclo comercial pós-envio não existe (sem aviso ao comercial, sem back-office, confirmações desligadas). Infra de CI/CD funcional; 7 achados P1 seguem pendentes e dependem de decisão do dono (credenciais, domínio, revisor).
 
 ## 2. Tabela de vereditos
@@ -131,7 +131,7 @@
 
 **Features entregues:** favoritos por conta + sync cross-tab + reconciliação (6 PRs cluster favoritos); kits/anexos privados + composição (PRs #23 #24); seleções privadas + preview isolado (#22); confirmação estruturada do orçamento (#37); ficha compacta (#91); resumo editável do briefing (#94); card com fundo limpo (#88); terminologia Tendências (#50 #76); assinatura Gift Lovers (#92).
 **Bugs corrigidos:** integridade de seleção/sessão (#25 #26); contratos runtime RPCs lead/quote/notification/webhook (#38–#41); storage paths (#42 #43); stale-sync favoritos (#44 #45); rejeição de anexos (#46); reliability customer/catalog (#48); serverless contract (#49); briefing assets hardening (#51); perdas async UX (#89).
-**Infraestrutura:** ledger de migrations + 41/50 etapas (#11–#14); query plans (#21); release split/ hardening/ drift/ candidate-URL/ app-shell/ verifier/ analytics-contracts/ branch-alias (#52 #55 #63 #65 #67 #68 #77 #78 #79); workflows 100 etapas (#54); CODEOWNERS (#64); smoke/StrictMode (#70); coverage 70 (#71); analytics rebase (#72); sonda do catálogo (#83); baseline CI (#106); quota docs (#109); 21 dependabot merges.
+**Infraestrutura:** ledger de migrations + 41/50 etapas (#11–#14); query plans (#21); release split/ hardening/ drift/ candidate-URL/ app-shell/ verifier/ analytics-contracts/ branch-alias (#52 #55 #63 #65 #67 #68 #77 #78 #79); workflows 100 etapas (#54); CODEOWNERS (#64); smoke/StrictMode (#70); coverage 70 (#71); analytics rebase (#72); sonda do catálogo (#83); baseline CI (#106); quota docs (#109); 20 dependabot merges.
 
 ## 4. PRs fechadas sem merge (18) — o que foi descartado
 
