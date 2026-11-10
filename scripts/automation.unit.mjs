@@ -14,7 +14,6 @@ import {
   readFileSync,
   renameSync,
   rmSync,
-  statSync,
   symlinkSync,
   writeFileSync,
 } from "node:fs";
@@ -653,7 +652,12 @@ test("info/exclude append e reversao preservam inode e linhas concorrentes", (t)
   appendFileSync(file, "concurrent-after\n");
   assert.ok(text(file).includes("/.tools/repo-automation/"));
   assert.equal(removeExclude(file, addition), true);
-  assert.equal(statSync(file).ino, inode);
+  const fdAfter = openSync(file, "r");
+  try {
+    assert.equal(fstatSync(fdAfter).ino, inode);
+  } finally {
+    closeSync(fdAfter);
+  }
   assert.ok(
     text(file).startsWith("# contexto original\n*.local\nconcurrent-before\n"),
   );
