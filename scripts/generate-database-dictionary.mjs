@@ -37,7 +37,7 @@ function query(sql) {
 // Uma célula de tabela Markdown ocupa uma linha só: quebra de linha no comentário
 // partiria a tabela, e `|` fecharia a coluna.
 function tableCell(text) {
-  return text.replace(/\|/g, '\\|').replace(/\r?\n/g, '<br>');
+  return text.replace(/\\/g, '\\\\').replace(/\|/g, '\\|').replace(/\r?\n/g, '<br>');
 }
 
 function main() {

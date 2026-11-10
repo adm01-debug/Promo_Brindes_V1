@@ -498,7 +498,9 @@ export function salvarInventario(texto, saida = SAIDA) {
   // Grava ao lado e renomeia: quem le (mudou-conteudo.mjs, o PR) nunca ve o arquivo pela metade.
   const temporario = path.join(path.dirname(saida), `.${path.basename(saida)}.${process.pid}.tmp`);
   try {
-    fs.writeFileSync(temporario, texto);
+    // Criação exclusiva: um temporário antigo (mesmo PID reaproveitado) é removido antes, nunca reescrito.
+    fs.rmSync(temporario, { force: true });
+    fs.writeFileSync(temporario, texto, { flag: 'wx' });
     fs.renameSync(temporario, saida);
   } catch (error) {
     fs.rmSync(temporario, { force: true });

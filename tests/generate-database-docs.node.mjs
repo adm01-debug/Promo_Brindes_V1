@@ -175,6 +175,19 @@ test('comentário com quebra de linha ou barra vertical não parte a tabela Mark
   }
 });
 
+test('comentário com barra invertida antes de | não vira barra escapada seguida de coluna solta', (t) => {
+  const ws = workspace(t, {
+    tables: [{ relname: 'pedidos', obj_description: null }],
+    columns: [{ relname: 'pedidos', attname: 'caminho', type: 'text', comment: 'C:\\pasta\\|fim' }],
+    functions: [],
+  });
+  const result = ws.run('generate-database-dictionary.mjs');
+  assert.equal(result.status, 0, result.stderr);
+  const doc = ws.doc('DATABASE_DICTIONARY.md');
+  // `\` vira `\\` e `|` vira `\|`: o Markdown mostra C:\pasta\|fim numa única célula.
+  assert.ok(doc.includes('| `caminho` | `text` | C:\\\\pasta\\\\\\|fim |\n'), doc.split('\n').find((line) => line.includes('caminho')));
+});
+
 test('ERD: identificador entre aspas na FK aponta para a mesma entidade da lista de tabelas; FK para outro schema usa o nome da tabela', (t) => {
   const ws = workspace(t, {
     tableNames: [{ relname: 'a-b' }, { relname: 'c' }],

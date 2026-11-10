@@ -558,7 +558,7 @@ test('trava de build órfã (processo morto) é recuperada; trava de processo vi
     const recovered = project.run(['build']);
     assert.doesNotMatch(recovered.stderr, /Outra geração Graphify/);
     assert.match(recovered.stderr, /falhou com código 3/, 'passou da trava e parou só no graphify falso');
-    assert.equal(fs.existsSync(project.lockPath), false, 'trava liberada depois da falha');
+    assert.throws(() => fs.readFileSync(project.lockPath), { code: 'ENOENT' }, 'trava liberada depois da falha');
     assert.ok(fs.existsSync(path.join(project.root, 'graphify-out', 'graph.json')), 'grafo anterior permanece');
 
     const alive = JSON.stringify({ pid: process.pid, host: os.hostname(), createdAt: new Date().toISOString() });

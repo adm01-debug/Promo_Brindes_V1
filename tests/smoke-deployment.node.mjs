@@ -39,6 +39,8 @@ function healthyRoutes() {
   };
 }
 
+const notFound = reply(404, { ...security, 'content-type': 'text/html; charset=utf-8' }, shell);
+
 async function deployment(overrides = {}) {
   // Map em vez de objeto: o caminho vem do request e não pode escolher propriedade.
   const routes = new Map(Object.entries({ ...healthyRoutes(), ...overrides }));
@@ -47,7 +49,9 @@ async function deployment(overrides = {}) {
     const path = request.url.split('?')[0];
     const count = (counts.get(path) ?? 0) + 1;
     counts.set(path, count);
-    const handler = routes.get(path) ?? reply(404, { ...security, 'content-type': 'text/html; charset=utf-8' }, shell);
+    // A chave usada na consulta vem da lista de rotas do próprio teste, nunca do request.
+    const known = [...routes.keys()].find((key) => key === path);
+    const handler = known === undefined ? notFound : routes.get(known);
     handler(request, response, count);
   });
   await new Promise((resolveListen) => server.listen(0, '127.0.0.1', resolveListen));
