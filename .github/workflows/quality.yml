@@ -40,6 +40,10 @@ jobs:
       - run: npm audit signatures
         continue-on-error: true
       - run: npm run ledger:check
+      - name: Vigiar integridade das instruções para agentes
+        run: |
+          git fetch --no-tags --depth=1 origin main
+          AGENT_INSTRUCTIONS_BASE=FETCH_HEAD node scripts/validate-agent-instructions.mjs
       # O Chromium do Playwright não depende do repositório do Google Chrome.
       # Removê-lo no runner efêmero evita falhas transitórias de hash nesse
       # espelho antes que os testes do projeto possam começar.
