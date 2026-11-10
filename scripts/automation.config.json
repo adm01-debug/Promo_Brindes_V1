@@ -234,6 +234,22 @@
       "reason": "Legado mantido no fluxo existente; referências literais: package.json:scripts, .github/workflows/contexto.yml. O dispatcher não executa esta operação."
     },
     {
+      "id": "legacy-af6eceb3d61a",
+      "kind": "legacy",
+      "files": ["scripts/regras_negocio/test_indice.py"],
+      "manual": ["python3", "scripts/regras_negocio/test_indice.py"],
+      "triggers": ["manual"],
+      "reason": "Legado mantido no fluxo existente; teste do índice de regras de negócio trazido pelo main (#130). O dispatcher não executa esta operação."
+    },
+    {
+      "id": "legacy-383c8810d652",
+      "kind": "legacy",
+      "files": ["scripts/regras_negocio/test_publish.py"],
+      "manual": ["python3", "scripts/regras_negocio/test_publish.py"],
+      "triggers": ["manual"],
+      "reason": "Legado mantido no fluxo existente; teste do publish de regras de negócio trazido pelo main (#130). O dispatcher não executa esta operação."
+    },
+    {
       "id": "legacy-94bc0723dd7d9fb7",
       "kind": "legacy",
       "files": ["scripts/smoke-deployment.mjs"],
