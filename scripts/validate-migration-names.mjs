@@ -1,4 +1,4 @@
-import { readdirSync, existsSync } from 'node:fs';
+import { readdirSync, existsSync, realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
@@ -10,6 +10,11 @@ import path from 'node:path';
 // catálogo canônico vive em docs/sql/canonical/ (espelho somente-leitura, fora de
 // qualquer pasta que o CLI do Supabase reconheça — ver etapa 45 do plano de correções).
 export const MIGRATION_DIRS = ['site-supabase/supabase/migrations'];
+// Os caminhos são relativos à raiz do repositório, não ao diretório de onde o script é
+// chamado: de outro cwd o diretório "não existia" e o guard aprovava sem ler nada.
+const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
+const readDirFromRoot = (dir) => readdirSync(path.resolve(ROOT, dir));
+const existsFromRoot = (target) => existsSync(path.resolve(ROOT, target));
 const NAME_PATTERN = /^(\d{14})_([a-z0-9_]+)\.sql$/;
 
 export function isValidCalendarTimestamp(digits) {
@@ -67,7 +72,7 @@ export function validateMigrationFileNames(dirLabel, fileNames) {
   return errors;
 }
 
-export function validateMigrationDirsOnDisk(dirs = MIGRATION_DIRS, readDir = readdirSync) {
+export function validateMigrationDirsOnDisk(dirs = MIGRATION_DIRS, readDir = readDirFromRoot) {
   return dirs.flatMap((dir) => {
     let files;
     try {
@@ -77,6 +82,23 @@ export function validateMigrationDirsOnDisk(dirs = MIGRATION_DIRS, readDir = rea
       throw error;
     }
     return validateMigrationFileNames(dir, files);
+  });
+}
+
+/**
+ * O diretório ativo de migrations tem de existir e conter ao menos um .sql: um guard
+ * que não leu arquivo algum não pode responder "válido".
+ */
+export function validateMigrationDirsNotEmpty(dirs = MIGRATION_DIRS, readDir = readDirFromRoot) {
+  return dirs.flatMap((dir) => {
+    let files;
+    try {
+      files = readDir(dir).filter((name) => name.endsWith('.sql'));
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+      files = [];
+    }
+    return files.length > 0 ? [] : [`${dir}: diretório ausente ou sem nenhum arquivo .sql — nada foi verificado`];
   });
 }
 
@@ -90,7 +112,7 @@ const FORBIDDEN_TOP_LEVEL_MIGRATIONS_DIR = 'supabase/migrations';
  * pasta que o CLI do Supabase reconheça); recriar essa pasta reintroduziria o link
  * incoerente silenciosamente.
  */
-export function validateNoTopLevelSupabaseMigrationsDir(exists = existsSync) {
+export function validateNoTopLevelSupabaseMigrationsDir(exists = existsFromRoot) {
   if (exists(FORBIDDEN_TOP_LEVEL_MIGRATIONS_DIR)) {
     return [
       `${FORBIDDEN_TOP_LEVEL_MIGRATIONS_DIR} não deveria existir neste repositório — reintroduz o link incoerente do incidente pré-16/09 (ver Etapa 45 do plano de correções); o contrato do catálogo canônico vive em docs/sql/canonical/`,
@@ -100,7 +122,11 @@ export function validateNoTopLevelSupabaseMigrationsDir(exists = existsSync) {
 }
 
 function runCli() {
-  const errors = [...validateMigrationDirsOnDisk(), ...validateNoTopLevelSupabaseMigrationsDir()];
+  const errors = [
+    ...validateMigrationDirsNotEmpty(),
+    ...validateMigrationDirsOnDisk(),
+    ...validateNoTopLevelSupabaseMigrationsDir(),
+  ];
   if (errors.length > 0) {
     console.error('Nomes de migration inválidos:');
     for (const error of errors) {
@@ -111,6 +137,16 @@ function runCli() {
   console.log('Nomes de migration válidos em todos os diretórios verificados.');
 }
 
-if (path.resolve(process.argv[1] ?? '') === fileURLToPath(import.meta.url)) {
+function isMainModule() {
+  // realpath: por um caminho com symlink, argv[1] difere de import.meta.url e o guard
+  // sairia com código 0 sem validar nada.
+  try {
+    return Boolean(process.argv[1]) && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url));
+  } catch {
+    return false;
+  }
+}
+
+if (isMainModule()) {
   runCli();
 }

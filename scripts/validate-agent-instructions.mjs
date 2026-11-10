@@ -5,7 +5,7 @@
 // referência órfã ou quebrada em docs/agentes/; skill do Claude e do Codex idênticos com `name`
 // igual à pasta; e que o conjunto não encolheu (>30% no total, >50% em qualquer arquivo) contra
 // uma base — AGENT_INSTRUCTIONS_BASE (no CI, `origin/main`) ou `HEAD` localmente.
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync, realpathSync, statSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -31,8 +31,14 @@ export const REQUIRED_SECTIONS = [
 export const SET_SHRINK_THRESHOLD = 0.3;
 export const FILE_SHRINK_THRESHOLD = 0.5;
 
+// A seção só conta como título de verdade: no início da linha e sem continuar em outra palavra.
+// `includes` aceitava a seção rebaixada (`### Postura`) ou apenas citada no meio de uma frase.
+function sectionHeading(section) {
+  return new RegExp(`^${section.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\p{N}])`, 'mu');
+}
+
 export function validateRequiredSections(content) {
-  return REQUIRED_SECTIONS.filter((section) => !content.includes(section)).map(
+  return REQUIRED_SECTIONS.filter((section) => !sectionHeading(section).test(content)).map(
     (section) => `${AGENTS_FILE}: seção obrigatória ausente: ${section}`,
   );
 }
@@ -50,7 +56,7 @@ export function validateClaudeImport(content) {
 // casava como citação real, mascarando órfãs de verdade (falso negativo).
 export function validateDocReferences(agentsContent, docFileNames) {
   const cited = new Set(
-    [...agentsContent.matchAll(/`docs\/agentes\/([A-Za-z0-9._-]+\.md)`/g)].map((match) => match[1]),
+    [...agentsContent.matchAll(/`docs\/agentes\/([A-Za-z0-9._/-]+\.md)`/g)].map((match) => match[1]),
   );
   const present = new Set(docFileNames);
   const errors = [];
@@ -71,7 +77,9 @@ export function validateSkillCopies(contents) {
   for (const [index, content] of rest.entries()) {
     if (content !== first) errors.push(`${SKILL_FILES[index + 1]} difere de ${SKILL_FILES[0]}; os dois skills são cópias idênticas.`);
   }
-  if (!new RegExp(`^---\\nname: ${SKILL_NAME}\\n`, 'm').test(first)) {
+  // Ancorado no início do arquivo: com a flag `m` um bloco `---\nname:` no corpo do skill
+  // satisfazia a regra mesmo com o frontmatter real trazendo outro nome.
+  if (!new RegExp(`^\\uFEFF?---\\r?\\nname: ${SKILL_NAME}\\r?\\n`).test(first)) {
     errors.push(`${SKILL_FILES[0]}: frontmatter precisa começar com \`name: ${SKILL_NAME}\` (igual ao nome da pasta).`);
   }
   if (!/^description: .+/m.test(first)) {
@@ -105,13 +113,22 @@ export function validateShrink(current, base) {
   return errors;
 }
 
-function docFileNamesOnDisk() {
-  return existsSync(DOCS_DIR) ? readdirSync(DOCS_DIR).filter((name) => name.endsWith('.md')).sort() : [];
+// Recursivo como o `git ls-tree -r` da base: listar só o primeiro nível fazia um arquivo em
+// subpasta passar sem citação no PR que o criava e acusar "sumiu" em todas as execuções seguintes.
+function docFileNamesOnDisk(directory = DOCS_DIR, prefix = '') {
+  if (!existsSync(directory)) return [];
+  const names = [];
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const full = path.join(directory, entry.name);
+    if (entry.isDirectory()) names.push(...docFileNamesOnDisk(full, `${prefix}${entry.name}/`));
+    else if (entry.name.endsWith('.md') && statSync(full, { throwIfNoEntry: false })?.isFile()) names.push(`${prefix}${entry.name}`);
+  }
+  return names.sort();
 }
 
 function currentSizes() {
   const byFile = {};
-  for (const file of [AGENTS_FILE, CLAUDE_FILE, ...docFileNamesOnDisk().map((name) => `${DOCS_DIR}/${name}`)]) {
+  for (const file of [AGENTS_FILE, CLAUDE_FILE, ...docFileNamesOnDisk().map((name) => `${DOCS_DIR}/${name}`), ...SKILL_FILES]) {
     if (existsSync(file)) byFile[file] = Buffer.byteLength(readFileSync(file));
   }
   return { byFile, total: Object.values(byFile).reduce((sum, bytes) => sum + bytes, 0) };
@@ -133,11 +150,12 @@ function baseSizes(ref) {
   };
   let listed;
   try {
-    listed = execFileSync('git', ['ls-tree', '-r', '--name-only', ref, '--', DOCS_DIR], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    // `-z`: sem ele o git devolve nomes não ASCII entre aspas e escapados, que não terminam em `.md`.
+    listed = execFileSync('git', ['ls-tree', '-r', '-z', '--name-only', ref, '--', DOCS_DIR], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
   } catch {
     listed = '';
   }
-  const files = [AGENTS_FILE, CLAUDE_FILE, ...listed.split('\n').map((line) => line.trim()).filter((line) => line.endsWith('.md'))];
+  const files = [AGENTS_FILE, CLAUDE_FILE, ...listed.split('\0').filter((line) => line.endsWith('.md')), ...SKILL_FILES];
   const byFile = {};
   for (const file of files) {
     const bytes = size(file);
@@ -148,9 +166,16 @@ function baseSizes(ref) {
 }
 
 function main() {
+  if (process.argv.slice(2).some((argument) => argument === '--help' || argument === '-h')) {
+    console.log('Uso: node scripts/validate-agent-instructions.mjs  (rode na raiz do repositório; sem argumentos)');
+    console.log('  AGENT_INSTRUCTIONS_BASE=<ref>        base da comparação de tamanho (padrão: HEAD; no CI, a ref de main).');
+    console.log('  AGENT_INSTRUCTIONS_ALLOW_NO_BASE=1   aceita rodar sem base resolvida; as demais checagens continuam valendo.');
+    console.log('Sai com 0 quando tudo confere e com 1 em qualquer divergência (linhas ::error:: no stderr).');
+    return;
+  }
   const errors = [];
   if (!existsSync(AGENTS_FILE)) {
-    console.error(`::error::${AGENTS_FILE} não encontrado. Outra sessão pode ter apagado o arquivo.`);
+    console.error(`::error::${AGENTS_FILE} não encontrado em ${process.cwd()}. Rode na raiz do repositório; se já está nela, outra sessão pode ter apagado o arquivo.`);
     process.exit(1);
   }
   const agents = readFileSync(AGENTS_FILE, 'utf8');
@@ -165,11 +190,13 @@ function main() {
   const current = currentSizes();
   const ref = process.env.AGENT_INSTRUCTIONS_BASE || 'HEAD';
   let base;
+  let refRecusada = false;
   try {
     base = baseSizes(ref);
   } catch (error) {
     errors.push(error.message);
     base = undefined;
+    refRecusada = true;
   }
   // Base que não resolve (ref inexistente, fora de repo git, git ausente do PATH) pulava a
   // comparação de tamanho e imprimia "OK" com exit 0 — um apagamento de docs/agentes/ passava
@@ -179,6 +206,8 @@ function main() {
   let semComparacaoDeTamanho = false;
   if (base) {
     errors.push(...validateShrink(current, base));
+  } else if (refRecusada) {
+    // O erro da ref inválida já foi registrado; "não resolveu" por cima sugeriria o escape errado.
   } else if (process.env.AGENT_INSTRUCTIONS_ALLOW_NO_BASE === '1') {
     semComparacaoDeTamanho = true;
   } else {
@@ -196,4 +225,14 @@ function main() {
   );
 }
 
-if (path.resolve(process.argv[1] ?? '') === fileURLToPath(import.meta.url)) main();
+// Caminhos reais: chamado por um caminho com symlink, o texto de argv[1] difere do módulo
+// carregado e o guard sairia com código 0 sem validar nada.
+function isMainModule() {
+  try {
+    return realpathSync(process.argv[1] ?? '') === realpathSync(fileURLToPath(import.meta.url));
+  } catch {
+    return false;
+  }
+}
+
+if (isMainModule()) main();

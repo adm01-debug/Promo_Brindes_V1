@@ -25,12 +25,19 @@ const MIGRATIONS_DIR = path.join(ROOT, 'site-supabase', 'supabase', 'migrations'
 function latestMigrationDate() {
   const files = readdirSync(MIGRATIONS_DIR).filter((f) => /^\d{14}_.+\.sql$/.test(f));
   const latest = files.sort().at(-1);
+  if (!latest) throw new Error(`nenhuma migration <14 dígitos>_<descrição>.sql em ${MIGRATIONS_DIR}; não há versão de schema para registrar.`);
   const stamp = latest.slice(0, 8); // YYYYMMDD
   return `${stamp.slice(0, 4)}-${stamp.slice(4, 6)}-${stamp.slice(6, 8)}`;
 }
 
 function query(sql) {
   return runSupabaseDbQuery(sql, { cwd: ROOT });
+}
+
+// Uma célula de tabela Markdown ocupa uma linha só: quebra de linha no comentário
+// partiria a tabela, e `|` fecharia a coluna.
+function tableCell(text) {
+  return text.replace(/\\/g, '\\\\').replace(/\|/g, '\\|').replace(/\r?\n/g, '<br>');
 }
 
 function main() {
@@ -55,7 +62,7 @@ function main() {
     select p.proname, pg_get_function_identity_arguments(p.oid) as args, obj_description(p.oid, 'pg_proc') as comment
     from pg_proc p
     where p.pronamespace = 'public'::regnamespace
-    order by p.proname;
+    order by p.proname, 2;
   `);
 
   const columnsByTable = new Map();
@@ -82,7 +89,7 @@ function main() {
     lines.push('| Coluna | Tipo | Comentário |');
     lines.push('|---|---|---|');
     for (const { attname: column, type, comment: columnComment } of columnsByTable.get(table) || []) {
-      lines.push(`| \`${column}\` | \`${type}\` | ${columnComment ? columnComment.replace(/\|/g, '\\|') : '—'} |`);
+      lines.push(`| \`${column}\` | \`${type}\` | ${columnComment ? tableCell(columnComment) : '—'} |`);
     }
     lines.push('');
   }
@@ -91,7 +98,7 @@ function main() {
   lines.push('| Função | Argumentos | Comentário |');
   lines.push('|---|---|---|');
   for (const { proname: name, args, comment } of functions) {
-    lines.push(`| \`${name}\` | \`${args}\` | ${comment ? comment.replace(/\|/g, '\\|') : '—'} |`);
+    lines.push(`| \`${name}\` | \`${args}\` | ${comment ? tableCell(comment) : '—'} |`);
   }
   lines.push('');
 
@@ -99,4 +106,9 @@ function main() {
   console.log(`Escrito ${OUT_FILE} (${tables.length} tabelas, ${functions.length} funções públicas).`);
 }
 
-main();
+try {
+  main();
+} catch (error) {
+  console.error(`db:site:dictionary falhou: ${error instanceof Error ? error.message : String(error)}`);
+  process.exitCode = 1;
+}

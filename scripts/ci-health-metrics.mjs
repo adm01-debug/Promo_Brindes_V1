@@ -40,7 +40,14 @@ export function calculateCiHealthMetrics(runs) {
 
 function runCli() {
   if (process.argv.length > 2) throw new Error('Este comando recebe o JSON exclusivamente por stdin.');
-  const runs = JSON.parse(readFileSync(0, 'utf8'));
+  const input = readFileSync(0, 'utf8').replace(/^\uFEFF/, '');
+  if (!input.trim()) throw new Error('Nenhum JSON recebido por stdin: esperado o array de execuções do CI.');
+  let runs;
+  try {
+    runs = JSON.parse(input);
+  } catch (error) {
+    throw new Error(`JSON inválido em stdin: ${error instanceof Error ? error.message : String(error)}`, { cause: error });
+  }
   process.stdout.write(`${JSON.stringify(calculateCiHealthMetrics(runs))}\n`);
 }
 
@@ -50,4 +57,11 @@ export function isDirectExecution(entryPath = process.argv[1]) {
   return entryPath?.split(/[\\/]/).at(-1) === MODULE_BASENAME;
 }
 
-if (isDirectExecution()) runCli();
+if (isDirectExecution()) {
+  try {
+    runCli();
+  } catch (error) {
+    process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+    process.exitCode = 1;
+  }
+}

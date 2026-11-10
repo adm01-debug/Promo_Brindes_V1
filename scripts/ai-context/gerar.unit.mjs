@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 
 const GERADOR = path.resolve(path.dirname(new URL(import.meta.url).pathname), 'gerar.mjs');
 const w = (root, rel, text) => { const p = path.join(root, rel); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, text); };
@@ -357,4 +357,309 @@ supabase.rpc('dashboard_rpc'); supabase.functions.invoke('dashboard-edge');`);
   assert.equal(orphan.orfa, true);
   assert.deepEqual(orphan.chamada_pelo_front, []);
   assert.deepEqual(orphan.chamada_por_edges, []);
+});
+
+// ---------- repositório estilo Vercel (api/*.ts) com Supabase em subpasta ----------
+const gitCommit = (dir, env = {}) => {
+  execFileSync('git', ['init', '-q'], { cwd: dir });
+  execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', 'add', '-A'], { cwd: dir });
+  execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '-m', 'feat: mini'], { cwd: dir, env: { ...process.env, ...env } });
+};
+function miniRepo(files, { commit = true, commitEnv = {} } = {}) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ctx-ia-mini-'));
+  for (const [rel, text] of Object.entries(files)) w(dir, rel, text);
+  if (commit) gitCommit(dir, commitEnv);
+  return dir;
+}
+const gerar = (dir, args = [], env = {}) => spawnSync(process.execPath, [GERADOR, ...args], { cwd: dir, encoding: 'utf8', env: { ...process.env, ...env } });
+const leitor = (dir, sub = 'inventario/ia') => (name) => (name.endsWith('.json') ? JSON.parse(fs.readFileSync(path.join(dir, sub, name), 'utf8')) : fs.readFileSync(path.join(dir, sub, name), 'utf8'));
+
+const VERCEL = {
+  'package.json': JSON.stringify({ name: 'site', version: '1.0.0', scripts: { test: 'vitest run', 'graph:update': 'node scripts/graphify.mjs update', 'graph:query': 'node scripts/graphify.mjs query', 'ctx:test': 'python3 scripts/ctx/test_generate.py', 'ctx:gen': 'python3 scripts/ctx/generate.py' }, dependencies: { react: '19', 'react-router-dom': '7', '@supabase/supabase-js': '2' }, devDependencies: { vitest: '3', vite: '7', typescript: '5' } }),
+  'package-lock.json': '{}',
+  'ai-context.config.json': JSON.stringify({ srcDirs: ['src', 'api', 'shared'], typesFile: 'src/types/db.types.ts' }),
+  'tsconfig.json': JSON.stringify({ files: [], references: [{ path: './tsconfig.app.json' }] }),
+  'tsconfig.app.json': '{\n  /* Bundler mode */\n  "compilerOptions": {\n    "strict": true, // comentário\n    "jsx": "react-jsx",\n  },\n  "include": ["src"]\n}\n',
+  'vercel.json': JSON.stringify({ crons: [{ path: '/api/retention', schedule: '0 3 * * *' }], functions: { 'api/leads.ts': { maxDuration: 30 } }, rewrites: [{ source: '/sitemap.xml', destination: '/api/sitemap' }, { source: '/catalogo', destination: '/api/site-page?page=catalogo' }, { source: '/conta', destination: '/api/site-page?page=conta' }] }),
+  '.env.example': 'SITE_SECRET=\nCRON_SECRET=\nRESEND_WEBHOOK_SECRET=\nALERT_WEBHOOK_URL=\n# VITE_DOC_ONLY=opcional, só no preview\n',
+  'index.html': '<script src="/boot.js"></script>',
+  'public/boot.js': 'window.x = 1;',
+  'api/leads.ts': "import { handleLead } from './_lib/handler';\nexport default function handler(request, response) { return handleLead('quote', request, response); }",
+  'api/_lib/handler.ts': "export async function handleLead(kind, request, response) {\n  if (request.method !== 'POST') return response.status(405).end();\n  const rpcName = kind === 'quote' ? 'create_lead' : 'create_contact';\n  await fetch(`${process.env.SITE_URL}/rest/v1/rpc/${rpcName}`, { headers: { apikey: process.env.SITE_SECRET } });\n}",
+  'api/_lib/handler.test.ts': "import { handleLead } from './handler';\nit('x', () => {});",
+  'api/sitemap.ts': "export default function handler(request, response) {\n  if (request.method && !['GET', 'HEAD'].includes(request.method)) return response.status(405).end();\n  response.send('<xml/>');\n}",
+  'api/site-page.ts': "export default function handler(request, response) { response.send('<html/>'); }",
+  'api/retention.ts': "async function rpc<T>(baseUrl: string, key: string, name: string, body: object): Promise<T> { return (await fetch(`${baseUrl}/rest/v1/rpc/${name}`)).json(); }\nexport default async function handler(request, response) {\n  if (request.method !== 'GET') return response.status(405).end();\n  if (request.headers.authorization !== process.env.CRON_SECRET) return response.status(401).end();\n  await rpc<{ n?: number }>(\n    process.env.SITE_URL,\n    process.env.SITE_SECRET,\n    'purge_old',\n    {},\n  );\n}",
+  'api/events-resend.ts': "export default function handler(request, response) {\n  if (request.method !== 'POST') return response.status(405).end();\n  verify(process.env.RESEND_WEBHOOK_SECRET);\n}",
+  'api/notify.ts': "async function rpc<T>(name: string, body: object): Promise<T> { return (await fetch(`${process.env.SITE_URL}/rest/v1/rpc/${name}`)).json(); }\nexport default async function handler(request, response) {\n  if (request.method !== 'GET') return response.status(405).end();\n  await rpc<unknown>('claim_jobs', {});\n  await fetch(`${process.env.SITE_URL}/rest/v1/rpc/queue_health`);\n  await fetch(process.env.ALERT_WEBHOOK_URL);\n}",
+  'src/main.tsx': "import { App } from './App';\nexport const Root = () => <App />;",
+  'src/App.tsx': "import { Routes, Route } from 'react-router-dom';\nimport { HomePage } from './pages/HomePage';\nimport { AuthConfirmPage } from './pages/AuthConfirmPage';\nimport { AccountPage } from './pages/AccountPage';\nimport { RequireAuth } from './components/RequireAuth';\nimport { links } from './components/navLinks';\nexport const nav = links;\nexport const App = () => (<Routes>\n  <Route path=\"/\" element={<HomePage />} />\n  <Route path=\"/auth/confirm\" element={<AuthConfirmPage />} />\n  <Route path=\"/conta\" element={<RequireAuth><AccountPage /></RequireAuth>} />\n</Routes>);",
+  'src/components/RequireAuth.tsx': 'export const RequireAuth = ({ children }) => <>{children}</>;',
+  'src/components/navLinks.ts': "export const links = [{ label: 'Início', to: '/' }, { label: 'Instagram', href: 'https://instagram.com/loja' }, { label: 'Fantasma', to: '/nada' }];",
+  'src/pages/HomePage.tsx': "import { sendLead } from '../lib/api';\nexport const HomePage = () => { if (import.meta.env.VITE_NEW_CHECKOUT_ENABLED) sendLead(); return <main />; };",
+  'src/pages/AuthConfirmPage.tsx': "export const AuthConfirmPage = ({ payload }) => {\n  const ok = payload.role === 'anon';\n  return <div role=\"status\" aria-live=\"polite\"><span role='alert'>{String(ok)}</span>{import.meta.env.VITE_DOC_ONLY}{import.meta.env.VITE_MISSING}{process.env.NODE_ENV}{process.env.VERCEL_ENV}</div>;\n};",
+  'src/pages/AccountPage.tsx': "import { supabase } from '../lib/api';\nexport const AccountPage = () => { supabase.rpc('get_mine'); return <section />; };",
+  'src/lib/api.ts': "export const supabase = createClient();\nexport const sendLead = () => fetch('/api/leads', { method: 'POST' });",
+  'src/types/db.types.ts': 'export type Database = {\n  public: {\n    Tables: {\n      [_ in never]: never\n    }\n    Functions: {}\n  }\n  site_private: {\n    Tables: {\n      leads: {\n        Row: {\n          id: string\n          email: string\n          extra: string\n        }\n        Insert: { id?: string }\n      }\n    }\n  }\n}\nexport const Constants = { public: { Enums: {} }, site_private: { Enums: {} } } as const',
+  'site-supabase/supabase/config.toml': 'project_id = "site"\n',
+  'site-supabase/supabase/migrations/20260101000000_init.sql': `create schema if not exists site_private;
+create table site_private.leads (id uuid primary key, email text not null);
+alter table site_private.leads enable row level security;
+create index leads_email_idx on site_private.leads (email);
+create index leads_old_idx on site_private.leads (id);
+drop index if exists site_private.leads_old_idx;
+create or replace function site_private.touch() returns trigger language plpgsql as $$ begin return new; end $$;
+create or replace function site_private.gone() returns void language sql as $$ select 1 $$;
+drop function if exists site_private.gone();
+create or replace function public.create_lead(p jsonb) returns jsonb language sql as $$ select p $$;
+create or replace function public.create_contact(p jsonb) returns jsonb language sql as $$ select p $$;
+create or replace function public.purge_old() returns int language sql as $$ select 1 $$;
+create or replace function public.claim_jobs() returns int language sql as $$ select 1 $$;
+create or replace function public.queue_health() returns int language sql as $$ select 1 $$;
+create or replace function public.get_mine() returns int language sql as $$ select 1 $$;
+create or replace function public.unused_fn() returns int language sql as $$ select 1 $$;
+create or replace function public.get_sel(p_token uuid) returns int language sql as $$ select 1 $$;
+create or replace function public.get_sel(p_token uuid, p_hash text default md5('a,b')) returns int language sql as $$ select 2 $$;
+drop function public.get_sel(uuid);
+create trigger trg_touch before update on site_private.leads for each row execute function site_private.touch();
+create view site_private.v_leads as select * from site_private.leads;
+create type site_private.lead_status as enum ('new', 'done');`,
+  'site-supabase/supabase/tests/database/leads.test.sql': 'select plan(1);',
+  'docs/sql/canonical/001_catalog.sql': 'create table public.catalog_only (id int);\ncreate or replace function public.catalog_fn() returns int language sql as $$ select 1 $$;',
+  'docs/audits/reproduce.mjs': "console.log('auditoria');",
+  'scripts/tooling.mjs': "// Ferramenta com trechos de exemplo em string.\nconst sample = `app.get('/fake', h); export const useFake = () => 1; pgTable('fake_table', { id: text('id') }); isFeatureEnabled('fake-flag'); if (role === 'fake_role') {} fetch('https://tooling-only.test/x');`;\nexport const useToolHook = () => sample;",
+  'scripts/ctx/generate.py': 'def main():\n    pass\n',
+  'scripts/ctx/test_generate.py': 'def test_a():\n    pass\n',
+  'tests/api/leads.test.ts': "import handler from '../../api/leads';\nit('x', async () => { await fetch('https://test-only.test/x'); });",
+};
+const vdir = miniRepo(VERCEL);
+const vhead = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: vdir, encoding: 'utf8' }).trim();
+w(vdir, 'graphify-out/graph.json', JSON.stringify({ directed: false, nodes: [{ id: 'a', label: 'A', source_file: 'src/App.tsx', community: 0, community_name: 'Community 0' }], links: [] }));
+w(vdir, 'graphify-out/project-meta.json', JSON.stringify({ commit: vhead }));
+w(vdir, 'graphify-out/GRAPH_REPORT.md', '# Graph report\n');
+const vrun = gerar(vdir, ['--quiet']);
+const V = leitor(vdir);
+process.on('exit', () => { fs.rmSync(vdir, { recursive: true, force: true }); fs.rmSync(root, { recursive: true, force: true }); });
+
+test('vercel: gera sem erro de seção e sem ruído em stderr', () => {
+  assert.equal(vrun.status, 0, vrun.stderr);
+  assert.equal(vrun.stderr, '');
+  assert.deepEqual(V('manifest.json').erros, []);
+});
+
+test('vercel api/: _lib e testes não são rota; função aparece em rotas_http_backend com método, fecho, rewrites, cron e chamador', () => {
+  const r = V('rotas.json');
+  const apis = r.urls.filter((u) => u.tipo === 'api').map((u) => u.caminho);
+  assert.deepEqual(apis, ['/api/events-resend', '/api/leads', '/api/notify', '/api/retention', '/api/site-page', '/api/sitemap']);
+  const by = Object.fromEntries(r.rotas_http_backend.map((x) => [x.caminho, x]));
+  assert.deepEqual(Object.keys(by), apis, 'só funções reais; nada de scripts/ nem de testes');
+  assert.equal(by['/api/leads'].metodo, 'POST', 'método lido do handler importado quando a entrada só delega');
+  assert.equal(by['/api/leads'].arquivo, 'api/leads.ts');
+  assert.deepEqual(by['/api/leads'].rpcs, ['create_contact', 'create_lead']);
+  assert.deepEqual(by['/api/leads'].diretos, { tabelas: [], rpcs: [], env: [] }, 'a entrada só delega: nada direto, tudo pelo fecho');
+  assert.deepEqual(by['/api/notify'].diretos.rpcs, ['claim_jobs', 'queue_health']);
+  assert.deepEqual(by['/api/leads'].env, ['SITE_SECRET', 'SITE_URL']);
+  assert.equal(by['/api/leads'].max_duration, 30);
+  assert.deepEqual(by['/api/leads'].chamada_por, ['src/lib/api.ts']);
+  assert.equal(by['/api/sitemap'].metodo, 'GET,HEAD');
+  assert.deepEqual(by['/api/sitemap'].rewrites_de, ['/sitemap.xml']);
+  assert.deepEqual(by['/api/site-page'].rewrites_de, ['/catalogo', '/conta']);
+  assert.equal(by['/api/site-page'].metodo, 'ANY');
+  assert.equal(by['/api/retention'].cron, '0 3 * * *');
+  assert.deepEqual(by['/api/retention'].rpcs, ['purge_old'], 'nome da RPC como 3º argumento do helper');
+  assert.deepEqual(by['/api/notify'].rpcs, ['claim_jobs', 'queue_health'], 'rpc<T>(nome) e /rest/v1/rpc/<nome>');
+  assert.equal(by['/api/notify'].cron, null);
+  assert.equal(r.resumo.rotas_http_backend, 6);
+  const f = V('ferramentas.json');
+  assert.deepEqual(f.stack.backend_http, ['vercel-functions']);
+  assert.deepEqual(f.integracoes.webhooks_recebidos, ['POST /api/events-resend'], 'webhook recebido pelo segredo de assinatura; URL de alerta de saída não conta');
+  const mod = V('modulos.json').modulos.find((m) => m.modulo === 'api');
+  assert.deepEqual(mod.telas, [], 'função serverless não é contada duas vezes como tela');
+  assert.equal(mod.rotas_http.length, 6);
+  assert.ok(!V('modulos.json').modulos.find((m) => m.modulo === 'api/_lib').telas.length);
+  const logica = Object.fromEntries(V('logica.json').arquivos.map((x) => [x.arquivo, x]));
+  assert.equal(logica['api/leads.ts'].orfao, false, 'ponto de entrada da Vercel não é órfão');
+  assert.equal(logica['scripts/ctx/generate.py'].orfao, false, 'script chamado por npm não é órfão');
+  assert.deepEqual(V('convencoes.json').onde_ficam.telas, ['src/pages (3)']);
+  const idx = V('INDEX.md');
+  assert.match(idx, /`POST \/api\/leads` → api\/leads\.ts/);
+  assert.match(idx, /`GET,HEAD \/api\/sitemap` → api\/sitemap\.ts \(rewrites: \/sitemap\.xml\)/);
+  assert.match(idx, /`GET \/api\/retention` → api\/retention\.ts \(cron 0 3 \* \* \*\)/);
+});
+
+test('ferramentas (scripts/, docs/) e testes não poluem hooks, rotas HTTP, flags, papéis, hosts nem o banco', () => {
+  assert.deepEqual(V('hooks.json').hooks.map((h) => h.arquivo), []);
+  const f = V('ferramentas.json');
+  assert.deepEqual(f.feature_flags.flags, [{ flag: 'NEW_CHECKOUT_ENABLED', arquivos: 1 }], 'flag real por sufixo _ENABLED; flag de exemplo em scripts/ fora');
+  assert.deepEqual(f.permissoes.papeis_no_codigo, [{ papel: 'anon', ocorrencias: 1 }], 'role="status"/role=\'alert\' são ARIA, não papel de permissão');
+  assert.deepEqual(f.integracoes.hosts_externos.map((h) => h.host), ['instagram.com']);
+  const b = V('banco.json');
+  assert.equal(b.tabelas.fake_table, undefined);
+  assert.ok(!b.fonte.includes('drizzle'));
+  assert.ok(V('scripts.json').scripts.some((s) => s.arquivo === 'scripts/tooling.mjs'), 'o script continua no inventário de scripts');
+});
+
+test('supabase em subpasta: migrations, pgTAP, schema qualificado, drift por schema e RPCs', () => {
+  const b = V('banco.json');
+  assert.deepEqual(b.fonte, ['site-supabase/supabase/migrations', 'src/types/db.types.ts']);
+  assert.equal(b.migrations, 1, 'SQL de docs/ não é migration');
+  assert.equal(b.tabelas.catalog_only, undefined);
+  assert.deepEqual(b.funcoes, ['claim_jobs', 'create_contact', 'create_lead', 'get_mine', 'get_sel', 'purge_old', 'queue_health', 'site_private.touch', 'unused_fn'], 'schema preservado; drop de uma sobrecarga antiga (get_sel(uuid)) não apaga a função; drop da única assinatura (site_private.gone) apaga');
+  assert.deepEqual(b.views, ['site_private.v_leads']);
+  assert.deepEqual(b.enums, { 'site_private.lead_status': ['new', 'done'] });
+  assert.deepEqual(b.triggers, [{ nome: 'trg_touch', quando: 'before', evento: 'update', tabela: 'site_private.leads', funcao: 'site_private.touch' }]);
+  const t = b.tabelas['site_private.leads'];
+  assert.deepEqual(t.indices.map((i) => i.nome), ['leads_email_idx'], 'drop index com schema');
+  assert.deepEqual(t.colunas_types, { email: 'string', extra: 'string', id: 'string' });
+  assert.deepEqual(t.drift, { so_na_migration: [], so_no_types: ['extra'] });
+  assert.deepEqual(V('baseline.json').alertas.tabelas_com_drift_migration_vs_types, ['site_private.leads']);
+  assert.deepEqual(b.rpcs_usadas_no_codigo.map((r) => r.nome), ['claim_jobs', 'create_contact', 'create_lead', 'get_mine', 'purge_old', 'queue_health']);
+  assert.ok(b.rpcs_usadas_no_codigo.every((r) => r.definida));
+  const t2 = V('testes.json');
+  assert.deepEqual(t2.sql, ['site-supabase/supabase/tests/database/leads.test.sql']);
+  const c = V('convencoes.json');
+  assert.equal(c.onde_ficam.migrations, 'site-supabase/supabase/migrations');
+  assert.ok(V('ferramentas.json').configs.includes('site-supabase/supabase/config.toml'));
+});
+
+test('rotas: proteção vem do wrapper, não do nome da página; menu externo não é destino quebrado', () => {
+  const by = Object.fromEntries(V('rotas.json').urls.map((u) => [u.caminho, u]));
+  assert.equal(by['/auth/confirm'].protegida, false, 'AuthConfirmPage sem wrapper é pública');
+  assert.equal(by['/conta'].protegida, true);
+  assert.deepEqual(by['/conta'].wrappers, ['RequireAuth']);
+  assert.deepEqual(by['/conta'].rpcs, ['get_mine']);
+  assert.deepEqual(V('baseline.json').alertas.menu_sem_destino, ['Fantasma -> /nada']);
+  assert.ok(V('rotas.json').menu.some((m) => m.rotulo === 'Instagram'));
+});
+
+test('env: variável de plataforma ou só citada no .env.example não vira alerta', () => {
+  const env = V('ferramentas.json').env;
+  assert.deepEqual(env.usadas_mas_nao_declaradas, ['SITE_URL', 'VITE_MISSING', 'VITE_NEW_CHECKOUT_ENABLED']);
+  assert.deepEqual(env.declaradas_no_env_example, ['ALERT_WEBHOOK_URL', 'CRON_SECRET', 'RESEND_WEBHOOK_SECRET', 'SITE_SECRET']);
+});
+
+test('convenções: strict via references e tsconfig com comentários; alias de fallback não é convenção; npm_scripts por nome exato', () => {
+  const c = V('convencoes.json');
+  assert.equal(c.typescript.strict, true);
+  assert.deepEqual(c.alias_imports, {});
+  const s = Object.fromEntries(V('scripts.json').scripts.map((x) => [x.arquivo, x]));
+  assert.deepEqual(s['scripts/ctx/generate.py'].npm_scripts, ['ctx:gen'], 'test_generate.py não é generate.py');
+  const g = V('grafo.json');
+  assert.deepEqual(g.orfaos, [], 'docs/, scripts/ e public/ são pontos de entrada, não código morto');
+});
+
+test('tsconfig com comentários: paths continuam valendo', (t) => {
+  const dir = miniRepo({ 'package.json': '{}', 'tsconfig.json': '{\n  // alias do projeto\n  "compilerOptions": { "paths": { "#/*": ["./lib/*"], }, },\n}', 'lib/b.ts': 'export const b = 1;', 'src/a.ts': "import { b } from '#/b';\nexport const a = b;" }, { commit: false });
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  assert.equal(gerar(dir, ['--quiet']).status, 0);
+  const R = leitor(dir);
+  assert.deepEqual(R('grafo-arestas.json').arestas['src/a.ts'], ['lib/b.ts']);
+  assert.deepEqual(R('convencoes.json').alias_imports, { '(raiz)': { '#/': 'lib/' } });
+});
+
+test('graphify: commit vem do project-meta.json, relatório é detectado e as instruções seguem os scripts do repo', () => {
+  const g = V('grafo-graphify.json');
+  assert.equal(g.presente, true);
+  assert.equal(g.commit_do_grafo, vhead);
+  assert.equal(g.grafo_atual, true);
+  assert.equal(g.relatorio, 'graphify-out/GRAPH_REPORT.md');
+  assert.match(g.como_gerar, /^npm run graph:update/);
+  const idx = V('INDEX.md');
+  assert.doesNotMatch(idx, /DESATUALIZADO/);
+  assert.match(idx, /`npm run graph:query -- "<pergunta>"`/);
+  assert.doesNotMatch(idx, /uvx|bun run/);
+});
+
+test('graphify: sem commit conhecido não afirma desatualizado; grafo de outro commit afirma; json quebrado vira erro de seção', (t) => {
+  const dir = miniRepo({ 'package.json': '{}', 'src/a.ts': 'export const a = 1;' });
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const R = leitor(dir);
+  w(dir, 'graphify-out/graph.json', JSON.stringify({ nodes: [], links: [] }));
+  assert.equal(gerar(dir, ['--quiet']).status, 0);
+  assert.match(R('INDEX.md'), /commit do grafo não informado/);
+  assert.doesNotMatch(R('INDEX.md'), /DESATUALIZADO/);
+  assert.match(R('INDEX.md'), /consulta local: `graphify query "<pergunta>"`/, 'sem script graph:query no package.json, cai no CLI');
+  w(dir, 'graphify-out/graph.json', JSON.stringify({ built_at_commit: '0'.repeat(40), nodes: [], links: [] }));
+  assert.equal(gerar(dir, ['--quiet']).status, 0);
+  assert.match(R('INDEX.md'), /grafo do commit `00000000` \(DESATUALIZADO em relação ao HEAD\)/);
+  w(dir, 'graphify-out/graph.json', '{ "nodes": [');
+  const r = gerar(dir, ['--quiet']);
+  assert.equal(r.status, 0, 'seção opcional quebrada não derruba o gerador');
+  assert.match(r.stderr, /ERRO na seção graphify/, 'erro de seção aparece em stderr mesmo com --quiet');
+  assert.deepEqual(R('manifest.json').erros.map((e) => e.secao), ['graphify']);
+  assert.equal(R('grafo-graphify.json').presente, false);
+  fs.rmSync(path.join(dir, 'graphify-out'), { recursive: true });
+  assert.equal(gerar(dir, ['--quiet']).status, 0);
+  assert.match(R('INDEX.md'), /não gerado neste run\. uvx --from "graphifyy\[sql\]" graphify update \./, 'sem script graph:update no package.json, cai no CLI');
+});
+
+test('segredos: linha reportada é a do arquivo, mesmo depois de comentário de bloco', (t) => {
+  const jwt = ['eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9', 'eyJzdWIiOiIxMjM0NTY3ODkwIn0', 'abc123'].join('.');
+  const dir = miniRepo({ 'package.json': '{}', 'src/a.ts': `/*\n * cabeçalho\n * de três linhas\n */\nexport const a = 1;\nconst k = '${jwt}';\n` }, { commit: false });
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  assert.equal(gerar(dir, ['--quiet']).status, 0);
+  assert.deepEqual(leitor(dir)('baseline.json').alertas.possiveis_segredos_no_codigo, ['src/a.ts:6']);
+});
+
+test('determinismo: duas execuções iguais byte a byte (menos gerado_em) e ordenação independente do locale', (t) => {
+  const files = { 'package.json': '{}' };
+  for (const n of ['zebra', 'ärende', 'apple', 'écran', 'Zulu', 'über']) files[`src/lib/${n}.ts`] = 'export const x = 1;';
+  const dir = miniRepo(files);
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const snapshot = () => Object.fromEntries(fs.readdirSync(path.join(dir, 'inventario/ia')).sort().map((f) => [f, fs.readFileSync(path.join(dir, 'inventario/ia', f), 'utf8').replace(/"gerado_em": "[^"]+"/, '"gerado_em": "X"')]));
+  assert.equal(gerar(dir, ['--quiet'], { LC_ALL: 'C', TZ: 'UTC' }).status, 0);
+  const a = snapshot();
+  assert.equal(gerar(dir, ['--quiet'], { LC_ALL: 'C', TZ: 'UTC' }).status, 0);
+  assert.deepEqual(snapshot(), a, 'segunda execução idêntica');
+  assert.equal(gerar(dir, ['--quiet'], { LC_ALL: 'sv_SE.UTF-8', LANG: 'sv_SE.UTF-8', TZ: 'Asia/Tokyo' }).status, 0);
+  assert.deepEqual(snapshot(), a, 'locale e fuso do ambiente não mudam a saída');
+});
+
+test('git: data do commit sai em UTC com sufixo Z, qualquer que seja o fuso do autor ou a versão do git', (t) => {
+  const dir = miniRepo({ 'package.json': '{}', 'src/a.ts': 'export const a = 1;' }, { commitEnv: { GIT_AUTHOR_DATE: '2026-01-02T03:04:05-03:00', GIT_COMMITTER_DATE: '2026-01-02T03:04:05-03:00' } });
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  assert.equal(gerar(dir, ['--quiet']).status, 0);
+  assert.equal(leitor(dir)('baseline.json').git.data_commit, '2026-01-02T06:04:05Z');
+  assert.match(leitor(dir)('INDEX.md'), /\(2026-01-02T06:04:05Z\)/);
+});
+
+test('CLI: --help não gera nada; flag desconhecida, valor ausente e raiz inexistente saem com 2', (t) => {
+  const dir = miniRepo({ 'package.json': '{}', 'src/a.ts': 'export const a = 1;' }, { commit: false });
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const semSaida = () => assert.ok(!fs.existsSync(path.join(dir, 'inventario')), 'nada escrito');
+  for (const flag of ['--help', '-h']) { const h = gerar(dir, [flag]); assert.equal(h.status, 0); assert.match(h.stdout, /^Uso: node scripts\/ai-context\/gerar\.mjs/); assert.match(h.stdout, /--root/); assert.match(h.stdout, /--out/); assert.match(h.stdout, /--quiet/); semSaida(); }
+  for (const args of [['--bogus'], ['--out'], ['--out', '--quiet'], ['--root'], ['--out='], ['solto'], ['--root', path.join(dir, 'nao-existe')], ['--root', path.join(dir, 'package.json')]]) {
+    const r = gerar(dir, args);
+    assert.equal(r.status, 2, args.join(' '));
+    assert.match(r.stderr, /\[contexto-ia\] ERRO: /, args.join(' '));
+    assert.equal(r.stdout, '', args.join(' '));
+    semSaida();
+  }
+  assert.match(gerar(dir, ['--bogus']).stderr, /argumento desconhecido: --bogus/);
+  assert.match(gerar(dir, ['--out']).stderr, /--out exige um valor/);
+  assert.match(gerar(dir, ['--root', path.join(dir, 'nao-existe')]).stderr, /não existe ou não é um diretório/);
+});
+
+test('CLI: --out=<dir>, caminho com espaço, --out relativo à raiz, env e recusas de destino perigoso', (t) => {
+  const dir = miniRepo({ 'package.json': '{}', 'src/a.ts': 'export const a = 1;' }, { commit: false });
+  const fora = fs.mkdtempSync(path.join(os.tmpdir(), 'ctx-ia-fora-'));
+  t.after(() => { fs.rmSync(dir, { recursive: true, force: true }); fs.rmSync(fora, { recursive: true, force: true }); });
+  const ok = (r) => assert.equal(r.status, 0, r.stderr);
+  ok(gerar(fora, [`--root=${dir}`, '--out=saida com espaço/ia', '--quiet']));
+  assert.ok(fs.existsSync(path.join(dir, 'saida com espaço/ia/manifest.json')), '--out relativo resolve contra --root, não contra o cwd');
+  assert.deepEqual(fs.readdirSync(fora), [], 'cwd intocado');
+  ok(gerar(dir, ['--quiet'], { AI_CONTEXT_DIR: 'via-env' }));
+  assert.ok(fs.existsSync(path.join(dir, 'via-env/INDEX.md')));
+  ok(gerar(fora, ['--quiet'], { AI_CONTEXT_ROOT: dir, AI_CONTEXT_DIR: path.join(fora, 'abs') }));
+  assert.equal(leitor(fora, 'abs')('baseline.json').contagens.arquivos_codigo, 1, 'AI_CONTEXT_ROOT + AI_CONTEXT_DIR absoluto');
+  const normal = gerar(dir, []);
+  ok(normal);
+  assert.match(normal.stdout, /\[contexto-ia\] escrito em inventario\/ia\/ \(17 arquivos\)/);
+  for (const out of ['.', '..', dir]) { const r = gerar(dir, ['--out', out]); assert.equal(r.status, 2, out); assert.match(r.stderr, /não pode ser a raiz do repositório/); }
+  assert.ok(!fs.existsSync(path.join(dir, 'manifest.json')), 'nada escrito na raiz');
+  const r = gerar(dir, ['--out', 'package.json']);
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /\[contexto-ia\] ERRO: não foi possível escrever em .*package\.json/);
+  assert.doesNotMatch(r.stderr, /\n\s+at /, 'sem stack trace cru');
+  assert.equal(fs.readFileSync(path.join(dir, 'package.json'), 'utf8'), '{}');
 });

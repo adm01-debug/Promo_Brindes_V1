@@ -90,3 +90,68 @@ test('reconhece a execução direta com separadores POSIX ou Windows', () => {
   assert.equal(isDirectExecution('/workspace/tests/runner.mjs'), false);
   assert.equal(isDirectExecution(undefined), false);
 });
+
+test('CLI falha com exit 1, stdout vazio e uma linha acionável para entrada inválida', () => {
+  for (const [input, expected] of [
+    ['', /^Nenhum JSON recebido por stdin[^\n]*\n$/],
+    [' \r\n', /^Nenhum JSON recebido por stdin[^\n]*\n$/],
+    ['[{', /^JSON inválido em stdin: [^\n]+\n$/],
+    ['{"workflow_runs":[]}', /^A lista de execuções do CI deve ser um array\.\n$/],
+    ['null', /^A lista de execuções do CI deve ser um array\.\n$/],
+  ]) {
+    const result = spawnSync(process.execPath, ['scripts/ci-health-metrics.mjs'], { input, encoding: 'utf8' });
+    assert.equal(result.status, 1, JSON.stringify(input));
+    assert.equal(result.stdout, '');
+    assert.match(result.stderr, expected);
+  }
+});
+
+test('CLI aceita JSON com BOM e quebras CRLF e imprime uma única linha', () => {
+  const input = '\uFEFF[\r\n{"conclusion":"success"},\r\n{"conclusion":"stale"}\r\n]\r\n';
+  const result = spawnSync(process.execPath, ['scripts/ci-health-metrics.mjs'], { input, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.stdout, '{"total":2,"successful":1,"failed":1,"inconclusive":0,"terminal":2,"successRate":50,"failureRate":50}\n');
+  assert.equal(result.stderr, '');
+});
+
+test('itens fora do formato da API contam como inconclusivos, nunca como sucesso', () => {
+  assert.deepEqual(calculateCiHealthMetrics([
+    null,
+    1,
+    'success',
+    [],
+    {},
+    { conclusion: 1 },
+    { conclusion: 'SUCCESS' },
+    { conclusion: ' success ' },
+    { conclusion: '__proto__' },
+    { conclusion: 'constructor' },
+  ]), {
+    total: 10,
+    successful: 0,
+    failed: 0,
+    inconclusive: 10,
+    terminal: 0,
+    successRate: null,
+    failureRate: null,
+  });
+  assert.deepEqual(calculateCiHealthMetrics([]), {
+    total: 0,
+    successful: 0,
+    failed: 0,
+    inconclusive: 0,
+    terminal: 0,
+    successRate: null,
+    failureRate: null,
+  });
+});
+
+test('toda conclusão de falha da API do GitHub entra no denominador terminal', () => {
+  const metrics = calculateCiHealthMetrics(
+    ['failure', 'timed_out', 'action_required', 'startup_failure', 'stale'].map((conclusion) => ({ conclusion })),
+  );
+  assert.equal(metrics.failed, 5);
+  assert.equal(metrics.terminal, 5);
+  assert.equal(metrics.successRate, 0);
+  assert.equal(metrics.failureRate, 100);
+});

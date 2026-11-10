@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { writeFileSync } from 'node:fs';
+import { realpathSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -21,8 +21,10 @@ import { fileURLToPath } from 'node:url';
 // Requer o stack local do Supabase rodando.
 
 const DB_URL = 'postgresql://postgres:postgres@127.0.0.1:56322/postgres';
-const JOB_COUNT = Number(process.env.SOAK_JOB_COUNT || 1000);
-const FAILURE_RATE = Number(process.env.SOAK_FAILURE_RATE || 0.1);
+const DEFAULT_JOB_COUNT = 1000;
+const DEFAULT_FAILURE_RATE = 0.1;
+const MAX_JOB_COUNT = 100_000;
+const PSQL_TIMEOUT_MS = 5 * 60 * 1000;
 const BATCH_SIZE = 25; // notification_policy().batch_max
 const MAX_ATTEMPTS = 5; // notification_policy().max_attempts
 const MIN_LATENCY_MS = 50;
@@ -33,21 +35,62 @@ const HARD_CAP_MS = 20 * 60 * 1000; // segurança: nunca roda mais que 20 min
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const RUN_ID = Date.now().toString(36);
 
+// Valida antes de tocar no banco: `abc` virava NaN dentro do SQL, e `10` (querendo dizer
+// 10%) fazia toda tentativa falhar.
+export function parseSoakConfig(env = process.env) {
+  const rawJobCount = env.SOAK_JOB_COUNT?.trim();
+  const jobCount = rawJobCount ? Number(rawJobCount) : DEFAULT_JOB_COUNT;
+  if (!Number.isInteger(jobCount) || jobCount < 1 || jobCount > MAX_JOB_COUNT) {
+    throw new Error(`SOAK_JOB_COUNT deve ser um inteiro entre 1 e ${MAX_JOB_COUNT}.`);
+  }
+  const rawFailureRate = env.SOAK_FAILURE_RATE?.trim();
+  const failureRate = rawFailureRate ? Number(rawFailureRate) : DEFAULT_FAILURE_RATE;
+  if (!Number.isFinite(failureRate) || failureRate < 0 || failureRate > 1) {
+    throw new Error('SOAK_FAILURE_RATE deve ser um número entre 0 e 1 (ex.: 0.1 para 10%).');
+  }
+  return { jobCount, failureRate };
+}
+
 function psql(sql) {
-  return execFileSync('psql', [DB_URL, '-At', '-c', sql], { encoding: 'utf8' }).trim();
+  try {
+    return execFileSync('psql', [DB_URL, '-At', '-c', sql], {
+      encoding: 'utf8',
+      maxBuffer: 256 * 1024 * 1024,
+      timeout: PSQL_TIMEOUT_MS,
+    }).trim();
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      throw new Error('psql não encontrado no PATH: instale o cliente do PostgreSQL para rodar o soak test.', { cause: error });
+    }
+    if (error.code === 'ETIMEDOUT') {
+      throw new Error(`psql não respondeu em ${PSQL_TIMEOUT_MS / 1000}s e foi interrompido.`, { cause: error });
+    }
+    if (error.status === 2) {
+      throw new Error('Não foi possível conectar ao Postgres local do Supabase em 127.0.0.1:56322. Suba o stack e recrie o banco antes do soak test: npm run db:site:reset', { cause: error });
+    }
+    throw new Error(`psql falhou (código ${error.status ?? error.signal ?? error.code}; a mensagem do banco está acima).`, { cause: error });
+  }
 }
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function percentile(sortedValues, p) {
+export function percentile(sortedValues, p) {
   if (sortedValues.length === 0) return null;
   const index = Math.min(sortedValues.length - 1, Math.ceil((p / 100) * sortedValues.length) - 1);
   return sortedValues[Math.max(0, index)];
 }
 
+// `exhausted` é o estado terminal que o próprio claim grava (desde a migration
+// 20260922120000) em quem esgotou as tentativas; `failed` com tentativas esgotadas cobre
+// o intervalo até o claim seguinte.
+export function isTerminalDelivery(row) {
+  return row.status === 'sent' || row.status === 'exhausted' || (row.status === 'failed' && row.attempts >= MAX_ATTEMPTS);
+}
+
 async function main() {
+  const { jobCount: JOB_COUNT, failureRate: FAILURE_RATE } = parseSoakConfig();
   console.log(`Semeando ${JOB_COUNT} quote_requests sintéticas (run ${RUN_ID})...`);
   psql(`
     insert into site_private.quote_requests (client_request_id, request_hash, source, contact_name, company, email, phone, client_submitted_at)
@@ -142,8 +185,7 @@ async function main() {
 
   let inconclusiveTotal = 0;
   for (const row of finalRows) {
-    const isTerminal = row.status === 'sent' || (row.status === 'failed' && row.attempts >= MAX_ATTEMPTS);
-    if (!isTerminal) {
+    if (!isTerminalDelivery(row)) {
       inconclusiveTotal += 1;
       continue;
     }
@@ -209,14 +251,24 @@ async function main() {
       'npm run db:site:soak-test',
       '```',
       '',
-      `Parâmetros ajustáveis via env: \`SOAK_JOB_COUNT\` (padrão ${JOB_COUNT}), \`SOAK_FAILURE_RATE\` (padrão ${FAILURE_RATE}).`,
+      `Parâmetros ajustáveis via env: \`SOAK_JOB_COUNT\` (padrão ${DEFAULT_JOB_COUNT}), \`SOAK_FAILURE_RATE\` (padrão ${DEFAULT_FAILURE_RATE}).`,
       '',
     ].join('\n'),
   );
   console.log(`Escrito ${reportPath}`);
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+function isMainModule() {
+  try {
+    return Boolean(process.argv[1]) && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url));
+  } catch {
+    return false;
+  }
+}
+
+if (isMainModule()) {
+  main().catch((error) => {
+    console.error(`Soak test interrompido: ${error instanceof Error ? error.message : String(error)}`);
+    process.exitCode = 1;
+  });
+}
