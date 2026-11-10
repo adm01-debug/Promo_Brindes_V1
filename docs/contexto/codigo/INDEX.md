@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `af5cfd1ee29b11c729022c4fd58adf22471fe740` (2026-11-10T10:29:51Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `860a0a06becdb6b90d8ac3dd7885cccc0ab45149` (2026-11-10T18:27:19Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -186,8 +186,8 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - vercel.json (24)
 - src/components/Layout.tsx (22)
 - src/pages/QuotePage.tsx (22)
+- .github/workflows/quality.yml (21)
 - site-supabase/supabase/tests/database/lead_storage.test.sql (21)
-- .github/workflows/quality.yml (20)
 - docs/DATABASE_DICTIONARY.md (20)
 - tests/api/lead-requests.test.ts (19)
 - .github/workflows/release.yml (18)
@@ -361,6 +361,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-10 `860a0a0` infra: liga a comparação real do guard de instruções no CI (#121)
 - 2026-11-10 `af5cfd1` chore(deps): bump the actions-minor-and-patch group with 2 updates (#125)
 - 2026-11-09 `7eb1b5d` chore(deps): bump graphifyy para 0.9.97 com o companheiro casado (#123)
 - 2026-11-09 `713ebe4` feat(scripts): porta scripts autônomos de contexto de IA do Zapp Web V2
@@ -375,7 +376,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-10-31 `b193119` docs: inventário de auditorias anteriores e dataset de PRs (analise-prs/) (#110)
 - 2026-10-29 `cc133bd` docs(ci): registra falha de quota do Copilot na main (#109)
 - 2026-10-27 `b49f7fc` chore: alinha documentos do contrato do catálogo ao ledger canônico (#108)
-- 2026-10-27 `e7ebf1b` fix(ci): compatibiliza ESLint 10 com regras de acessibilidade
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

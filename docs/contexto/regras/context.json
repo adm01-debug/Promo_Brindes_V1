@@ -1,9 +1,9 @@
 {
  "meta": {
-  "sha": "af5cfd1ee29b11c729022c4fd58adf22471fe740",
+  "sha": "860a0a06becdb6b90d8ac3dd7885cccc0ab45149",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-10 10:33 UTC",
+  "generated_at": "2026-11-10 18:29 UTC",
   "files_total": 542,
   "code_files": 351,
   "code_lines": 49835
@@ -24518,10 +24518,19 @@
   }
  },
  "git": {
-  "sha": "af5cfd1ee29b11c729022c4fd58adf22471fe740",
+  "sha": "860a0a06becdb6b90d8ac3dd7885cccc0ab45149",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "860a0a0",
+    "date": "2026-11-10",
+    "author": "adm01-debug",
+    "subject": "infra: liga a comparação real do guard de instruções no CI (#121)",
+    "files": [
+     ".github/workflows/quality.yml"
+    ]
+   },
    {
     "sha": "af5cfd1",
     "date": "2026-11-10",
@@ -24952,25 +24961,16 @@
      "src/pages/ProductPage.tsx",
      "src/styles.css"
     ]
-   },
-   {
-    "sha": "4ea5b53",
-    "date": "2026-10-06",
-    "author": "adm01-debug",
-    "subject": "docs(design): exige proposta visual aprovada antes de implementar (#90)",
-    "files": [
-     "AGENTS.md"
-    ]
    }
   ],
   "hot_files": [
    [
-    "AGENTS.md",
+    "package.json",
     8
    ],
    [
-    "package.json",
-    8
+    "AGENTS.md",
+    7
    ],
    [
     "package-lock.json",
@@ -25003,6 +25003,10 @@
    [
     "RELATORIO_CI.md",
     3
+   ],
+   [
+    ".github/workflows/quality.yml",
+    2
    ],
    [
     ".github/workflows/codeql.yml",
@@ -25038,10 +25042,6 @@
    ],
    [
     "docs/GRAPHIFY.md",
-    2
-   ],
-   [
-    "src/components/Layout.tsx",
     2
    ]
   ]

@@ -318,7 +318,9 @@
    "npm_scripts": [
     "agents:instructions:check"
    ],
-   "workflows": [],
+   "workflows": [
+    "quality.yml"
+   ],
    "orfao": false
   },
   {

@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "af5cfd1ee29b11c729022c4fd58adf22471fe740",
+  "commit": "860a0a06becdb6b90d8ac3dd7885cccc0ab45149",
   "branch": "main",
-  "data_commit": "2026-11-10T10:29:51Z",
+  "data_commit": "2026-11-10T18:27:19Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "860a0a0",
+    "data": "2026-11-10",
+    "assunto": "infra: liga a comparação real do guard de instruções no CI (#121)"
+   },
    {
     "sha": "af5cfd1",
     "data": "2026-11-10",
@@ -126,14 +131,9 @@
     "sha": "4c60959",
     "data": "2026-10-20",
     "assunto": "docs(ativos): importa mockups e relatório que estavam fora do repo (#103)"
-   },
-   {
-    "sha": "3f82233",
-    "data": "2026-10-06",
-    "assunto": "fix(ux): elimina perdas de dados em fluxos assíncronos (#89)"
    }
   ],
-  "arquivos_mudados_7d": 56,
+  "arquivos_mudados_7d": 57,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "docs/audits/pending-features-20261011",
@@ -172,6 +172,10 @@
     "mudancas": 2
    },
    {
+    "pasta": ".github/workflows/quality.yml",
+    "mudancas": 2
+   },
+   {
     "pasta": ".graphify.project.json",
     "mudancas": 2
    },
@@ -189,10 +193,6 @@
    },
    {
     "pasta": "e2e/smoke.spec.ts",
-    "mudancas": 2
-   },
-   {
-    "pasta": "eslint.config.js",
     "mudancas": 2
    }
   ],
@@ -226,12 +226,12 @@
     "mudancas": 22
    },
    {
-    "arquivo": "site-supabase/supabase/tests/database/lead_storage.test.sql",
+    "arquivo": ".github/workflows/quality.yml",
     "mudancas": 21
    },
    {
-    "arquivo": ".github/workflows/quality.yml",
-    "mudancas": 20
+    "arquivo": "site-supabase/supabase/tests/database/lead_storage.test.sql",
+    "mudancas": 21
    },
    {
     "arquivo": "docs/DATABASE_DICTIONARY.md",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 18
+    "commits": 19
    },
    {
     "autor": "dependabot[bot]",

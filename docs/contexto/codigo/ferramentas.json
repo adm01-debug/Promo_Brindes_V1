@@ -443,7 +443,9 @@
    "permissoes": [
     "contents: read"
    ],
-   "scripts_usados": [],
+   "scripts_usados": [
+    "scripts/validate-agent-instructions.mjs"
+   ],
    "npm_scripts": [
     "build",
     "check",
