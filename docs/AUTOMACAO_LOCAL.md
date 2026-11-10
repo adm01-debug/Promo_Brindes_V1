@@ -1,0 +1,103 @@
+# Automação local — Promo_Brindes_V1
+
+O dispatcher `scripts/automation.mjs` liga as suites, o motor de manutenção e o adaptador de grafo. O perfil versionado `scripts/automation.config.json` é a fonte dos aliases e do registro exato de scripts. Apenas ferramentas determinísticas locais: não há chamadas de IA nem cobrança de API de IA. O CI usa minutos do GitHub Actions sujeitos ao plano da conta; execução local usa os recursos da máquina.
+
+## Comandos
+
+| Alias                        | Comando executado                                       | Efeito                                                                                |
+| ---------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `automation:doctor`          | `node scripts/automation.mjs doctor`                    | Verifica arquivos, aliases, registros e instalação local de hooks.                    |
+| `automation:test`            | `node scripts/automation.mjs test`                      | Roda exclusivamente as suites registradas abaixo.                                     |
+| `automation:check`           | `node scripts/automation.mjs check --ref HEAD`          | Inspeciona a referência HEAD em worktree isolada.                                     |
+| `automation:heal`            | `node scripts/automation.mjs heal --ref origin/main`    | Propõe e valida correções limitadas a partir de origin/main; não faz push.            |
+| `automation:nightly`         | `node scripts/automation.mjs nightly --ref origin/main` | Atualiza o grafo e tenta manutenção isolada; relata as duas falhas independentemente. |
+| `automation:graph`           | `node scripts/automation.mjs graph`                     | Encaminha subcomandos do grafo; acrescente status, query, path ou explain.            |
+| `automation:status`          | `node scripts/automation.mjs graph status`              | Mostra a situação local do grafo.                                                     |
+| `automation:install-hooks`   | `node scripts/automation.mjs install-hooks`             | Instala pontes locais reversíveis, encadeando hooks originais.                        |
+| `automation:uninstall-hooks` | `node scripts/automation.mjs uninstall-hooks`           | Restaura o hooksPath anterior, recusando sobrescrever alteração de terceiros.         |
+
+O comando estático para CI é `node scripts/automation.mjs doctor --static`. Ele verifica contratos; não comprova merge, execução remota, timer ou ponte instalada. `doctor` sem `--static` também exige a instalação local. Ausência de dependência é erro explícito; o dispatcher não instala pacotes automaticamente.
+
+## Gatilhos e ativação
+
+| Gatilho                                                  | Cadeia real de execução                                                                                                                                                          | Ativação                                                                                                                                                                                                              |
+| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PR para main / push em main / dispatch                   | `.github/workflows/automation-local.yml` → `doctor --static` → `test` → suites exatas do perfil                                                                                  | Workflow versionado; atividade remota depende de publicação/merge e run observado.                                                                                                                                    |
+| pre-commit com tooling staged                            | Ponte privada → hook original → `automation.mjs hook pre-commit` → suites registradas                                                                                            | `automation:install-hooks` instala por clone; não é instalado pelo prepare.                                                                                                                                           |
+| pre-push                                                 | Ponte privada → hook original → doctor local → suites registradas                                                                                                                | A mesma instalação local; erro bloqueia a operação.                                                                                                                                                                   |
+| Fontes staged / post-commit / post-merge / post-checkout | Ponte privada → hook original → adaptador de grafo marca estado sujo                                                                                                             | Não reconstrói grafo durante commit nem altera staging.                                                                                                                                                               |
+| Noturno local, previsto 04:30                            | `repo-maintenance.service` → `repo-automation-nightly` → `repo-automation nightly` → `central.mjs` → suites do snapshot → nightly do snapshot → graph ensure + motor bridge heal | Configuração do timer fica fora do repositório, sob responsabilidade do runtime local. A cadeia instalada usa o snapshot aprovado antes do merge; presença dos arquivos versionados não comprova serviço/timer ativo. |
+
+A ponte privada fica em `.tools/repo-automation/`; não substitui os arquivos Husky. Preserva erros, argumentos e stdin dos hooks originais, incluindo commit-msg. `prepare`, hooks e guards existentes foram preservados. Para reverter, use `automation:uninstall-hooks`. `nightly.command` declara o comando real do core. O timer instalado usa o snapshot aprovado por projeto antes do merge; o alias `automation:nightly` chama o core versionado manualmente após integração. Não há callback shell redundante no repositório nem `nightly.file` fictício. A existência do perfil não comprova agendamento ativo. O runtime deve conferir `systemctl --user status` e a cadeia do callback instalado antes de declarar o timer ativo.
+
+## Suites efetivamente executadas
+
+- `scripts/automation.unit.mjs`
+- `scripts/maintenance/maintenance.unit.mjs`
+- `scripts/graphify-local.unit.mjs`
+
+As suites usam fixtures descartáveis e não executam os scripts operacionais do inventário. O motor mantém isolamento de rede, validações obrigatórias, escopo e quotas; um gate herdado vermelho bloqueia o patch. Nenhuma referência, tipo gerado, configuração de produção ou regra de negócio é alterada para forçar verde. O grafo usa o perfil específico `graphify.local.json`; seu estado local fica em `.tools/graphify/local-state/`.
+
+## Registro exato dos demais scripts
+
+Os registros `legacy` abaixo preservam ferramentas anteriores e seus chamadores; não são incluídos automaticamente no novo pipeline. Para arquivos TypeScript de apoio sem runner comprovado, o comando listado só valida o inventário; os chamadores originais continuam sendo a referência de execução. Referência literal indica onde o arquivo é citado, sem garantir que esse caminho rode nem autorização para executar operações contra serviços. Sem referência, o arquivo é mantido manual porque função, parâmetros e ambiente precisam de revisão antes de ativar qualquer gatilho. Scripts novos não cobertos por registro fazem `doctor --static` falhar; não existe registro genérico `scripts/**` para ocultá-los.
+
+| Arquivo exato                                 | Invocação manual de inventário                       | Chamadores literais / justificativa                                                  |
+| --------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `scripts/_lib/supabaseDbQuery.mjs`            | `node scripts/_lib/supabaseDbQuery.mjs`              | Sem chamador literal; manter manual e revisar parâmetros/ambiente antes de executar. |
+| `scripts/ai-context/cenarios.mjs`             | `node scripts/ai-context/cenarios.mjs`               | .github/workflows/contexto.yml                                                       |
+| `scripts/ai-context/gerar.mjs`                | `node scripts/ai-context/gerar.mjs`                  | package.json:scripts, .github/workflows/contexto.yml                                 |
+| `scripts/ai-context/gerar.unit.mjs`           | `node --test scripts/ai-context/gerar.unit.mjs`      | package.json:scripts, .github/workflows/contexto.yml                                 |
+| `scripts/check-catalog-public-contract.mjs`   | `node scripts/check-catalog-public-contract.mjs`     | package.json:scripts, .github/workflows/catalog-contract.yml                         |
+| `scripts/check-performance-budget.mjs`        | `node scripts/check-performance-budget.mjs`          | package.json:scripts                                                                 |
+| `scripts/ci-health-metrics.mjs`               | `node scripts/ci-health-metrics.mjs`                 | .github/workflows/ci-health.yml                                                      |
+| `scripts/generate-database-dictionary.mjs`    | `node scripts/generate-database-dictionary.mjs`      | package.json:scripts                                                                 |
+| `scripts/generate-database-schema-doc.mjs`    | `node scripts/generate-database-schema-doc.mjs`      | package.json:scripts                                                                 |
+| `scripts/generate-site-api-jwt.mjs`           | `node scripts/generate-site-api-jwt.mjs`             | package.json:scripts                                                                 |
+| `scripts/graphify-quality.mjs`                | `node scripts/graphify-quality.mjs`                  | scripts/graphify.mjs                                                                 |
+| `scripts/graphify.mjs`                        | `node scripts/graphify.mjs`                          | package.json:scripts                                                                 |
+| `scripts/inventario/gerar-banco.mjs`          | `node scripts/inventario/gerar-banco.mjs`            | package.json:scripts, .github/workflows/inventario-estado-semanal.yml                |
+| `scripts/inventario/mudou-conteudo.mjs`       | `node scripts/inventario/mudou-conteudo.mjs`         | package.json:scripts, .github/workflows/inventario-estado-semanal.yml                |
+| `scripts/normalize-vercel-deployment-url.mjs` | `node scripts/normalize-vercel-deployment-url.mjs`   | .github/workflows/release.yml                                                        |
+| `scripts/regras_negocio/generate.py`          | `python3 scripts/regras_negocio/generate.py`         | package.json:scripts, .github/workflows/contexto.yml                                 |
+| `scripts/regras_negocio/indice.py`            | `python3 scripts/regras_negocio/indice.py`           | package.json:scripts, .github/workflows/contexto.yml                                 |
+| `scripts/regras_negocio/publish.sh`           | `sh scripts/regras_negocio/publish.sh`               | .github/workflows/contexto.yml                                                       |
+| `scripts/regras_negocio/test_generate.py`     | `python3 scripts/regras_negocio/test_generate.py`    | package.json:scripts, .github/workflows/contexto.yml                                 |
+| `scripts/smoke-deployment.mjs`                | `node scripts/smoke-deployment.mjs`                  | package.json:scripts                                                                 |
+| `scripts/soak-test-notification-queue.mjs`    | `node scripts/soak-test-notification-queue.mjs`      | package.json:scripts                                                                 |
+| `scripts/stage-app-shell.mjs`                 | `node scripts/stage-app-shell.mjs`                   | package.json:scripts                                                                 |
+| `scripts/supabase_snapshot/snapshot.py`       | `python3 scripts/supabase_snapshot/snapshot.py`      | .github/workflows/contexto.yml                                                       |
+| `scripts/supabase_snapshot/test_snapshot.py`  | `python3 scripts/supabase_snapshot/test_snapshot.py` | package.json:scripts, .github/workflows/contexto.yml                                 |
+| `scripts/validate-agent-instructions.mjs`     | `node scripts/validate-agent-instructions.mjs`       | package.json:scripts                                                                 |
+| `scripts/validate-closure-ledger.mjs`         | `node scripts/validate-closure-ledger.mjs`           | package.json:scripts                                                                 |
+| `scripts/validate-error-catalog.mjs`          | `node scripts/validate-error-catalog.mjs`            | package.json:scripts, .github/workflows/database.yml                                 |
+| `scripts/validate-migration-names.mjs`        | `node scripts/validate-migration-names.mjs`          | package.json:scripts, .github/workflows/database.yml                                 |
+| `scripts/validate-site-supabase-target.mjs`   | `node scripts/validate-site-supabase-target.mjs`     | package.json:scripts                                                                 |
+| `scripts/verify-vercel-artifact.mjs`          | `node scripts/verify-vercel-artifact.mjs`            | .github/workflows/release.yml                                                        |
+
+## Hooks e workflows anteriores
+
+Hooks inventariados: `(default do Git)` era o hooksPath observado. A tabela registra os arquivos, sem afirmar bootstrap instalado ou execução efetiva em outro clone. O registro legacy desses hooks limita apenas execução arbitrária pelo dispatcher; o Git e a ponte preservam os gatilhos originais.
+
+| Hook exato                          | Gatilho Git original | Referência de inventário                 |
+| ----------------------------------- | -------------------- | ---------------------------------------- |
+| Nenhum hook versionado inventariado | —                    | A instalação do novo kit é independente. |
+
+Workflows anteriores preservados: 14. Os gatilhos e condições de cada arquivo continuam definidos no YAML original; esta listagem não os promove ao novo pipeline e não executa suas operações.
+
+- `.github/workflows/catalog-contract.yml`
+- `.github/workflows/ci-health.yml`
+- `.github/workflows/codeql.yml`
+- `.github/workflows/contexto.yml`
+- `.github/workflows/database.yml`
+- `.github/workflows/dependency-review.yml`
+- `.github/workflows/graphify.yml`
+- `.github/workflows/inventario-estado-semanal.yml`
+- `.github/workflows/production-drift.yml`
+- `.github/workflows/quality.yml`
+- `.github/workflows/release.yml`
+- `.github/workflows/secrets-rotation-reminder.yml`
+- `.github/workflows/stale-branches.yml`
+- `.github/workflows/workflows-lint.yml`
+
+Os helpers dos corretores anteriores são cobertos por suites de regressão em fixtures; a chamada operacional original continua no respectivo hook/workflow. Os quatro registros principais e helpers ficam explícitos no JSON, sem globs para novos arquivos.
