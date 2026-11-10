@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "d312cadfe90788a2e6653f2202fb2258ef5d1574",
+  "commit": "49fc2aff8bbb7cd55d932be51a2209e5656a0d72",
   "branch": "main",
-  "data_commit": "2026-11-10T20:43:53Z",
+  "data_commit": "2026-11-10T21:44:03Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "49fc2af",
+    "data": "2026-11-10",
+    "assunto": "docs: corrige fatos da analise analise-prs para o main d312cad (#132)"
+   },
    {
     "sha": "d312cad",
     "data": "2026-11-10",
@@ -126,11 +131,6 @@
     "sha": "b62ca89",
     "data": "2026-10-27",
     "assunto": "docs(auditoria): incorpora inventário de funcionalidades pendentes"
-   },
-   {
-    "sha": "8e412de",
-    "data": "2026-10-27",
-    "assunto": "chore(ci): atualiza ações do GitHub com checks verdes"
    }
   ],
   "arquivos_mudados_7d": 104,
@@ -164,35 +164,35 @@
     "mudancas": 3
    },
    {
+    "pasta": "analise-prs/RELATORIO_PRS.md",
+    "mudancas": 3
+   },
+   {
+    "pasta": "analise-prs/baseline/ci-checks.md",
+    "mudancas": 3
+   },
+   {
+    "pasta": "analise-prs/decisoes.md",
+    "mudancas": 3
+   },
+   {
+    "pasta": "analise-prs/funcionalidades.csv",
+    "mudancas": 3
+   },
+   {
+    "pasta": "analise-prs/progresso.json",
+    "mudancas": 3
+   },
+   {
+    "pasta": "analise-prs/regras-de-negocio.md",
+    "mudancas": 3
+   },
+   {
     "pasta": "tests/validate-agent-instructions.node.mjs",
     "mudancas": 3
    },
    {
     "pasta": ".agents/skills/promo-brindes-v1",
-    "mudancas": 2
-   },
-   {
-    "pasta": ".claude/hooks/session-start.sh",
-    "mudancas": 2
-   },
-   {
-    "pasta": ".github/workflows/codeql.yml",
-    "mudancas": 2
-   },
-   {
-    "pasta": ".github/workflows/quality.yml",
-    "mudancas": 2
-   },
-   {
-    "pasta": ".gitignore",
-    "mudancas": 2
-   },
-   {
-    "pasta": ".graphify.project.json",
-    "mudancas": 2
-   },
-   {
-    "pasta": "CLAUDE.md",
     "mudancas": 2
    }
   ],
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 21
+    "commits": 22
    },
    {
     "autor": "dependabot[bot]",

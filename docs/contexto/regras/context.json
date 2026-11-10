@@ -1,9 +1,9 @@
 {
  "meta": {
-  "sha": "d312cadfe90788a2e6653f2202fb2258ef5d1574",
+  "sha": "49fc2aff8bbb7cd55d932be51a2209e5656a0d72",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-10 20:49 UTC",
+  "generated_at": "2026-11-10 21:48 UTC",
   "files_total": 553,
   "code_files": 362,
   "code_lines": 58054,
@@ -30988,10 +30988,24 @@
   }
  },
  "git": {
-  "sha": "d312cadfe90788a2e6653f2202fb2258ef5d1574",
+  "sha": "49fc2aff8bbb7cd55d932be51a2209e5656a0d72",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "49fc2af",
+    "date": "2026-11-10",
+    "author": "adm01-debug",
+    "subject": "docs: corrige fatos da analise analise-prs para o main d312cad (#132)",
+    "files": [
+     "analise-prs/RELATORIO_PRS.md",
+     "analise-prs/baseline/ci-checks.md",
+     "analise-prs/decisoes.md",
+     "analise-prs/funcionalidades.csv",
+     "analise-prs/progresso.json",
+     "analise-prs/regras-de-negocio.md"
+    ]
+   },
    {
     "sha": "d312cad",
     "date": "2026-11-10",
@@ -31471,35 +31485,20 @@
      "src/styles.css",
      "vite.config.ts"
     ]
-   },
-   {
-    "sha": "77f0ff1",
-    "date": "2026-10-06",
-    "author": "adm01-debug",
-    "subject": "feat(brand): adiciona assinatura Gift Lovers by Promo (#92)",
-    "files": [
-     "e2e/smoke.spec.ts",
-     "package-lock.json",
-     "package.json",
-     "src/components/GiftLoversSignature.css",
-     "src/components/GiftLoversSignature.tsx",
-     "src/components/Layout.tsx",
-     "src/pages/HomePage.tsx"
-    ]
    }
   ],
   "hot_files": [
    [
     "package.json",
-    9
-   ],
-   [
-    "package-lock.json",
-    6
+    8
    ],
    [
     "AGENTS.md",
     6
+   ],
+   [
+    "package-lock.json",
+    5
    ],
    [
     "scripts/validate-agent-instructions.mjs",
@@ -31510,8 +31509,28 @@
     4
    ],
    [
-    "e2e/smoke.spec.ts",
-    4
+    "analise-prs/RELATORIO_PRS.md",
+    3
+   ],
+   [
+    "analise-prs/baseline/ci-checks.md",
+    3
+   ],
+   [
+    "analise-prs/decisoes.md",
+    3
+   ],
+   [
+    "analise-prs/funcionalidades.csv",
+    3
+   ],
+   [
+    "analise-prs/progresso.json",
+    3
+   ],
+   [
+    "analise-prs/regras-de-negocio.md",
+    3
    ],
    [
     "tests/validate-agent-instructions.node.mjs",
@@ -31522,35 +31541,15 @@
     3
    ],
    [
+    "e2e/smoke.spec.ts",
+    3
+   ],
+   [
     "src/styles.css",
     3
    ],
    [
-    "analise-prs/RELATORIO_PRS.md",
-    2
-   ],
-   [
-    "analise-prs/baseline/ci-checks.md",
-    2
-   ],
-   [
-    "analise-prs/decisoes.md",
-    2
-   ],
-   [
     "analise-prs/fontes.json",
-    2
-   ],
-   [
-    "analise-prs/funcionalidades.csv",
-    2
-   ],
-   [
-    "analise-prs/progresso.json",
-    2
-   ],
-   [
-    "analise-prs/regras-de-negocio.md",
     2
    ],
    [
