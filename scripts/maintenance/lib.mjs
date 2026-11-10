@@ -15,8 +15,8 @@ export const safeEnv = () => Object.fromEntries(Object.entries(process.env).filt
 const activeChildren = new Map();
 export function stopChildren() {
   for (const [pid, child] of activeChildren) {
-    try { process.kill(-pid, 'SIGTERM'); } catch {}
-    setTimeout(() => { if (activeChildren.get(pid) === child) { try { process.kill(-pid, 'SIGKILL'); } catch {} child.stdout.destroy(); child.stderr.destroy(); } }, 1000).unref();
+    try { process.kill(-pid, 'SIGTERM'); } catch { /* O processo pode já ter encerrado. */ }
+    setTimeout(() => { if (activeChildren.get(pid) === child) { try { process.kill(-pid, 'SIGKILL'); } catch { /* O processo pode já ter encerrado. */ } child.stdout.destroy(); child.stderr.destroy(); } }, 1000).unref();
   }
 }
 export function run(command, cwd, timeoutMs = 120000) {
@@ -24,7 +24,7 @@ export function run(command, cwd, timeoutMs = 120000) {
     const child = spawn(command[0], command.slice(1), { cwd, shell: false, detached: true, env: safeEnv(), stdio: ['ignore', 'pipe', 'pipe'] });
     if (child.pid) activeChildren.set(child.pid, child);
     let output = '', timedOut = false, overflow = false;
-    const kill = (signal) => { try { process.kill(-child.pid, signal); } catch {} };
+    const kill = (signal) => { try { process.kill(-child.pid, signal); } catch { /* O processo pode já ter encerrado. */ } };
     const timer = setTimeout(() => { timedOut = true; kill('SIGTERM'); }, timeoutMs);
     const hardTimer = setTimeout(() => { kill('SIGKILL'); child.stdout.destroy(); child.stderr.destroy(); }, timeoutMs + 1000);
     const collect = (data) => { if (output.length < 4 * 1024 * 1024) output += data; else { overflow = true; kill('SIGKILL'); child.stdout.destroy(); child.stderr.destroy(); } };
