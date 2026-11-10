@@ -60,11 +60,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "chore(deps): bump the actions-minor-and-patch group with 2 updates (#125)",
    "chore(deps): bump graphifyy para 0.9.97 com o companheiro casado (#123)",
    "feat(scripts): porta scripts autônomos de contexto de IA do Zapp Web V2",
    "security: guard falha fechado, sem injeção de arg e regex de backtick (#124)",
-   "chore: iguala a forma do AGENTS.md à do Zapp Web V2 (#120)",
-   "chore: replica o padrão de instruções para agentes do Zapp Web V2 (#119)"
+   "chore: iguala a forma do AGENTS.md à do Zapp Web V2 (#120)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

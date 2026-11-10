@@ -1,9 +1,9 @@
 {
  "meta": {
-  "sha": "7eb1b5dd28cf63498cdbe5d785ca0b8a9a481b45",
+  "sha": "af5cfd1ee29b11c729022c4fd58adf22471fe740",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-09 10:22 UTC",
+  "generated_at": "2026-11-10 10:33 UTC",
   "files_total": 542,
   "code_files": 351,
   "code_lines": 49835
@@ -24518,10 +24518,19 @@
   }
  },
  "git": {
-  "sha": "7eb1b5dd28cf63498cdbe5d785ca0b8a9a481b45",
+  "sha": "af5cfd1ee29b11c729022c4fd58adf22471fe740",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "af5cfd1",
+    "date": "2026-11-10",
+    "author": "dependabot[bot]",
+    "subject": "chore(deps): bump the actions-minor-and-patch group with 2 updates (#125)",
+    "files": [
+     ".github/workflows/codeql.yml"
+    ]
+   },
    {
     "sha": "7eb1b5d",
     "date": "2026-11-09",
@@ -24952,30 +24961,20 @@
     "files": [
      "AGENTS.md"
     ]
-   },
-   {
-    "sha": "0324d27",
-    "date": "2026-10-06",
-    "author": "dependabot[bot]",
-    "subject": "chore(deps): bump the npm-minor-and-patch group with 9 updates (#85)",
-    "files": [
-     "package-lock.json",
-     "package.json"
-    ]
    }
   ],
   "hot_files": [
-   [
-    "package.json",
-    9
-   ],
    [
     "AGENTS.md",
     8
    ],
    [
+    "package.json",
+    8
+   ],
+   [
     "package-lock.json",
-    6
+    5
    ],
    [
     "PENDENCIAS.md",
@@ -25004,6 +25003,10 @@
    [
     "RELATORIO_CI.md",
     3
+   ],
+   [
+    ".github/workflows/codeql.yml",
+    2
    ],
    [
     "eslint.config.js",
@@ -25039,10 +25042,6 @@
    ],
    [
     "src/components/Layout.tsx",
-    2
-   ],
-   [
-    "src/pages/ProductPage.tsx",
     2
    ]
   ]

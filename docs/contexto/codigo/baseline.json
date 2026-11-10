@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "7eb1b5dd28cf63498cdbe5d785ca0b8a9a481b45",
+  "commit": "af5cfd1ee29b11c729022c4fd58adf22471fe740",
   "branch": "main",
-  "data_commit": "2026-11-09T10:17:10Z",
+  "data_commit": "2026-11-10T10:29:51Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "af5cfd1",
+    "data": "2026-11-10",
+    "assunto": "chore(deps): bump the actions-minor-and-patch group with 2 updates (#125)"
+   },
    {
     "sha": "7eb1b5d",
     "data": "2026-11-09",
@@ -126,14 +131,9 @@
     "sha": "3f82233",
     "data": "2026-10-06",
     "assunto": "fix(ux): elimina perdas de dados em fluxos assíncronos (#89)"
-   },
-   {
-    "sha": "77f0ff1",
-    "data": "2026-10-06",
-    "assunto": "feat(brand): adiciona assinatura Gift Lovers by Promo (#92)"
    }
   ],
-  "arquivos_mudados_7d": 55,
+  "arquivos_mudados_7d": 56,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "docs/audits/pending-features-20261011",
@@ -168,6 +168,10 @@
     "mudancas": 2
    },
    {
+    "pasta": ".github/workflows/codeql.yml",
+    "mudancas": 2
+   },
+   {
     "pasta": ".graphify.project.json",
     "mudancas": 2
    },
@@ -189,10 +193,6 @@
    },
    {
     "pasta": "eslint.config.js",
-    "mudancas": 2
-   },
-   {
-    "pasta": "requirements-graphify.txt",
     "mudancas": 2
    }
   ],
@@ -305,7 +305,7 @@
    },
    {
     "autor": "dependabot[bot]",
-    "commits": 5
+    "commits": 6
    }
   ]
  },
