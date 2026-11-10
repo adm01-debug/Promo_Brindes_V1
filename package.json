@@ -77,7 +77,16 @@
     "contexto:test": "npm run contexto:ia:test && npm run contexto:regras:test && npm run contexto:banco:test",
     "inventario:banco": "node scripts/inventario/gerar-banco.mjs",
     "inventario:mudou": "node scripts/inventario/mudou-conteudo.mjs",
-    "test:inventario": "node --test tests/inventario-estado.node.mjs"
+    "test:inventario": "node --test tests/inventario-estado.node.mjs",
+    "automation:doctor": "node scripts/automation.mjs doctor",
+    "automation:test": "node scripts/automation.mjs test",
+    "automation:check": "node scripts/automation.mjs check --ref HEAD",
+    "automation:heal": "node scripts/automation.mjs heal --ref origin/main",
+    "automation:nightly": "node scripts/automation.mjs nightly --ref origin/main",
+    "automation:graph": "node scripts/automation.mjs graph",
+    "automation:status": "node scripts/automation.mjs graph status",
+    "automation:install-hooks": "node scripts/automation.mjs install-hooks",
+    "automation:uninstall-hooks": "node scripts/automation.mjs uninstall-hooks"
   },
   "dependencies": {
     "@fontsource/inter": "^5.3.0",

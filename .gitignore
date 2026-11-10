@@ -27,3 +27,7 @@ inventario/estado/*.json
 # bytecode do Python dos geradores de contexto
 __pycache__/
 *.pyc
+
+# Estado local privado dos novos adaptadores de automação
+/.tools/repo-automation/
+/.tools/graphify/local-state/
