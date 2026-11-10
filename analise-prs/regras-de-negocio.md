@@ -1,125 +1,94 @@
-﻿# Regras de negócio — Promo Brindes V1
+# Regras de Negócio — Promo Brindes V1
 
-Data: 2026-10-31  
-Fonte primária: AUDITORIA.md (24/09/2026, SHA da9f55c4) + docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md (11/10/2026)  
-Validação: código em main SHA b1931198 (31/10/2026)
+**Gerado em:** 2026-11-01
+**SHA main referência:** b19311989efe273e47dd8949ef126225206ad208
+**Fontes:** `AUDITORIA.md` (A-001..A-022), `docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md` (PF-01..PF-127), código `src/`, `api/`, `site-supabase/supabase/migrations/`
 
----
-
-## 1. Modelo de negócio
-
-- Sistema de catálogo B2B público para seleção de brindes e solicitação de orçamento
-- **Sem checkout**: não há pagamento online; fluxo termina em solicitação de orçamento
-- Clientes B2B (empresas compradoras de brindes corporativos)
-- Time comercial da Promo Brindes recebe leads e elabora propostas manualmente
-- Produtos do catálogo gerenciados no sistema interno **Promo Gifts** (banco canônico separado, somente leitura para este site)
-
-## 2. Fluxos principais
-
-### 2.1 Descoberta e catálogo
-- Catálogo público sem autenticação
-- Produtos filtráveis por categoria, ocasião, verba e marca
-- View pública `v_site_products_public` no banco canônico (somente leitura)
-- Preços **não exibidos** no catálogo: cliente solicita orçamento
-
-### 2.2 Seleção e briefing
-- Cliente monta seleção de produtos (carrinho local em localStorage)
-- Briefing captura: campanha, ocasião, verba, quantidade, prazo, dados do solicitante
-- Intenção declarada é usada como filtro de produtos
-- Seleções podem ser compartilhadas via link (com expiração e revogação)
-
-### 2.3 Solicitação de orçamento
-- Formulário de briefing + seleção enviados via `POST /api/quote-requests`
-- Criação atômica via RPC `create_site_quote_request` (banco isolado)
-- Rate limit: máximo de orçamentos por IP/usuário num período
-- Validação de catálogo: produtos da seleção verificados contra catálogo canônico no momento do envio
-- Consentimento LGPD capturado (`consent_lgpd`, `opt_in_whatsapp_copy`)
-- Notificação ao cliente: **BLOQUEADO** (Resend/WhatsApp sem credenciais em produção)
-- Notificação ao time comercial: **NÃO IMPLEMENTADO**
-
-### 2.4 Portal do cliente (pós-autenticação)
-- Autenticação via Supabase Auth (e-mail + magic link)
-- Histórico de orçamentos solicitados
-- Acompanhamento de status (`new → triaged → quoted → accepted/rejected`)
-- Visualização de propostas (PDF em Storage)
-- Solicitação de ajustes (máximo 3 pendentes simultâneos — regra de negócio hardcoded)
-- **Status nunca atualizado por ferramenta**: apenas por SQL manual
-
-### 2.5 Favoritos por ocasião
-- Autenticado: favoritos por ocasião salvos no banco via RPC `set_my_occasion_favorites`
-- Não autenticado: favoritos em localStorage (sem sincronização)
-- Isolamento por titular (tenant): cada cliente vê apenas seus favoritos
-- **A-003 (REINTRODUZIDO)**: possível mistura entre titulares investigada mas não confirmada
+Legenda de status: **VIGENTE** = aplicada no código · **SUSPEITA** = código diverge do documento · **CONTRADITÓRIA** = documentos afirmam coisas opostas.
 
 ---
 
-## 3. Regras de autorização e tenant
+## 1. Catálogo
 
-| Recurso | Autenticado | Não autenticado |
-|---------|------------|-----------------|
-| Catálogo | Leitura | Leitura |
-| Solicitar orçamento | Sim (vinculado a perfil) | Não (somente como visitante) |
-| Ver histórico | Sim (apenas os seus) | Não |
-| Favoritos | Banco (isolado por titular) | localStorage |
-| Propostas | Apenas as suas (signed URL) | Não |
-| Shared selections | Criar + revogar as suas | Acessar com token |
+| ID | Regra | Fonte | Status |
+|---|---|---|---|
+| RN-CAT-01 | Catálogo público B2B sem checkout; só vitrine + solicitação de orçamento | AUDITORIA.md §1 | VIGENTE |
+| RN-CAT-02 | Reconciliação de itens do orçamento contra catálogo canônico (`reconcileQuoteItems`) | `api/_lib/catalogValidation.ts:33-38,102-121` | VIGENTE |
+| RN-CAT-03 | Cor sem `variantId` NÃO é reconciliada (swatches públicos sem ID interno) | `api/_lib/catalogValidation.ts:33-38` + AUDITORIA.md A-021 | VIGENTE |
+| RN-CAT-04 | Ordenação "Curadoria Promo" aplicada no navegador só sobre a página carregada | `src/pages/CatalogPage.tsx:30,44,64` + PF-18 | SUSPEITA — texto promete curadoria humana inexistente |
+| RN-CAT-05 | Descrição padrão "Personalize este produto…" exibida mesmo com `allowsPersonalization=false` | `src/components/ProductCard.tsx:43-49` + PF-19 | SUSPEITA |
+| RN-CAT-06 | Faixa de público "Escala: 51–200 un." exibe pessoas como unidades | `src/lib/campaignPresets.ts:98` + PF-20 | SUSPEITA |
+| RN-CAT-07 | Contrato público monitorado por sonda diária (36 colunas) | PR #83 `feat/catalog-contract-monitor` | VIGENTE |
+| RN-CAT-08 | Recuo temporário para view legada `v_products_public` ativo em 3 pontos (fase B pendente) | `src/lib/catalog.ts:52,326-336` + PF-83 | VIGENTE |
+| RN-CAT-09 | `variant_id` tratado no código mas nunca exposto → gera 422 (código morto) | `api/_lib/catalogValidation.ts:38-39,114-115` + PF-83 | SUSPEITA |
+| RN-CAT-10 | Catálogo sem prazo máximo de leitura (skeleton infinito se conexão travar) | `src/lib/catalog.ts:276-310` + AUDITORIA.md A-011 | VIGENTE |
+| RN-CAT-11 | Personalização por família limitada a `allows_personalization` + `min_quantity` | `src/lib/catalog.ts:58-92` + PF-46 | VIGENTE |
 
-**RLS ativo**: todas as tabelas em `site_private` têm Row Level Security. Políticas isolam por `auth.uid()`.
+## 2. Orçamentos / Brindes
 
----
+| ID | Regra | Fonte | Status |
+|---|---|---|---|
+| RN-ORC-01 | Orçamento anônimo permitido; conta opcional | `src/pages/QuotePage.tsx:369,372` + PF-28 | VIGENTE |
+| RN-ORC-02 | Timeout de envio 15 s no cliente; pipeline servidor soma ~22 s (catálogo 5 s + persistência 10 s + confirmação 7 s) | `src/lib/http.ts:1` + `api/_lib/leadHandler.ts:105-117` + AUDITORIA.md A-019 | VIGENTE |
+| RN-ORC-03 | Idempotência do envio (chave de idempotência; duplicata não cria 2 pedidos) | `api/_lib/leadHandler.ts` | VIGENTE |
+| RN-ORC-04 | Timeout limpa timer antes de `response.json()` — trava no corpo não respeita limite | `src/lib/http.ts:87-90` + AUDITORIA.md A-006 | VIGENTE |
+| RN-ORC-05 | Quantidade antiga ajustada ao novo mínimo sem aviso ao repetir orçamento | `src/lib/quoteItems.ts:173` + PF-43 | SUSPEITA |
+| RN-ORC-06 | Cliente bloqueado após 3 ajustes pendentes (`too_many_pending_adjustments` permanente, pois nada muda status) | `20260923120000_audit_security_reliability_hardening.sql:202-205` + PF-04 | VIGENTE |
+| RN-ORC-07 | Pedidos de ajuste atrás de flag `VITE_CUSTOMER_ADJUSTMENTS_ENABLED`, sem roteamento ao comercial | `src/lib/siteFeatureFlags.ts:6` + PF-25 | VIGENTE |
+| RN-ORC-08 | Grupos de decisão (principal/alternativa) e links persistentes atrás de flags; selo "Referência principal" vaza na impressão com flag off | `siteFeatureFlags.ts:5-7` + PF-51 | SUSPEITA |
+| RN-ORC-09 | Rascunho "fica salvo" mesmo com falha no `sessionStorage` (`saveQuoteDraft` retorna void) | `src/lib/quoteDraft.ts:52,62-83` + PF-21 | SUSPEITA |
+| RN-ORC-10 | Formulário começa por dados pessoais; contexto do briefing só leitura no orçamento | `src/pages/QuotePage.tsx:434,439-446` + PF-41 | VIGENTE |
+| RN-ORC-11 | Telefone obrigatório no orçamento, opcional no contato | `src/pages/QuotePage.tsx:442` vs `ConversationForm.tsx:110` + PF-42 | CONTRADITÓRIA — sem decisão do dono |
+| RN-ORC-12 | Nenhum aviso ao time comercial quando chega orçamento/contato/ajuste (lead parado no banco) | PF-01 | VIGENTE (ausência) |
+| RN-ORC-13 | Sem responsável, estados operacionais ou SLA por pedido | PF-02 | VIGENTE (ausência) |
 
-## 4. Limites e restrições operacionais
+## 3. Favoritos
 
-| Limite | Valor | Fonte |
-|--------|-------|-------|
-| Ajustes pendentes por orçamento | 3 simultâneos | `20260923120000:202-205` |
-| Rate limit de orçamentos | Configurável (tabela) | `rate_limits` migration |
-| Retenção de dados de contato | 24 meses | `20260908230000:66` |
-| Notificação delivery: tentativas máximas | Configurável | `notification_deliveries` |
-| Seleções compartilhadas: expiração | Configurável | `shared_selections` |
+| ID | Regra | Fonte | Status |
+|---|---|---|---|
+| RN-FAV-01 | Favoritos por conta (`customer_occasion_favorites`), 24 testes do hook | PRs #33 #35 #36 #44 #45 #47 | VIGENTE |
+| RN-FAV-02 | Revisão reutilizada permite rollback de ação antiga (contador apagado no finally) | `src/lib/useOccasionFavorites.ts:211-218,230-233` + AUDITORIA.md A-003 | VIGENTE |
+| RN-FAV-03 | Escritas paralelas podem divergir da última intenção (sem serialização nem revisão monotônica no SQL) | `src/lib/useOccasionFavorites.ts:215-217` + AUDITORIA.md A-004 | VIGENTE |
+| RN-FAV-04 | Cache legado de outra conta promovido como anônimo (chave anônima = chave legada) | `src/lib/useOccasionFavorites.ts:36-42,125-151` + AUDITORIA.md A-007 | VIGENTE |
+| RN-FAV-05 | Promoção de favoritos ressuscita data removida durante importação (origem anônima priorizada) | `src/lib/useOccasionFavorites.ts:144-151` + AUDITORIA.md A-010 | VIGENTE |
+| RN-FAV-06 | Sem e2e multi-aba, sem offline, sem tratamento no limite de 100 | PF-53 | VIGENTE (ausência) |
+| RN-FAV-07 | ACL das RPCs endurecida (`20260927103000_harden_occasion_favorites_rpc_acl.sql:6-10`); grants `service_role` divergem local/remoto | AUDITORIA.md A-016 | VIGENTE |
 
----
+## 4. Autenticação / Conta / LGPD
 
-## 5. Integrações externas
+| ID | Regra | Fonte | Status |
+|---|---|---|---|
+| RN-AUTH-01 | `get_my_quote_request` filtra `request.id` + `customer_user_id = auth.uid()`; spam excluído | AUDITORIA.md §2 | VIGENTE |
+| RN-AUTH-02 | `claim_my_quote_requests` exige e-mail confirmado; só associa sem titular com e-mail correspondente | AUDITORIA.md §2 | VIGENTE |
+| RN-AUTH-03 | Proposta via URL assinada de 60 s vinculada ao titular (`get_my_proposal_document`) | `api/customer-proposals.ts:121-125` | VIGENTE |
+| RN-AUTH-04 | Rate limit de propostas/anexos estourado vira 404 em vez de 429 | `api/customer-proposals.ts:114` + PF-27 | SUSPEITA |
+| RN-AUTH-05 | Atualização de senha sem bloqueio de submissão concorrente (sem pending/disabled/try-catch) | `src/pages/SetPasswordPage.tsx:15-24` + AUDITORIA.md A-009 | VIGENTE |
+| RN-AUTH-06 | Paginação `?page=1.1` vira offset fracionário; `?page=999` sem reconciliação com total | `src/pages/CustomerAccountPage.tsx:24,37,75-77` + AUDITORIA.md A-008 | VIGENTE |
+| RN-AUTH-07 | Dados/consentimento persistem após logout (`emailRemainsInForm`, `consentRemainsInForm`) — parcialmente corrigido | REVISAO_FECHAMENTO_20260912 R08 | SUSPEITA |
+| RN-AUTH-08 | `customer_profiles.company` nunca escrito; sem RPC leitura/edição de perfil | PF-24 | VIGENTE (ausência) |
+| RN-AUTH-09 | Apagamento `erase_customer_data` não limpa `request_metadata`, `kit_name_snapshot` nem entregas pendentes | `20260923120000:244,290-301` + PF-31 | VIGENTE |
+| RN-AUTH-10 | Sem RPCs de acesso/exportação/correção/autoexclusão; Política promete o que não existe | `src/pages/PrivacyPage.tsx:12,16,17` + PF-17/PF-30 | CONTRADITÓRIA |
+| RN-AUTH-11 | Auditoria só de escrita/DDL; sem auditoria de leitura (SELECT em PII) | `20260916210000_add_admin_write_audit.sql:15,92` + PF-34 | VIGENTE |
 
-| Serviço | Função | Estado em produção |
-|---------|--------|-------------------|
-| Supabase (isolado: xlzmclcjdncjfdrjxclt) | Auth, banco, Storage do site | Ativo |
-| Supabase (canônico: doufsxqlfjyuvxuezpln) | Catálogo somente leitura | Ativo |
-| Vercel | Hosting, Edge Functions (API Routes) | Ativo |
-| Resend | E-mail transacional | **SEM CREDENCIAIS** |
-| Meta WhatsApp Cloud API | WhatsApp transacional | **SEM CREDENCIAIS** |
-| Vercel Analytics | Métricas de uso | **INDISPONÍVEL** (erro 403 na API) |
-| Promo Gifts (sistema interno) | Gestão do catálogo canônico | Ativo (somente leitura) |
+## 5. Notificações
 
----
+| ID | Regra | Fonte | Status |
+|---|---|---|---|
+| RN-NOT-01 | Confirmação ao cliente desligada (Resend/WhatsApp adiados pelo dono); tela diz "registrada para envio" | `api/notifications.ts:588-593,642-646` + PF-07/PF-14 | VIGENTE |
+| RN-NOT-02 | Cron `*/15` retorna 503 antes de `reportQueueHealth()` — ~96 execuções/dia sem log | `api/notifications.ts:642-646` + PF-10 | VIGENTE |
+| RN-NOT-03 | Webhook com JSON válido mas estrutura errada derruba handler (500 em vez de 400) | `api/notification-events-resend.ts:60-67` + AUDITORIA.md A-012 | VIGENTE |
+| RN-NOT-04 | Sem corte de idade/cancelamento: ao ligar provedores, backlog antigo + `spam` + `@erased.invalid` serão enviados | `20260923200000:80-110` + PF-11 | VIGENTE |
+| RN-NOT-05 | Sem lista de supressão, sem reprocessamento `exhausted→pending`, sem purga de órfãos | PF-12 | VIGENTE (ausência) |
+| RN-NOT-06 | Checkbox "cópia pelo WhatsApp" sempre visível; template envia só nome/protocolo/empresa (não é cópia) | `src/pages/QuotePage.tsx:457` + PF-15 | SUSPEITA |
+| RN-NOT-07 | Sem vigia independente dos crons (heartbeat/lastRunAt); sem alertas (`OPERATIONS_ALERT_WEBHOOK_URL` ausente) | PF-87/PF-88 | VIGENTE (ausência) |
 
-## 6. Achados com impacto em regras de negócio
+## 6. Finance / Operação
 
-### A-001/F-02 — VERCEL_TOKEN inválido (CONFIRMADO E PENDENTE)
-- Release workflow falha no job de deploy por token expirado
-- Impacto: PRs com migrations ficam em espera de deploy manual
-
-### A-003 — Regressão em favoritos por ocasião (REINTRODUZIDO POR REGRESSÃO)
-- `useOccasionFavorites.ts` possivelmente mistura favoritos entre titulares
-- Impacto: cliente A pode ver favoritos do cliente B
-
-### PF-01 — Outbox comercial ausente (CONFIRMADO E PENDENTE)
-- Regra de negócio: orçamento deve notificar time comercial
-- Impacto: leads chegam ao banco sem ninguém ser avisado
-
-### PF-04 — Bloqueio permanente após 3 ajustes (BUG LATENTE)
-- Regra: máximo 3 ajustes pendentes simultâneos
-- Bug: status de ajuste nunca muda de `new/triaged` para `resolved/closed`
-- Impacto: na 4ª tentativa o cliente recebe `too_many_pending_adjustments` para sempre
-
----
-
-## 7. Decisões de produto registradas
-
-| Decisão | Registrada em | Status |
-|---------|--------------|--------|
-| Adiamento de e-mail/WhatsApp até decisão de credenciais | EXECUCAO_PLANO_FECHAMENTO_20261001.md:65-66 | VIGENTE |
-| Destino do lead comercial indefinido (Bitrix24 via N8N recomendado) | AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md §1 | PENDENTE (DONO) |
-| Domínio oficial não definido | AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md PF-59 | PENDENTE (DONO) |
-| Restore/backup: meta e custo não definidos | PF-86 | PENDENTE (DONO) |
+| ID | Regra | Fonte | Status |
+|---|---|---|---|
+| RN-FIN-01 | Sem ferramenta interna: status, triagem e proposta só via SQL manual | PF-03 | VIGENTE (ausência) |
+| RN-FIN-02 | Retenção diária executando (logs 09–11/10); lote fixo 100/dia, timeout único 10 s | `api/retention.ts:7-8,119-170` + PF-85 | VIGENTE |
+| RN-FIN-03 | Restore nunca ensaiado; sem RPO/RTO; Storage sem backup | PF-86 | VIGENTE (ausência) |
+| RN-FIN-04 | Migrations aplicadas sem fluxo versionado nem recibo (release só lê o ledger) | `release.yml:77-106` + PF-77 | VIGENTE |
+| RN-FIN-05 | Preço público consultável direto (`sale_price`, `supplier_id` via chave pública) apesar da view mínima | AUDITORIA.md A-022 | VIGENTE |
+| RN-FIN-06 | Domínio oficial indefinido; canonical/sitemap/robots apontam `vercel.app` | PF-59 | VIGENTE |

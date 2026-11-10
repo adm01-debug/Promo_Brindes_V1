@@ -1,96 +1,36 @@
-﻿{
-    "prs":  {
-                "mergeadas":  90,
-                "analisadas":  108,
-                "fechadas_sem_merge":  18,
-                "vereditos":  {
-                                  "DECISAO_HUMANA":  2,
-                                  "INCOMPLETO":  2,
-                                  "CONCLUIDO_COM_RESSALVA":  3,
-                                  "PENDENTE_DE_VERIFICACAO":  1,
-                                  "CONCLUIDO":  7
-                              },
-                "total_identificadas":  108,
-                "abertas":  0
-            },
-    "auditorias":  {
-                       "fontes_lidas":  22,
-                       "achados_por_situacao":  {
-                                                    "NAO_VERIFICADO":  8,
-                                                    "REINTRODUZIDO_POR_REGRESSAO":  1,
-                                                    "CONFIRMADO_E_PENDENTE":  7,
-                                                    "PARCIALMENTE_CORRIGIDO":  1,
-                                                    "SUPERADO":  1
-                                                },
-                       "achados_total":  18,
-                       "fontes_identificadas":  57
-                   },
-    "meta":  {
-                 "data_inicio":  "2026-10-31",
-                 "data_conclusao":  "2026-10-31",
-                 "repositorio":  "adm01-debug/Promo_Brindes_V1",
-                 "objetivo":  "Reconciliar copia local, branches, PRs e auditorias anteriores; gerar analise-prs/",
-                 "sha_main":  "b19311989efe273e47dd8949ef126225206ad208",
-                 "sessao":  "16a592e1-be41-4b16-b44a-d1efbc053a6b"
-             },
-    "pendencias_identificadas":  [
-                                     "A-001/F-02: VERCEL_TOKEN invalido em producao - verificar .github/workflows/release.yml",
-                                     "A-003: Regressao useOccasionFavorites.ts - verificar isolamento por titular",
-                                     "PF-01: Outbox comercial ausente - notificacao ao time quando orcamento chega",
-                                     "PF-10/PF-87/PF-88: Crons 503 sem log e sem alerta ops",
-                                     "Canonical catalog public contract: workflow falhando desde cc133bd0",
-                                     "PF-04: Bug latente de bloqueio permanente apos 3 ajustes",
-                                     "PF-66: Secret scanning e push protection desligados"
-                                 ],
-    "arquivos_gerados":  {
-                             "analise-prs/regras-de-negocio.md":  {
-                                                                      "pr":  "a-criar",
-                                                                      "status":  "PENDENTE_PUSH"
-                                                                  },
-                             "analise-prs/funcionalidades.csv":  {
-                                                                     "pr":  "a-criar",
-                                                                     "status":  "PENDENTE_PUSH"
-                                                                 },
-                             "analise-prs/baseline/ci-checks.md":  {
-                                                                       "pr":  "a-criar",
-                                                                       "status":  "PENDENTE_PUSH"
-                                                                   },
-                             "analise-prs/auditorias-anteriores.md":  {
-                                                                          "sha_commit":  "2f7a2c8",
-                                                                          "status":  "MERGEADO",
-                                                                          "pr":  110
-                                                                      },
-                             "analise-prs/prs.json":  {
-                                                          "sha_commit":  "52a9e23",
-                                                          "status":  "MERGEADO",
-                                                          "pr":  110
-                                                      },
-                             "analise-prs/progresso.json":  {
-                                                                "pr":  "a-criar",
-                                                                "status":  "PENDENTE_PUSH"
-                                                            },
-                             "analise-prs/prs.csv":  {
-                                                         "sha_commit":  "bf1ea38",
-                                                         "status":  "MERGEADO",
-                                                         "pr":  110
-                                                     },
-                             "analise-prs/fontes.json":  {
-                                                             "pr":  "a-criar",
-                                                             "status":  "PENDENTE_PUSH"
-                                                         },
-                             "analise-prs/decisoes.md":  {
-                                                             "pr":  "a-criar",
-                                                             "status":  "PENDENTE_PUSH"
-                                                         },
-                             "analise-prs/RELATORIO_PRS.md":  {
-                                                                  "pr":  "a-criar",
-                                                                  "status":  "PENDENTE_PUSH"
-                                                              }
-                         },
-    "branches":  {
-                     "nota":  "As 2 branches ahead sao residuo de squash merge - conteudo ja esta em main",
-                     "trabalho_inedito":  0,
-                     "com_commits_ahead_main":  2,
-                     "total_identificadas":  18
-                 }
+{
+  "data_analise": "2026-11-01",
+  "main_sha": "b19311989efe273e47dd8949ef126225206ad208",
+  "prs_total": 109,
+  "prs_analisadas": 109,
+  "prs_mergeadas_nesta_sessao": 0,
+  "prs_open_restantes": 0,
+  "documentos_gerados": [
+    "analise-prs/funcionalidades.csv",
+    "analise-prs/regras-de-negocio.md",
+    "analise-prs/RELATORIO_PRS.md",
+    "analise-prs/progresso.json",
+    "analise-prs/decisoes.md",
+    "analise-prs/fontes.json",
+    "analise-prs/baseline/ci-checks.md"
+  ],
+  "achados_pendentes": [
+    "PF-01: nenhum aviso ao time comercial (NAO INICIADO, depende de D1)",
+    "PF-03: sem back-office minimo (NAO INICIADO, engenharia apos D1)",
+    "PF-07/PF-08: Resend/WhatsApp desligados (BLOQUEADO, credenciais do dono)",
+    "PF-59: dominio oficial indefinido (BLOQUEADO, decisao do dono)",
+    "PF-66/PF-67/PF-68: secret scanning + Dependabot security + secrets por environment (NAO INICIADO, custo zero)",
+    "PF-69: segundo revisor de PR (BLOQUEADO, pessoa)",
+    "PF-76: mcp_kv_get SECURITY DEFINER no banco principal (BLOQUEADO, repo interno)",
+    "PF-77: migrations sem fluxo versionado/recibo (NAO INICIADO)",
+    "PF-86: restore nunca ensaiado (BLOQUEADO, meta RPO/RTO + custo)",
+    "A-003/A-004/A-007/A-010: favoritos concorrencia/cache/promocao (padroes ainda no codigo)",
+    "A-013: Analytics 404 (persiste)",
+    "A-022: view minima nao restringe chave publica (limite de correcao: depende do PO)"
+  ],
+  "proximos_passos": [
+    "Onda 0 custo zero: ativar secret scanning + push protection + Dependabot security + SHA pinning + strict (PF-66/PF-67/PF-70)",
+    "D1 do dono (destino do lead) para destravar PF-01 -> PF-03 -> PF-04/PF-05 (ciclo comercial completo)",
+    "D2 do dono (credenciais Resend/WhatsApp) com PF-11 antes de ligar (corte de backlog)"
+  ]
 }

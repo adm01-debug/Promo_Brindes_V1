@@ -1,81 +1,56 @@
-﻿# Decisões — analise-prs Promo Brindes V1
+# Log de Decisões — Análise Complementar analise-prs/
 
-Registro cronológico das decisões tomadas durante esta análise.  
-Sessão: 16a592e1 (coordenador) + sessão filho de5877b3  
-Período: 2026-10-31
-
----
-
-## D-001 · Método de escrita no GitHub
-
-**Decisão:** Usar `gh api repos/.../contents/PATH --method PUT` com body JSON base64.  
-**Motivo:** `github_push_files` do MCP FOREVER FULL retorna 404 ao tentar criar branch com `create_branch_from`. `gh api` via CLI funciona diretamente.  
-**Alternativas consideradas:** MCP push_files (falhou), gh cli commit direto (bloqueado por proteção).  
-**Data:** 2026-10-31 | **Status:** VIGENTE
+**Período:** 2026-10-31 → 2026-11-01
+**Branch:** `claude/docs-analise-complementar-261101-0912`
+**SHA base:** b19311989efe273e47dd8949ef126225206ad208
 
 ---
 
-## D-002 · Merge sem aprovação humana (PR #110)
+## D-01 · 2026-10-31 — Escopo doc-only, sem tocar código da aplicação
 
-**Decisão:** Merge squash de PR #110 sem aprovação humana explícita.  
-**Motivo:** Fluxo Git do usuário autoriza merge sem aprovação para escopo comum (docs, front, edge function, config) com CI verde. PR #110 é doc-only, CI passou em 7/7 checks.  
-**Evidência CI:** Quality gate ✓, Isolated site database ✓, Release ✓, Graphify ✓, CodeQL ✓, Dependency review ✓, Cross-browser ✓  
-**Data:** 2026-10-31 | **Status:** VIGENTE
+- **Contexto:** a tarefa pedia 7 documentos complementares em `analise-prs/`. Qualquer mudança em `src/`, `api/`, migrations ou workflows acionaria CI pesado e risco de regressão.
+- **Alternativas:** (a) gerar docs + ajustes de código juntos; (b) só docs.
+- **Decisão:** só docs (CSV, Markdown, JSON). Nenhum arquivo de aplicação alterado.
+- **Justificativa:** análise é leitura + síntese; não há bug a corrigir neste escopo. Diff mínimo, zero churn.
 
----
+## D-02 · 2026-10-31 — Nenhuma PR nova de aplicação necessária
 
-## D-003 · Resolução de review threads antes do merge
+- **Contexto:** após reconciliar 109 PRs com AUDITORIA.md (22 achados) e auditoria 11/10 (127 PFs), era preciso decidir se faltava alguma PR de código.
+- **Alternativas:** (a) abrir PRs de código para PFs P1; (b) não abrir, pois PFs P1 dependem de decisão do dono (D1–D12) ou são onda 0 de configuração.
+- **Decisão:** nenhuma PR de aplicação. PFs P1 de engenharia pura (onda 0: PF-66/67/70) são configuração em Settings, não código — vão em tarefa própria.
+- **Justificativa:** abrir PR de código sem D1 (destino do lead) ou D2 (credenciais) geraria código morto ou feature flagada sem consumidor.
 
-**Decisão:** Resolver 3 threads inline via GraphQL `resolveReviewThread` antes de mergear.  
-**Motivo:** Branch protection exige todos os comentários resolvidos. `gh pr merge --admin` falhou com "All comments must be resolved".  
-**Tool usada:** `GITHUB---FOREVER-FULL---MCP-github_graphql`  
-**Data:** 2026-10-31 | **Status:** VIGENTE
+## D-03 · 2026-11-01 — Vereditos sobre as 18 PRs fechadas sem merge
 
----
+- **Contexto:** 18/109 PRs foram fechadas sem merge. Era preciso julgar se algo de valor foi perdido.
+- **Alternativas:** (a) reabrir alguma; (b) confirmar descarte.
+- **Decisão:** descarte confirmado para as 18. 13 são dependabot superseded (versão mais nova mergeada depois: #15→#20/#85, #56/#84/#97/#101→#104, #58→#87, #60→#85, #61/#62→#99, #86 duplicata da #18, #98→#102, #100→#105, #57 grupo pip, #59 major absorvido). 4 agente-copilot superseded/abandonadas com escopo absorvido (#69→#73→abandonada/coberta por #71; #74 resolvida via #78). 1 rejeitada e refeita (#66→#72).
+- **Justificativa:** evidência em `prs.csv` (merged_at preenchido nas sucessoras, closed_at sem merge nas descartadas).
 
-## D-004 · GraphQL com owner adm01-debug
+## D-04 · 2026-11-01 — Contagem real: 109 PRs (#1..#109, #75 inexistente)
 
-**Decisão:** Usar MCP `github_graphql` para queries GraphQL com owner `adm01-debug` (contém hífen).  
-**Motivo:** `gh api graphql -F query=` falha com "Expected type 'number', but it was malformed: -debug".  
-**Data:** 2026-10-31 | **Status:** VIGENTE
+- **Contexto:** o escopo citava "108 PRs (#1..#110)". O `prs.csv` contém 109 linhas (#1..#109, sem #75).
+- **Alternativas:** (a) forçar o número 108/110 do escopo; (b) reportar o real.
+- **Decisão:** reportar 109 PRs analisadas, com a #75 inexistente e a #110 entendida como a PR de inventário da sessão anterior (já mergeada).
+- **Justificativa:** verdade acima de validação — número inventado quebraria a reconciliação com `prs.csv`.
 
----
+## D-05 · 2026-11-01 — `funcionalidades.csv` com 127 linhas (F-01..F-127)
 
-## D-005 · Sessão filho de5877b3 abortada
+- **Contexto:** mapear funcionalidades × PRs × achados × prioridade.
+- **Alternativas:** (a) só PFs da auditoria 11/10; (b) PFs + entregas das PRs mergeadas.
+- **Decisão:** (b) — F-01..F-92 espelham os PFs (estado/completude da auditoria), F-93..F-127 registram o que as PRs mergeadas entregaram (COMPLETA, com PRs citadas).
+- **Justificativa:** sem a parte (b), o CSV contaria só o que falta e esconderia o que foi feito.
 
-**Decisão:** Absorver trabalho do filho de5877b3 diretamente no coordenador.  
-**Motivo:** Filho bloqueado por "Permission denied" em todos os tools de I/O e limite 402 de usage agents.  
-**Impacto:** 7 arquivos gerados diretamente pelo coordenador em vez de via sessão filho.  
-**Data:** 2026-10-31 | **Status:** VIGENTE
+## D-06 · 2026-11-01 — Regras com status VIGENTE/SUSPEITA/CONTRADITÓRIA em vez de binário
 
----
+- **Contexto:** extrair regras de negócio de docs + código.
+- **Alternativas:** (a) listar só regras confirmadas; (b) incluir divergências documento×código.
+- **Decisão:** (b) — 3 status; SUSPEITA e CONTRADITÓRIA apontam exatamente onde texto promete o que o código não faz (PF-14..PF-21, PF-27, PF-42, PF-17/PF-30).
+- **Justificativa:** o valor da auditoria está nas divergências, não na repetição do óbvio.
 
-## D-006 · Branches órfãs não excluídas
+## D-07 · 2026-11-01 — CI documentado por leitura de workflows, sem `gh run list`
 
-**Decisão:** Não excluir branches órfãs (18 branches remotas sem PR aberta).  
-**Motivo:** Fluxo Git do usuário proíbe exclusão de branches remotas. Conteúdo verificado: branches "ahead" de main (fix/product-card-clean-image-background ahead:2, fix/ci-workflows-copilot-quota-20261028 ahead:1) têm PRs já mergeadas (#88, #109) — resíduo de squash merge, sem trabalho inédito.  
-**Data:** 2026-10-31 | **Status:** VIGENTE
-
----
-
-## D-007 · Não mergear PRs dos clusters ux-briefing e governanca
-
-**Decisão:** Manter PRs fechadas sem merge em ux-briefing (#94) e governanca como DECISÃO HUMANA.  
-**Motivo:** PF-40 (briefing Carnegie) requer mockup aprovado e decisão de produto. PF-69/PF-77 requerem decisão do dono sobre 2º revisor.  
-**Data:** 2026-10-31 | **Status:** VIGENTE
-
----
-
-## D-008 · Limite de 57 fontes identificadas (22 lidas integralmente)
-
-**Decisão:** Registrar 57 fontes como conjunto completo identificado; 22 lidas integralmente, 35 identificadas por nome/path.  
-**Motivo:** Sessão filho atingiu limite de contexto após 22 leituras. Fontes não lidas registradas em fontes.json com status `IDENTIFICADA_NAO_LIDA`.  
-**Data:** 2026-10-31 | **Status:** VIGENTE
-
----
-
-## D-009 · Canonical catalog public contract — não investigar nesta sessão
-
-**Decisão:** Registrar falha recorrente do workflow `Canonical catalog public contract` como backlog, sem investigar causa nesta sessão.  
-**Motivo:** Falha presente desde cc133bd0 (antes da PR #110). Não introduzida por esta análise. Requer leitura do workflow e do banco canônico, fora do escopo atual.  
-**Data:** 2026-10-31 | **Status:** VIGENTE
+- **Contexto:** o escopo pedia `gh run list` para histórico real de runs.
+- **Alternativas:** (a) bloquear sem CLI; (b) documentar os 12 workflows lidos no repo + runs citados nas auditorias.
+- **Decisão:** (b) — `baseline/ci-checks.md` descreve os 5 checks obrigatórios a partir dos arquivos `.github/workflows/` e registra a limitação (histórico de runs NÃO VERIFICADO nesta sessão).
+- **Justificativa:** afirmar resultado de run sem evidência violaria a regra "sem evidência = NÃO VERIFICADO".
