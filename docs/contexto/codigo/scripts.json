@@ -6,7 +6,7 @@
   {
    "arquivo": "scripts/_lib/supabaseDbQuery.mjs",
    "descricao": "`supabase db query --output-format json` mistura o JSON do resultado com outras mensagens do CLI (banner de conexão, aviso de nova versão) na mesma stdout, e o",
-   "linhas": 93,
+   "linhas": 136,
    "env": [],
    "npm_scripts": [],
    "workflows": [],
@@ -15,27 +15,40 @@
   {
    "arquivo": "scripts/ai-context/cenarios.mjs",
    "descricao": "Simulação de cenários do gerador: monta centenas de repositórios sintéticos (variantes de SQL, rotas, menus, edges, workflows, monorepo, Python, arquivos corrompidos, fuzz) e confere:",
-   "linhas": 173,
+   "linhas": 221,
    "env": [
     "A",
+    "A_KEY",
+    "CI",
+    "CRON_SECRET",
+    "DEV",
+    "FALTOU",
     "K",
+    "MODE",
     "NODE_ENV",
+    "OPCIONAL_PREVIEW",
     "SCRIPT_ONLY",
+    "SO_CITADA",
     "SRK",
     "SUPABASE_URL",
+    "VERCEL_ENV",
+    "VERCEL_URL",
     "VITE_A",
     "VITE_C",
     "VITE_FEATURE_X",
+    "VITE_NOVO_FLUXO_ENABLED",
     "X"
    ],
-   "npm_scripts": [],
+   "npm_scripts": [
+    "contexto:ia:cenarios"
+   ],
    "workflows": [],
    "orfao": false
   },
   {
    "arquivo": "scripts/ai-context/gerar.mjs",
    "descricao": "Gera o contexto de projeto para agentes de IA (padrão: inventario/ia/*). Zero dependências. Node >= 18. Genérico: funciona em qualquer repositório.",
-   "linhas": 924,
+   "linhas": 1011,
    "env": [
     "AI_CONTEXT_DIR",
     "AI_CONTEXT_PUBLICACAO",
@@ -52,7 +65,7 @@
   {
    "arquivo": "scripts/check-catalog-public-contract.mjs",
    "descricao": null,
-   "linhas": 342,
+   "linhas": 409,
    "env": [
     "VITE_SUPABASE_PUBLISHABLE_KEY",
     "VITE_SUPABASE_URL"
@@ -68,7 +81,7 @@
   {
    "arquivo": "scripts/check-performance-budget.mjs",
    "descricao": null,
-   "linhas": 83,
+   "linhas": 120,
    "env": [],
    "npm_scripts": [
     "check:performance-budget"
@@ -79,7 +92,7 @@
   {
    "arquivo": "scripts/ci-health-metrics.mjs",
    "descricao": null,
-   "linhas": 54,
+   "linhas": 68,
    "env": [],
    "npm_scripts": [],
    "workflows": [
@@ -90,7 +103,7 @@
   {
    "arquivo": "scripts/generate-database-dictionary.mjs",
    "descricao": "Etapa 35 do plano de correções: gera docs/DATABASE_DICTIONARY.md a partir dos comentários reais do banco local (pg_description), não de memória — evita o",
-   "linhas": 103,
+   "linhas": 115,
    "env": [],
    "npm_scripts": [
     "db:site:dictionary"
@@ -101,7 +114,7 @@
   {
    "arquivo": "scripts/generate-database-schema-doc.mjs",
    "descricao": "Etapa 48 do plano de correções: gera docs/DATABASE_SCHEMA.md (ERD em Mermaid) a partir de pg_constraint no banco local — mesma filosofia da Etapa 35 (gerado, não",
-   "linhas": 81,
+   "linhas": 93,
    "env": [],
    "npm_scripts": [
     "db:site:schema-doc"
@@ -112,7 +125,7 @@
   {
    "arquivo": "scripts/generate-site-api-jwt.mjs",
    "descricao": "Etapa 25 do plano de correções: gera um JWT de serviço com role:site_api, assinado com o Legacy JWT Secret do projeto isolado do site (Settings > API > JWT Settings no",
-   "linhas": 60,
+   "linhas": 86,
    "env": [
     "SITE_SUPABASE_JWT_SECRET",
     "SITE_SUPABASE_JWT_TTL_DAYS"
@@ -126,7 +139,7 @@
   {
    "arquivo": "scripts/graphify-quality.mjs",
    "descricao": null,
-   "linhas": 364,
+   "linhas": 371,
    "env": [],
    "npm_scripts": [],
    "workflows": [],
@@ -135,9 +148,10 @@
   {
    "arquivo": "scripts/graphify.mjs",
    "descricao": null,
-   "linhas": 810,
+   "linhas": 898,
    "env": [
-    "GRAPHIFY_BIN"
+    "GRAPHIFY_BIN",
+    "GRAPHIFY_TIMEOUT_MS"
    ],
    "npm_scripts": [
     "graph:doctor",
@@ -163,7 +177,7 @@
   {
    "arquivo": "scripts/inventario/banco.sql",
    "descricao": null,
-   "linhas": 257,
+   "linhas": 275,
    "env": [],
    "npm_scripts": [],
    "workflows": [],
@@ -172,7 +186,7 @@
   {
    "arquivo": "scripts/inventario/gerar-banco.mjs",
    "descricao": "* Inventario do banco do site -> inventario/estado/banco.json (fonte de consulta dos agentes).",
-   "linhas": 379,
+   "linhas": 581,
    "env": [
     "INVENTARIO_PERMITIR_OUTRO_PROJETO",
     "SUPABASE_ACCESS_TOKEN",
@@ -190,7 +204,7 @@
   {
    "arquivo": "scripts/inventario/mudou-conteudo.mjs",
    "descricao": "* O inventario mudou de verdade? Compara cada arquivo de inventario/estado/ com a versao do",
-   "linhas": 93,
+   "linhas": 143,
    "env": [],
    "npm_scripts": [
     "inventario:mudou"
@@ -202,8 +216,8 @@
   },
   {
    "arquivo": "scripts/normalize-vercel-deployment-url.mjs",
-   "descricao": null,
-   "linhas": 36,
+   "descricao": "Rótulos DNS estritos: o resultado é interpolado em shell e em logs do release, então nenhum caractere fora de [a-z0-9-] pode sobreviver.",
+   "linhas": 59,
    "env": [],
    "npm_scripts": [],
    "workflows": [
@@ -214,11 +228,10 @@
   {
    "arquivo": "scripts/regras_negocio/generate.py",
    "descricao": null,
-   "linhas": 2138,
+   "linhas": 2662,
    "env": [],
    "npm_scripts": [
-    "contexto:regras",
-    "contexto:regras:test"
+    "contexto:regras"
    ],
    "workflows": [
     "contexto.yml"
@@ -228,7 +241,7 @@
   {
    "arquivo": "scripts/regras_negocio/indice.py",
    "descricao": null,
-   "linhas": 237,
+   "linhas": 285,
    "env": [],
    "npm_scripts": [
     "contexto:regras"
@@ -240,8 +253,8 @@
   },
   {
    "arquivo": "scripts/regras_negocio/publish.sh",
-   "descricao": "Publica docs/ai-context gerados: commit + push na branch padrão, ou PR quando a branch é protegida. Variáveis:",
-   "linhas": 195,
+   "descricao": "Publica docs/ai-context gerados: commit + push na branch padrão, ou PR quando a branch é protegida. Rode a partir da raiz do repositório. `bash publish.sh --help` mostra este cabeçalho.",
+   "linhas": 292,
    "env": [],
    "npm_scripts": [],
    "workflows": [],
@@ -250,7 +263,7 @@
   {
    "arquivo": "scripts/smoke-deployment.mjs",
    "descricao": null,
-   "linhas": 57,
+   "linhas": 129,
    "env": [
     "SMOKE_BASE_URL"
    ],
@@ -263,11 +276,8 @@
   {
    "arquivo": "scripts/soak-test-notification-queue.mjs",
    "descricao": "Etapa 38 do plano de correções (docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260916.md): confirma ou recalibra o",
-   "linhas": 223,
-   "env": [
-    "SOAK_FAILURE_RATE",
-    "SOAK_JOB_COUNT"
-   ],
+   "linhas": 275,
+   "env": [],
    "npm_scripts": [
     "db:site:soak-test"
    ],
@@ -277,7 +287,7 @@
   {
    "arquivo": "scripts/sql/verify-shared-selection-contract.sql",
    "descricao": null,
-   "linhas": 30,
+   "linhas": 33,
    "env": [],
    "npm_scripts": [],
    "workflows": [],
@@ -286,7 +296,7 @@
   {
    "arquivo": "scripts/stage-app-shell.mjs",
    "descricao": null,
-   "linhas": 15,
+   "linhas": 39,
    "env": [],
    "npm_scripts": [
     "build"
@@ -296,12 +306,10 @@
   },
   {
    "arquivo": "scripts/supabase_snapshot/snapshot.py",
-   "descricao": "Somente leitura no banco (sessão read-only, statement_timeout, lock_timeout). Nunca grava linhas de tabelas, valores de segredos, chaves, senhas ou DSN.",
-   "linhas": 1791,
+   "descricao": null,
+   "linhas": 2074,
    "env": [],
-   "npm_scripts": [
-    "contexto:banco:test"
-   ],
+   "npm_scripts": [],
    "workflows": [
     "contexto.yml"
    ],
@@ -310,7 +318,7 @@
   {
    "arquivo": "scripts/validate-agent-instructions.mjs",
    "descricao": "Guarda das instruções para agentes: AGENTS.md (regras) + CLAUDE.md (só `@AGENTS.md`) + docs/agentes/*.md (referência) + os dois skills do repo.",
-   "linhas": 200,
+   "linhas": 239,
    "env": [
     "AGENT_INSTRUCTIONS_ALLOW_NO_BASE",
     "AGENT_INSTRUCTIONS_BASE"
@@ -326,7 +334,7 @@
   {
    "arquivo": "scripts/validate-closure-ledger.mjs",
    "descricao": null,
-   "linhas": 74,
+   "linhas": 128,
    "env": [],
    "npm_scripts": [
     "ledger:check"
@@ -337,7 +345,7 @@
   {
    "arquivo": "scripts/validate-error-catalog.mjs",
    "descricao": "Etapa 22 do plano de correções (docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260916.md): docs/DATABASE_FUNCTION_CONTRACTS.md documenta um catálogo de erros gerado por",
-   "linhas": 68,
+   "linhas": 93,
    "env": [],
    "npm_scripts": [
     "db:site:error-catalog:check"
@@ -350,7 +358,7 @@
   {
    "arquivo": "scripts/validate-migration-names.mjs",
    "descricao": "Etapa 4 do plano de correções (docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260916.md): o incidente de 15/09/2026 (timestamps com underscore, ex.: 20260908_230000) só foi",
-   "linhas": 117,
+   "linhas": 153,
    "env": [],
    "npm_scripts": [
     "db:migration-names:check"
@@ -363,8 +371,10 @@
   {
    "arquivo": "scripts/validate-site-supabase-target.mjs",
    "descricao": null,
-   "linhas": 19,
-   "env": [],
+   "linhas": 46,
+   "env": [
+    "SUPABASE_PROJECT_ID"
+   ],
    "npm_scripts": [
     "db:site:guard"
    ],
@@ -374,7 +384,7 @@
   {
    "arquivo": "scripts/verify-vercel-artifact.mjs",
    "descricao": null,
-   "linhas": 48,
+   "linhas": 78,
    "env": [],
    "npm_scripts": [],
    "workflows": [

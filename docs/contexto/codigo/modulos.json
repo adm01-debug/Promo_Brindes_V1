@@ -9,28 +9,52 @@
    "testes": 0,
    "linhas": 2020,
    "itens_menu": [],
-   "telas": [
-    "/api/briefing-assets",
-    "/api/contact-requests",
-    "/api/customer-proposals",
-    "/api/not-found",
-    "/api/notification-events-resend",
-    "/api/notification-events-whatsapp",
-    "/api/notifications",
-    "/api/product-page",
-    "/api/quote-requests",
-    "/api/retention",
-    "/api/shared-selections",
-    "/api/site-page",
-    "/api/sitemap"
+   "telas": [],
+   "rotas_http": [
+    "POST /api/briefing-assets",
+    "POST /api/contact-requests",
+    "POST /api/customer-proposals",
+    "GET,HEAD /api/not-found",
+    "POST /api/notification-events-resend",
+    "GET,POST /api/notification-events-whatsapp",
+    "GET /api/notifications",
+    "GET,HEAD /api/product-page",
+    "POST /api/quote-requests",
+    "GET /api/retention",
+    "POST /api/shared-selections",
+    "GET,HEAD /api/site-page",
+    "GET,HEAD /api/sitemap"
    ],
-   "rotas_http": [],
    "componentes": 0,
    "hooks_locais": [],
    "hooks_definidos": [],
    "edges": [],
    "tabelas": [],
-   "rpcs": [],
+   "rpcs": [
+    "apply_site_notification_provider_event",
+    "claim_site_notification_deliveries",
+    "claim_site_quote_notification",
+    "confirm_site_briefing_asset_verification",
+    "create_site_contact_request",
+    "create_site_quote_request",
+    "create_site_shared_selection",
+    "finalize_site_data_retention",
+    "finalize_site_notification_delivery",
+    "finalize_site_storage_retention",
+    "get_briefing_asset_retention_candidates",
+    "get_my_briefing_asset_verification",
+    "get_my_proposal_document",
+    "get_site_data_retention_candidates",
+    "get_site_shared_selection",
+    "preflight_site_lead_request",
+    "purge_archived_customer_selections",
+    "purge_site_admin_audit_logs",
+    "record_site_notification_dispatch_started",
+    "record_site_notification_provider_acceptance",
+    "reject_site_briefing_asset_verification",
+    "revoke_site_shared_selection",
+    "site_notification_queue_health"
+   ],
    "buckets": [],
    "canais_realtime": [],
    "env": [
@@ -68,7 +92,25 @@
    "diretos": {
     "edges": [],
     "tabelas": [],
-    "rpcs": []
+    "rpcs": [
+     "apply_site_notification_provider_event",
+     "claim_site_notification_deliveries",
+     "claim_site_quote_notification",
+     "confirm_site_briefing_asset_verification",
+     "finalize_site_data_retention",
+     "finalize_site_notification_delivery",
+     "finalize_site_storage_retention",
+     "get_briefing_asset_retention_candidates",
+     "get_my_briefing_asset_verification",
+     "get_my_proposal_document",
+     "get_site_data_retention_candidates",
+     "purge_archived_customer_selections",
+     "purge_site_admin_audit_logs",
+     "record_site_notification_dispatch_started",
+     "record_site_notification_provider_acceptance",
+     "reject_site_briefing_asset_verification",
+     "site_notification_queue_health"
+    ]
    },
    "importado_por_outros_modulos": [
     "api/_lib"
@@ -87,28 +129,27 @@
    "testes": 0,
    "linhas": 1667,
    "itens_menu": [],
-   "telas": [
-    "/api/_lib/catalogValidation",
-    "/api/_lib/contracts",
-    "/api/_lib/curatedPagePreviews",
-    "/api/_lib/fileSignatures",
-    "/api/_lib/leadHandler",
-    "/api/_lib/observability",
-    "/api/_lib/operationalAlerts",
-    "/api/_lib/pageShell",
-    "/api/_lib/publicProductPage",
-    "/api/_lib/sharedSelections",
-    "/api/_lib/siteDatabase",
-    "/api/_lib/siteOrigin",
-    "/api/_lib/webhookSignature"
-   ],
+   "telas": [],
    "rotas_http": [],
    "componentes": 0,
    "hooks_locais": [],
    "hooks_definidos": [],
    "edges": [],
    "tabelas": [],
-   "rpcs": [],
+   "rpcs": [
+    "claim_site_notification_deliveries",
+    "claim_site_quote_notification",
+    "create_site_contact_request",
+    "create_site_quote_request",
+    "create_site_shared_selection",
+    "finalize_site_notification_delivery",
+    "get_site_shared_selection",
+    "preflight_site_lead_request",
+    "record_site_notification_dispatch_started",
+    "record_site_notification_provider_acceptance",
+    "revoke_site_shared_selection",
+    "site_notification_queue_health"
+   ],
    "buckets": [],
    "canais_realtime": [],
    "env": [
@@ -143,7 +184,14 @@
    "diretos": {
     "edges": [],
     "tabelas": [],
-    "rpcs": []
+    "rpcs": [
+     "create_site_contact_request",
+     "create_site_quote_request",
+     "create_site_shared_selection",
+     "get_site_shared_selection",
+     "preflight_site_lead_request",
+     "revoke_site_shared_selection"
+    ]
    },
    "importado_por_outros_modulos": [
     "api"
@@ -206,20 +254,13 @@
     "VITE_SUPABASE_PUBLISHABLE_KEY",
     "VITE_SUPABASE_URL"
    ],
-   "flags": [],
+   "flags": [
+    "CUSTOMER_ADJUSTMENTS_ENABLED",
+    "PERSISTENT_SHARED_SELECTIONS_ENABLED",
+    "QUOTE_DECISION_GROUPS_ENABLED"
+   ],
    "papeis": [
-    "alert",
-    "alertdialog",
-    "anon",
-    "combobox",
-    "dialog",
-    "group",
-    "listbox",
-    "option",
-    "presentation",
-    "region",
-    "search",
-    "status"
+    "anon"
    ],
    "diretos": {
     "edges": [],
@@ -359,7 +400,11 @@
     "VITE_SUPABASE_PUBLISHABLE_KEY",
     "VITE_SUPABASE_URL"
    ],
-   "flags": [],
+   "flags": [
+    "CUSTOMER_ADJUSTMENTS_ENABLED",
+    "PERSISTENT_SHARED_SELECTIONS_ENABLED",
+    "QUOTE_DECISION_GROUPS_ENABLED"
+   ],
    "papeis": [
     "anon"
    ],
@@ -483,20 +528,13 @@
     "VITE_SUPABASE_PUBLISHABLE_KEY",
     "VITE_SUPABASE_URL"
    ],
-   "flags": [],
+   "flags": [
+    "CUSTOMER_ADJUSTMENTS_ENABLED",
+    "PERSISTENT_SHARED_SELECTIONS_ENABLED",
+    "QUOTE_DECISION_GROUPS_ENABLED"
+   ],
    "papeis": [
-    "alert",
-    "alertdialog",
-    "anon",
-    "combobox",
-    "dialog",
-    "group",
-    "listbox",
-    "option",
-    "presentation",
-    "region",
-    "search",
-    "status"
+    "anon"
    ],
    "diretos": {
     "edges": [],

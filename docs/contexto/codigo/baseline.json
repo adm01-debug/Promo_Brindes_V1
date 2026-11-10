@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "860a0a06becdb6b90d8ac3dd7885cccc0ab45149",
+  "commit": "223e6558a8b920bdbd8f668aed511f02aa236de6",
   "branch": "main",
-  "data_commit": "2026-11-10T18:27:19Z",
+  "data_commit": "2026-11-10T20:08:31Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "223e655",
+    "data": "2026-11-10",
+    "assunto": "fix: endurece e cobre com testes todos os scripts do repositório (#130)"
+   },
    {
     "sha": "860a0a0",
     "data": "2026-11-10",
@@ -126,25 +131,20 @@
     "sha": "217f785",
     "data": "2026-10-27",
     "assunto": "fix(catalog): remove padrão atrás das fotos dos produtos (#88)"
-   },
-   {
-    "sha": "4c60959",
-    "data": "2026-10-20",
-    "assunto": "docs(ativos): importa mockups e relatório que estavam fora do repo (#103)"
    }
   ],
-  "arquivos_mudados_7d": 57,
+  "arquivos_mudados_7d": 97,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "docs/audits/pending-features-20261011",
     "mudancas": 10
    },
    {
-    "pasta": "AGENTS.md",
-    "mudancas": 6
+    "pasta": "package.json",
+    "mudancas": 7
    },
    {
-    "pasta": "package.json",
+    "pasta": "AGENTS.md",
     "mudancas": 6
    },
    {
@@ -156,15 +156,23 @@
     "mudancas": 4
    },
    {
+    "pasta": "scripts/validate-agent-instructions.mjs",
+    "mudancas": 4
+   },
+   {
     "pasta": "RELATORIO_CI.md",
     "mudancas": 3
    },
    {
-    "pasta": "scripts/validate-agent-instructions.mjs",
+    "pasta": "tests/validate-agent-instructions.node.mjs",
     "mudancas": 3
    },
    {
     "pasta": ".agents/skills/promo-brindes-v1",
+    "mudancas": 2
+   },
+   {
+    "pasta": ".claude/hooks/session-start.sh",
     "mudancas": 2
    },
    {
@@ -176,30 +184,22 @@
     "mudancas": 2
    },
    {
+    "pasta": ".gitignore",
+    "mudancas": 2
+   },
+   {
     "pasta": ".graphify.project.json",
     "mudancas": 2
    },
    {
     "pasta": "CLAUDE.md",
     "mudancas": 2
-   },
-   {
-    "pasta": "docs/agentes/regras-dominio.md",
-    "mudancas": 2
-   },
-   {
-    "pasta": "docs/contexto/regras",
-    "mudancas": 2
-   },
-   {
-    "pasta": "e2e/smoke.spec.ts",
-    "mudancas": 2
    }
   ],
   "arquivos_mais_mudados_90d": [
    {
     "arquivo": "package.json",
-    "mudancas": 55
+    "mudancas": 56
    },
    {
     "arquivo": "e2e/smoke.spec.ts",
@@ -258,15 +258,15 @@
     "mudancas": 16
    },
    {
+    "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
+    "mudancas": 16
+   },
+   {
     "arquivo": ".github/workflows/graphify.yml",
     "mudancas": 15
    },
    {
     "arquivo": "api/notifications.ts",
-    "mudancas": 15
-   },
-   {
-    "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
     "mudancas": 15
    },
    {
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 19
+    "commits": 20
    },
    {
     "autor": "dependabot[bot]",
@@ -310,21 +310,21 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 649,
-  "arquivos_codigo": 249,
-  "linhas_codigo": 37705,
-  "rotas": 44,
-  "rotas_http_backend": 12,
+  "arquivos_total": 660,
+  "arquivos_codigo": 260,
+  "linhas_codigo": 45903,
+  "rotas": 31,
+  "rotas_http_backend": 13,
   "vistas_por_id": 0,
   "itens_menu": 11,
   "modulos": 9,
   "componentes": 40,
-  "hooks": 7,
+  "hooks": 6,
   "edge_functions": 0,
-  "tabelas": 26,
-  "migrations": 73,
+  "tabelas": 22,
+  "migrations": 65,
   "cron_jobs": 0,
-  "testes": 89,
+  "testes": 128,
   "workflows": 14,
   "scripts": 29,
   "docs_md": 113
@@ -412,95 +412,95 @@
   },
   "scripts/_lib": {
    "arquivos": 1,
-   "linhas": 93
+   "linhas": 136
   },
   "scripts/ai-context": {
    "arquivos": 3,
-   "linhas": 1458
+   "linhas": 1898
   },
   "scripts/check-catalog-public-contract.mjs": {
    "arquivos": 1,
-   "linhas": 342
+   "linhas": 409
   },
   "scripts/check-performance-budget.mjs": {
    "arquivos": 1,
-   "linhas": 83
+   "linhas": 120
   },
   "scripts/ci-health-metrics.mjs": {
    "arquivos": 1,
-   "linhas": 54
+   "linhas": 68
   },
   "scripts/generate-database-dictionary.mjs": {
    "arquivos": 1,
-   "linhas": 103
+   "linhas": 115
   },
   "scripts/generate-database-schema-doc.mjs": {
    "arquivos": 1,
-   "linhas": 81
+   "linhas": 93
   },
   "scripts/generate-site-api-jwt.mjs": {
    "arquivos": 1,
-   "linhas": 60
+   "linhas": 86
   },
   "scripts/graphify-quality.mjs": {
    "arquivos": 1,
-   "linhas": 364
+   "linhas": 371
   },
   "scripts/graphify.mjs": {
    "arquivos": 1,
-   "linhas": 810
+   "linhas": 898
   },
   "scripts/inventario": {
    "arquivos": 2,
-   "linhas": 472
+   "linhas": 724
   },
   "scripts/normalize-vercel-deployment-url.mjs": {
    "arquivos": 1,
-   "linhas": 36
+   "linhas": 59
   },
   "scripts/regras_negocio": {
-   "arquivos": 3,
-   "linhas": 2539
+   "arquivos": 5,
+   "linhas": 4091
   },
   "scripts/smoke-deployment.mjs": {
    "arquivos": 1,
-   "linhas": 57
+   "linhas": 129
   },
   "scripts/soak-test-notification-queue.mjs": {
    "arquivos": 1,
-   "linhas": 223
+   "linhas": 275
   },
   "scripts/stage-app-shell.mjs": {
    "arquivos": 1,
-   "linhas": 15
+   "linhas": 39
   },
   "scripts/supabase_snapshot": {
    "arquivos": 2,
-   "linhas": 2669
+   "linhas": 3869
   },
   "scripts/validate-agent-instructions.mjs": {
    "arquivos": 1,
-   "linhas": 200
+   "linhas": 239
   },
   "scripts/validate-closure-ledger.mjs": {
    "arquivos": 1,
-   "linhas": 74
+   "linhas": 128
   },
   "scripts/validate-error-catalog.mjs": {
    "arquivos": 1,
-   "linhas": 68
+   "linhas": 93
   },
   "scripts/validate-migration-names.mjs": {
    "arquivos": 1,
-   "linhas": 117
+   "linhas": 153
   },
   "scripts/validate-site-supabase-target.mjs": {
    "arquivos": 1,
-   "linhas": 19
+   "linhas": 46
   },
   "scripts/verify-vercel-artifact.mjs": {
    "arquivos": 1,
-   "linhas": 48
+   "linhas": 78
   },
   "shared/campaignYears.ts": {
    "arquivos": 1,
@@ -552,31 +552,43 @@
   },
   "tests/catalog-public-contract.node.mjs": {
    "arquivos": 1,
-   "linhas": 293
+   "linhas": 514
+  },
+  "tests/check-performance-budget.node.mjs": {
+   "arquivos": 1,
+   "linhas": 180
   },
   "tests/ci-health-metrics.node.mjs": {
    "arquivos": 1,
-   "linhas": 93
+   "linhas": 158
   },
   "tests/closure-ledger.node.mjs": {
    "arquivos": 1,
-   "linhas": 40
+   "linhas": 183
+  },
+  "tests/generate-database-docs.node.mjs": {
+   "arquivos": 1,
+   "linhas": 235
   },
   "tests/generate-site-api-jwt.node.mjs": {
    "arquivos": 1,
-   "linhas": 61
+   "linhas": 135
   },
   "tests/graphify-tools.node.mjs": {
    "arquivos": 1,
-   "linhas": 284
+   "linhas": 611
+  },
+  "tests/inventario-banco-sql.node.mjs": {
+   "arquivos": 1,
+   "linhas": 309
   },
   "tests/inventario-estado.node.mjs": {
    "arquivos": 1,
-   "linhas": 271
+   "linhas": 996
   },
   "tests/normalize-vercel-deployment-url.node.mjs": {
    "arquivos": 1,
-   "linhas": 43
+   "linhas": 119
   },
   "tests/queue-concurrency.node.mjs": {
    "arquivos": 1,
@@ -584,11 +596,27 @@
   },
   "tests/scripts": {
    "arquivos": 2,
-   "linhas": 154
+   "linhas": 236
+  },
+  "tests/session-start-hook.node.mjs": {
+   "arquivos": 1,
+   "linhas": 259
+  },
+  "tests/smoke-deployment.node.mjs": {
+   "arquivos": 1,
+   "linhas": 337
+  },
+  "tests/soak-test-notification-queue.node.mjs": {
+   "arquivos": 1,
+   "linhas": 181
+  },
+  "tests/stage-app-shell.node.mjs": {
+   "arquivos": 1,
+   "linhas": 145
   },
   "tests/supabase-db-query.node.mjs": {
    "arquivos": 1,
-   "linhas": 67
+   "linhas": 154
   },
   "tests/timing-safe-secret-comparisons.node.mjs": {
    "arquivos": 1,
@@ -596,15 +624,23 @@
   },
   "tests/validate-agent-instructions.node.mjs": {
    "arquivos": 1,
-   "linhas": 133
+   "linhas": 370
   },
   "tests/validate-error-catalog.node.mjs": {
    "arquivos": 1,
-   "linhas": 51
+   "linhas": 124
   },
   "tests/validate-migration-names.node.mjs": {
    "arquivos": 1,
-   "linhas": 97
+   "linhas": 193
+  },
+  "tests/validate-site-supabase-target.node.mjs": {
+   "arquivos": 1,
+   "linhas": 116
+  },
+  "tests/verify-shared-selection-contract.node.mjs": {
+   "arquivos": 1,
+   "linhas": 98
   },
   "vite.config.ts": {
    "arquivos": 1,
@@ -614,11 +650,11 @@
  "maiores_arquivos": [
   {
    "arquivo": "scripts/regras_negocio/generate.py",
-   "linhas": 2138
+   "linhas": 2662
   },
   {
    "arquivo": "scripts/supabase_snapshot/snapshot.py",
-   "linhas": 1791
+   "linhas": 2074
   },
   {
    "arquivo": "src/types/site-database.types.ts",
@@ -626,15 +662,19 @@
   },
   {
    "arquivo": "scripts/ai-context/gerar.mjs",
-   "linhas": 924
+   "linhas": 1011
   },
   {
    "arquivo": "scripts/graphify.mjs",
-   "linhas": 810
+   "linhas": 898
   },
   {
    "arquivo": "api/notifications.ts",
    "linhas": 698
+  },
+  {
+   "arquivo": "scripts/inventario/gerar-banco.mjs",
+   "linhas": 581
   },
   {
    "arquivo": "src/lib/catalog.ts",
@@ -653,24 +693,20 @@
    "linhas": 416
   },
   {
-   "arquivo": "scripts/inventario/gerar-banco.mjs",
-   "linhas": 379
+   "arquivo": "scripts/check-catalog-public-contract.mjs",
+   "linhas": 409
+  },
+  {
+   "arquivo": "scripts/graphify-quality.mjs",
+   "linhas": 371
   },
   {
    "arquivo": "src/pages/HomePage.tsx",
    "linhas": 371
   },
   {
-   "arquivo": "scripts/graphify-quality.mjs",
-   "linhas": 364
-  },
-  {
    "arquivo": "src/pages/CommemorativeDatesPage.tsx",
    "linhas": 351
-  },
-  {
-   "arquivo": "scripts/check-catalog-public-contract.mjs",
-   "linhas": 342
   },
   {
    "arquivo": "src/lib/commemorativeDates.ts",
@@ -693,6 +729,10 @@
    "linhas": 286
   },
   {
+   "arquivo": "scripts/regras_negocio/indice.py",
+   "linhas": 285
+  },
+  {
    "arquivo": "src/lib/useCatalogPageState.ts",
    "linhas": 282
   },
@@ -701,42 +741,38 @@
    "linhas": 281
   },
   {
+   "arquivo": "scripts/soak-test-notification-queue.mjs",
+   "linhas": 275
+  },
+  {
    "arquivo": "src/components/Layout.tsx",
    "linhas": 273
-  },
-  {
-   "arquivo": "src/lib/customerQuoteContract.ts",
-   "linhas": 255
-  },
-  {
-   "arquivo": "src/components/CatalogFilterPanel.tsx",
-   "linhas": 246
   }
  ],
  "qualidade": {
   "any": 3,
-  "console_log": 58,
+  "console_log": 73,
   "ts_ignore": 0,
   "eslint_disable": 1,
   "todos": 3,
-  "arquivos_acima_500_linhas": 8
+  "arquivos_acima_500_linhas": 9
  },
  "todos": [
   {
    "arquivo": "scripts/ai-context/gerar.mjs",
-   "linha": 188,
+   "linha": 237,
    "tipo": "TODO",
    "texto": "|FIXME|HACK|XXX)\\b[:\\s-]*([^\\n]{0,100})/.exec(line); if (m) todos.push({ linha: ln, tipo: m[1], text"
   },
   {
    "arquivo": "scripts/ai-context/gerar.mjs",
-   "linha": 222,
+   "linha": 271,
    "tipo": "TODO",
    "texto": "|FIXME|HACK|XXX)\\b[:\\s-]*([^\\n]{0,100})/.exec(l); return m ? { linha: i + 1, tipo: m[1], texto: m[2]"
   },
   {
    "arquivo": "scripts/regras_negocio/generate.py",
-   "linha": 570,
+   "linha": 653,
    "tipo": "TODO",
    "texto": "\", \"http\", \"import\")) and \"://\" not in c:"
   }
@@ -744,12 +780,7 @@
  "alertas": {
   "rotas_sem_arquivo": [],
   "componentes_ambiguos": [],
-  "menu_sem_destino": [
-   "Facebook -> https://facebook.com/PromoBrindesBR",
-   "Instagram -> https://instagram.com/promobrindesBR",
-   "Pinterest -> https://br.pinterest.com/ppromobrindes/",
-   "YouTube -> https://youtube.com/channel/UCqITISXs4OioGbSEVVRGaMw"
-  ],
+  "menu_sem_destino": [],
   "edges_orfas": [],
   "edges_chamadas_sem_pasta": [],
   "tabelas_sem_rls": [],
@@ -761,18 +792,11 @@
   "scripts_orfaos": [],
   "env_usadas_nao_declaradas": [
    "CATALOG_SUPABASE_PUBLISHABLE_KEY",
-   "NODE_ENV",
-   "SITE_PREVIEW_SUPABASE_PROJECT_REF",
    "SITE_TEST_APP_SHELL",
-   "VERCEL_ENV",
-   "VERCEL_URL",
-   "VITE_SITE_DEPLOYMENT_ENV",
-   "VITE_SITE_PREVIEW_PROJECT_REF"
+   "VITE_SITE_DEPLOYMENT_ENV"
   ],
   "ciclos_de_import": 1,
-  "possiveis_segredos_no_codigo": [
-   "scripts/ai-context/cenarios.mjs:102"
-  ]
+  "possiveis_segredos_no_codigo": []
  },
  "erros_do_gerador": []
 }

@@ -3,21 +3,17 @@
  "format_version": 2,
  "nota": "Reconstruído de migrations/schemas/types do repo — visão do CÓDIGO, não do banco vivo. `drift` compara colunas (migrations) com colunas_types (types.ts).",
  "fonte": [
-  "*.sql",
-  "drizzle",
-  "src/types/site-database.types.ts",
-  "typeorm"
+  "site-supabase/supabase/migrations",
+  "src/types/site-database.types.ts"
  ],
- "migrations": 73,
+ "migrations": 65,
  "seeds": [],
  "avisos": [
   "4 bloco(s) com DDL dinâmico (EXECUTE format/...) não modelado — policies/colunas criadas dinamicamente podem faltar; confira no banco vivo"
  ],
  "extensoes": [],
  "enums": {},
- "views": [
-  "v_site_products_public"
- ],
+ "views": [],
  "funcoes": [
   "apply_site_notification_provider_event",
   "attach_my_briefing_assets_to_quote",
@@ -43,6 +39,7 @@
   "get_my_quote_request",
   "get_my_quote_requests",
   "get_site_data_retention_candidates",
+  "get_site_shared_selection",
   "list_my_briefing_assets",
   "list_my_occasion_favorites",
   "list_my_selections",
@@ -55,12 +52,38 @@
   "record_site_notification_provider_acceptance",
   "reject_site_briefing_asset_verification",
   "request_my_quote_adjustment",
+  "revoke_site_shared_selection",
   "rls_auto_enable",
   "save_my_selection",
   "set_my_occasion_favorite",
   "set_my_selection_archived",
   "site_notification_queue_health",
-  "site_private"
+  "site_private.assign_quote_protocol",
+  "site_private.audit_actor",
+  "site_private.consume_rate_limit",
+  "site_private.consume_shared_selection_action_limit",
+  "site_private.enforce_notification_delivery_lease_and_attempts",
+  "site_private.enforce_status_transition",
+  "site_private.enforce_valid_kit_reference_set",
+  "site_private.enqueue_quote_confirmations",
+  "site_private.erase_customer_assets_on_profile_change",
+  "site_private.erase_customer_occasion_favorites_on_profile_change",
+  "site_private.erase_customer_selections_on_profile_change",
+  "site_private.finalize_expired_site_data",
+  "site_private.get_expired_site_data_candidates",
+  "site_private.has_unsafe_display_controls",
+  "site_private.log_admin_ddl",
+  "site_private.log_admin_write",
+  "site_private.mod11_check_digit",
+  "site_private.next_retry_at",
+  "site_private.normalize_email",
+  "site_private.normalize_selection_references",
+  "site_private.notification_policy",
+  "site_private.queue_briefing_asset_deletion",
+  "site_private.quote_notification_payload",
+  "site_private.record_quote_status_event",
+  "site_private.require_verified_briefing_asset_attachment",
+  "site_private.set_updated_at"
  ],
  "triggers": [
   {
@@ -68,161 +91,161 @@
    "quando": "before",
    "evento": "update of status",
    "tabela": "site_private.contact_requests",
-   "funcao": "site_private"
+   "funcao": "site_private.enforce_status_transition"
   },
   {
    "nome": "contact_requests_set_updated_at",
    "quando": "before",
    "evento": "update",
    "tabela": "site_private.contact_requests",
-   "funcao": "site_private"
+   "funcao": "site_private.set_updated_at"
   },
   {
    "nome": "customer_briefing_assets_queue_deletion",
    "quando": "before",
    "evento": "delete",
    "tabela": "site_private.customer_briefing_assets",
-   "funcao": "site_private"
+   "funcao": "site_private.queue_briefing_asset_deletion"
   },
   {
    "nome": "customer_briefing_assets_require_verification",
    "quando": "before",
    "evento": "update of quote_request_id",
    "tabela": "site_private.customer_briefing_assets",
-   "funcao": "site_private"
+   "funcao": "site_private.require_verified_briefing_asset_attachment"
   },
   {
    "nome": "customer_briefing_assets_require_verification_on_insert",
    "quando": "before",
    "evento": "insert",
    "tabela": "site_private.customer_briefing_assets",
-   "funcao": "site_private"
+   "funcao": "site_private.require_verified_briefing_asset_attachment"
   },
   {
    "nome": "customer_profile_asset_erasure",
    "quando": "after",
    "evento": "update of verified_email",
    "tabela": "site_private.customer_profiles",
-   "funcao": "site_private"
+   "funcao": "site_private.erase_customer_assets_on_profile_change"
   },
   {
    "nome": "customer_profile_occasion_favorite_erasure",
    "quando": "after",
    "evento": "update of verified_email",
    "tabela": "site_private.customer_profiles",
-   "funcao": "site_private"
+   "funcao": "site_private.erase_customer_occasion_favorites_on_profile_change"
   },
   {
    "nome": "customer_profile_selection_erasure",
    "quando": "after",
    "evento": "update of verified_email",
    "tabela": "site_private.customer_profiles",
-   "funcao": "site_private"
+   "funcao": "site_private.erase_customer_selections_on_profile_change"
   },
   {
    "nome": "customer_profiles_set_updated_at",
    "quando": "before",
    "evento": "update",
    "tabela": "site_private.customer_profiles",
-   "funcao": "site_private"
+   "funcao": "site_private.set_updated_at"
   },
   {
    "nome": "customer_selections_validate_kit_insert",
    "quando": "before",
    "evento": "insert",
    "tabela": "site_private.customer_selections",
-   "funcao": "site_private"
+   "funcao": "site_private.enforce_valid_kit_reference_set"
   },
   {
    "nome": "customer_selections_validate_kit_update",
    "quando": "before",
    "evento": "update of product_references",
    "tabela": "site_private.customer_selections",
-   "funcao": "site_private"
+   "funcao": "site_private.enforce_valid_kit_reference_set"
   },
   {
    "nome": "notification_deliveries_enforce_status_transition",
    "quando": "before",
    "evento": "update of status",
    "tabela": "site_private.notification_deliveries",
-   "funcao": "site_private"
+   "funcao": "site_private.enforce_status_transition"
   },
   {
    "nome": "notification_deliveries_set_updated_at",
    "quando": "before",
    "evento": "update",
    "tabela": "site_private.notification_deliveries",
-   "funcao": "site_private"
+   "funcao": "site_private.set_updated_at"
   },
   {
    "nome": "quote_adjustment_requests_set_updated_at",
    "quando": "before",
    "evento": "update",
    "tabela": "site_private.quote_adjustment_requests",
-   "funcao": "site_private"
+   "funcao": "site_private.set_updated_at"
   },
   {
    "nome": "quote_requests_assign_protocol",
    "quando": "before",
    "evento": "insert",
    "tabela": "site_private.quote_requests",
-   "funcao": "site_private"
+   "funcao": "site_private.assign_quote_protocol"
   },
   {
    "nome": "quote_requests_enforce_status_transition",
    "quando": "before",
    "evento": "update of status",
    "tabela": "site_private.quote_requests",
-   "funcao": "site_private"
+   "funcao": "site_private.enforce_status_transition"
   },
   {
    "nome": "quote_requests_enqueue_confirmations",
    "quando": "after",
    "evento": "insert",
    "tabela": "site_private.quote_requests",
-   "funcao": "site_private"
+   "funcao": "site_private.enqueue_quote_confirmations"
   },
   {
    "nome": "quote_requests_record_customer_event",
    "quando": "after",
    "evento": "insert or update of status",
    "tabela": "site_private.quote_requests",
-   "funcao": "site_private"
+   "funcao": "site_private.record_quote_status_event"
   },
   {
    "nome": "quote_requests_set_updated_at",
    "quando": "before",
    "evento": "update",
    "tabela": "site_private.quote_requests",
-   "funcao": "site_private"
+   "funcao": "site_private.set_updated_at"
   },
   {
    "nome": "shared_selection_rate_limits_set_updated_at",
    "quando": "before",
    "evento": "update",
    "tabela": "site_private.shared_selection_rate_limits",
-   "funcao": "site_private"
+   "funcao": "site_private.set_updated_at"
   },
   {
    "nome": "shared_selections_set_updated_at",
    "quando": "before",
    "evento": "update",
    "tabela": "site_private.shared_selections",
-   "funcao": "site_private"
+   "funcao": "site_private.set_updated_at"
   },
   {
    "nome": "shared_selections_validate_kit_insert",
    "quando": "before",
    "evento": "insert",
    "tabela": "site_private.shared_selections",
-   "funcao": "site_private"
+   "funcao": "site_private.enforce_valid_kit_reference_set"
   },
   {
    "nome": "shared_selections_validate_kit_update",
    "quando": "before",
    "evento": "update of items",
    "tabela": "site_private.shared_selections",
-   "funcao": "site_private"
+   "funcao": "site_private.enforce_valid_kit_reference_set"
   }
  ],
  "cron_jobs": [],
@@ -244,54 +267,6 @@
   }
  ],
  "tabelas": {
-  "kit_quote_requests": {
-   "colunas": {},
-   "rls": false,
-   "policies": [],
-   "indices": [
-    {
-     "nome": "kit_quote_requests_quote_id_idx",
-     "colunas": "quote_id",
-     "unico": false
-    },
-    {
-     "nome": "kit_quote_requests_user_id_idx",
-     "colunas": "user_id",
-     "unico": false
-    }
-   ],
-   "fks": [],
-   "criada_em": null,
-   "usada_no_front": 0,
-   "usada_em_edges": [],
-   "triggers": [],
-   "sem_rls": false,
-   "nao_usada": true
-  },
-  "kit_save_requests": {
-   "colunas": {},
-   "rls": false,
-   "policies": [],
-   "indices": [
-    {
-     "nome": "kit_save_requests_kit_id_idx",
-     "colunas": "kit_id",
-     "unico": false
-    },
-    {
-     "nome": "kit_save_requests_user_id_idx",
-     "colunas": "user_id",
-     "unico": false
-    }
-   ],
-   "fks": [],
-   "criada_em": null,
-   "usada_no_front": 0,
-   "usada_em_edges": [],
-   "triggers": [],
-   "sem_rls": false,
-   "nao_usada": true
-  },
   "site_private.admin_audit_log": {
    "colunas": {
     "application_name": {
@@ -355,6 +330,19 @@
    ],
    "fks": [],
    "criada_em": "20260916210000_add_admin_write_audit.sql",
+   "colunas_types": {
+    "application_name": "string | null",
+    "id": "number",
+    "occurred_at": "string",
+    "operation": "string",
+    "performed_by": "string",
+    "row_id": "string | null",
+    "table_name": "string"
+   },
+   "drift": {
+    "so_na_migration": [],
+    "so_no_types": []
+   },
    "usada_no_front": 0,
    "usada_em_edges": [],
    "triggers": [],
@@ -417,6 +405,18 @@
    ],
    "fks": [],
    "criada_em": "20260916210000_add_admin_write_audit.sql",
+   "colunas_types": {
+    "command_tag": "string",
+    "id": "number",
+    "object_type": "string | null",
+    "occurred_at": "string",
+    "performed_by": "string",
+    "schema_name": "string | null"
+   },
+   "drift": {
+    "so_na_migration": [],
+    "so_no_types": []
+   },
    "usada_no_front": 0,
    "usada_em_edges": [],
    "triggers": [],
@@ -513,6 +513,21 @@
     "quote_request_id->site_private"
    ],
    "criada_em": "20260908230000_create_site_lead_storage.sql",
+   "colunas_types": {
+    "accepted": "boolean",
+    "client_accepted_at": "string",
+    "contact_request_id": "string | null",
+    "id": "string",
+    "notice_version": "string",
+    "purpose": "string",
+    "quote_request_id": "string | null",
+    "request_kind": "string",
+    "server_recorded_at": "string"
+   },
+   "drift": {
+    "so_na_migration": [],
+    "so_no_types": []
+   },
    "usada_no_front": 0,
    "usada_em_edges": [],
    "triggers": [],
@@ -655,6 +670,28 @@
    ],
    "fks": [],
    "criada_em": "20260908230000_create_site_lead_storage.sql",
+   "colunas_types": {
+    "client_request_id": "string",
+    "client_submitted_at": "string",
+    "contact_name": "string",
+    "created_at": "string",
+    "email": "string",
+    "id": "string",
+    "message": "string | null",
+    "page_url": "string | null",
+    "phone": "string | null",
+    "preferred_channel": "string | null",
+    "request_hash": "string",
+    "request_metadata": "Json",
+    "retention_until": "string",
+    "source": "string",
+    "status": "string",
+    "updated_at": "string"
+   },
+   "drift": {
+    "so_na_migration": [],
+    "so_no_types": []
+   },
    "usada_no_front": 0,
    "usada_em_edges": [],
    "triggers": [
@@ -775,6 +812,24 @@
     "quote_request_id->site_private"
    ],
    "criada_em": "20260922150000_add_private_briefing_assets.sql",
+   "colunas_types": {
+    "created_at": "string",
+    "customer_user_id": "string",
+    "expires_at": "string",
+    "id": "string",
+    "kind": "string",
+    "mime_type": "string",
+    "original_name": "string",
+    "quote_request_id": "string | null",
+    "size_bytes": "number",
+    "storage_bucket": "string",
+    "storage_path": "string",
+    "verified_at": "string | null"
+   },
+   "drift": {
+    "so_na_migration": [],
+    "so_no_types": []
+   },
    "usada_no_front": 0,
    "usada_em_edges": [],
    "triggers": [
@@ -829,6 +884,16 @@
     "customer_user_id->auth"
    ],
    "criada_em": "20260923130000_add_customer_occasion_favorites.sql",
+   "colunas_types": {
+    "created_at": "string",
+    "customer_user_id": "string",
+    "occasion_id": "string",
+    "updated_at": "string"
+   },
+   "drift": {
+    "so_na_migration": [],
+    "so_no_types": []
+   },
    "usada_no_front": 0,
    "usada_em_edges": [],
    "triggers": [],
@@ -893,6 +958,18 @@
     "user_id->auth"
    ],
    "criada_em": "20260909180000_create_customer_quote_portal.sql",
+   "colunas_types": {
+    "company": "string | null",
+    "created_at": "string",
+    "display_name": "string | null",
+    "updated_at": "string",
+    "user_id": "string",
+    "verified_email": "string"
+   },
+   "drift": {
+    "so_na_migration": [],
+    "so_no_types": []
+   },
    "usada_no_front": 0,
    "usada_em_edges": [],
    "triggers": [
@@ -988,6 +1065,21 @@
     "customer_user_id->auth"
    ],
    "criada_em": "20260922130000_add_customer_selections.sql",
+   "colunas_types": {
+    "archived_at": "string | null",
+    "campaign": "Json | null",
+    "created_at": "string",
+    "customer_user_id": "string",
+    "id": "string",
+    "product_references": "Json",
+    "title": "string",
+    "updated_at": "string",
+    "version": "number"
+   },
+   "drift": {
+    "so_na_migration": [],
+    "so_no_types": []
+   },
    "usada_no_front": 0,
    "usada_em_edges": [],
    "triggers": [
@@ -1026,6 +1118,15 @@
    "indices": [],
    "fks": [],
    "criada_em": "20260923120000_audit_security_reliability_hardening.sql",
+   "colunas_types": {
+    "auth_users_deleted": "number",
+    "email_sha256": "string",
+    "erased_at": "string"
+   },
+   "drift": {
+    "so_na_migration": [],
+    "so_no_types": []
+   },
    "usada_no_front": 0,
    "usada_em_edges": [],
    "triggers": [],
@@ -1215,11 +1316,6 @@
      "unico": false
     },
     {
-     "nome": "notification_deliveries_provider_lookup_idx",
-     "colunas": "provider, provider_message_id",
-     "unico": false
-    },
-    {
      "nome": "notification_deliveries_provider_message_key",
      "colunas": "provider, provider_message_id",
      "unico": true
@@ -1234,6 +1330,35 @@
     "delivery_state_source_event_id->site_private"
    ],
    "criada_em": "20260908230000_create_site_lead_storage.sql",
+   "colunas_types": {
+    "attempts": "number",
+    "audience": "string",
+    "bounce_reason": "string | null",
+    "channel": "string",
+    "claimed_at": "string | null",
+    "complained_at": "string | null",
+    "created_at": "string",
+    "delivery_state": "string | null",
+    "delivery_state_at": "string | null",
+    "delivery_state_source_event_id": "string | null",
+    "id": "string",
+    "last_error_at": "string | null",
+    "last_error_code": "string | null",
+    "lease_expires_at": "string | null",
+    "lease_token": "string | null",
+    "next_attempt_at": "string",
+    "provider": "string | null",
+    "provider_message_id": "string | null",
+    "request_id": "string",
+    "request_kind": "string",
+    "sent_at": "string | null",
+    "status": "string",
+    "updated_at": "string"
+   },
+   "drift": {
+    "so_na_migration": [],
+    "so_no_types": []
+   },
    "usada_no_front": 0,
    "usada_em_edges": [],
    "triggers": [
@@ -1301,6 +1426,18 @@
     "delivery_id->site_private"
    ],
    "criada_em": "20260915150000_add_notification_delivery_events.sql",
+   "colunas_types": {
+    "delivery_id": "string | null",
+    "event_type": "string",
+    "id": "string",
+    "provider": "string",
+    "provider_event_id": "string",
+    "received_at": "string"
+   },
+   "drift": {
+    "so_na_migration": [],
+    "so_no_types": []
+   },
    "usada_no_front": 0,
    "usada_em_edges": [],
    "triggers": [],
@@ -1393,6 +1530,22 @@
     "quote_request_id->site_private"
    ],
    "criada_em": "20260909180000_create_customer_quote_portal.sql",
+   "colunas_types": {
+    "created_at": "string",
+    "id": "string",
+    "published_at": "string | null",
+    "quote_request_id": "string",
+    "storage_bucket": "string",
+    "storage_path": "string",
+    "superseded_at": "string | null",
+    "title": "string",
+    "valid_until": "string | null",
+    "version": "number"
+   },
+   "drift": {
+    "so_na_migration": [],
+    "so_no_types": []
+   },
    "usada_no_front": 0,
    "usada_em_edges": [],
    "triggers": [],
@@ -1477,6 +1630,20 @@
     "requested_by->auth"
    ],
    "criada_em": "20260910130000_customer_adjustments_and_preferences.sql",
+   "colunas_types": {
+    "client_request_id": "string",
+    "created_at": "string",
+    "id": "string",
+    "message": "string",
+    "quote_request_id": "string",
+    "requested_by": "string",
+    "status": "string",
+    "updated_at": "string"
+   },
+   "drift": {
+    "so_na_migration": [],
+    "so_no_types": []
+   },
    "usada_no_front": 0,
    "usada_em_edges": [],
    "triggers": [
@@ -1646,6 +1813,32 @@
     "quote_request_id->site_private"
    ],
    "criada_em": "20260908230000_create_site_lead_storage.sql",
+   "colunas_types": {
+    "color_hex_snapshot": "string | null",
+    "color_name_snapshot": "string | null",
+    "created_at": "string",
+    "decision_group_snapshot": "string",
+    "id": "string",
+    "image_url_snapshot": "string | null",
+    "item_key": "string",
+    "kit_group_id": "string | null",
+    "kit_name_snapshot": "string | null",
+    "kit_quantity_snapshot": "number | null",
+    "minimum_quantity_snapshot": "number",
+    "position": "number",
+    "product_name_snapshot": "string",
+    "product_slug": "string",
+    "quantity": "number",
+    "quote_request_id": "string",
+    "sku_snapshot": "string",
+    "source_product_id": "string",
+    "units_per_kit_snapshot": "number | null",
+    "variant_id_snapshot": "string | null"
+   },
+   "drift": {
+    "so_na_migration": [],
+    "so_no_types": []
+   },
    "usada_no_front": 0,
    "usada_em_edges": [],
    "triggers": [],
@@ -1722,11 +1915,6 @@
    "policies": [],
    "indices": [
     {
-     "nome": "quote_request_events_request_created_idx",
-     "colunas": "quote_request_id, created_at desc",
-     "unico": false
-    },
-    {
      "nome": "quote_request_events_request_sequence_idx",
      "colunas": "quote_request_id, sequence desc",
      "unico": false
@@ -1736,6 +1924,21 @@
     "quote_request_id->site_private"
    ],
    "criada_em": "20260909180000_create_customer_quote_portal.sql",
+   "colunas_types": {
+    "audience": "string",
+    "created_at": "string",
+    "description": "string | null",
+    "event_type": "string",
+    "id": "string",
+    "quote_request_id": "string",
+    "sequence": "number",
+    "status": "string | null",
+    "title": "string"
+   },
+   "drift": {
+    "so_na_migration": [],
+    "so_no_types": []
+   },
    "usada_no_front": 0,
    "usada_em_edges": [],
    "triggers": [],
@@ -1923,6 +2126,32 @@
     "customer_user_id->auth"
    ],
    "criada_em": "20260908230000_create_site_lead_storage.sql",
+   "colunas_types": {
+    "city": "string | null",
+    "client_request_id": "string",
+    "client_submitted_at": "string",
+    "company": "string",
+    "contact_name": "string",
+    "created_at": "string",
+    "customer_user_id": "string | null",
+    "desired_deadline": "string | null",
+    "email": "string",
+    "id": "string",
+    "notes": "string | null",
+    "page_url": "string | null",
+    "phone": "string",
+    "protocol": "string",
+    "request_hash": "string",
+    "request_metadata": "Json",
+    "retention_until": "string",
+    "source": "string",
+    "status": "string",
+    "updated_at": "string"
+   },
+   "drift": {
+    "so_na_migration": [],
+    "so_no_types": []
+   },
    "usada_no_front": 0,
    "usada_em_edges": [],
    "triggers": [
@@ -1984,6 +2213,17 @@
    ],
    "fks": [],
    "criada_em": "20260908230000_create_site_lead_storage.sql",
+   "colunas_types": {
+    "identifier_hash": "string",
+    "request_count": "number",
+    "request_kind": "string",
+    "updated_at": "string",
+    "window_started_at": "string"
+   },
+   "drift": {
+    "so_na_migration": [],
+    "so_no_types": []
+   },
    "usada_no_front": 0,
    "usada_em_edges": [],
    "triggers": [],
@@ -2026,6 +2266,16 @@
    "indices": [],
    "fks": [],
    "criada_em": "20260911170000_add_revocable_shared_selections.sql",
+   "colunas_types": {
+    "identifier_hash": "string",
+    "request_count": "number",
+    "updated_at": "string",
+    "window_started_at": "string"
+   },
+   "drift": {
+    "so_na_migration": [],
+    "so_no_types": []
+   },
    "usada_no_front": 0,
    "usada_em_edges": [],
    "triggers": [
@@ -2097,6 +2347,19 @@
    ],
    "fks": [],
    "criada_em": "20260911170000_add_revocable_shared_selections.sql",
+   "colunas_types": {
+    "created_at": "string",
+    "expires_at": "string",
+    "items": "Json",
+    "management_token_hash": "string",
+    "revoked_at": "string | null",
+    "token": "string",
+    "updated_at": "string"
+   },
+   "drift": {
+    "so_na_migration": [],
+    "so_no_types": []
+   },
    "usada_no_front": 0,
    "usada_em_edges": [],
    "triggers": [
@@ -2136,6 +2399,15 @@
    "indices": [],
    "fks": [],
    "criada_em": "20260916100000_add_quote_event_sequence_and_status_state_machine.sql",
+   "colunas_types": {
+    "entity": "string",
+    "from_status": "string",
+    "to_status": "string"
+   },
+   "drift": {
+    "so_na_migration": [],
+    "so_no_types": []
+   },
    "usada_no_front": 0,
    "usada_em_edges": [],
    "triggers": [],
@@ -2171,6 +2443,15 @@
    "indices": [],
    "fks": [],
    "criada_em": "20260922150000_add_private_briefing_assets.sql",
+   "colunas_types": {
+    "bucket": "string",
+    "object_path": "string",
+    "queued_at": "string"
+   },
+   "drift": {
+    "so_na_migration": [],
+    "so_no_types": []
+   },
    "usada_no_front": 0,
    "usada_em_edges": [],
    "triggers": [],
@@ -2208,76 +2489,15 @@
    "triggers": [],
    "sem_rls": false,
    "nao_usada": true
-  },
-  "system_settings": {
-   "colunas": {},
-   "rls": false,
-   "policies": [
-    {
-     "nome": "system_settings_admin_delete",
-     "comando": "delete",
-     "para": "authenticated",
-     "tipo": "permissive"
-    },
-    {
-     "nome": "system_settings_admin_insert",
-     "comando": "insert",
-     "para": "authenticated",
-     "tipo": "permissive"
-    },
-    {
-     "nome": "system_settings_admin_update",
-     "comando": "update",
-     "para": "authenticated",
-     "tipo": "permissive"
-    },
-    {
-     "nome": "system_settings_read",
-     "comando": "select",
-     "para": "anon, authenticated",
-     "tipo": "permissive"
-    }
-   ],
-   "indices": [],
-   "fks": [],
-   "criada_em": null,
-   "usada_no_front": 0,
-   "usada_em_edges": [],
-   "triggers": [],
-   "sem_rls": false,
-   "nao_usada": true
-  },
-  "users": {
-   "colunas": {
-    "id": {
-     "tipo": "uuid",
-     "nn": true,
-     "pk": false,
-     "default": null,
-     "ref": null
-    },
-    "name": {
-     "tipo": "text",
-     "nn": true,
-     "pk": false,
-     "default": null,
-     "ref": null
-    }
-   },
-   "rls": false,
-   "policies": [],
-   "indices": [],
-   "fks": [],
-   "criada_em": "scripts/ai-context/cenarios.mjs",
-   "usada_no_front": 0,
-   "usada_em_edges": [],
-   "triggers": [],
-   "sem_rls": false,
-   "nao_usada": true
   }
  },
  "tabelas_usadas_no_codigo_sem_definicao": [],
  "rpcs_usadas_no_codigo": [
+  {
+   "nome": "apply_site_notification_provider_event",
+   "definida": true,
+   "usada_em": 2
+  },
   {
    "nome": "attach_my_briefing_assets_to_quote",
    "definida": true,
@@ -2289,7 +2509,37 @@
    "usada_em": 1
   },
   {
+   "nome": "claim_site_notification_deliveries",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "claim_site_quote_notification",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "confirm_site_briefing_asset_verification",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
    "nome": "create_my_briefing_asset",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "create_site_contact_request",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "create_site_quote_request",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "create_site_shared_selection",
    "definida": true,
    "usada_em": 1
   },
@@ -2304,12 +2554,52 @@
    "usada_em": 1
   },
   {
+   "nome": "finalize_site_data_retention",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "finalize_site_notification_delivery",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "finalize_site_storage_retention",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "get_briefing_asset_retention_candidates",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "get_my_briefing_asset_verification",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "get_my_proposal_document",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
    "nome": "get_my_quote_request",
    "definida": true,
    "usada_em": 1
   },
   {
    "nome": "get_my_quote_requests",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "get_site_data_retention_candidates",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "get_site_shared_selection",
    "definida": true,
    "usada_em": 1
   },
@@ -2329,7 +2619,42 @@
    "usada_em": 1
   },
   {
+   "nome": "preflight_site_lead_request",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "purge_archived_customer_selections",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "purge_site_admin_audit_logs",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "record_site_notification_dispatch_started",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "record_site_notification_provider_acceptance",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "reject_site_briefing_asset_verification",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
    "nome": "request_my_quote_adjustment",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "revoke_site_shared_selection",
    "definida": true,
    "usada_em": 1
   },
@@ -2345,6 +2670,11 @@
   },
   {
    "nome": "set_my_selection_archived",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "site_notification_queue_health",
    "definida": true,
    "usada_em": 1
   }

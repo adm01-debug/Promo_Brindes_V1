@@ -1,12 +1,12 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `860a0a06becdb6b90d8ac3dd7885cccc0ab45149` (2026-11-10T18:27:19Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `223e6558a8b920bdbd8f668aed511f02aa236de6` (2026-11-10T20:08:31Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
 2. **Hook/serviço/lógica** → `hooks.json`, `logica.json` (quem usa, o que toca, se tem teste).
-3. **Edge function / serverless** → `edge-functions.json` (verify_jwt, tabelas, env, quem chama, órfãs).
+3. **Edge function** → `edge-functions.json` (verify_jwt, tabelas, env, quem chama, órfãs). **Função serverless por arquivo** (Vercel `api/`) → `rotas.json → rotas_http_backend` (método, rpcs/tabelas/env do fecho e `diretos`, rewrites, cron, quem chama).
 4. **Banco** → `banco.json` (colunas, RLS, policies, índices, FKs, triggers, cron jobs, buckets, drift migration×types, uso no código) — visão do código; para o banco vivo use o MCP.
 5. **Antes de criar arquivo** → `convencoes.json` (onde ficam as coisas, nomenclatura, alias), `componentes.json` (nomes duplicados, órfãos), `grafo.json` (hubs, ciclos de import) e `grafo-graphify.json` (grafo por AST: comunidades, símbolos mais chamados, comunidade de cada arquivo).
 6. **CI/scripts/deploy/env/integrações/permissões/flags** → `ferramentas.json` e `scripts.json`.
@@ -14,10 +14,10 @@ Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR
 Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua tarefa; não carregue tudo.
 
 ## Stack
-- linguagens: TypeScript (200), Markdown (113), SQL (101), JavaScript (44), JSON (24), YAML (18), Python (6), CSS (4)
+- linguagens: TypeScript (200), Markdown (113), SQL (101), JavaScript (53), JSON (24), YAML (18), Python (8), CSS (4)
 - linguagem_principal: TypeScript
 - framework: React
-- backend_http: n/d
+- backend_http: vercel-functions
 - bundler: Vite
 - roteador: react-router
 - banco: Supabase
@@ -34,43 +34,43 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Números
 | item | qtd |
 |---|---|
-| arquivos_total | 649 |
-| arquivos_codigo | 249 |
-| linhas_codigo | 37705 |
-| rotas | 44 |
-| rotas_http_backend | 12 |
+| arquivos_total | 660 |
+| arquivos_codigo | 260 |
+| linhas_codigo | 45903 |
+| rotas | 31 |
+| rotas_http_backend | 13 |
 | vistas_por_id | 0 |
 | itens_menu | 11 |
 | modulos | 9 |
 | componentes | 40 |
-| hooks | 7 |
+| hooks | 6 |
 | edge_functions | 0 |
-| tabelas | 26 |
-| migrations | 73 |
+| tabelas | 22 |
+| migrations | 65 |
 | cron_jobs | 0 |
-| testes | 89 |
+| testes | 128 |
 | workflows | 14 |
 | scripts | 29 |
 | docs_md | 113 |
 
 ## Onde ficam as coisas
-- telas: src/pages (18), api/_lib (13), api/briefing-assets.ts (1)
+- telas: src/pages (18)
 - componentes: src/components (19), src/pages (18), src/context (2)
-- hooks: src/lib (4), src/context (2), scripts/ai-context (1)
+- hooks: src/lib (4), src/context (2)
 - servicos_logica: src/lib (43), api/_lib (13), src/context (3)
-- testes: co-localizado (*.test) (51), tests/ (32), outro (4)
+- testes: co-localizado (*.test) (51), tests/ (41), outro (6)
 - edge_functions: n/d
-- migrations: n/d
+- migrations: site-supabase/supabase/migrations
 - scripts: scripts/inventario (3), scripts/regras_negocio (3), scripts/ai-context (2)
 - docs: docs (68), (raiz) (9), .github (1)
-- nomenclatura: {"componentes":"PascalCase (100%)","hooks":"use + PascalCase","servicos":"camelCase (87%)","edge_functions":null,"tabelas":"snake_case (92%)"}
+- nomenclatura: {"componentes":"PascalCase (100%)","hooks":"use + PascalCase","servicos":"camelCase (87%)","edge_functions":null,"tabelas":"snake_case (95%)"}
 - instruções para agentes no repo: AGENTS.md, CLAUDE.md
 
 ## Módulos (menu → domínio)
 | módulo | itens de menu | telas/rotas | arquivos | hooks locais | edges | tabelas |
 |---|---|---|---|---|---|---|
 | api | 0 | 13 | 13 | 0 | 0 | 0 |
-| api/_lib | 0 | 13 | 13 | 0 | 0 | 0 |
+| api/_lib | 0 | 0 | 13 | 0 | 0 | 0 |
 | components | 0 | 0 | 20 | 6 | 0 | 0 |
 | context | 0 | 0 | 5 | 2 | 0 | 0 |
 | lib | 0 | 0 | 43 | 8 | 0 | 0 |
@@ -79,19 +79,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Rotas (url → arquivo)
 - `/` [tela] → src/pages/HomePage.tsx
 - `/*` [tela] → src/pages/NotFoundPage.tsx
-- `/api/_lib/catalogValidation` [api] → api/_lib/catalogValidation.ts
-- `/api/_lib/contracts` [api] → api/_lib/contracts.ts
-- `/api/_lib/curatedPagePreviews` [api] → api/_lib/curatedPagePreviews.ts
-- `/api/_lib/fileSignatures` [api] → api/_lib/fileSignatures.ts
-- `/api/_lib/leadHandler` [api] → api/_lib/leadHandler.ts
-- `/api/_lib/observability` [api] → api/_lib/observability.ts
-- `/api/_lib/operationalAlerts` [api] → api/_lib/operationalAlerts.ts
-- `/api/_lib/pageShell` [api] → api/_lib/pageShell.ts
-- `/api/_lib/publicProductPage` [api] → api/_lib/publicProductPage.ts
-- `/api/_lib/sharedSelections` [api] → api/_lib/sharedSelections.ts
-- `/api/_lib/siteDatabase` [api] → api/_lib/siteDatabase.ts
-- `/api/_lib/siteOrigin` [api] → api/_lib/siteOrigin.ts
-- `/api/_lib/webhookSignature` [api] → api/_lib/webhookSignature.ts
 - `/api/briefing-assets` [api] → api/briefing-assets.ts
 - `/api/contact-requests` [api] → api/contact-requests.ts
 - `/api/customer-proposals` [api] → api/customer-proposals.ts
@@ -105,7 +92,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `/api/shared-selections` [api] → api/shared-selections.ts
 - `/api/site-page` [api] → api/site-page.ts
 - `/api/sitemap` [api] → api/sitemap.ts
-- `/auth/confirm` [tela] → src/pages/AuthConfirmPage.tsx (protegida)
+- `/auth/confirm` [tela] → src/pages/AuthConfirmPage.tsx
 - `/catalogo` [tela] → src/pages/CatalogPage.tsx
 - `/catalogos` [tela] → src/pages/CatalogsPage.tsx
 - `/contato` [tela] → src/pages/ContactPage.tsx
@@ -123,18 +110,19 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `/sobre` [tela] → src/pages/AboutPage.tsx
 
 ## Rotas HTTP de backend
-- `GET /{t}` → scripts/ai-context/cenarios.mjs
-- `GET /a` → scripts/ai-context/cenarios.mjs
-- `GET /a` → scripts/ai-context/cenarios.mjs
-- `POST /b` → scripts/ai-context/cenarios.mjs
-- `POST /b` → scripts/ai-context/cenarios.mjs
-- `DELETE /c` → scripts/ai-context/cenarios.mjs
-- `PUT /d` → scripts/ai-context/cenarios.mjs
-- `GET /items` → scripts/ai-context/gerar.unit.mjs
-- `GET /u` → scripts/ai-context/cenarios.mjs
-- `GET /users` → scripts/ai-context/cenarios.mjs
-- `POST /users/:id` → scripts/ai-context/cenarios.mjs
-- `GET /x` → scripts/ai-context/cenarios.mjs
+- `POST /api/briefing-assets` → api/briefing-assets.ts
+- `POST /api/contact-requests` → api/contact-requests.ts
+- `POST /api/customer-proposals` → api/customer-proposals.ts
+- `GET,HEAD /api/not-found` → api/not-found.ts (rewrites: /:path((?!api/|_vercel/|assets/|images/|brand/|sitemap\.xml$|robots\.txt$|favicon\.svg$).*))
+- `POST /api/notification-events-resend` → api/notification-events-resend.ts
+- `GET,POST /api/notification-events-whatsapp` → api/notification-events-whatsapp.ts
+- `GET /api/notifications` → api/notifications.ts (cron */15 * * * *)
+- `GET,HEAD /api/product-page` → api/product-page.ts (rewrites: /produto/:identifier)
+- `POST /api/quote-requests` → api/quote-requests.ts
+- `GET /api/retention` → api/retention.ts (cron 0 3 * * *)
+- `POST /api/shared-selections` → api/shared-selections.ts
+- `GET,HEAD /api/site-page` → api/site-page.ts (rewrites: /catalogo, /catalogos, /montar-kit, /datas-comemorativas, /orcamento +10)
+- `GET,HEAD /api/sitemap` → api/sitemap.ts (rewrites: /sitemap.xml)
 
 ## Vistas por id (menu/ViewRouter → arquivo)
 - (nenhum)
@@ -148,20 +136,20 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 ## Integrações externas
 - SDKs: Supabase, Vercel Analytics
-- hosts mais citados: promo-brindes-v1.vercel.app, xlzmclcjdncjfdrjxclt.supabase.co, doufsxqlfjyuvxuezpln.supabase.co, evil.test, api.resend.com, example.test, unkaeotwziynruktxizp.supabase.co, promo-brindes-v1-preview-abc-juca1.vercel.app, alertas.example.test, cdn.example.test, cliente.sebraees.com.br, inseguro.test, site.test, www.promobrindes.com.br, www.un.org
-- webhooks recebidos: nenhum
+- hosts mais citados: promo-brindes-v1.vercel.app, cliente.sebraees.com.br, www.un.org, api.resend.com, br.pinterest.com, doufsxqlfjyuvxuezpln.supabase.co, facebook.com, graph.facebook.com, instagram.com, promo-brindes.invalid, vercel.com, www.sitemaps.org, youtube.com
+- webhooks recebidos: GET,POST /api/notification-events-whatsapp, POST /api/notification-events-resend
 - env de integração (só nomes): CRON_SECRET, OPERATIONS_ALERT_WEBHOOK_TOKEN, OPERATIONS_ALERT_WEBHOOK_URL, RESEND_API_KEY, RESEND_WEBHOOK_SECRET, SITE_SUPABASE_SECRET_KEY, WHATSAPP_ACCESS_TOKEN, WHATSAPP_APP_SECRET, WHATSAPP_GRAPH_API_VERSION, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_QUOTE_TEMPLATE, WHATSAPP_WEBHOOK_VERIFY_TOKEN
 
 ## Permissões / papéis
-- papéis no código: status (20), alert (15), anon (7), dialog (6), search (6), presentation (5), group (3), region (3), service_role (3), admin (2), alertdialog (2), authenticated (2), agent (1), combobox (1), listbox (1), option (1), site_api (1), sup (1)
+- papéis no código: anon (4)
 - enums de papel: nenhum
-- guards: nenhum · rotas protegidas: 1 · públicas: /, /*, /catalogo, /catalogos, /contato, /datas-comemorativas, /definir-senha, /entrar, /ideias/:topic, /minha-conta, /minha-conta/orcamentos/:id, /montar-kit, /orcamento, /privacidade, /produto/:identifier, /selecoes/compartilhada, /sobre
-- feature flags: FEATURE_X, nova-tela, novo-inbox
+- guards: nenhum · rotas protegidas: 0 · públicas: /, /*, /auth/confirm, /catalogo, /catalogos, /contato, /datas-comemorativas, /definir-senha, /entrar, /ideias/:topic, /minha-conta, /minha-conta/orcamentos/:id, /montar-kit, /orcamento, /privacidade, /produto/:identifier, /selecoes/compartilhada, /sobre
+- feature flags: CUSTOMER_ADJUSTMENTS_ENABLED, PERSISTENT_SHARED_SELECTIONS_ENABLED, QUOTE_DECISION_GROUPS_ENABLED
 
 ## Alertas (baseline.json → alertas)
 - rotas_sem_arquivo: 0
 - componentes_ambiguos: 0
-- menu_sem_destino: 4 — ex.: Facebook -> https://facebook.com/PromoBrindesBR, Instagram -> https://instagram.com/promobrindesBR, Pinterest -> https://br.pinterest.com/ppromobrindes/
+- menu_sem_destino: 0
 - edges_orfas: 0
 - edges_chamadas_sem_pasta: 0
 - tabelas_sem_rls: 0
@@ -171,15 +159,15 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - componentes_orfaos: 0
 - componentes_com_nome_duplicado: 0
 - scripts_orfaos: 0
-- env_usadas_nao_declaradas: 8 — ex.: CATALOG_SUPABASE_PUBLISHABLE_KEY, NODE_ENV, SITE_PREVIEW_SUPABASE_PROJECT_REF
+- env_usadas_nao_declaradas: 3 — ex.: CATALOG_SUPABASE_PUBLISHABLE_KEY, SITE_TEST_APP_SHELL, VITE_SITE_DEPLOYMENT_ENV
 - ciclos_de_import: 1
-- possiveis_segredos_no_codigo: 1 — ex.: scripts/ai-context/cenarios.mjs:102
+- possiveis_segredos_no_codigo: 0
 
 ## Grafo de código (graphify)
-- não gerado neste run. uvx --from "graphifyy[sql]" graphify update .  (ou: bun run graph:update); saída em graphify-out/ — graph.json e graph.html NÃO são versionados (dezenas de MB); use `graphify query/path/explain` localmente
+- não gerado neste run. npm run graph:update (wrapper do repositório; não rode o CLI do graphify direto); saída em graphify-out/, não versionada
 
 ## Hotspots (arquivos mais alterados, 90 dias)
-- package.json (55)
+- package.json (56)
 - e2e/smoke.spec.ts (53)
 - src/styles.css (33)
 - package-lock.json (30)
@@ -224,7 +212,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `test:watch`: `vitest`
 - `test:e2e`: `playwright test --project=desktop-chromium --project=mobile-chromium`
 - `test:e2e:cross-browser`: `playwright test --project=desktop-firefox --project=desktop-webkit --workers=1`
-- `check`: `npm run lint && npm run typecheck && npm run test && npm run agents:instructions:check && npm run test:agent-instructions && npm run test:migration-names && npm run test:error-catalog && npm run test:site-api-jwt && npm run test:timing-safe-secrets && npm run test:supabase-db-query && npm run test:ci-health && npm run test:release-url && npm run test:catalog-contract && npm run test:inventario && npm run contexto:test && npm run build && npm run check:performance-budget && npm run test:e2e`
+- `check`: `npm run lint && npm run typecheck && npm run test && npm run agents:instructions:check && npm run test:agent-instructions && npm run test:migration-names && npm run test:error-catalog && npm run test:site-api-jwt && npm run test:timing-safe-secrets && npm run test:supabase-db-query && npm run test:ci-health && npm run test:release-url && npm run test:smoke-deployment && npm run test:stage-app-shell && npm run test:performance-budget && npm run test:site-guard && npm run test:database-docs && npm run test:soak-queue && npm run test:shared-selection-sql && npm run test:catalog-contract && npm run test:inventario && npm run contexto:test && npm run build && npm run check:performance-budget && npm run test:e2e`
 - `db:migration-names:check`: `node scripts/validate-migration-names.mjs`
 - `test:migration-names`: `node --test tests/validate-migration-names.node.mjs`
 - `db:site:error-catalog:check`: `node scripts/validate-error-catalog.mjs`
@@ -234,6 +222,13 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `test:supabase-db-query`: `node --test tests/supabase-db-query.node.mjs`
 - `test:ci-health`: `node --test tests/ci-health-metrics.node.mjs`
 - `test:release-url`: `node --test tests/normalize-vercel-deployment-url.node.mjs`
+- `test:smoke-deployment`: `node --test tests/smoke-deployment.node.mjs`
+- `test:stage-app-shell`: `node --test tests/stage-app-shell.node.mjs`
+- `test:performance-budget`: `node --test tests/check-performance-budget.node.mjs`
+- `test:site-guard`: `node --test tests/validate-site-supabase-target.node.mjs`
+- `test:database-docs`: `node --test tests/generate-database-docs.node.mjs`
+- `test:soak-queue`: `node --test tests/soak-test-notification-queue.node.mjs`
+- `test:shared-selection-sql`: `node --test tests/verify-shared-selection-contract.node.mjs`
 - `test:catalog-contract`: `node --test tests/catalog-public-contract.node.mjs`
 - `check:catalog-contract`: `node scripts/check-catalog-public-contract.mjs`
 - `agents:instructions:check`: `node scripts/validate-agent-instructions.mjs`
@@ -270,6 +265,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `test:graphify`: `node --test tests/graphify-tools.node.mjs`
 - `contexto:ia`: `node scripts/ai-context/gerar.mjs --out docs/contexto/codigo`
 - `contexto:ia:test`: `node --test scripts/ai-context/gerar.unit.mjs`
+- `contexto:ia:cenarios`: `node scripts/ai-context/cenarios.mjs`
 - `contexto:regras`: `python3 scripts/regras_negocio/generate.py --repo . --out docs/contexto/regras --profile regras --schema-snapshot docs/contexto/supabase --index-path docs/contexto/00-INDEX.md --no-pointer && python3 scripts/regras_negocio/indice.py --repo . --out docs/contexto/00-INDEX.md --remote adm01-debug/Promo_Brindes_V1 --fonte "banco real=docs/contexto/supabase" --fonte "código=docs/contexto/codigo" --fonte "regras de negócio=docs/contexto/regras"`
 - `contexto:regras:test`: `python3 scripts/regras_negocio/test_generate.py`
 - `contexto:banco:test`: `python3 scripts/supabase_snapshot/test_snapshot.py`
@@ -277,6 +273,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `inventario:banco`: `node scripts/inventario/gerar-banco.mjs`
 - `inventario:mudou`: `node scripts/inventario/mudou-conteudo.mjs`
 - `test:inventario`: `node --test tests/inventario-estado.node.mjs`
+- `test:inventario:banco-sql`: `node --test tests/inventario-banco-sql.node.mjs`
 
 ## Documentos (raiz e docs/)
 - `.github/pull_request_template.md` (20 linhas)
@@ -294,7 +291,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `docs/AUDIT_REPORT_20260908.md` — Auditoria técnica consolidada — 08–09/09/2026 (75 linhas)
 - `docs/CUSTOMER_PORTAL_IMPLEMENTATION_20260909.md` — Área do Cliente — implementação e critérios de aceite (91 linhas)
 - `docs/DATABASE_DICTIONARY.md` — Dicionário de dados — site_private (Etapa 35) (391 linhas)
-- `docs/DATABASE_FUNCTION_CONTRACTS.md` — Contratos das funções do banco do site (Etapas 22 e 23) (235 linhas)
+- `docs/DATABASE_FUNCTION_CONTRACTS.md` — Contratos das funções do banco do site (Etapas 22 e 23) (236 linhas)
 - `docs/DATABASE_INVENTORY_PRINCIPAL.md` — Inventário de tabelas — banco principal (`doufsxqlfjyuvxuezpln`) (415 linhas)
 - `docs/DATABASE_PUBLIC_CONTRACT.md` — Contrato público de dados do Site Promo Brindes (82 linhas)
 - `docs/DATABASE_SCHEMA.md` — Diagrama entidade-relacionamento — site_private (Etapa 48) (48 linhas)
@@ -361,6 +358,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-10 `223e655` fix: endurece e cobre com testes todos os scripts do repositório (#130)
 - 2026-11-10 `860a0a0` infra: liga a comparação real do guard de instruções no CI (#121)
 - 2026-11-10 `af5cfd1` chore(deps): bump the actions-minor-and-patch group with 2 updates (#125)
 - 2026-11-09 `7eb1b5d` chore(deps): bump graphifyy para 0.9.97 com o companheiro casado (#123)
@@ -375,7 +373,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-10-31 `28b3d88` docs: completa analise-prs com 7 arquivos complementares (#111)
 - 2026-10-31 `b193119` docs: inventário de auditorias anteriores e dataset de PRs (analise-prs/) (#110)
 - 2026-10-29 `cc133bd` docs(ci): registra falha de quota do Copilot na main (#109)
-- 2026-10-27 `b49f7fc` chore: alinha documentos do contrato do catálogo ao ledger canônico (#108)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

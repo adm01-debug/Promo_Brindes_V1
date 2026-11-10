@@ -283,7 +283,11 @@
    "export_default": null,
    "linhas": 155,
    "tabelas": [],
-   "rpcs": [],
+   "rpcs": [
+    "create_site_shared_selection",
+    "get_site_shared_selection",
+    "revoke_site_shared_selection"
+   ],
    "edges": [],
    "env": [],
    "externos": [
@@ -320,7 +324,11 @@
    "export_default": null,
    "linhas": 281,
    "tabelas": [],
-   "rpcs": [],
+   "rpcs": [
+    "create_site_contact_request",
+    "create_site_quote_request",
+    "preflight_site_lead_request"
+   ],
    "edges": [],
    "env": [
     "SITE_PREVIEW_SUPABASE_PROJECT_REF",
@@ -410,7 +418,11 @@
    "export_default": "handler",
    "linhas": 177,
    "tabelas": [],
-   "rpcs": [],
+   "rpcs": [
+    "confirm_site_briefing_asset_verification",
+    "get_my_briefing_asset_verification",
+    "reject_site_briefing_asset_verification"
+   ],
    "edges": [],
    "env": [],
    "externos": [],
@@ -420,7 +432,7 @@
    "usado_por": 0,
    "usado_por_modulos": [],
    "coberto_por_testes": 2,
-   "orfao": true
+   "orfao": false
   },
   {
    "arquivo": "api/contact-requests.ts",
@@ -441,7 +453,7 @@
    "usado_por": 0,
    "usado_por_modulos": [],
    "coberto_por_testes": 1,
-   "orfao": true
+   "orfao": false
   },
   {
    "arquivo": "api/customer-proposals.ts",
@@ -453,7 +465,9 @@
    "export_default": "handler",
    "linhas": 137,
    "tabelas": [],
-   "rpcs": [],
+   "rpcs": [
+    "get_my_proposal_document"
+   ],
    "edges": [],
    "env": [],
    "externos": [],
@@ -463,7 +477,7 @@
    "usado_por": 0,
    "usado_por_modulos": [],
    "coberto_por_testes": 2,
-   "orfao": true
+   "orfao": false
   },
   {
    "arquivo": "api/not-found.ts",
@@ -484,7 +498,7 @@
    "usado_por": 0,
    "usado_por_modulos": [],
    "coberto_por_testes": 1,
-   "orfao": true
+   "orfao": false
   },
   {
    "arquivo": "api/notification-events-resend.ts",
@@ -496,7 +510,9 @@
    "export_default": "(anônimo)",
    "linhas": 122,
    "tabelas": [],
-   "rpcs": [],
+   "rpcs": [
+    "apply_site_notification_provider_event"
+   ],
    "edges": [],
    "env": [
     "RESEND_WEBHOOK_SECRET"
@@ -508,7 +524,7 @@
    "usado_por": 0,
    "usado_por_modulos": [],
    "coberto_por_testes": 1,
-   "orfao": true
+   "orfao": false
   },
   {
    "arquivo": "api/notification-events-whatsapp.ts",
@@ -521,7 +537,9 @@
    "export_default": "(anônimo)",
    "linhas": 170,
    "tabelas": [],
-   "rpcs": [],
+   "rpcs": [
+    "apply_site_notification_provider_event"
+   ],
    "edges": [],
    "env": [
     "WHATSAPP_APP_SECRET",
@@ -536,7 +554,7 @@
    "usado_por": 0,
    "usado_por_modulos": [],
    "coberto_por_testes": 1,
-   "orfao": true
+   "orfao": false
   },
   {
    "arquivo": "api/notifications.ts",
@@ -554,7 +572,14 @@
    "export_default": "handler",
    "linhas": 698,
    "tabelas": [],
-   "rpcs": [],
+   "rpcs": [
+    "claim_site_notification_deliveries",
+    "claim_site_quote_notification",
+    "finalize_site_notification_delivery",
+    "record_site_notification_dispatch_started",
+    "record_site_notification_provider_acceptance",
+    "site_notification_queue_health"
+   ],
    "edges": [],
    "env": [
     "CRON_SECRET",
@@ -600,7 +625,7 @@
    "usado_por": 0,
    "usado_por_modulos": [],
    "coberto_por_testes": 1,
-   "orfao": true
+   "orfao": false
   },
   {
    "arquivo": "api/quote-requests.ts",
@@ -621,7 +646,7 @@
    "usado_por": 0,
    "usado_por_modulos": [],
    "coberto_por_testes": 1,
-   "orfao": true
+   "orfao": false
   },
   {
    "arquivo": "api/retention.ts",
@@ -633,7 +658,14 @@
    "export_default": "handler",
    "linhas": 192,
    "tabelas": [],
-   "rpcs": [],
+   "rpcs": [
+    "finalize_site_data_retention",
+    "finalize_site_storage_retention",
+    "get_briefing_asset_retention_candidates",
+    "get_site_data_retention_candidates",
+    "purge_archived_customer_selections",
+    "purge_site_admin_audit_logs"
+   ],
    "edges": [],
    "env": [
     "CRON_SECRET",
@@ -648,7 +680,7 @@
    "usado_por": 0,
    "usado_por_modulos": [],
    "coberto_por_testes": 2,
-   "orfao": true
+   "orfao": false
   },
   {
    "arquivo": "api/shared-selections.ts",
@@ -669,7 +701,7 @@
    "usado_por": 0,
    "usado_por_modulos": [],
    "coberto_por_testes": 1,
-   "orfao": true
+   "orfao": false
   },
   {
    "arquivo": "api/site-page.ts",
@@ -690,7 +722,7 @@
    "usado_por": 0,
    "usado_por_modulos": [],
    "coberto_por_testes": 1,
-   "orfao": true
+   "orfao": false
   },
   {
    "arquivo": "api/sitemap.ts",
@@ -718,7 +750,7 @@
    "usado_por": 0,
    "usado_por_modulos": [],
    "coberto_por_testes": 2,
-   "orfao": true
+   "orfao": false
   },
   {
    "arquivo": "scripts/regras_negocio/generate.py",
@@ -735,12 +767,13 @@
     "header",
     "is_app_code",
     "is_archived_sql",
+    "is_rule_source",
     "is_test_file",
-    "llm_synthesis",
     "log",
     "main",
     "md_table",
     "op_from_chain",
+    "pgtap_descriptions",
     "read_text",
     "redact",
     "rel",
@@ -757,6 +790,7 @@
     "render_modules",
     "render_overview",
     "render_rules",
+    "sql_string_end",
     "squash",
     "stable_hash",
     "strip_sql_comments",
@@ -764,7 +798,7 @@
     "upsert_pointer",
     "walk_repo"
    ],
-   "linhas": 2138,
+   "linhas": 2662,
    "tabelas": [],
    "rpcs": [],
    "edges": [],
@@ -772,8 +806,7 @@
     "AI_CONTEXT_INDEX",
     "AI_CONTEXT_MODEL",
     "AI_CONTEXT_PROFILE",
-    "AI_CONTEXT_SCHEMA_SNAPSHOT",
-    "ANTHROPIC_API_KEY"
+    "AI_CONTEXT_SCHEMA_SNAPSHOT"
    ],
    "externos": [
     "__future__",
@@ -793,20 +826,21 @@
    "usado_por": 0,
    "usado_por_modulos": [],
    "coberto_por_testes": 0,
-   "orfao": true
+   "orfao": false
   },
   {
    "arquivo": "scripts/regras_negocio/indice.py",
    "camada": "python",
    "exports": [
     "entry_file",
+    "fail",
     "git",
     "main",
     "parse_dt",
     "producer_health",
     "read_manifest"
    ],
-   "linhas": 237,
+   "linhas": 285,
    "tabelas": [],
    "rpcs": [],
    "edges": [],
@@ -825,7 +859,7 @@
    "usado_por": 0,
    "usado_por_modulos": [],
    "coberto_por_testes": 0,
-   "orfao": true
+   "orfao": false
   },
   {
    "arquivo": "scripts/supabase_snapshot/snapshot.py",
@@ -835,10 +869,15 @@
     "api_section",
     "approx",
     "banner",
+    "banners",
     "build_function_callers",
     "callers_status_table",
     "code",
+    "count_or_nd",
+    "detect_project_ref",
     "diff_fingerprints",
+    "dsn_parts",
+    "dsn_problem",
     "dumps",
     "env_int",
     "excluded_sql",
@@ -879,35 +918,43 @@
     "introspect_db",
     "is_caller_source",
     "jsonable",
+    "lock_output_directory",
     "log",
     "main",
     "md_cell",
     "md_table",
     "prepare_output_directory",
+    "project_ref",
     "q",
     "record_error",
     "redact",
+    "release_output_lock",
     "render_readme",
     "render_relationships",
     "render_simple",
     "render_stats",
     "render_tables",
+    "run",
     "run_gen_types",
     "run_pg_dump",
     "rx_name_keys",
+    "sanitize",
     "scan_code_files",
+    "schema_dir",
     "scrub",
     "scrub_value",
+    "secret_literals",
     "section",
     "sha",
     "slug",
     "sql_without_routine_declarations",
+    "target_problem",
     "update_changelog",
     "uslug",
     "valid_previous_snapshot",
     "write"
    ],
-   "linhas": 1791,
+   "linhas": 2074,
    "tabelas": [],
    "rpcs": [],
    "edges": [],
@@ -919,6 +966,8 @@
     "REPO_ROOT",
     "SNAPSHOT_DIR",
     "SNAPSHOT_EXCLUDE_SCHEMAS",
+    "SNAPSHOT_EXPECTED_REF",
+    "SNAPSHOT_FORBIDDEN_REFS",
     "SNAPSHOT_INCLUDE_SCHEMAS",
     "SUPABASE_ACCESS_TOKEN",
     "SUPABASE_DB_URL",
@@ -929,6 +978,7 @@
     "__future__",
     "datetime",
     "decimal",
+    "fcntl",
     "hashlib",
     "json",
     "os",
@@ -945,7 +995,7 @@
    "usado_por": 0,
    "usado_por_modulos": [],
    "coberto_por_testes": 0,
-   "orfao": true
+   "orfao": false
   },
   {
    "arquivo": "src/context/customerAuth.ts",
@@ -2142,7 +2192,11 @@
    ],
    "externos": [],
    "zod_schemas": 0,
-   "flags": [],
+   "flags": [
+    "CUSTOMER_ADJUSTMENTS_ENABLED",
+    "PERSISTENT_SHARED_SELECTIONS_ENABLED",
+    "QUOTE_DECISION_GROUPS_ENABLED"
+   ],
    "papeis": [],
    "usado_por": 4,
    "usado_por_modulos": [

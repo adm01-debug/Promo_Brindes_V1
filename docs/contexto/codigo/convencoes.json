@@ -3,9 +3,7 @@
  "format_version": 2,
  "onde_ficam": {
   "telas": [
-   "src/pages (18)",
-   "api/_lib (13)",
-   "api/briefing-assets.ts (1)"
+   "src/pages (18)"
   ],
   "componentes": [
    "src/components (19)",
@@ -14,8 +12,7 @@
   ],
   "hooks": [
    "src/lib (4)",
-   "src/context (2)",
-   "scripts/ai-context (1)"
+   "src/context (2)"
   ],
   "servicos_logica": [
    "src/lib (43)",
@@ -24,11 +21,11 @@
   ],
   "testes": [
    "co-localizado (*.test) (51)",
-   "tests/ (32)",
-   "outro (4)"
+   "tests/ (41)",
+   "outro (6)"
   ],
   "edge_functions": null,
-  "migrations": null,
+  "migrations": "site-supabase/supabase/migrations",
   "scripts": [
    "scripts/inventario (3)",
    "scripts/regras_negocio (3)",
@@ -45,26 +42,21 @@
   "hooks": "use + PascalCase",
   "servicos": "camelCase (87%)",
   "edge_functions": null,
-  "tabelas": "snake_case (92%)"
+  "tabelas": "snake_case (95%)"
  },
  "barrels_index": 0,
  "extensao_componentes": [
   ".tsx (40)"
  ],
- "alias_imports": {
-  "(raiz)": {
-   "@/": "src/",
-   "~/": "src/"
-  }
- },
+ "alias_imports": {},
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "fix: endurece e cobre com testes todos os scripts do repositório (#130)",
    "infra: liga a comparação real do guard de instruções no CI (#121)",
    "chore(deps): bump the actions-minor-and-patch group with 2 updates (#125)",
    "chore(deps): bump graphifyy para 0.9.97 com o companheiro casado (#123)",
-   "feat(scripts): porta scripts autônomos de contexto de IA do Zapp Web V2",
-   "security: guard falha fechado, sem injeção de arg e regex de backtick (#124)"
+   "feat(scripts): porta scripts autônomos de contexto de IA do Zapp Web V2"
   ]
  },
  "pr_template": ".github/pull_request_template.md",
@@ -75,7 +67,7 @@
   "CLAUDE.md"
  ],
  "typescript": {
-  "strict": false,
+  "strict": true,
   "noImplicitAny": null,
   "tsconfigs": [
    "tsconfig.app.json",

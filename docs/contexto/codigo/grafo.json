@@ -178,16 +178,6 @@
   ]
  },
  "orfaos": [
-  "docs/audits/closure-review-20260912/build-matrix.mjs",
-  "docs/audits/closure-review-20260912/logout.mjs",
-  "docs/audits/closure-review-20260912/notifications.mjs",
-  "docs/audits/plan-review-20260912/build_matrix.py",
-  "docs/audits/plan-review-20260912/reproduce.mjs",
-  "docs/audits/plan-review-20260922/reproduce.mjs",
-  "docs/audits/plan-review-20260923/findings.probe.tsx",
-  "docs/audits/plan-review-20260924/favorites.probe.tsx",
-  "docs/audits/plan-review-20260928/favorites.probe.tsx",
-  "public/hero-preload.js",
   "src/lib/searchRelevance.ts"
  ],
  "modulos_mais_acoplados": [

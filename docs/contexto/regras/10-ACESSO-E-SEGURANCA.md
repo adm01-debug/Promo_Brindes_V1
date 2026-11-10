@@ -1,6 +1,6 @@
 # 10 · ACESSO E SEGURANÇA — quem pode o quê
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `860a0a06be` · branch `main` · 2026-11-10 18:29 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `223e6558a8` · branch `main` · 2026-11-10 20:08 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## Perfis / roles identificados
@@ -10,7 +10,8 @@
 - Tabelas de perfil/permissão: nenhuma
 - Colunas de perfil: nenhuma
 - Claims do JWT usados em políticas/funções: nenhum
-- Funções usadas dentro de políticas RLS (a regra real está no corpo delas — veja `06`): `can_delete_my_unverified_briefing_asset_path`, `matches_my_briefing_asset_upload`, `owns_my_briefing_asset_path`
+- Roles do banco citadas em políticas/grants: `anon`, `authenticated`, `service_role`, `site_api`
+- Funções usadas dentro de políticas RLS (a regra real está no corpo delas — veja `docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo) ou `schema.functions` em `context.json`): `can_delete_my_unverified_briefing_asset_path`, `matches_my_briefing_asset_upload`, `owns_my_briefing_asset_path`
 
 ## Configuração de auth (supabase/config.toml)
 
@@ -43,78 +44,18 @@
 | `site_private.shared_selections` | forced | — | — | — | — |
 | `site_private.status_transitions` | forced | — | — | — | — |
 | `site_private.storage_deletion_queue` | forced | — | — | — | — |
+| `storage.objects` | tabela de fora do repo | authenticated: bucket_id = 'customer-briefing-assets' and public.owns_my_briefing_asset_path(name) | authenticated: bucket_id = 'customer-briefing-assets' and owner_id = auth.uid()::text and public.matches_my_briefing_asset_upload(name, meta | sem política no repo | authenticated: bucket_id = 'customer-briefing-assets' and owner_id = auth.uid()::text and public.can_delete_my_unverified_briefing_asset_pat |
 
-> `—` com RLS ligado = ninguém além de service_role. `sem RLS` = qualquer chave anon lê/escreve tudo.
+> `—` com RLS ligado = nenhuma política libera a operação: só role com BYPASSRLS (service_role, site_api) ou função SECURITY DEFINER acessa. `sem RLS` = qualquer chave anon lê/escreve tudo. `sem política no repo` = tabela criada fora das migrations (ex.: `storage.objects`); o repo só declara as políticas listadas.
 
-## Onde o RLS é IGNORADO (service_role) — 67 arquivo(s)
+## Roles com BYPASSRLS declaradas nas migrations (ignoram RLS em qualquer tabela)
+
+- `site_api` — `site-supabase/supabase/migrations/20260916160000_add_site_api_role.sql`
+- `service_role` — padrão do Supabase (não é criada pelas migrations)
+
+## Onde o RLS é IGNORADO (service_role) — 1 arquivo(s) do sistema que citam a chave/role
 
 - `api/_lib/siteDatabase.ts`
-- `docs/sql/canonical-principal/URGENTE_revogar_mcp_kv_get.sql`
-- `scripts/ai-context/cenarios.mjs`
-- `scripts/ai-context/gerar.unit.mjs`
-- `scripts/generate-site-api-jwt.mjs`
-- `scripts/graphify.mjs`
-- `scripts/inventario/gerar-banco.mjs`
-- `scripts/regras_negocio/generate.py`
-- `scripts/supabase_snapshot/snapshot.py`
-- `site-supabase/supabase/migrations/20260908230000_create_site_lead_storage.sql`
-- `site-supabase/supabase/migrations/20260909103000_lock_down_rls_event_trigger.sql`
-- `site-supabase/supabase/migrations/20260909180000_create_customer_quote_portal.sql`
-- `site-supabase/supabase/migrations/20260910100000_expose_safe_quote_context_to_customer.sql`
-- `site-supabase/supabase/migrations/20260910103000_store_contact_message.sql`
-- `site-supabase/supabase/migrations/20260910110000_enrich_customer_history.sql`
-- `site-supabase/supabase/migrations/20260910120000_preserve_variant_and_contact_preference.sql`
-- `site-supabase/supabase/migrations/20260910130000_customer_adjustments_and_preferences.sql`
-- `site-supabase/supabase/migrations/20260910140000_preserve_item_decision_group.sql`
-- `site-supabase/supabase/migrations/20260911130000_add_site_data_retention.sql`
-- `site-supabase/supabase/migrations/20260911150000_fix_retention_storage_orchestration.sql`
-- `site-supabase/supabase/migrations/20260911170000_add_revocable_shared_selections.sql`
-- `site-supabase/supabase/migrations/20260912170000_add_quote_notification_outbox.sql`
-- `site-supabase/supabase/migrations/20260914120000_fix_notification_outbox_contract.sql`
-- `site-supabase/supabase/migrations/20260915090000_add_notification_queue_health.sql`
-- `site-supabase/supabase/migrations/20260915150000_add_notification_delivery_events.sql`
-- `site-supabase/supabase/migrations/20260916100000_add_quote_event_sequence_and_status_state_machine.sql`
-- `site-supabase/supabase/migrations/20260916110000_add_notification_queue_policy_lease_and_backoff.sql`
-- `site-supabase/supabase/migrations/20260916130000_add_persisted_quote_protocol.sql`
-- `site-supabase/supabase/migrations/20260916140000_add_provider_event_precedence.sql`
-- `site-supabase/supabase/migrations/20260916150000_add_email_normalization.sql`
-- `site-supabase/supabase/migrations/20260916160000_add_site_api_role.sql`
-- `site-supabase/supabase/migrations/20260916170000_force_row_level_security.sql`
-- `site-supabase/supabase/migrations/20260916200000_add_customer_data_erasure.sql`
-- `site-supabase/supabase/migrations/20260916210000_add_admin_write_audit.sql`
-- `site-supabase/supabase/migrations/20260916220000_add_notification_delivery_status_machine.sql`
-- `site-supabase/supabase/migrations/20260922120000_skip_locked_exhausted_notification_housekeeping.sql`
-- `site-supabase/supabase/migrations/20260922130000_add_customer_selections.sql`
-- `site-supabase/supabase/migrations/20260922140000_reconcile_schema_drift.sql`
-- `site-supabase/supabase/migrations/20260922150000_add_private_briefing_assets.sql`
-- `site-supabase/supabase/migrations/20260922160000_preserve_kit_composition.sql`
-- `site-supabase/supabase/migrations/20260922170000_preserve_kits_in_customer_selections.sql`
-- `site-supabase/supabase/migrations/20260922180000_preserve_kits_in_shared_selections.sql`
-- `site-supabase/supabase/migrations/20260922190000_harden_kit_reference_sets.sql`
-- `site-supabase/supabase/migrations/20260922200000_preserve_shared_selection_priorities.sql`
-- `site-supabase/supabase/migrations/20260922210000_close_selection_and_asset_integrity_gaps.sql`
-- `site-supabase/supabase/migrations/20260922220000_verify_briefing_asset_content.sql`
-- `site-supabase/supabase/migrations/20260922230000_lock_verified_briefing_assets.sql`
-- `site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql`
-- `site-supabase/supabase/migrations/20260923130000_add_customer_occasion_favorites.sql`
-- `site-supabase/supabase/migrations/20260923200000_enrich_quote_confirmation_contract.sql`
-- `site-supabase/supabase/migrations/20260924130000_reject_invalid_verified_briefing_assets.sql`
-- `site-supabase/supabase/migrations/20260927103000_harden_occasion_favorites_rpc_acl.sql`
-- `site-supabase/supabase/migrations/20261001130320_preflight_lead_rate_limit.sql`
-- `site-supabase/supabase/tests/database/admin_write_audit.test.sql`
-- `site-supabase/supabase/tests/database/briefing_assets.test.sql`
-- `site-supabase/supabase/tests/database/customer_data_erasure.test.sql`
-- `site-supabase/supabase/tests/database/customer_occasion_favorites.test.sql`
-- `site-supabase/supabase/tests/database/email_normalization.test.sql`
-- `site-supabase/supabase/tests/database/lead_preflight_rate_limit.test.sql`
-- `site-supabase/supabase/tests/database/lead_storage.test.sql`
-- `site-supabase/supabase/tests/database/notification_outbox.test.sql`
-- `site-supabase/supabase/tests/database/notification_provider_events.test.sql`
-- `site-supabase/supabase/tests/database/notification_queue_policy.test.sql`
-- `site-supabase/supabase/tests/database/site_api_privileges.test.sql`
-- `src/lib/catalog.test.ts`
-- `src/lib/siteSupabase.test.ts`
-- `tests/catalog-public-contract.node.mjs`
 
 ## Funções SQL `SECURITY DEFINER` (rodam com privilégio do dono, ignoram RLS)
 
@@ -159,17 +100,37 @@
 
 _nenhuma declarada em config.toml_
 
+## Funções serverless HTTP (Vercel `api/`) — 13
+
+> Toda função em `api/` é alcançável pela internet. A exigência de segredo, JWT ou assinatura fica no código de cada arquivo e NÃO é inferida aqui — leia o arquivo antes de assumir que a rota é protegida.
+
+| Rota | Arquivo | Métodos citados no código | Cron (vercel.json) |
+|---|---|---|---|
+| /api/briefing-assets | `api/briefing-assets.ts` | POST |  |
+| /api/contact-requests | `api/contact-requests.ts` |  |  |
+| /api/customer-proposals | `api/customer-proposals.ts` | POST |  |
+| /api/not-found | `api/not-found.ts` | HEAD |  |
+| /api/notification-events-resend | `api/notification-events-resend.ts` | POST |  |
+| /api/notification-events-whatsapp | `api/notification-events-whatsapp.ts` | GET, POST |  |
+| /api/notifications | `api/notifications.ts` | GET | `*/15 * * * *` |
+| /api/product-page | `api/product-page.ts` | HEAD |  |
+| /api/quote-requests | `api/quote-requests.ts` |  |  |
+| /api/retention | `api/retention.ts` | GET | `0 3 * * *` |
+| /api/shared-selections | `api/shared-selections.ts` | POST |  |
+| /api/site-page | `api/site-page.ts` | HEAD |  |
+| /api/sitemap | `api/sitemap.ts` | HEAD |  |
+
 ## Rotas protegidas no front
 
-| Rota | Guard | Roles | Arquivo |
-|---|---|---|---|
-| /app | ProtectedRoute |  | `scripts/ai-context/gerar.unit.mjs` |
+_nenhum item encontrado_
 
-Guards usados: Protected, ProtectedRoute
+Guards usados: nenhum
 
 Middleware matcher (Next.js): nenhum
 
 ## Grants / Revokes (agrupados por role e privilégio)
+
+> Histórico das migrations, não o estado final: um `revoke` posterior anula o `grant` do mesmo objeto, e a mesma função aparece uma vez por migration que a recriou. Privilégio vigente: `docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo).
 
 | Ação | Para/De | Privilégios | Objetos |
 |---|---|---|---|
@@ -201,9 +162,7 @@ Middleware matcher (Next.js): nenhum
 
 ## Riscos de acesso detectados
 
-| Tabela | Problema | Arquivos |
-|---|---|---|
-| `quote_requests` | RLS ligado sem nenhuma política → só service_role acessa | `tests/inventario-estado.node.mjs` |
+_nenhum item encontrado_
 
 ## Multi-tenancy
 

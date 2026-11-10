@@ -6,15 +6,17 @@
    "TypeScript (200)",
    "Markdown (113)",
    "SQL (101)",
-   "JavaScript (44)",
+   "JavaScript (53)",
    "JSON (24)",
    "YAML (18)",
-   "Python (6)",
+   "Python (8)",
    "CSS (4)"
   ],
   "linguagem_principal": "TypeScript",
   "framework": "React",
-  "backend_http": [],
+  "backend_http": [
+   "vercel-functions"
+  ],
   "bundler": "Vite",
   "roteador": "react-router",
   "banco": "Supabase",
@@ -44,11 +46,12 @@
   "scripts": {
    "agents:instructions:check": "node scripts/validate-agent-instructions.mjs",
    "build": "tsc -b && vite build && node scripts/stage-app-shell.mjs",
-   "check": "npm run lint && npm run typecheck && npm run test && npm run agents:instructions:check && npm run test:agent-instructions && npm run test:migration-names && npm run test:error-catalog && npm run test:site-api-jwt && npm run test:timing-safe-secrets && npm run test:supabase-db-query && npm run test:ci-health && npm run test:release-url && npm run test:catalog-contract && npm run test:inventario && npm run contexto:test && npm run build && npm run check:performance-budget && npm run test:e2e",
+   "check": "npm run lint && npm run typecheck && npm run test && npm run agents:instructions:check && npm run test:agent-instructions && npm run test:migration-names && npm run test:error-catalog && npm run test:site-api-jwt && npm run test:timing-safe-secrets && npm run test:supabase-db-query && npm run test:ci-health && npm run test:release-url && npm run test:smoke-deployment && npm run test:stage-app-shell && npm run test:performance-budget && npm run test:site-guard && npm run test:database-docs && npm run test:soak-queue && npm run test:shared-selection-sql && npm run test:catalog-contract && npm run test:inventario && npm run contexto:test && npm run build && npm run check:performance-budget && npm run test:e2e",
    "check:catalog-contract": "node scripts/check-catalog-public-contract.mjs",
    "check:performance-budget": "node scripts/check-performance-budget.mjs",
    "contexto:banco:test": "python3 scripts/supabase_snapshot/test_snapshot.py",
    "contexto:ia": "node scripts/ai-context/gerar.mjs --out docs/contexto/codigo",
+   "contexto:ia:cenarios": "node scripts/ai-context/cenarios.mjs",
    "contexto:ia:test": "node --test scripts/ai-context/gerar.unit.mjs",
    "contexto:regras": "python3 scripts/regras_negocio/generate.py --repo . --out docs/contexto/regras --profile regras --schema-snapshot docs/contexto/supabase --index-path docs/contexto/00-INDEX.md --no-pointer && python3 scripts/regras_negocio/indice.py --repo . --out docs/contexto/00-INDEX.md --remote adm01-debug/Promo_Brindes_V1 --fonte \"banco real=docs/contexto/supabase\" --fonte \"código=docs/contexto/codigo\" --fonte \"regras de negócio=docs/contexto/regras\"",
    "contexto:regras:test": "python3 scripts/regras_negocio/test_generate.py",
@@ -94,15 +97,23 @@
    "test:catalog-contract": "node --test tests/catalog-public-contract.node.mjs",
    "test:ci-health": "node --test tests/ci-health-metrics.node.mjs",
    "test:coverage": "vitest run --coverage",
+   "test:database-docs": "node --test tests/generate-database-docs.node.mjs",
    "test:e2e": "playwright test --project=desktop-chromium --project=mobile-chromium",
    "test:e2e:cross-browser": "playwright test --project=desktop-firefox --project=desktop-webkit --workers=1",
    "test:error-catalog": "node --test tests/validate-error-catalog.node.mjs",
    "test:graphify": "node --test tests/graphify-tools.node.mjs",
    "test:inventario": "node --test tests/inventario-estado.node.mjs",
+   "test:inventario:banco-sql": "node --test tests/inventario-banco-sql.node.mjs",
    "test:migration-names": "node --test tests/validate-migration-names.node.mjs",
+   "test:performance-budget": "node --test tests/check-performance-budget.node.mjs",
    "test:queue-concurrency": "node --test tests/queue-concurrency.node.mjs",
    "test:release-url": "node --test tests/normalize-vercel-deployment-url.node.mjs",
+   "test:shared-selection-sql": "node --test tests/verify-shared-selection-contract.node.mjs",
    "test:site-api-jwt": "node --test tests/generate-site-api-jwt.node.mjs",
+   "test:site-guard": "node --test tests/validate-site-supabase-target.node.mjs",
+   "test:smoke-deployment": "node --test tests/smoke-deployment.node.mjs",
+   "test:soak-queue": "node --test tests/soak-test-notification-queue.node.mjs",
+   "test:stage-app-shell": "node --test tests/stage-app-shell.node.mjs",
    "test:supabase-db-query": "node --test tests/supabase-db-query.node.mjs",
    "test:timing-safe-secrets": "node --test tests/timing-safe-secret-comparisons.node.mjs",
    "test:watch": "vitest",
@@ -137,6 +148,7 @@
   "eslint.config.js",
   "package.json",
   "playwright.config.ts",
+  "site-supabase/supabase/config.toml",
   "tsconfig.app.json",
   "tsconfig.json",
   "tsconfig.node.json",
@@ -652,7 +664,7 @@
   {
    "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
    "titulo": "Contratos das funções do banco do site (Etapas 22 e 23)",
-   "linhas": 235
+   "linhas": 236
   },
   {
    "arquivo": "docs/DATABASE_INVENTORY_PRINCIPAL.md",
@@ -1057,15 +1069,19 @@
    "AI_CONTEXT_MODEL",
    "AI_CONTEXT_PROFILE",
    "AI_CONTEXT_SCHEMA_SNAPSHOT",
-   "ANTHROPIC_API_KEY",
    "CODE_SCAN_DIRS",
    "GEN_TYPES",
+   "HOME",
+   "PATH",
    "PGDUMP",
    "PGDUMP_SCHEMAS",
    "REPO_ROOT",
    "SNAPSHOT_DIR",
    "SNAPSHOT_EXCLUDE_SCHEMAS",
+   "SNAPSHOT_EXPECTED_REF",
+   "SNAPSHOT_FORBIDDEN_REFS",
    "SNAPSHOT_INCLUDE_SCHEMAS",
+   "SNAPSHOT_TEST_PG_URL",
    "SUPABASE_ACCESS_TOKEN",
    "SUPABASE_DB_URL",
    "SUPABASE_PROJECT_REF",
@@ -1073,13 +1089,8 @@
   ],
   "usadas_mas_nao_declaradas": [
    "CATALOG_SUPABASE_PUBLISHABLE_KEY",
-   "NODE_ENV",
-   "SITE_PREVIEW_SUPABASE_PROJECT_REF",
    "SITE_TEST_APP_SHELL",
-   "VERCEL_ENV",
-   "VERCEL_URL",
-   "VITE_SITE_DEPLOYMENT_ENV",
-   "VITE_SITE_PREVIEW_PROJECT_REF"
+   "VITE_SITE_DEPLOYMENT_ENV"
   ],
   "secrets_em_workflows": [
    "GITHUB_TOKEN",
@@ -1123,58 +1134,10 @@
   "hosts_externos": [
    {
     "host": "promo-brindes-v1.vercel.app",
-    "arquivos": 16
-   },
-   {
-    "host": "xlzmclcjdncjfdrjxclt.supabase.co",
-    "arquivos": 12
-   },
-   {
-    "host": "doufsxqlfjyuvxuezpln.supabase.co",
-    "arquivos": 6
-   },
-   {
-    "host": "evil.test",
-    "arquivos": 5
-   },
-   {
-    "host": "api.resend.com",
-    "arquivos": 4
-   },
-   {
-    "host": "example.test",
-    "arquivos": 4
-   },
-   {
-    "host": "unkaeotwziynruktxizp.supabase.co",
-    "arquivos": 4
-   },
-   {
-    "host": "promo-brindes-v1-preview-abc-juca1.vercel.app",
-    "arquivos": 3
-   },
-   {
-    "host": "alertas.example.test",
-    "arquivos": 2
-   },
-   {
-    "host": "cdn.example.test",
-    "arquivos": 2
+    "arquivos": 8
    },
    {
     "host": "cliente.sebraees.com.br",
-    "arquivos": 2
-   },
-   {
-    "host": "inseguro.test",
-    "arquivos": 2
-   },
-   {
-    "host": "site.test",
-    "arquivos": 2
-   },
-   {
-    "host": "www.promobrindes.com.br",
     "arquivos": 2
    },
    {
@@ -1182,19 +1145,7 @@
     "arquivos": 2
    },
    {
-    "host": "x.supabase.co",
-    "arquivos": 2
-   },
-   {
-    "host": "api.example.test",
-    "arquivos": 1
-   },
-   {
-    "host": "api.supabase.com",
-    "arquivos": 1
-   },
-   {
-    "host": "api.x.com",
+    "host": "api.resend.com",
     "arquivos": 1
    },
    {
@@ -1202,23 +1153,7 @@
     "arquivos": 1
    },
    {
-    "host": "campanhas.promobrindes.com.br",
-    "arquivos": 1
-   },
-   {
-    "host": "catalogo-canonico.test",
-    "arquivos": 1
-   },
-   {
-    "host": "cdn.example",
-    "arquivos": 1
-   },
-   {
-    "host": "coletor-malicioso.example",
-    "arquivos": 1
-   },
-   {
-    "host": "evil.example",
+    "host": "doufsxqlfjyuvxuezpln.supabase.co",
     "arquivos": 1
    },
    {
@@ -1230,39 +1165,11 @@
     "arquivos": 1
    },
    {
-    "host": "images.example.test",
-    "arquivos": 1
-   },
-   {
     "host": "instagram.com",
     "arquivos": 1
    },
    {
-    "host": "promo-brindes-v1-abc-juca1.vercel.app",
-    "arquivos": 1
-   },
-   {
-    "host": "promo-brindes-v1-preview-other.vercel.app",
-    "arquivos": 1
-   },
-   {
     "host": "promo-brindes.invalid",
-    "arquivos": 1
-   },
-   {
-    "host": "promo.invalid",
-    "arquivos": 1
-   },
-   {
-    "host": "promo.test",
-    "arquivos": 1
-   },
-   {
-    "host": "vercel.app",
-    "arquivos": 1
-   },
-   {
-    "host": "vercel.app.evil.example",
     "arquivos": 1
    },
    {
@@ -1275,10 +1182,6 @@
    },
    {
     "host": "youtube.com",
-    "arquivos": 1
-   },
-   {
-    "host": "zyxwvutsrqponmlkjihg.supabase.co",
     "arquivos": 1
    }
   ],
@@ -1296,91 +1199,29 @@
    "WHATSAPP_QUOTE_TEMPLATE",
    "WHATSAPP_WEBHOOK_VERIFY_TOKEN"
   ],
-  "webhooks_recebidos": [],
+  "webhooks_recebidos": [
+   "GET,POST /api/notification-events-whatsapp",
+   "POST /api/notification-events-resend"
+  ],
   "realtime": []
  },
  "permissoes": {
   "papeis_no_codigo": [
    {
-    "papel": "status",
-    "ocorrencias": 20
-   },
-   {
-    "papel": "alert",
-    "ocorrencias": 15
-   },
-   {
     "papel": "anon",
-    "ocorrencias": 7
-   },
-   {
-    "papel": "dialog",
-    "ocorrencias": 6
-   },
-   {
-    "papel": "search",
-    "ocorrencias": 6
-   },
-   {
-    "papel": "presentation",
-    "ocorrencias": 5
-   },
-   {
-    "papel": "group",
-    "ocorrencias": 3
-   },
-   {
-    "papel": "region",
-    "ocorrencias": 3
-   },
-   {
-    "papel": "service_role",
-    "ocorrencias": 3
-   },
-   {
-    "papel": "admin",
-    "ocorrencias": 2
-   },
-   {
-    "papel": "alertdialog",
-    "ocorrencias": 2
-   },
-   {
-    "papel": "authenticated",
-    "ocorrencias": 2
-   },
-   {
-    "papel": "agent",
-    "ocorrencias": 1
-   },
-   {
-    "papel": "combobox",
-    "ocorrencias": 1
-   },
-   {
-    "papel": "listbox",
-    "ocorrencias": 1
-   },
-   {
-    "papel": "option",
-    "ocorrencias": 1
-   },
-   {
-    "papel": "site_api",
-    "ocorrencias": 1
-   },
-   {
-    "papel": "sup",
-    "ocorrencias": 1
+    "ocorrencias": 4
    }
   ],
   "enums_de_papel": [],
-  "rpcs_de_autorizacao": [],
+  "rpcs_de_autorizacao": [
+   "purge_site_admin_audit_logs"
+  ],
   "guards": [],
-  "rotas_protegidas": 1,
+  "rotas_protegidas": 0,
   "rotas_publicas": [
    "/",
    "/*",
+   "/auth/confirm",
    "/catalogo",
    "/catalogos",
    "/contato",
@@ -1404,21 +1245,19 @@
   "total": 3,
   "flags": [
    {
-    "flag": "FEATURE_X",
+    "flag": "CUSTOMER_ADJUSTMENTS_ENABLED",
     "arquivos": 1
    },
    {
-    "flag": "nova-tela",
+    "flag": "PERSISTENT_SHARED_SELECTIONS_ENABLED",
     "arquivos": 1
    },
    {
-    "flag": "novo-inbox",
+    "flag": "QUOTE_DECISION_GROUPS_ENABLED",
     "arquivos": 1
    }
   ],
-  "tabelas_de_flag": [
-   "system_settings"
-  ]
+  "tabelas_de_flag": []
  },
  "providers": {
   "entrada": "src/main.tsx",

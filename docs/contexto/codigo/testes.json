@@ -5,12 +5,12 @@
   "vitest",
   "playwright"
  ],
- "total": 89,
+ "total": 128,
  "por_tipo": {
-  "contrato": 1,
+  "contrato": 2,
   "e2e": 2,
-  "pytest": 2,
-  "unit": 84
+  "pytest": 4,
+  "unit": 92
  },
  "onde_ficam": [
   {
@@ -19,11 +19,11 @@
   },
   {
    "padrao": "tests/",
-   "arquivos": 32
+   "arquivos": 41
   },
   {
    "padrao": "outro",
-   "arquivos": 4
+   "arquivos": 6
   },
   {
    "padrao": "e2e/",
@@ -48,21 +48,35 @@
   {
    "arquivo": "scripts/ai-context/gerar.unit.mjs",
    "tipo": "unit",
-   "linhas": 361,
+   "linhas": 666,
    "testa": [],
-   "casos": 18
+   "casos": 12
   },
   {
    "arquivo": "scripts/regras_negocio/test_generate.py",
    "tipo": "pytest",
-   "linhas": 164,
+   "linhas": 723,
+   "testa": [],
+   "casos": 0
+  },
+  {
+   "arquivo": "scripts/regras_negocio/test_indice.py",
+   "tipo": "pytest",
+   "linhas": 180,
+   "testa": [],
+   "casos": 0
+  },
+  {
+   "arquivo": "scripts/regras_negocio/test_publish.py",
+   "tipo": "pytest",
+   "linhas": 241,
    "testa": [],
    "casos": 0
   },
   {
    "arquivo": "scripts/supabase_snapshot/test_snapshot.py",
    "tipo": "pytest",
-   "linhas": 878,
+   "linhas": 1795,
    "testa": [],
    "casos": 0
   },
@@ -730,64 +744,87 @@
   {
    "arquivo": "tests/catalog-public-contract.node.mjs",
    "tipo": "contrato",
-   "linhas": 293,
+   "linhas": 514,
    "testa": [
     "scripts/check-catalog-public-contract.mjs"
    ],
-   "casos": 15
+   "casos": 24
+  },
+  {
+   "arquivo": "tests/check-performance-budget.node.mjs",
+   "tipo": "unit",
+   "linhas": 180,
+   "testa": [],
+   "casos": 9
   },
   {
    "arquivo": "tests/ci-health-metrics.node.mjs",
    "tipo": "unit",
-   "linhas": 93,
+   "linhas": 158,
    "testa": [
     "scripts/ci-health-metrics.mjs"
    ],
-   "casos": 7
+   "casos": 11
   },
   {
    "arquivo": "tests/closure-ledger.node.mjs",
    "tipo": "unit",
-   "linhas": 40,
+   "linhas": 183,
    "testa": [
     "scripts/validate-closure-ledger.mjs"
    ],
-   "casos": 6
+   "casos": 16
+  },
+  {
+   "arquivo": "tests/generate-database-docs.node.mjs",
+   "tipo": "unit",
+   "linhas": 235,
+   "testa": [],
+   "casos": 11
   },
   {
    "arquivo": "tests/generate-site-api-jwt.node.mjs",
    "tipo": "unit",
-   "linhas": 61,
+   "linhas": 135,
    "testa": [],
-   "casos": 4
+   "casos": 10
   },
   {
    "arquivo": "tests/graphify-tools.node.mjs",
    "tipo": "unit",
-   "linhas": 284,
+   "linhas": 611,
    "testa": [
     "scripts/graphify.mjs"
    ],
-   "casos": 17
+   "casos": 31
+  },
+  {
+   "arquivo": "tests/inventario-banco-sql.node.mjs",
+   "tipo": "unit",
+   "linhas": 309,
+   "testa": [
+    "scripts/inventario/gerar-banco.mjs"
+   ],
+   "casos": 9
   },
   {
    "arquivo": "tests/inventario-estado.node.mjs",
    "tipo": "unit",
-   "linhas": 271,
+   "linhas": 996,
    "testa": [
     "scripts/inventario/gerar-banco.mjs",
     "scripts/inventario/mudou-conteudo.mjs"
    ],
-   "casos": 26
+   "casos": 75
   },
   {
    "arquivo": "tests/normalize-vercel-deployment-url.node.mjs",
    "tipo": "unit",
-   "linhas": 43,
+   "linhas": 119,
    "testa": [
     "scripts/normalize-vercel-deployment-url.mjs"
    ],
-   "casos": 4
+   "casos": 9
   },
   {
    "arquivo": "tests/queue-concurrency.node.mjs",
@@ -806,18 +843,50 @@
   {
    "arquivo": "tests/scripts/verify-vercel-artifact.test.ts",
    "tipo": "unit",
-   "linhas": 102,
+   "linhas": 184,
    "testa": [],
-   "casos": 6
+   "casos": 13
+  },
+  {
+   "arquivo": "tests/session-start-hook.node.mjs",
+   "tipo": "unit",
+   "linhas": 259,
+   "testa": [],
+   "casos": 13
+  },
+  {
+   "arquivo": "tests/smoke-deployment.node.mjs",
+   "tipo": "unit",
+   "linhas": 337,
+   "testa": [
+    "scripts/smoke-deployment.mjs"
+   ],
+   "casos": 17
+  },
+  {
+   "arquivo": "tests/soak-test-notification-queue.node.mjs",
+   "tipo": "unit",
+   "linhas": 181,
+   "testa": [
+    "scripts/soak-test-notification-queue.mjs"
+   ],
+   "casos": 13
+  },
+  {
+   "arquivo": "tests/stage-app-shell.node.mjs",
+   "tipo": "unit",
+   "linhas": 145,
+   "testa": [],
+   "casos": 9
   },
   {
    "arquivo": "tests/supabase-db-query.node.mjs",
    "tipo": "unit",
-   "linhas": 67,
+   "linhas": 154,
    "testa": [
     "scripts/_lib/supabaseDbQuery.mjs"
    ],
-   "casos": 11
+   "casos": 23
   },
   {
    "arquivo": "tests/timing-safe-secret-comparisons.node.mjs",
@@ -829,32 +898,75 @@
   {
    "arquivo": "tests/validate-agent-instructions.node.mjs",
    "tipo": "unit",
-   "linhas": 133,
+   "linhas": 370,
    "testa": [
     "scripts/validate-agent-instructions.mjs"
    ],
-   "casos": 13
+   "casos": 28
   },
   {
    "arquivo": "tests/validate-error-catalog.node.mjs",
    "tipo": "unit",
-   "linhas": 51,
+   "linhas": 124,
    "testa": [
     "scripts/validate-error-catalog.mjs"
    ],
-   "casos": 6
+   "casos": 11
   },
   {
    "arquivo": "tests/validate-migration-names.node.mjs",
    "tipo": "unit",
-   "linhas": 97,
+   "linhas": 193,
    "testa": [
     "scripts/validate-migration-names.mjs"
    ],
-   "casos": 12
+   "casos": 19
+  },
+  {
+   "arquivo": "tests/validate-site-supabase-target.node.mjs",
+   "tipo": "unit",
+   "linhas": 116,
+   "testa": [],
+   "casos": 8
+  },
+  {
+   "arquivo": "tests/verify-shared-selection-contract.node.mjs",
+   "tipo": "contrato",
+   "linhas": 98,
+   "testa": [],
+   "casos": 4
   }
  ],
- "sql": [],
+ "sql": [
+  "site-supabase/supabase/tests/database/adjustment_limits.test.sql",
+  "site-supabase/supabase/tests/database/admin_write_audit.test.sql",
+  "site-supabase/supabase/tests/database/briefing_assets.test.sql",
+  "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
+  "site-supabase/supabase/tests/database/customer_occasion_favorites.test.sql",
+  "site-supabase/supabase/tests/database/customer_portal.test.sql",
+  "site-supabase/supabase/tests/database/customer_selections.test.sql",
+  "site-supabase/supabase/tests/database/default_privileges.test.sql",
+  "site-supabase/supabase/tests/database/email_normalization.test.sql",
+  "site-supabase/supabase/tests/database/force_rls_hygiene.test.sql",
+  "site-supabase/supabase/tests/database/function_catalog_hygiene.test.sql",
+  "site-supabase/supabase/tests/database/kit_composition.test.sql",
+  "site-supabase/supabase/tests/database/kit_persistence_guards.test.sql",
+  "site-supabase/supabase/tests/database/lead_preflight_rate_limit.test.sql",
+  "site-supabase/supabase/tests/database/lead_storage.test.sql",
+  "site-supabase/supabase/tests/database/notification_delivery_status_machine.test.sql",
+  "site-supabase/supabase/tests/database/notification_dispatch_uncertainty.test.sql",
+  "site-supabase/supabase/tests/database/notification_outbox.test.sql",
+  "site-supabase/supabase/tests/database/notification_provider_events.test.sql",
+  "site-supabase/supabase/tests/database/notification_queue_policy.test.sql",
+  "site-supabase/supabase/tests/database/query_plans.test.sql",
+  "site-supabase/supabase/tests/database/quote_protocol.test.sql",
+  "site-supabase/supabase/tests/database/selection_asset_integrity.test.sql",
+  "site-supabase/supabase/tests/database/shared_selection_priorities.test.sql",
+  "site-supabase/supabase/tests/database/site_api_privileges.test.sql",
+  "site-supabase/supabase/tests/database/site_api_timeouts.test.sql",
+  "site-supabase/supabase/tests/database/status_state_machine.test.sql",
+  "site-supabase/supabase/tests/database/storage_tuning.test.sql"
+ ],
  "cobertura_por_arquivo": {
   "api/_lib/catalogValidation.ts": 2,
   "api/_lib/contracts.ts": 1,
@@ -884,9 +996,11 @@
   "scripts/check-catalog-public-contract.mjs": 1,
   "scripts/ci-health-metrics.mjs": 1,
   "scripts/graphify.mjs": 1,
-  "scripts/inventario/gerar-banco.mjs": 1,
+  "scripts/inventario/gerar-banco.mjs": 2,
   "scripts/inventario/mudou-conteudo.mjs": 1,
   "scripts/normalize-vercel-deployment-url.mjs": 1,
+  "scripts/smoke-deployment.mjs": 1,
+  "scripts/soak-test-notification-queue.mjs": 1,
   "scripts/validate-agent-instructions.mjs": 1,
   "scripts/validate-closure-ledger.mjs": 1,
   "scripts/validate-error-catalog.mjs": 1,
@@ -951,8 +1065,6 @@
  },
  "sem_teste": {
   "telas": [
-   "api/_lib/observability.ts",
-   "api/_lib/siteOrigin.ts",
    "src/pages/AboutPage.tsx",
    "src/pages/CatalogPage.tsx",
    "src/pages/CatalogsPage.tsx",
@@ -971,7 +1083,6 @@
    "src/pages/SharedSelectionPage.tsx"
   ],
   "hooks": [
-   "scripts/ai-context/cenarios.mjs",
    "src/lib/hooks.ts"
   ],
   "edges": [],
