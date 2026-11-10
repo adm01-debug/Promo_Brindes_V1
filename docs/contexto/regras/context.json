@@ -1,9 +1,9 @@
 {
  "meta": {
-  "sha": "432582af89b8e618c041cf923e7b8945409e7634",
+  "sha": "d312cadfe90788a2e6653f2202fb2258ef5d1574",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-10 20:22 UTC",
+  "generated_at": "2026-11-10 20:49 UTC",
   "files_total": 553,
   "code_files": 362,
   "code_lines": 58054,
@@ -30988,10 +30988,25 @@
   }
  },
  "git": {
-  "sha": "432582af89b8e618c041cf923e7b8945409e7634",
+  "sha": "d312cadfe90788a2e6653f2202fb2258ef5d1574",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "d312cad",
+    "date": "2026-11-10",
+    "author": "adm01-debug",
+    "subject": "docs: análise complementar analise-prs (#112)",
+    "files": [
+     "analise-prs/RELATORIO_PRS.md",
+     "analise-prs/baseline/ci-checks.md",
+     "analise-prs/decisoes.md",
+     "analise-prs/fontes.json",
+     "analise-prs/funcionalidades.csv",
+     "analise-prs/progresso.json",
+     "analise-prs/regras-de-negocio.md"
+    ]
+   },
    {
     "sha": "432582a",
     "date": "2026-11-10",
@@ -31471,16 +31486,6 @@
      "src/components/Layout.tsx",
      "src/pages/HomePage.tsx"
     ]
-   },
-   {
-    "sha": "62a38b3",
-    "date": "2026-10-06",
-    "author": "adm01-debug",
-    "subject": "docs(ux): plano Carnegie de experiência em 100 etapas (#93)",
-    "files": [
-     "docs/MATRIZ_INDEX.md",
-     "docs/PLANO_CARNEGIE_UX_100_ETAPAS_20261005.md"
-    ]
    }
   ],
   "hot_files": [
@@ -31521,6 +31526,34 @@
     3
    ],
    [
+    "analise-prs/RELATORIO_PRS.md",
+    2
+   ],
+   [
+    "analise-prs/baseline/ci-checks.md",
+    2
+   ],
+   [
+    "analise-prs/decisoes.md",
+    2
+   ],
+   [
+    "analise-prs/fontes.json",
+    2
+   ],
+   [
+    "analise-prs/funcionalidades.csv",
+    2
+   ],
+   [
+    "analise-prs/progresso.json",
+    2
+   ],
+   [
+    "analise-prs/regras-de-negocio.md",
+    2
+   ],
+   [
     ".claude/hooks/session-start.sh",
     2
    ],
@@ -31534,34 +31567,6 @@
    ],
    [
     "scripts/ai-context/cenarios.mjs",
-    2
-   ],
-   [
-    "scripts/ai-context/gerar.mjs",
-    2
-   ],
-   [
-    "scripts/ai-context/gerar.unit.mjs",
-    2
-   ],
-   [
-    "scripts/check-performance-budget.mjs",
-    2
-   ],
-   [
-    "scripts/graphify.mjs",
-    2
-   ],
-   [
-    "scripts/inventario/README.md",
-    2
-   ],
-   [
-    "scripts/inventario/banco.sql",
-    2
-   ],
-   [
-    "scripts/inventario/gerar-banco.mjs",
     2
    ]
   ]

@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "432582af89b8e618c041cf923e7b8945409e7634",
+  "commit": "d312cadfe90788a2e6653f2202fb2258ef5d1574",
   "branch": "main",
-  "data_commit": "2026-11-10T20:22:05Z",
+  "data_commit": "2026-11-10T20:43:53Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "d312cad",
+    "data": "2026-11-10",
+    "assunto": "docs: análise complementar analise-prs (#112)"
+   },
    {
     "sha": "432582a",
     "data": "2026-11-10",
@@ -126,14 +131,9 @@
     "sha": "8e412de",
     "data": "2026-10-27",
     "assunto": "chore(ci): atualiza ações do GitHub com checks verdes"
-   },
-   {
-    "sha": "dea319e",
-    "data": "2026-10-27",
-    "assunto": "fix(ci): registra baseline e corrige dependências da sonda do catálogo"
    }
   ],
-  "arquivos_mudados_7d": 97,
+  "arquivos_mudados_7d": 104,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "docs/audits/pending-features-20261011",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 20
+    "commits": 21
    },
    {
     "autor": "dependabot[bot]",
