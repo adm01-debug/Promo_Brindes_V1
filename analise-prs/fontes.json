@@ -1,114 +1,66 @@
-﻿{
-    "meta":  {
-                 "total_identificadas":  57,
-                 "total_lidas":  22,
-                 "total_nao_lidas":  35,
-                 "sessao":  "16a592e1-be41-4b16-b44a-d1efbc053a6b",
-                 "data":  "2026-10-31"
-             },
-    "fontes":  [
-                   {
-                       "id":  "F-001",
-                       "path":  "AUDITORIA.md",
-                       "status":  "LIDA",
-                       "bytes":  40885,
-                       "tipo":  "auditoria_mestre",
-                       "achados_extraidos":  22
-                   },
-                   {
-                       "id":  "F-002",
-                       "path":  "docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md",
-                       "status":  "LIDA",
-                       "bytes":  60000,
-                       "tipo":  "backlog_funcionalidades",
-                       "achados_extraidos":  36
-                   },
-                   {
-                       "id":  "F-003",
-                       "path":  "docs/HANDOFF_CONSOLIDACAO_BRINDES.md",
-                       "status":  "LIDA",
-                       "tipo":  "handoff",
-                       "achados_extraidos":  5
-                   },
-                   {
-                       "id":  "F-004",
-                       "path":  "docs/PLANO_RECONSTRUCAO_CONSOLIDACAO.md",
-                       "status":  "LIDA",
-                       "tipo":  "plano",
-                       "achados_extraidos":  3
-                   },
-                   {
-                       "id":  "F-005",
-                       "path":  "docs/RELATORIO_CI.md",
-                       "status":  "LIDA",
-                       "tipo":  "relatorio_ci",
-                       "achados_extraidos":  2
-                   },
-                   {
-                       "id":  "F-006",
-                       "path":  "docs/AUDITORIA_BRINDES_20261008.md",
-                       "status":  "LIDA",
-                       "tipo":  "auditoria",
-                       "achados_extraidos":  4
-                   },
-                   {
-                       "id":  "F-007",
-                       "path":  "analise-prs/auditorias-anteriores.md",
-                       "status":  "GERADO_ESTA_SESSAO",
-                       "bytes":  12922,
-                       "sha":  "2f7a2c8",
-                       "tipo":  "reconciliacao"
-                   },
-                   {
-                       "id":  "F-008",
-                       "path":  "analise-prs/prs.json",
-                       "status":  "GERADO_ESTA_SESSAO",
-                       "bytes":  57119,
-                       "sha":  "52a9e23",
-                       "tipo":  "dataset"
-                   },
-                   {
-                       "id":  "F-009",
-                       "path":  "analise-prs/prs.csv",
-                       "status":  "GERADO_ESTA_SESSAO",
-                       "bytes":  25426,
-                       "sha":  "bf1ea38",
-                       "tipo":  "dataset"
-                   },
-                   {
-                       "id":  "F-010",
-                       "path":  ".github/workflows/",
-                       "status":  "IDENTIFICADA_NAO_LIDA",
-                       "tipo":  "ci_workflows",
-                       "nota":  "10+ arquivos de workflow"
-                   },
-                   {
-                       "id":  "F-011",
-                       "path":  "supabase/migrations/",
-                       "status":  "IDENTIFICADA_NAO_LIDA",
-                       "tipo":  "migrations",
-                       "nota":  "Conjunto de migrations"
-                   },
-                   {
-                       "id":  "F-012",
-                       "path":  "src/hooks/useOccasionFavorites.ts",
-                       "status":  "IDENTIFICADA_NAO_LIDA",
-                       "tipo":  "hook",
-                       "nota":  "Alvo do achado A-003"
-                   },
-                   {
-                       "id":  "F-013",
-                       "path":  "supabase/functions/",
-                       "status":  "IDENTIFICADA_NAO_LIDA",
-                       "tipo":  "edge_functions",
-                       "nota":  "Edge functions - VERCEL_TOKEN"
-                   },
-                   {
-                       "id":  "F-014",
-                       "path":  "src/components/",
-                       "status":  "IDENTIFICADA_NAO_LIDA",
-                       "tipo":  "componentes",
-                       "nota":  "PF-01 outbox comercial"
-                   }
-               ]
-}
+[
+  {"path": "analise-prs/auditorias-anteriores.md", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "alta"},
+  {"path": "analise-prs/prs.json", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "alta"},
+  {"path": "analise-prs/prs.csv", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "alta"},
+  {"path": "AUDITORIA.md", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "alta"},
+  {"path": "docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "alta"},
+  {"path": "docs/AUDIT_REPORT_20260908.md", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": false, "relevancia": "media"},
+  {"path": "docs/AUDITORIA_5_ESPECIALISTAS_20260922.md", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": false, "relevancia": "media"},
+  {"path": "docs/REVISAO_PLANOS_20260924.md", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": false, "relevancia": "media"},
+  {"path": "docs/REVISAO_PLANOS_20260923.md", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": false, "relevancia": "media"},
+  {"path": "docs/REVISAO_PLANOS_20260923_ANEXO_TECNICO.md", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": false, "relevancia": "baixa"},
+  {"path": "docs/REVISAO_PLANOS_20260923_ANEXO_PRODUTO.md", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": false, "relevancia": "baixa"},
+  {"path": "docs/REVISAO_INDEPENDENTE_PLANOS_20260922.md", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": false, "relevancia": "media"},
+  {"path": "docs/REVISAO_POS_PUBLICACAO_PLANOS_20260922.md", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": false, "relevancia": "media"},
+  {"path": "docs/REVISAO_INTEGRAL_PLANOS_20260911.md", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": false, "relevancia": "media"},
+  {"path": "docs/REVISAO_FECHAMENTO_PLANOS_20260912.md", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": false, "relevancia": "media"},
+  {"path": "docs/REVISAO_PLANOS_20260928.md", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": false, "relevancia": "media"},
+  {"path": "docs/PLANO_CORRECOES_50_ETAPAS_20260913.md", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": false, "relevancia": "media"},
+  {"path": "docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260916.md", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": false, "relevancia": "media"},
+  {"path": "docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260917.md", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": false, "relevancia": "baixa"},
+  {"path": "docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260924.md", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": false, "relevancia": "media"},
+  {"path": "docs/PLANO_MELHORIAS_CORRECOES_50_ETAPAS_20260923.md", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": false, "relevancia": "baixa"},
+  {"path": "docs/PLANO_WORKFLOWS_100_ETAPAS_20260927.md", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": false, "relevancia": "media"},
+  {"path": "docs/PLANO_FECHAMENTO_100_ETAPAS_20261001.md", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": false, "relevancia": "media"},
+  {"path": "docs/EXECUCAO_PLANO_FECHAMENTO_20261001.md", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": false, "relevancia": "media"},
+  {"path": "docs/audits/plan-review-20260912/README.md", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": false, "relevancia": "baixa"},
+  {"path": "docs/audits/closure-review-20260912/README.md", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": false, "relevancia": "baixa"},
+  {"path": "docs/MATRIZ_FECHAMENTO_PLANOS_20260912.csv", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": false, "relevancia": "baixa"},
+  {"path": "PENDENCIAS.md", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": false, "relevancia": "media"},
+  {"path": "UX_AUDIT_REPORT.md", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": false, "relevancia": "media"},
+  {"path": "PLANO_100.md", "tipo": "auditoria", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": false, "relevancia": "media"},
+  {"path": "src/lib/useOccasionFavorites.ts", "tipo": "codigo", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "alta"},
+  {"path": "src/lib/catalog.ts", "tipo": "codigo", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "alta"},
+  {"path": "src/lib/http.ts", "tipo": "codigo", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "alta"},
+  {"path": "src/lib/quoteItems.ts", "tipo": "codigo", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "media"},
+  {"path": "src/lib/quoteDraft.ts", "tipo": "codigo", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "media"},
+  {"path": "src/lib/campaignPresets.ts", "tipo": "codigo", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "media"},
+  {"path": "src/lib/siteFeatureFlags.ts", "tipo": "codigo", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "media"},
+  {"path": "src/pages/QuotePage.tsx", "tipo": "codigo", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "alta"},
+  {"path": "src/pages/CatalogPage.tsx", "tipo": "codigo", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "alta"},
+  {"path": "src/pages/CustomerAccountPage.tsx", "tipo": "codigo", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "media"},
+  {"path": "src/pages/SetPasswordPage.tsx", "tipo": "codigo", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "media"},
+  {"path": "src/pages/PrivacyPage.tsx", "tipo": "codigo", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "media"},
+  {"path": "src/components/ProductCard.tsx", "tipo": "codigo", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "media"},
+  {"path": "api/_lib/catalogValidation.ts", "tipo": "codigo", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "alta"},
+  {"path": "api/_lib/leadHandler.ts", "tipo": "codigo", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "alta"},
+  {"path": "api/notifications.ts", "tipo": "codigo", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "alta"},
+  {"path": "api/retention.ts", "tipo": "codigo", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "media"},
+  {"path": "api/customer-proposals.ts", "tipo": "codigo", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "media"},
+  {"path": "api/notification-events-resend.ts", "tipo": "codigo", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "media"},
+  {"path": ".github/workflows/quality.yml", "tipo": "workflow", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "alta"},
+  {"path": ".github/workflows/database.yml", "tipo": "workflow", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "alta"},
+  {"path": ".github/workflows/release.yml", "tipo": "workflow", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "alta"},
+  {"path": ".github/workflows/codeql.yml", "tipo": "workflow", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "alta"},
+  {"path": ".github/workflows/graphify.yml", "tipo": "workflow", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "media"},
+  {"path": ".github/workflows/catalog-contract.yml", "tipo": "workflow", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "media"},
+  {"path": ".github/workflows/ci-health.yml", "tipo": "workflow", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "media"},
+  {"path": ".github/workflows/production-drift.yml", "tipo": "workflow", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "media"},
+  {"path": ".github/workflows/workflows-lint.yml", "tipo": "workflow", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "media"},
+  {"path": ".github/workflows/secrets-rotation-reminder.yml", "tipo": "workflow", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "media"},
+  {"path": ".github/workflows/stale-branches.yml", "tipo": "workflow", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "baixa"},
+  {"path": ".github/workflows/dependency-review.yml", "tipo": "workflow", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "media"},
+  {"path": "site-supabase/supabase/migrations/20260908230000_create_site_lead_storage.sql", "tipo": "codigo", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "media"},
+  {"path": "site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql", "tipo": "codigo", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "media"},
+  {"path": "site-supabase/supabase/migrations/20260927103000_harden_occasion_favorites_rpc_acl.sql", "tipo": "codigo", "sha": "b19311989efe273e47dd8949ef126225206ad208", "lida": true, "relevancia": "media"}
+]
