@@ -1,8 +1,9 @@
 {
   "data_analise": "2026-11-01",
+  "revisao_fatos": "2026-11-10 (SHA origin/main d312cad)",
   "main_sha": "b19311989efe273e47dd8949ef126225206ad208",
-  "prs_total": 109,
-  "prs_analisadas": 109,
+  "prs_total": 107,
+  "prs_analisadas": 107,
   "prs_mergeadas_nesta_sessao": 0,
   "prs_open_restantes": 0,
   "documentos_gerados": [
