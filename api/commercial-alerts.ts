@@ -3,6 +3,7 @@ import { getSiteDatabaseConfig } from './_lib/siteDatabase.js';
 import type { ApiRequest, ApiResponse } from './_lib/leadHandler.js';
 import { errorClass, logServerError, logServerWarning } from './_lib/observability.js';
 import {
+  COMMERCIAL_ALERT_TIMEOUT_MS,
   deliverCommercialAlertJob,
   parseCommercialAlertJob,
 } from './_lib/commercialTeamAlerts.js';
@@ -25,7 +26,7 @@ function matchesCronSecret(authorization: string, secret: string): boolean {
   return expected.length === received.length && timingSafeEqual(expected, received);
 }
 
-async function claimCommercialAlerts(signal: AbortSignal): Promise<unknown[]> {
+async function claimCommercialAlerts(signal: AbortSignal, batchSize: number): Promise<unknown[]> {
   const config = getSiteDatabaseConfig();
   const response = await fetch(`${config.url}/rest/v1/rpc/claim_site_commercial_team_alerts`, {
     method: 'POST',
@@ -35,7 +36,7 @@ async function claimCommercialAlerts(signal: AbortSignal): Promise<unknown[]> {
       'Content-Type': 'application/json',
       Accept: 'application/json',
     },
-    body: JSON.stringify({ p_batch_size: COMMERCIAL_ALERTS_BATCH_SIZE }),
+    body: JSON.stringify({ p_batch_size: batchSize }),
     signal,
   });
   if (!response.ok) throw new Error('claim_site_commercial_team_alerts_failed');
@@ -68,15 +69,17 @@ export default async function handler(request: ApiRequest, response: ApiResponse
   try {
     const controller = new AbortController();
     timeout = setTimeout(() => controller.abort(), COMMERCIAL_ALERTS_TIMEOUT_MS);
-    const claimedJobs = await claimCommercialAlerts(controller.signal);
+    const deadline = Date.now() + COMMERCIAL_ALERTS_TIMEOUT_MS;
     let delivered = 0;
     let failed = 0;
     let pending = 0;
+    // Só reivindica o quanto cabe no tempo restante (padrão das confirmações):
+    // reivindicar muitos e abortar no meio consumiria attempts de jobs que
+    // nem tiveram tentativa, chegando a exhausted sem entrega real.
+    const batchSize = Math.max(1, Math.min(COMMERCIAL_ALERTS_BATCH_SIZE, Math.floor((deadline - Date.now()) / COMMERCIAL_ALERT_TIMEOUT_MS)));
+    const claimedJobs = await claimCommercialAlerts(controller.signal, batchSize);
     for (const raw of claimedJobs) {
-      if (controller.signal.aborted) {
-        pending += 1;
-        continue;
-      }
+      if (Date.now() >= deadline - COMMERCIAL_ALERT_TIMEOUT_MS || controller.signal.aborted) break;
       const job = parseCommercialAlertJob(raw);
       if (!job) {
         logServerWarning('commercial_alert_invalid_payload_in_batch', {});
@@ -87,13 +90,16 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       if (outcome === 'sent') delivered += 1;
       else pending += 1;
     }
+    // Jobs reivindicados que não couberam na janela (break por tempo) voltam a
+    // ser atribuídos a 'pending' na resposta — a próxima rodada os recupera.
+    const pendingTotal = pending + Math.max(0, claimedJobs.length - delivered - failed - pending);
     console.info('commercial_alerts_cron_completed', {
       claimed: claimedJobs.length,
       delivered,
       failed,
-      pending,
+      pending: pendingTotal,
     });
-    response.status(200).json({ ok: true, claimed: claimedJobs.length, delivered, failed, pending });
+    response.status(200).json({ ok: true, claimed: claimedJobs.length, delivered, failed, pending: pendingTotal });
   } catch (error) {
     logServerError('commercial_alerts_cron_failed', { errorClass: errorClass(error) });
     const alerted = await sendOperationalAlert('commercial_alerts_cron_failed', { errorClass: errorClass(error) });

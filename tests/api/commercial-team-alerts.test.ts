@@ -84,6 +84,19 @@ describe('alerta comercial de orçamento (PF-01)', () => {
       expect(fetchMock).not.toHaveBeenCalled();
     });
 
+    it('preview nunca envia webhook comercial real, mesmo com endpoint configurado', async () => {
+      configureSiteDatabase();
+      vi.stubEnv('COMMERCIAL_TEAM_WEBHOOK_URL', WEBHOOK_URL);
+      vi.stubEnv('COMMERCIAL_TEAM_WEBHOOK_TOKEN', 'token-comercial-de-teste');
+      vi.stubEnv('VERCEL_ENV', 'preview');
+      const fetchMock = commercialFetchMock(validJob());
+      vi.stubGlobal('fetch', fetchMock);
+
+      const controller = new AbortController();
+      await expect(deliverCommercialAlertJob(validJob(), controller.signal)).resolves.toBe('pending');
+      expect(fetchMock.mock.calls.filter(([url]) => String(url) === WEBHOOK_URL)).toHaveLength(0);
+    });
+
     it('recusa endpoint que não seja HTTPS, sem conexão', async () => {
       configureSiteDatabase();
       vi.stubEnv('COMMERCIAL_TEAM_WEBHOOK_URL', 'http://comercial.promobrindes.com.br/hook');
@@ -123,6 +136,7 @@ describe('alerta comercial de orçamento (PF-01)', () => {
       const [, init] = webhookCall as [unknown, RequestInit];
       expect(init.method).toBe('POST');
       expect(init.headers).toMatchObject({ Authorization: 'Bearer token-comercial-de-teste' });
+      expect(init.headers).toMatchObject({ 'Idempotency-Key': `commercial-${REQUEST_ID}` });
       const envelope = JSON.parse(String(init.body)) as Record<string, unknown>;
       expect(envelope.event).toBe('quote_request_submitted');
       expect(envelope.requestId).toBe(REQUEST_ID);
@@ -157,6 +171,29 @@ describe('alerta comercial de orçamento (PF-01)', () => {
 
       await expect(deliverCommercialTeamAlertNow('lead-42')).resolves.toBe('pending');
       expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('sem webhook configurado não reivindica job (evita consumir attempts do lead)', async () => {
+      configureSiteDatabase();
+      const fetchMock = commercialFetchMock(validJob());
+      vi.stubGlobal('fetch', fetchMock);
+
+      await expect(deliverCommercialTeamAlertNow(REQUEST_ID)).resolves.toBe('pending');
+      const claimCalls = fetchMock.mock.calls.filter(([url]) => String(url).includes('/claim_site_commercial_team_alert'));
+      expect(claimCalls).toHaveLength(0);
+    });
+
+    it('preview não reivindica nem envia webhook comercial real', async () => {
+      configureSiteDatabase();
+      vi.stubEnv('COMMERCIAL_TEAM_WEBHOOK_URL', WEBHOOK_URL);
+      vi.stubEnv('VERCEL_ENV', 'preview');
+      const fetchMock = commercialFetchMock(validJob());
+      vi.stubGlobal('fetch', fetchMock);
+
+      await expect(deliverCommercialTeamAlertNow(REQUEST_ID)).resolves.toBe('pending');
+      const calls = fetchMock.mock.calls;
+      expect(calls.filter(([url]) => String(url).includes('/claim_site_commercial_team_alert'))).toHaveLength(0);
+      expect(calls.filter(([url]) => String(url) === WEBHOOK_URL)).toHaveLength(0);
     });
   });
 });

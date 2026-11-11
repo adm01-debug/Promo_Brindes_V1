@@ -2,7 +2,7 @@ import { normalizeLeadPayload, RequestValidationError, type LeadKind } from './c
 import { reconcileQuoteItems } from './catalogValidation.js';
 import { enforceLeadPreflightRateLimit, persistLead, SiteDatabaseError } from './siteDatabase.js';
 import { deliverQuoteConfirmationsNow } from '../notifications.js';
-import { deliverCommercialTeamAlertNow } from './commercialTeamAlerts.js';
+import { COMMERCIAL_ALERT_TIMEOUT_MS, deliverCommercialTeamAlertNow } from './commercialTeamAlerts.js';
 import { createCorrelationId, errorClass, logServerError } from './observability.js';
 import { allowedSiteOrigins } from './siteOrigin.js';
 
@@ -133,11 +133,14 @@ export async function handleLeadRequest(kind: LeadKind, request: ApiRequest, res
         ? { email: 'pending' as const, whatsapp: payload.notificationPreferences.whatsappCopy ? 'pending' as const : 'not_requested' as const }
         : await deliverQuoteConfirmationsNow(result.requestId, payload.notificationPreferences.whatsappCopy, correlationId)
       : undefined;
-    // PF-01: alerta comercial do orçamento recém-submetido. Sem endpoint
-    // configurado devolve 'pending' sem conexão — o cron /api/commercial-alerts
-    // drena o backlog. Repetições idempotentes (200) nunca realertam.
+    // PF-01: alerta comercial do orçamento recém-submetido. Só tenta se sobrar
+    // tempo confortável dentro do orçamento da requisição (o webhook usa até
+    // COMMERCIAL_ALERT_TIMEOUT_MS); sem endpoint configurado devolve 'pending'
+    // sem conexão — o cron /api/commercial-alerts drena o backlog.
+    // Repetições idempotentes (200) nunca realertam.
     const commercialAlert = payload.source === 'site-promo-brindes' && !result.duplicate && confirmations
-      ? await deliverCommercialTeamAlertNow(result.requestId, correlationId)
+      && Date.now() < deadline - COMMERCIAL_ALERT_TIMEOUT_MS
+      ? await deliverCommercialTeamAlertNow(result.requestId, { correlationId, signal: deadlineController.signal })
       : undefined;
     response.status(result.duplicate ? 200 : 201).json({
       ...result,

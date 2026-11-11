@@ -14,6 +14,15 @@ import { errorClass, logServerError, logServerWarning } from './observability.js
  */
 export const COMMERCIAL_ALERT_TIMEOUT_MS = 7_000;
 
+/** Alerta comercial real só em produção; preview/dev não notificam o time.
+ * Mesmo critério do guard de preview das confirmações (api/notifications.ts
+ * configuredChannels). Sem esta trava, um deploy preview reivindicaria job e
+ * dispararia webhook comercial real com payload de teste. Avaliada em runtime
+ * (RPC/entrega) para ler o env do momento. */
+export function commercialAlertsEnabled(): boolean {
+  return process.env.VERCEL_ENV !== 'preview' && Boolean(process.env.COMMERCIAL_TEAM_WEBHOOK_URL?.trim());
+}
+
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export interface CommercialAlertJob {
@@ -131,6 +140,11 @@ async function finalize(job: CommercialAlertJob, status: 'sent' | 'failed', sign
 /** Entrega o payload do lead (envelope comercial) ao webhook do time. Nada de
  * credencial vai no corpo; o webhook confia no token de Authorization. */
 export async function deliverCommercialAlertJob(job: CommercialAlertJob, signal: AbortSignal): Promise<'sent' | 'pending'> {
+  if (!commercialAlertsEnabled()) {
+    // Preview/dev ou endpoint não configurado: não entrega — o job fica
+    // disponível para o cron em produção.
+    return 'pending';
+  }
   // Reconciliação: tentativa anterior obteve aceite mas não concluiu a
   // finalização. Não reenvia — apenas finaliza.
   if (job.existingProvider && job.existingProviderMessageId) {
@@ -138,8 +152,7 @@ export async function deliverCommercialAlertJob(job: CommercialAlertJob, signal:
     return confirmed ? 'sent' : 'pending';
   }
 
-  const webhookUrl = process.env.COMMERCIAL_TEAM_WEBHOOK_URL?.trim();
-  if (!webhookUrl) return 'pending';
+  const webhookUrl = process.env.COMMERCIAL_TEAM_WEBHOOK_URL!.trim();
   let url: URL;
   try {
     url = new URL(webhookUrl);
@@ -167,6 +180,9 @@ export async function deliverCommercialAlertJob(job: CommercialAlertJob, signal:
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        // Idempotency-Key permite ao destino deduplicar reenvios (ex.: a
+        // resposta se perdeu na rede e a tentativa segue pendente).
+        'Idempotency-Key': `commercial-${job.requestId}`,
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify(envelope),
@@ -189,29 +205,48 @@ export async function deliverCommercialAlertJob(job: CommercialAlertJob, signal:
 
 export type CommercialAlertResult = 'sent' | 'pending';
 
+export interface CommercialAlertOptions {
+  correlationId?: string;
+  /** Sinal externo do orçamento da requisição; aborta junto com o timeout
+   * próprio do alerta (quem tiver o prazo menor decide). */
+  signal?: AbortSignal;
+}
+
 /** Dispara o alerta comercial do orçamento recém-submetido (fluxo síncrono do
  * POST /api/quote-requests). Reivindica um único job com o próprio requestId;
  * sem endpoint configurado, devolve 'pending' sem conexão — o cron
  * /api/commercial-alerts drena o backlog depois. */
-export async function deliverCommercialTeamAlertNow(requestId: string, correlationId?: string): Promise<CommercialAlertResult> {
+export async function deliverCommercialTeamAlertNow(requestId: string, options: CommercialAlertOptions = {}): Promise<CommercialAlertResult> {
   if (!UUID_PATTERN.test(requestId)) return 'pending';
+  // Sem endpoint configurado ou preview, o claim do job é inútil: o job
+  // ficaria reivindicado (attempts+1) e o cron não o recupera nesta janela.
+  // Check antes do claim evita consumir tentativas do lead na fila.
+  if (!commercialAlertsEnabled()) return 'pending';
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), COMMERCIAL_ALERT_TIMEOUT_MS);
+  const onExternalAbort = () => controller.abort();
+  const externalSignal = options.signal;
+  if (externalSignal?.aborted) {
+    controller.abort();
+  } else if (externalSignal) {
+    externalSignal.addEventListener('abort', onExternalAbort, { once: true });
+  }
   try {
     const raw = await rpc<unknown>('claim_site_commercial_team_alert', { p_request_id: requestId }, controller.signal);
     if (!raw) return 'pending';
     const job = parseCommercialAlertJob(raw);
     if (!job) {
-      logServerWarning('commercial_alert_invalid_payload', { requestId, correlationId: correlationId || null });
+      logServerWarning('commercial_alert_invalid_payload', { requestId, correlationId: options.correlationId || null });
       return 'pending';
     }
     const outcome = await deliverCommercialAlertJob(job, controller.signal);
-    console.info('commercial_alert_completed', { requestId, correlationId: correlationId || null, outcome });
+    console.info('commercial_alert_completed', { requestId, correlationId: options.correlationId || null, outcome });
     return outcome;
   } catch (error) {
-    logServerError('commercial_alert_failed', { requestId, correlationId: correlationId || null, errorClass: errorClass(error) });
+    logServerError('commercial_alert_failed', { requestId, correlationId: options.correlationId || null, errorClass: errorClass(error) });
     return 'pending';
   } finally {
     clearTimeout(timeout);
+    externalSignal?.removeEventListener('abort', onExternalAbort);
   }
 }
