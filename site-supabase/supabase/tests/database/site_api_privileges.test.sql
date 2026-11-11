@@ -84,10 +84,10 @@ select lives_ok(
     select public.finalize_site_notification_delivery(
       (select delivery.id from site_private.notification_deliveries delivery
        join site_private.quote_requests request on request.id = delivery.request_id
-       where request.client_request_id = 'site-api-quote-1' and delivery.channel = 'email'),
+       where request.client_request_id = 'site-api-quote-1' and delivery.channel = 'email' and delivery.audience = 'customer'),
       (select lease_token from site_private.notification_deliveries delivery
        join site_private.quote_requests request on request.id = delivery.request_id
-       where request.client_request_id = 'site-api-quote-1' and delivery.channel = 'email'),
+       where request.client_request_id = 'site-api-quote-1' and delivery.channel = 'email' and delivery.audience = 'customer'),
       'sent', 'resend', 'site-api-msg-1', null, null
     )
   $$,

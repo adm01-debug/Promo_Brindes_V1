@@ -325,7 +325,7 @@ insert into site_private.quote_requests (
 );
 update site_private.notification_deliveries
   set provider = 'resend', provider_message_id = 'msg-regressao-cascade-1'
-  where request_id = '58585858-5858-4585-8585-585858585858';
+  where request_id = '58585858-5858-4585-8585-585858585858' and audience = 'customer';
 
 -- delivered, depois bounced (sobrescreve por precedência — Etapa 20) e complained:
 -- 3 eventos de provedor na mesma delivery, e delivery_state_source_event_id termina
@@ -335,12 +335,12 @@ select public.apply_site_notification_provider_event('resend', 'msg-regressao-ca
 select public.apply_site_notification_provider_event('resend', 'msg-regressao-cascade-1', 'complained', 'evt-regressao-cascade-3', now());
 
 select is(
-  (select delivery_state_source_event_id is not null from site_private.notification_deliveries where request_id = '58585858-5858-4585-8585-585858585858'),
+  (select delivery_state_source_event_id is not null from site_private.notification_deliveries where request_id = '58585858-5858-4585-8585-585858585858' and audience = 'customer'),
   true,
   'pré-condição: delivery_state_source_event_id aponta para um dos 3 eventos (referência circular real de produção)'
 );
 select is(
-  (select count(*) from site_private.notification_provider_events where delivery_id = (select id from site_private.notification_deliveries where request_id = '58585858-5858-4585-8585-585858585858')),
+  (select count(*) from site_private.notification_provider_events where delivery_id = (select id from site_private.notification_deliveries where request_id = '58585858-5858-4585-8585-585858585858' and audience = 'customer')),
   3::bigint,
   'pré-condição: 3 eventos de provedor associados à mesma delivery (delivered+bounced+complained)'
 );

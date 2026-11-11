@@ -35,6 +35,14 @@ export type Database = {
         Returns: boolean
       }
       claim_my_quote_requests: { Args: never; Returns: Json }
+      claim_site_commercial_team_alert: {
+        Args: { p_request_id: string }
+        Returns: Json
+      }
+      claim_site_commercial_team_alerts: {
+        Args: { p_batch_size?: number }
+        Returns: Json
+      }
       claim_site_notification_deliveries: {
         Args: { p_batch_size?: number; p_channels: string[] }
         Returns: Json
@@ -1069,6 +1077,10 @@ export type Database = {
     }
     Functions: {
       audit_actor: { Args: never; Returns: string }
+      commercial_team_alert_payload: {
+        Args: { p_delivery_id: string }
+        Returns: Json
+      }
       consume_rate_limit: {
         Args: {
           p_identifier_hash: string

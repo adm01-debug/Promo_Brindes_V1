@@ -95,7 +95,7 @@ test('duas reivindicações concorrentes da fila obtêm conjuntos disjuntos de j
   const totalPending = Number(psql(`
     select count(*) from site_private.notification_deliveries delivery
     join site_private.quote_requests request on request.id = delivery.request_id
-    where request.client_request_id like 'concurrency-${runId}-%' and delivery.channel = 'email';
+    where request.client_request_id like 'concurrency-${runId}-%' and delivery.channel = 'email' and delivery.audience = 'customer';
   `));
   assert.equal(totalPending, QUOTE_COUNT, 'pré-condição: a fixture criou exatamente 50 jobs pendentes');
 
@@ -114,7 +114,7 @@ test('duas reivindicações concorrentes da fila obtêm conjuntos disjuntos de j
   const distinctLeaseTokens = Number(psql(`
     select count(distinct lease_token) from site_private.notification_deliveries delivery
     join site_private.quote_requests request on request.id = delivery.request_id
-    where request.client_request_id like 'concurrency-${runId}-%' and delivery.status = 'processing';
+    where request.client_request_id like 'concurrency-${runId}-%' and delivery.status = 'processing' and delivery.audience = 'customer';
   `));
   const claimedTotal = idsA.length + idsB.length;
   assert.equal(distinctLeaseTokens, claimedTotal, 'todo job reivindicado tem um lease_token próprio (nenhum lease compartilhado por engano)');
@@ -177,7 +177,7 @@ test('exhausted sob concorrência: duas conexões terminalizam o mesmo job preso
   const deliveryId = psql(`
     select delivery.id from site_private.notification_deliveries delivery
     join site_private.quote_requests request on request.id = delivery.request_id
-    where request.client_request_id = 'exhausted-concurrency-${runId}-1' and delivery.channel = 'email';
+    where request.client_request_id = 'exhausted-concurrency-${runId}-1' and delivery.channel = 'email' and delivery.audience = 'customer';
   `);
   psql(`alter table site_private.notification_deliveries disable trigger notification_deliveries_enforce_status_transition;`);
   psql(`alter table site_private.notification_deliveries disable trigger notification_deliveries_enforce_lease_and_attempts;`);
