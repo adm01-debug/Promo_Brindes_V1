@@ -5,12 +5,12 @@
   "vitest",
   "playwright"
  ],
- "total": 128,
+ "total": 131,
  "por_tipo": {
   "contrato": 2,
   "e2e": 2,
   "pytest": 4,
-  "unit": 92
+  "unit": 95
  },
  "onde_ficam": [
   {
@@ -23,7 +23,7 @@
   },
   {
    "padrao": "outro",
-   "arquivos": 6
+   "arquivos": 9
   },
   {
    "padrao": "e2e/",
@@ -51,6 +51,34 @@
    "linhas": 666,
    "testa": [],
    "casos": 12
+  },
+  {
+   "arquivo": "scripts/automation.unit.mjs",
+   "tipo": "unit",
+   "linhas": 702,
+   "testa": [
+    "scripts/automation.mjs"
+   ],
+   "casos": 32
+  },
+  {
+   "arquivo": "scripts/graphify-local.unit.mjs",
+   "tipo": "unit",
+   "linhas": 576,
+   "testa": [
+    "scripts/graphify-local.mjs"
+   ],
+   "casos": 24
+  },
+  {
+   "arquivo": "scripts/maintenance/maintenance.unit.mjs",
+   "tipo": "unit",
+   "linhas": 1098,
+   "testa": [
+    "scripts/maintenance/lib.mjs",
+    "scripts/maintenance/run.mjs"
+   ],
+   "casos": 44
   },
   {
    "arquivo": "scripts/regras_negocio/test_generate.py",
@@ -993,11 +1021,15 @@
   "api/site-page.ts": 1,
   "api/sitemap.ts": 2,
   "scripts/_lib/supabaseDbQuery.mjs": 1,
+  "scripts/automation.mjs": 1,
   "scripts/check-catalog-public-contract.mjs": 1,
   "scripts/ci-health-metrics.mjs": 1,
+  "scripts/graphify-local.mjs": 1,
   "scripts/graphify.mjs": 1,
   "scripts/inventario/gerar-banco.mjs": 2,
   "scripts/inventario/mudou-conteudo.mjs": 1,
+  "scripts/maintenance/lib.mjs": 1,
+  "scripts/maintenance/run.mjs": 1,
   "scripts/normalize-vercel-deployment-url.mjs": 1,
   "scripts/smoke-deployment.mjs": 1,
   "scripts/soak-test-notification-queue.mjs": 1,

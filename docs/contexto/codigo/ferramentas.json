@@ -4,11 +4,11 @@
  "stack": {
   "linguagens": [
    "TypeScript (200)",
-   "Markdown (113)",
+   "Markdown (115)",
    "SQL (101)",
-   "JavaScript (53)",
-   "JSON (24)",
-   "YAML (18)",
+   "JavaScript (61)",
+   "JSON (28)",
+   "YAML (19)",
    "Python (8)",
    "CSS (4)"
   ],
@@ -45,6 +45,15 @@
   "versao": "1.0.0",
   "scripts": {
    "agents:instructions:check": "node scripts/validate-agent-instructions.mjs",
+   "automation:check": "node scripts/automation.mjs check --ref HEAD",
+   "automation:doctor": "node scripts/automation.mjs doctor",
+   "automation:graph": "node scripts/automation.mjs graph",
+   "automation:heal": "node scripts/automation.mjs heal --ref origin/main",
+   "automation:install-hooks": "node scripts/automation.mjs install-hooks",
+   "automation:nightly": "node scripts/automation.mjs nightly --ref origin/main",
+   "automation:status": "node scripts/automation.mjs graph status",
+   "automation:test": "node scripts/automation.mjs test",
+   "automation:uninstall-hooks": "node scripts/automation.mjs uninstall-hooks",
    "build": "tsc -b && vite build && node scripts/stage-app-shell.mjs",
    "check": "npm run lint && npm run typecheck && npm run test && npm run agents:instructions:check && npm run test:agent-instructions && npm run test:migration-names && npm run test:error-catalog && npm run test:site-api-jwt && npm run test:timing-safe-secrets && npm run test:supabase-db-query && npm run test:ci-health && npm run test:release-url && npm run test:smoke-deployment && npm run test:stage-app-shell && npm run test:performance-budget && npm run test:site-guard && npm run test:database-docs && npm run test:soak-queue && npm run test:shared-selection-sql && npm run test:catalog-contract && npm run test:inventario && npm run contexto:test && npm run build && npm run check:performance-budget && npm run test:e2e",
    "check:catalog-contract": "node scripts/check-catalog-public-contract.mjs",
@@ -90,6 +99,9 @@
    "inventario:mudou": "node scripts/inventario/mudou-conteudo.mjs",
    "ledger:check": "node scripts/validate-closure-ledger.mjs && node --test tests/closure-ledger.node.mjs",
    "lint": "eslint .",
+   "maintenance:check": "sh scripts/maintenance/run.sh check --root . --ref origin/main",
+   "maintenance:doctor": "sh scripts/maintenance/run.sh doctor --root .",
+   "maintenance:heal": "sh scripts/maintenance/run.sh heal --root . --ref origin/main",
    "preview": "vite preview",
    "smoke:deployment": "node scripts/smoke-deployment.mjs",
    "test": "vitest run",
@@ -104,6 +116,7 @@
    "test:graphify": "node --test tests/graphify-tools.node.mjs",
    "test:inventario": "node --test tests/inventario-estado.node.mjs",
    "test:inventario:banco-sql": "node --test tests/inventario-banco-sql.node.mjs",
+   "test:maintenance": "node --test scripts/maintenance/maintenance.unit.mjs",
    "test:migration-names": "node --test tests/validate-migration-names.node.mjs",
    "test:performance-budget": "node --test tests/check-performance-budget.node.mjs",
    "test:queue-concurrency": "node --test tests/queue-concurrency.node.mjs",
@@ -156,6 +169,34 @@
   "vite.config.ts"
  ],
  "workflows": [
+  {
+   "arquivo": ".github/workflows/automation-local.yml",
+   "nome": "Automação local",
+   "gatilhos": [
+    "pull_request",
+    "push",
+    "workflow_dispatch"
+   ],
+   "crons": [],
+   "branches": [
+    "main"
+   ],
+   "jobs": [
+    "contracts"
+   ],
+   "permissoes": [
+    "contents: read"
+   ],
+   "scripts_usados": [
+    "scripts/automation.mjs"
+   ],
+   "npm_scripts": [],
+   "secrets": [],
+   "actions": [
+    "actions/checkout",
+    "actions/setup-node"
+   ]
+  },
   {
    "arquivo": ".github/workflows/catalog-contract.yml",
    "nome": "Canonical catalog public contract",
@@ -650,6 +691,11 @@
    "arquivo": "docs/AUDIT_REPORT_20260908.md",
    "titulo": "Auditoria técnica consolidada — 08–09/09/2026",
    "linhas": 75
+  },
+  {
+   "arquivo": "docs/AUTOMACAO_LOCAL.md",
+   "titulo": "Automação local — Promo_Brindes_V1",
+   "linhas": 104
   },
   {
    "arquivo": "docs/CUSTOMER_PORTAL_IMPLEMENTATION_20260909.md",

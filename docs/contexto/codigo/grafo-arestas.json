@@ -122,6 +122,12 @@
   "scripts/graphify.mjs": [
    "scripts/graphify-quality.mjs"
   ],
+  "scripts/maintenance/run.mjs": [
+   "scripts/maintenance/lib.mjs"
+  ],
+  "scripts/maintenance/typecheck.mjs": [
+   "scripts/maintenance/lib.mjs"
+  ],
   "src/App.tsx": [
    "src/components/AppErrorBoundary.tsx",
    "src/components/Layout.tsx",

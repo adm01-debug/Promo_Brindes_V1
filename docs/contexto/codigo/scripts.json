@@ -1,7 +1,7 @@
 {
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
- "total": 29,
+ "total": 35,
  "scripts": [
   {
    "arquivo": "scripts/_lib/supabaseDbQuery.mjs",
@@ -59,6 +59,30 @@
    ],
    "workflows": [
     "contexto.yml"
+   ],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/automation.mjs",
+   "descricao": null,
+   "linhas": 1174,
+   "env": [
+    "REPO_AUTOMATION_CHAINING",
+    "REPO_AUTOMATION_STATE"
+   ],
+   "npm_scripts": [
+    "automation:doctor",
+    "automation:test",
+    "automation:check",
+    "automation:heal",
+    "automation:nightly",
+    "automation:graph",
+    "automation:status",
+    "automation:install-hooks",
+    "automation:uninstall-hooks"
+   ],
+   "workflows": [
+    "automation-local.yml"
    ],
    "orfao": false
   },
@@ -133,6 +157,15 @@
    "npm_scripts": [
     "db:site:generate-site-api-jwt"
    ],
+   "workflows": [],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/graphify-local.mjs",
+   "descricao": null,
+   "linhas": 1247,
+   "env": [],
+   "npm_scripts": [],
    "workflows": [],
    "orfao": false
   },
@@ -212,6 +245,48 @@
    "workflows": [
     "inventario-estado-semanal.yml"
    ],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/maintenance/lib.mjs",
+   "descricao": null,
+   "linhas": 955,
+   "env": [],
+   "npm_scripts": [],
+   "workflows": [],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/maintenance/run.mjs",
+   "descricao": null,
+   "linhas": 899,
+   "env": [
+    "XDG_STATE_HOME"
+   ],
+   "npm_scripts": [],
+   "workflows": [],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/maintenance/run.sh",
+   "descricao": null,
+   "linhas": 16,
+   "env": [],
+   "npm_scripts": [
+    "maintenance:doctor",
+    "maintenance:check",
+    "maintenance:heal"
+   ],
+   "workflows": [],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/maintenance/typecheck.mjs",
+   "descricao": null,
+   "linhas": 110,
+   "env": [],
+   "npm_scripts": [],
+   "workflows": [],
    "orfao": false
   },
   {

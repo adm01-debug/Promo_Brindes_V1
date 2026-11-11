@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "49fc2aff8bbb7cd55d932be51a2209e5656a0d72",
+  "commit": "52aa025eb2d1e31a35a1dc5b11cf11a14a6001c1",
   "branch": "main",
-  "data_commit": "2026-11-10T21:44:03Z",
+  "data_commit": "2026-11-11T17:29:41Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "52aa025",
+    "data": "2026-11-11",
+    "assunto": "chore(automacao): conecta testes, grafo e manutenção aos gatilhos (#131)"
+   },
    {
     "sha": "49fc2af",
     "data": "2026-11-10",
@@ -126,14 +131,9 @@
     "sha": "fb534ed",
     "data": "2026-10-27",
     "assunto": "chore(deps): atualiza dependências e rótulos acessíveis"
-   },
-   {
-    "sha": "b62ca89",
-    "data": "2026-10-27",
-    "assunto": "docs(auditoria): incorpora inventário de funcionalidades pendentes"
    }
   ],
-  "arquivos_mudados_7d": 104,
+  "arquivos_mudados_7d": 120,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "docs/audits/pending-features-20261011",
@@ -141,7 +141,7 @@
    },
    {
     "pasta": "package.json",
-    "mudancas": 8
+    "mudancas": 9
    },
    {
     "pasta": "AGENTS.md",
@@ -158,6 +158,10 @@
    {
     "pasta": "scripts/validate-agent-instructions.mjs",
     "mudancas": 4
+   },
+   {
+    "pasta": ".gitignore",
+    "mudancas": 3
    },
    {
     "pasta": "RELATORIO_CI.md",
@@ -190,16 +194,12 @@
    {
     "pasta": "tests/validate-agent-instructions.node.mjs",
     "mudancas": 3
-   },
-   {
-    "pasta": ".agents/skills/promo-brindes-v1",
-    "mudancas": 2
    }
   ],
   "arquivos_mais_mudados_90d": [
    {
     "arquivo": "package.json",
-    "mudancas": 57
+    "mudancas": 58
    },
    {
     "arquivo": "e2e/smoke.spec.ts",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 22
+    "commits": 23
    },
    {
     "autor": "dependabot[bot]",
@@ -310,9 +310,9 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 660,
-  "arquivos_codigo": 260,
-  "linhas_codigo": 45903,
+  "arquivos_total": 676,
+  "arquivos_codigo": 268,
+  "linhas_codigo": 52664,
   "rotas": 31,
   "rotas_http_backend": 13,
   "vistas_por_id": 0,
@@ -324,10 +324,10 @@
   "tabelas": 22,
   "migrations": 65,
   "cron_jobs": 0,
-  "testes": 128,
-  "workflows": 14,
-  "scripts": 29,
-  "docs_md": 113
+  "testes": 131,
+  "workflows": 15,
+  "scripts": 35,
+  "docs_md": 115
  },
  "por_pasta": {
   "api/_lib": {
@@ -418,6 +418,14 @@
    "arquivos": 3,
    "linhas": 1898
   },
+  "scripts/automation.mjs": {
+   "arquivos": 1,
+   "linhas": 1174
+  },
+  "scripts/automation.unit.mjs": {
+   "arquivos": 1,
+   "linhas": 702
+  },
   "scripts/check-catalog-public-contract.mjs": {
    "arquivos": 1,
    "linhas": 409
@@ -442,6 +450,14 @@
    "arquivos": 1,
    "linhas": 86
   },
+  "scripts/graphify-local.mjs": {
+   "arquivos": 1,
+   "linhas": 1247
+  },
+  "scripts/graphify-local.unit.mjs": {
+   "arquivos": 1,
+   "linhas": 576
+  },
   "scripts/graphify-quality.mjs": {
    "arquivos": 1,
    "linhas": 371
@@ -453,6 +469,10 @@
   "scripts/inventario": {
    "arquivos": 2,
    "linhas": 724
+  },
+  "scripts/maintenance": {
+   "arquivos": 4,
+   "linhas": 3062
   },
   "scripts/normalize-vercel-deployment-url.mjs": {
    "arquivos": 1,
@@ -661,8 +681,24 @@
    "linhas": 1258
   },
   {
+   "arquivo": "scripts/graphify-local.mjs",
+   "linhas": 1247
+  },
+  {
+   "arquivo": "scripts/automation.mjs",
+   "linhas": 1174
+  },
+  {
    "arquivo": "scripts/ai-context/gerar.mjs",
    "linhas": 1011
+  },
+  {
+   "arquivo": "scripts/maintenance/lib.mjs",
+   "linhas": 955
+  },
+  {
+   "arquivo": "scripts/maintenance/run.mjs",
+   "linhas": 899
   },
   {
    "arquivo": "scripts/graphify.mjs",
@@ -731,31 +767,15 @@
   {
    "arquivo": "scripts/regras_negocio/indice.py",
    "linhas": 285
-  },
-  {
-   "arquivo": "src/lib/useCatalogPageState.ts",
-   "linhas": 282
-  },
-  {
-   "arquivo": "api/_lib/siteDatabase.ts",
-   "linhas": 281
-  },
-  {
-   "arquivo": "scripts/soak-test-notification-queue.mjs",
-   "linhas": 275
-  },
-  {
-   "arquivo": "src/components/Layout.tsx",
-   "linhas": 273
   }
  ],
  "qualidade": {
   "any": 3,
-  "console_log": 73,
+  "console_log": 90,
   "ts_ignore": 0,
   "eslint_disable": 1,
   "todos": 3,
-  "arquivos_acima_500_linhas": 9
+  "arquivos_acima_500_linhas": 13
  },
  "todos": [
   {

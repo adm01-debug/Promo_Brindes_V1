@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `49fc2aff8bbb7cd55d932be51a2209e5656a0d72` (2026-11-10T21:44:03Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `52aa025eb2d1e31a35a1dc5b11cf11a14a6001c1` (2026-11-11T17:29:41Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -14,7 +14,7 @@ Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR
 Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua tarefa; não carregue tudo.
 
 ## Stack
-- linguagens: TypeScript (200), Markdown (113), SQL (101), JavaScript (53), JSON (24), YAML (18), Python (8), CSS (4)
+- linguagens: TypeScript (200), Markdown (115), SQL (101), JavaScript (61), JSON (28), YAML (19), Python (8), CSS (4)
 - linguagem_principal: TypeScript
 - framework: React
 - backend_http: vercel-functions
@@ -34,9 +34,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Números
 | item | qtd |
 |---|---|
-| arquivos_total | 660 |
-| arquivos_codigo | 260 |
-| linhas_codigo | 45903 |
+| arquivos_total | 676 |
+| arquivos_codigo | 268 |
+| linhas_codigo | 52664 |
 | rotas | 31 |
 | rotas_http_backend | 13 |
 | vistas_por_id | 0 |
@@ -48,21 +48,21 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 | tabelas | 22 |
 | migrations | 65 |
 | cron_jobs | 0 |
-| testes | 128 |
-| workflows | 14 |
-| scripts | 29 |
-| docs_md | 113 |
+| testes | 131 |
+| workflows | 15 |
+| scripts | 35 |
+| docs_md | 115 |
 
 ## Onde ficam as coisas
 - telas: src/pages (18)
 - componentes: src/components (19), src/pages (18), src/context (2)
 - hooks: src/lib (4), src/context (2)
 - servicos_logica: src/lib (43), api/_lib (13), src/context (3)
-- testes: co-localizado (*.test) (51), tests/ (41), outro (6)
+- testes: co-localizado (*.test) (51), tests/ (41), outro (9)
 - edge_functions: n/d
 - migrations: site-supabase/supabase/migrations
-- scripts: scripts/inventario (3), scripts/regras_negocio (3), scripts/ai-context (2)
-- docs: docs (68), (raiz) (9), .github (1)
+- scripts: scripts/maintenance (4), scripts/inventario (3), scripts/regras_negocio (3)
+- docs: docs (69), (raiz) (9), .github (1)
 - nomenclatura: {"componentes":"PascalCase (100%)","hooks":"use + PascalCase","servicos":"camelCase (87%)","edge_functions":null,"tabelas":"snake_case (95%)"}
 - instruções para agentes no repo: AGENTS.md, CLAUDE.md
 
@@ -167,7 +167,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - não gerado neste run. npm run graph:update (wrapper do repositório; não rode o CLI do graphify direto); saída em graphify-out/, não versionada
 
 ## Hotspots (arquivos mais alterados, 90 dias)
-- package.json (57)
+- package.json (58)
 - e2e/smoke.spec.ts (53)
 - src/styles.css (33)
 - package-lock.json (31)
@@ -184,6 +184,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - api/_lib/siteDatabase.ts (16)
 
 ## Workflows
+- `automation-local.yml` — Automação local (pull_request, push, workflow_dispatch)
 - `catalog-contract.yml` — Canonical catalog public contract (schedule, workflow_dispatch; cron 30 7 * * *)
 - `ci-health.yml` — CI health report (schedule, workflow_dispatch; cron 0 6 * * *)
 - `codeql.yml` — CodeQL security (pull_request, push, schedule; cron 23 4 * * 1)
@@ -200,6 +201,10 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `workflows-lint.yml` — Workflow lint (pull_request)
 
 ## Scripts npm
+- `maintenance:doctor`: `sh scripts/maintenance/run.sh doctor --root .`
+- `maintenance:check`: `sh scripts/maintenance/run.sh check --root . --ref origin/main`
+- `maintenance:heal`: `sh scripts/maintenance/run.sh heal --root . --ref origin/main`
+- `test:maintenance`: `node --test scripts/maintenance/maintenance.unit.mjs`
 - `dev`: `vite`
 - `lint`: `eslint .`
 - `build`: `tsc -b && vite build && node scripts/stage-app-shell.mjs`
@@ -273,6 +278,15 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `inventario:banco`: `node scripts/inventario/gerar-banco.mjs`
 - `inventario:mudou`: `node scripts/inventario/mudou-conteudo.mjs`
 - `test:inventario`: `node --test tests/inventario-estado.node.mjs`
+- `automation:doctor`: `node scripts/automation.mjs doctor`
+- `automation:test`: `node scripts/automation.mjs test`
+- `automation:check`: `node scripts/automation.mjs check --ref HEAD`
+- `automation:heal`: `node scripts/automation.mjs heal --ref origin/main`
+- `automation:nightly`: `node scripts/automation.mjs nightly --ref origin/main`
+- `automation:graph`: `node scripts/automation.mjs graph`
+- `automation:status`: `node scripts/automation.mjs graph status`
+- `automation:install-hooks`: `node scripts/automation.mjs install-hooks`
+- `automation:uninstall-hooks`: `node scripts/automation.mjs uninstall-hooks`
 - `test:inventario:banco-sql`: `node --test tests/inventario-banco-sql.node.mjs`
 
 ## Documentos (raiz e docs/)
@@ -289,6 +303,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `docs/AUDITORIA_5_ESPECIALISTAS_20260922.md` — Auditoria técnica dos cinco especialistas — 22/09/2026 (65 linhas)
 - `docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md` — Auditoria de funcionalidades planejadas e não executadas — 11/10/2026 (364 linhas)
 - `docs/AUDIT_REPORT_20260908.md` — Auditoria técnica consolidada — 08–09/09/2026 (75 linhas)
+- `docs/AUTOMACAO_LOCAL.md` — Automação local — Promo_Brindes_V1 (104 linhas)
 - `docs/CUSTOMER_PORTAL_IMPLEMENTATION_20260909.md` — Área do Cliente — implementação e critérios de aceite (91 linhas)
 - `docs/DATABASE_DICTIONARY.md` — Dicionário de dados — site_private (Etapa 35) (391 linhas)
 - `docs/DATABASE_FUNCTION_CONTRACTS.md` — Contratos das funções do banco do site (Etapas 22 e 23) (236 linhas)
@@ -358,6 +373,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-11 `52aa025` chore(automacao): conecta testes, grafo e manutenção aos gatilhos (#131)
 - 2026-11-10 `49fc2af` docs: corrige fatos da analise analise-prs para o main d312cad (#132)
 - 2026-11-10 `d312cad` docs: análise complementar analise-prs (#112)
 - 2026-11-10 `432582a` chore(deps): bump jsdom from 30.1.3 to 31.0.0 (#128)
@@ -372,7 +388,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-07 `cae3b2e` fix: correções da revisão de fidelidade (instruções) (#118)
 - 2026-11-07 `e676bb3` chore(deps): bump the npm-minor-and-patch group with 4 updates (#114)
 - 2026-11-07 `ae62613` chore: instruções enxutas para agentes (AGENTS.md único, CLAUDE.md importa) (#117)
-- 2026-11-02 `56d86a4` chore: AGENTS.md com o texto-mestre adm01-debug (seções 1-7) (#115)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

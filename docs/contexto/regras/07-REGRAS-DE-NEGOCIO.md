@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `49fc2aff8b` · branch `main` · 2026-11-10 21:48 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `52aa025eb2` · branch `main` · 2026-11-11 17:36 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -826,6 +826,7 @@ _nenhum item encontrado_
 | site_rpc_${name}_failed | `api/_lib/siteDatabase.ts` |
 | Unexpected mocked transport | `docs/audits/closure-review-20260912/notifications.mjs` |
 | Este diagnóstico só pode usar um servidor local. | `docs/audits/plan-review-20260912/reproduce.mjs` |
+| falha fixture | `scripts/automation.unit.mjs` |
 | Contrato inconclusivo: ${resource} respondeu HTTP ${response.status}. | `scripts/check-catalog-public-contract.mjs` |
 | Contrato inconclusivo: catálogo mudou durante duas varreduras (${lastDrift}). | `scripts/check-catalog-public-contract.mjs` |
 | Contrato inconclusivo: paginação não terminou após ${requests} requisições para ${siteTotal ?? baselineTotal} linhas observadas. | `scripts/check-catalog-public-contract.mjs` |
@@ -958,6 +959,12 @@ _nenhum item encontrado_
 | format_version ${dado.format_version} desconhecido (esperado 1) | `scripts/inventario/gerar-banco.mjs` |
 | sem --entrada e sem SUPABASE_ACCESS_TOKEN: nada para ler (veja o cabecalho do script). | `scripts/inventario/gerar-banco.mjs` |
 | nao consegui rodar o git para ler HEAD:${noRepo} (${error.code ?? error.message}) | `scripts/inventario/mudou-conteudo.mjs` |
+| failed | `scripts/maintenance/lib.mjs` |
+| missing_dependencies | `scripts/maintenance/lib.mjs` |
+| skipped_busy | `scripts/maintenance/lib.mjs` |
+| formatter fixture failed | `scripts/maintenance/maintenance.unit.mjs` |
+| blocked_network_sandbox | `scripts/maintenance/run.mjs` |
+| pending_patch | `scripts/maintenance/run.mjs` |
 | Erro do toast | `scripts/regras_negocio/test_generate.py` |
 | Falha ao salvar o item | `scripts/regras_negocio/test_generate.py` |
 | Outra falha aqui | `scripts/regras_negocio/test_generate.py` |
