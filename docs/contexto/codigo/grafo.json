@@ -1,8 +1,8 @@
 {
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
- "nos": 165,
- "arestas": 346,
+ "nos": 167,
+ "arestas": 354,
  "hubs": [
   {
    "arquivo": "src/types.ts",
@@ -18,7 +18,11 @@
   },
   {
    "arquivo": "api/_lib/leadHandler.ts",
-   "importado_por": 14
+   "importado_por": 15
+  },
+  {
+   "arquivo": "api/_lib/siteDatabase.ts",
+   "importado_por": 12
   },
   {
    "arquivo": "src/context/quoteCart.ts",
@@ -31,10 +35,6 @@
   {
    "arquivo": "src/lib/campaignBrief.ts",
    "importado_por": 11
-  },
-  {
-   "arquivo": "api/_lib/siteDatabase.ts",
-   "importado_por": 10
   },
   {
    "arquivo": "src/lib/catalog.ts",
@@ -81,6 +81,10 @@
    "importado_por": 6
   },
   {
+   "arquivo": "api/_lib/observability.ts",
+   "importado_por": 5
+  },
+  {
    "arquivo": "api/_lib/siteOrigin.ts",
    "importado_por": 5
   },
@@ -98,6 +102,10 @@
   },
   {
    "arquivo": "api/_lib/contracts.ts",
+   "importado_por": 4
+  },
+  {
+   "arquivo": "api/_lib/operationalAlerts.ts",
    "importado_por": 4
   },
   {
@@ -154,14 +162,6 @@
   },
   {
    "arquivo": "api/_lib/catalogValidation.ts",
-   "importado_por": 3
-  },
-  {
-   "arquivo": "api/_lib/curatedPagePreviews.ts",
-   "importado_por": 3
-  },
-  {
-   "arquivo": "api/_lib/observability.ts",
    "importado_por": 3
   }
  ],

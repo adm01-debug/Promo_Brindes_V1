@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `52aa025eb2` · branch `main` · 2026-11-11 17:36 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `0840b5553c` · branch `main` · 2026-11-11 19:27 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -334,6 +334,7 @@ Erros lançados por funções SQL (`RAISE EXCEPTION` = regra de negócio no banc
 | `attach_my_briefing_assets_to_quote` | authentication_required | `site-supabase/supabase/migrations/20261006134751_make_briefing_asset_attachment_idempotent.sql` |
 | `attach_my_briefing_assets_to_quote` | invalid_briefing_asset_attachment | `site-supabase/supabase/migrations/20261006134751_make_briefing_asset_attachment_idempotent.sql` |
 | `attach_my_briefing_assets_to_quote` | briefing_asset_attachment_conflict | `site-supabase/supabase/migrations/20261006134751_make_briefing_asset_attachment_idempotent.sql` |
+| `claim_site_commercial_team_alerts` | invalid_notification_claim_input | `site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql` |
 
 ## E. Estados, máquinas de estado e transições
 
@@ -382,7 +383,7 @@ _nenhum mapa explícito encontrado no código — fora da tabela acima (se houve
 | `status` | `pending` | compara, escreve | `src/lib/quoteConfirmation.ts`<br>`src/pages/QuotePage.tsx` |
 | `status` | `published` | compara, escreve | `shared/catalogEditorial.ts` |
 | `status` | `quoted` | compara | `src/lib/customerAccount.ts` |
-| `status` | `sent` | compara, escreve | `api/notifications.ts`<br>`src/lib/quoteConfirmation.ts`<br>`src/pages/QuotePage.tsx` |
+| `status` | `sent` | compara, escreve | `api/_lib/commercialTeamAlerts.ts`<br>`api/notifications.ts`<br>`src/lib/quoteConfirmation.ts`<br>`src/pages/QuotePage.tsx` |
 | `status` | `triaged` | compara | `src/lib/customerAccount.ts` |
 | `type` | `add` | compara, escreve | `src/context/QuoteCartContext.tsx`<br>`src/context/quoteCartReducer.ts` |
 | `type` | `body` | escreve | `api/notifications.ts` |
@@ -415,8 +416,9 @@ _nenhum mapa explícito encontrado no código — fora da tabela acima (se houve
 
 | Nome | Valores | Onde |
 |---|---|---|
+| CommercialAlertResult | sent \| pending | `api/_lib/commercialTeamAlerts.ts` |
 | LeadKind | quote \| contact | `api/_lib/contracts.ts` |
-| OperationalAlertEvent | notification_queue_alert \| notification_cron_failed \| retention_cron_failed | `api/_lib/operationalAlerts.ts` |
+| OperationalAlertEvent | notification_queue_alert \| notification_cron_failed \| retention_cron_failed \| commercial_alerts_cron_failed | `api/_lib/operationalAlerts.ts` |
 | ProviderEventApplyReason | duplicate \| delivery_not_found \| delivery_state_already_set | `api/_lib/siteDatabase.ts` |
 | CatalogEditorialStatus | published \| draft \| retired | `shared/catalogEditorial.ts` |
 | CampaignMoment | onboarding \| evento \| relacionamento \| reconhecimento \| sazonal | `src/types.ts` |
@@ -605,6 +607,8 @@ _nenhum item encontrado_
 | `MAX_BODY_BYTES` | `4 * 1024` | `api/briefing-assets.ts` |
 | `MAX_ASSET_BYTES` | `10 * 1024 * 1024` | `api/briefing-assets.ts` |
 | `BUCKET` | `'customer-briefing-assets'` | `api/briefing-assets.ts` |
+| `COMMERCIAL_ALERTS_TIMEOUT_MS` | `10_000` | `api/commercial-alerts.ts` |
+| `COMMERCIAL_ALERTS_BATCH_SIZE` | `10` | `api/commercial-alerts.ts` |
 | `PROPOSAL_BUCKET` | `'customer-proposals'` | `api/customer-proposals.ts` |
 | `REQUEST_TIMEOUT_MS` | `10_000` | `api/customer-proposals.ts` |
 | `MAX_PROPOSAL_BODY_BYTES` | `4 * 1024` | `api/customer-proposals.ts` |
@@ -625,6 +629,7 @@ _nenhum item encontrado_
 | `MAX_SHARED_SELECTION_BODY_BYTES` | `32 * 1024` | `api/shared-selections.ts` |
 | `REQUEST_TIMEOUT_MS` | `8_000` | `api/sitemap.ts` |
 | `REQUEST_TIMEOUT_MS` | `5_000` | `api/_lib/catalogValidation.ts` |
+| `COMMERCIAL_ALERT_TIMEOUT_MS` | `7_000` | `api/_lib/commercialTeamAlerts.ts` |
 | `LEAD_TOTAL_TIME_BUDGET_MS` | `24_000` | `api/_lib/leadHandler.ts` |
 | `MIN_CONFIRMATION_WINDOW_MS` | `8_000` | `api/_lib/leadHandler.ts` |
 | `OPERATIONAL_ALERT_TIMEOUT_MS` | `1_000` | `api/_lib/operationalAlerts.ts` |
@@ -734,6 +739,8 @@ _nenhum item encontrado_
 | briefing_asset_rejection_failed | `api/briefing-assets.ts` |
 | storage_credential_missing | `api/briefing-assets.ts` |
 | verification_confirmation_failed | `api/briefing-assets.ts` |
+| claim_site_commercial_team_alerts_failed | `api/commercial-alerts.ts` |
+| invalid_claim_response | `api/commercial-alerts.ts` |
 | proposal_storage_credential_missing | `api/customer-proposals.ts` |
 | sign_failed | `api/customer-proposals.ts` |
 | unsafe_signed_url | `api/customer-proposals.ts` |
@@ -763,6 +770,8 @@ _nenhum item encontrado_
 | A variante do produto ${index + 1} não está mais disponível. Revise a cor escolhida. | `api/_lib/catalogValidation.ts` |
 | Não foi possível validar os produtos agora. Tente novamente em alguns instantes. | `api/_lib/catalogValidation.ts` |
 | O produto ${index + 1} não está mais disponível para briefing. Atualize sua seleção. | `api/_lib/catalogValidation.ts` |
+| commercial_alert_${name}_failed | `api/_lib/commercialTeamAlerts.ts` |
+| commercial_alert_invalid_${name}_response | `api/_lib/commercialTeamAlerts.ts` |
 | A aritmética do kit no produto ${index + 1} é inválida. | `api/_lib/contracts.ts` |
 | A composição do produto ${index + 1} é inválida. | `api/_lib/contracts.ts` |
 | A cópia de confirmação por e-mail é obrigatória para este fluxo. | `api/_lib/contracts.ts` |
@@ -1028,7 +1037,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1499 testes em 122 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1516 testes em 123 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1061,7 +1070,8 @@ _nenhum item encontrado_
 | `site-supabase/supabase/tests/database/selection_asset_integrity.test.sql` | 17 | leitura limitada recebe hash do solicitante · revogação limitada recebe hash do solicitante · site_api usa leitura limitada · anônimo não chama leitura limitada diretamente … |
 | `site-supabase/supabase/tests/database/site_api_privileges.test.sql` | 17 | anon continua sem create_site_quote_request · authenticated continua sem create_site_quote_request · site_api não tem acesso a customer_profiles (fora do escopo das 13 RPCs) · site_api não insere proposal_documents (isso é fluxo administrativo) … |
 | `tests/smoke-deployment.node.mjs` | 17 | aprova um deployment saudável consultando cada rota uma única vez · reprova status inesperado sem repetir a rota · reprova header de segurança ausente ou divergente em qualquer rota HTML · reprova corpo errado no sitemap e content-type errado no Analytics … |
-| `tests/api/maxDuration.test.ts` | 15 | Etapa 24: maxDuration em vercel.json cobre o pior caso real de cada rota · api/quote-requests.ts: catalogValidation + siteDatabase + confirmação (canais em paralelo) · api/contact-requests.ts: apenas siteDatabase (sem catalogValidation nem confirmação) · api/notification-events-resend.ts (Etapa 30): apenas uma chamada de RPC (callSiteRpc) … |
+| `tests/api/commercial-team-alerts.test.ts` | 16 | alerta comercial de orçamento (PF-01) · parseCommercialAlertJob · rejeita payload sem a forma mínima do job · normaliza e limita campos do envelope … |
+| `tests/api/maxDuration.test.ts` | 16 | Etapa 24: maxDuration em vercel.json cobre o pior caso real de cada rota · api/quote-requests.ts: catalogValidation + siteDatabase + confirmação (canais em paralelo) · api/contact-requests.ts: apenas siteDatabase (sem catalogValidation nem confirmação) · api/notification-events-resend.ts (Etapa 30): apenas uma chamada de RPC (callSiteRpc) … |
 | `src/lib/sharedSelection.test.ts` | 14 | sharedSelection · preserva prioridade alternativa no link e na seleção reconstruída · preserva cor sem variantId e bloqueia fallback ambíguo ou removido · aceita nomes Unicode e mantém links Latin-1 antigos legíveis … |
 | `tests/api/notification-events-resend.test.ts` | 14 | api/notification-events-resend (Etapa 30) · rejeita método diferente de POST · responde 503 quando o segredo do webhook não está configurado · rejeita assinatura ausente ou inválida sem chamar o banco … |
 | `tests/scripts/verify-vercel-artifact.test.ts` | 14 | verificador do artefato Vercel · exige o app shell somente das funções de página declaradas em vercel.json · aceita includeFiles como lista sem perder o contrato do app shell · falha quando uma função de página declarada não existe no artefato … |
@@ -1178,6 +1188,7 @@ _nenhum item encontrado_
 | Somente as duas regras de correção de hooks. A v7 do plugin também empacota | `eslint.config.js` |
 | Vercel não prefixa VERCEL_ENV com VITE_. Expomos somente o nome do ambiente, | `vite.config.ts` |
 | A validação abaixo continua recusando PDF antes de qualquer leitura. | `api/briefing-assets.ts` |
+| o gate de CI tests/api/maxDuration.test.ts. O sinal de deadline da rodada | `api/commercial-alerts.ts` |
 | a leitura de propostas após o corte do privilégio mínimo. | `api/customer-proposals.ts` |
 | da entrega e nunca deve competir pelo tempo reservado a ela. | `api/notifications.ts` |
 | justifica o limite de 5 tentativas antes de "exhausted" (Etapa 18). | `api/notifications.ts` |
@@ -1191,6 +1202,9 @@ _nenhum item encontrado_
 | * O contrato público pode expor apenas o swatch, sem um ID interno. */ | `api/_lib/catalogValidation.ts` |
 | tiver nome. Um objeto sem nenhum identificador não pode ser conciliado. | `api/_lib/catalogValidation.ts` |
 | mensagens de negócio: não os esconda atrás de uma falha genérica. | `api/_lib/catalogValidation.ts` |
+| existingProvider/existingProviderMessageId e apenas finaliza, sem | `api/_lib/commercialTeamAlerts.ts` |
+| finalização. Não reenvia — apenas finaliza. | `api/_lib/commercialTeamAlerts.ts` |
+| próprio do alerta (quem tiver o prazo menor decide). */ | `api/_lib/commercialTeamAlerts.ts` |
 | bucket de rate limit; fora da Vercel, usamos somente o endereço do socket. | `api/_lib/leadHandler.ts` |
 | O caminho alternativo existe somente sob Vitest e aponta para uma | `api/_lib/publicProductPage.ts` |
 | Allowlist exata: por definição, o catálogo canônico não pode receber escritas do site. | `api/_lib/siteDatabase.ts` |

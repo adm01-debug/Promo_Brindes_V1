@@ -1,9 +1,9 @@
 {
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
- "total": 75,
+ "total": 77,
  "por_camada": {
-  "api": 26,
+  "api": 28,
   "context": 3,
   "lib": 43,
   "python": 3
@@ -34,6 +34,45 @@
     "api/_lib"
    ],
    "coberto_por_testes": 2,
+   "orfao": false
+  },
+  {
+   "arquivo": "api/_lib/commercialTeamAlerts.ts",
+   "camada": "api",
+   "exports": [
+    "COMMERCIAL_ALERT_TIMEOUT_MS",
+    "CommercialAlertJob",
+    "CommercialAlertOptions",
+    "CommercialAlertResult",
+    "commercialAlertsEnabled",
+    "deliverCommercialAlertJob",
+    "deliverCommercialTeamAlertNow",
+    "parseCommercialAlertJob"
+   ],
+   "export_default": null,
+   "linhas": 253,
+   "tabelas": [],
+   "rpcs": [
+    "claim_site_commercial_team_alert",
+    "finalize_site_notification_delivery",
+    "record_site_notification_provider_acceptance"
+   ],
+   "edges": [],
+   "env": [
+    "COMMERCIAL_TEAM_WEBHOOK_TOKEN",
+    "COMMERCIAL_TEAM_WEBHOOK_URL",
+    "VERCEL_ENV"
+   ],
+   "externos": [],
+   "zod_schemas": 0,
+   "flags": [],
+   "papeis": [],
+   "usado_por": 2,
+   "usado_por_modulos": [
+    "api",
+    "api/_lib"
+   ],
+   "coberto_por_testes": 1,
    "orfao": false
   },
   {
@@ -126,7 +165,7 @@
     "handleLeadRequest"
    ],
    "export_default": null,
-   "linhas": 157,
+   "linhas": 168,
    "tabelas": [],
    "rpcs": [],
    "edges": [],
@@ -135,7 +174,7 @@
    "zod_schemas": 0,
    "flags": [],
    "papeis": [],
-   "usado_por": 7,
+   "usado_por": 8,
    "usado_por_modulos": [
     "api"
    ],
@@ -163,7 +202,7 @@
    "zod_schemas": 0,
    "flags": [],
    "papeis": [],
-   "usado_por": 3,
+   "usado_por": 5,
    "usado_por_modulos": [
     "api",
     "api/_lib"
@@ -192,7 +231,7 @@
    "zod_schemas": 0,
    "flags": [],
    "papeis": [],
-   "usado_por": 2,
+   "usado_por": 3,
    "usado_por_modulos": [
     "api"
    ],
@@ -344,7 +383,7 @@
    "zod_schemas": 0,
    "flags": [],
    "papeis": [],
-   "usado_por": 9,
+   "usado_por": 11,
    "usado_por_modulos": [
     "api",
     "api/_lib"
@@ -432,6 +471,35 @@
    "usado_por": 0,
    "usado_por_modulos": [],
    "coberto_por_testes": 2,
+   "orfao": false
+  },
+  {
+   "arquivo": "api/commercial-alerts.ts",
+   "camada": "api",
+   "exports": [
+    "COMMERCIAL_ALERTS_TIMEOUT_MS",
+    "handler"
+   ],
+   "export_default": "handler",
+   "linhas": 114,
+   "tabelas": [],
+   "rpcs": [
+    "claim_site_commercial_team_alerts"
+   ],
+   "edges": [],
+   "env": [
+    "CRON_SECRET",
+    "OPERATIONS_ALERT_WEBHOOK_URL"
+   ],
+   "externos": [
+    "node:crypto"
+   ],
+   "zod_schemas": 0,
+   "flags": [],
+   "papeis": [],
+   "usado_por": 0,
+   "usado_por_modulos": [],
+   "coberto_por_testes": 1,
    "orfao": false
   },
   {

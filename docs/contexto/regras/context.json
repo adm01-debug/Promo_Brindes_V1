@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "52aa025eb2d1e31a35a1dc5b11cf11a14a6001c1",
+  "sha": "0840b5553cbb5f4f3408303319ecfd7749de8255",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-11 17:36 UTC",
-  "files_total": 569,
-  "code_files": 370,
-  "code_lines": 64815,
+  "generated_at": "2026-11-11 19:27 UTC",
+  "files_total": 573,
+  "code_files": 374,
+  "code_lines": 65609,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "c4deecfb90f5491a",
+ "facts_hash": "8cf859913f6cc4e8",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -277,8 +277,8 @@
   ],
   "package_manager": "npm",
   "languages": {
-   ".ts": 139,
-   ".sql": 101,
+   ".ts": 142,
+   ".sql": 102,
    ".tsx": 61,
    ".mjs": 59,
    ".py": 8,
@@ -2379,10 +2379,10 @@
     "args": "",
     "returns": "trigger",
     "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20260912170000_add_quote_notification_outbox.sql",
+    "src": "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql",
     "security_definer": false,
     "search_path": true,
-    "body": "begin insert into site_private.notification_deliveries ( request_kind, request_id, channel, audience, status, next_attempt_at ) values ( 'quote', new.id, 'email', 'customer', 'pending', now() ) on conflict (request_kind, request_id, channel, audience) do nothing; if new.request_metadata #> '{notificationPreferences,whatsappCopy}' = 'true'::jsonb then insert into site_private.notification_deliveries ( request_kind, request_id, channel, audience, status, next_attempt_at ) values ( 'quote', new.id, 'whatsapp', 'customer', 'pending', now() ) on conflict (request_kind, request_id, channel, audience) do nothing; end if; return new; end;",
+    "body": "begin insert into site_private.notification_deliveries ( request_kind, request_id, channel, audience, status, next_attempt_at ) values ( 'quote', new.id, 'email', 'customer', 'pending', now() ) on conflict (request_kind, request_id, channel, audience) do nothing; if new.request_metadata #> '{notificationPreferences,whatsappCopy}' = 'true'::jsonb then insert into site_private.notification_deliveries ( request_kind, request_id, channel, audience, status, next_attempt_at ) values ( 'quote', new.id, 'whatsapp', 'customer', 'pending', now() ) on conflict (request_kind, request_id, channel, audience) do nothing; end if; insert into site_private.notification_deliveries ( request_kind, request_id, c …",
     "raises": [],
     "tables": [
      "site_private"
@@ -3163,6 +3163,56 @@
      "invalid_lead_preflight_input"
     ],
     "tables": []
+   },
+   "commercial_team_alert_payload": {
+    "args": "p_delivery_id uuid",
+    "returns": "jsonb",
+    "lang": "sql",
+    "src": "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql",
+    "security_definer": false,
+    "search_path": true,
+    "body": "select jsonb_strip_nulls(jsonb_build_object( 'id', delivery.id, 'leaseToken', delivery.lease_token, 'existingProvider', delivery.provider, 'existingProviderMessageId', delivery.provider_message_id, 'requestId', request.id, 'attempt', delivery.attempts, 'protocol', request.protocol, 'recipientEmail', request.email, 'recipientPhone', request.phone, 'contactName', request.contact_name, 'company', request.company, 'submittedAt', request.client_submitted_at, 'desiredDeadline', request.desired_deadline, 'items', coalesce(( select jsonb_agg(jsonb_strip_nulls(jsonb_build_object( 'name', item.product_name_snapshot, 'sku', item.sku_snapshot, 'quantity', item.quantity, 'colorName', item.color_name_snap …",
+    "raises": [],
+    "tables": [
+     "site_private"
+    ]
+   },
+   "claim_site_commercial_team_alert": {
+    "args": "p_request_id uuid",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql",
+    "security_definer": false,
+    "search_path": true,
+    "body": "declare v_policy record; v_delivery site_private.notification_deliveries%rowtype; begin select * into v_policy from site_private.notification_policy(); select * into v_delivery from site_private.notification_deliveries delivery where delivery.request_kind = 'quote' and delivery.request_id = p_request_id and delivery.audience = 'commercial_team' and delivery.status in ('pending', 'failed') and delivery.next_attempt_at <= now() and delivery.attempts < v_policy.max_attempts for update skip locked; if not found then return null; end if; update site_private.notification_deliveries delivery set status = 'processing', attempts = delivery.attempts + 1, updated_at = now(), lease_token = gen_random_uu …",
+    "raises": [],
+    "tables": [
+     "site_private",
+     "skip",
+     "v_delivery",
+     "v_policy"
+    ]
+   },
+   "claim_site_commercial_team_alerts": {
+    "args": "p_batch_size integer default 10",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql",
+    "security_definer": false,
+    "search_path": true,
+    "body": "declare v_policy record; v_jobs jsonb; begin select * into v_policy from site_private.notification_policy(); if p_batch_size not between 1 and v_policy.batch_max then raise exception using errcode = '22023', message = 'invalid_notification_claim_input'; end if; with exhausted_candidates as ( select delivery.id from site_private.notification_deliveries delivery where delivery.request_kind = 'quote' and delivery.audience = 'commercial_team' and delivery.attempts >= v_policy.max_attempts and (delivery.status in ('pending', 'failed') or (delivery.status = 'processing' and delivery.lease_expires_at <= now())) for update of delivery skip locked ) update site_private.notification_deliveries deliver …",
+    "raises": [
+     "invalid_notification_claim_input"
+    ],
+    "tables": [
+     "candidates",
+     "claimed",
+     "exhausted_candidates",
+     "of",
+     "site_private",
+     "v_jobs",
+     "v_policy"
+    ]
    }
   },
   "enums": {},
@@ -3515,7 +3565,8 @@
    "site-supabase/supabase/migrations/20260927200000_add_quote_requests_owner_fk_index.sql",
    "site-supabase/supabase/migrations/20260928174000_reject_null_occasion_favorite_state.sql",
    "site-supabase/supabase/migrations/20261001130320_preflight_lead_rate_limit.sql",
-   "site-supabase/supabase/migrations/20261006134751_make_briefing_asset_attachment_idempotent.sql"
+   "site-supabase/supabase/migrations/20261006134751_make_briefing_asset_attachment_idempotent.sql",
+   "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql"
   ],
   "rls": {
    "site_private.quote_requests": "forced",
@@ -5476,6 +5527,54 @@
     "objkind": "function",
     "roles": "site_api, service_role",
     "src": "site-supabase/supabase/migrations/20261001130320_preflight_lead_rate_limit.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.commercial_team_alert_payload",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "site_private.commercial_team_alert_payload",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "claim_site_commercial_team_alert",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "claim_site_commercial_team_alert",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "claim_site_commercial_team_alerts",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "claim_site_commercial_team_alerts",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql"
    }
   ],
   "raises": [
@@ -5908,6 +6007,11 @@
     "function": "attach_my_briefing_assets_to_quote",
     "msg": "briefing_asset_attachment_conflict",
     "src": "site-supabase/supabase/migrations/20261006134751_make_briefing_asset_attachment_idempotent.sql"
+   },
+   {
+    "function": "claim_site_commercial_team_alerts",
+    "msg": "invalid_notification_claim_input",
+    "src": "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql"
    }
   ],
   "seed": [],
@@ -6593,6 +6697,11 @@
     "file": "vercel.json"
    },
    {
+    "kind": "Vercel cron",
+    "detail": "*/5 * * * * → /api/commercial-alerts",
+    "file": "vercel.json"
+   },
+   {
     "kind": "GitHub Actions cron",
     "detail": "30 7 * * *",
     "file": ".github/workflows/catalog-contract.yml"
@@ -6681,6 +6790,14 @@
     "cron": "",
     "methods": [
      "POST"
+    ]
+   },
+   {
+    "route": "/api/commercial-alerts",
+    "file": "api/commercial-alerts.ts",
+    "cron": "*/5 * * * *",
+    "methods": [
+     "GET"
     ]
    },
    {
@@ -6813,11 +6930,12 @@
   },
   {
    "module": "api",
-   "files": 26,
-   "lines": 3687,
+   "files": 28,
+   "lines": 4065,
    "tables": [],
    "exports": [
     "briefing-assets.ts: REQUEST_TIMEOUT_MS, handler, async",
+    "commercial-alerts.ts: COMMERCIAL_ALERTS_TIMEOUT_MS, handler, async",
     "contact-requests.ts: handler, async",
     "customer-proposals.ts: REQUEST_TIMEOUT_MS, handler, async",
     "not-found.ts: handler, async",
@@ -6831,6 +6949,7 @@
     "site-page.ts: handler, async",
     "sitemap.ts: REQUEST_TIMEOUT_MS, handler, async",
     "catalogValidation.ts: REQUEST_TIMEOUT_MS, reconcileQuoteItems",
+    "commercialTeamAlerts.ts: COMMERCIAL_ALERT_TIMEOUT_MS, commercialAlertsEnabled, CommercialAlertJob, parseCommercialAlertJob, deliverCommercialAlertJob, CommercialAlertResult",
     "contracts.ts: LeadKind, NormalizedQuoteItem, NormalizedCampaignBrief, NormalizedQuoteBriefing, NormalizedQuotePayload, NormalizedLeadPayload",
     "curatedPagePreviews.ts: CuratedPagePreview, catalogPreviews, occasionPreviews",
     "fileSignatures.ts: matchesDeclaredFileSignature, readSignaturePrefix",
@@ -6860,6 +6979,7 @@
    ],
    "file_list": [
     "api/briefing-assets.ts",
+    "api/commercial-alerts.ts",
     "api/contact-requests.ts",
     "api/customer-proposals.ts",
     "api/not-found.ts",
@@ -6873,6 +6993,7 @@
     "api/site-page.ts",
     "api/sitemap.ts",
     "api/_lib/catalogValidation.ts",
+    "api/_lib/commercialTeamAlerts.ts",
     "api/_lib/contracts.ts",
     "api/_lib/curatedPagePreviews.ts",
     "api/_lib/fileSignatures.ts",
@@ -7140,8 +7261,8 @@
   },
   {
    "module": "site-supabase",
-   "files": 93,
-   "lines": 11527,
+   "files": 94,
+   "lines": 11726,
    "tables": [],
    "exports": [],
    "docs": [],
@@ -7213,6 +7334,7 @@
     "site-supabase/supabase/migrations/20260928174000_reject_null_occasion_favorite_state.sql",
     "site-supabase/supabase/migrations/20261001130320_preflight_lead_rate_limit.sql",
     "site-supabase/supabase/migrations/20261006134751_make_briefing_asset_attachment_idempotent.sql",
+    "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql",
     "site-supabase/supabase/tests/database/adjustment_limits.test.sql",
     "site-supabase/supabase/tests/database/admin_write_audit.test.sql",
     "site-supabase/supabase/tests/database/briefing_assets.test.sql",
@@ -7226,8 +7348,7 @@
     "site-supabase/supabase/tests/database/function_catalog_hygiene.test.sql",
     "site-supabase/supabase/tests/database/kit_composition.test.sql",
     "site-supabase/supabase/tests/database/kit_persistence_guards.test.sql",
-    "site-supabase/supabase/tests/database/lead_preflight_rate_limit.test.sql",
-    "site-supabase/supabase/tests/database/lead_storage.test.sql"
+    "site-supabase/supabase/tests/database/lead_preflight_rate_limit.test.sql"
    ]
   },
   {
@@ -7598,7 +7719,7 @@
   {
    "module": "src/types",
    "files": 1,
-   "lines": 1258,
+   "lines": 1270,
    "tables": [],
    "exports": [
     "site-database.types.ts: Json, Database, Tables, TablesInsert, TablesUpdate, Enums"
@@ -7612,8 +7733,8 @@
   },
   {
    "module": "tests",
-   "files": 41,
-   "lines": 9171,
+   "files": 42,
+   "lines": 9376,
    "tables": [
     "constructor",
     "quote_requests",
@@ -7670,6 +7791,7 @@
     "tests/api/briefing-assets.test.ts",
     "tests/api/campaign-years.test.ts",
     "tests/api/catalog-validation.test.ts",
+    "tests/api/commercial-team-alerts.test.ts",
     "tests/api/curated-page-previews.test.ts",
     "tests/api/customer-proposals.test.ts",
     "tests/api/lead-requests.test.ts",
@@ -7856,7 +7978,14 @@
    "CODE_SCAN_DIRS": [
     "scripts/supabase_snapshot/snapshot.py"
    ],
+   "COMMERCIAL_TEAM_WEBHOOK_TOKEN": [
+    "api/_lib/commercialTeamAlerts.ts"
+   ],
+   "COMMERCIAL_TEAM_WEBHOOK_URL": [
+    "api/_lib/commercialTeamAlerts.ts"
+   ],
    "CRON_SECRET": [
+    "api/commercial-alerts.ts",
     "api/notifications.ts",
     "api/retention.ts",
     "scripts/ai-context/cenarios.mjs",
@@ -7929,6 +8058,7 @@
    ],
    "OPERATIONS_ALERT_WEBHOOK_URL": [
     "api/_lib/operationalAlerts.ts",
+    "api/commercial-alerts.ts",
     "api/notifications.ts",
     "api/retention.ts"
    ],
@@ -8083,6 +8213,7 @@
     "tests/generate-database-docs.node.mjs"
    ],
    "VERCEL_ENV": [
+    "api/_lib/commercialTeamAlerts.ts",
     "api/_lib/siteDatabase.ts",
     "api/_lib/siteOrigin.ts",
     "api/notifications.ts",
@@ -8526,6 +8657,11 @@
   ],
   "enums": [
    {
+    "file": "api/_lib/commercialTeamAlerts.ts",
+    "name": "CommercialAlertResult",
+    "values": "sent | pending"
+   },
+   {
     "file": "api/_lib/contracts.ts",
     "name": "LeadKind",
     "values": "quote | contact"
@@ -8533,7 +8669,7 @@
    {
     "file": "api/_lib/operationalAlerts.ts",
     "name": "OperationalAlertEvent",
-    "values": "notification_queue_alert | notification_cron_failed | retention_cron_failed"
+    "values": "notification_queue_alert | notification_cron_failed | retention_cron_failed | commercial_alerts_cron_failed"
    },
    {
     "file": "api/_lib/siteDatabase.ts",
@@ -8655,6 +8791,14 @@
     "msg": "verification_confirmation_failed"
    },
    {
+    "file": "api/commercial-alerts.ts",
+    "msg": "claim_site_commercial_team_alerts_failed"
+   },
+   {
+    "file": "api/commercial-alerts.ts",
+    "msg": "invalid_claim_response"
+   },
+   {
     "file": "api/customer-proposals.ts",
     "msg": "proposal_storage_credential_missing"
    },
@@ -8769,6 +8913,14 @@
    {
     "file": "api/_lib/catalogValidation.ts",
     "msg": "O produto ${index + 1} não está mais disponível para briefing. Atualize sua seleção."
+   },
+   {
+    "file": "api/_lib/commercialTeamAlerts.ts",
+    "msg": "commercial_alert_${name}_failed"
+   },
+   {
+    "file": "api/_lib/commercialTeamAlerts.ts",
+    "msg": "commercial_alert_invalid_${name}_response"
    },
    {
     "file": "api/_lib/contracts.ts",
@@ -9827,6 +9979,10 @@
     "text": "A validação abaixo continua recusando PDF antes de qualquer leitura."
    },
    {
+    "file": "api/commercial-alerts.ts",
+    "text": "o gate de CI tests/api/maxDuration.test.ts. O sinal de deadline da rodada"
+   },
+   {
     "file": "api/customer-proposals.ts",
     "text": "a leitura de propostas após o corte do privilégio mínimo."
    },
@@ -9877,6 +10033,18 @@
    {
     "file": "api/_lib/catalogValidation.ts",
     "text": "mensagens de negócio: não os esconda atrás de uma falha genérica."
+   },
+   {
+    "file": "api/_lib/commercialTeamAlerts.ts",
+    "text": "existingProvider/existingProviderMessageId e apenas finaliza, sem"
+   },
+   {
+    "file": "api/_lib/commercialTeamAlerts.ts",
+    "text": "finalização. Não reenvia — apenas finaliza."
+   },
+   {
+    "file": "api/_lib/commercialTeamAlerts.ts",
+    "text": "próprio do alerta (quem tiver o prazo menor decide). */"
    },
    {
     "file": "api/_lib/leadHandler.ts",
@@ -11126,6 +11294,16 @@
     "value": "'customer-briefing-assets'"
    },
    {
+    "file": "api/commercial-alerts.ts",
+    "name": "COMMERCIAL_ALERTS_TIMEOUT_MS",
+    "value": "10_000"
+   },
+   {
+    "file": "api/commercial-alerts.ts",
+    "name": "COMMERCIAL_ALERTS_BATCH_SIZE",
+    "value": "10"
+   },
+   {
     "file": "api/customer-proposals.ts",
     "name": "PROPOSAL_BUCKET",
     "value": "'customer-proposals'"
@@ -11224,6 +11402,11 @@
     "file": "api/_lib/catalogValidation.ts",
     "name": "REQUEST_TIMEOUT_MS",
     "value": "5_000"
+   },
+   {
+    "file": "api/_lib/commercialTeamAlerts.ts",
+    "name": "COMMERCIAL_ALERT_TIMEOUT_MS",
+    "value": "7_000"
    },
    {
     "file": "api/_lib/leadHandler.ts",
@@ -11492,6 +11675,12 @@
     "field": "role",
     "value": "anon",
     "kind": "compara"
+   },
+   {
+    "file": "api/_lib/commercialTeamAlerts.ts",
+    "field": "status",
+    "value": "sent",
+    "kind": "escreve"
    },
    {
     "file": "api/_lib/publicProductPage.ts",
@@ -14247,7 +14436,7 @@
    },
    {
     "file": "site-supabase/supabase/tests/database/notification_outbox.test.sql",
-    "name": "opt-in explícito cria e-mail e WhatsApp"
+    "name": "opt-in explícito enfileira confirmação e alerta comercial"
    },
    {
     "file": "site-supabase/supabase/tests/database/notification_outbox.test.sql",
@@ -14619,7 +14808,7 @@
    },
    {
     "file": "site-supabase/supabase/tests/database/query_plans.test.sql",
-    "name": "pré-condição: seis leases sintéticas realmente expiraram"
+    "name": "pré-condição: doze leases sintéticas realmente expiraram"
    },
    {
     "file": "site-supabase/supabase/tests/database/query_plans.test.sql",
@@ -17614,6 +17803,70 @@
     "name": "recusa swatches públicos ambíguos em vez de escolher uma cor por suposição"
    },
    {
+    "file": "tests/api/commercial-team-alerts.test.ts",
+    "name": "alerta comercial de orçamento (PF-01)"
+   },
+   {
+    "file": "tests/api/commercial-team-alerts.test.ts",
+    "name": "parseCommercialAlertJob"
+   },
+   {
+    "file": "tests/api/commercial-team-alerts.test.ts",
+    "name": "rejeita payload sem a forma mínima do job"
+   },
+   {
+    "file": "tests/api/commercial-team-alerts.test.ts",
+    "name": "normaliza e limita campos do envelope"
+   },
+   {
+    "file": "tests/api/commercial-team-alerts.test.ts",
+    "name": "deliverCommercialAlertJob"
+   },
+   {
+    "file": "tests/api/commercial-team-alerts.test.ts",
+    "name": "não abre conexão sem endpoint configurado"
+   },
+   {
+    "file": "tests/api/commercial-team-alerts.test.ts",
+    "name": "preview nunca envia webhook comercial real, mesmo com endpoint configurado"
+   },
+   {
+    "file": "tests/api/commercial-team-alerts.test.ts",
+    "name": "recusa endpoint que não seja HTTPS, sem conexão"
+   },
+   {
+    "file": "tests/api/commercial-team-alerts.test.ts",
+    "name": "não reenvia quando a tentativa anterior já registrou aceite do provedor"
+   },
+   {
+    "file": "tests/api/commercial-team-alerts.test.ts",
+    "name": "envia o envelope do lead ao endpoint HTTPS com token de autorização"
+   },
+   {
+    "file": "tests/api/commercial-team-alerts.test.ts",
+    "name": "o timeout da entrega é menor que o orçamento da rodada do cron"
+   },
+   {
+    "file": "tests/api/commercial-team-alerts.test.ts",
+    "name": "deliverCommercialTeamAlertNow"
+   },
+   {
+    "file": "tests/api/commercial-team-alerts.test.ts",
+    "name": "reivindica um único job por requestId e entrega"
+   },
+   {
+    "file": "tests/api/commercial-team-alerts.test.ts",
+    "name": "requestId fora do formato UUID não toca conexão alguma"
+   },
+   {
+    "file": "tests/api/commercial-team-alerts.test.ts",
+    "name": "sem webhook configurado não reivindica job (evita consumir attempts do lead)"
+   },
+   {
+    "file": "tests/api/commercial-team-alerts.test.ts",
+    "name": "preview não reivindica nem envia webhook comercial real"
+   },
+   {
     "file": "tests/api/curated-page-previews.test.ts",
     "name": "previews das rotas editoriais"
    },
@@ -17828,6 +18081,10 @@
    {
     "file": "tests/api/maxDuration.test.ts",
     "name": "api/retention.ts"
+   },
+   {
+    "file": "tests/api/maxDuration.test.ts",
+    "name": "api/commercial-alerts.ts (PF-01)"
    },
    {
     "file": "tests/api/maxDuration.test.ts",
@@ -18979,10 +19236,10 @@
     "args": "",
     "returns": "trigger",
     "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20260912170000_add_quote_notification_outbox.sql",
+    "src": "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql",
     "security_definer": false,
     "search_path": true,
-    "body": "begin insert into site_private.notification_deliveries ( request_kind, request_id, channel, audience, status, next_attempt_at ) values ( 'quote', new.id, 'email', 'customer', 'pending', now() ) on conflict (request_kind, request_id, channel, audience) do nothing; if new.request_metadata #> '{notificationPreferences,whatsappCopy}' = 'true'::jsonb then insert into site_private.notification_deliveries ( request_kind, request_id, channel, audience, status, next_attempt_at ) values ( 'quote', new.id, 'whatsapp', 'customer', 'pending', now() ) on conflict (request_kind, request_id, channel, audience) do nothing; end if; return new; end;",
+    "body": "begin insert into site_private.notification_deliveries ( request_kind, request_id, channel, audience, status, next_attempt_at ) values ( 'quote', new.id, 'email', 'customer', 'pending', now() ) on conflict (request_kind, request_id, channel, audience) do nothing; if new.request_metadata #> '{notificationPreferences,whatsappCopy}' = 'true'::jsonb then insert into site_private.notification_deliveries ( request_kind, request_id, channel, audience, status, next_attempt_at ) values ( 'quote', new.id, 'whatsapp', 'customer', 'pending', now() ) on conflict (request_kind, request_id, channel, audience) do nothing; end if; insert into site_private.notification_deliveries ( request_kind, request_id, c …",
     "raises": [],
     "tables": [
      "site_private"
@@ -19763,6 +20020,56 @@
      "invalid_lead_preflight_input"
     ],
     "tables": []
+   },
+   "commercial_team_alert_payload": {
+    "args": "p_delivery_id uuid",
+    "returns": "jsonb",
+    "lang": "sql",
+    "src": "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql",
+    "security_definer": false,
+    "search_path": true,
+    "body": "select jsonb_strip_nulls(jsonb_build_object( 'id', delivery.id, 'leaseToken', delivery.lease_token, 'existingProvider', delivery.provider, 'existingProviderMessageId', delivery.provider_message_id, 'requestId', request.id, 'attempt', delivery.attempts, 'protocol', request.protocol, 'recipientEmail', request.email, 'recipientPhone', request.phone, 'contactName', request.contact_name, 'company', request.company, 'submittedAt', request.client_submitted_at, 'desiredDeadline', request.desired_deadline, 'items', coalesce(( select jsonb_agg(jsonb_strip_nulls(jsonb_build_object( 'name', item.product_name_snapshot, 'sku', item.sku_snapshot, 'quantity', item.quantity, 'colorName', item.color_name_snap …",
+    "raises": [],
+    "tables": [
+     "site_private"
+    ]
+   },
+   "claim_site_commercial_team_alert": {
+    "args": "p_request_id uuid",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql",
+    "security_definer": false,
+    "search_path": true,
+    "body": "declare v_policy record; v_delivery site_private.notification_deliveries%rowtype; begin select * into v_policy from site_private.notification_policy(); select * into v_delivery from site_private.notification_deliveries delivery where delivery.request_kind = 'quote' and delivery.request_id = p_request_id and delivery.audience = 'commercial_team' and delivery.status in ('pending', 'failed') and delivery.next_attempt_at <= now() and delivery.attempts < v_policy.max_attempts for update skip locked; if not found then return null; end if; update site_private.notification_deliveries delivery set status = 'processing', attempts = delivery.attempts + 1, updated_at = now(), lease_token = gen_random_uu …",
+    "raises": [],
+    "tables": [
+     "site_private",
+     "skip",
+     "v_delivery",
+     "v_policy"
+    ]
+   },
+   "claim_site_commercial_team_alerts": {
+    "args": "p_batch_size integer default 10",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql",
+    "security_definer": false,
+    "search_path": true,
+    "body": "declare v_policy record; v_jobs jsonb; begin select * into v_policy from site_private.notification_policy(); if p_batch_size not between 1 and v_policy.batch_max then raise exception using errcode = '22023', message = 'invalid_notification_claim_input'; end if; with exhausted_candidates as ( select delivery.id from site_private.notification_deliveries delivery where delivery.request_kind = 'quote' and delivery.audience = 'commercial_team' and delivery.attempts >= v_policy.max_attempts and (delivery.status in ('pending', 'failed') or (delivery.status = 'processing' and delivery.lease_expires_at <= now())) for update of delivery skip locked ) update site_private.notification_deliveries deliver …",
+    "raises": [
+     "invalid_notification_claim_input"
+    ],
+    "tables": [
+     "candidates",
+     "claimed",
+     "exhausted_candidates",
+     "of",
+     "site_private",
+     "v_jobs",
+     "v_policy"
+    ]
    }
   },
   "db_enums": {},
@@ -20196,6 +20503,11 @@
     "function": "attach_my_briefing_assets_to_quote",
     "msg": "briefing_asset_attachment_conflict",
     "src": "site-supabase/supabase/migrations/20261006134751_make_briefing_asset_attachment_idempotent.sql"
+   },
+   {
+    "function": "claim_site_commercial_team_alerts",
+    "msg": "invalid_notification_claim_input",
+    "src": "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql"
    }
   ],
   "db_generated": [],
@@ -20526,6 +20838,7 @@
      "sent": [
       "compara:src/lib/quoteConfirmation.ts",
       "compara:src/pages/QuotePage.tsx",
+      "escreve:api/_lib/commercialTeamAlerts.ts",
       "escreve:api/notifications.ts"
      ],
      "published": [
@@ -20868,6 +21181,14 @@
     "cron": "",
     "methods": [
      "POST"
+    ]
+   },
+   {
+    "route": "/api/commercial-alerts",
+    "file": "api/commercial-alerts.ts",
+    "cron": "*/5 * * * *",
+    "methods": [
+     "GET"
     ]
    },
    {
@@ -22945,6 +23266,54 @@
     "objkind": "function",
     "roles": "site_api, service_role",
     "src": "site-supabase/supabase/migrations/20261001130320_preflight_lead_rate_limit.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.commercial_team_alert_payload",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "site_private.commercial_team_alert_payload",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "claim_site_commercial_team_alert",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "claim_site_commercial_team_alert",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "claim_site_commercial_team_alerts",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "claim_site_commercial_team_alerts",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql"
    }
   ],
   "guards": [],
@@ -23142,6 +23511,36 @@
      "params": "baseUrl: string, credential: string, candidate: { path: string; mimeType: string; sizeBytes: number }, signal: AbortSign",
      "body": "// PDFs ficam em quarentena até existir parser estrutural/CDR isolado. Não // aceite uma blacklist textual como prova de que um documento é inerte. if (candidate.mimeType === 'application/pdf') { return 'invalid'; } const prefix = await readStoredSignature(baseUrl, credential, candidate.path, signal); if (!prefix) return 'missing'; return matchesDeclaredFileSignature(candidate.mimeType, prefix) ? 'valid' : 'invalid';"
     }
+   ]
+  },
+  "api/commercial-alerts.ts": {
+   "path": "api/commercial-alerts.ts",
+   "lines": 114,
+   "exports": [
+    "const COMMERCIAL_ALERTS_TIMEOUT_MS",
+    "function handler",
+    "default async"
+   ],
+   "env": [
+    "CRON_SECRET",
+    "OPERATIONS_ALERT_WEBHOOK_URL"
+   ],
+   "errors": [
+    "claim_site_commercial_team_alerts_failed",
+    "invalid_claim_response"
+   ],
+   "params": [
+    {
+     "name": "COMMERCIAL_ALERTS_TIMEOUT_MS",
+     "value": "10_000"
+    },
+    {
+     "name": "COMMERCIAL_ALERTS_BATCH_SIZE",
+     "value": "10"
+    }
+   ],
+   "rule_comments": [
+    "o gate de CI tests/api/maxDuration.test.ts. O sinal de deadline da rodada"
    ]
   },
   "api/contact-requests.ts": {
@@ -23534,6 +23933,53 @@
     "mensagens de negócio: não os esconda atrás de uma falha genérica."
    ]
   },
+  "api/_lib/commercialTeamAlerts.ts": {
+   "path": "api/_lib/commercialTeamAlerts.ts",
+   "lines": 253,
+   "exports": [
+    "const COMMERCIAL_ALERT_TIMEOUT_MS",
+    "function commercialAlertsEnabled",
+    "interface CommercialAlertJob",
+    "function parseCommercialAlertJob",
+    "function deliverCommercialAlertJob",
+    "type CommercialAlertResult",
+    "interface CommercialAlertOptions",
+    "function deliverCommercialTeamAlertNow"
+   ],
+   "env": [
+    "COMMERCIAL_TEAM_WEBHOOK_TOKEN",
+    "COMMERCIAL_TEAM_WEBHOOK_URL",
+    "VERCEL_ENV"
+   ],
+   "errors": [
+    "commercial_alert_${name}_failed",
+    "commercial_alert_invalid_${name}_response"
+   ],
+   "enums": [
+    {
+     "name": "CommercialAlertResult",
+     "values": "sent | pending"
+    }
+   ],
+   "params": [
+    {
+     "name": "COMMERCIAL_ALERT_TIMEOUT_MS",
+     "value": "7_000"
+    }
+   ],
+   "status_values": [
+    {
+     "field": "status",
+     "value": "sent",
+     "kind": "escreve"
+    }
+   ],
+   "rule_comments": [
+    "existingProvider/existingProviderMessageId e apenas finaliza, sem",
+    "finalização. Não reenvia — apenas finaliza.",
+    "próprio do alerta (quem tiver o prazo menor decide). */"
+   ]
+  },
   "api/_lib/contracts.ts": {
    "path": "api/_lib/contracts.ts",
    "lines": 417,
@@ -23615,7 +24061,7 @@
   },
   "api/_lib/leadHandler.ts": {
    "path": "api/_lib/leadHandler.ts",
-   "lines": 157,
+   "lines": 168,
    "exports": [
     "const LEAD_TOTAL_TIME_BUDGET_MS",
     "const MIN_CONFIRMATION_WINDOW_MS",
@@ -23678,7 +24124,7 @@
    "enums": [
     {
      "name": "OperationalAlertEvent",
-     "values": "notification_queue_alert | notification_cron_failed | retention_cron_failed"
+     "values": "notification_queue_alert | notification_cron_failed | retention_cron_failed | commercial_alerts_cron_failed"
     }
    ],
    "params": [
@@ -26464,6 +26910,11 @@
    "path": "site-supabase/supabase/migrations/20261006134751_make_briefing_asset_attachment_idempotent.sql",
    "lines": 52
   },
+  "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql": {
+   "path": "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql",
+   "lines": 199,
+   "uses_service_role": true
+  },
   "site-supabase/supabase/tests/database/adjustment_limits.test.sql": {
    "path": "site-supabase/supabase/tests/database/adjustment_limits.test.sql",
    "lines": 87,
@@ -27029,7 +27480,7 @@
     "backend pode reivindicar comprovante imediato",
     "funções da fila fixam search_path vazio",
     "orçamento de teste foi criado",
-    "opt-in explícito cria e-mail e WhatsApp",
+    "opt-in explícito enfileira confirmação e alerta comercial",
     "cópia por e-mail é única",
     "WhatsApp só foi enfileirado pelo opt-in",
     "worker reivindica ao menos o e-mail pendente",
@@ -27157,7 +27608,7 @@
     "seleção de pedidos expirados para retenção usa acesso indexado",
     "pré-condição: fixture realmente contém jobs elegíveis (o teste anterior não passa por vacuidade)",
     "pré-condição: fixture reproduz o regime permanente (grande maioria sent)",
-    "pré-condição: seis leases sintéticas realmente expiraram",
+    "pré-condição: doze leases sintéticas realmente expiraram",
     "pré-condição: o identificador de webhook existe na fixture",
     "pré-condição: histórico sintético pertence à conta de teste",
     "pré-condição: seis pedidos sintéticos estão vencidos para retenção"
@@ -30176,7 +30627,7 @@
   },
   "src/types/site-database.types.ts": {
    "path": "src/types/site-database.types.ts",
-   "lines": 1258,
+   "lines": 1270,
    "exports": [
     "type Json",
     "type Database",
@@ -30904,6 +31355,36 @@
     "recusa swatches públicos ambíguos em vez de escolher uma cor por suposição"
    ]
   },
+  "tests/api/commercial-team-alerts.test.ts": {
+   "path": "tests/api/commercial-team-alerts.test.ts",
+   "lines": 200,
+   "is_test": true,
+   "calc_fns": [
+    {
+     "name": "validJob",
+     "params": "overrides: Partial<CommercialAlertJob> = {}",
+     "body": "return { id: '11111111-1111-4111-8111-111111111111', lease[REDACTED], existingProvider: null, existingProviderMessageId: null, requestId: REQUEST_ID, attempt: 1, protocol: 'PB-2026-0001', recipientEmail: 'ana@empresa.com.br', recipientPhone: '(11) 99999-9999', contactName: 'Ana Silva', company: 'Empresa Exemplo', submittedAt: '2026-09-08T12:00:00.000Z', items: [{ name: 'Mochila', sku: 'MO-42', quantity: 100, colorName: 'Verde' }], ...overrides, };"
+    }
+   ],
+   "tests": [
+    "alerta comercial de orçamento (PF-01)",
+    "parseCommercialAlertJob",
+    "rejeita payload sem a forma mínima do job",
+    "normaliza e limita campos do envelope",
+    "deliverCommercialAlertJob",
+    "não abre conexão sem endpoint configurado",
+    "preview nunca envia webhook comercial real, mesmo com endpoint configurado",
+    "recusa endpoint que não seja HTTPS, sem conexão",
+    "não reenvia quando a tentativa anterior já registrou aceite do provedor",
+    "envia o envelope do lead ao endpoint HTTPS com token de autorização",
+    "o timeout da entrega é menor que o orçamento da rodada do cron",
+    "deliverCommercialTeamAlertNow",
+    "reivindica um único job por requestId e entrega",
+    "requestId fora do formato UUID não toca conexão alguma",
+    "sem webhook configurado não reivindica job (evita consumir attempts do lead)",
+    "preview não reivindica nem envia webhook comercial real"
+   ]
+  },
   "tests/api/curated-page-previews.test.ts": {
    "path": "tests/api/curated-page-previews.test.ts",
    "lines": 28,
@@ -30993,7 +31474,7 @@
   },
   "tests/api/maxDuration.test.ts": {
    "path": "tests/api/maxDuration.test.ts",
-   "lines": 110,
+   "lines": 115,
    "is_test": true,
    "errors": [
     "Função ${path} não declarada."
@@ -31012,6 +31493,7 @@
     "api/notification-events-whatsapp.ts (Etapa 30): chamadas de RPC por status rodam em paralelo (Promise.all)",
     "api/notifications.ts: orçamento total já inclui drenagem de múltiplos lotes (Etapa 28) e o sinal de saúde da fila (Etapa 29)",
     "api/retention.ts",
+    "api/commercial-alerts.ts (PF-01)",
     "api/customer-proposals.ts",
     "api/briefing-assets.ts",
     "api/sitemap.ts",
@@ -31268,10 +31750,37 @@
   }
  },
  "git": {
-  "sha": "52aa025eb2d1e31a35a1dc5b11cf11a14a6001c1",
+  "sha": "0840b5553cbb5f4f3408303319ecfd7749de8255",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "0840b55",
+    "date": "2026-11-11",
+    "author": "adm01-debug",
+    "subject": "feat: alerta comercial de orçamento (PF-01) (#116)",
+    "files": [
+     ".env.example",
+     ".graphify.project.json",
+     "api/_lib/commercialTeamAlerts.ts",
+     "api/_lib/leadHandler.ts",
+     "api/_lib/operationalAlerts.ts",
+     "api/commercial-alerts.ts",
+     "docs/DATABASE_DICTIONARY.md",
+     "docs/DATABASE_SCHEMA.md",
+     "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql",
+     "site-supabase/supabase/tests/database/lead_storage.test.sql",
+     "site-supabase/supabase/tests/database/notification_outbox.test.sql",
+     "site-supabase/supabase/tests/database/notification_provider_events.test.sql",
+     "site-supabase/supabase/tests/database/query_plans.test.sql",
+     "site-supabase/supabase/tests/database/site_api_privileges.test.sql",
+     "src/types/site-database.types.ts",
+     "tests/api/commercial-team-alerts.test.ts",
+     "tests/api/maxDuration.test.ts",
+     "tests/queue-concurrency.node.mjs",
+     "vercel.json"
+    ]
+   },
    {
     "sha": "52aa025",
     "date": "2026-11-11",
@@ -31735,32 +32244,6 @@
     "files": [
      "src/styles.css"
     ]
-   },
-   {
-    "sha": "4c60959",
-    "date": "2026-10-20",
-    "author": "adm01-debug",
-    "subject": "docs(ativos): importa mockups e relatório que estavam fora do repo (#103)",
-    "files": [
-     "docs/mockups-carnegie-20261005/base-briefing-desktop.png",
-     "docs/mockups-carnegie-20261005/base-briefing-mobile.png",
-     "docs/mockups-carnegie-20261005/base-home-desktop.png",
-     "docs/mockups-carnegie-20261005/base-home-mobile.png",
-     "docs/mockups-carnegie-20261005/base-home-top-desktop.png",
-     "docs/mockups-carnegie-20261005/base-home-top-mobile.png",
-     "docs/mockups-carnegie-20261005/base-orcamento-desktop.png",
-     "docs/mockups-carnegie-20261005/proposta-briefing-desktop.png",
-     "docs/mockups-carnegie-20261005/proposta-briefing-mobile.png",
-     "docs/mockups-carnegie-20261005/proposta-confirmacao-desktop.png",
-     "docs/mockups-carnegie-20261005/proposta-confirmacao-mobile.png",
-     "docs/mockups-gift-lovers-20261005/Gift-Lovers-by-Promo-proposta.png",
-     "docs/mockups-gift-lovers-20261005/Gift-Lovers-home-desktop.png",
-     "docs/mockups-gift-lovers-20261005/Gift-Lovers-home-mobile.png",
-     "docs/mockups-gift-lovers-20261005/Gift-Lovers-rodape-desktop.png",
-     "docs/mockups-gift-lovers-20261005/Gift-Lovers-rodape-mobile.png",
-     "docs/relatorio-vitrine-promo-brindes.html",
-     "src/lib/sharedSelection.test.ts"
-    ]
    }
   ],
   "hot_files": [
@@ -31783,6 +32266,10 @@
    [
     "PENDENCIAS.md",
     4
+   ],
+   [
+    ".graphify.project.json",
+    3
    ],
    [
     ".gitignore",
@@ -31838,10 +32325,6 @@
    ],
    [
     "scripts/ai-context/gerar.mjs",
-    2
-   ],
-   [
-    "scripts/ai-context/gerar.unit.mjs",
     2
    ]
   ]

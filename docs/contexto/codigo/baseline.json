@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "52aa025eb2d1e31a35a1dc5b11cf11a14a6001c1",
+  "commit": "0840b5553cbb5f4f3408303319ecfd7749de8255",
   "branch": "main",
-  "data_commit": "2026-11-11T17:29:41Z",
+  "data_commit": "2026-11-11T18:28:44Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "0840b55",
+    "data": "2026-11-11",
+    "assunto": "feat: alerta comercial de orçamento (PF-01) (#116)"
+   },
    {
     "sha": "52aa025",
     "data": "2026-11-11",
@@ -126,14 +131,9 @@
     "sha": "a8f3076",
     "data": "2026-10-27",
     "assunto": "chore(graphify): atualiza para 0.9.94 com benchmark e pin alinhado"
-   },
-   {
-    "sha": "fb534ed",
-    "data": "2026-10-27",
-    "assunto": "chore(deps): atualiza dependências e rótulos acessíveis"
    }
   ],
-  "arquivos_mudados_7d": 120,
+  "arquivos_mudados_7d": 138,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "docs/audits/pending-features-20261011",
@@ -152,6 +152,10 @@
     "mudancas": 5
    },
    {
+    "pasta": "site-supabase/supabase/tests",
+    "mudancas": 5
+   },
+   {
     "pasta": "PENDENCIAS.md",
     "mudancas": 4
    },
@@ -161,6 +165,10 @@
    },
    {
     "pasta": ".gitignore",
+    "mudancas": 3
+   },
+   {
+    "pasta": ".graphify.project.json",
     "mudancas": 3
    },
    {
@@ -186,14 +194,6 @@
    {
     "pasta": "analise-prs/progresso.json",
     "mudancas": 3
-   },
-   {
-    "pasta": "analise-prs/regras-de-negocio.md",
-    "mudancas": 3
-   },
-   {
-    "pasta": "tests/validate-agent-instructions.node.mjs",
-    "mudancas": 3
    }
   ],
   "arquivos_mais_mudados_90d": [
@@ -215,7 +215,11 @@
    },
    {
     "arquivo": "vercel.json",
-    "mudancas": 24
+    "mudancas": 25
+   },
+   {
+    "arquivo": "site-supabase/supabase/tests/database/lead_storage.test.sql",
+    "mudancas": 22
    },
    {
     "arquivo": "src/components/Layout.tsx",
@@ -230,12 +234,8 @@
     "mudancas": 21
    },
    {
-    "arquivo": "site-supabase/supabase/tests/database/lead_storage.test.sql",
-    "mudancas": 21
-   },
-   {
     "arquivo": "docs/DATABASE_DICTIONARY.md",
-    "mudancas": 20
+    "mudancas": 21
    },
    {
     "arquivo": "tests/api/lead-requests.test.ts",
@@ -262,7 +262,15 @@
     "mudancas": 16
    },
    {
+    "arquivo": ".env.example",
+    "mudancas": 15
+   },
+   {
     "arquivo": ".github/workflows/graphify.yml",
+    "mudancas": 15
+   },
+   {
+    "arquivo": "api/_lib/leadHandler.ts",
     "mudancas": 15
    },
    {
@@ -270,16 +278,8 @@
     "mudancas": 15
    },
    {
-    "arquivo": ".env.example",
-    "mudancas": 14
-   },
-   {
-    "arquivo": "api/_lib/leadHandler.ts",
-    "mudancas": 14
-   },
-   {
     "arquivo": "docs/DATABASE_SCHEMA.md",
-    "mudancas": 14
+    "mudancas": 15
    },
    {
     "arquivo": "src/components/QuoteDrawer.tsx",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 23
+    "commits": 24
    },
    {
     "autor": "dependabot[bot]",
@@ -310,11 +310,11 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 676,
-  "arquivos_codigo": 268,
-  "linhas_codigo": 52664,
-  "rotas": 31,
-  "rotas_http_backend": 13,
+  "arquivos_total": 680,
+  "arquivos_codigo": 271,
+  "linhas_codigo": 53259,
+  "rotas": 32,
+  "rotas_http_backend": 14,
   "vistas_por_id": 0,
   "itens_menu": 11,
   "modulos": 9,
@@ -322,21 +322,25 @@
   "hooks": 6,
   "edge_functions": 0,
   "tabelas": 22,
-  "migrations": 65,
+  "migrations": 66,
   "cron_jobs": 0,
-  "testes": 131,
+  "testes": 132,
   "workflows": 15,
   "scripts": 35,
   "docs_md": 115
  },
  "por_pasta": {
   "api/_lib": {
-   "arquivos": 13,
-   "linhas": 1667
+   "arquivos": 14,
+   "linhas": 1931
   },
   "api/briefing-assets.ts": {
    "arquivos": 1,
    "linhas": 177
+  },
+  "api/commercial-alerts.ts": {
+   "arquivos": 1,
+   "linhas": 114
   },
   "api/contact-requests.ts": {
    "arquivos": 1,
@@ -560,15 +564,15 @@
   },
   "src/types": {
    "arquivos": 1,
-   "linhas": 1258
+   "linhas": 1270
   },
   "src/types.ts": {
    "arquivos": 1,
    "linhas": 168
   },
   "tests/api": {
-   "arquivos": 17,
-   "linhas": 3251
+   "arquivos": 18,
+   "linhas": 3456
   },
   "tests/catalog-public-contract.node.mjs": {
    "arquivos": 1,
@@ -678,7 +682,7 @@
   },
   {
    "arquivo": "src/types/site-database.types.ts",
-   "linhas": 1258
+   "linhas": 1270
   },
   {
    "arquivo": "scripts/graphify-local.mjs",

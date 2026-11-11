@@ -6,7 +6,7 @@
   "site-supabase/supabase/migrations",
   "src/types/site-database.types.ts"
  ],
- "migrations": 65,
+ "migrations": 66,
  "seeds": [],
  "avisos": [
   "4 bloco(s) com DDL dinâmico (EXECUTE format/...) não modelado — policies/colunas criadas dinamicamente podem faltar; confira no banco vivo"
@@ -19,6 +19,8 @@
   "attach_my_briefing_assets_to_quote",
   "can_delete_my_unverified_briefing_asset_path",
   "claim_my_quote_requests",
+  "claim_site_commercial_team_alert",
+  "claim_site_commercial_team_alerts",
   "claim_site_notification_deliveries",
   "claim_site_quote_notification",
   "confirm_site_briefing_asset_verification",
@@ -60,6 +62,7 @@
   "site_notification_queue_health",
   "site_private.assign_quote_protocol",
   "site_private.audit_actor",
+  "site_private.commercial_team_alert_payload",
   "site_private.consume_rate_limit",
   "site_private.consume_shared_selection_action_limit",
   "site_private.enforce_notification_delivery_lease_and_attempts",
@@ -2509,6 +2512,16 @@
    "usada_em": 1
   },
   {
+   "nome": "claim_site_commercial_team_alert",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "claim_site_commercial_team_alerts",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
    "nome": "claim_site_notification_deliveries",
    "definida": true,
    "usada_em": 1
@@ -2561,7 +2574,7 @@
   {
    "nome": "finalize_site_notification_delivery",
    "definida": true,
-   "usada_em": 1
+   "usada_em": 2
   },
   {
    "nome": "finalize_site_storage_retention",
@@ -2641,7 +2654,7 @@
   {
    "nome": "record_site_notification_provider_acceptance",
    "definida": true,
-   "usada_em": 1
+   "usada_em": 2
   },
   {
    "nome": "reject_site_briefing_asset_verification",

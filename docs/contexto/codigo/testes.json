@@ -5,12 +5,12 @@
   "vitest",
   "playwright"
  ],
- "total": 131,
+ "total": 132,
  "por_tipo": {
   "contrato": 2,
   "e2e": 2,
   "pytest": 4,
-  "unit": 95
+  "unit": 96
  },
  "onde_ficam": [
   {
@@ -19,7 +19,7 @@
   },
   {
    "padrao": "tests/",
-   "arquivos": 41
+   "arquivos": 42
   },
   {
    "padrao": "outro",
@@ -625,6 +625,15 @@
    "casos": 4
   },
   {
+   "arquivo": "tests/api/commercial-team-alerts.test.ts",
+   "tipo": "unit",
+   "linhas": 200,
+   "testa": [
+    "api/_lib/commercialTeamAlerts.ts"
+   ],
+   "casos": 12
+  },
+  {
    "arquivo": "tests/api/curated-page-previews.test.ts",
    "tipo": "unit",
    "linhas": 28,
@@ -658,7 +667,7 @@
   {
    "arquivo": "tests/api/maxDuration.test.ts",
    "tipo": "unit",
-   "linhas": 110,
+   "linhas": 115,
    "testa": [
     "api/_lib/catalogValidation.ts",
     "api/_lib/leadHandler.ts",
@@ -666,12 +675,13 @@
     "api/_lib/sharedSelections.ts",
     "api/_lib/siteDatabase.ts",
     "api/briefing-assets.ts",
+    "api/commercial-alerts.ts",
     "api/customer-proposals.ts",
     "api/notifications.ts",
     "api/retention.ts",
     "api/sitemap.ts"
    ],
-   "casos": 14
+   "casos": 15
   },
   {
    "arquivo": "tests/api/notification-events-resend.test.ts",
@@ -997,6 +1007,7 @@
  ],
  "cobertura_por_arquivo": {
   "api/_lib/catalogValidation.ts": 2,
+  "api/_lib/commercialTeamAlerts.ts": 1,
   "api/_lib/contracts.ts": 1,
   "api/_lib/curatedPagePreviews.ts": 1,
   "api/_lib/fileSignatures.ts": 1,
@@ -1008,6 +1019,7 @@
   "api/_lib/siteDatabase.ts": 1,
   "api/_lib/webhookSignature.ts": 1,
   "api/briefing-assets.ts": 2,
+  "api/commercial-alerts.ts": 1,
   "api/contact-requests.ts": 1,
   "api/customer-proposals.ts": 2,
   "api/not-found.ts": 1,

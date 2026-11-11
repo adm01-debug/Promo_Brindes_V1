@@ -16,12 +16,12 @@
   ],
   "servicos_logica": [
    "src/lib (43)",
-   "api/_lib (13)",
+   "api/_lib (14)",
    "src/context (3)"
   ],
   "testes": [
    "co-localizado (*.test) (51)",
-   "tests/ (41)",
+   "tests/ (42)",
    "outro (9)"
   ],
   "edge_functions": null,
@@ -40,7 +40,7 @@
  "nomenclatura": {
   "componentes": "PascalCase (100%)",
   "hooks": "use + PascalCase",
-  "servicos": "camelCase (87%)",
+  "servicos": "camelCase (86%)",
   "edge_functions": null,
   "tabelas": "snake_case (95%)"
  },
@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "feat: alerta comercial de orçamento (PF-01) (#116)",
    "chore(automacao): conecta testes, grafo e manutenção aos gatilhos (#131)",
    "docs: corrige fatos da analise analise-prs para o main d312cad (#132)",
    "docs: análise complementar analise-prs (#112)",
-   "chore(deps): bump jsdom from 30.1.3 to 31.0.0 (#128)",
-   "fix: endurece e cobre com testes todos os scripts do repositório (#130)"
+   "chore(deps): bump jsdom from 30.1.3 to 31.0.0 (#128)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

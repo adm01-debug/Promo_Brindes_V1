@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `52aa025eb2d1e31a35a1dc5b11cf11a14a6001c1` (2026-11-11T17:29:41Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `0840b5553cbb5f4f3408303319ecfd7749de8255` (2026-11-11T18:28:44Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -14,7 +14,7 @@ Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR
 Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua tarefa; não carregue tudo.
 
 ## Stack
-- linguagens: TypeScript (200), Markdown (115), SQL (101), JavaScript (61), JSON (28), YAML (19), Python (8), CSS (4)
+- linguagens: TypeScript (203), Markdown (115), SQL (102), JavaScript (61), JSON (28), YAML (19), Python (8), CSS (4)
 - linguagem_principal: TypeScript
 - framework: React
 - backend_http: vercel-functions
@@ -34,11 +34,11 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Números
 | item | qtd |
 |---|---|
-| arquivos_total | 676 |
-| arquivos_codigo | 268 |
-| linhas_codigo | 52664 |
-| rotas | 31 |
-| rotas_http_backend | 13 |
+| arquivos_total | 680 |
+| arquivos_codigo | 271 |
+| linhas_codigo | 53259 |
+| rotas | 32 |
+| rotas_http_backend | 14 |
 | vistas_por_id | 0 |
 | itens_menu | 11 |
 | modulos | 9 |
@@ -46,9 +46,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 | hooks | 6 |
 | edge_functions | 0 |
 | tabelas | 22 |
-| migrations | 65 |
+| migrations | 66 |
 | cron_jobs | 0 |
-| testes | 131 |
+| testes | 132 |
 | workflows | 15 |
 | scripts | 35 |
 | docs_md | 115 |
@@ -57,20 +57,20 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - telas: src/pages (18)
 - componentes: src/components (19), src/pages (18), src/context (2)
 - hooks: src/lib (4), src/context (2)
-- servicos_logica: src/lib (43), api/_lib (13), src/context (3)
-- testes: co-localizado (*.test) (51), tests/ (41), outro (9)
+- servicos_logica: src/lib (43), api/_lib (14), src/context (3)
+- testes: co-localizado (*.test) (51), tests/ (42), outro (9)
 - edge_functions: n/d
 - migrations: site-supabase/supabase/migrations
 - scripts: scripts/maintenance (4), scripts/inventario (3), scripts/regras_negocio (3)
 - docs: docs (69), (raiz) (9), .github (1)
-- nomenclatura: {"componentes":"PascalCase (100%)","hooks":"use + PascalCase","servicos":"camelCase (87%)","edge_functions":null,"tabelas":"snake_case (95%)"}
+- nomenclatura: {"componentes":"PascalCase (100%)","hooks":"use + PascalCase","servicos":"camelCase (86%)","edge_functions":null,"tabelas":"snake_case (95%)"}
 - instruções para agentes no repo: AGENTS.md, CLAUDE.md
 
 ## Módulos (menu → domínio)
 | módulo | itens de menu | telas/rotas | arquivos | hooks locais | edges | tabelas |
 |---|---|---|---|---|---|---|
-| api | 0 | 13 | 13 | 0 | 0 | 0 |
-| api/_lib | 0 | 0 | 13 | 0 | 0 | 0 |
+| api | 0 | 14 | 14 | 0 | 0 | 0 |
+| api/_lib | 0 | 0 | 14 | 0 | 0 | 0 |
 | components | 0 | 0 | 20 | 6 | 0 | 0 |
 | context | 0 | 0 | 5 | 2 | 0 | 0 |
 | lib | 0 | 0 | 43 | 8 | 0 | 0 |
@@ -80,6 +80,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `/` [tela] → src/pages/HomePage.tsx
 - `/*` [tela] → src/pages/NotFoundPage.tsx
 - `/api/briefing-assets` [api] → api/briefing-assets.ts
+- `/api/commercial-alerts` [api] → api/commercial-alerts.ts
 - `/api/contact-requests` [api] → api/contact-requests.ts
 - `/api/customer-proposals` [api] → api/customer-proposals.ts
 - `/api/not-found` [api] → api/not-found.ts
@@ -111,6 +112,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 ## Rotas HTTP de backend
 - `POST /api/briefing-assets` → api/briefing-assets.ts
+- `GET /api/commercial-alerts` → api/commercial-alerts.ts (cron */5 * * * *)
 - `POST /api/contact-requests` → api/contact-requests.ts
 - `POST /api/customer-proposals` → api/customer-proposals.ts
 - `GET,HEAD /api/not-found` → api/not-found.ts (rewrites: /:path((?!api/|_vercel/|assets/|images/|brand/|sitemap\.xml$|robots\.txt$|favicon\.svg$).*))
@@ -133,12 +135,13 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Cron jobs (pg_cron / vercel)
 - 0 3 * * * /api/retention
 - */15 * * * * /api/notifications
+- */5 * * * * /api/commercial-alerts
 
 ## Integrações externas
 - SDKs: Supabase, Vercel Analytics
 - hosts mais citados: promo-brindes-v1.vercel.app, cliente.sebraees.com.br, www.un.org, api.resend.com, br.pinterest.com, doufsxqlfjyuvxuezpln.supabase.co, facebook.com, graph.facebook.com, instagram.com, promo-brindes.invalid, vercel.com, www.sitemaps.org, youtube.com
 - webhooks recebidos: GET,POST /api/notification-events-whatsapp, POST /api/notification-events-resend
-- env de integração (só nomes): CRON_SECRET, OPERATIONS_ALERT_WEBHOOK_TOKEN, OPERATIONS_ALERT_WEBHOOK_URL, RESEND_API_KEY, RESEND_WEBHOOK_SECRET, SITE_SUPABASE_SECRET_KEY, WHATSAPP_ACCESS_TOKEN, WHATSAPP_APP_SECRET, WHATSAPP_GRAPH_API_VERSION, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_QUOTE_TEMPLATE, WHATSAPP_WEBHOOK_VERIFY_TOKEN
+- env de integração (só nomes): COMMERCIAL_TEAM_WEBHOOK_TOKEN, COMMERCIAL_TEAM_WEBHOOK_URL, CRON_SECRET, OPERATIONS_ALERT_WEBHOOK_TOKEN, OPERATIONS_ALERT_WEBHOOK_URL, RESEND_API_KEY, RESEND_WEBHOOK_SECRET, SITE_SUPABASE_SECRET_KEY, WHATSAPP_ACCESS_TOKEN, WHATSAPP_APP_SECRET, WHATSAPP_GRAPH_API_VERSION, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_QUOTE_TEMPLATE, WHATSAPP_WEBHOOK_VERIFY_TOKEN
 
 ## Permissões / papéis
 - papéis no código: anon (4)
@@ -171,12 +174,12 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - e2e/smoke.spec.ts (53)
 - src/styles.css (33)
 - package-lock.json (31)
-- vercel.json (24)
+- vercel.json (25)
+- site-supabase/supabase/tests/database/lead_storage.test.sql (22)
 - src/components/Layout.tsx (22)
 - src/pages/QuotePage.tsx (22)
 - .github/workflows/quality.yml (21)
-- site-supabase/supabase/tests/database/lead_storage.test.sql (21)
-- docs/DATABASE_DICTIONARY.md (20)
+- docs/DATABASE_DICTIONARY.md (21)
 - tests/api/lead-requests.test.ts (19)
 - .github/workflows/release.yml (18)
 - src/App.tsx (17)
@@ -305,7 +308,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `docs/AUDIT_REPORT_20260908.md` — Auditoria técnica consolidada — 08–09/09/2026 (75 linhas)
 - `docs/AUTOMACAO_LOCAL.md` — Automação local — Promo_Brindes_V1 (104 linhas)
 - `docs/CUSTOMER_PORTAL_IMPLEMENTATION_20260909.md` — Área do Cliente — implementação e critérios de aceite (91 linhas)
-- `docs/DATABASE_DICTIONARY.md` — Dicionário de dados — site_private (Etapa 35) (391 linhas)
+- `docs/DATABASE_DICTIONARY.md` — Dicionário de dados — site_private (Etapa 35) (393 linhas)
 - `docs/DATABASE_FUNCTION_CONTRACTS.md` — Contratos das funções do banco do site (Etapas 22 e 23) (236 linhas)
 - `docs/DATABASE_INVENTORY_PRINCIPAL.md` — Inventário de tabelas — banco principal (`doufsxqlfjyuvxuezpln`) (415 linhas)
 - `docs/DATABASE_PUBLIC_CONTRACT.md` — Contrato público de dados do Site Promo Brindes (82 linhas)
@@ -373,6 +376,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-11 `0840b55` feat: alerta comercial de orçamento (PF-01) (#116)
 - 2026-11-11 `52aa025` chore(automacao): conecta testes, grafo e manutenção aos gatilhos (#131)
 - 2026-11-10 `49fc2af` docs: corrige fatos da analise analise-prs para o main d312cad (#132)
 - 2026-11-10 `d312cad` docs: análise complementar analise-prs (#112)
@@ -387,7 +391,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-08 `75ba0fa` chore: replica o padrão de instruções para agentes do Zapp Web V2 (#119)
 - 2026-11-07 `cae3b2e` fix: correções da revisão de fidelidade (instruções) (#118)
 - 2026-11-07 `e676bb3` chore(deps): bump the npm-minor-and-patch group with 4 updates (#114)
-- 2026-11-07 `ae62613` chore: instruções enxutas para agentes (AGENTS.md único, CLAUDE.md importa) (#117)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

@@ -1,6 +1,6 @@
 # 11 · GLOSSÁRIO, DADOS DE REFERÊNCIA E LACUNAS
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `52aa025eb2` · branch `main` · 2026-11-11 17:36 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `0840b5553c` · branch `main` · 2026-11-11 19:27 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## Glossário do domínio (entidades do sistema)
@@ -28,8 +28,9 @@
 | `site_private.shared_selections` | _(sem COMMENT ON TABLE — significado não documentado)_ | 7 colunas | migration |
 | `site_private.status_transitions` | Transições administrativas válidas por entidade (Etapa 8). Fonte única de verdade para os triggers enforce_status_transition; qualquer update de status fora desta tabela é rejeitado com 22023. | 3 colunas | migration |
 | `site_private.storage_deletion_queue` | Fila mínima de objetos privados para remoção pela Storage API; não contém conteúdo do arquivo. | 3 colunas | migration |
+| `CommercialAlertResult` (TS) | sent \| pending |  | `api/_lib/commercialTeamAlerts.ts` |
 | `LeadKind` (TS) | quote \| contact |  | `api/_lib/contracts.ts` |
-| `OperationalAlertEvent` (TS) | notification_queue_alert \| notification_cron_failed \| retention_cron_failed |  | `api/_lib/operationalAlerts.ts` |
+| `OperationalAlertEvent` (TS) | notification_queue_alert \| notification_cron_failed \| retention_cron_failed \| commercial_alerts_cron_failed |  | `api/_lib/operationalAlerts.ts` |
 | `ProviderEventApplyReason` (TS) | duplicate \| delivery_not_found \| delivery_state_already_set |  | `api/_lib/siteDatabase.ts` |
 | `CatalogEditorialStatus` (TS) | published \| draft \| retired |  | `shared/catalogEditorial.ts` |
 | `CampaignMoment` (TS) | onboarding \| evento \| relacionamento \| reconhecimento \| sazonal |  | `src/types.ts` |

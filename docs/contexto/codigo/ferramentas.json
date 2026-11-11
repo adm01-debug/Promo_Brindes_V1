@@ -3,9 +3,9 @@
  "format_version": 2,
  "stack": {
   "linguagens": [
-   "TypeScript (200)",
+   "TypeScript (203)",
    "Markdown (115)",
-   "SQL (101)",
+   "SQL (102)",
    "JavaScript (61)",
    "JSON (28)",
    "YAML (19)",
@@ -705,7 +705,7 @@
   {
    "arquivo": "docs/DATABASE_DICTIONARY.md",
    "titulo": "Dicionário de dados — site_private (Etapa 35)",
-   "linhas": 391
+   "linhas": 393
   },
   {
    "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
@@ -1040,6 +1040,8 @@
  "changelog_topo": null,
  "env": {
   "declaradas_no_env_example": [
+   "COMMERCIAL_TEAM_WEBHOOK_TOKEN",
+   "COMMERCIAL_TEAM_WEBHOOK_URL",
    "CRON_SECRET",
    "OPERATIONS_ALERT_WEBHOOK_TOKEN",
    "OPERATIONS_ALERT_WEBHOOK_URL",
@@ -1072,6 +1074,8 @@
   ],
   "usadas_no_front": [
    "CATALOG_SUPABASE_PUBLISHABLE_KEY",
+   "COMMERCIAL_TEAM_WEBHOOK_TOKEN",
+   "COMMERCIAL_TEAM_WEBHOOK_URL",
    "CRON_SECRET",
    "NODE_ENV",
    "OPERATIONS_ALERT_WEBHOOK_TOKEN",
@@ -1160,7 +1164,8 @@
    "ignore_command": null,
    "crons": [
     "0 3 * * * /api/retention",
-    "*/15 * * * * /api/notifications"
+    "*/15 * * * * /api/notifications",
+    "*/5 * * * * /api/commercial-alerts"
    ]
   }
  },
@@ -1232,6 +1237,8 @@
    }
   ],
   "env_de_integracao": [
+   "COMMERCIAL_TEAM_WEBHOOK_TOKEN",
+   "COMMERCIAL_TEAM_WEBHOOK_URL",
    "CRON_SECRET",
    "OPERATIONS_ALERT_WEBHOOK_TOKEN",
    "OPERATIONS_ALERT_WEBHOOK_URL",

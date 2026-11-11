@@ -5,6 +5,10 @@
   "api/_lib/catalogValidation.ts": [
    "api/_lib/contracts.ts"
   ],
+  "api/_lib/commercialTeamAlerts.ts": [
+   "api/_lib/observability.ts",
+   "api/_lib/siteDatabase.ts"
+  ],
   "api/_lib/contracts.ts": [
    "api/_lib/siteOrigin.ts"
   ],
@@ -13,6 +17,7 @@
   ],
   "api/_lib/leadHandler.ts": [
    "api/_lib/catalogValidation.ts",
+   "api/_lib/commercialTeamAlerts.ts",
    "api/_lib/contracts.ts",
    "api/_lib/observability.ts",
    "api/_lib/siteDatabase.ts",
@@ -33,6 +38,13 @@
    "api/_lib/leadHandler.ts",
    "api/_lib/siteDatabase.ts",
    "api/_lib/siteOrigin.ts"
+  ],
+  "api/commercial-alerts.ts": [
+   "api/_lib/commercialTeamAlerts.ts",
+   "api/_lib/leadHandler.ts",
+   "api/_lib/observability.ts",
+   "api/_lib/operationalAlerts.ts",
+   "api/_lib/siteDatabase.ts"
   ],
   "api/contact-requests.ts": [
    "api/_lib/leadHandler.ts"

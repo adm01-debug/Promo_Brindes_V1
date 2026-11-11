@@ -2,8 +2,8 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "resumo": {
-  "urls": 31,
-  "rotas_http_backend": 13,
+  "urls": 32,
+  "rotas_http_backend": 14,
   "vistas_por_id": 0,
   "itens_menu": 11,
   "lazy": 18
@@ -91,6 +91,7 @@
    "hooks_locais": [],
    "tabelas": [],
    "rpcs": [
+    "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
     "confirm_site_briefing_asset_verification",
@@ -102,6 +103,39 @@
     "record_site_notification_dispatch_started",
     "record_site_notification_provider_acceptance",
     "reject_site_briefing_asset_verification",
+    "site_notification_queue_health"
+   ],
+   "edges": [],
+   "canais_realtime": [],
+   "flags": [],
+   "papeis": [],
+   "arquivos_puxados": 10
+  },
+  {
+   "protegida": false,
+   "wrappers": [],
+   "pai": null,
+   "indice": false,
+   "lazy": false,
+   "tipo": "api",
+   "caminho": "/api/commercial-alerts",
+   "componente": "commercial-alerts",
+   "arquivo": "api/commercial-alerts.ts",
+   "definida_em": "vercel/api",
+   "hooks": [],
+   "hooks_locais": [],
+   "tabelas": [],
+   "rpcs": [
+    "claim_site_commercial_team_alert",
+    "claim_site_commercial_team_alerts",
+    "claim_site_notification_deliveries",
+    "claim_site_quote_notification",
+    "create_site_contact_request",
+    "create_site_quote_request",
+    "finalize_site_notification_delivery",
+    "preflight_site_lead_request",
+    "record_site_notification_dispatch_started",
+    "record_site_notification_provider_acceptance",
     "site_notification_queue_health"
    ],
    "edges": [],
@@ -125,6 +159,7 @@
    "hooks_locais": [],
    "tabelas": [],
    "rpcs": [
+    "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
     "create_site_contact_request",
@@ -139,7 +174,7 @@
    "canais_realtime": [],
    "flags": [],
    "papeis": [],
-   "arquivos_puxados": 8
+   "arquivos_puxados": 9
   },
   {
    "protegida": false,
@@ -156,6 +191,7 @@
    "hooks_locais": [],
    "tabelas": [],
    "rpcs": [
+    "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
     "create_site_contact_request",
@@ -171,7 +207,7 @@
    "canais_realtime": [],
    "flags": [],
    "papeis": [],
-   "arquivos_puxados": 8
+   "arquivos_puxados": 9
   },
   {
    "protegida": false,
@@ -263,6 +299,7 @@
    "hooks_locais": [],
    "tabelas": [],
    "rpcs": [
+    "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
     "create_site_contact_request",
@@ -277,7 +314,7 @@
    "canais_realtime": [],
    "flags": [],
    "papeis": [],
-   "arquivos_puxados": 7
+   "arquivos_puxados": 8
   },
   {
    "protegida": false,
@@ -317,6 +354,7 @@
    "hooks_locais": [],
    "tabelas": [],
    "rpcs": [
+    "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
     "create_site_contact_request",
@@ -331,7 +369,7 @@
    "canais_realtime": [],
    "flags": [],
    "papeis": [],
-   "arquivos_puxados": 8
+   "arquivos_puxados": 9
   },
   {
    "protegida": false,
@@ -348,6 +386,7 @@
    "hooks_locais": [],
    "tabelas": [],
    "rpcs": [
+    "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
     "create_site_contact_request",
@@ -368,7 +407,7 @@
    "canais_realtime": [],
    "flags": [],
    "papeis": [],
-   "arquivos_puxados": 8
+   "arquivos_puxados": 9
   },
   {
    "protegida": false,
@@ -385,6 +424,7 @@
    "hooks_locais": [],
    "tabelas": [],
    "rpcs": [
+    "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
     "create_site_contact_request",
@@ -402,7 +442,7 @@
    "canais_realtime": [],
    "flags": [],
    "papeis": [],
-   "arquivos_puxados": 9
+   "arquivos_puxados": 10
   },
   {
    "protegida": false,
@@ -1064,6 +1104,8 @@
    "tabelas": [],
    "env": [
     "CATALOG_SUPABASE_PUBLISHABLE_KEY",
+    "COMMERCIAL_TEAM_WEBHOOK_TOKEN",
+    "COMMERCIAL_TEAM_WEBHOOK_URL",
     "CRON_SECRET",
     "OPERATIONS_ALERT_WEBHOOK_TOKEN",
     "OPERATIONS_ALERT_WEBHOOK_URL",
@@ -1084,6 +1126,7 @@
     "WHATSAPP_QUOTE_TEMPLATE"
    ],
    "rpcs": [
+    "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
     "confirm_site_briefing_asset_verification",
@@ -1115,12 +1158,14 @@
    ]
   },
   {
-   "metodo": "POST",
-   "caminho": "/api/contact-requests",
-   "arquivo": "api/contact-requests.ts",
+   "metodo": "GET",
+   "caminho": "/api/commercial-alerts",
+   "arquivo": "api/commercial-alerts.ts",
    "tabelas": [],
    "env": [
     "CATALOG_SUPABASE_PUBLISHABLE_KEY",
+    "COMMERCIAL_TEAM_WEBHOOK_TOKEN",
+    "COMMERCIAL_TEAM_WEBHOOK_URL",
     "CRON_SECRET",
     "OPERATIONS_ALERT_WEBHOOK_TOKEN",
     "OPERATIONS_ALERT_WEBHOOK_URL",
@@ -1141,6 +1186,64 @@
     "WHATSAPP_QUOTE_TEMPLATE"
    ],
    "rpcs": [
+    "claim_site_commercial_team_alert",
+    "claim_site_commercial_team_alerts",
+    "claim_site_notification_deliveries",
+    "claim_site_quote_notification",
+    "create_site_contact_request",
+    "create_site_quote_request",
+    "finalize_site_notification_delivery",
+    "preflight_site_lead_request",
+    "record_site_notification_dispatch_started",
+    "record_site_notification_provider_acceptance",
+    "site_notification_queue_health"
+   ],
+   "diretos": {
+    "tabelas": [],
+    "rpcs": [
+     "claim_site_commercial_team_alerts"
+    ],
+    "env": [
+     "CRON_SECRET",
+     "OPERATIONS_ALERT_WEBHOOK_URL"
+    ]
+   },
+   "origem": "vercel/api",
+   "rewrites_de": [],
+   "cron": "*/5 * * * *",
+   "max_duration": 15,
+   "chamada_por": []
+  },
+  {
+   "metodo": "POST",
+   "caminho": "/api/contact-requests",
+   "arquivo": "api/contact-requests.ts",
+   "tabelas": [],
+   "env": [
+    "CATALOG_SUPABASE_PUBLISHABLE_KEY",
+    "COMMERCIAL_TEAM_WEBHOOK_TOKEN",
+    "COMMERCIAL_TEAM_WEBHOOK_URL",
+    "CRON_SECRET",
+    "OPERATIONS_ALERT_WEBHOOK_TOKEN",
+    "OPERATIONS_ALERT_WEBHOOK_URL",
+    "RESEND_API_KEY",
+    "SITE_EMAIL_FROM",
+    "SITE_PREVIEW_SUPABASE_PROJECT_REF",
+    "SITE_PUBLIC_ORIGIN",
+    "SITE_REQUEST_HASH_SALT",
+    "SITE_SUPABASE_SECRET_KEY",
+    "SITE_SUPABASE_SERVICE_JWT",
+    "SITE_SUPABASE_URL",
+    "VERCEL_ENV",
+    "VERCEL_URL",
+    "VITE_SUPABASE_PUBLISHABLE_KEY",
+    "WHATSAPP_ACCESS_TOKEN",
+    "WHATSAPP_GRAPH_API_VERSION",
+    "WHATSAPP_PHONE_NUMBER_ID",
+    "WHATSAPP_QUOTE_TEMPLATE"
+   ],
+   "rpcs": [
+    "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
     "create_site_contact_request",
@@ -1171,6 +1274,8 @@
    "tabelas": [],
    "env": [
     "CATALOG_SUPABASE_PUBLISHABLE_KEY",
+    "COMMERCIAL_TEAM_WEBHOOK_TOKEN",
+    "COMMERCIAL_TEAM_WEBHOOK_URL",
     "CRON_SECRET",
     "OPERATIONS_ALERT_WEBHOOK_TOKEN",
     "OPERATIONS_ALERT_WEBHOOK_URL",
@@ -1191,6 +1296,7 @@
     "WHATSAPP_QUOTE_TEMPLATE"
    ],
    "rpcs": [
+    "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
     "create_site_contact_request",
@@ -1327,6 +1433,8 @@
    "tabelas": [],
    "env": [
     "CATALOG_SUPABASE_PUBLISHABLE_KEY",
+    "COMMERCIAL_TEAM_WEBHOOK_TOKEN",
+    "COMMERCIAL_TEAM_WEBHOOK_URL",
     "CRON_SECRET",
     "OPERATIONS_ALERT_WEBHOOK_TOKEN",
     "OPERATIONS_ALERT_WEBHOOK_URL",
@@ -1347,6 +1455,7 @@
     "WHATSAPP_QUOTE_TEMPLATE"
    ],
    "rpcs": [
+    "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
     "create_site_contact_request",
@@ -1420,6 +1529,8 @@
    "tabelas": [],
    "env": [
     "CATALOG_SUPABASE_PUBLISHABLE_KEY",
+    "COMMERCIAL_TEAM_WEBHOOK_TOKEN",
+    "COMMERCIAL_TEAM_WEBHOOK_URL",
     "CRON_SECRET",
     "OPERATIONS_ALERT_WEBHOOK_TOKEN",
     "OPERATIONS_ALERT_WEBHOOK_URL",
@@ -1440,6 +1551,7 @@
     "WHATSAPP_QUOTE_TEMPLATE"
    ],
    "rpcs": [
+    "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
     "create_site_contact_request",
@@ -1470,6 +1582,8 @@
    "tabelas": [],
    "env": [
     "CATALOG_SUPABASE_PUBLISHABLE_KEY",
+    "COMMERCIAL_TEAM_WEBHOOK_TOKEN",
+    "COMMERCIAL_TEAM_WEBHOOK_URL",
     "CRON_SECRET",
     "OPERATIONS_ALERT_WEBHOOK_TOKEN",
     "OPERATIONS_ALERT_WEBHOOK_URL",
@@ -1490,6 +1604,7 @@
     "WHATSAPP_QUOTE_TEMPLATE"
    ],
    "rpcs": [
+    "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
     "create_site_contact_request",
@@ -1534,6 +1649,8 @@
    "tabelas": [],
    "env": [
     "CATALOG_SUPABASE_PUBLISHABLE_KEY",
+    "COMMERCIAL_TEAM_WEBHOOK_TOKEN",
+    "COMMERCIAL_TEAM_WEBHOOK_URL",
     "CRON_SECRET",
     "OPERATIONS_ALERT_WEBHOOK_TOKEN",
     "OPERATIONS_ALERT_WEBHOOK_URL",
@@ -1554,6 +1671,7 @@
     "WHATSAPP_QUOTE_TEMPLATE"
    ],
    "rpcs": [
+    "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
     "create_site_contact_request",
