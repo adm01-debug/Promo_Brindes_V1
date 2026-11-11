@@ -5,7 +5,7 @@
   "pin": "0.9.97",
   "pythonVersion": "3.11",
   "state": ".tools/graphify/local-state",
-  "output": "graphify-out",
+  "output": "graphify-local-out",
   "adapter": "generic",
   "scope": ["."],
   "partial": false,

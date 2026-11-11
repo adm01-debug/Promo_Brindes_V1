@@ -382,7 +382,7 @@ export async function execute(
       forced = setTimeout(() => {
         kill("SIGKILL");
         finish(130, "interrompido");
-      }, 500);
+      }, 1000);
     };
     process.once("SIGTERM", terminate);
     process.once("SIGINT", terminate);
@@ -392,7 +392,7 @@ export async function execute(
       forced = setTimeout(() => {
         kill("SIGKILL");
         finish(124, "timeout");
-      }, 500);
+      }, 1000);
     }, timeout);
     child.stdout?.on("data", (x) => {
       if (chunks.reduce((a, b) => a + b.length, 0) < 4 * 1024 * 1024)
@@ -510,7 +510,8 @@ function workflowRuns(text, commandText) {
   }
   return false;
 }
-async function statePath(root) {
+async function statePath(root, bridgeStatePath) {
+  if (bridgeStatePath) return bridgeStatePath;
   const value = (
     await git(root, ["config", "--get", "core.hooksPath"], [0, 1])
   ).stdout.trim();
@@ -1022,7 +1023,10 @@ async function uninstall(ctx) {
 async function hook(ctx, args) {
   const event = args[0];
   if (!EVENTS.includes(event)) throw fail("evento Git desconhecido");
-  const savedPath = await statePath(ctx.root);
+  const savedPath = await statePath(
+    ctx.root,
+    process.env.REPO_AUTOMATION_STATE || undefined,
+  );
   if (!existsSync(savedPath)) throw fail("ponte sem estado instalado");
   const state = json(savedPath);
   const common = realpathSync(

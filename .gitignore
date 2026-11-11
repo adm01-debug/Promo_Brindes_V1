@@ -29,6 +29,6 @@ inventario/estado/*.json
 __pycache__/
 *.pyc
 
-# Estado local privado dos novos adaptadores de automação
+# Ambiente e estado local privados dos novos adaptadores de automação
 /.tools/repo-automation/
-/.tools/graphify/local-state/
+/.tools/graphify/

@@ -266,6 +266,7 @@ export async function commitWithHooks(
           name,
         );
       if (!(await exists(script))) continue;
+      if (!husky && !((await stat(script)).mode & 0o111)) continue;
       const invocation = husky ? `sh -e ${quote(script)}` : quote(script);
       await writeFile(
         path.join(directory, name),
@@ -278,7 +279,24 @@ export async function commitWithHooks(
       [...prefix, "git", "-c", `core.hooksPath=${directory}`, ...args],
       workspace,
       timeout,
-      { hooks: true },
+      {
+        hooks: true,
+        ...(value &&
+        path
+          .resolve(source, value)
+          .split(path.sep)
+          .join("/")
+          .endsWith("/.tools/repo-automation/hooks")
+          ? {
+              publicEnv: {
+                REPO_AUTOMATION_STATE: path.join(
+                  path.dirname(path.resolve(source, value)),
+                  "state.json",
+                ),
+              },
+            }
+          : {}),
+      },
     );
     return { names, ...result };
   } finally {
