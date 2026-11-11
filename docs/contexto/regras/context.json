@@ -1,9 +1,9 @@
 {
  "meta": {
-  "sha": "0840b5553cbb5f4f3408303319ecfd7749de8255",
+  "sha": "b3bb6910af5e5c6360e890f78a848e72c0f9ac83",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-11 19:27 UTC",
+  "generated_at": "2026-11-11 21:08 UTC",
   "files_total": 573,
   "code_files": 374,
   "code_lines": 65609,
@@ -31750,10 +31750,19 @@
   }
  },
  "git": {
-  "sha": "0840b5553cbb5f4f3408303319ecfd7749de8255",
+  "sha": "b3bb6910af5e5c6360e890f78a848e72c0f9ac83",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "b3bb691",
+    "date": "2026-11-11",
+    "author": "adm01-debug",
+    "subject": "infra: adiciona retry transitório na instalação do Chromium (quality.yml) (#133)",
+    "files": [
+     ".github/workflows/quality.yml"
+    ]
+   },
    {
     "sha": "0840b55",
     "date": "2026-11-11",
@@ -32235,15 +32244,6 @@
      "package-lock.json",
      "package.json"
     ]
-   },
-   {
-    "sha": "217f785",
-    "date": "2026-10-27",
-    "author": "adm01-debug",
-    "subject": "fix(catalog): remove padrão atrás das fotos dos produtos (#88)",
-    "files": [
-     "src/styles.css"
-    ]
    }
   ],
   "hot_files": [
@@ -32266,6 +32266,10 @@
    [
     "PENDENCIAS.md",
     4
+   ],
+   [
+    ".github/workflows/quality.yml",
+    3
    ],
    [
     ".graphify.project.json",
@@ -32321,10 +32325,6 @@
    ],
    [
     "scripts/ai-context/cenarios.mjs",
-    2
-   ],
-   [
-    "scripts/ai-context/gerar.mjs",
     2
    ]
   ]

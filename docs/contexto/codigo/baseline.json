@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "0840b5553cbb5f4f3408303319ecfd7749de8255",
+  "commit": "b3bb6910af5e5c6360e890f78a848e72c0f9ac83",
   "branch": "main",
-  "data_commit": "2026-11-11T18:28:44Z",
+  "data_commit": "2026-11-11T19:10:46Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "b3bb691",
+    "data": "2026-11-11",
+    "assunto": "infra: adiciona retry transitório na instalação do Chromium (quality.yml) (#133)"
+   },
    {
     "sha": "0840b55",
     "data": "2026-11-11",
@@ -126,11 +131,6 @@
     "sha": "7100e1c",
     "data": "2026-10-27",
     "assunto": "feat(ux): resumo editável e confirmação do briefing"
-   },
-   {
-    "sha": "a8f3076",
-    "data": "2026-10-27",
-    "assunto": "chore(graphify): atualiza para 0.9.94 com benchmark e pin alinhado"
    }
   ],
   "arquivos_mudados_7d": 138,
@@ -164,6 +164,10 @@
     "mudancas": 4
    },
    {
+    "pasta": ".github/workflows/quality.yml",
+    "mudancas": 3
+   },
+   {
     "pasta": ".gitignore",
     "mudancas": 3
    },
@@ -190,10 +194,6 @@
    {
     "pasta": "analise-prs/funcionalidades.csv",
     "mudancas": 3
-   },
-   {
-    "pasta": "analise-prs/progresso.json",
-    "mudancas": 3
    }
   ],
   "arquivos_mais_mudados_90d": [
@@ -218,6 +218,10 @@
     "mudancas": 25
    },
    {
+    "arquivo": ".github/workflows/quality.yml",
+    "mudancas": 22
+   },
+   {
     "arquivo": "site-supabase/supabase/tests/database/lead_storage.test.sql",
     "mudancas": 22
    },
@@ -228,10 +232,6 @@
    {
     "arquivo": "src/pages/QuotePage.tsx",
     "mudancas": 22
-   },
-   {
-    "arquivo": ".github/workflows/quality.yml",
-    "mudancas": 21
    },
    {
     "arquivo": "docs/DATABASE_DICTIONARY.md",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 24
+    "commits": 25
    },
    {
     "autor": "dependabot[bot]",

@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `0840b5553cbb5f4f3408303319ecfd7749de8255` (2026-11-11T18:28:44Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `b3bb6910af5e5c6360e890f78a848e72c0f9ac83` (2026-11-11T19:10:46Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -175,10 +175,10 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - src/styles.css (33)
 - package-lock.json (31)
 - vercel.json (25)
+- .github/workflows/quality.yml (22)
 - site-supabase/supabase/tests/database/lead_storage.test.sql (22)
 - src/components/Layout.tsx (22)
 - src/pages/QuotePage.tsx (22)
-- .github/workflows/quality.yml (21)
 - docs/DATABASE_DICTIONARY.md (21)
 - tests/api/lead-requests.test.ts (19)
 - .github/workflows/release.yml (18)
@@ -376,6 +376,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-11 `b3bb691` infra: adiciona retry transitório na instalação do Chromium (quality.yml) (#133)
 - 2026-11-11 `0840b55` feat: alerta comercial de orçamento (PF-01) (#116)
 - 2026-11-11 `52aa025` chore(automacao): conecta testes, grafo e manutenção aos gatilhos (#131)
 - 2026-11-10 `49fc2af` docs: corrige fatos da analise analise-prs para o main d312cad (#132)
@@ -390,7 +391,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-08 `3c3cc11` chore: iguala a forma do AGENTS.md à do Zapp Web V2 (#120)
 - 2026-11-08 `75ba0fa` chore: replica o padrão de instruções para agentes do Zapp Web V2 (#119)
 - 2026-11-07 `cae3b2e` fix: correções da revisão de fidelidade (instruções) (#118)
-- 2026-11-07 `e676bb3` chore(deps): bump the npm-minor-and-patch group with 4 updates (#114)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`
