@@ -53,12 +53,12 @@
       "storage": [],
       "top_queries": [
         {
-          "calls": 113,
-          "mean_ms": 300.69,
+          "calls": 116,
+          "mean_ms": 301.82,
           "query": "SELECT name FROM pg_timezone_names",
           "role": "authenticator",
-          "rows": 135148,
-          "total_ms": 33978
+          "rows": 138736,
+          "total_ms": 35011
         },
         {
           "calls": 46,
@@ -77,92 +77,92 @@
           "total_ms": 9046
         },
         {
-          "calls": 110,
-          "mean_ms": 33.4,
+          "calls": 113,
+          "mean_ms": 33.51,
           "query": "WITH -- Recursively get the base types of domains base_types AS ( WITH RECURSIVE recurse AS ( SELECT oid, typbasetype, typnamespace AS base_namespace, COALESCE(NULLIF(typbasetype, $3), oid) AS base_type FROM pg_type UNIO",
           "role": "authenticator",
-          "rows": 2411,
-          "total_ms": 3674
+          "rows": 2549,
+          "total_ms": 3787
         },
         {
-          "calls": 241,
+          "calls": 242,
           "mean_ms": 7.17,
           "query": "SELECT t.oid, t.typname, t.typsend, t.typreceive, t.typoutput, t.typinput, coalesce(d.typelem, t.typelem), coalesce(r.rngsubtype, $1), ARRAY ( SELECT a.atttypid FROM pg_attribute AS a WHERE a.attrelid = t.typrelid AND a.",
           "role": "pgbouncer",
-          "rows": 52773,
-          "total_ms": 1728
+          "rows": 52992,
+          "total_ms": 1735
         },
         {
-          "calls": 217,
-          "mean_ms": 4.88,
+          "calls": 241,
+          "mean_ms": 4.85,
           "query": "WITH pgrst_source AS (SELECT pgrst_call.pgrst_scalar FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT \"p_batch_size\" FROM json_to_record(pgrst_payload.json_data) AS _(\"p_batch_size\" integer) LIMIT $4) pgrst_b",
           "role": "service_role",
-          "rows": 217,
-          "total_ms": 1059
+          "rows": 241,
+          "total_ms": 1169
         },
         {
-          "calls": 2912,
+          "calls": 2919,
           "mean_ms": 0.28,
           "query": "SELECT * FROM pgbouncer.get_auth($1)",
           "role": "pgbouncer",
-          "rows": 2912,
-          "total_ms": 819
+          "rows": 2919,
+          "total_ms": 822
         },
         {
-          "calls": 60,
+          "calls": 61,
           "mean_ms": 10.92,
           "query": "SELECT n.nspname AS schema, p.proname AS name, pg_get_function_identity_arguments(p.oid) AS args, pg_get_function_result(p.oid) AS returns, l.lanname AS language, CASE p.prokind WHEN $1 THEN $2 WHEN $3 THEN $4 WHEN $5 TH",
           "role": "postgres",
-          "rows": 4320,
-          "total_ms": 655
+          "rows": 4392,
+          "total_ms": 666
         },
         {
-          "calls": 60,
-          "mean_ms": 10.4,
+          "calls": 61,
+          "mean_ms": 10.38,
           "query": "SELECT n.nspname AS schema, c.relname AS \"table\", con.conname AS name, CASE con.contype WHEN $1 THEN $2 WHEN $3 THEN $4 WHEN $5 THEN $6 WHEN $7 THEN $8 WHEN $9 THEN $10 ELSE con.contype::text END AS type, pg_get_constrai",
           "role": "postgres",
-          "rows": 8760,
-          "total_ms": 624
+          "rows": 8906,
+          "total_ms": 633
         },
         {
-          "calls": 60,
+          "calls": 71,
+          "mean_ms": 6.87,
+          "query": "WITH pgrst_source AS (SELECT pgrst_call.pgrst_scalar FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT \"p_channels\", \"p_batch_size\" FROM json_to_record(pgrst_payload.json_data) AS _(\"p_channels\" text[], \"p_bat",
+          "role": "service_role",
+          "rows": 71,
+          "total_ms": 488
+        },
+        {
+          "calls": 61,
           "mean_ms": 7.94,
           "query": "SELECT n.nspname AS schema, c.relname AS name, GREATEST(c.reltuples::bigint, $1) AS est_rows, pg_total_relation_size(c.oid) AS total_bytes, pg_relation_size(c.oid) AS heap_bytes, pg_indexes_size(c.oid) AS index_bytes, s.",
           "role": "postgres",
-          "rows": 1260,
-          "total_ms": 477
+          "rows": 1281,
+          "total_ms": 484
         },
         {
-          "calls": 60,
+          "calls": 61,
           "mean_ms": 7.53,
           "query": "SELECT n.nspname AS schema, t.relname AS \"table\", ic.relname AS name, pg_get_indexdef(ix.indexrelid) AS definition, ix.indisunique AS is_unique, ix.indisprimary AS is_primary, ix.indisvalid AS is_valid, am.amname AS meth",
           "role": "postgres",
-          "rows": 4020,
-          "total_ms": 452
+          "rows": 4087,
+          "total_ms": 459
         },
         {
-          "calls": 60,
-          "mean_ms": 7.41,
+          "calls": 61,
+          "mean_ms": 7.39,
           "query": "SELECT n.nspname AS schema, c.relname AS \"table\", a.attnum AS position, a.attname AS name, format_type(a.atttypid, a.atttypmod) AS type, NOT a.attnotnull AS nullable, pg_get_expr(d.adbin, d.adrelid) AS \"default\", NULLIF(",
           "role": "postgres",
-          "rows": 11400,
-          "total_ms": 445
+          "rows": 11590,
+          "total_ms": 451
         },
         {
-          "calls": 63,
-          "mean_ms": 6.84,
-          "query": "WITH pgrst_source AS (SELECT pgrst_call.pgrst_scalar FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT \"p_channels\", \"p_batch_size\" FROM json_to_record(pgrst_payload.json_data) AS _(\"p_channels\" text[], \"p_bat",
-          "role": "service_role",
-          "rows": 63,
-          "total_ms": 431
-        },
-        {
-          "calls": 60,
-          "mean_ms": 6.68,
+          "calls": 61,
+          "mean_ms": 6.69,
           "query": "SELECT version, name, statements FROM supabase_migrations.schema_migrations ORDER BY version",
           "role": "postgres",
-          "rows": 3960,
-          "total_ms": 401
+          "rows": 4026,
+          "total_ms": 408
         },
         {
           "calls": 60,
@@ -432,7 +432,7 @@
         "is_primary": true,
         "is_unique": true,
         "name": "notification_deliveries_pkey",
-        "scans": 1065,
+        "scans": 1198,
         "schema": "site_private",
         "table": "notification_deliveries"
       },
@@ -459,7 +459,7 @@
         "is_primary": false,
         "is_unique": true,
         "name": "notification_deliveries_request_kind_request_id_channel_aud_key",
-        "scans": 119,
+        "scans": 120,
         "schema": "site_private",
         "table": "notification_deliveries"
       },
@@ -603,7 +603,7 @@
         "is_primary": false,
         "is_unique": true,
         "name": "quote_items_quote_request_id_position_key",
-        "scans": 39,
+        "scans": 40,
         "schema": "site_private",
         "table": "quote_items"
       },
@@ -648,7 +648,7 @@
         "is_primary": false,
         "is_unique": false,
         "name": "quote_requests_created_at_idx",
-        "scans": 1,
+        "scans": 2,
         "schema": "site_private",
         "table": "quote_requests"
       },
@@ -675,7 +675,7 @@
         "is_primary": true,
         "is_unique": true,
         "name": "quote_requests_pkey",
-        "scans": 67,
+        "scans": 69,
         "schema": "site_private",
         "table": "quote_requests"
       },
@@ -765,7 +765,7 @@
         "is_primary": true,
         "is_unique": true,
         "name": "status_transitions_pkey",
-        "scans": 61,
+        "scans": 64,
         "schema": "site_private",
         "table": "status_transitions"
       },
@@ -781,23 +781,23 @@
     ],
     "table_stats": [
       {
-        "dead_rows": 10,
+        "dead_rows": 14,
         "est_rows": 4,
         "heap_bytes": 16384,
-        "idx_scan": 1306,
+        "idx_scan": 1440,
         "index_bytes": 106496,
         "last_autoanalyze": "2026-11-11T23:21:01.151989+00:00",
         "last_autovacuum": "2026-11-11T23:41:01.591129+00:00",
         "name": "notification_deliveries",
         "schema": "site_private",
-        "seq_scan": 695,
+        "seq_scan": 794,
         "total_bytes": 163840
       },
       {
         "dead_rows": 16,
         "est_rows": 0,
         "heap_bytes": 8192,
-        "idx_scan": 165,
+        "idx_scan": 168,
         "index_bytes": 139264,
         "last_autoanalyze": null,
         "last_autovacuum": null,
@@ -862,7 +862,7 @@
         "dead_rows": 10,
         "est_rows": 0,
         "heap_bytes": 8192,
-        "idx_scan": 41,
+        "idx_scan": 42,
         "index_bytes": 57344,
         "last_autoanalyze": null,
         "last_autovacuum": null,
@@ -1005,7 +1005,7 @@
         "dead_rows": 0,
         "est_rows": 0,
         "heap_bytes": 8192,
-        "idx_scan": 61,
+        "idx_scan": 64,
         "index_bytes": 16384,
         "last_autoanalyze": null,
         "last_autovacuum": null,
