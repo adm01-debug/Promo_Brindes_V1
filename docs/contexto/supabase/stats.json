@@ -85,28 +85,28 @@
           "total_ms": 3674
         },
         {
-          "calls": 197,
-          "mean_ms": 7.06,
+          "calls": 204,
+          "mean_ms": 7.09,
           "query": "SELECT t.oid, t.typname, t.typsend, t.typreceive, t.typoutput, t.typinput, coalesce(d.typelem, t.typelem), coalesce(r.rngsubtype, $1), ARRAY ( SELECT a.atttypid FROM pg_attribute AS a WHERE a.attrelid = t.typrelid AND a.",
           "role": "pgbouncer",
-          "rows": 43137,
-          "total_ms": 1391
+          "rows": 44670,
+          "total_ms": 1446
         },
         {
-          "calls": 2587,
+          "calls": 2637,
           "mean_ms": 0.27,
           "query": "SELECT * FROM pgbouncer.get_auth($1)",
           "role": "pgbouncer",
-          "rows": 2587,
-          "total_ms": 698
+          "rows": 2637,
+          "total_ms": 716
         },
         {
-          "calls": 91,
-          "mean_ms": 4.97,
+          "calls": 109,
+          "mean_ms": 4.95,
           "query": "WITH pgrst_source AS (SELECT pgrst_call.pgrst_scalar FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT \"p_batch_size\" FROM json_to_record(pgrst_payload.json_data) AS _(\"p_batch_size\" integer) LIMIT $4) pgrst_b",
           "role": "service_role",
-          "rows": 91,
-          "total_ms": 453
+          "rows": 109,
+          "total_ms": 539
         },
         {
           "calls": 60,
@@ -432,7 +432,7 @@
         "is_primary": true,
         "is_unique": true,
         "name": "notification_deliveries_pkey",
-        "scans": 393,
+        "scans": 489,
         "schema": "site_private",
         "table": "notification_deliveries"
       },
@@ -784,13 +784,13 @@
         "dead_rows": 10,
         "est_rows": 4,
         "heap_bytes": 16384,
-        "idx_scan": 634,
+        "idx_scan": 730,
         "index_bytes": 106496,
         "last_autoanalyze": "2026-11-11T23:21:01.151989+00:00",
         "last_autovacuum": "2026-11-11T23:41:01.591129+00:00",
         "name": "notification_deliveries",
         "schema": "site_private",
-        "seq_scan": 275,
+        "seq_scan": 335,
         "total_bytes": 163840
       },
       {
