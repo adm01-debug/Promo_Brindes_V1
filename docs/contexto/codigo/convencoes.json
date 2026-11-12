@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "chore(deps): bump graphifyy from 0.9.97 to 0.9.103 (#126)",
    "chore(deps): bump the npm-minor-and-patch group across 1 directory with 12 updates (#127)",
    "infra: adiciona retry transitório na instalação do Chromium (quality.yml) (#133)",
    "feat: alerta comercial de orçamento (PF-01) (#116)",
-   "chore(automacao): conecta testes, grafo e manutenção aos gatilhos (#131)",
-   "docs: corrige fatos da analise analise-prs para o main d312cad (#132)"
+   "chore(automacao): conecta testes, grafo e manutenção aos gatilhos (#131)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `02c5c8dae940253f844fbcfc553366b92a5a0c46` (2026-11-12T11:37:35Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `ad825772b14cf92d7d5b8666d33413b064cf459f` (2026-11-12T13:56:09Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -36,7 +36,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 |---|---|
 | arquivos_total | 680 |
 | arquivos_codigo | 271 |
-| linhas_codigo | 53259 |
+| linhas_codigo | 53260 |
 | rotas | 32 |
 | rotas_http_backend | 14 |
 | vistas_por_id | 0 |
@@ -376,6 +376,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-12 `ad82577` chore(deps): bump graphifyy from 0.9.97 to 0.9.103 (#126)
 - 2026-11-12 `02c5c8d` chore(deps): bump the npm-minor-and-patch group across 1 directory with 12 updates (#127)
 - 2026-11-11 `b3bb691` infra: adiciona retry transitório na instalação do Chromium (quality.yml) (#133)
 - 2026-11-11 `0840b55` feat: alerta comercial de orçamento (PF-01) (#116)
@@ -390,7 +391,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-09 `713ebe4` feat(scripts): porta scripts autônomos de contexto de IA do Zapp Web V2
 - 2026-11-09 `d44baf5` security: guard falha fechado, sem injeção de arg e regex de backtick (#124)
 - 2026-11-08 `3c3cc11` chore: iguala a forma do AGENTS.md à do Zapp Web V2 (#120)
-- 2026-11-08 `75ba0fa` chore: replica o padrão de instruções para agentes do Zapp Web V2 (#119)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

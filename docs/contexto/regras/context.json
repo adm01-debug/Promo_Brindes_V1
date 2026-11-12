@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "02c5c8dae940253f844fbcfc553366b92a5a0c46",
+  "sha": "ad825772b14cf92d7d5b8666d33413b064cf459f",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-12 11:48 UTC",
+  "generated_at": "2026-11-12 15:45 UTC",
   "files_total": 573,
   "code_files": 374,
-  "code_lines": 65609,
+  "code_lines": 65610,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "dbaff13b332c3bc8",
+ "facts_hash": "450d5dd258923728",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -7103,7 +7103,7 @@
   {
    "module": "scripts",
    "files": 41,
-   "lines": 21186,
+   "lines": 21187,
    "tables": [
     "a",
     "contacts",
@@ -24809,7 +24809,7 @@
   },
   "scripts/graphify.mjs": {
    "path": "scripts/graphify.mjs",
-   "lines": 898,
+   "lines": 899,
    "exports": [
     "const GRAPH_FINGERPRINT_CONFIG_FILES",
     "function assertSafeRoot",
@@ -31750,10 +31750,21 @@
   }
  },
  "git": {
-  "sha": "02c5c8dae940253f844fbcfc553366b92a5a0c46",
+  "sha": "ad825772b14cf92d7d5b8666d33413b064cf459f",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "ad82577",
+    "date": "2026-11-12",
+    "author": "dependabot[bot]",
+    "subject": "chore(deps): bump graphifyy from 0.9.97 to 0.9.103 (#126)",
+    "files": [
+     ".graphify.project.json",
+     "requirements-graphify.txt",
+     "scripts/graphify.mjs"
+    ]
+   },
    {
     "sha": "02c5c8d",
     "date": "2026-11-12",
@@ -32228,20 +32239,6 @@
      "docs/audits/pending-features-20261011/08-codigo-e-graphify.md",
      "docs/audits/pending-features-20261011/README.md"
     ]
-   },
-   {
-    "sha": "8e412de",
-    "date": "2026-10-27",
-    "author": "dependabot[bot]",
-    "subject": "chore(ci): atualiza ações do GitHub com checks verdes",
-    "files": [
-     ".github/workflows/catalog-contract.yml",
-     ".github/workflows/codeql.yml",
-     ".github/workflows/database.yml",
-     ".github/workflows/graphify.yml",
-     ".github/workflows/quality.yml",
-     ".github/workflows/release.yml"
-    ]
    }
   ],
   "hot_files": [
@@ -32258,15 +32255,19 @@
     5
    ],
    [
+    ".graphify.project.json",
+    4
+   ],
+   [
     "scripts/validate-agent-instructions.mjs",
     4
    ],
    [
-    ".github/workflows/quality.yml",
+    "requirements-graphify.txt",
     3
    ],
    [
-    ".graphify.project.json",
+    "scripts/graphify.mjs",
     3
    ],
    [
@@ -32306,6 +32307,10 @@
     3
    ],
    [
+    ".github/workflows/quality.yml",
+    2
+   ],
+   [
     "analise-prs/fontes.json",
     2
    ],
@@ -32315,14 +32320,6 @@
    ],
    [
     "scripts/ai-context/README.md",
-    2
-   ],
-   [
-    "scripts/ai-context/cenarios.mjs",
-    2
-   ],
-   [
-    "scripts/ai-context/gerar.mjs",
     2
    ]
   ]

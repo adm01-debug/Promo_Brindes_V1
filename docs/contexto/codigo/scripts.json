@@ -181,7 +181,7 @@
   {
    "arquivo": "scripts/graphify.mjs",
    "descricao": null,
-   "linhas": 898,
+   "linhas": 899,
    "env": [
     "GRAPHIFY_BIN",
     "GRAPHIFY_TIMEOUT_MS"
