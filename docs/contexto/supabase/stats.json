@@ -42,11 +42,11 @@
           "usename": "supabase_admin"
         }
       ],
-      "database_bytes": 14437523,
+      "database_bytes": 14445715,
       "queues": [],
       "schema_bytes": [
         {
-          "bytes": 1376256,
+          "bytes": 1384448,
           "schema": "site_private"
         }
       ],
@@ -85,20 +85,20 @@
           "total_ms": 3674
         },
         {
-          "calls": 184,
-          "mean_ms": 7.1,
+          "calls": 186,
+          "mean_ms": 7.09,
           "query": "SELECT t.oid, t.typname, t.typsend, t.typreceive, t.typoutput, t.typinput, coalesce(d.typelem, t.typelem), coalesce(r.rngsubtype, $1), ARRAY ( SELECT a.atttypid FROM pg_attribute AS a WHERE a.attrelid = t.typrelid AND a.",
           "role": "pgbouncer",
-          "rows": 40290,
-          "total_ms": 1306
+          "rows": 40728,
+          "total_ms": 1319
         },
         {
-          "calls": 2508,
+          "calls": 2516,
           "mean_ms": 0.27,
           "query": "SELECT * FROM pgbouncer.get_auth($1)",
           "role": "pgbouncer",
-          "rows": 2508,
-          "total_ms": 675
+          "rows": 2516,
+          "total_ms": 677
         },
         {
           "calls": 59,
@@ -432,7 +432,7 @@
         "is_primary": true,
         "is_unique": true,
         "name": "notification_deliveries_pkey",
-        "scans": 37,
+        "scans": 125,
         "schema": "site_private",
         "table": "notification_deliveries"
       },
@@ -603,7 +603,7 @@
         "is_primary": false,
         "is_unique": true,
         "name": "quote_items_quote_request_id_position_key",
-        "scans": 34,
+        "scans": 39,
         "schema": "site_private",
         "table": "quote_items"
       },
@@ -675,7 +675,7 @@
         "is_primary": true,
         "is_unique": true,
         "name": "quote_requests_pkey",
-        "scans": 58,
+        "scans": 67,
         "schema": "site_private",
         "table": "quote_requests"
       },
@@ -765,7 +765,7 @@
         "is_primary": true,
         "is_unique": true,
         "name": "status_transitions_pkey",
-        "scans": 55,
+        "scans": 61,
         "schema": "site_private",
         "table": "status_transitions"
       },
@@ -781,23 +781,23 @@
     ],
     "table_stats": [
       {
-        "dead_rows": 50,
+        "dead_rows": 10,
         "est_rows": 4,
         "heap_bytes": 16384,
-        "idx_scan": 278,
+        "idx_scan": 366,
         "index_bytes": 106496,
         "last_autoanalyze": "2026-11-11T23:21:01.151989+00:00",
-        "last_autovacuum": null,
+        "last_autovacuum": "2026-11-11T23:41:01.591129+00:00",
         "name": "notification_deliveries",
         "schema": "site_private",
-        "seq_scan": 37,
-        "total_bytes": 155648
+        "seq_scan": 109,
+        "total_bytes": 163840
       },
       {
         "dead_rows": 16,
         "est_rows": 0,
         "heap_bytes": 8192,
-        "idx_scan": 155,
+        "idx_scan": 164,
         "index_bytes": 139264,
         "last_autoanalyze": null,
         "last_autovacuum": null,
@@ -862,7 +862,7 @@
         "dead_rows": 10,
         "est_rows": 0,
         "heap_bytes": 8192,
-        "idx_scan": 36,
+        "idx_scan": 41,
         "index_bytes": 57344,
         "last_autoanalyze": null,
         "last_autovacuum": null,
@@ -1005,7 +1005,7 @@
         "dead_rows": 0,
         "est_rows": 0,
         "heap_bytes": 8192,
-        "idx_scan": 55,
+        "idx_scan": 61,
         "index_bytes": 16384,
         "last_autoanalyze": null,
         "last_autovacuum": null,

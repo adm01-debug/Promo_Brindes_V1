@@ -14,7 +14,7 @@ Valores aproximados de propósito, para não gerar commits a cada coleta. Fora d
 
 | tabela | linhas (~) | total | heap | índices | linhas mortas (~) | seq scans (~) | idx scans (~) | último autovacuum |
 |---|---|---|---|---|---|---|---|---|
-| site_private.notification_deliveries | 4 | 152.0 KB | 16.0 KB | 104.0 KB | ~50 | ~40 | ~280 |  |
+| site_private.notification_deliveries | 4 | 160.0 KB | 16.0 KB | 104.0 KB | ~10 | ~110 | ~370 | 2026-11-11 |
 | site_private.quote_requests | 0 | 152.0 KB | 8.0 KB | 136.0 KB | ~20 | ~100 | ~160 |  |
 | site_private.admin_ddl_log | ~300 | 120.0 KB | 32.0 KB | 48.0 KB | ~40 | 6 | ~200 | 2026-09-27 |
 | site_private.contact_requests | 0 | 88.0 KB | 8.0 KB | 72.0 KB | 1 | ~20 | ~70 |  |
@@ -67,7 +67,7 @@ _nenhum_
 | postgres | ~50 | ~11.5k | 250.12 | `SELECT e.name, n.nspname AS schema, e.default_version, x.extversion AS installed_version, e.comment, ev.schema AS default_version_schema FROM pg_available_extensions e LEFT JOIN pg_extension x ON e.name = x.extname LEFT ` |
 | postgres | ~70 | ~8.7k | 126.54 | `select m->>$1 as version, m->>$2 as name, case when pg_catalog.jsonb_typeof(m->$3) = $4 then array(select pg_catalog.jsonb_array_elements_text(m->$5)) else $6 end as statements from pg_catalog.jsonb_array_elements( coale` |
 | authenticator | ~110 | ~3.7k | 33.40 | `WITH -- Recursively get the base types of domains base_types AS ( WITH RECURSIVE recurse AS ( SELECT oid, typbasetype, typnamespace AS base_namespace, COALESCE(NULLIF(typbasetype, $3), oid) AS base_type FROM pg_type UNIO` |
-| pgbouncer | ~180 | ~1.3k | 7.10 | `SELECT t.oid, t.typname, t.typsend, t.typreceive, t.typoutput, t.typinput, coalesce(d.typelem, t.typelem), coalesce(r.rngsubtype, $1), ARRAY ( SELECT a.atttypid FROM pg_attribute AS a WHERE a.attrelid = t.typrelid AND a.` |
+| pgbouncer | ~190 | ~1.3k | 7.09 | `SELECT t.oid, t.typname, t.typsend, t.typreceive, t.typoutput, t.typinput, coalesce(d.typelem, t.typelem), coalesce(r.rngsubtype, $1), ARRAY ( SELECT a.atttypid FROM pg_attribute AS a WHERE a.attrelid = t.typrelid AND a.` |
 | pgbouncer | ~2.5k | ~680 | 0.27 | `SELECT * FROM pgbouncer.get_auth($1)` |
 | service_role | ~60 | ~380 | 6.39 | `WITH pgrst_source AS (SELECT pgrst_call.pgrst_scalar FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT "p_quote_ids", "p_storage_paths", "p_batch_size" FROM json_to_record(pgrst_payload.json_data) AS _("p_quot` |
 | authenticator | ~110 | ~360 | 3.17 | `WITH -- Recursively get the base types of domains base_types AS ( WITH RECURSIVE recurse AS ( SELECT oid, typbasetype, typnamespace AS base_namespace, COALESCE(NULLIF(typbasetype, $2), oid) AS base_type FROM pg_type UNIO` |
