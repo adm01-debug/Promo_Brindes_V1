@@ -85,28 +85,28 @@
           "total_ms": 3674
         },
         {
-          "calls": 204,
-          "mean_ms": 7.09,
+          "calls": 213,
+          "mean_ms": 7.11,
           "query": "SELECT t.oid, t.typname, t.typsend, t.typreceive, t.typoutput, t.typinput, coalesce(d.typelem, t.typelem), coalesce(r.rngsubtype, $1), ARRAY ( SELECT a.atttypid FROM pg_attribute AS a WHERE a.attrelid = t.typrelid AND a.",
           "role": "pgbouncer",
-          "rows": 44670,
-          "total_ms": 1446
+          "rows": 46641,
+          "total_ms": 1514
         },
         {
-          "calls": 2637,
+          "calls": 2700,
           "mean_ms": 0.27,
           "query": "SELECT * FROM pgbouncer.get_auth($1)",
           "role": "pgbouncer",
-          "rows": 2637,
-          "total_ms": 716
+          "rows": 2700,
+          "total_ms": 735
         },
         {
-          "calls": 109,
-          "mean_ms": 4.95,
+          "calls": 123,
+          "mean_ms": 4.97,
           "query": "WITH pgrst_source AS (SELECT pgrst_call.pgrst_scalar FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT \"p_batch_size\" FROM json_to_record(pgrst_payload.json_data) AS _(\"p_batch_size\" integer) LIMIT $4) pgrst_b",
           "role": "service_role",
-          "rows": 109,
-          "total_ms": 539
+          "rows": 123,
+          "total_ms": 611
         },
         {
           "calls": 60,
@@ -149,28 +149,28 @@
           "total_ms": 312
         },
         {
+          "calls": 30,
+          "mean_ms": 10.27,
+          "query": "SELECT n.nspname AS schema, p.proname AS name, pg_get_function_identity_arguments(p.oid) AS args, pg_get_function_result(p.oid) AS returns, l.lanname AS language, CASE p.prokind WHEN $1 THEN $2 WHEN $3 THEN $4 WHEN $5 TH",
+          "role": "postgres",
+          "rows": 2160,
+          "total_ms": 308
+        },
+        {
+          "calls": 30,
+          "mean_ms": 10.1,
+          "query": "SELECT n.nspname AS schema, c.relname AS \"table\", con.conname AS name, CASE con.contype WHEN $1 THEN $2 WHEN $3 THEN $4 WHEN $5 THEN $6 WHEN $7 THEN $8 WHEN $9 THEN $10 ELSE con.contype::text END AS type, pg_get_constrai",
+          "role": "postgres",
+          "rows": 4380,
+          "total_ms": 303
+        },
+        {
           "calls": 1,
           "mean_ms": 298.56,
           "query": "with f as ( -- CTE with sane arg_modes, arg_names, and arg_types. -- All three are always of the same length. -- All three include all args, including OUT and TABLE args. with functions as ( select *, -- proargmodes is n",
           "role": "postgres",
           "rows": 172,
           "total_ms": 299
-        },
-        {
-          "calls": 6,
-          "mean_ms": 45.5,
-          "query": "with extension_oids as ( select objid from pg_depend d WHERE d.refclassid = $1::regclass and d.classid = $2::regclass ), pg_proc_pre as ( select pp.*, pp.oid as p_oid -- 10_AND_EARLIER pp.oid as p_oid, case when pp.prois",
-          "role": "postgres",
-          "rows": 1858,
-          "total_ms": 273
-        },
-        {
-          "calls": 113,
-          "mean_ms": 2.33,
-          "query": "WITH pks_uniques_cols AS ( SELECT conrelid, array_agg(key order by key) as cols FROM pg_constraint, LATERAL unnest(conkey) AS _(key) WHERE contype IN ($1, $2) AND connamespace <> $3::regnamespace GROUP BY oid, conrelid )",
-          "role": "authenticator",
-          "rows": 3967,
-          "total_ms": 264
         }
       ]
     },
@@ -432,7 +432,7 @@
         "is_primary": true,
         "is_unique": true,
         "name": "notification_deliveries_pkey",
-        "scans": 489,
+        "scans": 565,
         "schema": "site_private",
         "table": "notification_deliveries"
       },
@@ -784,13 +784,13 @@
         "dead_rows": 10,
         "est_rows": 4,
         "heap_bytes": 16384,
-        "idx_scan": 730,
+        "idx_scan": 806,
         "index_bytes": 106496,
         "last_autoanalyze": "2026-11-11T23:21:01.151989+00:00",
         "last_autovacuum": "2026-11-11T23:41:01.591129+00:00",
         "name": "notification_deliveries",
         "schema": "site_private",
-        "seq_scan": 335,
+        "seq_scan": 383,
         "total_bytes": 163840
       },
       {
