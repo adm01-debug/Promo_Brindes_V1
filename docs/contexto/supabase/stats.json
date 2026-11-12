@@ -85,20 +85,20 @@
           "total_ms": 3674
         },
         {
-          "calls": 186,
+          "calls": 187,
           "mean_ms": 7.09,
           "query": "SELECT t.oid, t.typname, t.typsend, t.typreceive, t.typoutput, t.typinput, coalesce(d.typelem, t.typelem), coalesce(r.rngsubtype, $1), ARRAY ( SELECT a.atttypid FROM pg_attribute AS a WHERE a.attrelid = t.typrelid AND a.",
           "role": "pgbouncer",
-          "rows": 40728,
-          "total_ms": 1319
+          "rows": 40947,
+          "total_ms": 1326
         },
         {
-          "calls": 2516,
+          "calls": 2523,
           "mean_ms": 0.27,
           "query": "SELECT * FROM pgbouncer.get_auth($1)",
           "role": "pgbouncer",
-          "rows": 2516,
-          "total_ms": 677
+          "rows": 2523,
+          "total_ms": 679
         },
         {
           "calls": 59,
@@ -149,6 +149,14 @@
           "total_ms": 299
         },
         {
+          "calls": 50,
+          "mean_ms": 5.53,
+          "query": "WITH pgrst_source AS (SELECT pgrst_call.pgrst_scalar FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT \"p_batch_size\" FROM json_to_record(pgrst_payload.json_data) AS _(\"p_batch_size\" integer) LIMIT $4) pgrst_b",
+          "role": "service_role",
+          "rows": 50,
+          "total_ms": 276
+        },
+        {
           "calls": 6,
           "mean_ms": 45.5,
           "query": "with extension_oids as ( select objid from pg_depend d WHERE d.refclassid = $1::regclass and d.classid = $2::regclass ), pg_proc_pre as ( select pp.*, pp.oid as p_oid -- 10_AND_EARLIER pp.oid as p_oid, case when pp.prois",
@@ -163,14 +171,6 @@
           "role": "authenticator",
           "rows": 3967,
           "total_ms": 264
-        },
-        {
-          "calls": 113,
-          "mean_ms": 2.15,
-          "query": "with all_relations as ( select reltype from pg_class where relkind in ($1,$2,$3,$4,$5) ), computed_rels as ( select (parse_ident(p.pronamespace::regnamespace::text))[$6] as schema, p.proname::text as name, arg_schema.nsp",
-          "role": "authenticator",
-          "rows": 0,
-          "total_ms": 243
         }
       ]
     },
@@ -432,7 +432,7 @@
         "is_primary": true,
         "is_unique": true,
         "name": "notification_deliveries_pkey",
-        "scans": 125,
+        "scans": 177,
         "schema": "site_private",
         "table": "notification_deliveries"
       },
@@ -784,13 +784,13 @@
         "dead_rows": 10,
         "est_rows": 4,
         "heap_bytes": 16384,
-        "idx_scan": 366,
+        "idx_scan": 418,
         "index_bytes": 106496,
         "last_autoanalyze": "2026-11-11T23:21:01.151989+00:00",
         "last_autovacuum": "2026-11-11T23:41:01.591129+00:00",
         "name": "notification_deliveries",
         "schema": "site_private",
-        "seq_scan": 109,
+        "seq_scan": 141,
         "total_bytes": 163840
       },
       {

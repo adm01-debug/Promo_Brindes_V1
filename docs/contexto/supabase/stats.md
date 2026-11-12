@@ -14,7 +14,7 @@ Valores aproximados de propósito, para não gerar commits a cada coleta. Fora d
 
 | tabela | linhas (~) | total | heap | índices | linhas mortas (~) | seq scans (~) | idx scans (~) | último autovacuum |
 |---|---|---|---|---|---|---|---|---|
-| site_private.notification_deliveries | 4 | 160.0 KB | 16.0 KB | 104.0 KB | ~10 | ~110 | ~370 | 2026-11-11 |
+| site_private.notification_deliveries | 4 | 160.0 KB | 16.0 KB | 104.0 KB | ~10 | ~140 | ~420 | 2026-11-11 |
 | site_private.quote_requests | 0 | 152.0 KB | 8.0 KB | 136.0 KB | ~20 | ~100 | ~160 |  |
 | site_private.admin_ddl_log | ~300 | 120.0 KB | 32.0 KB | 48.0 KB | ~40 | 6 | ~200 | 2026-09-27 |
 | site_private.contact_requests | 0 | 88.0 KB | 8.0 KB | 72.0 KB | 1 | ~20 | ~70 |  |
@@ -75,9 +75,9 @@ _nenhum_
 | authenticator | ~110 | ~330 | 2.96 | `with role_setting as ( select r.rolname, unnest(r.rolconfig) as setting from pg_auth_members m join pg_roles r on r.oid = m.roleid where member = current_user::regrole::oid ), kv_settings AS ( SELECT rolname, substr(sett` |
 | service_role | ~60 | ~310 | 5.26 | `WITH pgrst_source AS (SELECT pgrst_call.pgrst_scalar FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT "p_batch_size" FROM json_to_record(pgrst_payload.json_data) AS _("p_batch_size" integer) LIMIT $4) pgrst_b` |
 | postgres | 1 | ~300 | 298.56 | `with f as ( -- CTE with sane arg_modes, arg_names, and arg_types. -- All three are always of the same length. -- All three include all args, including OUT and TABLE args. with functions as ( select *, -- proargmodes is n` |
+| service_role | ~50 | ~280 | 5.53 | `WITH pgrst_source AS (SELECT pgrst_call.pgrst_scalar FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT "p_batch_size" FROM json_to_record(pgrst_payload.json_data) AS _("p_batch_size" integer) LIMIT $4) pgrst_b` |
 | postgres | 6 | ~270 | 45.50 | `with extension_oids as ( select objid from pg_depend d WHERE d.refclassid = $1::regclass and d.classid = $2::regclass ), pg_proc_pre as ( select pp.*, pp.oid as p_oid -- 10_AND_EARLIER pp.oid as p_oid, case when pp.prois` |
 | authenticator | ~110 | ~260 | 2.33 | `WITH pks_uniques_cols AS ( SELECT conrelid, array_agg(key order by key) as cols FROM pg_constraint, LATERAL unnest(conkey) AS _(key) WHERE contype IN ($1, $2) AND connamespace <> $3::regnamespace GROUP BY oid, conrelid )` |
-| authenticator | ~110 | ~240 | 2.15 | `with all_relations as ( select reltype from pg_class where relkind in ($1,$2,$3,$4,$5) ), computed_rels as ( select (parse_ident(p.pronamespace::regnamespace::text))[$6] as schema, p.proname::text as name, arg_schema.nsp` |
 
 
 ## Conexões
