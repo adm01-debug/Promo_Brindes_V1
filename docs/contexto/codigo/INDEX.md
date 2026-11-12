@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `b3bb6910af5e5c6360e890f78a848e72c0f9ac83` (2026-11-11T19:10:46Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `02c5c8dae940253f844fbcfc553366b92a5a0c46` (2026-11-12T11:37:35Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -170,10 +170,10 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - não gerado neste run. npm run graph:update (wrapper do repositório; não rode o CLI do graphify direto); saída em graphify-out/, não versionada
 
 ## Hotspots (arquivos mais alterados, 90 dias)
-- package.json (58)
+- package.json (59)
 - e2e/smoke.spec.ts (53)
 - src/styles.css (33)
-- package-lock.json (31)
+- package-lock.json (32)
 - vercel.json (25)
 - .github/workflows/quality.yml (22)
 - site-supabase/supabase/tests/database/lead_storage.test.sql (22)
@@ -376,6 +376,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-12 `02c5c8d` chore(deps): bump the npm-minor-and-patch group across 1 directory with 12 updates (#127)
 - 2026-11-11 `b3bb691` infra: adiciona retry transitório na instalação do Chromium (quality.yml) (#133)
 - 2026-11-11 `0840b55` feat: alerta comercial de orçamento (PF-01) (#116)
 - 2026-11-11 `52aa025` chore(automacao): conecta testes, grafo e manutenção aos gatilhos (#131)
@@ -390,7 +391,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-09 `d44baf5` security: guard falha fechado, sem injeção de arg e regex de backtick (#124)
 - 2026-11-08 `3c3cc11` chore: iguala a forma do AGENTS.md à do Zapp Web V2 (#120)
 - 2026-11-08 `75ba0fa` chore: replica o padrão de instruções para agentes do Zapp Web V2 (#119)
-- 2026-11-07 `cae3b2e` fix: correções da revisão de fidelidade (instruções) (#118)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

@@ -135,7 +135,7 @@
   "dependencias": 10,
   "dev_dependencias": 21,
   "principais": {
-   "@supabase/supabase-js": "^2.118.0",
+   "@supabase/supabase-js": "^2.119.0",
    "react": "^19.3.1",
    "react-dom": "^19.3.1",
    "react-router-dom": "^7.18.5"
@@ -1174,7 +1174,7 @@
    {
     "pacote": "@supabase/supabase-js",
     "servico": "Supabase",
-    "versao": "^2.118.0"
+    "versao": "^2.119.0"
    },
    {
     "pacote": "@vercel/analytics",

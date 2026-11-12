@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "b3bb6910af5e5c6360e890f78a848e72c0f9ac83",
+  "sha": "02c5c8dae940253f844fbcfc553366b92a5a0c46",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-11 22:46 UTC",
+  "generated_at": "2026-11-12 11:48 UTC",
   "files_total": 573,
   "code_files": 374,
   "code_lines": 65609,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "8cf859913f6cc4e8",
+ "facts_hash": "dbaff13b332c3bc8",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -18,12 +18,12 @@
   ],
   "deps": {
    "@supabase/supabase-js": {
-    "version": "^2.118.0",
+    "version": "^2.119.0",
     "role": "Supabase (DB/Auth/Storage/Functions)",
     "in": "package.json"
    },
    "lucide-react": {
-    "version": "^1.64.0",
+    "version": "^1.69.0",
     "role": "Ícones Lucide",
     "in": "package.json"
    },
@@ -38,12 +38,12 @@
     "in": "package.json"
    },
    "@playwright/test": {
-    "version": "^1.64.1",
+    "version": "^1.65.0",
     "role": "E2E Playwright",
     "in": "package.json"
    },
    "vite": {
-    "version": "^8.3.5",
+    "version": "^8.3.6",
     "role": "Bundler Vite",
     "in": "package.json"
    },
@@ -31750,10 +31750,20 @@
   }
  },
  "git": {
-  "sha": "b3bb6910af5e5c6360e890f78a848e72c0f9ac83",
+  "sha": "02c5c8dae940253f844fbcfc553366b92a5a0c46",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "02c5c8d",
+    "date": "2026-11-12",
+    "author": "dependabot[bot]",
+    "subject": "chore(deps): bump the npm-minor-and-patch group across 1 directory with 12 updates (#127)",
+    "files": [
+     "package-lock.json",
+     "package.json"
+    ]
+   },
    {
     "sha": "b3bb691",
     "date": "2026-11-11",
@@ -32232,18 +32242,6 @@
      ".github/workflows/quality.yml",
      ".github/workflows/release.yml"
     ]
-   },
-   {
-    "sha": "dea319e",
-    "date": "2026-10-27",
-    "author": "adm01-debug",
-    "subject": "fix(ci): registra baseline e corrige dependências da sonda do catálogo",
-    "files": [
-     "PENDENCIAS.md",
-     "RELATORIO_CI.md",
-     "package-lock.json",
-     "package.json"
-    ]
    }
   ],
   "hot_files": [
@@ -32261,10 +32259,6 @@
    ],
    [
     "scripts/validate-agent-instructions.mjs",
-    4
-   ],
-   [
-    "PENDENCIAS.md",
     4
    ],
    [
@@ -32308,7 +32302,7 @@
     3
    ],
    [
-    "RELATORIO_CI.md",
+    "PENDENCIAS.md",
     3
    ],
    [
@@ -32325,6 +32319,10 @@
    ],
    [
     "scripts/ai-context/cenarios.mjs",
+    2
+   ],
+   [
+    "scripts/ai-context/gerar.mjs",
     2
    ]
   ]

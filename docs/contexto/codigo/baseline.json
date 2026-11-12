@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "b3bb6910af5e5c6360e890f78a848e72c0f9ac83",
+  "commit": "02c5c8dae940253f844fbcfc553366b92a5a0c46",
   "branch": "main",
-  "data_commit": "2026-11-11T19:10:46Z",
+  "data_commit": "2026-11-12T11:37:35Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "02c5c8d",
+    "data": "2026-11-12",
+    "assunto": "chore(deps): bump the npm-minor-and-patch group across 1 directory with 12 updates (#127)"
+   },
    {
     "sha": "b3bb691",
     "data": "2026-11-11",
@@ -126,11 +131,6 @@
     "sha": "153192c",
     "data": "2026-10-27",
     "assunto": "docs(ci): registra bloqueio do ESLint 10 e atualiza pendências"
-   },
-   {
-    "sha": "7100e1c",
-    "data": "2026-10-27",
-    "assunto": "feat(ux): resumo editável e confirmação do briefing"
    }
   ],
   "arquivos_mudados_7d": 138,
@@ -141,7 +141,7 @@
    },
    {
     "pasta": "package.json",
-    "mudancas": 9
+    "mudancas": 10
    },
    {
     "pasta": "AGENTS.md",
@@ -149,7 +149,7 @@
    },
    {
     "pasta": "package-lock.json",
-    "mudancas": 5
+    "mudancas": 6
    },
    {
     "pasta": "site-supabase/supabase/tests",
@@ -199,7 +199,7 @@
   "arquivos_mais_mudados_90d": [
    {
     "arquivo": "package.json",
-    "mudancas": 58
+    "mudancas": 59
    },
    {
     "arquivo": "e2e/smoke.spec.ts",
@@ -211,7 +211,7 @@
    },
    {
     "arquivo": "package-lock.json",
-    "mudancas": 31
+    "mudancas": 32
    },
    {
     "arquivo": "vercel.json",
@@ -305,7 +305,7 @@
    },
    {
     "autor": "dependabot[bot]",
-    "commits": 7
+    "commits": 8
    }
   ]
  },
