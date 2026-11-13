@@ -14,7 +14,7 @@ Valores aproximados de propósito, para não gerar commits a cada coleta. Fora d
 
 | tabela | linhas (~) | total | heap | índices | linhas mortas (~) | seq scans (~) | idx scans (~) | último autovacuum |
 |---|---|---|---|---|---|---|---|---|
-| site_private.notification_deliveries | 4 | 160.0 KB | 16.0 KB | 104.0 KB | ~10 | ~1.1k | ~1.9k | 2026-11-11 |
+| site_private.notification_deliveries | 4 | 160.0 KB | 16.0 KB | 104.0 KB | ~10 | ~1.2k | ~2k | 2026-11-11 |
 | site_private.quote_requests | 0 | 152.0 KB | 8.0 KB | 136.0 KB | ~20 | ~100 | ~170 |  |
 | site_private.admin_ddl_log | ~300 | 120.0 KB | 32.0 KB | 48.0 KB | ~40 | 6 | ~210 | 2026-09-27 |
 | site_private.contact_requests | 0 | 88.0 KB | 8.0 KB | 72.0 KB | 1 | ~20 | ~70 |  |
@@ -68,15 +68,15 @@ _nenhum_
 | postgres | ~70 | ~9k | 127.41 | `select m->>$1 as version, m->>$2 as name, case when pg_catalog.jsonb_typeof(m->$3) = $4 then array(select pg_catalog.jsonb_array_elements_text(m->$5)) else $6 end as statements from pg_catalog.jsonb_array_elements( coale` |
 | authenticator | ~110 | ~3.8k | 33.51 | `WITH -- Recursively get the base types of domains base_types AS ( WITH RECURSIVE recurse AS ( SELECT oid, typbasetype, typnamespace AS base_namespace, COALESCE(NULLIF(typbasetype, $3), oid) AS base_type FROM pg_type UNIO` |
 | pgbouncer | ~250 | ~1.8k | 7.18 | `SELECT t.oid, t.typname, t.typsend, t.typreceive, t.typoutput, t.typinput, coalesce(d.typelem, t.typelem), coalesce(r.rngsubtype, $1), ARRAY ( SELECT a.atttypid FROM pg_attribute AS a WHERE a.attrelid = t.typrelid AND a.` |
-| service_role | ~330 | ~1.6k | 4.76 | `WITH pgrst_source AS (SELECT pgrst_call.pgrst_scalar FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT "p_batch_size" FROM json_to_record(pgrst_payload.json_data) AS _("p_batch_size" integer) LIMIT $4) pgrst_b` |
-| pgbouncer | ~2.9k | ~830 | 0.28 | `SELECT * FROM pgbouncer.get_auth($1)` |
-| postgres | ~60 | ~720 | 11.00 | `SELECT n.nspname AS schema, p.proname AS name, pg_get_function_identity_arguments(p.oid) AS args, pg_get_function_result(p.oid) AS returns, l.lanname AS language, CASE p.prokind WHEN $1 THEN $2 WHEN $3 THEN $4 WHEN $5 TH` |
-| service_role | ~100 | ~690 | 6.80 | `WITH pgrst_source AS (SELECT pgrst_call.pgrst_scalar FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT "p_channels", "p_batch_size" FROM json_to_record(pgrst_payload.json_data) AS _("p_channels" text[], "p_bat` |
-| postgres | ~60 | ~680 | 10.41 | `SELECT n.nspname AS schema, c.relname AS "table", con.conname AS name, CASE con.contype WHEN $1 THEN $2 WHEN $3 THEN $4 WHEN $5 THEN $6 WHEN $7 THEN $8 WHEN $9 THEN $10 ELSE con.contype::text END AS type, pg_get_constrai` |
-| postgres | ~60 | ~520 | 7.96 | `SELECT n.nspname AS schema, c.relname AS name, GREATEST(c.reltuples::bigint, $1) AS est_rows, pg_total_relation_size(c.oid) AS total_bytes, pg_relation_size(c.oid) AS heap_bytes, pg_indexes_size(c.oid) AS index_bytes, s.` |
-| postgres | ~60 | ~490 | 7.55 | `SELECT n.nspname AS schema, t.relname AS "table", ic.relname AS name, pg_get_indexdef(ix.indexrelid) AS definition, ix.indisunique AS is_unique, ix.indisprimary AS is_primary, ix.indisvalid AS is_valid, am.amname AS meth` |
-| postgres | ~60 | ~480 | 7.41 | `SELECT n.nspname AS schema, c.relname AS "table", a.attnum AS position, a.attname AS name, format_type(a.atttypid, a.atttypmod) AS type, NOT a.attnotnull AS nullable, pg_get_expr(d.adbin, d.adrelid) AS "default", NULLIF(` |
-| postgres | ~60 | ~450 | 6.97 | `SELECT version, name, statements FROM supabase_migrations.schema_migrations ORDER BY version` |
+| service_role | ~350 | ~1.7k | 4.75 | `WITH pgrst_source AS (SELECT pgrst_call.pgrst_scalar FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT "p_batch_size" FROM json_to_record(pgrst_payload.json_data) AS _("p_batch_size" integer) LIMIT $4) pgrst_b` |
+| pgbouncer | ~3k | ~840 | 0.28 | `SELECT * FROM pgbouncer.get_auth($1)` |
+| postgres | ~70 | ~730 | 11.03 | `SELECT n.nspname AS schema, p.proname AS name, pg_get_function_identity_arguments(p.oid) AS args, pg_get_function_result(p.oid) AS returns, l.lanname AS language, CASE p.prokind WHEN $1 THEN $2 WHEN $3 THEN $4 WHEN $5 TH` |
+| service_role | ~110 | ~730 | 6.79 | `WITH pgrst_source AS (SELECT pgrst_call.pgrst_scalar FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT "p_channels", "p_batch_size" FROM json_to_record(pgrst_payload.json_data) AS _("p_channels" text[], "p_bat` |
+| postgres | ~70 | ~690 | 10.44 | `SELECT n.nspname AS schema, c.relname AS "table", con.conname AS name, CASE con.contype WHEN $1 THEN $2 WHEN $3 THEN $4 WHEN $5 THEN $6 WHEN $7 THEN $8 WHEN $9 THEN $10 ELSE con.contype::text END AS type, pg_get_constrai` |
+| postgres | ~70 | ~530 | 7.98 | `SELECT n.nspname AS schema, c.relname AS name, GREATEST(c.reltuples::bigint, $1) AS est_rows, pg_total_relation_size(c.oid) AS total_bytes, pg_relation_size(c.oid) AS heap_bytes, pg_indexes_size(c.oid) AS index_bytes, s.` |
+| postgres | ~70 | ~500 | 7.54 | `SELECT n.nspname AS schema, t.relname AS "table", ic.relname AS name, pg_get_indexdef(ix.indexrelid) AS definition, ix.indisunique AS is_unique, ix.indisprimary AS is_primary, ix.indisvalid AS is_valid, am.amname AS meth` |
+| postgres | ~70 | ~490 | 7.40 | `SELECT n.nspname AS schema, c.relname AS "table", a.attnum AS position, a.attname AS name, format_type(a.atttypid, a.atttypmod) AS type, NOT a.attnotnull AS nullable, pg_get_expr(d.adbin, d.adrelid) AS "default", NULLIF(` |
+| postgres | ~70 | ~460 | 6.98 | `SELECT version, name, statements FROM supabase_migrations.schema_migrations ORDER BY version` |
 | service_role | ~60 | ~380 | 6.36 | `WITH pgrst_source AS (SELECT pgrst_call.pgrst_scalar FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT "p_quote_ids", "p_storage_paths", "p_batch_size" FROM json_to_record(pgrst_payload.json_data) AS _("p_quot` |
 
 
