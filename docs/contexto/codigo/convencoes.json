@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "fix(lint): ignora o runtime local .tools/ no eslint (#137)",
    "fix(a11y): nomeia o link da imagem do card com o nome do produto (#136)",
    "fix: minimatch 11 via overrides fecha dependabot #9 (DoS dev) (#135)",
    "fix: garante dir do node no PATH do safeEnv (#134)",
-   "chore(deps): bump graphifyy from 0.9.97 to 0.9.103 (#126)",
-   "chore(deps): bump the npm-minor-and-patch group across 1 directory with 12 updates (#127)"
+   "chore(deps): bump graphifyy from 0.9.97 to 0.9.103 (#126)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

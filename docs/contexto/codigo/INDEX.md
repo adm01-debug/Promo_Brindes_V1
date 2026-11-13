@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `7347bd4ae1d24b5d86be3bae8c0313182b3a59d2` (2026-11-13T20:36:08Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `8a810bdfc1f21cf6222c067b79e509db518431c1` (2026-11-13T22:33:09Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -36,7 +36,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 |---|---|
 | arquivos_total | 680 |
 | arquivos_codigo | 271 |
-| linhas_codigo | 53275 |
+| linhas_codigo | 53276 |
 | rotas | 32 |
 | rotas_http_backend | 14 |
 | vistas_por_id | 0 |
@@ -376,6 +376,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-13 `8a810bd` fix(lint): ignora o runtime local .tools/ no eslint (#137)
 - 2026-11-13 `7347bd4` fix(a11y): nomeia o link da imagem do card com o nome do produto (#136)
 - 2026-11-13 `9c5f21b` fix: minimatch 11 via overrides fecha dependabot #9 (DoS dev) (#135)
 - 2026-11-13 `d7242eb` fix: garante dir do node no PATH do safeEnv (#134)
@@ -390,7 +391,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-10 `223e655` fix: endurece e cobre com testes todos os scripts do repositório (#130)
 - 2026-11-10 `860a0a0` infra: liga a comparação real do guard de instruções no CI (#121)
 - 2026-11-10 `af5cfd1` chore(deps): bump the actions-minor-and-patch group with 2 updates (#125)
-- 2026-11-09 `7eb1b5d` chore(deps): bump graphifyy para 0.9.97 com o companheiro casado (#123)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

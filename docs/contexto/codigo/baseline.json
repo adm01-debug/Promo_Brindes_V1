@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "7347bd4ae1d24b5d86be3bae8c0313182b3a59d2",
+  "commit": "8a810bdfc1f21cf6222c067b79e509db518431c1",
   "branch": "main",
-  "data_commit": "2026-11-13T20:36:08Z",
+  "data_commit": "2026-11-13T22:33:09Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "8a810bd",
+    "data": "2026-11-13",
+    "assunto": "fix(lint): ignora o runtime local .tools/ no eslint (#137)"
+   },
    {
     "sha": "7347bd4",
     "data": "2026-11-13",
@@ -126,11 +131,6 @@
     "sha": "28b3d88",
     "data": "2026-10-31",
     "assunto": "docs: completa analise-prs com 7 arquivos complementares (#111)"
-   },
-   {
-    "sha": "b193119",
-    "data": "2026-10-31",
-    "assunto": "docs: inventário de auditorias anteriores e dataset de PRs (analise-prs/) (#110)"
    }
   ],
   "arquivos_mudados_7d": 140,
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 28
+    "commits": 29
    },
    {
     "autor": "dependabot[bot]",
@@ -312,7 +312,7 @@
  "contagens": {
   "arquivos_total": 680,
   "arquivos_codigo": 271,
-  "linhas_codigo": 53275,
+  "linhas_codigo": 53276,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -404,7 +404,7 @@
   },
   "eslint.config.js": {
    "arquivos": 1,
-   "linhas": 133
+   "linhas": 134
   },
   "playwright.config.ts": {
    "arquivos": 1,
