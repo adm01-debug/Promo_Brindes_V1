@@ -1,9 +1,9 @@
 {
  "meta": {
-  "sha": "d7242ebed3088b2c30ad59cf9c53903a8567074d",
+  "sha": "9c5f21b883d9e8c0f6511106621e6b72f4b9e2fc",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-13 16:13 UTC",
+  "generated_at": "2026-11-13 18:04 UTC",
   "files_total": 573,
   "code_files": 374,
   "code_lines": 65625,
@@ -31754,10 +31754,20 @@
   }
  },
  "git": {
-  "sha": "d7242ebed3088b2c30ad59cf9c53903a8567074d",
+  "sha": "9c5f21b883d9e8c0f6511106621e6b72f4b9e2fc",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "9c5f21b",
+    "date": "2026-11-13",
+    "author": "adm01-debug",
+    "subject": "fix: minimatch 11 via overrides fecha dependabot #9 (DoS dev) (#135)",
+    "files": [
+     "package-lock.json",
+     "package.json"
+    ]
+   },
    {
     "sha": "d7242eb",
     "date": "2026-11-13",
@@ -32217,22 +32227,6 @@
      "docs/GRAPHIFY.md",
      "docs/GRAPHIFY_0994_EVALUATION_20261027.md",
      "requirements-graphify.txt"
-    ]
-   },
-   {
-    "sha": "fb534ed",
-    "date": "2026-10-27",
-    "author": "dependabot[bot]",
-    "subject": "chore(deps): atualiza dependências e rótulos acessíveis",
-    "files": [
-     "e2e/smoke.spec.ts",
-     "package-lock.json",
-     "package.json",
-     "src/components/Layout.tsx",
-     "src/components/ProductCard.tsx",
-     "src/components/SearchAutocomplete.tsx",
-     "src/pages/KitBuilderPage.tsx",
-     "src/pages/ProductPage.tsx"
     ]
    }
   ],

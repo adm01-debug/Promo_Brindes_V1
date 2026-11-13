@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `d7242ebed3088b2c30ad59cf9c53903a8567074d` (2026-11-13T14:44:49Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `9c5f21b883d9e8c0f6511106621e6b72f4b9e2fc` (2026-11-13T16:51:09Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -170,10 +170,10 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - não gerado neste run. npm run graph:update (wrapper do repositório; não rode o CLI do graphify direto); saída em graphify-out/, não versionada
 
 ## Hotspots (arquivos mais alterados, 90 dias)
-- package.json (59)
+- package.json (60)
 - e2e/smoke.spec.ts (53)
+- package-lock.json (33)
 - src/styles.css (33)
-- package-lock.json (32)
 - vercel.json (25)
 - .github/workflows/quality.yml (22)
 - site-supabase/supabase/tests/database/lead_storage.test.sql (22)
@@ -376,6 +376,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-13 `9c5f21b` fix: minimatch 11 via overrides fecha dependabot #9 (DoS dev) (#135)
 - 2026-11-13 `d7242eb` fix: garante dir do node no PATH do safeEnv (#134)
 - 2026-11-12 `ad82577` chore(deps): bump graphifyy from 0.9.97 to 0.9.103 (#126)
 - 2026-11-12 `02c5c8d` chore(deps): bump the npm-minor-and-patch group across 1 directory with 12 updates (#127)
@@ -390,7 +391,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-10 `af5cfd1` chore(deps): bump the actions-minor-and-patch group with 2 updates (#125)
 - 2026-11-09 `7eb1b5d` chore(deps): bump graphifyy para 0.9.97 com o companheiro casado (#123)
 - 2026-11-09 `713ebe4` feat(scripts): porta scripts autônomos de contexto de IA do Zapp Web V2
-- 2026-11-09 `d44baf5` security: guard falha fechado, sem injeção de arg e regex de backtick (#124)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`
