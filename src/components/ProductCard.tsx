@@ -40,16 +40,16 @@ export function ProductCard({ product, categoryName, priority = false, compariso
             className="product-card__image"
             onError={replaceBrokenProductImage}
           />
-          {badge && (
-            <div className="product-card__badges" aria-label="Característica em destaque">
-              {badge === 'personalizable' && <span className="badge badge--green"><Sparkles size={13} aria-hidden="true" /> Sua marca aqui</span>}
-              {badge === 'new' && <span className="badge badge--new">Novidade</span>}
-              {badge === 'kit' && <span className="badge badge--kit"><Layers3 size={13} aria-hidden="true" /> Kit</span>}
-            </div>
-          )}
           <span className="product-card__view" aria-hidden="true"><ArrowUpRight size={18} /></span>
         </div>
       </Link>
+      {badge && (
+        <div className="product-card__badges" aria-label="Característica em destaque">
+          {badge === 'personalizable' && <span className="badge badge--green"><Sparkles size={13} aria-hidden="true" /> Sua marca aqui</span>}
+          {badge === 'new' && <span className="badge badge--new">Novidade</span>}
+          {badge === 'kit' && <span className="badge badge--kit"><Layers3 size={13} aria-hidden="true" /> Kit</span>}
+        </div>
+      )}
       <div className="product-card__body">
         <p className="product-card__eyebrow">{categoryName || 'Brindes corporativos'} · Cód. {product.sku}</p>
         <Link className="product-card__title" to={`/produto/${product.slug}`}>{product.name}</Link>
