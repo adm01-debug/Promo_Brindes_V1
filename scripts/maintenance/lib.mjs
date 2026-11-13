@@ -39,6 +39,13 @@ export const exists = async (file) => {
     throw e;
   }
 };
+const nodeBin = (() => {
+  try {
+    return path.dirname(process.execPath);
+  } catch {
+    return null;
+  }
+})();
 export const safeEnv = ({ nodeEnv, publicEnv = {}, hooks = false } = {}) => ({
   ...Object.fromEntries(
     Object.entries(process.env).filter(([k]) =>
@@ -54,6 +61,14 @@ export const safeEnv = ({ nodeEnv, publicEnv = {}, hooks = false } = {}) => ({
       ].includes(k),
     ),
   ),
+  ...(nodeBin
+    ? {
+        PATH: [
+          nodeBin,
+          ...(process.env.PATH || "").split(path.delimiter).filter(Boolean),
+        ].join(path.delimiter),
+      }
+    : {}),
   CI: "true",
   NO_COLOR: "1",
   ...(nodeEnv ? { NODE_ENV: nodeEnv } : {}),
