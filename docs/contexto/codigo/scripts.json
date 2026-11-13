@@ -250,8 +250,10 @@
   {
    "arquivo": "scripts/maintenance/lib.mjs",
    "descricao": null,
-   "linhas": 955,
-   "env": [],
+   "linhas": 970,
+   "env": [
+    "PATH"
+   ],
    "npm_scripts": [],
    "workflows": [],
    "orfao": false

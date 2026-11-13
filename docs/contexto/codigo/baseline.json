@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "ad825772b14cf92d7d5b8666d33413b064cf459f",
+  "commit": "d7242ebed3088b2c30ad59cf9c53903a8567074d",
   "branch": "main",
-  "data_commit": "2026-11-12T13:56:09Z",
+  "data_commit": "2026-11-13T14:44:49Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "d7242eb",
+    "data": "2026-11-13",
+    "assunto": "fix: garante dir do node no PATH do safeEnv (#134)"
+   },
    {
     "sha": "ad82577",
     "data": "2026-11-12",
@@ -126,11 +131,6 @@
     "sha": "b49f7fc",
     "data": "2026-10-27",
     "assunto": "chore: alinha documentos do contrato do catálogo ao ledger canônico (#108)"
-   },
-   {
-    "sha": "e7ebf1b",
-    "data": "2026-10-27",
-    "assunto": "fix(ci): compatibiliza ESLint 10 com regras de acessibilidade"
    }
   ],
   "arquivos_mudados_7d": 138,
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 25
+    "commits": 26
    },
    {
     "autor": "dependabot[bot]",
@@ -312,7 +312,7 @@
  "contagens": {
   "arquivos_total": 680,
   "arquivos_codigo": 271,
-  "linhas_codigo": 53260,
+  "linhas_codigo": 53275,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -476,7 +476,7 @@
   },
   "scripts/maintenance": {
    "arquivos": 4,
-   "linhas": 3062
+   "linhas": 3077
   },
   "scripts/normalize-vercel-deployment-url.mjs": {
    "arquivos": 1,
@@ -698,7 +698,7 @@
   },
   {
    "arquivo": "scripts/maintenance/lib.mjs",
-   "linhas": 955
+   "linhas": 970
   },
   {
    "arquivo": "scripts/graphify.mjs",

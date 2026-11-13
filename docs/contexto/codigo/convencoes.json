@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "fix: garante dir do node no PATH do safeEnv (#134)",
    "chore(deps): bump graphifyy from 0.9.97 to 0.9.103 (#126)",
    "chore(deps): bump the npm-minor-and-patch group across 1 directory with 12 updates (#127)",
    "infra: adiciona retry transitório na instalação do Chromium (quality.yml) (#133)",
-   "feat: alerta comercial de orçamento (PF-01) (#116)",
-   "chore(automacao): conecta testes, grafo e manutenção aos gatilhos (#131)"
+   "feat: alerta comercial de orçamento (PF-01) (#116)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",
