@@ -1010,6 +1010,7 @@ p {
 }
 
 .product-card {
+  position: relative;
   min-width: 0;
   overflow: hidden;
   background: var(--white);
@@ -4430,6 +4431,7 @@ p {
 }
 
 .product-card {
+  position: relative;
   border: 1.5px solid var(--ink);
   border-radius: 17px;
   box-shadow: 4px 4px 0 #d4d0c4;
