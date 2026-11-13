@@ -18,6 +18,7 @@ export default tseslint.config(
       '.graphify-work/**',
       '.vercel/**',
       'node_modules/**',
+      '**/.tools/**',
       '**/*.tsbuildinfo',
       'site-supabase/supabase/.branches/**',
       'site-supabase/supabase/.temp/**',
