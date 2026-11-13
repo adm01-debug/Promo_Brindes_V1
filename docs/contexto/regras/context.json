@@ -1,9 +1,9 @@
 {
  "meta": {
-  "sha": "9c5f21b883d9e8c0f6511106621e6b72f4b9e2fc",
+  "sha": "7347bd4ae1d24b5d86be3bae8c0313182b3a59d2",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-13 18:04 UTC",
+  "generated_at": "2026-11-13 21:26 UTC",
   "files_total": 573,
   "code_files": 374,
   "code_lines": 65625,
@@ -31754,10 +31754,20 @@
   }
  },
  "git": {
-  "sha": "9c5f21b883d9e8c0f6511106621e6b72f4b9e2fc",
+  "sha": "7347bd4ae1d24b5d86be3bae8c0313182b3a59d2",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "7347bd4",
+    "date": "2026-11-13",
+    "author": "adm01-debug",
+    "subject": "fix(a11y): nomeia o link da imagem do card com o nome do produto (#136)",
+    "files": [
+     "src/components/ProductCard.tsx",
+     "src/styles.css"
+    ]
+   },
    {
     "sha": "9c5f21b",
     "date": "2026-11-13",
@@ -32216,18 +32226,6 @@
      "src/pages/QuotePage.tsx",
      "src/styles.css"
     ]
-   },
-   {
-    "sha": "a8f3076",
-    "date": "2026-10-27",
-    "author": "dependabot[bot]",
-    "subject": "chore(graphify): atualiza para 0.9.94 com benchmark e pin alinhado",
-    "files": [
-     ".graphify.project.json",
-     "docs/GRAPHIFY.md",
-     "docs/GRAPHIFY_0994_EVALUATION_20261027.md",
-     "requirements-graphify.txt"
-    ]
    }
   ],
   "hot_files": [
@@ -32244,15 +32242,11 @@
     5
    ],
    [
-    ".graphify.project.json",
-    4
-   ],
-   [
     "scripts/validate-agent-instructions.mjs",
     4
    ],
    [
-    "requirements-graphify.txt",
+    ".graphify.project.json",
     3
    ],
    [
@@ -32296,7 +32290,15 @@
     3
    ],
    [
+    "src/styles.css",
+    2
+   ],
+   [
     "scripts/maintenance/lib.mjs",
+    2
+   ],
+   [
+    "requirements-graphify.txt",
     2
    ],
    [
@@ -32305,10 +32307,6 @@
    ],
    [
     "analise-prs/fontes.json",
-    2
-   ],
-   [
-    ".claude/hooks/session-start.sh",
     2
    ]
   ]

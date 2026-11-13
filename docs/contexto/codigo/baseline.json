@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "9c5f21b883d9e8c0f6511106621e6b72f4b9e2fc",
+  "commit": "7347bd4ae1d24b5d86be3bae8c0313182b3a59d2",
   "branch": "main",
-  "data_commit": "2026-11-13T16:51:09Z",
+  "data_commit": "2026-11-13T20:36:08Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "7347bd4",
+    "data": "2026-11-13",
+    "assunto": "fix(a11y): nomeia o link da imagem do card com o nome do produto (#136)"
+   },
    {
     "sha": "9c5f21b",
     "data": "2026-11-13",
@@ -126,14 +131,9 @@
     "sha": "b193119",
     "data": "2026-10-31",
     "assunto": "docs: inventário de auditorias anteriores e dataset de PRs (analise-prs/) (#110)"
-   },
-   {
-    "sha": "cc133bd",
-    "data": "2026-10-29",
-    "assunto": "docs(ci): registra falha de quota do Copilot na main (#109)"
    }
   ],
-  "arquivos_mudados_7d": 138,
+  "arquivos_mudados_7d": 140,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -206,11 +206,11 @@
     "mudancas": 53
    },
    {
-    "arquivo": "package-lock.json",
-    "mudancas": 33
+    "arquivo": "src/styles.css",
+    "mudancas": 34
    },
    {
-    "arquivo": "src/styles.css",
+    "arquivo": "package-lock.json",
     "mudancas": 33
    },
    {
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 27
+    "commits": 28
    },
    {
     "autor": "dependabot[bot]",
