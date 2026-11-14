@@ -214,8 +214,13 @@ export function validateCatalogPublicContract(rows, { seenProductIds = new Set()
   };
 }
 
-function isTransientStatus(status) {
-  return status >= 500 || status === 408 || status === 429;
+function isTransientStatus(status, { retryOnAuth401 = false } = {}) {
+  // 401 é transitório somente para leituras desta sonda pública (a camada Auth do
+  // Supabase pode devolvê-lo em pico mesmo com chave válida). A sonda de coluna
+  // proibida e o modo default não o tratam como transitório para não mascarar uma
+  // recusa real de autorização.
+  if (status >= 500 || status === 408 || status === 429) return true;
+  return retryOnAuth401 && status === 401;
 }
 
 function isNetworkFailure(error) {
@@ -226,7 +231,7 @@ function describeNetworkFailure(error) {
   return error?.cause?.code ?? error?.cause?.message ?? `${error?.name ?? 'Error'}: ${error?.message ?? error}`;
 }
 
-async function request(fetchImplementation, url, headers, resource, retryDelaysMs) {
+async function request(fetchImplementation, url, headers, resource, retryDelaysMs, options = {}) {
   for (let attempt = 0; ; attempt += 1) {
     let response;
     let failure;
@@ -236,7 +241,7 @@ async function request(fetchImplementation, url, headers, resource, retryDelaysM
       if (!isNetworkFailure(error)) throw error;
       failure = error;
     }
-    if (failure === undefined && !isTransientStatus(response.status)) return response;
+    if (failure === undefined && !isTransientStatus(response.status, options)) return response;
     if (attempt >= retryDelaysMs.length) {
       if (failure === undefined) return response;
       throw new Error(`Contrato indisponível: falha de rede ao consultar ${resource} após ${attempt + 1} tentativa(s) (${describeNetworkFailure(failure)}).`);
@@ -281,6 +286,7 @@ async function fetchExactCount(fetchImplementation, origin, key, resource, activ
     { apikey: key, Authorization: `Bearer ${key}`, Accept: 'application/json', Prefer: 'count=exact' },
     resource,
     retryDelaysMs,
+    { retryOnAuth401: true },
   );
   if (!response.ok) throw new Error(`Contrato inconclusivo: ${resource} respondeu HTTP ${response.status}.`);
   return exactCount(response, resource);
@@ -340,6 +346,7 @@ async function scanCatalog(fetchImplementation, origin, key, baselineTotal, retr
       },
       'v_site_products_public',
       retryDelaysMs,
+      { retryOnAuth401: true },
     );
     if (!response.ok) throw new Error(`Contrato indisponível: v_site_products_public respondeu HTTP ${response.status}.`);
     if (siteTotal === null) siteTotal = exactCount(response, 'v_site_products_public');

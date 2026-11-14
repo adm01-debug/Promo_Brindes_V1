@@ -371,6 +371,34 @@ test('repete leitura após falha transitória de rede, 5xx ou 429 e aprova quand
   assert.equal(count('probe'), 6);
 });
 
+test('repetição de leitura também cobre 401 da camada Auth com backoff nas contagens e na varredura', async (t) => {
+  canonicalEnv(t);
+  const { fetchMock, count } = healthyFetch((kind, nth) => {
+    // 401 na 1ª contagem baseline, na 1ª página da varredura e na 1ª contagem site.
+    if (kind === 'baseline' && nth === 1) return new Response('{}', { status: 401 });
+    if (kind === 'scan' && nth === 1) return new Response('{}', { status: 401 });
+    if (kind === 'site-count' && nth === 1) return new Response('{}', { status: 401 });
+    return null;
+  });
+  assert.deepEqual(await checkCatalogPublicContract(fetchMock, NO_DELAY), {
+    inspectedRows: 1,
+    columns: 36,
+    warnings: { blankSwatchNames: 0, duplicateSwatchNames: 0 },
+  });
+  assert.equal(count('baseline'), 3);
+  assert.equal(count('scan'), 3);
+  assert.equal(count('site-count'), 2);
+});
+
+test('401 persistente nas leituras reprova com o código HTTP, sem esperar para sempre', async (t) => {
+  canonicalEnv(t);
+  const unauth = healthyFetch(() => new Response('{}', { status: 401 }));
+  await assert.rejects(
+    () => checkCatalogPublicContract(unauth.fetchMock, NO_DELAY),
+    /Contrato inconclusivo: v_products_public respondeu HTTP 401\./,
+  );
+});
+
 test('falha de rede persistente reprova com causa e recurso, depois de três tentativas', async (t) => {
   canonicalEnv(t);
   const refused = healthyFetch(() => { throw networkError('ECONNREFUSED'); });
