@@ -33,7 +33,7 @@ briefing-assets, commercial-alerts, contact-requests, customer-proposals, not-fo
 Status: **OK** (registradas em `functions` + rewrites no `vercel.json`).
 
 ### Rotas/rewrites e crons — `vercel.json`
-Rewrites: sitemap.xml, /→site-page, /catalogo, /catalogos, /montar-kit, /datas-comemorativas, /produto/:identifier, /orcamento, /selecoes/compartilhada, /ideias/:topic, /sobre, /contato, /privacidade (site-page), + fallback `api/not-found`.
+Rewrites: sitemap.xml, / → /index.html (SPA estático, não passa por `site-page`), /catalogo, /catalogos, /montar-kit, /datas-comemorativas, /produto/:identifier, /orcamento, /selecoes/compartilhada, /ideias/:topic, /sobre, /contato, /privacidade (site-page), + fallback `api/not-found`.
 Crons: `/api/retention` (0 3 * * *), `/api/notifications` (*/15), `/api/commercial-alerts` (*/5).
 Status: **OK**.
 
@@ -49,15 +49,15 @@ automation-local, catalog-contract, ci-health, codeql, contexto, database, depen
 | Automação local | push 8a810bd | SUCCESS ✅ |
 | Graphify structural map | push 8a810bd | SUCCESS ✅ |
 | Isolated site database | push 8a810bd | SUCCESS ✅ |
-| Canonical catalog public contract | schedule 8a810bd | **FAILURE** (BLOQUEADO — ver item 9) |
+| Canonical catalog public contract | schedule (últimos: 14:01/14:06/14:08 UTC) | SUCCESS ✅ (7/7 verde pós-rotação da key em 14/11 13:21Z) |
 
-Observação: os demais workflows (ci-health, dependency-review, database, contexto, inventario-estado-semanal, production-drift, secrets-rotation-reminder, stale-branches, workflows-lint) são disparados por schedule/push de dependências/PR; o merge `8a810bd` só dispara os 6 de push acima (todos verdes). O `Canonical catalog public contract` (schedule) está vermelho no main atual — ver BLOQUEADO.
+Observação: os demais workflows (ci-health, dependency-review, database, contexto, inventario-estado-semanal, production-drift, secrets-rotation-reminder, stale-branches, workflows-lint) são disparados por schedule/push de dependências/PR; o merge `8a810bd` só dispara os 6 de push acima (todos verdes). O `Canonical catalog public contract` (schedule) está verde nas execuções mais recentes (7/7 pós-rotação).
 
 ### Banco (item 6)
 - 66 migrations em `site-supabase/supabase/migrations`.
 - 21 tabelas `site_private` — **todas** com `enable row level security` (verificado arquivo a arquivo).
 - **Zero grants diretos a anon/authenticated** em tabelas (acesso só via RPC `security definer` + roles `site_api`/`service_role`).
-Status: **OK (estático)**. Auditoria ao vivo: **BLOQUEADO** — keys `sb_secret_/sb_publishable_` só alcançam a Auth API (GoTrue health 200); PostgREST e pg/query retornam 401/404. Requer `SUPABASE_ACCESS_TOKEN` ou JWT service_role legado.
+Status: **OK (estático)**. Auditoria ao vivo: **OK** — alerta `Canonical catalog public contract` (que reprovou no run schedule 43571471934 de 07:31, anterior à rotação) está verde desde a rotação da key `VITE_SUPABASE_PUBLISHABLE_KEY` das Actions em 14/11 13:21Z (7 execuções consecutivas SUCCESS); RPCs do site validadas ao vivo com secret key (preflight rejeita hash inválido e aplica rate limit de 8/15min; `create_site_quote_request` cria, deduplica e rejeita `client_request_id_conflict`).
 
 ## Qualidade (item 3)
 - `npm run check` (lint+typecheck+build+testes) no branch da PR #137: **exit 0, 123 passed / 5 skipped** (skips condicionais por projeto mobile/chromium — legítimos, não removidos).
@@ -69,12 +69,13 @@ Varredura em `src/` e `api/`: zero `TODO`/`FIXME`/`WIP`, zero `export default {}
 Status: **OK**.
 
 ## Produção (item 7)
-- `https://www.promobrindes.com.br/` responsivo: **HTTP 200** (HTML ~564KB).
-- Deploy Vercel do merge `8a810bd`: **READY** (13/11 20:13 UTC).
-- Fluxo orçamento→alerta→comercial (#116): **BLOQUEADO** — requer env vars `COMMERCIAL_TEAM_WEBHOOK_URL`/`TOKEN` na Vercel (configuração de segredo — Regra 8).
+- `https://www.promobrindes.com.br/` responsivo: **HTTP 200** (HTML ~564KB); smoke em produção 14/11: sitemap 200, `/` 200, `/api/quote-requests` rejeita origin inválida (403) — validação de origem ativa.
+- Deploy Vercel do merge `8a810bd`: **READY** (`dpl_G7iNeDrkcwXeodKVZy6t5MgAEG5C`); deploy de produção vigente READY.
+- Fluxo orçamento→alerta→comercial (#116): **BLOQUEADO apenas o elo final** — o pipeline banco foi provado ao vivo nesta rodada (orçamento de teste criou `quote_requests` + enfileirou audience `commercial_team`; `claim_site_commercial_team_alert` retornou envelope completo com protocolo `PB260000108`). Falta `COMMERCIAL_TEAM_WEBHOOK_URL`/`TOKEN` na Vercel (segredo — Regra 8), sem as quais `commercialAlertsEnabled()` retorna falso e o job fica `pending` aguardando o cron `*/5`.
 
 ## Entrega (item 8)
 - **PR #137** (fix lint `**/.tools/**` no eslint.config.js): squash-merged em `8a810bd`, branch deletada. CI verde.
+- **PR #138** (este relatório): aberta, 9 checks verdes, aguardando o estado de merge do GitHub destravar (`mergeable_state blocked` transitório apesar de `mergeable: true`).
 
 ## Correções nesta rodada
 1. **PR #137** — adicionado `'**/.tools/**'` ao array `ignores` do `eslint.config.js` para `npm run check` local terminar com exit 0 (espelha a CI, que não varre o diretório não-tracked `/.tools/`). Evidência: `npm run lint` e `npm run check` → exit 0; CI verde; merge confirmado por `git ls-remote refs/heads/main` = `8a810bd`.
@@ -82,6 +83,5 @@ Status: **OK**.
 ## BLOQUEADO / aguardando dono (item 9)
 | Item | Status | Erro exato / o que falta |
 |---|---|---|
-| Auditoria de banco ao vivo (RLS/migrations no ar) | BLOQUEADO | PostgREST e `/pg/query` → 401/404 com keys `sb_*` (só Auth API). Requer `SUPABASE_ACCESS_TOKEN` ou JWT service_role legado |
-| Alerta comercial #116 ponta a ponta | BLOQUEADO | Faltam env vars `COMMERCIAL_TEAM_WEBHOOK_URL`/`TOKEN` na Vercel (segredo — Regra 8) |
-| Workflow `Canonical catalog public contract` | BLOQUEADO | run 43571471934 (schedule, sha 8a810bd), job `Check read-only product contract` → `failure`. Exige leitura do log do job (retrieval por API retornou vazio nesta sessão) para classificar causa exata; verificação de workflow/contrato — Regra 8 |
+| Alerta comercial #116 — elo do webhook | BLOQUEADO | Env vars `COMMERCIAL_TEAM_WEBHOOK_URL`/`TOKEN` ausentes na Vercel (nenhuma env `COMMERCIAL_*` no projeto). Sem elas `commercialAlertsEnabled()` (api/_lib/commercialTeamAlerts.ts:31) retorna false e o job permanece `pending`; configuração de segredo — Regra 8 |
+| PR #139 (`chore(ci): expoe o log da sonda`) | ABERTA (sem merge) | Workflow — Regra 8. mergeable_state clean, 10 checks verdes |
