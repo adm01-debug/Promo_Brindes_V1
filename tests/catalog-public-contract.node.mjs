@@ -417,14 +417,14 @@ test('falha de rede persistente reprova com causa e recurso, depois de três ten
   assert.equal(once.requests.length, 1);
 });
 
-test('erro HTTP persistente reprova com o status; 4xx não é repetido', async (t) => {
+test('erro HTTP persistente reprova com o status; 4xx de recusa não é repetido', async (t) => {
   canonicalEnv(t);
   const down = healthyFetch((kind) => (kind === 'scan' ? new Response('erro', { status: 500 }) : null));
   await assert.rejects(() => checkCatalogPublicContract(down.fetchMock, NO_DELAY), /Contrato indisponível: v_site_products_public respondeu HTTP 500\./);
   assert.equal(down.count('scan'), 3);
-  const unauthorized = healthyFetch((kind) => (kind === 'baseline' ? new Response('{}', { status: 401 }) : null));
-  await assert.rejects(() => checkCatalogPublicContract(unauthorized.fetchMock, NO_DELAY), /Contrato inconclusivo: v_products_public respondeu HTTP 401\./);
-  assert.equal(unauthorized.requests.length, 1);
+  const badRequest = healthyFetch((kind) => (kind === 'baseline' ? new Response('{}', { status: 400 }) : null));
+  await assert.rejects(() => checkCatalogPublicContract(badRequest.fetchMock, NO_DELAY), /Contrato inconclusivo: v_products_public respondeu HTTP 400\./);
+  assert.equal(badRequest.requests.length, 1);
 });
 
 test('erro que não é de rede atravessa sem repetição nem disfarce', async (t) => {
