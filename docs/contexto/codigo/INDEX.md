@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `e08af2ac5429cc24f04a5cb0d0dc106c54eadc5c` (2026-11-16T21:47:57Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `fd912464aee6223687913fb61a33c81efc727269` (2026-11-16T22:01:01Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -170,9 +170,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - não gerado neste run. npm run graph:update (wrapper do repositório; não rode o CLI do graphify direto); saída em graphify-out/, não versionada
 
 ## Hotspots (arquivos mais alterados, 90 dias)
-- package.json (61)
+- package.json (62)
 - e2e/smoke.spec.ts (53)
-- package-lock.json (34)
+- package-lock.json (35)
 - src/styles.css (34)
 - vercel.json (25)
 - .github/workflows/quality.yml (22)
@@ -377,6 +377,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-16 `fd91246` chore(deps): bump playwright 1.65.1, eslint 10.15.0 e jsdom 31.0.1 (#148)
 - 2026-11-16 `e08af2a` chore: consolida os 6 bumps do dependabot e corrige o pin duplicado do graphify (#147)
 - 2026-11-16 `14dc730` chore(ci): expoe o log da sonda catalog-contract no stdout da Actions (#139)
 - 2026-11-14 `15d0af6` chore: contexto agendado de 10 min para 1x/hora (#140)
@@ -391,7 +392,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-11 `0840b55` feat: alerta comercial de orçamento (PF-01) (#116)
 - 2026-11-11 `52aa025` chore(automacao): conecta testes, grafo e manutenção aos gatilhos (#131)
 - 2026-11-10 `49fc2af` docs: corrige fatos da analise analise-prs para o main d312cad (#132)
-- 2026-11-10 `d312cad` docs: análise complementar analise-prs (#112)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "e08af2ac5429cc24f04a5cb0d0dc106c54eadc5c",
+  "commit": "fd912464aee6223687913fb61a33c81efc727269",
   "branch": "main",
-  "data_commit": "2026-11-16T21:47:57Z",
+  "data_commit": "2026-11-16T22:01:01Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "fd91246",
+    "data": "2026-11-16",
+    "assunto": "chore(deps): bump playwright 1.65.1, eslint 10.15.0 e jsdom 31.0.1 (#148)"
+   },
    {
     "sha": "e08af2a",
     "data": "2026-11-16",
@@ -126,18 +131,13 @@
     "sha": "75ba0fa",
     "data": "2026-11-08",
     "assunto": "chore: replica o padrão de instruções para agentes do Zapp Web V2 (#119)"
-   },
-   {
-    "sha": "cae3b2e",
-    "data": "2026-11-07",
-    "assunto": "fix: correções da revisão de fidelidade (instruções) (#118)"
    }
   ],
   "arquivos_mudados_7d": 117,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
-    "mudancas": 12
+    "mudancas": 13
    },
    {
     "pasta": "docs/audits/pending-features-20261011",
@@ -145,7 +145,7 @@
    },
    {
     "pasta": "package-lock.json",
-    "mudancas": 8
+    "mudancas": 9
    },
    {
     "pasta": "AGENTS.md",
@@ -199,7 +199,7 @@
   "arquivos_mais_mudados_90d": [
    {
     "arquivo": "package.json",
-    "mudancas": 61
+    "mudancas": 62
    },
    {
     "arquivo": "e2e/smoke.spec.ts",
@@ -207,7 +207,7 @@
    },
    {
     "arquivo": "package-lock.json",
-    "mudancas": 34
+    "mudancas": 35
    },
    {
     "arquivo": "src/styles.css",
@@ -305,7 +305,7 @@
    },
    {
     "autor": "dependabot[bot]",
-    "commits": 9
+    "commits": 10
    }
   ]
  },
