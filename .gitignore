@@ -32,3 +32,7 @@ __pycache__/
 # Ambiente e estado local privados dos novos adaptadores de automação
 /.tools/repo-automation/
 /.tools/graphify/
+
+# worktrees temporarios criados por agentes de IA para rodar build isolado;
+# carregam node_modules proprio (centenas de MB) e nunca devem ser versionados
+.claude/worktrees/
