@@ -323,8 +323,14 @@ function graphComparisonMarkdown(comparison, { basePath, headPath }) {
 function readGraphFile(candidate, label) {
   if (!candidate) throw new Error(`Informe o arquivo ${label}.`);
   const absolute = path.resolve(PROJECT_ROOT, candidate);
-  if (!fs.existsSync(absolute) || !fs.statSync(absolute).isFile()) throw new Error(`Arquivo ${label} inválido: ${candidate}`);
-  return { path: absolute, graph: JSON.parse(fs.readFileSync(absolute, 'utf8')) };
+  // Abre uma vez e opera sobre o descritor: checar existencia/tipo pelo nome e depois ler pelo nome
+  // permitiria trocar o arquivo entre as duas operacoes (CodeQL js/file-system-race).
+  let fd;
+  try { fd = fs.openSync(absolute, 'r'); } catch { throw new Error(`Arquivo ${label} inválido: ${candidate}`); }
+  try {
+    if (!fs.fstatSync(fd).isFile()) throw new Error(`Arquivo ${label} inválido: ${candidate}`);
+    return { path: absolute, graph: JSON.parse(fs.readFileSync(fd, 'utf8')) };
+  } finally { try { fs.closeSync(fd); } catch { /* descritor ja fechado */ } }
 }
 
 function argumentValue(name) {
