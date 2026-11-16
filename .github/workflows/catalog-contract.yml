@@ -47,7 +47,7 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
         run: |
           set -euo pipefail
-          node scripts/check-catalog-public-contract.mjs > catalog-contract.log 2>&1
+          node scripts/check-catalog-public-contract.mjs 2>&1 | tee catalog-contract.log
 
       - name: Summarize the contract check
         if: always()
