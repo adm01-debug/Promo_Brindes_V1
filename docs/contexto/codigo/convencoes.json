@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "fix(ci): npm audit signatures volta a reprovar o gate (#150)",
+   "infra: blinda as permissoes de Actions e registra a decisao da etapa 32 (#149)",
    "chore(deps): bump playwright 1.65.1, eslint 10.15.0 e jsdom 31.0.1 (#148)",
    "chore: consolida os 6 bumps do dependabot e corrige o pin duplicado do graphify (#147)",
-   "chore(ci): expoe o log da sonda catalog-contract no stdout da Actions (#139)",
-   "chore: contexto agendado de 10 min para 1x/hora (#140)",
-   "feat: relatorio de prontidao para producao (docs/prod-readiness.md)"
+   "chore(ci): expoe o log da sonda catalog-contract no stdout da Actions (#139)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

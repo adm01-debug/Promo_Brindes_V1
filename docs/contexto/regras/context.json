@@ -1,9 +1,9 @@
 {
  "meta": {
-  "sha": "fd912464aee6223687913fb61a33c81efc727269",
+  "sha": "74bac8b51a81d46a25d3b7e24b8d8fe341321b75",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-16 22:01 UTC",
+  "generated_at": "2026-11-16 22:22 UTC",
   "files_total": 574,
   "code_files": 374,
   "code_lines": 65626,
@@ -31754,10 +31754,29 @@
   }
  },
  "git": {
-  "sha": "fd912464aee6223687913fb61a33c81efc727269",
+  "sha": "74bac8b51a81d46a25d3b7e24b8d8fe341321b75",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "74bac8b",
+    "date": "2026-11-16",
+    "author": "adm01-debug",
+    "subject": "fix(ci): npm audit signatures volta a reprovar o gate (#150)",
+    "files": [
+     ".github/workflows/quality.yml"
+    ]
+   },
+   {
+    "sha": "6706d55",
+    "date": "2026-11-16",
+    "author": "adm01-debug",
+    "subject": "infra: blinda as permissoes de Actions e registra a decisao da etapa 32 (#149)",
+    "files": [
+     "AGENTS.md",
+     "docs/audits/pending-features-20261011/04-workflows-ci-operacao.md"
+    ]
+   },
    {
     "sha": "fd91246",
     "date": "2026-11-16",
@@ -32188,31 +32207,6 @@
      "docs/agentes/graphify-regras-agentes.md",
      "docs/agentes/texto-mestre-adm01-debug.md"
     ]
-   },
-   {
-    "sha": "56d86a4",
-    "date": "2026-11-02",
-    "author": "adm01-debug",
-    "subject": "chore: AGENTS.md com o texto-mestre adm01-debug (seções 1-7) (#115)",
-    "files": [
-     "AGENTS.md",
-     "CLAUDE.md"
-    ]
-   },
-   {
-    "sha": "28b3d88",
-    "date": "2026-10-31",
-    "author": "adm01-debug",
-    "subject": "docs: completa analise-prs com 7 arquivos complementares (#111)",
-    "files": [
-     "analise-prs/RELATORIO_PRS.md",
-     "analise-prs/baseline/ci-checks.md",
-     "analise-prs/decisoes.md",
-     "analise-prs/fontes.json",
-     "analise-prs/funcionalidades.csv",
-     "analise-prs/progresso.json",
-     "analise-prs/regras-de-negocio.md"
-    ]
    }
   ],
   "hot_files": [
@@ -32221,11 +32215,11 @@
     10
    ],
    [
-    "package-lock.json",
+    "AGENTS.md",
     6
    ],
    [
-    "AGENTS.md",
+    "package-lock.json",
     6
    ],
    [
@@ -32235,6 +32229,10 @@
    [
     "scripts/validate-agent-instructions.mjs",
     4
+   ],
+   [
+    ".github/workflows/quality.yml",
+    3
    ],
    [
     ".github/workflows/contexto.yml",
@@ -32250,30 +32248,6 @@
    ],
    [
     ".gitignore",
-    3
-   ],
-   [
-    "analise-prs/RELATORIO_PRS.md",
-    3
-   ],
-   [
-    "analise-prs/baseline/ci-checks.md",
-    3
-   ],
-   [
-    "analise-prs/decisoes.md",
-    3
-   ],
-   [
-    "analise-prs/funcionalidades.csv",
-    3
-   ],
-   [
-    "analise-prs/progresso.json",
-    3
-   ],
-   [
-    "analise-prs/regras-de-negocio.md",
     3
    ],
    [
@@ -32294,6 +32268,26 @@
    ],
    [
     "scripts/maintenance/lib.mjs",
+    2
+   ],
+   [
+    "analise-prs/RELATORIO_PRS.md",
+    2
+   ],
+   [
+    "analise-prs/baseline/ci-checks.md",
+    2
+   ],
+   [
+    "analise-prs/decisoes.md",
+    2
+   ],
+   [
+    "analise-prs/funcionalidades.csv",
+    2
+   ],
+   [
+    "analise-prs/progresso.json",
     2
    ]
   ]

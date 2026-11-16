@@ -2,11 +2,21 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "fd912464aee6223687913fb61a33c81efc727269",
+  "commit": "74bac8b51a81d46a25d3b7e24b8d8fe341321b75",
   "branch": "main",
-  "data_commit": "2026-11-16T22:01:01Z",
+  "data_commit": "2026-11-16T22:22:31Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "74bac8b",
+    "data": "2026-11-16",
+    "assunto": "fix(ci): npm audit signatures volta a reprovar o gate (#150)"
+   },
+   {
+    "sha": "6706d55",
+    "data": "2026-11-16",
+    "assunto": "infra: blinda as permissoes de Actions e registra a decisao da etapa 32 (#149)"
+   },
    {
     "sha": "fd91246",
     "data": "2026-11-16",
@@ -121,19 +131,9 @@
     "sha": "d44baf5",
     "data": "2026-11-09",
     "assunto": "security: guard falha fechado, sem injeção de arg e regex de backtick (#124)"
-   },
-   {
-    "sha": "3c3cc11",
-    "data": "2026-11-08",
-    "assunto": "chore: iguala a forma do AGENTS.md à do Zapp Web V2 (#120)"
-   },
-   {
-    "sha": "75ba0fa",
-    "data": "2026-11-08",
-    "assunto": "chore: replica o padrão de instruções para agentes do Zapp Web V2 (#119)"
    }
   ],
-  "arquivos_mudados_7d": 117,
+  "arquivos_mudados_7d": 119,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -141,7 +141,7 @@
    },
    {
     "pasta": "docs/audits/pending-features-20261011",
-    "mudancas": 10
+    "mudancas": 11
    },
    {
     "pasta": "package-lock.json",
@@ -149,7 +149,7 @@
    },
    {
     "pasta": "AGENTS.md",
-    "mudancas": 6
+    "mudancas": 7
    },
    {
     "pasta": ".graphify.project.json",
@@ -158,6 +158,10 @@
    {
     "pasta": "site-supabase/supabase/tests",
     "mudancas": 5
+   },
+   {
+    "pasta": ".github/workflows/quality.yml",
+    "mudancas": 4
    },
    {
     "pasta": "PENDENCIAS.md",
@@ -173,10 +177,6 @@
    },
    {
     "pasta": ".github/workflows/contexto.yml",
-    "mudancas": 3
-   },
-   {
-    "pasta": ".github/workflows/quality.yml",
     "mudancas": 3
    },
    {
@@ -219,7 +219,7 @@
    },
    {
     "arquivo": ".github/workflows/quality.yml",
-    "mudancas": 22
+    "mudancas": 23
    },
    {
     "arquivo": "site-supabase/supabase/tests/database/lead_storage.test.sql",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 33
+    "commits": 35
    },
    {
     "autor": "dependabot[bot]",
