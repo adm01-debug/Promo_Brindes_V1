@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `401487f72d2eb36e8e1b2d430225ab907943f42d` (2026-11-16T22:41:04Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `7bd15204e500b81232b2570b1bf7d7989ce021a7` (2026-11-16T22:49:56Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -170,9 +170,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - não gerado neste run. npm run graph:update (wrapper do repositório; não rode o CLI do graphify direto); saída em graphify-out/, não versionada
 
 ## Hotspots (arquivos mais alterados, 90 dias)
-- package.json (62)
+- package.json (63)
 - e2e/smoke.spec.ts (53)
-- package-lock.json (35)
+- package-lock.json (36)
 - src/styles.css (34)
 - vercel.json (25)
 - .github/workflows/quality.yml (23)
@@ -377,6 +377,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-16 `7bd1520` chore(deps): sobe TypeScript de 5.9.3 para 6.0.3 (#153)
 - 2026-11-16 `401487f` chore(ci): actions/github-script v7.0.1 para v9.0.0 em todas as ocorrencias (#152)
 - 2026-11-16 `ba2bdf7` chore: ignora os worktrees temporarios de agentes de IA (#151)
 - 2026-11-16 `74bac8b` fix(ci): npm audit signatures volta a reprovar o gate (#150)
@@ -391,7 +392,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-13 `9c5f21b` fix: minimatch 11 via overrides fecha dependabot #9 (DoS dev) (#135)
 - 2026-11-13 `d7242eb` fix: garante dir do node no PATH do safeEnv (#134)
 - 2026-11-12 `ad82577` chore(deps): bump graphifyy from 0.9.97 to 0.9.103 (#126)
-- 2026-11-12 `02c5c8d` chore(deps): bump the npm-minor-and-patch group across 1 directory with 12 updates (#127)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

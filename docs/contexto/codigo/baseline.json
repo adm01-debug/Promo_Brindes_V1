@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "401487f72d2eb36e8e1b2d430225ab907943f42d",
+  "commit": "7bd15204e500b81232b2570b1bf7d7989ce021a7",
   "branch": "main",
-  "data_commit": "2026-11-16T22:41:04Z",
+  "data_commit": "2026-11-16T22:49:56Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "7bd1520",
+    "data": "2026-11-16",
+    "assunto": "chore(deps): sobe TypeScript de 5.9.3 para 6.0.3 (#153)"
+   },
    {
     "sha": "401487f",
     "data": "2026-11-16",
@@ -126,18 +131,13 @@
     "sha": "af5cfd1",
     "data": "2026-11-10",
     "assunto": "chore(deps): bump the actions-minor-and-patch group with 2 updates (#125)"
-   },
-   {
-    "sha": "7eb1b5d",
-    "data": "2026-11-09",
-    "assunto": "chore(deps): bump graphifyy para 0.9.97 com o companheiro casado (#123)"
    }
   ],
   "arquivos_mudados_7d": 122,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
-    "mudancas": 13
+    "mudancas": 14
    },
    {
     "pasta": "docs/audits/pending-features-20261011",
@@ -145,7 +145,7 @@
    },
    {
     "pasta": "package-lock.json",
-    "mudancas": 9
+    "mudancas": 10
    },
    {
     "pasta": "AGENTS.md",
@@ -199,7 +199,7 @@
   "arquivos_mais_mudados_90d": [
    {
     "arquivo": "package.json",
-    "mudancas": 62
+    "mudancas": 63
    },
    {
     "arquivo": "e2e/smoke.spec.ts",
@@ -207,7 +207,7 @@
    },
    {
     "arquivo": "package-lock.json",
-    "mudancas": 35
+    "mudancas": 36
    },
    {
     "arquivo": "src/styles.css",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 37
+    "commits": 38
    },
    {
     "autor": "dependabot[bot]",

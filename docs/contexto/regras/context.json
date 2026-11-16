@@ -1,9 +1,9 @@
 {
  "meta": {
-  "sha": "401487f72d2eb36e8e1b2d430225ab907943f42d",
+  "sha": "7bd15204e500b81232b2570b1bf7d7989ce021a7",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-16 22:41 UTC",
+  "generated_at": "2026-11-16 22:50 UTC",
   "files_total": 574,
   "code_files": 374,
   "code_lines": 65626,
@@ -31754,10 +31754,20 @@
   }
  },
  "git": {
-  "sha": "401487f72d2eb36e8e1b2d430225ab907943f42d",
+  "sha": "7bd15204e500b81232b2570b1bf7d7989ce021a7",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "7bd1520",
+    "date": "2026-11-16",
+    "author": "adm01-debug",
+    "subject": "chore(deps): sobe TypeScript de 5.9.3 para 6.0.3 (#153)",
+    "files": [
+     "package-lock.json",
+     "package.json"
+    ]
+   },
    {
     "sha": "401487f",
     "date": "2026-11-16",
@@ -32196,32 +32206,23 @@
      "scripts/validate-agent-instructions.mjs",
      "tests/validate-agent-instructions.node.mjs"
     ]
-   },
-   {
-    "sha": "cae3b2e",
-    "date": "2026-11-07",
-    "author": "adm01-debug",
-    "subject": "fix: correções da revisão de fidelidade (instruções) (#118)",
-    "files": [
-     "AGENTS.md"
-    ]
    }
   ],
   "hot_files": [
    [
     "package.json",
-    9
-   ],
-   [
-    "AGENTS.md",
-    5
+    10
    ],
    [
     "package-lock.json",
-    5
+    6
    ],
    [
     ".gitignore",
+    4
+   ],
+   [
+    "AGENTS.md",
     4
    ],
    [
