@@ -4,6 +4,7 @@ import type { ApiRequest, ApiResponse } from './_lib/leadHandler.js';
 import { errorClass, logServerError, logServerWarning } from './_lib/observability.js';
 import {
   COMMERCIAL_ALERT_TIMEOUT_MS,
+  commercialAlertsEnabled,
   deliverCommercialAlertJob,
   parseCommercialAlertJob,
 } from './_lib/commercialTeamAlerts.js';
@@ -62,6 +63,16 @@ export default async function handler(request: ApiRequest, response: ApiResponse
   const cronSecret = process.env.CRON_SECRET?.trim();
   if (!cronSecret || cronSecret.length < 32 || !matchesCronSecret(header(request, 'authorization'), cronSecret)) {
     response.status(401).json({ error: 'unauthorized' });
+    return;
+  }
+
+  // Mesma trava do caminho sincrono (commercialTeamAlerts.ts: deliverCommercialTeamAlertNow):
+  // sem endpoint configurado ou em preview, reivindicar o job so consome attempts do lead sem
+  // chance de entrega, levando a fila a exhausted sem nenhuma tentativa real. O cron roda a
+  // cada 5 min (vercel.json), entao a perda era continua.
+  if (!commercialAlertsEnabled()) {
+    console.info('commercial_alerts_cron_skipped', { reason: 'not_configured' });
+    response.status(200).json({ ok: true, skipped: 'not_configured', claimed: 0, delivered: 0, failed: 0, pending: 0 });
     return;
   }
 
