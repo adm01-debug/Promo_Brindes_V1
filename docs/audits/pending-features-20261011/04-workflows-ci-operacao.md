@@ -64,8 +64,8 @@ Legenda de classificação: **CONCLUÍDA** (entregue e verificável) · **PARCIA
 
 | Item | Classificação | O que falta | Evidência |
 |---|---|---|---|
-| 31 · SHA pinning obrigatório | NÃO INICIADA | Settings → Actions. | API: `sha_pinning_required: false` (11/10). |
-| 32 · `allowed_actions: selected` | NÃO INICIADA | Settings → Actions. | API: `allowed_actions: all`. |
+| 31 · SHA pinning obrigatório | CONCLUÍDA | — | API: `sha_pinning_required: true` (16/11). Todas as actions do repo já eram pinadas por SHA de 40 caracteres, então ativar não quebrou nada. |
+| 32 · `allowed_actions: selected` | DESCARTADA | Não aplicar. Restringir a allowlist travou todo o CI entre 14 e 16/11/2026: em `local_only` o GitHub para de **criar** os runs, os 4 checks obrigatórios nunca aparecem e, com `strict: true`, nenhuma PR fecha — o `release.yml` também para, deixando produção defasada. O item 31 (SHA pinning) dá proteção mais forte, porque trava a action no commit mesmo que a tag seja movida, sem risco de paralisar o repositório. | API: `allowed_actions: all` + `sha_pinning_required: true` (16/11). |
 | 33 · Secret scanning + push protection | NÃO INICIADA | Settings → Code security (repo público, gratuito). | API: `secret_scanning` e `push_protection` `disabled`. |
 | 34 · Dependabot security updates | NÃO INICIADA | Settings → Code security. | API `automated-security-fixes`: `enabled: false`. |
 | 35 · `harden-runner` | NÃO INICIADA | — | Nenhuma ocorrência em `.github/workflows/`. |
