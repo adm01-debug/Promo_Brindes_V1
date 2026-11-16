@@ -2,11 +2,21 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "74bac8b51a81d46a25d3b7e24b8d8fe341321b75",
+  "commit": "401487f72d2eb36e8e1b2d430225ab907943f42d",
   "branch": "main",
-  "data_commit": "2026-11-16T22:22:31Z",
+  "data_commit": "2026-11-16T22:41:04Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "401487f",
+    "data": "2026-11-16",
+    "assunto": "chore(ci): actions/github-script v7.0.1 para v9.0.0 em todas as ocorrencias (#152)"
+   },
+   {
+    "sha": "ba2bdf7",
+    "data": "2026-11-16",
+    "assunto": "chore: ignora os worktrees temporarios de agentes de IA (#151)"
+   },
    {
     "sha": "74bac8b",
     "data": "2026-11-16",
@@ -121,19 +131,9 @@
     "sha": "7eb1b5d",
     "data": "2026-11-09",
     "assunto": "chore(deps): bump graphifyy para 0.9.97 com o companheiro casado (#123)"
-   },
-   {
-    "sha": "713ebe4",
-    "data": "2026-11-09",
-    "assunto": "feat(scripts): porta scripts autônomos de contexto de IA do Zapp Web V2"
-   },
-   {
-    "sha": "d44baf5",
-    "data": "2026-11-09",
-    "assunto": "security: guard falha fechado, sem injeção de arg e regex de backtick (#124)"
    }
   ],
-  "arquivos_mudados_7d": 119,
+  "arquivos_mudados_7d": 122,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -164,6 +164,10 @@
     "mudancas": 4
    },
    {
+    "pasta": ".gitignore",
+    "mudancas": 4
+   },
+   {
     "pasta": "PENDENCIAS.md",
     "mudancas": 4
    },
@@ -180,7 +184,7 @@
     "mudancas": 3
    },
    {
-    "pasta": ".gitignore",
+    "pasta": ".github/workflows/inventario-estado-semanal.yml",
     "mudancas": 3
    },
    {
@@ -189,10 +193,6 @@
    },
    {
     "pasta": "analise-prs/RELATORIO_PRS.md",
-    "mudancas": 3
-   },
-   {
-    "pasta": "analise-prs/baseline/ci-checks.md",
     "mudancas": 3
    }
   ],
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 35
+    "commits": 37
    },
    {
     "autor": "dependabot[bot]",

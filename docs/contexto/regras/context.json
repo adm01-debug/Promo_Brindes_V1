@@ -1,9 +1,9 @@
 {
  "meta": {
-  "sha": "74bac8b51a81d46a25d3b7e24b8d8fe341321b75",
+  "sha": "401487f72d2eb36e8e1b2d430225ab907943f42d",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-16 22:22 UTC",
+  "generated_at": "2026-11-16 22:41 UTC",
   "files_total": 574,
   "code_files": 374,
   "code_lines": 65626,
@@ -31754,10 +31754,31 @@
   }
  },
  "git": {
-  "sha": "74bac8b51a81d46a25d3b7e24b8d8fe341321b75",
+  "sha": "401487f72d2eb36e8e1b2d430225ab907943f42d",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "401487f",
+    "date": "2026-11-16",
+    "author": "adm01-debug",
+    "subject": "chore(ci): actions/github-script v7.0.1 para v9.0.0 em todas as ocorrencias (#152)",
+    "files": [
+     ".github/workflows/ci-health.yml",
+     ".github/workflows/inventario-estado-semanal.yml",
+     ".github/workflows/production-drift.yml",
+     ".github/workflows/secrets-rotation-reminder.yml"
+    ]
+   },
+   {
+    "sha": "ba2bdf7",
+    "date": "2026-11-16",
+    "author": "adm01-debug",
+    "subject": "chore: ignora os worktrees temporarios de agentes de IA (#151)",
+    "files": [
+     ".gitignore"
+    ]
+   },
    {
     "sha": "74bac8b",
     "date": "2026-11-16",
@@ -32184,43 +32205,24 @@
     "files": [
      "AGENTS.md"
     ]
-   },
-   {
-    "sha": "e676bb3",
-    "date": "2026-11-07",
-    "author": "dependabot[bot]",
-    "subject": "chore(deps): bump the npm-minor-and-patch group with 4 updates (#114)",
-    "files": [
-     "package-lock.json",
-     "package.json"
-    ]
-   },
-   {
-    "sha": "ae62613",
-    "date": "2026-11-07",
-    "author": "adm01-debug",
-    "subject": "chore: instruções enxutas para agentes (AGENTS.md único, CLAUDE.md importa) (#117)",
-    "files": [
-     "AGENTS.md",
-     "CLAUDE.md",
-     "docs/agentes/aprovacao-visual-design.md",
-     "docs/agentes/graphify-regras-agentes.md",
-     "docs/agentes/texto-mestre-adm01-debug.md"
-    ]
    }
   ],
   "hot_files": [
    [
     "package.json",
-    10
+    9
    ],
    [
     "AGENTS.md",
-    6
+    5
    ],
    [
     "package-lock.json",
-    6
+    5
+   ],
+   [
+    ".gitignore",
+    4
    ],
    [
     ".graphify.project.json",
@@ -32229,6 +32231,10 @@
    [
     "scripts/validate-agent-instructions.mjs",
     4
+   ],
+   [
+    ".github/workflows/inventario-estado-semanal.yml",
+    3
    ],
    [
     ".github/workflows/quality.yml",
@@ -32247,19 +32253,11 @@
     3
    ],
    [
-    ".gitignore",
-    3
-   ],
-   [
     "tests/validate-agent-instructions.node.mjs",
     3
    ],
    [
     ".github/workflows/automation-local.yml",
-    2
-   ],
-   [
-    ".github/workflows/inventario-estado-semanal.yml",
     2
    ],
    [

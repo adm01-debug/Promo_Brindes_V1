@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `74bac8b51a81d46a25d3b7e24b8d8fe341321b75` (2026-11-16T22:22:31Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `401487f72d2eb36e8e1b2d430225ab907943f42d` (2026-11-16T22:41:04Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -377,6 +377,8 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-16 `401487f` chore(ci): actions/github-script v7.0.1 para v9.0.0 em todas as ocorrencias (#152)
+- 2026-11-16 `ba2bdf7` chore: ignora os worktrees temporarios de agentes de IA (#151)
 - 2026-11-16 `74bac8b` fix(ci): npm audit signatures volta a reprovar o gate (#150)
 - 2026-11-16 `6706d55` infra: blinda as permissoes de Actions e registra a decisao da etapa 32 (#149)
 - 2026-11-16 `fd91246` chore(deps): bump playwright 1.65.1, eslint 10.15.0 e jsdom 31.0.1 (#148)
@@ -390,8 +392,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-13 `d7242eb` fix: garante dir do node no PATH do safeEnv (#134)
 - 2026-11-12 `ad82577` chore(deps): bump graphifyy from 0.9.97 to 0.9.103 (#126)
 - 2026-11-12 `02c5c8d` chore(deps): bump the npm-minor-and-patch group across 1 directory with 12 updates (#127)
-- 2026-11-11 `b3bb691` infra: adiciona retry transitório na instalação do Chromium (quality.yml) (#133)
-- 2026-11-11 `0840b55` feat: alerta comercial de orçamento (PF-01) (#116)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`
