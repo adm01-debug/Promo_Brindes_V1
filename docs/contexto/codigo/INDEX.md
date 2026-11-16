@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `8a810bdfc1f21cf6222c067b79e509db518431c1` (2026-11-13T22:33:09Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `14dc7302dbb055ddcb5f10a4b23824c320359936` (2026-11-16T21:36:32Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -14,7 +14,7 @@ Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR
 Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua tarefa; não carregue tudo.
 
 ## Stack
-- linguagens: TypeScript (203), Markdown (115), SQL (102), JavaScript (61), JSON (28), YAML (19), Python (8), CSS (4)
+- linguagens: TypeScript (203), Markdown (116), SQL (102), JavaScript (61), JSON (28), YAML (19), Python (8), CSS (4)
 - linguagem_principal: TypeScript
 - framework: React
 - backend_http: vercel-functions
@@ -34,7 +34,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Números
 | item | qtd |
 |---|---|
-| arquivos_total | 680 |
+| arquivos_total | 681 |
 | arquivos_codigo | 271 |
 | linhas_codigo | 53276 |
 | rotas | 32 |
@@ -51,7 +51,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 | testes | 132 |
 | workflows | 15 |
 | scripts | 35 |
-| docs_md | 115 |
+| docs_md | 116 |
 
 ## Onde ficam as coisas
 - telas: src/pages (18)
@@ -62,7 +62,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - edge_functions: n/d
 - migrations: site-supabase/supabase/migrations
 - scripts: scripts/maintenance (4), scripts/inventario (3), scripts/regras_negocio (3)
-- docs: docs (69), (raiz) (9), .github (1)
+- docs: docs (70), (raiz) (9), .github (1)
 - nomenclatura: {"componentes":"PascalCase (100%)","hooks":"use + PascalCase","servicos":"camelCase (86%)","edge_functions":null,"tabelas":"snake_case (95%)"}
 - instruções para agentes no repo: AGENTS.md, CLAUDE.md
 
@@ -191,7 +191,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `catalog-contract.yml` — Canonical catalog public contract (schedule, workflow_dispatch; cron 30 7 * * *)
 - `ci-health.yml` — CI health report (schedule, workflow_dispatch; cron 0 6 * * *)
 - `codeql.yml` — CodeQL security (pull_request, push, schedule; cron 23 4 * * 1)
-- `contexto.yml` — Contexto para agentes de IA (10 min) (push, schedule, workflow_dispatch; cron 7-57/10 * * * *)
+- `contexto.yml` — Contexto para agentes de IA (10 min) (push, schedule, workflow_dispatch; cron 7 * * * *)
 - `database.yml` — Isolated site database (pull_request, push)
 - `dependency-review.yml` — Dependency review (pull_request)
 - `graphify.yml` — Graphify structural map (pull_request, push)
@@ -372,10 +372,14 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `docs/SITE_SUPABASE_IMPLEMENTATION_REPORT_20260908.md` — Relatório de implementação — Supabase exclusivo do site (67 linhas)
 - `docs/SITE_SUPABASE_SETUP.md` — Supabase exclusivo do Site Promo Brindes (117 linhas)
 - `docs/UX_STRATEGY.md` — Estratégia de experiência — Site Promo Brindes (154 linhas)
+- `docs/prod-readiness.md` — Prod Readiness — Promo_Brindes_V1 (87 linhas)
 - subpastas de docs/: docs/audits (13), docs/agentes (9), docs/contexto (2)
 
 
 ## Últimos commits
+- 2026-11-16 `14dc730` chore(ci): expoe o log da sonda catalog-contract no stdout da Actions (#139)
+- 2026-11-14 `15d0af6` chore: contexto agendado de 10 min para 1x/hora (#140)
+- 2026-11-14 `99e47fe` feat: relatorio de prontidao para producao (docs/prod-readiness.md)
 - 2026-11-13 `8a810bd` fix(lint): ignora o runtime local .tools/ no eslint (#137)
 - 2026-11-13 `7347bd4` fix(a11y): nomeia o link da imagem do card com o nome do produto (#136)
 - 2026-11-13 `9c5f21b` fix: minimatch 11 via overrides fecha dependabot #9 (DoS dev) (#135)
@@ -388,9 +392,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-10 `49fc2af` docs: corrige fatos da analise analise-prs para o main d312cad (#132)
 - 2026-11-10 `d312cad` docs: análise complementar analise-prs (#112)
 - 2026-11-10 `432582a` chore(deps): bump jsdom from 30.1.3 to 31.0.0 (#128)
-- 2026-11-10 `223e655` fix: endurece e cobre com testes todos os scripts do repositório (#130)
-- 2026-11-10 `860a0a0` infra: liga a comparação real do guard de instruções no CI (#121)
-- 2026-11-10 `af5cfd1` chore(deps): bump the actions-minor-and-patch group with 2 updates (#125)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

@@ -2,11 +2,26 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "8a810bdfc1f21cf6222c067b79e509db518431c1",
+  "commit": "14dc7302dbb055ddcb5f10a4b23824c320359936",
   "branch": "main",
-  "data_commit": "2026-11-13T22:33:09Z",
+  "data_commit": "2026-11-16T21:36:32Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "14dc730",
+    "data": "2026-11-16",
+    "assunto": "chore(ci): expoe o log da sonda catalog-contract no stdout da Actions (#139)"
+   },
+   {
+    "sha": "15d0af6",
+    "data": "2026-11-14",
+    "assunto": "chore: contexto agendado de 10 min para 1x/hora (#140)"
+   },
+   {
+    "sha": "99e47fe",
+    "data": "2026-11-14",
+    "assunto": "feat: relatorio de prontidao para producao (docs/prod-readiness.md)"
+   },
    {
     "sha": "8a810bd",
     "data": "2026-11-13",
@@ -116,24 +131,9 @@
     "sha": "e676bb3",
     "data": "2026-11-07",
     "assunto": "chore(deps): bump the npm-minor-and-patch group with 4 updates (#114)"
-   },
-   {
-    "sha": "ae62613",
-    "data": "2026-11-07",
-    "assunto": "chore: instruções enxutas para agentes (AGENTS.md único, CLAUDE.md importa) (#117)"
-   },
-   {
-    "sha": "56d86a4",
-    "data": "2026-11-02",
-    "assunto": "chore: AGENTS.md com o texto-mestre adm01-debug (seções 1-7) (#115)"
-   },
-   {
-    "sha": "28b3d88",
-    "data": "2026-10-31",
-    "assunto": "docs: completa analise-prs com 7 arquivos complementares (#111)"
    }
   ],
-  "arquivos_mudados_7d": 140,
+  "arquivos_mudados_7d": 116,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 29
+    "commits": 32
    },
    {
     "autor": "dependabot[bot]",
@@ -310,7 +310,7 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 680,
+  "arquivos_total": 681,
   "arquivos_codigo": 271,
   "linhas_codigo": 53276,
   "rotas": 32,
@@ -327,7 +327,7 @@
   "testes": 132,
   "workflows": 15,
   "scripts": 35,
-  "docs_md": 115
+  "docs_md": 116
  },
  "por_pasta": {
   "api/_lib": {

@@ -4,7 +4,7 @@
  "stack": {
   "linguagens": [
    "TypeScript (203)",
-   "Markdown (115)",
+   "Markdown (116)",
    "SQL (102)",
    "JavaScript (61)",
    "JSON (28)",
@@ -291,7 +291,7 @@
     "workflow_dispatch"
    ],
    "crons": [
-    "7-57/10 * * * *"
+    "7 * * * *"
    ],
    "branches": [
     "main"
@@ -1021,6 +1021,11 @@
    "arquivo": "docs/UX_STRATEGY.md",
    "titulo": "Estratégia de experiência — Site Promo Brindes",
    "linhas": 154
+  },
+  {
+   "arquivo": "docs/prod-readiness.md",
+   "titulo": "Prod Readiness — Promo_Brindes_V1",
+   "linhas": 87
   }
  ],
  "docs_em_subpastas": [
