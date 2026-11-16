@@ -70,7 +70,7 @@ jobs:
 
       - name: Open or update drift issue
         if: steps.drift.outputs.diverged == 'true'
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           PROD_SHA: ${{ steps.vercel.outputs.sha }}
           MAIN_SHA: ${{ steps.main.outputs.sha }}
@@ -120,7 +120,7 @@ jobs:
 
       - name: Close recovered detector alerts
         if: steps.vercel.outcome == 'success' && steps.main.outcome == 'success'
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           DIVERGED: ${{ steps.drift.outputs.diverged }}
         with:
@@ -152,7 +152,7 @@ jobs:
 
       - name: Open or update detector failure issue
         if: steps.vercel.outcome == 'failure' || steps.main.outcome == 'failure'
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           VERCEL_OUTCOME: ${{ steps.vercel.outcome }}
           MAIN_OUTCOME: ${{ steps.main.outcome }}
