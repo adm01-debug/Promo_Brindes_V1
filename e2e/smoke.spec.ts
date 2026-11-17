@@ -413,6 +413,47 @@ test('soluções editoriais levam a uma curadoria explícita, não a uma promess
   await expect(page.getByRole('heading', { name: 'Curadoria para o seu briefing' })).toBeVisible();
 });
 
+test('toda entrada editorial da home aponta para a landing certa', async ({ page }) => {
+  await page.goto('/');
+  // Os destinos que a #166 estabeleceu. Sem estas asserções, qualquer um deles
+  // pode voltar ao catálogo cru — ou apontar para a landing errada — em silêncio:
+  // só o card 01 tinha teste, e nenhum outro arquivo cita estes rótulos.
+  const entradasDaHome: Array<[RegExp, string]> = [
+    [/Ideias de onboarding/i, '/ideias/onboarding'],
+    [/Onboarding sem kit genérico/i, '/ideias/onboarding'],
+    [/Evento que continua no feed/i, '/ideias/eventos'],
+    [/Merch que a comunidade quer usar/i, '/ideias/clientes-vip'],
+  ];
+  for (const [rotulo, destino] of entradasDaHome) {
+    await expect(page.getByRole('link', { name: rotulo })).toHaveAttribute('href', destino);
+  }
+  // O card 03 segue no catálogo filtrado de propósito: não existe landing de
+  // reconhecimento em src/lib/ideaLandings.ts.
+  await expect(page.getByRole('link', { name: /Reconhecimento com desejo/i })).toHaveAttribute('href', /^\/catalogo\?momento=reconhecimento/);
+  // Coluna "Ideias" do rodapé: os quatro tópicos, inclusive o que a home não linka.
+  const rodape = page.locator('footer');
+  const entradasDoRodape: Array<[string, string]> = [
+    ['Onboarding', '/ideias/onboarding'],
+    ['Eventos', '/ideias/eventos'],
+    ['Clientes e parceiros', '/ideias/clientes-vip'],
+    ['Menor impacto', '/ideias/sustentaveis'],
+  ];
+  for (const [rotulo, destino] of entradasDoRodape) {
+    await expect(rodape.getByRole('link', { name: rotulo, exact: true })).toHaveAttribute('href', destino);
+  }
+});
+
+test('o card de eventos abre a landing e termina na curadoria do evento', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('link', { name: /Evento que continua no feed/i }).click();
+  await expect(page).toHaveURL(/\/ideias\/eventos$/);
+  await expect(page).not.toHaveURL(/perfil=kits/);
+  await expect(page.getByRole('heading', { name: 'Eventos que continuam depois da credencial.' })).toBeVisible();
+  await page.getByRole('link', { name: /Ver curadoria completa/ }).click();
+  await expect(page).toHaveURL(/momento=evento.*publico=publico-evento/);
+  await expect(page.getByRole('heading', { name: 'Curadoria para o seu briefing' })).toBeVisible();
+});
+
 test('ache pelo briefing transforma intenção em filtros explicáveis e compartilháveis', async ({ page }) => {
   await page.goto('/');
   const finder = page.locator('#ache-pelo-briefing');
