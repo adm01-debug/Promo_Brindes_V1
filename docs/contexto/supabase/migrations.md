@@ -70,3 +70,6 @@ SQL em `migrations/<versao>_<nome>.sql`. Mudanças feitas pelo Dashboard/SQL Edi
 | 20261001130320 | [preflight_lead_rate_limit](migrations/20261001130320_preflight_lead_rate_limit.sql) | 7 |
 | 20261006134751 | [make_briefing_asset_attachment_idempotent](migrations/20261006134751_make_briefing_asset_attachment_idempotent.sql) | 1 |
 | 20261106150448 | [](migrations/20261106150448.sql) | 0 |
+| 20261117010000 | [add_commercial_team_contact_alert](migrations/20261117010000_add_commercial_team_contact_alert.sql) | 18 |
+| 20261117030000 | [complete_customer_data_erasure](migrations/20261117030000_complete_customer_data_erasure.sql) | 6 |
+| 20261117030100 | [repair_incomplete_customer_data_erasure](migrations/20261117030100_repair_incomplete_customer_data_erasure.sql) | 3 |

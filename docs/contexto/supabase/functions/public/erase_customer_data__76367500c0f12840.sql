@@ -15,6 +15,8 @@ declare
   v_profiles integer := 0;
   v_documents integer := 0;
   v_users integer := 0;
+  v_kit_names integer := 0;
+  v_notifications integer := 0;
 begin
   if length(v_email) not between 5 and 160 or v_email !~ '^[^\s@]+@[^\s@]+\.[^\s@]+$' then
     raise exception using errcode = '22023', message = 'invalid_erasure_email';
@@ -47,12 +49,54 @@ begin
   update site_private.quote_adjustment_requests
     set message = '[apagado a pedido do titular]', updated_at = now()
     where requested_by = any(v_user_ids);
+
+  -- Lacuna (c): tira da fila TUDO o que ainda pode ser reivindicado — os tres estados
+  -- dos CTEs de claim, 'processing' incluido. 'processing' com lease vencido volta a ser
+  -- reivindicado (20260922120000:55), e 'processing' com lease vivo cai no mesmo caso
+  -- assim que o lease vence ou a tentativa termina em 'failed' (20260916110000:264) —
+  -- em qualquer um dos dois o envelope e remontado AO VIVO da linha ja anonimizada
+  -- (20260923200000:25-28). Cancelar com lease vivo nao arranca nada de quem esta
+  -- despachando: finalize_site_notification_delivery devolve false em vez de levantar
+  -- (20260916110000:272-274) e o chamador ja trata false como 'inconclusive', sem
+  -- reenvio automatico (api/notifications.ts:84-90 e :397-402). Vem antes das
+  -- anonimizacoes para que nenhuma entrega reivindicavel sobreviva a transacao.
+  -- attempts NAO e tocado (enforce_notification_delivery_lease_and_attempts
+  -- 20260916220000:99-101 so permite mudanca de attempts entrando em processing ou
+  -- reabrindo de exhausted) e lease_token/lease_expires_at vao a null para satisfazer
+  -- 20260916220000:84-87 e o CHECK notification_deliveries_lease_matches_status
+  -- (20260916110000:119-124).
+  update site_private.notification_deliveries delivery set
+    status = 'cancelled', lease_token = null, lease_expires_at = null, updated_at = now()
+  where delivery.request_kind = 'quote'
+    and delivery.request_id = any(v_quote_ids)
+    and delivery.status in ('pending', 'failed', 'processing');
+  get diagnostics v_notifications = row_count;
+
+  -- Lacuna (a) no mesmo update que ja anonimiza a linha: a guarda de idempotencia
+  -- por contact_name continua valendo para o conjunto inteiro.
   update site_private.quote_requests request set
     contact_name = '[apagado a pedido do titular]', company = '[apagado a pedido do titular]',
     email = 'titular-' || left(md5(request.id::text), 16) || '@erased.invalid',
-    phone = '00000000000', city = null, notes = null, customer_user_id = null, updated_at = now()
+    phone = '00000000000', city = null, notes = null, customer_user_id = null,
+    request_metadata = site_private.erase_titular_request_metadata(request.request_metadata),
+    updated_at = now()
   where request.id = any(v_quote_ids) and request.contact_name <> '[apagado a pedido do titular]';
   get diagnostics v_quotes = row_count;
+
+  -- Lacuna (b): placeholder de texto, nunca null. Anular so kit_name_snapshot violaria
+  -- quote_items_kit_composition_check (20260922160000:11-17), que exige as quatro
+  -- colunas de kit em conjunto. O literal e o mesmo para todas as linhas, o que mantem
+  -- a invariante de "um nome por kit_group" imposta na criacao (20260922160000:127-136).
+  -- quote_items nao tem updated_at; o unico trigger e o de auditoria administrativa
+  -- (20260916210000:65-82, quote_items_log_admin_write), que nao valida nada e nunca
+  -- levanta excecao.
+  update site_private.quote_items item set
+    kit_name_snapshot = '[apagado a pedido do titular]'
+  where item.quote_request_id = any(v_quote_ids)
+    and item.kit_name_snapshot is not null
+    and item.kit_name_snapshot <> '[apagado a pedido do titular]';
+  get diagnostics v_kit_names = row_count;
+
   update site_private.contact_requests request set
     contact_name = '[apagado a pedido do titular]',
     email = 'titular-' || left(md5(request.id::text), 16) || '@erased.invalid',
@@ -77,6 +121,7 @@ begin
     'quotesAnonymized', v_quotes, 'contactsAnonymized', v_contacts,
     'profilesAnonymized', v_profiles, 'proposalDocumentsDeleted', v_documents,
     'authUsersDeleted', v_users, 'storagePathsQueued', jsonb_array_length(v_storage_paths),
+    'kitNamesAnonymized', v_kit_names, 'notificationsCancelled', v_notifications,
     'storagePathsToRemove', v_storage_paths
   );
 end;

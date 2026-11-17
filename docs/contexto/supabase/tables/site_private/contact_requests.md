@@ -82,6 +82,7 @@
 | nome | timing | eventos | nível | status | função |
 |---|---|---|---|---|---|
 | contact_requests_enforce_status_transition | BEFORE | UPDATE | ROW | enabled | site_private.enforce_status_transition |
+| contact_requests_enqueue_commercial_alert | AFTER | INSERT | ROW | enabled | site_private.enqueue_contact_commercial_alert |
 | contact_requests_log_admin_write | AFTER | INSERT OR DELETE OR UPDATE | ROW | enabled | site_private.log_admin_write |
 | contact_requests_set_updated_at | BEFORE | UPDATE | ROW | enabled | site_private.set_updated_at |
 

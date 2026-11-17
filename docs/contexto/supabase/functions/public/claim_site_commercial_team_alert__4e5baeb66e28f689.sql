@@ -10,7 +10,7 @@ begin
   select * into v_policy from site_private.notification_policy();
   select * into v_delivery
   from site_private.notification_deliveries delivery
-  where delivery.request_kind = 'quote'
+  where delivery.request_kind in ('quote', 'contact')
     and delivery.request_id = p_request_id
     and delivery.audience = 'commercial_team'
     and delivery.status in ('pending', 'failed')
@@ -25,6 +25,9 @@ begin
   where delivery.id = v_delivery.id
   returning * into v_delivery;
 
+  if v_delivery.request_kind = 'contact' then
+    return site_private.commercial_team_contact_alert_payload(v_delivery.id);
+  end if;
   return site_private.commercial_team_alert_payload(v_delivery.id);
 end;
 $function$

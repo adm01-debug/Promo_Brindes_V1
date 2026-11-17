@@ -5203,12 +5203,12 @@
           "triggers": [],
           "views": []
         },
-        "comment": "Reivindica o alerta comercial de um orcamento especifico, sem filtrar por canal.",
+        "comment": "Reivindica o alerta comercial de um lead especifico (orcamento ou contato), sem filtrar por canal.",
         "config": [
           "search_path=\"\""
         ],
         "definition": null,
-        "definition_sha": "837410362b504292",
+        "definition_sha": "df68c4a91c1bf327",
         "execute_api_roles": "service_role",
         "execute_public": false,
         "is_trigger_fn": false,
@@ -5233,12 +5233,12 @@
           "triggers": [],
           "views": []
         },
-        "comment": "Reivindica lotes de alertas comerciais pendentes para o cron de entrega.",
+        "comment": "Reivindica lotes de alertas comerciais pendentes (orcamento e contato) para o cron de entrega.",
         "config": [
           "search_path=\"\""
         ],
         "definition": null,
-        "definition_sha": "ddacbf5afc4464c0",
+        "definition_sha": "511d4c52ad83cffd",
         "execute_api_roles": "service_role",
         "execute_public": false,
         "is_trigger_fn": false,
@@ -5563,12 +5563,12 @@
           "triggers": [],
           "views": []
         },
-        "comment": "Apagamento administrativo idempotente: anonimiza registros e texto livre, enfileira blobs, registra tombstone SHA-256, remove Auth/sessões por cascade e impede novo claim do mesmo e-mail.",
+        "comment": "Apagamento administrativo idempotente (F-31): anonimiza registros e texto livre — inclusive briefing.actionName, campaign.occasion.name/id em request_metadata e kit_name_snapshot dos itens —, cancela as entregas ainda reivindicaveis da fila (pending/failed/processing), enfileira blobs, registra tombstone SHA-256, remove Auth/sessoes por cascade e impede novo claim do mesmo e-mail.",
         "config": [
           "search_path=\"\""
         ],
         "definition": null,
-        "definition_sha": "57bba30946009ebf",
+        "definition_sha": "6f38c1a69c661751",
         "execute_api_roles": "service_role",
         "execute_public": false,
         "is_trigger_fn": false,
@@ -6667,6 +6667,44 @@
         "volatility": "volatile"
       },
       {
+        "args": "p_delivery_id uuid",
+        "callers": {
+          "code": [
+            {
+              "file": "site-supabase/supabase/migrations/20261117010000_add_commercial_team_contact_alert.sql",
+              "hits": 2
+            }
+          ],
+          "code_total_files": 1,
+          "cron": [],
+          "db": [
+            "public.claim_site_commercial_team_alert",
+            "public.claim_site_commercial_team_alerts"
+          ],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "Envelope do alerta comercial de um lead de contato (sem protocolo, empresa, itens nem o texto livre da mensagem).",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "277917958c2f551e",
+        "execute_api_roles": "service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "sql",
+        "leakproof": false,
+        "name": "commercial_team_contact_alert_payload",
+        "owner": "postgres",
+        "returns": "jsonb",
+        "schema": "site_private",
+        "security_definer": false,
+        "strict": false,
+        "volatility": "volatile"
+      },
+      {
         "args": "p_request_kind text, p_identifier_hash text, p_limit integer, p_window interval",
         "callers": {
           "code": [
@@ -6899,6 +6937,43 @@
         "callers": {
           "code": [
             {
+              "file": "site-supabase/supabase/migrations/20261117010000_add_commercial_team_contact_alert.sql",
+              "hits": 1
+            }
+          ],
+          "code_total_files": 1,
+          "cron": [],
+          "db": [],
+          "triggers": [
+            "site_private.contact_requests.contact_requests_enqueue_commercial_alert"
+          ],
+          "views": []
+        },
+        "comment": "Enfileira o alerta comercial (commercial_team) de um novo lead de contato.",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "7e9bb5b8c984e01f",
+        "execute_api_roles": "service_role",
+        "execute_public": false,
+        "is_trigger_fn": true,
+        "kind": "function",
+        "language": "plpgsql",
+        "leakproof": false,
+        "name": "enqueue_contact_commercial_alert",
+        "owner": "postgres",
+        "returns": "trigger",
+        "schema": "site_private",
+        "security_definer": false,
+        "strict": false,
+        "volatility": "volatile"
+      },
+      {
+        "args": "",
+        "callers": {
+          "code": [
+            {
               "file": "site-supabase/supabase/migrations/20260912170000_add_quote_notification_outbox.sql",
               "hits": 1
             },
@@ -7049,6 +7124,47 @@
         "security_definer": true,
         "strict": false,
         "volatility": "volatile"
+      },
+      {
+        "args": "p_metadata jsonb",
+        "callers": {
+          "code": [
+            {
+              "file": "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql",
+              "hits": 1
+            },
+            {
+              "file": "site-supabase/supabase/migrations/20261117030100_repair_incomplete_customer_data_erasure.sql",
+              "hits": 2
+            }
+          ],
+          "code_total_files": 2,
+          "cron": [],
+          "db": [
+            "public.erase_customer_data"
+          ],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "F-31: remove de request_metadata as tres chaves de texto fornecido pelo cliente (briefing.actionName, campaign.occasion.name e campaign.occasion.id, que e texto de ate 80 caracteres validado so por charset, nao slug de catalogo) e preserva as operacionais. Sempre devolve objeto (CHECK jsonb_typeof) e nunca levanta excecao, mesmo com campaign/briefing valendo JSON null.",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "498e098de09d594e",
+        "execute_api_roles": null,
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "plpgsql",
+        "leakproof": false,
+        "name": "erase_titular_request_metadata",
+        "owner": "postgres",
+        "returns": "jsonb",
+        "schema": "site_private",
+        "security_definer": false,
+        "strict": false,
+        "volatility": "immutable"
       },
       {
         "args": "p_quote_ids uuid[], p_storage_paths text[], p_batch_size integer",
@@ -9676,6 +9792,24 @@
         "name": null,
         "statements": null,
         "version": "20261106150448"
+      },
+      {
+        "name": "add_commercial_team_contact_alert",
+        "statements": 18,
+        "statements_sha": "a19d279e833765f1",
+        "version": "20261117010000"
+      },
+      {
+        "name": "complete_customer_data_erasure",
+        "statements": 6,
+        "statements_sha": "9a781576e1b40eb0",
+        "version": "20261117030000"
+      },
+      {
+        "name": "repair_incomplete_customer_data_erasure",
+        "statements": 3,
+        "statements_sha": "1996e1936105ae27",
+        "version": "20261117030100"
       }
     ],
     "policies": [
@@ -10431,6 +10565,17 @@
         "status": "enabled",
         "table": "contact_requests",
         "timing": "BEFORE"
+      },
+      {
+        "definition": "CREATE TRIGGER contact_requests_enqueue_commercial_alert AFTER INSERT ON site_private.contact_requests FOR EACH ROW EXECUTE FUNCTION site_private.enqueue_contact_commercial_alert()",
+        "events": "INSERT",
+        "function": "site_private.enqueue_contact_commercial_alert",
+        "level": "ROW",
+        "name": "contact_requests_enqueue_commercial_alert",
+        "schema": "site_private",
+        "status": "enabled",
+        "table": "contact_requests",
+        "timing": "AFTER"
       },
       {
         "definition": "CREATE TRIGGER contact_requests_log_admin_write AFTER INSERT OR DELETE OR UPDATE ON site_private.contact_requests FOR EACH ROW EXECUTE FUNCTION site_private.log_admin_write()",

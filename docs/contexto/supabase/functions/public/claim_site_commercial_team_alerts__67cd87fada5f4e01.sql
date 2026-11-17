@@ -15,7 +15,7 @@ begin
   with exhausted_candidates as (
     select delivery.id
     from site_private.notification_deliveries delivery
-    where delivery.request_kind = 'quote'
+    where delivery.request_kind in ('quote', 'contact')
       and delivery.audience = 'commercial_team'
       and delivery.attempts >= v_policy.max_attempts
       and (delivery.status in ('pending', 'failed') or (delivery.status = 'processing' and delivery.lease_expires_at <= now()))
@@ -29,7 +29,7 @@ begin
   with candidates as (
     select delivery.id
     from site_private.notification_deliveries delivery
-    where delivery.request_kind = 'quote'
+    where delivery.request_kind in ('quote', 'contact')
       and delivery.audience = 'commercial_team'
       and delivery.attempts < v_policy.max_attempts
       and ((delivery.status in ('pending', 'failed') and delivery.next_attempt_at <= now())
@@ -43,9 +43,14 @@ begin
         lease_token = gen_random_uuid(), claimed_at = now(), lease_expires_at = now() + v_policy.lease_timeout
     from candidates
     where delivery.id = candidates.id
-    returning delivery.id, delivery.created_at
+    returning delivery.id, delivery.created_at, delivery.request_kind
   )
-  select coalesce(jsonb_agg(site_private.commercial_team_alert_payload(claimed.id) order by claimed.created_at, claimed.id), '[]'::jsonb)
+  select coalesce(jsonb_agg(
+    case when claimed.request_kind = 'contact'
+      then site_private.commercial_team_contact_alert_payload(claimed.id)
+      else site_private.commercial_team_alert_payload(claimed.id)
+    end
+    order by claimed.created_at, claimed.id), '[]'::jsonb)
   into v_jobs
   from claimed;
   return v_jobs;
