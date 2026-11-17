@@ -10,7 +10,7 @@ Graphify é uma ferramenta local de engenharia para navegar relações estrutura
 - `graphify-out/` é ignorado pelo Git. Configuração, comandos, testes e este runbook são versionados.
 - A promoção do grafo é atômica: um candidato é validado e examinado antes de substituir o último mapa válido.
 - O pin em uso é `graphifyy[sql]==0.9.105` com `tree_sitter_sql==0.3.13`, declarado em `requirements-graphify.txt` e espelhado em `graphifyVersion` no `.graphify.project.json`. Ele avançou por três bumps posteriores à homologação: [#123](https://github.com/adm01-debug/Promo_Brindes_V1/pull/123) (0.9.97), [#126](https://github.com/adm01-debug/Promo_Brindes_V1/pull/126) (0.9.103) e [#147](https://github.com/adm01-debug/Promo_Brindes_V1/pull/147) (0.9.105).
-- A última versão com avaliação formal registrada é a `0.9.94`, na [comparação isolada com 0.9.48](GRAPHIFY_0994_EVALUATION_20261027.md); a avaliação anterior de `0.9.68` permanece [documentada](GRAPHIFY_0968_EVALUATION_20261005.md). Não há avaliação publicada para 0.9.97, 0.9.103 nem 0.9.105 — ao mexer no grafo, parta do pin real, não da versão homologada.
+- O pin em uso é também a versão homologada: a `0.9.105` foi avaliada na [comparação isolada com 0.9.94](GRAPHIFY_09105_EVALUATION_20261117.md), que fechou a lacuna dos três bumps sem laudo. As avaliações anteriores de [`0.9.94`](GRAPHIFY_0994_EVALUATION_20261027.md) e [`0.9.68`](GRAPHIFY_0968_EVALUATION_20261005.md) permanecem documentadas. Não existe laudo isolado para 0.9.97 nem 0.9.103, versões intermediárias que o pin atravessou.
 
 ## Dois mapas, dois propósitos
 
@@ -49,7 +49,7 @@ Objetos SQL podem aparecer em várias migrations com o mesmo rótulo. Nesses cas
 
 ## Como interpretar o mapa
 
-O Graphify 0.9.94 usado aqui emite o grafo estrutural como **não direcionado** no comando headless. Assim, `graph:impact` é uma vizinhança técnica para orientar leitura e testes; não prova causalidade reversa nem substitui busca no código, testes ou revisão. A relação exibida é evidência estrutural, não autorização para alterar banco, infraestrutura ou o projeto interno Promo Gifts.
+O Graphify 0.9.105 usado aqui emite o grafo estrutural como **não direcionado** no comando headless. Assim, `graph:impact` é uma vizinhança técnica para orientar leitura e testes; não prova causalidade reversa nem substitui busca no código, testes ou revisão. A relação exibida é evidência estrutural, não autorização para alterar banco, infraestrutura ou o projeto interno Promo Gifts.
 
 Os termos do domínio em português recebem expansão controlada nas consultas: por exemplo, `orçamento` acrescenta `quote request` e `carrinho` acrescenta `quote cart`. A consulta é passada como argumento literal, nunca para um shell.
 
@@ -77,7 +77,7 @@ O hook nativo do Graphify não é instalado por padrão: ele reconstrói em segu
 
 ## Benchmark e relatório de pull request
 
-`docs/graphify-benchmark.json` contém dez perguntas representativas. `npm run graph:benchmark` exige que cada pergunta recupere, no mapa, o arquivo esperado e que a busca direta encontre o mesmo ponto de implementação. O resultado é salvo localmente em `graphify-out/BENCHMARK.md`. O benchmark foi executado sobre `0.9.48`, `0.9.68` e `0.9.94`; a comparação do último candidato inclui o corpus SQL separado.
+`docs/graphify-benchmark.json` contém dez perguntas representativas. `npm run graph:benchmark` exige que cada pergunta recupere, no mapa, o arquivo esperado e que a busca direta encontre o mesmo ponto de implementação. O resultado é salvo localmente em `graphify-out/BENCHMARK.md`. O benchmark foi executado sobre `0.9.48`, `0.9.68`, `0.9.94` e `0.9.105`; a comparação do último candidato inclui o corpus SQL separado.
 
 Em pull requests, o workflow também constrói o mapa da base em um worktree temporário e cria `graphify-out/BASE_HEAD_REPORT.md`. O relatório compara nós, relações e arquivos entre base e head; ele é publicado junto do artefato do workflow. É uma comparação estrutural — não afirma causalidade em um grafo não direcionado. As decisões arquiteturais vigentes estão em [Governança do fechamento](GOVERNANCA_FECHAMENTO.md).
 
