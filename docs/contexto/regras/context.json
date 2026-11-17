@@ -1,9 +1,9 @@
 {
  "meta": {
-  "sha": "0d9c07b58b31e83924358bef0a8502d8088591d3",
+  "sha": "19599462d57f536baa008c61e29d598dbc5463fa",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-17 11:44 UTC",
+  "generated_at": "2026-11-17 12:19 UTC",
   "files_total": 578,
   "code_files": 378,
   "code_lines": 66691,
@@ -32253,10 +32253,19 @@
   }
  },
  "git": {
-  "sha": "0d9c07b58b31e83924358bef0a8502d8088591d3",
+  "sha": "19599462d57f536baa008c61e29d598dbc5463fa",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "1959946",
+    "date": "2026-11-17",
+    "author": "adm01-debug",
+    "subject": "chore: fecha F-49 no ledger de funcionalidades (#167)",
+    "files": [
+     "analise-prs/funcionalidades.csv"
+    ]
+   },
    {
     "sha": "0d9c07b",
     "date": "2026-11-17",
@@ -32564,15 +32573,6 @@
      "package-lock.json",
      "package.json"
     ]
-   },
-   {
-    "sha": "b3bb691",
-    "date": "2026-11-11",
-    "author": "adm01-debug",
-    "subject": "infra: adiciona retry transitório na instalação do Chromium (quality.yml) (#133)",
-    "files": [
-     ".github/workflows/quality.yml"
-    ]
    }
   ],
   "hot_files": [
@@ -32586,7 +32586,7 @@
    ],
    [
     ".github/workflows/quality.yml",
-    4
+    3
    ],
    [
     "e2e/smoke.spec.ts",
@@ -32637,6 +32637,10 @@
     2
    ],
    [
+    "analise-prs/funcionalidades.csv",
+    1
+   ],
+   [
     "src/components/Layout.tsx",
     1
    ],
@@ -32650,10 +32654,6 @@
    ],
    [
     "docs/agentes/banco.md",
-    1
-   ],
-   [
-    "scripts/check-performance-budget.mjs",
     1
    ]
   ]

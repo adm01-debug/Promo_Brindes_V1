@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "0d9c07b58b31e83924358bef0a8502d8088591d3",
+  "commit": "19599462d57f536baa008c61e29d598dbc5463fa",
   "branch": "main",
-  "data_commit": "2026-11-17T11:43:57Z",
+  "data_commit": "2026-11-17T12:07:56Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "1959946",
+    "data": "2026-11-17",
+    "assunto": "chore: fecha F-49 no ledger de funcionalidades (#167)"
+   },
    {
     "sha": "0d9c07b",
     "data": "2026-11-17",
@@ -126,11 +131,6 @@
     "sha": "8a810bd",
     "data": "2026-11-13",
     "assunto": "fix(lint): ignora o runtime local .tools/ no eslint (#137)"
-   },
-   {
-    "sha": "7347bd4",
-    "data": "2026-11-13",
-    "assunto": "fix(a11y): nomeia o link da imagem do card com o nome do produto (#136)"
    }
   ],
   "arquivos_mudados_7d": 142,
@@ -172,6 +172,10 @@
     "mudancas": 4
    },
    {
+    "pasta": "analise-prs/funcionalidades.csv",
+    "mudancas": 4
+   },
+   {
     "pasta": "e2e/smoke.spec.ts",
     "mudancas": 4
    },
@@ -189,10 +193,6 @@
    },
    {
     "pasta": "site-supabase/supabase/migrations",
-    "mudancas": 4
-   },
-   {
-    "pasta": "src/styles.css",
     "mudancas": 4
    }
   ],
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 51
+    "commits": 52
    },
    {
     "autor": "dependabot[bot]",

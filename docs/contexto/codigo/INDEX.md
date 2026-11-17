@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `0d9c07b58b31e83924358bef0a8502d8088591d3` (2026-11-17T11:43:57Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `19599462d57f536baa008c61e29d598dbc5463fa` (2026-11-17T12:07:56Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -377,6 +377,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-17 `1959946` chore: fecha F-49 no ledger de funcionalidades (#167)
 - 2026-11-17 `0d9c07b` feat(home): entrada para as landings de ideias e estados vazios (#166)
 - 2026-11-17 `bbfb77a` infra(release): o release aplica as migrations do banco isolado (#165)
 - 2026-11-17 `cc68e42` fix(orcamento): o consentimento de WhatsApp descreve o que o sistema envia (#160)
@@ -391,7 +392,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-16 `fccd45a` fix: aplica as 2 pendencias confirmadas da varredura de review dos agentes (#155)
 - 2026-11-16 `c0f2aeb` fix(seg): fecha os 5 alertas CodeQL high e conserta o paths-ignore (#154)
 - 2026-11-16 `7bd1520` chore(deps): sobe TypeScript de 5.9.3 para 6.0.3 (#153)
-- 2026-11-16 `401487f` chore(ci): actions/github-script v7.0.1 para v9.0.0 em todas as ocorrencias (#152)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`
