@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `3b2b02ed8d1450c640ebb1c079241856c2aec266` (2026-11-17T16:56:19Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `c61d7f53e6b6daf98ae3d69865f679b3426e9c83` (2026-11-17T19:11:26Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -174,7 +174,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - e2e/smoke.spec.ts (57)
 - package-lock.json (36)
 - src/styles.css (35)
-- .github/workflows/quality.yml (26)
+- .github/workflows/quality.yml (27)
 - vercel.json (26)
 - src/pages/QuotePage.tsx (24)
 - docs/DATABASE_DICTIONARY.md (23)
@@ -378,6 +378,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-17 `c61d7f5` infra(ci): gate de auditoria bloqueia pelo escopo que vai ao ar (#188)
 - 2026-11-17 `3b2b02e` feat(observabilidade): queda do catálogo público passa a alertar a equipe (#178)
 - 2026-11-17 `bcf7e33` chore(ci): unifica o rótulo do pin do actions/checkout (#179)
 - 2026-11-17 `1a30000` fix(ideias): landing de onboarding passa a ter curadoria própria (#177)
@@ -392,7 +393,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-17 `d539fb2` feat(analytics): mede o funil das landings de ideias (#168)
 - 2026-11-17 `1959946` chore: fecha F-49 no ledger de funcionalidades (#167)
 - 2026-11-17 `0d9c07b` feat(home): entrada para as landings de ideias e estados vazios (#166)
-- 2026-11-17 `bbfb77a` infra(release): o release aplica as migrations do banco isolado (#165)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "3b2b02ed8d1450c640ebb1c079241856c2aec266",
+  "commit": "c61d7f53e6b6daf98ae3d69865f679b3426e9c83",
   "branch": "main",
-  "data_commit": "2026-11-17T16:56:19Z",
+  "data_commit": "2026-11-17T19:11:26Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "c61d7f5",
+    "data": "2026-11-17",
+    "assunto": "infra(ci): gate de auditoria bloqueia pelo escopo que vai ao ar (#188)"
+   },
    {
     "sha": "3b2b02e",
     "data": "2026-11-17",
@@ -126,11 +131,6 @@
     "sha": "fa7365b",
     "data": "2026-11-16",
     "assunto": "fix(orcamento): selo de prioridade so sai no PDF se o recurso estiver ligado (#156)"
-   },
-   {
-    "sha": "fccd45a",
-    "data": "2026-11-16",
-    "assunto": "fix: aplica as 2 pendencias confirmadas da varredura de review dos agentes (#155)"
    }
   ],
   "arquivos_mudados_7d": 163,
@@ -152,12 +152,12 @@
     "mudancas": 9
    },
    {
-    "pasta": "AGENTS.md",
+    "pasta": ".github/workflows/quality.yml",
     "mudancas": 8
    },
    {
-    "pasta": ".github/workflows/quality.yml",
-    "mudancas": 7
+    "pasta": "AGENTS.md",
+    "mudancas": 8
    },
    {
     "pasta": "e2e/smoke.spec.ts",
@@ -215,7 +215,7 @@
    },
    {
     "arquivo": ".github/workflows/quality.yml",
-    "mudancas": 26
+    "mudancas": 27
    },
    {
     "arquivo": "vercel.json",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 64
+    "commits": 65
    },
    {
     "autor": "dependabot[bot]",

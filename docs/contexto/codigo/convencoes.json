@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "infra(ci): gate de auditoria bloqueia pelo escopo que vai ao ar (#188)",
    "feat(observabilidade): queda do catálogo público passa a alertar a equipe (#178)",
    "chore(ci): unifica o rótulo do pin do actions/checkout (#179)",
    "fix(ideias): landing de onboarding passa a ter curadoria própria (#177)",
-   "chore(docs): homologa a 0.9.105 do graphify com avaliação isolada contra a 0.9.94 (#176)",
-   "fix(analytics): result_count passa a medir a curadoria vista e a queda deixa de inflar a conversão (#175)"
+   "chore(docs): homologa a 0.9.105 do graphify com avaliação isolada contra a 0.9.94 (#176)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",
