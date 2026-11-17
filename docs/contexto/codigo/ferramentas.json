@@ -6,7 +6,7 @@
    "TypeScript (209)",
    "Markdown (117)",
    "SQL (106)",
-   "JavaScript (61)",
+   "JavaScript (63)",
    "JSON (28)",
    "YAML (19)",
    "Python (8)",
@@ -55,7 +55,7 @@
    "automation:test": "node scripts/automation.mjs test",
    "automation:uninstall-hooks": "node scripts/automation.mjs uninstall-hooks",
    "build": "tsc -b && vite build && node scripts/stage-app-shell.mjs",
-   "check": "npm run lint && npm run typecheck && npm run test && npm run agents:instructions:check && npm run test:agent-instructions && npm run test:migration-names && npm run test:error-catalog && npm run test:site-api-jwt && npm run test:timing-safe-secrets && npm run test:supabase-db-query && npm run test:ci-health && npm run test:release-url && npm run test:smoke-deployment && npm run test:stage-app-shell && npm run test:performance-budget && npm run test:site-guard && npm run test:database-docs && npm run test:soak-queue && npm run test:shared-selection-sql && npm run test:catalog-contract && npm run test:inventario && npm run contexto:test && npm run build && npm run check:performance-budget && npm run test:e2e",
+   "check": "npm run lint && npm run typecheck && npm run test && npm run agents:instructions:check && npm run test:agent-instructions && npm run test:migration-names && npm run test:error-catalog && npm run test:env-example && npm run test:site-api-jwt && npm run test:timing-safe-secrets && npm run test:supabase-db-query && npm run test:ci-health && npm run test:release-url && npm run test:smoke-deployment && npm run test:stage-app-shell && npm run test:performance-budget && npm run test:site-guard && npm run test:database-docs && npm run test:soak-queue && npm run test:shared-selection-sql && npm run test:catalog-contract && npm run test:inventario && npm run contexto:test && npm run build && npm run check:performance-budget && npm run test:e2e",
    "check:catalog-contract": "node scripts/check-catalog-public-contract.mjs",
    "check:performance-budget": "node scripts/check-performance-budget.mjs",
    "contexto:banco:test": "python3 scripts/supabase_snapshot/test_snapshot.py",
@@ -79,6 +79,7 @@
    "db:site:test": "SUPABASE_WORKDIR=site-supabase supabase test db",
    "db:site:types": "SUPABASE_WORKDIR=site-supabase supabase gen types typescript --local --schema public,site_private > src/types/site-database.types.ts",
    "dev": "vite",
+   "env:example:check": "node scripts/validate-env-example.mjs",
    "graph:benchmark": "node scripts/graphify.mjs benchmark",
    "graph:build": "node scripts/graphify.mjs build",
    "graph:check": "node scripts/graphify.mjs check",
@@ -112,6 +113,7 @@
    "test:database-docs": "node --test tests/generate-database-docs.node.mjs",
    "test:e2e": "playwright test --project=desktop-chromium --project=mobile-chromium",
    "test:e2e:cross-browser": "playwright test --project=desktop-firefox --project=desktop-webkit --workers=1",
+   "test:env-example": "node --test tests/validate-env-example.node.mjs",
    "test:error-catalog": "node --test tests/validate-error-catalog.node.mjs",
    "test:graphify": "node --test tests/graphify-tools.node.mjs",
    "test:inventario": "node --test tests/inventario-estado.node.mjs",
@@ -701,7 +703,7 @@
   {
    "arquivo": "docs/CUSTOMER_PORTAL_IMPLEMENTATION_20260909.md",
    "titulo": "Área do Cliente — implementação e critérios de aceite",
-   "linhas": 91
+   "linhas": 92
   },
   {
    "arquivo": "docs/DATABASE_DICTIONARY.md",
@@ -711,7 +713,7 @@
   {
    "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
    "titulo": "Contratos das funções do banco do site (Etapas 22 e 23)",
-   "linhas": 236
+   "linhas": 237
   },
   {
    "arquivo": "docs/DATABASE_INVENTORY_PRINCIPAL.md",
@@ -1021,7 +1023,7 @@
   {
    "arquivo": "docs/SITE_SUPABASE_SETUP.md",
    "titulo": "Supabase exclusivo do Site Promo Brindes",
-   "linhas": 117
+   "linhas": 124
   },
   {
    "arquivo": "docs/UX_STRATEGY.md",
@@ -1051,6 +1053,7 @@
  "changelog_topo": null,
  "env": {
   "declaradas_no_env_example": [
+   "CATALOG_SUPABASE_PUBLISHABLE_KEY",
    "COMMERCIAL_TEAM_WEBHOOK_TOKEN",
    "COMMERCIAL_TEAM_WEBHOOK_URL",
    "CRON_SECRET",
@@ -1149,7 +1152,6 @@
    "SUPABASE_SNAPSHOT_PUBLICACAO"
   ],
   "usadas_mas_nao_declaradas": [
-   "CATALOG_SUPABASE_PUBLISHABLE_KEY",
    "SITE_TEST_APP_SHELL",
    "VITE_SITE_DEPLOYMENT_ENV"
   ],

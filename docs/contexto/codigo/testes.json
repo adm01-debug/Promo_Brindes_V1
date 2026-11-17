@@ -5,12 +5,12 @@
   "vitest",
   "playwright"
  ],
- "total": 137,
+ "total": 138,
  "por_tipo": {
   "contrato": 2,
   "e2e": 2,
   "pytest": 4,
-  "unit": 100
+  "unit": 101
  },
  "onde_ficam": [
   {
@@ -19,7 +19,7 @@
   },
   {
    "padrao": "tests/",
-   "arquivos": 44
+   "arquivos": 45
   },
   {
    "padrao": "outro",
@@ -984,6 +984,15 @@
    "casos": 28
   },
   {
+   "arquivo": "tests/validate-env-example.node.mjs",
+   "tipo": "unit",
+   "linhas": 133,
+   "testa": [
+    "scripts/validate-env-example.mjs"
+   ],
+   "casos": 10
+  },
+  {
    "arquivo": "tests/validate-error-catalog.node.mjs",
    "tipo": "unit",
    "linhas": 124,
@@ -1089,6 +1098,7 @@
   "scripts/soak-test-notification-queue.mjs": 1,
   "scripts/validate-agent-instructions.mjs": 1,
   "scripts/validate-closure-ledger.mjs": 1,
+  "scripts/validate-env-example.mjs": 1,
   "scripts/validate-error-catalog.mjs": 1,
   "scripts/validate-migration-names.mjs": 1,
   "shared/campaignYears.ts": 2,

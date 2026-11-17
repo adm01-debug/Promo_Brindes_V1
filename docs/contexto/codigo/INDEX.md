@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `e4a904ffbe86f7f146ac53170188e9354c5358a8` (2026-11-17T20:35:16Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `092d5c6ea1298056c0db3e549c525753d9bf627b` (2026-11-17T21:02:20Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -14,7 +14,7 @@ Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR
 Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua tarefa; não carregue tudo.
 
 ## Stack
-- linguagens: TypeScript (209), Markdown (117), SQL (106), JavaScript (61), JSON (28), YAML (19), Python (8), CSS (4)
+- linguagens: TypeScript (209), Markdown (117), SQL (106), JavaScript (63), JSON (28), YAML (19), Python (8), CSS (4)
 - linguagem_principal: TypeScript
 - framework: React
 - backend_http: vercel-functions
@@ -34,9 +34,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Números
 | item | qtd |
 |---|---|
-| arquivos_total | 692 |
-| arquivos_codigo | 277 |
-| linhas_codigo | 54354 |
+| arquivos_total | 694 |
+| arquivos_codigo | 279 |
+| linhas_codigo | 54593 |
 | rotas | 32 |
 | rotas_http_backend | 14 |
 | vistas_por_id | 0 |
@@ -48,9 +48,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 | tabelas | 22 |
 | migrations | 69 |
 | cron_jobs | 0 |
-| testes | 137 |
+| testes | 138 |
 | workflows | 15 |
-| scripts | 35 |
+| scripts | 36 |
 | docs_md | 117 |
 
 ## Onde ficam as coisas
@@ -58,7 +58,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - componentes: src/components (19), src/pages (18), src/context (2)
 - hooks: src/lib (4), src/context (2)
 - servicos_logica: src/lib (43), api/_lib (14), src/context (3)
-- testes: co-localizado (*.test) (53), tests/ (44), outro (9)
+- testes: co-localizado (*.test) (53), tests/ (45), outro (9)
 - edge_functions: n/d
 - migrations: site-supabase/supabase/migrations
 - scripts: scripts/maintenance (4), scripts/inventario (3), scripts/regras_negocio (3)
@@ -162,7 +162,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - componentes_orfaos: 0
 - componentes_com_nome_duplicado: 0
 - scripts_orfaos: 0
-- env_usadas_nao_declaradas: 3 — ex.: CATALOG_SUPABASE_PUBLISHABLE_KEY, SITE_TEST_APP_SHELL, VITE_SITE_DEPLOYMENT_ENV
+- env_usadas_nao_declaradas: 2 — ex.: SITE_TEST_APP_SHELL, VITE_SITE_DEPLOYMENT_ENV
 - ciclos_de_import: 1
 - possiveis_segredos_no_codigo: 0
 
@@ -170,7 +170,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - não gerado neste run. npm run graph:update (wrapper do repositório; não rode o CLI do graphify direto); saída em graphify-out/, não versionada
 
 ## Hotspots (arquivos mais alterados, 90 dias)
-- package.json (63)
+- package.json (64)
 - e2e/smoke.spec.ts (58)
 - package-lock.json (36)
 - src/styles.css (35)
@@ -220,11 +220,13 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `test:watch`: `vitest`
 - `test:e2e`: `playwright test --project=desktop-chromium --project=mobile-chromium`
 - `test:e2e:cross-browser`: `playwright test --project=desktop-firefox --project=desktop-webkit --workers=1`
-- `check`: `npm run lint && npm run typecheck && npm run test && npm run agents:instructions:check && npm run test:agent-instructions && npm run test:migration-names && npm run test:error-catalog && npm run test:site-api-jwt && npm run test:timing-safe-secrets && npm run test:supabase-db-query && npm run test:ci-health && npm run test:release-url && npm run test:smoke-deployment && npm run test:stage-app-shell && npm run test:performance-budget && npm run test:site-guard && npm run test:database-docs && npm run test:soak-queue && npm run test:shared-selection-sql && npm run test:catalog-contract && npm run test:inventario && npm run contexto:test && npm run build && npm run check:performance-budget && npm run test:e2e`
+- `check`: `npm run lint && npm run typecheck && npm run test && npm run agents:instructions:check && npm run test:agent-instructions && npm run test:migration-names && npm run test:error-catalog && npm run test:env-example && npm run test:site-api-jwt && npm run test:timing-safe-secrets && npm run test:supabase-db-query && npm run test:ci-health && npm run test:release-url && npm run test:smoke-deployment && npm run test:stage-app-shell && npm run test:performance-budget && npm run test:site-guard && npm run test:database-docs && npm run test:soak-queue && npm run test:shared-selection-sql && npm run test:catalog-contract && npm run test:inventario && npm run contexto:test && npm run build && npm run check:performance-budget && npm run test:e2e`
 - `db:migration-names:check`: `node scripts/validate-migration-names.mjs`
 - `test:migration-names`: `node --test tests/validate-migration-names.node.mjs`
 - `db:site:error-catalog:check`: `node scripts/validate-error-catalog.mjs`
 - `test:error-catalog`: `node --test tests/validate-error-catalog.node.mjs`
+- `env:example:check`: `node scripts/validate-env-example.mjs`
+- `test:env-example`: `node --test tests/validate-env-example.node.mjs`
 - `test:site-api-jwt`: `node --test tests/generate-site-api-jwt.node.mjs`
 - `test:timing-safe-secrets`: `node --test tests/timing-safe-secret-comparisons.node.mjs`
 - `test:supabase-db-query`: `node --test tests/supabase-db-query.node.mjs`
@@ -307,9 +309,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md` — Auditoria de funcionalidades planejadas e não executadas — 11/10/2026 (364 linhas)
 - `docs/AUDIT_REPORT_20260908.md` — Auditoria técnica consolidada — 08–09/09/2026 (75 linhas)
 - `docs/AUTOMACAO_LOCAL.md` — Automação local — Promo_Brindes_V1 (104 linhas)
-- `docs/CUSTOMER_PORTAL_IMPLEMENTATION_20260909.md` — Área do Cliente — implementação e critérios de aceite (91 linhas)
+- `docs/CUSTOMER_PORTAL_IMPLEMENTATION_20260909.md` — Área do Cliente — implementação e critérios de aceite (92 linhas)
 - `docs/DATABASE_DICTIONARY.md` — Dicionário de dados — site_private (Etapa 35) (393 linhas)
-- `docs/DATABASE_FUNCTION_CONTRACTS.md` — Contratos das funções do banco do site (Etapas 22 e 23) (236 linhas)
+- `docs/DATABASE_FUNCTION_CONTRACTS.md` — Contratos das funções do banco do site (Etapas 22 e 23) (237 linhas)
 - `docs/DATABASE_INVENTORY_PRINCIPAL.md` — Inventário de tabelas — banco principal (`doufsxqlfjyuvxuezpln`) (415 linhas)
 - `docs/DATABASE_PUBLIC_CONTRACT.md` — Contrato público de dados do Site Promo Brindes (82 linhas)
 - `docs/DATABASE_SCHEMA.md` — Diagrama entidade-relacionamento — site_private (Etapa 48) (48 linhas)
@@ -371,13 +373,15 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `docs/RUNBOOK_SITE_API_CUTOVER.md` — Runbook — cutover para a role `site_api` (Etapa 25) (101 linhas)
 - `docs/RUNBOOK_VERIFICACAO_DB.md` — Runbook — verificação em 5 comandos do banco isolado do site (Etapa 6) (124 linhas)
 - `docs/SITE_SUPABASE_IMPLEMENTATION_REPORT_20260908.md` — Relatório de implementação — Supabase exclusivo do site (67 linhas)
-- `docs/SITE_SUPABASE_SETUP.md` — Supabase exclusivo do Site Promo Brindes (117 linhas)
+- `docs/SITE_SUPABASE_SETUP.md` — Supabase exclusivo do Site Promo Brindes (124 linhas)
 - `docs/UX_STRATEGY.md` — Estratégia de experiência — Site Promo Brindes (154 linhas)
 - `docs/prod-readiness.md` — Prod Readiness — Promo_Brindes_V1 (87 linhas)
 - subpastas de docs/: docs/audits (13), docs/agentes (9), docs/contexto (2)
 
 
 ## Últimos commits
+- 2026-11-17 `092d5c6` chore(config): variável de produção não documentada, com guard para não repetir (#186)
+- 2026-11-17 `fbd51d9` fix(docs): contrato do banco deixa de descrever função e status que não existem (#185)
 - 2026-11-17 `e4a904f` feat(retenção): resíduo de dado pessoal não apagado deixa de ser invisível (#184)
 - 2026-11-17 `108b0b2` fix(portal): estouro de limite deixa de virar "proposta não encontrada" (#183)
 - 2026-11-17 `e166177` fix(catálogo): porta editorial de onboarding deixa de abrir o catálogo inteiro (#182)
@@ -391,8 +395,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-17 `4b0f2cc` fix(analytics): landing de ideias para de contar a visita com o total do tópico anterior (#172)
 - 2026-11-17 `fce1a49` fix(seo): shell das landings volta a recusar campo desconhecido e usa um só nome de marca (#174)
 - 2026-11-17 `5a524ad` test(e2e): guardas dos destinos editoriais passam a poder falhar (#173)
-- 2026-11-17 `b8870bf` chore(docs): runbook do graphify passa a declarar o pin real (#171)
-- 2026-11-17 `1d2fa0a` test(e2e): trava os destinos editoriais da home e do rodapé (#170)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

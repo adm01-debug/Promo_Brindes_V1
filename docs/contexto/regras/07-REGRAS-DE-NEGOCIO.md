@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `e4a904ffbe` · branch `main` · 2026-11-17 20:39 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `092d5c6ea1` · branch `main` · 2026-11-17 21:06 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -938,6 +938,7 @@ _nenhum item encontrado_
 | Ledger inválido: id duplicado ${row.id}. | `scripts/validate-closure-ledger.mjs` |
 | Ledger inválido: id fora dos planos ${row.id}. | `scripts/validate-closure-ledger.mjs` |
 | Ledger não verificável: git não encontrado no PATH; o validador confere cada fonte no commit auditado. | `scripts/validate-closure-ledger.mjs` |
+| Nenhum arquivo .ts encontrado em ${apiDir} — nada foi verificado. | `scripts/validate-env-example.mjs` |
 | Nenhuma migration .sql encontrada em ${migrationsDir} — nada foi verificado. | `scripts/validate-error-catalog.mjs` |
 | ${relativePath} não é um JSON válido: ${error.message} | `scripts/verify-vercel-artifact.mjs` |
 | A função ${name}, que exige o app shell, não foi encontrada no artefato Vercel. | `scripts/verify-vercel-artifact.mjs` |
@@ -1044,7 +1045,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1585 testes em 128 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1595 testes em 129 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1099,6 +1100,7 @@ _nenhum item encontrado_
 | `src/components/ProductDescription.test.tsx` | 10 | descrição compacta e segura do produto · preserva texto curto sem exigir expansão · usa o resumo editorial no estado compacto e revela a descrição integral · limita um resumo longo antes de revelar a descrição integral … |
 | `src/lib/search.test.ts` | 10 | busca assistida · normaliza acentos, caixa e espaços sem transportar operadores · expande sinônimos como alternativas da mesma dimensão · descarta linguagem de preço e contexto quando há um objeto pesquisável … |
 | `tests/generate-site-api-jwt.node.mjs` | 10 | falha com mensagem clara quando SITE_SUPABASE_JWT_SECRET não está definido · gera um JWT HS256 válido com role:site_api, verificável com o mesmo segredo (nunca um segredo real: fixture de teste) · permite TTL explícito apenas dentro do teto operacional de 90 dias · segredos diferentes produzem assinaturas diferentes para o mesmo payload (não é uma constante disfarçada) … |
+| `tests/validate-env-example.node.mjs` | 10 | extrai só nomes em maiúsculas de process.env · acusa variável lida por api/ e ausente do exemplo · variável citada apenas em comentário conta como documentada · prefixo igual não cobre nome mais longo … |
 | `tests/api/shared-selections.test.ts` | 10 | links persistentes de seleção · cria link opaco, sem dados de produto ou contato no banco público · preserva a composição do kit e rejeita aritmética adulterada · preserva alternativas no envio e na leitura, sem incluir campos privados … |
 | `site-supabase/supabase/tests/database/email_normalization.test.sql` | 9 | normalize_email tira espaços e baixa a caixa · valor já normalizado permanece idêntico (idempotente) · quote_requests rejeita e-mail com maiúsculas não normalizado · quote_requests rejeita e-mail com espaço não normalizado … |
 | `src/lib/catalogLibrary.test.ts` | 9 | biblioteca de catálogos · combina tema e busca sem depender de acentos · não inventa resultados quando os termos não aparecem juntos · usa o nome atual em links novos e mantém links antigos da coleção … |

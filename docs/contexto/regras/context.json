@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "e4a904ffbe86f7f146ac53170188e9354c5358a8",
+  "sha": "092d5c6ea1298056c0db3e549c525753d9bf627b",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-17 20:39 UTC",
-  "files_total": 585,
-  "code_files": 384,
-  "code_lines": 67528,
+  "generated_at": "2026-11-17 21:06 UTC",
+  "files_total": 587,
+  "code_files": 386,
+  "code_lines": 67767,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "60f002d406073813",
+ "facts_hash": "9475ffa6b21626ee",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -70,11 +70,13 @@
    "test:watch": "vitest",
    "test:e2e": "playwright test --project=desktop-chromium --project=mobile-chromium",
    "test:e2e:cross-browser": "playwright test --project=desktop-firefox --project=desktop-webkit --workers=1",
-   "check": "npm run lint && npm run typecheck && npm run test && npm run agents:instructions:check && npm run test:agent-instructions && npm run test:migration-names && npm run test:error-catalog && npm run test:site-api-jwt && npm run test:timing-safe-secrets && npm run test:supabase-db-query && npm run test:ci-health && npm run test:release-url && npm run test:smoke-deployment && npm run test:stage-app-shell && npm run test:performance-budget && npm run test:site-guard && npm run test:database-docs && npm run test:soak-queue && npm run test:shared-selection-sql && npm run test:catalog-contract && npm run test:inventario && npm run contexto:test && npm run build && npm run check:performance-budget && npm run test:e2e",
+   "check": "npm run lint && npm run typecheck && npm run test && npm run agents:instructions:check && npm run test:agent-instructions && npm run test:migration-names && npm run test:error-catalog && npm run test:env-example && npm run test:site-api-jwt && npm run test:timing-safe-secrets && npm run test:supabase-db-query && npm run test:ci-health && npm run test:release-url && npm run test:smoke-deployment && npm run test:stage-app-shell && npm run test:performance-budget && npm run test:site-guard && npm run test:database-docs && npm run test:soak-queue && npm run test:shared-selection-sql && npm run test:catalog-contract && npm run test:inventario && npm run contexto:test && npm run build && npm run check:performance-budget && npm run test:e2e",
    "db:migration-names:check": "node scripts/validate-migration-names.mjs",
    "test:migration-names": "node --test tests/validate-migration-names.node.mjs",
    "db:site:error-catalog:check": "node scripts/validate-error-catalog.mjs",
    "test:error-catalog": "node --test tests/validate-error-catalog.node.mjs",
+   "env:example:check": "node scripts/validate-env-example.mjs",
+   "test:env-example": "node --test tests/validate-env-example.node.mjs",
    "test:site-api-jwt": "node --test tests/generate-site-api-jwt.node.mjs",
    "test:timing-safe-secrets": "node --test tests/timing-safe-secret-comparisons.node.mjs",
    "test:supabase-db-query": "node --test tests/supabase-db-query.node.mjs",
@@ -280,7 +282,7 @@
    ".ts": 147,
    ".sql": 106,
    ".tsx": 62,
-   ".mjs": 59,
+   ".mjs": 61,
    ".py": 8,
    ".js": 2
   },
@@ -7246,8 +7248,8 @@
   },
   {
    "module": "scripts",
-   "files": 41,
-   "lines": 21235,
+   "files": 42,
+   "lines": 21341,
    "tables": [
     "a",
     "contacts",
@@ -7279,6 +7281,7 @@
     "soak-test-notification-queue.mjs: parseSoakConfig, percentile, isTerminalDelivery",
     "validate-agent-instructions.mjs: AGENTS_FILE, CLAUDE_FILE, DOCS_DIR, SKILL_NAME, SKILL_FILES, REQUIRED_SECTIONS",
     "validate-closure-ledger.mjs: parseCsv, validateLedger",
+    "validate-env-example.mjs: extractEnvNames, findUndocumentedEnvVars",
     "validate-error-catalog.mjs: extractErrorMessagesFromSql, findUndocumentedErrorMessages",
     "validate-migration-names.mjs: MIGRATION_DIRS, isValidCalendarTimestamp, validateMigrationFileNames, validateMigrationDirsOnDisk, validateMigrationDirsNotEmpty, validateNoTopLevelSupabaseMigrationsDir",
     "supabaseDbQuery.mjs: findBalancedJsonValues, extractRows, runSupabaseDbQuery",
@@ -7361,6 +7364,7 @@
     "scripts/stage-app-shell.mjs",
     "scripts/validate-agent-instructions.mjs",
     "scripts/validate-closure-ledger.mjs",
+    "scripts/validate-env-example.mjs",
     "scripts/validate-error-catalog.mjs",
     "scripts/validate-migration-names.mjs",
     "scripts/validate-site-supabase-target.mjs",
@@ -7887,8 +7891,8 @@
   },
   {
    "module": "tests",
-   "files": 44,
-   "lines": 9831,
+   "files": 45,
+   "lines": 9964,
    "tables": [
     "constructor",
     "quote_requests",
@@ -7938,6 +7942,7 @@
     "tests/supabase-db-query.node.mjs",
     "tests/timing-safe-secret-comparisons.node.mjs",
     "tests/validate-agent-instructions.node.mjs",
+    "tests/validate-env-example.node.mjs",
     "tests/validate-error-catalog.node.mjs",
     "tests/validate-migration-names.node.mjs",
     "tests/validate-site-supabase-target.node.mjs",
@@ -8084,6 +8089,9 @@
    ]
   },
   "env": {
+   "A1_B2": [
+    "tests/validate-env-example.node.mjs"
+   ],
    "AGENT_INSTRUCTIONS_ALLOW_NO_BASE": [
     "scripts/validate-agent-instructions.mjs"
    ],
@@ -8127,9 +8135,13 @@
     "api/_lib/catalogValidation.ts",
     "docs/audits/plan-review-20260912/reproduce.mjs"
    ],
+   "CATALOG_SUPABASE_PUBLISHABLE_KEY_V2": [
+    "tests/validate-env-example.node.mjs"
+   ],
    "CI": [
     "playwright.config.ts",
-    "scripts/ai-context/cenarios.mjs"
+    "scripts/ai-context/cenarios.mjs",
+    "tests/validate-env-example.node.mjs"
    ],
    "CODE_SCAN_DIRS": [
     "scripts/supabase_snapshot/snapshot.py"
@@ -8204,7 +8216,8 @@
     "api/_lib/publicProductPage.ts",
     "scripts/ai-context/cenarios.mjs",
     "scripts/ai-context/gerar.unit.mjs",
-    "scripts/maintenance/maintenance.unit.mjs"
+    "scripts/maintenance/maintenance.unit.mjs",
+    "tests/validate-env-example.node.mjs"
    ],
    "OPCIONAL_PREVIEW": [
     "scripts/ai-context/cenarios.mjs"
@@ -8263,7 +8276,8 @@
    ],
    "RESEND_API_KEY": [
     "api/notifications.ts",
-    "scripts/ai-context/gerar.unit.mjs"
+    "scripts/ai-context/gerar.unit.mjs",
+    "tests/validate-env-example.node.mjs"
    ],
    "RESEND_WEBHOOK_SECRET": [
     "api/notification-events-resend.ts",
@@ -8275,11 +8289,15 @@
    "SECRET_KEY": [
     "scripts/maintenance/maintenance.unit.mjs"
    ],
+   "SEGREDO_NOVO": [
+    "tests/validate-env-example.node.mjs"
+   ],
    "SITE_EMAIL_FROM": [
     "api/notifications.ts"
    ],
    "SITE_PREVIEW_SUPABASE_PROJECT_REF": [
-    "api/_lib/siteDatabase.ts"
+    "api/_lib/siteDatabase.ts",
+    "tests/validate-env-example.node.mjs"
    ],
    "SITE_PUBLIC_ORIGIN": [
     "api/_lib/publicProductPage.ts",
@@ -8309,10 +8327,12 @@
     "scripts/regras_negocio/test_generate.py"
    ],
    "SITE_SUPABASE_URL": [
-    "api/_lib/siteDatabase.ts"
+    "api/_lib/siteDatabase.ts",
+    "tests/validate-env-example.node.mjs"
    ],
    "SITE_TEST_APP_SHELL": [
-    "api/_lib/publicProductPage.ts"
+    "api/_lib/publicProductPage.ts",
+    "tests/validate-env-example.node.mjs"
    ],
    "SITE_URL": [
     "scripts/ai-context/gerar.unit.mjs"
@@ -8380,11 +8400,13 @@
     "api/notifications.ts",
     "scripts/ai-context/cenarios.mjs",
     "scripts/ai-context/gerar.unit.mjs",
+    "tests/validate-env-example.node.mjs",
     "vite.config.ts"
    ],
    "VERCEL_URL": [
     "api/_lib/siteOrigin.ts",
-    "scripts/ai-context/cenarios.mjs"
+    "scripts/ai-context/cenarios.mjs",
+    "tests/validate-env-example.node.mjs"
    ],
    "VITE_A": [
     "scripts/ai-context/cenarios.mjs"
@@ -8498,6 +8520,9 @@
    ],
    "XDG_STATE_HOME": [
     "scripts/maintenance/run.mjs"
+   ],
+   "X_Y": [
+    "tests/validate-env-example.node.mjs"
    ]
   },
   "rpc": {
@@ -9723,6 +9748,10 @@
    {
     "file": "scripts/validate-closure-ledger.mjs",
     "msg": "Ledger não verificável: git não encontrado no PATH; o validador confere cada fonte no commit auditado."
+   },
+   {
+    "file": "scripts/validate-env-example.mjs",
+    "msg": "Nenhum arquivo .ts encontrado em ${apiDir} — nada foi verificado."
    },
    {
     "file": "scripts/validate-error-catalog.mjs",
@@ -17978,6 +18007,46 @@
     "name": "main(): --help descreve as variáveis de ambiente e sai com 0"
    },
    {
+    "file": "tests/validate-env-example.node.mjs",
+    "name": "extrai só nomes em maiúsculas de process.env"
+   },
+   {
+    "file": "tests/validate-env-example.node.mjs",
+    "name": "acusa variável lida por api/ e ausente do exemplo"
+   },
+   {
+    "file": "tests/validate-env-example.node.mjs",
+    "name": "variável citada apenas em comentário conta como documentada"
+   },
+   {
+    "file": "tests/validate-env-example.node.mjs",
+    "name": "prefixo igual não cobre nome mais longo"
+   },
+   {
+    "file": "tests/validate-env-example.node.mjs",
+    "name": "prefixo à esquerda não cobre a variável de backend"
+   },
+   {
+    "file": "tests/validate-env-example.node.mjs",
+    "name": "variáveis da plataforma e de teste não exigem entrada no exemplo"
+   },
+   {
+    "file": "tests/validate-env-example.node.mjs",
+    "name": "pasta sem .ts falha em vez de aprovar silenciosamente"
+   },
+   {
+    "file": "tests/validate-env-example.node.mjs",
+    "name": "CLI: código 0 no repositório atual"
+   },
+   {
+    "file": "tests/validate-env-example.node.mjs",
+    "name": "CLI: código 0 e stdout quando está documentada; código 1 e nome em stderr quando falta"
+   },
+   {
+    "file": "tests/validate-env-example.node.mjs",
+    "name": "CLI: exemplo ausente ou api sem .ts saem com código 1 e mensagem de uma linha"
+   },
+   {
     "file": "tests/validate-error-catalog.node.mjs",
     "name": "extrai mensagens literais (message = \\"
    },
@@ -25776,6 +25845,17 @@
     }
    ]
   },
+  "scripts/validate-env-example.mjs": {
+   "path": "scripts/validate-env-example.mjs",
+   "lines": 106,
+   "exports": [
+    "function extractEnvNames",
+    "function findUndocumentedEnvVars"
+   ],
+   "errors": [
+    "Nenhum arquivo .ts encontrado em ${apiDir} — nada foi verificado."
+   ]
+  },
   "scripts/validate-error-catalog.mjs": {
    "path": "scripts/validate-error-catalog.mjs",
    "lines": 93,
@@ -32026,6 +32106,40 @@
     "main(): --help descreve as variáveis de ambiente e sai com 0"
    ]
   },
+  "tests/validate-env-example.node.mjs": {
+   "path": "tests/validate-env-example.node.mjs",
+   "lines": 133,
+   "is_test": true,
+   "env": [
+    "A1_B2",
+    "CATALOG_SUPABASE_PUBLISHABLE_KEY_V2",
+    "CI",
+    "NODE_ENV",
+    "RESEND_API_KEY",
+    "SEGREDO_NOVO",
+    "SITE_PREVIEW_SUPABASE_PROJECT_REF",
+    "SITE_SUPABASE_URL",
+    "SITE_TEST_APP_SHELL",
+    "VERCEL_ENV",
+    "VERCEL_URL",
+    "X_Y"
+   ],
+   "errors": [
+    "arquivo inesperado: ${caminho}"
+   ],
+   "tests": [
+    "extrai só nomes em maiúsculas de process.env",
+    "acusa variável lida por api/ e ausente do exemplo",
+    "variável citada apenas em comentário conta como documentada",
+    "prefixo igual não cobre nome mais longo",
+    "prefixo à esquerda não cobre a variável de backend",
+    "variáveis da plataforma e de teste não exigem entrada no exemplo",
+    "pasta sem .ts falha em vez de aprovar silenciosamente",
+    "CLI: código 0 no repositório atual",
+    "CLI: código 0 e stdout quando está documentada; código 1 e nome em stderr quando falta",
+    "CLI: exemplo ausente ou api sem .ts saem com código 1 e mensagem de uma linha"
+   ]
+  },
   "tests/validate-error-catalog.node.mjs": {
    "path": "tests/validate-error-catalog.node.mjs",
    "lines": 124,
@@ -32605,10 +32719,34 @@
   }
  },
  "git": {
-  "sha": "e4a904ffbe86f7f146ac53170188e9354c5358a8",
+  "sha": "092d5c6ea1298056c0db3e549c525753d9bf627b",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "092d5c6",
+    "date": "2026-11-17",
+    "author": "adm01-debug",
+    "subject": "chore(config): variável de produção não documentada, com guard para não repetir (#186)",
+    "files": [
+     ".env.example",
+     "package.json",
+     "scripts/automation.config.json",
+     "scripts/validate-env-example.mjs",
+     "tests/validate-env-example.node.mjs"
+    ]
+   },
+   {
+    "sha": "fbd51d9",
+    "date": "2026-11-17",
+    "author": "adm01-debug",
+    "subject": "fix(docs): contrato do banco deixa de descrever função e status que não existem (#185)",
+    "files": [
+     "docs/CUSTOMER_PORTAL_IMPLEMENTATION_20260909.md",
+     "docs/DATABASE_FUNCTION_CONTRACTS.md",
+     "docs/SITE_SUPABASE_SETUP.md"
+    ]
+   },
    {
     "sha": "e4a904f",
     "date": "2026-11-17",
@@ -32928,26 +33066,6 @@
      "api/briefing-assets.ts",
      "api/customer-proposals.ts"
     ]
-   },
-   {
-    "sha": "fa7365b",
-    "date": "2026-11-16",
-    "author": "adm01-debug",
-    "subject": "fix(orcamento): selo de prioridade so sai no PDF se o recurso estiver ligado (#156)",
-    "files": [
-     "src/pages/QuotePage.tsx",
-     "src/vite-env.d.ts"
-    ]
-   },
-   {
-    "sha": "fccd45a",
-    "date": "2026-11-16",
-    "author": "adm01-debug",
-    "subject": "fix: aplica as 2 pendencias confirmadas da varredura de review dos agentes (#155)",
-    "files": [
-     ".gitignore",
-     "api/commercial-alerts.ts"
-    ]
    }
   ],
   "hot_files": [
@@ -32958,10 +33076,6 @@
    [
     ".github/workflows/quality.yml",
     4
-   ],
-   [
-    "src/pages/QuotePage.tsx",
-    3
    ],
    [
     "src/pages/IdeaLandingPage.tsx",
@@ -32981,6 +33095,10 @@
    ],
    [
     "api/_lib/leadHandler.ts",
+    2
+   ],
+   [
+    "src/pages/QuotePage.tsx",
     2
    ],
    [
@@ -33020,15 +33138,15 @@
     2
    ],
    [
-    "api/retention.ts",
+    ".env.example",
     1
    ],
    [
-    "tests/api/retention.test.ts",
+    "package.json",
     1
    ],
    [
-    "api/_lib/siteDatabase.ts",
+    "scripts/automation.config.json",
     1
    ]
   ]

@@ -2,11 +2,21 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "e4a904ffbe86f7f146ac53170188e9354c5358a8",
+  "commit": "092d5c6ea1298056c0db3e549c525753d9bf627b",
   "branch": "main",
-  "data_commit": "2026-11-17T20:35:16Z",
+  "data_commit": "2026-11-17T21:02:20Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "092d5c6",
+    "data": "2026-11-17",
+    "assunto": "chore(config): variável de produção não documentada, com guard para não repetir (#186)"
+   },
+   {
+    "sha": "fbd51d9",
+    "data": "2026-11-17",
+    "assunto": "fix(docs): contrato do banco deixa de descrever função e status que não existem (#185)"
+   },
    {
     "sha": "e4a904f",
     "data": "2026-11-17",
@@ -121,23 +131,13 @@
     "sha": "1d017c9",
     "data": "2026-11-17",
     "assunto": "fix(ci): o resumo do quality gate para de acusar falha em passo que passou (#162)"
-   },
-   {
-    "sha": "8ea1273",
-    "data": "2026-11-17",
-    "assunto": "feat(lgpd): o apagamento de titular passa a apagar o que faltava (#161)"
-   },
-   {
-    "sha": "f48af64",
-    "data": "2026-11-17",
-    "assunto": "feat(contato): avisa o comercial quando chega lead pelo formulario de contato (#158)"
    }
   ],
-  "arquivos_mudados_7d": 119,
+  "arquivos_mudados_7d": 123,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
-    "mudancas": 14
+    "mudancas": 15
    },
    {
     "pasta": "docs/audits/pending-features-20261011",
@@ -199,7 +199,7 @@
   "arquivos_mais_mudados_90d": [
    {
     "arquivo": "package.json",
-    "mudancas": 63
+    "mudancas": 64
    },
    {
     "arquivo": "e2e/smoke.spec.ts",
@@ -258,8 +258,16 @@
     "mudancas": 17
    },
    {
+    "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
+    "mudancas": 17
+   },
+   {
     "arquivo": "src/App.tsx",
     "mudancas": 17
+   },
+   {
+    "arquivo": ".env.example",
+    "mudancas": 16
    },
    {
     "arquivo": ".github/workflows/graphify.yml",
@@ -270,16 +278,8 @@
     "mudancas": 16
    },
    {
-    "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
-    "mudancas": 16
-   },
-   {
     "arquivo": "docs/DATABASE_SCHEMA.md",
     "mudancas": 16
-   },
-   {
-    "arquivo": ".env.example",
-    "mudancas": 15
    },
    {
     "arquivo": "src/types/site-database.types.ts",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 69
+    "commits": 71
    },
    {
     "autor": "dependabot[bot]",
@@ -310,9 +310,9 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 692,
-  "arquivos_codigo": 277,
-  "linhas_codigo": 54354,
+  "arquivos_total": 694,
+  "arquivos_codigo": 279,
+  "linhas_codigo": 54593,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -324,9 +324,9 @@
   "tabelas": 22,
   "migrations": 69,
   "cron_jobs": 0,
-  "testes": 137,
+  "testes": 138,
   "workflows": 15,
-  "scripts": 35,
+  "scripts": 36,
   "docs_md": 117
  },
  "por_pasta": {
@@ -510,6 +510,10 @@
    "arquivos": 1,
    "linhas": 128
   },
+  "scripts/validate-env-example.mjs": {
+   "arquivos": 1,
+   "linhas": 106
+  },
   "scripts/validate-error-catalog.mjs": {
    "arquivos": 1,
    "linhas": 93
@@ -658,6 +662,10 @@
    "arquivos": 1,
    "linhas": 370
   },
+  "tests/validate-env-example.node.mjs": {
+   "arquivos": 1,
+   "linhas": 133
+  },
   "tests/validate-error-catalog.node.mjs": {
    "arquivos": 1,
    "linhas": 124
@@ -783,7 +791,7 @@
  ],
  "qualidade": {
   "any": 3,
-  "console_log": 90,
+  "console_log": 91,
   "ts_ignore": 0,
   "eslint_disable": 1,
   "todos": 3,
@@ -823,7 +831,6 @@
   "componentes_com_nome_duplicado": [],
   "scripts_orfaos": [],
   "env_usadas_nao_declaradas": [
-   "CATALOG_SUPABASE_PUBLISHABLE_KEY",
    "SITE_TEST_APP_SHELL",
    "VITE_SITE_DEPLOYMENT_ENV"
   ],

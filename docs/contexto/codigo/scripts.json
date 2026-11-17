@@ -1,7 +1,7 @@
 {
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
- "total": 35,
+ "total": 36,
  "scripts": [
   {
    "arquivo": "scripts/_lib/supabaseDbQuery.mjs",
@@ -417,6 +417,17 @@
    "env": [],
    "npm_scripts": [
     "ledger:check"
+   ],
+   "workflows": [],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/validate-env-example.mjs",
+   "descricao": "PF-112 da auditoria de 11/10/2026: `CATALOG_SUPABASE_PUBLISHABLE_KEY` é lida por api/_lib/catalogValidation.ts e nunca foi citada em .env.example. Como ela tem",
+   "linhas": 106,
+   "env": [],
+   "npm_scripts": [
+    "env:example:check"
    ],
    "workflows": [],
    "orfao": false
