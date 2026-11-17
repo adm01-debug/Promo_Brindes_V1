@@ -8,8 +8,8 @@ import { errorClass, logServerError, logServerWarning } from './observability.js
  * /api/commercial-alerts, sempre por webhook HTTPS — nunca por e-mail interno
  * (os provedores de transação só enviam para o cliente).
  *
- * Orçamento de uma tentativa síncrona, com folga sobre o maxDuration de 15s
- * da rota (vercel.json). Exportado para o gate de CI
+ * Orçamento de uma tentativa síncrona, com folga sobre o maxDuration de 30s
+ * das rotas de lead (vercel.json). Exportado para o gate de CI
  * tests/api/maxDuration.test.ts.
  */
 export const COMMERCIAL_ALERT_TIMEOUT_MS = 7_000;
@@ -31,6 +31,9 @@ export interface CommercialAlertJob {
   existingProvider: string | null;
   existingProviderMessageId: string | null;
   requestId: string;
+  /** 'quote' | 'contact'. Jobs de orçamento já reivindicados antes deste
+   * deploy não trazem o campo e o parse os normaliza como 'quote'. */
+  requestKind: 'quote' | 'contact';
   attempt: number;
   protocol: string;
   recipientEmail: string;
@@ -39,6 +42,11 @@ export interface CommercialAlertJob {
   company: string;
   submittedAt: string;
   items: Array<{ name: string; sku: string; quantity: number; colorName: string | null }>;
+  /** Só no contato: o orçamento não tem canal preferido nem página de origem
+   * no envelope. O texto livre da mensagem fica fora, por minimização
+   * (migration 20261117010000). */
+  preferredChannel: string;
+  pageUrl: string;
 }
 
 function safeText(value: unknown, max: number): string {
@@ -76,6 +84,7 @@ export function parseCommercialAlertJob(value: unknown): CommercialAlertJob | nu
     existingProvider: safeText(job.existingProvider, 80) || null,
     existingProviderMessageId: safeText(job.existingProviderMessageId, 240) || null,
     requestId: String(job.requestId),
+    requestKind: job.requestKind === 'contact' ? 'contact' : 'quote',
     attempt: Number(job.attempt),
     protocol: safeText(job.protocol, 40),
     recipientEmail: safeText(job.recipientEmail, 160).toLowerCase(),
@@ -84,6 +93,8 @@ export function parseCommercialAlertJob(value: unknown): CommercialAlertJob | nu
     company: safeText(job.company, 150),
     submittedAt: safeText(job.submittedAt, 50),
     items,
+    preferredChannel: safeText(job.preferredChannel, 20),
+    pageUrl: safeText(job.pageUrl, 500),
   };
 }
 
@@ -167,14 +178,23 @@ export async function deliverCommercialAlertJob(job: CommercialAlertJob, signal:
 
   const token = process.env.COMMERCIAL_TEAM_WEBHOOK_TOKEN?.trim();
   const deliveryId = `${job.protocol || job.requestId}`;
-  const envelope = {
-    event: 'quote_request_submitted',
-    occurredAt: job.submittedAt || new Date().toISOString(),
-    protocol: job.protocol,
-    requestId: job.requestId,
-    contact: { name: job.contactName, email: job.recipientEmail, phone: job.recipientPhone, company: job.company },
-    items: job.items,
-  };
+  const envelope = job.requestKind === 'contact'
+    ? {
+        event: 'contact_request_submitted',
+        occurredAt: job.submittedAt || new Date().toISOString(),
+        requestId: job.requestId,
+        contact: { name: job.contactName, email: job.recipientEmail, phone: job.recipientPhone },
+        preferredChannel: job.preferredChannel,
+        pageUrl: job.pageUrl,
+      }
+    : {
+        event: 'quote_request_submitted',
+        occurredAt: job.submittedAt || new Date().toISOString(),
+        protocol: job.protocol,
+        requestId: job.requestId,
+        contact: { name: job.contactName, email: job.recipientEmail, phone: job.recipientPhone, company: job.company },
+        items: job.items,
+      };
   try {
     const response = await fetch(url, {
       method: 'POST',
