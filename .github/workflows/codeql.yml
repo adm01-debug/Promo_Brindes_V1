@@ -43,9 +43,13 @@ jobs:
           languages: javascript-typescript
           build-mode: none
           queries: security-extended
+          # Input de action e string, nao lista: mantem o block scalar e a action parseia por linha.
+          # Antes havia aspas em '**/*.md' aqui dentro, e no block scalar elas sao caracteres literais,
+          # entao aquele padrao nunca casava e docs/ seguia sendo analisado — prova disso era o alerta
+          # js/incomplete-url-substring-sanitization aberto em docs/audits/, que e um mock de teste.
           paths-ignore: |
-            docs
-            '**/*.md'
-            graphify-out
+            docs/**
+            **/*.md
+            graphify-out/**
       - name: Analyze
         uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
