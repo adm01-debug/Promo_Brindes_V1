@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "b8870bf011f35f5102d00bd5978853f8849cb51f",
+  "sha": "fce1a493f0703f26f08c846d8a75438fc3dbfcf8",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-17 14:15 UTC",
-  "files_total": 579,
-  "code_files": 379,
-  "code_lines": 66810,
+  "generated_at": "2026-11-17 14:31 UTC",
+  "files_total": 580,
+  "code_files": 380,
+  "code_lines": 66834,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "b536b419ccf997e9",
+ "facts_hash": "2d5a88f219ccf447",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -277,7 +277,7 @@
   ],
   "package_manager": "npm",
   "languages": {
-   ".ts": 143,
+   ".ts": 144,
    ".sql": 106,
    ".tsx": 61,
    ".mjs": 59,
@@ -6422,7 +6422,7 @@
      "get_my_quote_requests",
      "request_my_quote_adjustment"
     ],
-    "deps_count": 11
+    "deps_count": 12
    },
    {
     "path": "",
@@ -6434,7 +6434,7 @@
      "list_my_occasion_favorites",
      "set_my_occasion_favorite"
     ],
-    "deps_count": 13
+    "deps_count": 14
    },
    {
     "path": "",
@@ -6452,7 +6452,7 @@
     "tables_transitive": [],
     "invokes_transitive": [],
     "rpc_transitive": [],
-    "deps_count": 1
+    "deps_count": 2
    },
    {
     "path": "/",
@@ -6461,7 +6461,7 @@
     "tables_transitive": [],
     "invokes_transitive": [],
     "rpc_transitive": [],
-    "deps_count": 25
+    "deps_count": 26
    },
    {
     "path": "/auth/confirm",
@@ -6475,7 +6475,7 @@
      "get_my_quote_requests",
      "request_my_quote_adjustment"
     ],
-    "deps_count": 10
+    "deps_count": 11
    },
    {
     "path": "/catalogo",
@@ -6484,7 +6484,7 @@
     "tables_transitive": [],
     "invokes_transitive": [],
     "rpc_transitive": [],
-    "deps_count": 21
+    "deps_count": 22
    },
    {
     "path": "/catalogos",
@@ -6493,7 +6493,7 @@
     "tables_transitive": [],
     "invokes_transitive": [],
     "rpc_transitive": [],
-    "deps_count": 11
+    "deps_count": 12
    },
    {
     "path": "/contato",
@@ -6502,7 +6502,7 @@
     "tables_transitive": [],
     "invokes_transitive": [],
     "rpc_transitive": [],
-    "deps_count": 9
+    "deps_count": 10
    },
    {
     "path": "/datas-comemorativas",
@@ -6514,7 +6514,7 @@
      "list_my_occasion_favorites",
      "set_my_occasion_favorite"
     ],
-    "deps_count": 14
+    "deps_count": 15
    },
    {
     "path": "/definir-senha",
@@ -6523,7 +6523,7 @@
     "tables_transitive": [],
     "invokes_transitive": [],
     "rpc_transitive": [],
-    "deps_count": 5
+    "deps_count": 6
    },
    {
     "path": "/entrar",
@@ -6537,7 +6537,7 @@
      "get_my_quote_requests",
      "request_my_quote_adjustment"
     ],
-    "deps_count": 12
+    "deps_count": 13
    },
    {
     "path": "/ideias/:topic",
@@ -6546,7 +6546,7 @@
     "tables_transitive": [],
     "invokes_transitive": [],
     "rpc_transitive": [],
-    "deps_count": 15
+    "deps_count": 16
    },
    {
     "path": "/minha-conta",
@@ -6564,7 +6564,7 @@
      "save_my_selection",
      "set_my_selection_archived"
     ],
-    "deps_count": 22
+    "deps_count": 23
    },
    {
     "path": "/minha-conta/orcamentos/:id",
@@ -6578,7 +6578,7 @@
      "get_my_quote_requests",
      "request_my_quote_adjustment"
     ],
-    "deps_count": 22
+    "deps_count": 23
    },
    {
     "path": "/montar-kit",
@@ -6587,7 +6587,7 @@
     "tables_transitive": [],
     "invokes_transitive": [],
     "rpc_transitive": [],
-    "deps_count": 12
+    "deps_count": 13
    },
    {
     "path": "/orcamento",
@@ -6601,7 +6601,7 @@
      "delete_my_briefing_asset",
      "list_my_briefing_assets"
     ],
-    "deps_count": 26
+    "deps_count": 27
    },
    {
     "path": "/privacidade",
@@ -6610,7 +6610,7 @@
     "tables_transitive": [],
     "invokes_transitive": [],
     "rpc_transitive": [],
-    "deps_count": 1
+    "deps_count": 2
    },
    {
     "path": "/produto/:identifier",
@@ -6619,7 +6619,7 @@
     "tables_transitive": [],
     "invokes_transitive": [],
     "rpc_transitive": [],
-    "deps_count": 17
+    "deps_count": 18
    },
    {
     "path": "/selecoes/compartilhada",
@@ -6628,7 +6628,7 @@
     "tables_transitive": [],
     "invokes_transitive": [],
     "rpc_transitive": [],
-    "deps_count": 10
+    "deps_count": 11
    },
    {
     "path": "/sobre",
@@ -6637,7 +6637,7 @@
     "tables_transitive": [],
     "invokes_transitive": [],
     "rpc_transitive": [],
-    "deps_count": 1
+    "deps_count": 2
    }
   ],
   "edge_functions": [],
@@ -7066,7 +7066,7 @@
   {
    "module": "api",
    "files": 28,
-   "lines": 4110,
+   "lines": 4115,
    "tables": [],
    "exports": [
     "briefing-assets.ts: REQUEST_TIMEOUT_MS, handler, async",
@@ -7206,7 +7206,7 @@
   {
    "module": "e2e",
    "files": 2,
-   "lines": 1693,
+   "lines": 1700,
    "tables": [],
    "exports": [],
    "docs": [],
@@ -7379,23 +7379,26 @@
   },
   {
    "module": "shared",
-   "files": 3,
-   "lines": 149,
+   "files": 4,
+   "lines": 159,
    "tables": [],
    "exports": [
     "campaignYears.ts: currentCampaignYear, supportedCampaignYears, normalizeCampaignYear",
     "catalogEditorial.ts: CatalogEditorialStatus, CatalogEditorialEntry, CatalogEditorialId, catalogEditorialEntries, resolveCatalogEditorialId, isCatalogEditorialEntryPublic",
-    "ideaLandingPages.ts: IdeaLandingId, IdeaLandingMeta, ideaLandingMeta, ideaLandingIds"
+    "ideaLandingPages.ts: IdeaLandingId, IdeaLandingMeta, ideaLandingMeta, ideaLandingIds",
+    "siteName.ts: SITE_NAME"
    ],
    "docs": [
-    "ideaLandingPages.ts: Fonte única do título e da descrição das quatro landings `/ideias/*`. O shell pré-renderizado (`api/site-page.ts`) e a página React (`src/lib/ideaLandings.ts` + `src/components/Seo.tsx`) leem daqui, para o HTML entregue ao crawler não contradizer o que o app escreve depois da hidratação."
+    "ideaLandingPages.ts: Fonte única do título e da descrição das quatro landings `/ideias/*`. O shell pré-renderizado (`api/site-page.ts`) e a página React (`src/lib/ideaLandings.ts` + `src/components/Seo.tsx`) leem daqui, para o HTML entregue ao crawler não contradizer o que o app escreve depois da hidratação.",
+    "siteName.ts: Nome da marca usado no sufixo de todo `<title>`. Vive aqui porque o shell pré-renderizado (`api/site-page.ts`) e a página React (`src/components/Seo.tsx`) precisam compor o mesmo título para a mesma URL. Com o literal duplicado nos dois lados, uma mudança de assinatura da marca passava em um e não n …"
    ],
    "deps": [],
    "imports_modules": [],
    "file_list": [
     "shared/campaignYears.ts",
     "shared/catalogEditorial.ts",
-    "shared/ideaLandingPages.ts"
+    "shared/ideaLandingPages.ts",
+    "shared/siteName.ts"
    ]
   },
   {
@@ -7559,6 +7562,7 @@
     "vitest"
    ],
    "imports_modules": [
+    "shared",
     "src/context",
     "src/lib",
     "src/types"
@@ -7873,7 +7877,7 @@
   {
    "module": "tests",
    "files": 42,
-   "lines": 9459,
+   "lines": 9461,
    "tables": [
     "constructor",
     "quote_requests",
@@ -24315,7 +24319,7 @@
   },
   "api/site-page.ts": {
    "path": "api/site-page.ts",
-   "lines": 127,
+   "lines": 132,
    "exports": [
     "function handler",
     "default async"
@@ -24920,7 +24924,7 @@
   },
   "e2e/smoke.spec.ts": {
    "path": "e2e/smoke.spec.ts",
-   "lines": 1537,
+   "lines": 1544,
    "is_test": true,
    "navigates": [
     "/catalogo?perfil=novos"
@@ -26971,6 +26975,14 @@
     }
    ],
    "doc": "Fonte única do título e da descrição das quatro landings `/ideias/*`. O shell pré-renderizado (`api/site-page.ts`) e a página React (`src/lib/ideaLandings.ts` + `src/components/Seo.tsx`) leem daqui, para o HTML entregue ao crawler não contradizer o que o app escreve depois da hidratação."
+  },
+  "shared/siteName.ts": {
+   "path": "shared/siteName.ts",
+   "lines": 10,
+   "exports": [
+    "const SITE_NAME"
+   ],
+   "doc": "Nome da marca usado no sufixo de todo `<title>`. Vive aqui porque o shell pré-renderizado (`api/site-page.ts`) e a página React (`src/components/Seo.tsx`) precisam compor o mesmo título para a mesma URL. Com o literal duplicado nos dois lados, uma mudança de assinatura da marca passava em um e não n …"
   },
   "site-supabase/supabase/migrations/20260908230000_create_site_lead_storage.sql": {
    "path": "site-supabase/supabase/migrations/20260908230000_create_site_lead_storage.sql",
@@ -32214,7 +32226,7 @@
   },
   "tests/api/site-page.test.ts": {
    "path": "tests/api/site-page.test.ts",
-   "lines": 153,
+   "lines": 155,
    "is_test": true,
    "tests": [
     "HTML inicial das páginas estáticas",
@@ -32299,10 +32311,31 @@
   }
  },
  "git": {
-  "sha": "b8870bf011f35f5102d00bd5978853f8849cb51f",
+  "sha": "fce1a493f0703f26f08c846d8a75438fc3dbfcf8",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "fce1a49",
+    "date": "2026-11-17",
+    "author": "adm01-debug",
+    "subject": "fix(seo): shell das landings volta a recusar campo desconhecido e usa um só nome de marca (#174)",
+    "files": [
+     "api/site-page.ts",
+     "shared/siteName.ts",
+     "src/components/Seo.tsx",
+     "tests/api/site-page.test.ts"
+    ]
+   },
+   {
+    "sha": "5a524ad",
+    "date": "2026-11-17",
+    "author": "adm01-debug",
+    "subject": "test(e2e): guardas dos destinos editoriais passam a poder falhar (#173)",
+    "files": [
+     "e2e/smoke.spec.ts"
+    ]
+   },
    {
     "sha": "b8870bf",
     "date": "2026-11-17",
@@ -32601,31 +32634,12 @@
     "files": [
      "docs/prod-readiness.md"
     ]
-   },
-   {
-    "sha": "8a810bd",
-    "date": "2026-11-13",
-    "author": "adm01-debug",
-    "subject": "fix(lint): ignora o runtime local .tools/ no eslint (#137)",
-    "files": [
-     "eslint.config.js"
-    ]
-   },
-   {
-    "sha": "7347bd4",
-    "date": "2026-11-13",
-    "author": "adm01-debug",
-    "subject": "fix(a11y): nomeia o link da imagem do card com o nome do produto (#136)",
-    "files": [
-     "src/components/ProductCard.tsx",
-     "src/styles.css"
-    ]
    }
   ],
   "hot_files": [
    [
     "e2e/smoke.spec.ts",
-    3
+    4
    ],
    [
     ".github/workflows/quality.yml",
@@ -32640,7 +32654,11 @@
     3
    ],
    [
-    "src/styles.css",
+    "api/site-page.ts",
+    2
+   ],
+   [
+    "tests/api/site-page.test.ts",
     2
    ],
    [
@@ -32672,11 +32690,15 @@
     2
    ],
    [
-    "docs/GRAPHIFY.md",
+    "shared/siteName.ts",
     1
    ],
    [
-    "api/site-page.ts",
+    "src/components/Seo.tsx",
+    1
+   ],
+   [
+    "docs/GRAPHIFY.md",
     1
    ],
    [
@@ -32688,19 +32710,11 @@
     1
    ],
    [
-    "tests/api/site-page.test.ts",
-    1
-   ],
-   [
     "src/lib/analytics.test.ts",
     1
    ],
    [
     "src/lib/analytics.ts",
-    1
-   ],
-   [
-    "src/pages/IdeaLandingPage.tsx",
     1
    ]
   ]

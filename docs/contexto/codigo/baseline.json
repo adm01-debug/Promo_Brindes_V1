@@ -2,11 +2,21 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "b8870bf011f35f5102d00bd5978853f8849cb51f",
+  "commit": "fce1a493f0703f26f08c846d8a75438fc3dbfcf8",
   "branch": "main",
-  "data_commit": "2026-11-17T13:56:33Z",
+  "data_commit": "2026-11-17T14:29:28Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "fce1a49",
+    "data": "2026-11-17",
+    "assunto": "fix(seo): shell das landings volta a recusar campo desconhecido e usa um só nome de marca (#174)"
+   },
+   {
+    "sha": "5a524ad",
+    "data": "2026-11-17",
+    "assunto": "test(e2e): guardas dos destinos editoriais passam a poder falhar (#173)"
+   },
    {
     "sha": "b8870bf",
     "data": "2026-11-17",
@@ -121,19 +131,9 @@
     "sha": "6706d55",
     "data": "2026-11-16",
     "assunto": "infra: blinda as permissoes de Actions e registra a decisao da etapa 32 (#149)"
-   },
-   {
-    "sha": "fd91246",
-    "data": "2026-11-16",
-    "assunto": "chore(deps): bump playwright 1.65.1, eslint 10.15.0 e jsdom 31.0.1 (#148)"
-   },
-   {
-    "sha": "e08af2a",
-    "data": "2026-11-16",
-    "assunto": "chore: consolida os 6 bumps do dependabot e corrige o pin duplicado do graphify (#147)"
    }
   ],
-  "arquivos_mudados_7d": 150,
+  "arquivos_mudados_7d": 152,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -160,15 +160,15 @@
     "mudancas": 6
    },
    {
+    "pasta": "e2e/smoke.spec.ts",
+    "mudancas": 6
+   },
+   {
     "pasta": ".gitignore",
     "mudancas": 5
    },
    {
     "pasta": ".graphify.project.json",
-    "mudancas": 5
-   },
-   {
-    "pasta": "e2e/smoke.spec.ts",
     "mudancas": 5
    },
    {
@@ -203,7 +203,7 @@
    },
    {
     "arquivo": "e2e/smoke.spec.ts",
-    "mudancas": 56
+    "mudancas": 57
    },
    {
     "arquivo": "package-lock.json",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 56
+    "commits": 58
    },
    {
     "autor": "dependabot[bot]",
@@ -310,9 +310,9 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 686,
-  "arquivos_codigo": 272,
-  "linhas_codigo": 53636,
+  "arquivos_total": 687,
+  "arquivos_codigo": 273,
+  "linhas_codigo": 53660,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -384,7 +384,7 @@
   },
   "api/site-page.ts": {
    "arquivos": 1,
-   "linhas": 127
+   "linhas": 132
   },
   "api/sitemap.ts": {
    "arquivos": 1,
@@ -400,7 +400,7 @@
   },
   "e2e/smoke.spec.ts": {
    "arquivos": 1,
-   "linhas": 1537
+   "linhas": 1544
   },
   "eslint.config.js": {
    "arquivos": 1,
@@ -538,6 +538,10 @@
    "arquivos": 1,
    "linhas": 35
   },
+  "shared/siteName.ts": {
+   "arquivos": 1,
+   "linhas": 10
+  },
   "src/App.tsx": {
    "arquivos": 1,
    "linhas": 138
@@ -576,7 +580,7 @@
   },
   "tests/api": {
    "arquivos": 18,
-   "linhas": 3539
+   "linhas": 3541
   },
   "tests/catalog-public-contract.node.mjs": {
    "arquivos": 1,

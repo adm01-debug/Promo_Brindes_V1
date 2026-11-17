@@ -98,7 +98,8 @@
    "api/_lib/publicProductPage.ts",
    "shared/campaignYears.ts",
    "shared/catalogEditorial.ts",
-   "shared/ideaLandingPages.ts"
+   "shared/ideaLandingPages.ts",
+   "shared/siteName.ts"
   ],
   "api/sitemap.ts": [
    "api/_lib/curatedPagePreviews.ts",
@@ -241,6 +242,9 @@
   "src/components/SearchAutocomplete.tsx": [
    "src/lib/search.ts",
    "src/types.ts"
+  ],
+  "src/components/Seo.tsx": [
+   "shared/siteName.ts"
   ],
   "src/context/CustomerAuthContext.tsx": [
    "src/context/customerAuth.ts",

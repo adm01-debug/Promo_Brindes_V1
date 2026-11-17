@@ -50,7 +50,7 @@
    "papeis": [
     "anon"
    ],
-   "arquivos_puxados": 28
+   "arquivos_puxados": 29
   },
   {
    "protegida": false,
@@ -74,7 +74,7 @@
    "canais_realtime": [],
    "flags": [],
    "papeis": [],
-   "arquivos_puxados": 1
+   "arquivos_puxados": 2
   },
   {
    "protegida": false,
@@ -465,7 +465,7 @@
    "papeis": [
     "anon"
    ],
-   "arquivos_puxados": 6
+   "arquivos_puxados": 7
   },
   {
    "protegida": false,
@@ -527,7 +527,7 @@
    "papeis": [
     "anon"
    ],
-   "arquivos_puxados": 10
+   "arquivos_puxados": 11
   },
   {
    "protegida": false,
@@ -572,7 +572,7 @@
    "papeis": [
     "anon"
    ],
-   "arquivos_puxados": 21
+   "arquivos_puxados": 22
   },
   {
    "protegida": false,
@@ -610,7 +610,7 @@
    "papeis": [
     "anon"
    ],
-   "arquivos_puxados": 11
+   "arquivos_puxados": 12
   },
   {
    "protegida": false,
@@ -636,7 +636,7 @@
    "canais_realtime": [],
    "flags": [],
    "papeis": [],
-   "arquivos_puxados": 9
+   "arquivos_puxados": 10
   },
   {
    "protegida": false,
@@ -677,7 +677,7 @@
    "papeis": [
     "anon"
    ],
-   "arquivos_puxados": 14
+   "arquivos_puxados": 15
   },
   {
    "protegida": false,
@@ -709,7 +709,7 @@
    "papeis": [
     "anon"
    ],
-   "arquivos_puxados": 5
+   "arquivos_puxados": 6
   },
   {
    "protegida": false,
@@ -747,7 +747,7 @@
    "papeis": [
     "anon"
    ],
-   "arquivos_puxados": 12
+   "arquivos_puxados": 13
   },
   {
    "protegida": false,
@@ -787,7 +787,7 @@
    "papeis": [
     "anon"
    ],
-   "arquivos_puxados": 15
+   "arquivos_puxados": 16
   },
   {
    "protegida": false,
@@ -831,7 +831,7 @@
    "papeis": [
     "anon"
    ],
-   "arquivos_puxados": 22
+   "arquivos_puxados": 23
   },
   {
    "protegida": false,
@@ -877,7 +877,7 @@
    "papeis": [
     "anon"
    ],
-   "arquivos_puxados": 22
+   "arquivos_puxados": 23
   },
   {
    "protegida": false,
@@ -917,7 +917,7 @@
    "papeis": [
     "anon"
    ],
-   "arquivos_puxados": 12
+   "arquivos_puxados": 13
   },
   {
    "protegida": false,
@@ -964,7 +964,7 @@
    "papeis": [
     "anon"
    ],
-   "arquivos_puxados": 26
+   "arquivos_puxados": 27
   },
   {
    "protegida": false,
@@ -988,7 +988,7 @@
    "canais_realtime": [],
    "flags": [],
    "papeis": [],
-   "arquivos_puxados": 1
+   "arquivos_puxados": 2
   },
   {
    "protegida": false,
@@ -1033,7 +1033,7 @@
    "papeis": [
     "anon"
    ],
-   "arquivos_puxados": 17
+   "arquivos_puxados": 18
   },
   {
    "protegida": false,
@@ -1070,7 +1070,7 @@
    "papeis": [
     "anon"
    ],
-   "arquivos_puxados": 10
+   "arquivos_puxados": 11
   },
   {
    "protegida": false,
@@ -1094,7 +1094,7 @@
    "canais_realtime": [],
    "flags": [],
    "papeis": [],
-   "arquivos_puxados": 1
+   "arquivos_puxados": 2
   }
  ],
  "rotas_http_backend": [

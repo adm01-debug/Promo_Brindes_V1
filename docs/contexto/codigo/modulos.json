@@ -7,7 +7,7 @@
    "modulo": "api",
    "arquivos": 14,
    "testes": 0,
-   "linhas": 2157,
+   "linhas": 2162,
    "itens_menu": [],
    "telas": [],
    "rotas_http": [
@@ -284,7 +284,8 @@
    ],
    "depende_de_modulos": [
     "context",
-    "lib"
+    "lib",
+    "shared"
    ],
    "pacotes_externos": [
     "gsap",
@@ -567,9 +568,9 @@
   },
   {
    "modulo": "shared",
-   "arquivos": 3,
+   "arquivos": 4,
    "testes": 0,
-   "linhas": 149,
+   "linhas": 159,
    "itens_menu": [],
    "telas": [],
    "rotas_http": [],
@@ -592,6 +593,7 @@
    "importado_por_outros_modulos": [
     "api",
     "api/_lib",
+    "components",
     "lib",
     "pages"
    ],

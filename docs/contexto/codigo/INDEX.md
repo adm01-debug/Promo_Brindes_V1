@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `b8870bf011f35f5102d00bd5978853f8849cb51f` (2026-11-17T13:56:33Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `fce1a493f0703f26f08c846d8a75438fc3dbfcf8` (2026-11-17T14:29:28Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -14,7 +14,7 @@ Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR
 Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua tarefa; não carregue tudo.
 
 ## Stack
-- linguagens: TypeScript (204), Markdown (116), SQL (106), JavaScript (61), JSON (28), YAML (19), Python (8), CSS (4)
+- linguagens: TypeScript (205), Markdown (116), SQL (106), JavaScript (61), JSON (28), YAML (19), Python (8), CSS (4)
 - linguagem_principal: TypeScript
 - framework: React
 - backend_http: vercel-functions
@@ -34,9 +34,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Números
 | item | qtd |
 |---|---|
-| arquivos_total | 686 |
-| arquivos_codigo | 272 |
-| linhas_codigo | 53636 |
+| arquivos_total | 687 |
+| arquivos_codigo | 273 |
+| linhas_codigo | 53660 |
 | rotas | 32 |
 | rotas_http_backend | 14 |
 | vistas_por_id | 0 |
@@ -171,7 +171,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 ## Hotspots (arquivos mais alterados, 90 dias)
 - package.json (63)
-- e2e/smoke.spec.ts (56)
+- e2e/smoke.spec.ts (57)
 - package-lock.json (36)
 - src/styles.css (35)
 - vercel.json (26)
@@ -377,6 +377,8 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-17 `fce1a49` fix(seo): shell das landings volta a recusar campo desconhecido e usa um só nome de marca (#174)
+- 2026-11-17 `5a524ad` test(e2e): guardas dos destinos editoriais passam a poder falhar (#173)
 - 2026-11-17 `b8870bf` chore(docs): runbook do graphify passa a declarar o pin real (#171)
 - 2026-11-17 `1d2fa0a` test(e2e): trava os destinos editoriais da home e do rodapé (#170)
 - 2026-11-17 `6711278` fix(seo): landing de ideias entrega um único título ao buscador (#169)
@@ -390,8 +392,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-17 `8ea1273` feat(lgpd): o apagamento de titular passa a apagar o que faltava (#161)
 - 2026-11-17 `f48af64` feat(contato): avisa o comercial quando chega lead pelo formulario de contato (#158)
 - 2026-11-17 `bcca66c` feat(busca): corpus julgado de relevancia vai de 20 para 33 intencoes (#163)
-- 2026-11-16 `49ce59b` fix(a11y): devolve o foco ao titulo da etapa no localizador de briefing (#159)
-- 2026-11-16 `6a37e51` fix(obs): registra a falha dos dois endpoints da Area do Cliente (#157)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

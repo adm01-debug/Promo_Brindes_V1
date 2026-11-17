@@ -41,7 +41,7 @@
   {
    "arquivo": "e2e/smoke.spec.ts",
    "tipo": "e2e",
-   "linhas": 1537,
+   "linhas": 1544,
    "testa": [],
    "casos": 64
   },
@@ -755,10 +755,11 @@
   {
    "arquivo": "tests/api/site-page.test.ts",
    "tipo": "unit",
-   "linhas": 153,
+   "linhas": 155,
    "testa": [
     "api/site-page.ts",
-    "shared/ideaLandingPages.ts"
+    "shared/ideaLandingPages.ts",
+    "shared/siteName.ts"
    ],
    "casos": 7
   },
@@ -1055,6 +1056,7 @@
   "shared/campaignYears.ts": 2,
   "shared/catalogEditorial.ts": 2,
   "shared/ideaLandingPages.ts": 1,
+  "shared/siteName.ts": 1,
   "src/components/AppErrorBoundary.tsx": 1,
   "src/components/BriefingAssetUploader.tsx": 1,
   "src/components/CampaignFinder.tsx": 1,
