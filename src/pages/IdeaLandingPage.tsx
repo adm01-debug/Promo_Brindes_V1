@@ -14,15 +14,24 @@ export default function IdeaLandingPage() {
   const landing = getIdeaLanding(topic);
   const catalog = useCatalog(landing?.catalogQuery || { pageSize: 1 }, 0, Boolean(landing));
   const trackedViewsRef = useRef(new Set<string>());
+  // result_count mede as referencias que esta pagina renderizou, nao o total de
+  // linhas do catalogQuery: o tema onboarding nao tem filtro, logo o total seria
+  // o catalogo publico inteiro e os quatro temas ficariam incomparaveis no
+  // painel, embora todos mostrem a mesma quantidade de cards. No estado de erro
+  // nada e renderizado e `data` ainda pode guardar os produtos do tema anterior,
+  // entao o valor e 0 por construcao, nunca lido de `data`.
+  const viewedReferences = catalog.error ? 0 : catalog.data.products.length;
   // Mesmo contrato do catalogo (useCatalogPageState.ts:194-200): um evento por
-  // combinacao de conteudo, emitido so quando a curadoria da landing carregou.
+  // combinacao de conteudo, emitido so quando a curadoria da landing resolveu.
+  // O erro tambem e um desfecho: sem emiti-lo, os dois CTAs seguiriam emitindo
+  // idea_catalog_opened e a conversao passaria de 100% durante a queda.
   useEffect(() => {
-    if (!landing || catalog.stale || catalog.loading || catalog.error) return;
-    const viewKey = `${landing.id}|${catalog.data.total}`;
+    if (!landing || catalog.stale || catalog.loading) return;
+    const viewKey = `${landing.id}|${viewedReferences}`;
     if (trackedViewsRef.current.has(viewKey)) return;
     trackedViewsRef.current.add(viewKey);
-    trackFunnelEvent('idea_landing_viewed', { topic: landing.id, result_count: catalog.data.total });
-  }, [catalog.data.total, catalog.error, catalog.loading, catalog.stale, landing]);
+    trackFunnelEvent('idea_landing_viewed', { topic: landing.id, result_count: viewedReferences });
+  }, [catalog.loading, catalog.stale, landing, viewedReferences]);
 
   if (!landing) return <div className="idea-landing-state container"><Seo title="Ideia não encontrada" path="/ideias" noIndex /><h1>Essa ideia ainda não está publicada.</h1><p>Volte ao catálogo para explorar referências para a sua campanha.</p><Link className="button button--dark" to="/catalogo">Abrir catálogo</Link></div>;
 
