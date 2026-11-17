@@ -53,15 +53,48 @@ describe('worker de comprovantes do orçamento', () => {
     expect(result.statusCode).toBe(401);
   });
 
-  it('não reivindica a fila enquanto nenhum provedor estiver configurado', async () => {
+  it('não reivindica a fila enquanto nenhum provedor estiver configurado, mas mede o tamanho dela', async () => {
     configure();
-    const fetchMock = vi.fn();
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes('/site_notification_queue_health')) return new Response(JSON.stringify([{ channel: 'email', eligibleCount: 7, exhaustedCount: 0, uncertainCount: 0, oldestEligibleAgeSeconds: 10 }]), { status: 200 });
+      return new Response('{}', { status: 500 });
+    });
     vi.stubGlobal('fetch', fetchMock);
+    const info = vi.spyOn(console, 'info').mockImplementation(() => {});
     const { result, response } = responseDouble();
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
     expect(result.statusCode).toBe(503);
     expect(result.body).toEqual({ error: 'notification_provider_not_configured' });
-    expect(fetchMock).not.toHaveBeenCalled();
+    // Nenhuma reivindicacao: sem provedor, reivindicar deixaria job preso.
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('claim_site_notification_deliveries'))).toBe(false);
+    // PF-10: a medicao passa a acontecer exatamente no estado em que a fila
+    // cresce sem ninguem drenar — antes o 503 saia antes de medir.
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('site_notification_queue_health'))).toBe(true);
+    expect(info).toHaveBeenCalledWith('site_notifications_queue_health', expect.objectContaining({ channels: [expect.objectContaining({ eligibleCount: 7 })] }));
+    info.mockRestore();
+  });
+
+  it('fila velha sem provedor configurado alerta o canal operacional', async () => {
+    configure();
+    vi.stubEnv('OPERATIONS_ALERT_WEBHOOK_URL', 'https://alertas.test/hook');
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      void init;
+      // 4 horas de espera: acima do limite de idade, logo e incidente.
+      if (url.includes('/site_notification_queue_health')) return new Response(JSON.stringify([{ channel: 'email', eligibleCount: 12, exhaustedCount: 0, uncertainCount: 0, oldestEligibleAgeSeconds: 14_400 }]), { status: 200 });
+      if (url === 'https://alertas.test/hook') return new Response(null, { status: 204 });
+      return new Response('{}', { status: 500 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const erro = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'info').mockImplementation(() => {});
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+    expect(result.statusCode).toBe(503);
+    expect(erro).toHaveBeenCalledWith('site_notifications_queue_alert', expect.objectContaining({ channel: 'email' }));
+    const alerta = fetchMock.mock.calls.find(([url]) => String(url) === 'https://alertas.test/hook');
+    expect(alerta).toBeDefined();
+    expect(String((alerta?.[1] as RequestInit | undefined)?.body)).toContain('notification_queue_alert');
+    vi.restoreAllMocks();
   });
 
   it('Preview não envia mensagens reais mesmo se herdar credenciais dos provedores', async () => {

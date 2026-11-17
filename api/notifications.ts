@@ -654,6 +654,12 @@ export default async function handler(request: ApiRequest, response: ApiResponse
   }
   const channels = configuredChannels();
   if (!channels.length) {
+    // PF-10: sem provedor configurado a fila continua recebendo entregas e
+    // ninguem media o tamanho dela — o 503 saia antes do reportQueueHealth, que
+    // so existia no caminho de sucesso. Justamente o estado em que o backlog
+    // cresce e que mais precisa de medicao. A chamada e best-effort (o proprio
+    // reportQueueHealth engole a falha) e nao reivindica nada: so le e alerta.
+    await reportQueueHealth();
     response.status(503).json({ error: 'notification_provider_not_configured' });
     return;
   }
