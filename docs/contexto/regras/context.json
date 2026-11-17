@@ -1,9 +1,9 @@
 {
  "meta": {
-  "sha": "1a3000032945e45e3b74cce869b84a0e01060c6d",
+  "sha": "bcf7e3345f59a2f1e099453176e06da83b156580",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-17 16:02 UTC",
+  "generated_at": "2026-11-17 16:24 UTC",
   "files_total": 583,
   "code_files": 382,
   "code_lines": 66965,
@@ -32397,10 +32397,27 @@
   }
  },
  "git": {
-  "sha": "1a3000032945e45e3b74cce869b84a0e01060c6d",
+  "sha": "bcf7e3345f59a2f1e099453176e06da83b156580",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "bcf7e33",
+    "date": "2026-11-17",
+    "author": "adm01-debug",
+    "subject": "chore(ci): unifica o rótulo do pin do actions/checkout (#179)",
+    "files": [
+     ".github/workflows/catalog-contract.yml",
+     ".github/workflows/ci-health.yml",
+     ".github/workflows/codeql.yml",
+     ".github/workflows/database.yml",
+     ".github/workflows/graphify.yml",
+     ".github/workflows/quality.yml",
+     ".github/workflows/release.yml",
+     ".github/workflows/stale-branches.yml",
+     ".github/workflows/workflows-lint.yml"
+    ]
+   },
    {
     "sha": "1a30000",
     "date": "2026-11-17",
@@ -32709,19 +32726,13 @@
      "AGENTS.md",
      "docs/audits/pending-features-20261011/04-workflows-ci-operacao.md"
     ]
-   },
-   {
-    "sha": "fd91246",
-    "date": "2026-11-16",
-    "author": "dependabot[bot]",
-    "subject": "chore(deps): bump playwright 1.65.1, eslint 10.15.0 e jsdom 31.0.1 (#148)",
-    "files": [
-     "package-lock.json",
-     "package.json"
-    ]
    }
   ],
   "hot_files": [
+   [
+    ".github/workflows/quality.yml",
+    4
+   ],
    [
     "e2e/smoke.spec.ts",
     4
@@ -32731,8 +32742,16 @@
     3
    ],
    [
-    ".github/workflows/quality.yml",
-    3
+    ".github/workflows/ci-health.yml",
+    2
+   ],
+   [
+    ".github/workflows/codeql.yml",
+    2
+   ],
+   [
+    ".github/workflows/release.yml",
+    2
    ],
    [
     "src/lib/ideaLandings.ts",
@@ -32775,31 +32794,19 @@
     2
    ],
    [
-    "package-lock.json",
-    2
-   ],
-   [
-    "package.json",
-    2
-   ],
-   [
-    "src/lib/ideaLandings.test.ts",
+    ".github/workflows/catalog-contract.yml",
     1
    ],
    [
-    "docs/GRAPHIFY_09105_EVALUATION_20261117.md",
+    ".github/workflows/database.yml",
     1
    ],
    [
-    "src/lib/hooks.ts",
+    ".github/workflows/graphify.yml",
     1
    ],
    [
-    "shared/siteName.ts",
-    1
-   ],
-   [
-    "src/components/Seo.tsx",
+    ".github/workflows/stale-branches.yml",
     1
    ]
   ]

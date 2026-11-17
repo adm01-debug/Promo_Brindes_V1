@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `1a3000032945e45e3b74cce869b84a0e01060c6d` (2026-11-17T16:01:34Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `bcf7e3345f59a2f1e099453176e06da83b156580` (2026-11-17T16:24:03Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -174,17 +174,17 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - e2e/smoke.spec.ts (57)
 - package-lock.json (36)
 - src/styles.css (35)
+- .github/workflows/quality.yml (26)
 - vercel.json (26)
-- .github/workflows/quality.yml (25)
 - src/pages/QuotePage.tsx (24)
 - docs/DATABASE_DICTIONARY.md (23)
 - site-supabase/supabase/tests/database/lead_storage.test.sql (23)
 - src/components/Layout.tsx (23)
+- .github/workflows/release.yml (20)
 - tests/api/lead-requests.test.ts (20)
-- .github/workflows/release.yml (19)
+- .github/workflows/database.yml (17)
 - src/App.tsx (17)
-- .github/workflows/database.yml (16)
-- api/_lib/leadHandler.ts (16)
+- .github/workflows/graphify.yml (16)
 
 ## Workflows
 - `automation-local.yml` — Automação local (pull_request, push, workflow_dispatch)
@@ -378,6 +378,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-17 `bcf7e33` chore(ci): unifica o rótulo do pin do actions/checkout (#179)
 - 2026-11-17 `1a30000` fix(ideias): landing de onboarding passa a ter curadoria própria (#177)
 - 2026-11-17 `5147c5a` chore(docs): homologa a 0.9.105 do graphify com avaliação isolada contra a 0.9.94 (#176)
 - 2026-11-17 `f852e72` fix(analytics): result_count passa a medir a curadoria vista e a queda deixa de inflar a conversão (#175)
@@ -392,7 +393,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-17 `0d9c07b` feat(home): entrada para as landings de ideias e estados vazios (#166)
 - 2026-11-17 `bbfb77a` infra(release): o release aplica as migrations do banco isolado (#165)
 - 2026-11-17 `cc68e42` fix(orcamento): o consentimento de WhatsApp descreve o que o sistema envia (#160)
-- 2026-11-17 `0600922` fix(ci): separa o teto de performance de producao do teto de pior caso (#164)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

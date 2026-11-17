@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "1a3000032945e45e3b74cce869b84a0e01060c6d",
+  "commit": "bcf7e3345f59a2f1e099453176e06da83b156580",
   "branch": "main",
-  "data_commit": "2026-11-17T16:01:34Z",
+  "data_commit": "2026-11-17T16:24:03Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "bcf7e33",
+    "data": "2026-11-17",
+    "assunto": "chore(ci): unifica o rótulo do pin do actions/checkout (#179)"
+   },
    {
     "sha": "1a30000",
     "data": "2026-11-17",
@@ -126,14 +131,9 @@
     "sha": "c0f2aeb",
     "data": "2026-11-16",
     "assunto": "fix(seg): fecha os 5 alertas CodeQL high e conserta o paths-ignore (#154)"
-   },
-   {
-    "sha": "7bd1520",
-    "data": "2026-11-16",
-    "assunto": "chore(deps): sobe TypeScript de 5.9.3 para 6.0.3 (#153)"
    }
   ],
-  "arquivos_mudados_7d": 156,
+  "arquivos_mudados_7d": 160,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -157,7 +157,7 @@
    },
    {
     "pasta": ".github/workflows/quality.yml",
-    "mudancas": 6
+    "mudancas": 7
    },
    {
     "pasta": "e2e/smoke.spec.ts",
@@ -170,6 +170,10 @@
    {
     "pasta": ".graphify.project.json",
     "mudancas": 5
+   },
+   {
+    "pasta": ".github/workflows/codeql.yml",
+    "mudancas": 4
    },
    {
     "pasta": "PENDENCIAS.md",
@@ -189,10 +193,6 @@
    },
    {
     "pasta": "scripts/validate-agent-instructions.mjs",
-    "mudancas": 4
-   },
-   {
-    "pasta": "site-supabase/supabase/migrations",
     "mudancas": 4
    }
   ],
@@ -214,12 +214,12 @@
     "mudancas": 35
    },
    {
-    "arquivo": "vercel.json",
+    "arquivo": ".github/workflows/quality.yml",
     "mudancas": 26
    },
    {
-    "arquivo": ".github/workflows/quality.yml",
-    "mudancas": 25
+    "arquivo": "vercel.json",
+    "mudancas": 26
    },
    {
     "arquivo": "src/pages/QuotePage.tsx",
@@ -238,19 +238,23 @@
     "mudancas": 23
    },
    {
+    "arquivo": ".github/workflows/release.yml",
+    "mudancas": 20
+   },
+   {
     "arquivo": "tests/api/lead-requests.test.ts",
     "mudancas": 20
    },
    {
-    "arquivo": ".github/workflows/release.yml",
-    "mudancas": 19
+    "arquivo": ".github/workflows/database.yml",
+    "mudancas": 17
    },
    {
     "arquivo": "src/App.tsx",
     "mudancas": 17
    },
    {
-    "arquivo": ".github/workflows/database.yml",
+    "arquivo": ".github/workflows/graphify.yml",
     "mudancas": 16
    },
    {
@@ -271,10 +275,6 @@
    },
    {
     "arquivo": ".env.example",
-    "mudancas": 15
-   },
-   {
-    "arquivo": ".github/workflows/graphify.yml",
     "mudancas": 15
    },
    {
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 62
+    "commits": 63
    },
    {
     "autor": "dependabot[bot]",
