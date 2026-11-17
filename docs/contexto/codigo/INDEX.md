@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `6a37e51694c8975fc1582e1e3230f72412e9eca5` (2026-11-17T01:10:09Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `49ce59b616e1d867034f373ee905cc637f28b98b` (2026-11-17T02:47:16Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -36,7 +36,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 |---|---|
 | arquivos_total | 681 |
 | arquivos_codigo | 271 |
-| linhas_codigo | 53307 |
+| linhas_codigo | 53361 |
 | rotas | 32 |
 | rotas_http_backend | 14 |
 | vistas_por_id | 0 |
@@ -377,6 +377,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-16 `49ce59b` fix(a11y): devolve o foco ao titulo da etapa no localizador de briefing (#159)
 - 2026-11-16 `6a37e51` fix(obs): registra a falha dos dois endpoints da Area do Cliente (#157)
 - 2026-11-16 `fa7365b` fix(orcamento): selo de prioridade so sai no PDF se o recurso estiver ligado (#156)
 - 2026-11-16 `fccd45a` fix: aplica as 2 pendencias confirmadas da varredura de review dos agentes (#155)
@@ -391,7 +392,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-16 `14dc730` chore(ci): expoe o log da sonda catalog-contract no stdout da Actions (#139)
 - 2026-11-14 `15d0af6` chore: contexto agendado de 10 min para 1x/hora (#140)
 - 2026-11-14 `99e47fe` feat: relatorio de prontidao para producao (docs/prod-readiness.md)
-- 2026-11-13 `8a810bd` fix(lint): ignora o runtime local .tools/ no eslint (#137)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

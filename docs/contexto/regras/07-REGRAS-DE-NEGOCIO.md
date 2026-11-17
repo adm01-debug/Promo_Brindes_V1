@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `6a37e51694` · branch `main` · 2026-11-17 01:10 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `49ce59b616` · branch `main` · 2026-11-17 02:47 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -1037,7 +1037,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1516 testes em 123 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1520 testes em 123 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1100,6 +1100,7 @@ _nenhum item encontrado_
 | `tests/normalize-vercel-deployment-url.node.mjs` | 9 | adiciona https somente quando a CLI devolve hostname · preserva URL https já completa sem duplicar o protocolo · recusa protocolo, credencial, porta, caminho e domínio inesperados · CLI imprime exatamente uma origem normalizada … |
 | `tests/stage-app-shell.node.mjs` | 9 | copia o HTML do build byte a byte e não deixa arquivo temporário · aceita as variações de marcação que a função serverless aceita · reprova build sem root ou sem script de /assets e não grava o destino · reprova página de proteção da Vercel, que a função recusaria com 503 … |
 | `e2e/product-detail.spec.ts` | 8 | ficha compacta reúne seleção e especificações ao lado da galeria no desktop · galeria permite todas as fotos, volta ao início e amplia com foco contido · descrição completa formata marcadores sem perder conteúdo nem esconder especificações · cor e quantidade seguem para o orçamento, sem preço ou bloqueio por estoque … |
+| `src/components/CampaignFinder.test.tsx` | 8 | resumo editável do briefing · resume as quatro respostas antes de abrir a curadoria · remove só a escolha solicitada e volta à etapa correspondente · permite revisar todas as respostas sem apagar o que já foi escolhido … |
 | `tests/inventario-banco-sql.node.mjs` | 8 | banco.sql roda inteiro em transação somente leitura e passa na prova de origem · banco.sql: a transação somente leitura barra escrita, e a consulta não muda nada no banco · banco.sql: fila travada conta só o que ainda vai ser tentado; erro sai como código, nunca como texto · banco.sql: pg_cron sai com nome estável, só o nome das funções chamadas e as contas certas … |
 | `tests/validate-site-supabase-target.node.mjs` | 8 | aprova somente o projeto isolado do site, com código 0 e o ref em stdout · independe do diretório de onde é chamado · bloqueia o catálogo canônico e diz como refazer o vínculo · bloqueia qualquer conteúdo que não seja exatamente o ref do site … |
 | `tests/api/customer-proposals.test.ts` | 8 | download autenticado de propostas · assina por 60 segundos somente o documento autorizado pelo RPC · usa o JWT limitado no RPC e a credencial de Storage somente para a assinatura · rejeita origem, sessão e identificador inválidos antes do banco … |
@@ -1132,7 +1133,6 @@ _nenhum item encontrado_
 | `src/pages/CommemorativeDatesPage.test.tsx` | 5 | favoritos de datas comemorativas por titular · promove favoritos anônimos depois do login sem perdê-los · não exibe cache da conta anterior se o carregamento da nova conta falhar · ignora rollback tardio de uma mutação da conta anterior … |
 | `tests/api/catalog-validation.test.ts` | 5 | reconcileQuoteItems · reconcilia a cor legada pelo nome e a converte para o ID canônico publicado · não aceita uma cor legada que não está mais publicada · reconcilia swatch público sem variant_id por nome inequívoco … |
 | `tests/scripts/release-workflow.test.ts` | 5 | workflow de release Vercel · valida Web Analytics no candidato sem chamar endpoint privado de configuração · faz smoke do candidato antes de promover e mantém rollback pós-promoção · sincroniza, verifica e testa o alias git-main depois da promoção … |
-| `src/components/CampaignFinder.test.tsx` | 4 | resumo editável do briefing · resume as quatro respostas antes de abrir a curadoria · remove só a escolha solicitada e volta à etapa correspondente · permite revisar todas as respostas sem apagar o que já foi escolhido |
 | `src/lib/briefingAssets.test.ts` | 4 | arquivos privados do briefing · aceita somente os formatos publicados dentro de 10 MB · recusa arquivos vazios e nomes maiores que o contrato do banco · revoga o metadado e delega a remoção física à fila protegida |
 | `src/lib/customerQuoteContract.test.ts` | 4 | contrato runtime do histórico de orçamentos · aceita o formato público da RPC e remove somente imagens opcionais inseguras · rejeita status, identificadores e quantidades fora do contrato em vez de renderizar JSON arbitrário · mantém campanha e briefing legados opacos até a normalização de consumo, sem relaxar o snapshot de produtos |
 | `src/lib/productBadges.test.ts` | 4 | badges de produto · replica a janela de 30 dias do Promo Gifts sem aceitar datas futuras · prioriza is_kit e usa categoria ou prefixo somente como fallback legado · resolve exatamente um badge na ordem Novidade, Kit e Sua marca aqui |

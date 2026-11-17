@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "6a37e51694c8975fc1582e1e3230f72412e9eca5",
+  "commit": "49ce59b616e1d867034f373ee905cc637f28b98b",
   "branch": "main",
-  "data_commit": "2026-11-17T01:10:09Z",
+  "data_commit": "2026-11-17T02:47:16Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "49ce59b",
+    "data": "2026-11-16",
+    "assunto": "fix(a11y): devolve o foco ao titulo da etapa no localizador de briefing (#159)"
+   },
    {
     "sha": "6a37e51",
     "data": "2026-11-16",
@@ -126,14 +131,9 @@
     "sha": "49fc2af",
     "data": "2026-11-10",
     "assunto": "docs: corrige fatos da analise analise-prs para o main d312cad (#132)"
-   },
-   {
-    "sha": "d312cad",
-    "data": "2026-11-10",
-    "assunto": "docs: análise complementar analise-prs (#112)"
    }
   ],
-  "arquivos_mudados_7d": 126,
+  "arquivos_mudados_7d": 128,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 42
+    "commits": 43
    },
    {
     "autor": "dependabot[bot]",
@@ -312,7 +312,7 @@
  "contagens": {
   "arquivos_total": 681,
   "arquivos_codigo": 271,
-  "linhas_codigo": 53307,
+  "linhas_codigo": 53361,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -540,7 +540,7 @@
   },
   "src/components": {
    "arquivos": 29,
-   "linhas": 2952
+   "linhas": 3006
   },
   "src/context": {
    "arquivos": 7,

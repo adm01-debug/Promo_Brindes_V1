@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "6a37e51694c8975fc1582e1e3230f72412e9eca5",
+  "sha": "49ce59b616e1d867034f373ee905cc637f28b98b",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-17 01:10 UTC",
+  "generated_at": "2026-11-17 02:47 UTC",
   "files_total": 574,
   "code_files": 374,
-  "code_lines": 65659,
+  "code_lines": 65713,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "1c94960d25f00dae",
+ "facts_hash": "8079f092bfc770dc",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -7387,7 +7387,7 @@
   {
    "module": "src/components",
    "files": 29,
-   "lines": 2952,
+   "lines": 3006,
    "tables": [],
    "exports": [
     "AppErrorBoundary.tsx: AppErrorBoundary",
@@ -15206,6 +15206,22 @@
    {
     "file": "src/components/CampaignFinder.test.tsx",
     "name": "permite revisar todas as respostas sem apagar o que já foi escolhido"
+   },
+   {
+    "file": "src/components/CampaignFinder.test.tsx",
+    "name": "foco do teclado entre as etapas"
+   },
+   {
+    "file": "src/components/CampaignFinder.test.tsx",
+    "name": "devolve o foco ao titulo da etapa seguinte em vez de perde-lo no body"
+   },
+   {
+    "file": "src/components/CampaignFinder.test.tsx",
+    "name": "devolve o foco ao titulo do resumo quando o briefing fecha"
+   },
+   {
+    "file": "src/components/CampaignFinder.test.tsx",
+    "name": "devolve o foco a etapa aberta pelo resumo"
    },
    {
     "file": "src/components/CatalogFeedback.test.tsx",
@@ -28002,18 +28018,22 @@
   },
   "src/components/CampaignFinder.test.tsx": {
    "path": "src/components/CampaignFinder.test.tsx",
-   "lines": 58,
+   "lines": 92,
    "is_test": true,
    "tests": [
     "resumo editável do briefing",
     "resume as quatro respostas antes de abrir a curadoria",
     "remove só a escolha solicitada e volta à etapa correspondente",
-    "permite revisar todas as respostas sem apagar o que já foi escolhido"
+    "permite revisar todas as respostas sem apagar o que já foi escolhido",
+    "foco do teclado entre as etapas",
+    "devolve o foco ao titulo da etapa seguinte em vez de perde-lo no body",
+    "devolve o foco ao titulo do resumo quando o briefing fecha",
+    "devolve o foco a etapa aberta pelo resumo"
    ]
   },
   "src/components/CampaignFinder.tsx": {
    "path": "src/components/CampaignFinder.tsx",
-   "lines": 195,
+   "lines": 215,
    "exports": [
     "function CampaignFinder"
    ],
@@ -31755,10 +31775,20 @@
   }
  },
  "git": {
-  "sha": "6a37e51694c8975fc1582e1e3230f72412e9eca5",
+  "sha": "49ce59b616e1d867034f373ee905cc637f28b98b",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "49ce59b",
+    "date": "2026-11-16",
+    "author": "adm01-debug",
+    "subject": "fix(a11y): devolve o foco ao titulo da etapa no localizador de briefing (#159)",
+    "files": [
+     "src/components/CampaignFinder.test.tsx",
+     "src/components/CampaignFinder.tsx"
+    ]
+   },
    {
     "sha": "6a37e51",
     "date": "2026-11-16",
@@ -32151,16 +32181,6 @@
     "files": [
      ".github/workflows/codeql.yml"
     ]
-   },
-   {
-    "sha": "7eb1b5d",
-    "date": "2026-11-09",
-    "author": "adm01-debug",
-    "subject": "chore(deps): bump graphifyy para 0.9.97 com o companheiro casado (#123)",
-    "files": [
-     ".graphify.project.json",
-     "requirements-graphify.txt"
-    ]
    }
   ],
   "hot_files": [
@@ -32177,10 +32197,6 @@
     4
    ],
    [
-    ".graphify.project.json",
-    4
-   ],
-   [
     "scripts/graphify.mjs",
     3
    ],
@@ -32189,7 +32205,7 @@
     3
    ],
    [
-    "requirements-graphify.txt",
+    ".graphify.project.json",
     3
    ],
    [
@@ -32214,6 +32230,10 @@
    ],
    [
     ".github/workflows/contexto.yml",
+    2
+   ],
+   [
+    "requirements-graphify.txt",
     2
    ],
    [
