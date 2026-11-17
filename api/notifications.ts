@@ -582,13 +582,18 @@ async function reportQueueHealth(): Promise<void> {
 
 export interface QuoteConfirmationResult {
   email: 'sent' | 'pending';
-  whatsapp: 'sent' | 'pending' | 'not_requested';
+  /** `unavailable`: o visitante autorizou a cópia por WhatsApp, mas o canal não
+   * tem provedor configurado neste ambiente. Precisa ser distinto de `pending`:
+   * uma entrega que nunca será reivindicada não está "registrada para envio", e
+   * relatar isso como pendente promete ao lead algo que não vai acontecer. */
+  whatsapp: 'sent' | 'pending' | 'not_requested' | 'unavailable';
 }
 
 export async function deliverQuoteConfirmationsNow(requestId: string, whatsappRequested: boolean, correlationId?: string): Promise<QuoteConfirmationResult> {
   const result: QuoteConfirmationResult = { email: 'pending', whatsapp: whatsappRequested ? 'pending' : 'not_requested' };
   if (!UUID_PATTERN.test(requestId)) return result;
   const configured = configuredChannels();
+  if (whatsappRequested && !configured.includes('whatsapp')) result.whatsapp = 'unavailable';
   const requested = configured.filter((channel) => channel === 'email' || whatsappRequested);
   if (!requested.length) return result;
 

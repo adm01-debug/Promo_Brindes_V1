@@ -1,4 +1,4 @@
-export type ConfirmationDeliveryStatus = 'sent' | 'pending' | 'not_requested';
+export type ConfirmationDeliveryStatus = 'sent' | 'pending' | 'not_requested' | 'unavailable';
 
 export function quoteConfirmationTitle(name: string, itemCount: number): string {
   const firstName = name.trim().split(/\s+/u)[0] || '';
@@ -10,5 +10,8 @@ export function quoteConfirmationTitle(name: string, itemCount: number): string 
 export function confirmationDeliveryLabel(status: ConfirmationDeliveryStatus): string {
   if (status === 'sent') return 'Enviada';
   if (status === 'pending') return 'Registrado para envio';
+  // O canal não tem provedor configurado: dizer "registrado para envio" seria
+  // prometer ao lead uma mensagem que nunca sai.
+  if (status === 'unavailable') return 'Indisponível no momento';
   return 'Não solicitado';
 }
