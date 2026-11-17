@@ -401,6 +401,13 @@ test('link persistente espera a consulta e confirma antes de substituir a seleç
 test('soluções editoriais levam a uma curadoria explícita, não a uma promessa de estoque', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('link', { name: /Onboarding sem kit genérico/i }).click();
+  // O card abre a landing editorial, que declara nao representar preco, estoque
+  // nem prazo. O invariante continua o mesmo: nada de promessa de kit pronto.
+  await expect(page).toHaveURL(/\/ideias\/onboarding$/);
+  await expect(page).not.toHaveURL(/perfil=kits/);
+  await expect(page.getByRole('heading', { name: 'Onboarding que começa antes do primeiro dia.' })).toBeVisible();
+  // E a landing termina na curadoria explicita, com o mesmo filtro de antes.
+  await page.getByRole('link', { name: /Ver curadoria completa/ }).click();
   await expect(page).toHaveURL(/momento=onboarding.*publico=colaboradores/);
   await expect(page).not.toHaveURL(/perfil=kits/);
   await expect(page.getByRole('heading', { name: 'Curadoria para o seu briefing' })).toBeVisible();

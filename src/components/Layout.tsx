@@ -221,6 +221,13 @@ export function Layout({ children }: { children: ReactNode }) {
             {customerAreaEnabled && <Link to="/minha-conta">Meus orçamentos</Link>}
           </div>
           <div>
+            <h2>Ideias</h2>
+            <Link to="/ideias/onboarding">Onboarding</Link>
+            <Link to="/ideias/eventos">Eventos</Link>
+            <Link to="/ideias/clientes-vip">Clientes e parceiros</Link>
+            <Link to="/ideias/sustentaveis">Menor impacto</Link>
+          </div>
+          <div>
             <h2>Promo Brindes</h2>
             <Link to="/sobre">Como funciona</Link>
             <Link to="/contato">Contato</Link>
