@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "49ce59b616e1d867034f373ee905cc637f28b98b",
+  "commit": "bcca66cd596069ed49d54f4824768cc4a26d572a",
   "branch": "main",
-  "data_commit": "2026-11-17T02:47:16Z",
+  "data_commit": "2026-11-17T03:44:52Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "bcca66c",
+    "data": "2026-11-17",
+    "assunto": "feat(busca): corpus julgado de relevancia vai de 20 para 33 intencoes (#163)"
+   },
    {
     "sha": "49ce59b",
     "data": "2026-11-16",
@@ -126,14 +131,9 @@
     "sha": "52aa025",
     "data": "2026-11-11",
     "assunto": "chore(automacao): conecta testes, grafo e manutenção aos gatilhos (#131)"
-   },
-   {
-    "sha": "49fc2af",
-    "data": "2026-11-10",
-    "assunto": "docs: corrige fatos da analise analise-prs para o main d312cad (#132)"
    }
   ],
-  "arquivos_mudados_7d": 128,
+  "arquivos_mudados_7d": 130,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 43
+    "commits": 44
    },
    {
     "autor": "dependabot[bot]",
@@ -312,7 +312,7 @@
  "contagens": {
   "arquivos_total": 681,
   "arquivos_codigo": 271,
-  "linhas_codigo": 53361,
+  "linhas_codigo": 53379,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -548,7 +548,7 @@
   },
   "src/lib": {
    "arquivos": 79,
-   "linhas": 7613
+   "linhas": 7631
   },
   "src/main.tsx": {
    "arquivos": 1,
