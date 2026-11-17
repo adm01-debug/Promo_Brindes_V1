@@ -60,6 +60,15 @@ const SENSITIVE_PATTERNS = [
   { name: 'Vercel token', pattern: /vercel(?:_token)?_[A-Za-z0-9]{20,}/i },
   { name: 'AWS access key', pattern: /AKIA[0-9A-Z]{16}/ },
   { name: 'Supabase service-role variable', pattern: /SUPABASE_(?:ACCESS_TOKEN|SERVICE_ROLE_KEY)\s*[=:]/i },
+  // Os formatos que ESTE projeto usa de verdade e que o scanner nao cobria: a
+  // secret key do Supabase (api/_lib/siteDatabase.ts:41 aceita `sb_secret_`), a
+  // chave do Resend, o segredo de webhook do Svix/Resend e o JWT de servico
+  // (SITE_SUPABASE_SERVICE_JWT). Medido antes de incluir: zero ocorrencia nos
+  // 5,7 MB da saida atual do grafo, logo nenhum falso positivo conhecido.
+  { name: 'Supabase secret key', pattern: /sb_secret_[A-Za-z0-9_-]{16,}/i },
+  { name: 'Resend API key', pattern: /\bre_[A-Za-z0-9]{20,}/ },
+  { name: 'webhook signing secret', pattern: /whsec_[A-Za-z0-9+/=_-]{16,}/i },
+  { name: 'JWT credential', pattern: /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/ },
   { name: 'private key material', pattern: /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/ },
   { name: 'generic secret assignment', pattern: /(?:api[_-]?key|secret|password)\s*[=:]\s*["'][^"'\s]{12,}/i },
   { name: 'personal absolute path', pattern: /\/(?:home|Users)\/[A-Za-z0-9_.-]+\// },

@@ -273,6 +273,39 @@ test('varredura de artefatos identifica token de exemplo sem expor o valor', () 
   }
 });
 
+test('varredura bloqueia os formatos de segredo que este projeto usa', () => {
+  const directory = makeTestDirectory('test-sensitive-project-families-');
+  try {
+    // Fixtures montadas em runtime: validam o detector sem que o arquivo de
+    // teste pareca conter credencial exposta ao proprio scanner.
+    const supabaseSecret = `sb_${'secret'}_${'abcdefghijklmnopqrstuvwxyz123456'}`;
+    const resendKey = `${'re'}_${'abcdefghijklmnopqrstuvwxyz1234'}`;
+    const webhookSecret = `${'whsec'}_${'abcdefghijklmnopqrstuvwxyz=='}`;
+    const serviceJwt = [`${'eyJ'}abcdefghijklmnop`, 'abcdefghijklmnopqrst', 'abcdefghijklmnopqrst'].join('.');
+    fs.writeFileSync(`${directory}/artifact.txt`, `${supabaseSecret}\n${resendKey}\n${webhookSecret}\n${serviceJwt}`);
+    const kinds = findSensitiveArtifacts(directory).map((finding) => finding.kind);
+    assert.deepEqual(kinds.sort(), ['JWT credential', 'Resend API key', 'Supabase secret key', 'webhook signing secret']);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('varredura nao acusa o prefixo de segredo que aparece em codigo legitimo', () => {
+  const directory = makeTestDirectory('test-sensitive-no-false-positive-');
+  try {
+    // api/_lib/siteDatabase.ts cita o prefixo para validar formato, e scripts
+    // citam nomes de variavel: nenhum dos dois e credencial.
+    fs.writeFileSync(`${directory}/artifact.txt`, [
+      "if (value.startsWith('sb_secret_')) return true;",
+      'const store_abcdefghijklmnopqrstuvwxyz = 1;',
+      'SITE_SUPABASE_SERVICE_JWT is read from the environment',
+    ].join('\n'));
+    assert.deepEqual(findSensitiveArtifacts(directory), []);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
 test('varredura bloqueia famílias adicionais de token antes do upload', () => {
   const directory = makeTestDirectory('test-sensitive-families-');
   try {
