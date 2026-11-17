@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "7bd15204e500b81232b2570b1bf7d7989ce021a7",
+  "sha": "c0f2aeb513112659df54b561c8901b3751acb88e",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-16 22:50 UTC",
+  "generated_at": "2026-11-17 00:00 UTC",
   "files_total": 574,
   "code_files": 374,
-  "code_lines": 65626,
+  "code_lines": 65637,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "0d7fe83dfbeaa96c",
+ "facts_hash": "8262534c8548732e",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -7103,7 +7103,7 @@
   {
    "module": "scripts",
    "files": 41,
-   "lines": 21202,
+   "lines": 21213,
    "tables": [
     "a",
     "contacts",
@@ -24810,7 +24810,7 @@
   },
   "scripts/graphify.mjs": {
    "path": "scripts/graphify.mjs",
-   "lines": 899,
+   "lines": 905,
    "exports": [
     "const GRAPH_FINGERPRINT_CONFIG_FILES",
     "function assertSafeRoot",
@@ -25556,7 +25556,7 @@
   },
   "scripts/ai-context/gerar.mjs": {
    "path": "scripts/ai-context/gerar.mjs",
-   "lines": 1011,
+   "lines": 1016,
    "env": [
     "AI_CONTEXT_DIR",
     "AI_CONTEXT_PUBLICACAO",
@@ -25569,6 +25569,7 @@
     }
    ],
    "rule_comments": [
+    "Escapa TODOS os metacaracteres de regex, a barra invertida inclusive: escapar apenas [.$] deixava um",
     "role=\"status\" / role: 'dialog' são papéis WAI-ARIA de acessibilidade, não papéis de permissão.",
     "1024 * 1024) return { ...base, presente: true, erro: `graph.json com ${Math.round(stat.size / 1048576)} MB — acima do limite de leitura` };"
    ],
@@ -31754,10 +31755,21 @@
   }
  },
  "git": {
-  "sha": "7bd15204e500b81232b2570b1bf7d7989ce021a7",
+  "sha": "c0f2aeb513112659df54b561c8901b3751acb88e",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "c0f2aeb",
+    "date": "2026-11-16",
+    "author": "adm01-debug",
+    "subject": "fix(seg): fecha os 5 alertas CodeQL high e conserta o paths-ignore (#154)",
+    "files": [
+     ".github/workflows/codeql.yml",
+     "scripts/ai-context/gerar.mjs",
+     "scripts/graphify.mjs"
+    ]
+   },
    {
     "sha": "7bd1520",
     "date": "2026-11-16",
@@ -32179,50 +32191,23 @@
      "AGENTS.md",
      "scripts/validate-agent-instructions.mjs"
     ]
-   },
-   {
-    "sha": "75ba0fa",
-    "date": "2026-11-08",
-    "author": "adm01-debug",
-    "subject": "chore: replica o padrão de instruções para agentes do Zapp Web V2 (#119)",
-    "files": [
-     ".agents/skills/promo-brindes-v1/SKILL.md",
-     ".agents/skills/promo-brindes-v1/agents/openai.yaml",
-     ".claude/hooks/session-start.sh",
-     ".claude/settings.json",
-     ".claude/skills/promo-brindes-v1/SKILL.md",
-     ".codex/AGENTS.md",
-     ".codex/agents/docs-researcher.toml",
-     ".codex/agents/explorer.toml",
-     ".codex/agents/reviewer.toml",
-     ".codex/config.toml",
-     "AGENTS.md",
-     "docs/agentes/banco.md",
-     "docs/agentes/github-ci.md",
-     "docs/agentes/mapa-repo.md",
-     "docs/agentes/regras-dominio.md",
-     "docs/agentes/vercel-deploy.md",
-     "package.json",
-     "scripts/validate-agent-instructions.mjs",
-     "tests/validate-agent-instructions.node.mjs"
-    ]
    }
   ],
   "hot_files": [
    [
     "package.json",
-    10
+    9
    ],
    [
     "package-lock.json",
     6
    ],
    [
-    ".gitignore",
+    "scripts/graphify.mjs",
     4
    ],
    [
-    "AGENTS.md",
+    ".gitignore",
     4
    ],
    [
@@ -32230,8 +32215,8 @@
     4
    ],
    [
-    "scripts/validate-agent-instructions.mjs",
-    4
+    "scripts/ai-context/gerar.mjs",
+    3
    ],
    [
     ".github/workflows/inventario-estado-semanal.yml",
@@ -32239,6 +32224,10 @@
    ],
    [
     ".github/workflows/quality.yml",
+    3
+   ],
+   [
+    "AGENTS.md",
     3
    ],
    [
@@ -32250,12 +32239,12 @@
     3
    ],
    [
-    "scripts/graphify.mjs",
+    "scripts/validate-agent-instructions.mjs",
     3
    ],
    [
-    "tests/validate-agent-instructions.node.mjs",
-    3
+    ".github/workflows/codeql.yml",
+    2
    ],
    [
     ".github/workflows/automation-local.yml",
@@ -32283,10 +32272,6 @@
    ],
    [
     "analise-prs/funcionalidades.csv",
-    2
-   ],
-   [
-    "analise-prs/progresso.json",
     2
    ]
   ]

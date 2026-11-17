@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "fix(seg): fecha os 5 alertas CodeQL high e conserta o paths-ignore (#154)",
    "chore(deps): sobe TypeScript de 5.9.3 para 6.0.3 (#153)",
    "chore(ci): actions/github-script v7.0.1 para v9.0.0 em todas as ocorrencias (#152)",
    "chore: ignora os worktrees temporarios de agentes de IA (#151)",
-   "fix(ci): npm audit signatures volta a reprovar o gate (#150)",
-   "infra: blinda as permissoes de Actions e registra a decisao da etapa 32 (#149)"
+   "fix(ci): npm audit signatures volta a reprovar o gate (#150)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

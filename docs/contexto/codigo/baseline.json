@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "7bd15204e500b81232b2570b1bf7d7989ce021a7",
+  "commit": "c0f2aeb513112659df54b561c8901b3751acb88e",
   "branch": "main",
-  "data_commit": "2026-11-16T22:49:56Z",
+  "data_commit": "2026-11-17T00:00:10Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "c0f2aeb",
+    "data": "2026-11-16",
+    "assunto": "fix(seg): fecha os 5 alertas CodeQL high e conserta o paths-ignore (#154)"
+   },
    {
     "sha": "7bd1520",
     "data": "2026-11-16",
@@ -126,11 +131,6 @@
     "sha": "860a0a0",
     "data": "2026-11-10",
     "assunto": "infra: liga a comparação real do guard de instruções no CI (#121)"
-   },
-   {
-    "sha": "af5cfd1",
-    "data": "2026-11-10",
-    "assunto": "chore(deps): bump the actions-minor-and-patch group with 2 updates (#125)"
    }
   ],
   "arquivos_mudados_7d": 122,
@@ -176,8 +176,16 @@
     "mudancas": 4
    },
    {
+    "pasta": "scripts/graphify.mjs",
+    "mudancas": 4
+   },
+   {
     "pasta": "scripts/validate-agent-instructions.mjs",
     "mudancas": 4
+   },
+   {
+    "pasta": ".github/workflows/codeql.yml",
+    "mudancas": 3
    },
    {
     "pasta": ".github/workflows/contexto.yml",
@@ -185,14 +193,6 @@
    },
    {
     "pasta": ".github/workflows/inventario-estado-semanal.yml",
-    "mudancas": 3
-   },
-   {
-    "pasta": "RELATORIO_CI.md",
-    "mudancas": 3
-   },
-   {
-    "pasta": "analise-prs/RELATORIO_PRS.md",
     "mudancas": 3
    }
   ],
@@ -290,18 +290,18 @@
     "mudancas": 14
    },
    {
-    "arquivo": "src/context/QuoteCartContext.test.ts",
+    "arquivo": "scripts/graphify.mjs",
     "mudancas": 13
    },
    {
-    "arquivo": "src/context/QuoteCartContext.tsx",
+    "arquivo": "src/context/QuoteCartContext.test.ts",
     "mudancas": 13
    }
   ],
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 38
+    "commits": 39
    },
    {
     "autor": "dependabot[bot]",
@@ -312,7 +312,7 @@
  "contagens": {
   "arquivos_total": 681,
   "arquivos_codigo": 271,
-  "linhas_codigo": 53276,
+  "linhas_codigo": 53287,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -420,7 +420,7 @@
   },
   "scripts/ai-context": {
    "arquivos": 3,
-   "linhas": 1898
+   "linhas": 1903
   },
   "scripts/automation.mjs": {
    "arquivos": 1,
@@ -468,7 +468,7 @@
   },
   "scripts/graphify.mjs": {
    "arquivos": 1,
-   "linhas": 899
+   "linhas": 905
   },
   "scripts/inventario": {
    "arquivos": 2,
@@ -694,7 +694,7 @@
   },
   {
    "arquivo": "scripts/ai-context/gerar.mjs",
-   "linhas": 1011
+   "linhas": 1016
   },
   {
    "arquivo": "scripts/maintenance/lib.mjs",
@@ -702,7 +702,7 @@
   },
   {
    "arquivo": "scripts/graphify.mjs",
-   "linhas": 899
+   "linhas": 905
   },
   {
    "arquivo": "scripts/maintenance/run.mjs",
@@ -784,13 +784,13 @@
  "todos": [
   {
    "arquivo": "scripts/ai-context/gerar.mjs",
-   "linha": 237,
+   "linha": 242,
    "tipo": "TODO",
    "texto": "|FIXME|HACK|XXX)\\b[:\\s-]*([^\\n]{0,100})/.exec(line); if (m) todos.push({ linha: ln, tipo: m[1], text"
   },
   {
    "arquivo": "scripts/ai-context/gerar.mjs",
-   "linha": 271,
+   "linha": 276,
    "tipo": "TODO",
    "texto": "|FIXME|HACK|XXX)\\b[:\\s-]*([^\\n]{0,100})/.exec(l); return m ? { linha: i + 1, tipo: m[1], texto: m[2]"
   },

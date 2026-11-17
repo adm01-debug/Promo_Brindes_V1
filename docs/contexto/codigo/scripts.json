@@ -48,7 +48,7 @@
   {
    "arquivo": "scripts/ai-context/gerar.mjs",
    "descricao": "Gera o contexto de projeto para agentes de IA (padrão: inventario/ia/*). Zero dependências. Node >= 18. Genérico: funciona em qualquer repositório.",
-   "linhas": 1011,
+   "linhas": 1016,
    "env": [
     "AI_CONTEXT_DIR",
     "AI_CONTEXT_PUBLICACAO",
@@ -181,7 +181,7 @@
   {
    "arquivo": "scripts/graphify.mjs",
    "descricao": null,
-   "linhas": 899,
+   "linhas": 905,
    "env": [
     "GRAPHIFY_BIN",
     "GRAPHIFY_TIMEOUT_MS"
