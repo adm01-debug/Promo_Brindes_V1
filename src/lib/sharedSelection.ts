@@ -324,8 +324,3 @@ export function hydrateSharedSelectionDetails(payload: SharedSelectionItem[], pr
     && item.kitQuantity === reference.kq && item.unitsPerKit === reference.ku && item.quantity === reference.q));
   return { items, unavailableProductReferences, unavailableVariantReferences, invalidKitReferences };
 }
-
-/** Compatibilidade para consumidores que só precisam dos itens ainda publicados. */
-export function hydrateSharedSelection(payload: SharedSelectionItem[], products: CatalogProduct[]): QuoteItem[] {
-  return hydrateSharedSelectionDetails(payload, products).items;
-}

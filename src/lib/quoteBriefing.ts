@@ -117,10 +117,6 @@ export function getQuoteBriefingValidationError(
 }
 
 /** Compatibilidade para consumidores que só precisam da mensagem. */
-export function validateQuoteBriefing(value: QuoteBriefingForm, desiredDeadline?: string, minimumDate?: string): string | null {
-  return getQuoteBriefingValidationError(value, desiredDeadline, minimumDate)?.message || null;
-}
-
 export function quoteBriefingForm(value: unknown): QuoteBriefingForm {
   const normalized = normalizeQuoteBriefing(value);
   return {

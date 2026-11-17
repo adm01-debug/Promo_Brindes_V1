@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { CatalogProduct } from '../types';
-import { createPersistentSharedSelection, decodeSharedSelection, encodeSharedSelection, fetchPersistentSharedSelection, hydrateSharedSelection, hydrateSharedSelectionDetails, managedSharedSelectionToken, managedSharedSelectionTokens, MAX_SHARED_SELECTION_ITEMS, revokePersistentSharedSelection, sharedSelectionUrl } from './sharedSelection';
+import { createPersistentSharedSelection, decodeSharedSelection, encodeSharedSelection, fetchPersistentSharedSelection, hydrateSharedSelectionDetails, managedSharedSelectionToken, managedSharedSelectionTokens, MAX_SHARED_SELECTION_ITEMS, revokePersistentSharedSelection, sharedSelectionUrl } from './sharedSelection';
 
 const item = {
   key: '11111111-1111-4111-8111-111111111111::variante-azul',
@@ -83,9 +83,9 @@ describe('sharedSelection', () => {
     expect(decodeSharedSelection('%%')).toEqual([]);
     const partiallyInvalid = btoa(JSON.stringify({ v: 1, i: [{ id: item.productId, q: 25 }, { id: '22222222-2222-4222-8222-222222222222', q: 25, v: '../../bad' }] }));
     expect(decodeSharedSelection(partiallyInvalid)).toEqual([]);
-    expect(hydrateSharedSelection([{ id: item.productId, q: 1, v: 'azul' }], [{
+    expect(hydrateSharedSelectionDetails([{ id: item.productId, q: 1, v: 'azul' }], [{
       id: item.productId, name: 'Garrafa atual', sku: 'PB-1', slug: 'garrafa-atual', description: '', shortDescription: '', imageUrl: '/a.webp', images: ['/a.webp'], categoryId: null, mainCategoryId: null, brand: null, minQuantity: 10, isNew: false, isFeatured: false, isBestseller: false, isKit: false, allowsPersonalization: false, hasCommercialPackaging: false, colors: [{ variantId: 'azul', name: 'Azul', hex: '#0033aa' }], materials: [], dimensions: {},
-    }])).toMatchObject([{ name: 'Garrafa atual', quantity: 10, variantId: 'azul' }]);
+    }]).items).toMatchObject([{ name: 'Garrafa atual', quantity: 10, variantId: 'azul' }]);
   });
 
   it('preserva variantes não publicadas e aponta produtos removidos sem perder quantidades', () => {

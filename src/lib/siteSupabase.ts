@@ -17,5 +17,4 @@ export const siteSupabase: SupabaseClient<Database> | null = configuredUrl && co
     })
   : null;
 
-export const siteAuthConfigured = Boolean(siteSupabase);
 export { hasSiteAuthConfiguration, resolveSitePublishableKey, resolveSiteSupabaseUrl } from './siteSupabaseConfig';
