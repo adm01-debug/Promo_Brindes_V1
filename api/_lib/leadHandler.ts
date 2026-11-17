@@ -1,7 +1,7 @@
 import { normalizeLeadPayload, RequestValidationError, type LeadKind } from './contracts.js';
 import { reconcileQuoteItems } from './catalogValidation.js';
 import { enforceLeadPreflightRateLimit, persistLead, SiteDatabaseError } from './siteDatabase.js';
-import { deliverQuoteConfirmationsNow } from '../notifications.js';
+import { deliverQuoteConfirmationsNow, whatsappChannelConfigured } from '../notifications.js';
 import { COMMERCIAL_ALERT_TIMEOUT_MS, deliverCommercialTeamAlertNow } from './commercialTeamAlerts.js';
 import { createCorrelationId, errorClass, logServerError } from './observability.js';
 import { allowedSiteOrigins } from './siteOrigin.js';
@@ -130,7 +130,11 @@ export async function handleLeadRequest(kind: LeadKind, request: ApiRequest, res
     console.info('site_lead_request_persisted', { kind, requestId: result.requestId, duplicate: result.duplicate, correlationId });
     const confirmations = payload.source === 'site-promo-brindes'
       ? result.duplicate || Date.now() > deadline - MIN_CONFIRMATION_WINDOW_MS
-        ? { email: 'pending' as const, whatsapp: payload.notificationPreferences.whatsappCopy ? 'pending' as const : 'not_requested' as const }
+        // O atalho nao chama deliverQuoteConfirmationsNow, entao repete aqui a
+        // unica pergunta que muda a promessa feita ao visitante: existe
+        // provedor de WhatsApp neste ambiente? Sem isto, repeticao idempotente
+        // e pouco tempo restante voltavam a exibir "Registrado para envio".
+        ? { email: 'pending' as const, whatsapp: payload.notificationPreferences.whatsappCopy ? (whatsappChannelConfigured() ? 'pending' as const : 'unavailable' as const) : 'not_requested' as const }
         : await deliverQuoteConfirmationsNow(result.requestId, payload.notificationPreferences.whatsappCopy, correlationId)
       : undefined;
     // PF-01: alerta comercial do lead recém-submetido. Só tenta se sobrar

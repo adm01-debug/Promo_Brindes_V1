@@ -155,6 +155,19 @@ describe('APIs de leads isoladas', () => {
     expect(result.body).toMatchObject({ error: 'invalid_database_response' });
   });
 
+  it('repetição idempotente promete envio quando o provedor de WhatsApp existe', async () => {
+    configureSiteDatabase();
+    vi.stubEnv('WHATSAPP_ACCESS_TOKEN', 'token-de-teste');
+    vi.stubEnv('WHATSAPP_PHONE_NUMBER_ID', '1234567890');
+    vi.stubEnv('WHATSAPP_QUOTE_TEMPLATE', 'confirmacao_orcamento_promo_brindes');
+    vi.stubEnv('WHATSAPP_GRAPH_API_VERSION', 'v23.0');
+    vi.stubGlobal('fetch', quoteFetchMock(JSON.stringify({ requestId: REQUEST_ID, duplicate: true })));
+    const { result, response } = responseDouble();
+    await quoteHandler(request(quotePayload, { headers: { 'content-type': 'application/json', origin: 'https://www.promobrindes.com.br', 'idempotency-key': 'quote-request-123' } }), response);
+    expect(result.statusCode).toBe(200);
+    expect(result.body).toMatchObject({ confirmations: { email: 'pending', whatsapp: 'pending' } });
+  });
+
   it('persiste orçamento e devolve 200 em repetição idempotente', async () => {
     configureSiteDatabase();
     vi.stubGlobal('fetch', quoteFetchMock(JSON.stringify({ requestId: REQUEST_ID, duplicate: true })));
@@ -163,7 +176,9 @@ describe('APIs de leads isoladas', () => {
     expect(result.statusCode).toBe(200);
     expect(result.body).toEqual({
       requestId: REQUEST_ID, duplicate: true,
-      confirmations: { email: 'pending', whatsapp: 'pending' },
+      // Sem provedor de WhatsApp neste ambiente, a repeticao idempotente nao
+      // pode prometer envio: o atalho de leadHandler devolve 'unavailable'.
+      confirmations: { email: 'pending', whatsapp: 'unavailable' },
     });
     const rpcCall = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.find(([url]) => String(url).includes('/create_site_quote_request'));
     const sent = JSON.parse(String(rpcCall?.[1]?.body));

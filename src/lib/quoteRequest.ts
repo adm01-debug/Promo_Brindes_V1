@@ -3,6 +3,7 @@ import { createClientRequestId, postJson } from './http';
 import { normalizeQuoteItemsForTransmission } from './quoteItems';
 import { normalizeQuoteBriefing, quoteBriefingSummary } from './quoteBriefing';
 import { campaignBriefLabels } from './campaignBrief';
+import type { ConfirmationDeliveryStatus } from './quoteConfirmation';
 
 const DEFAULT_CONTACT_EMAIL = 'adm01@promobrindes.com.br';
 
@@ -73,14 +74,18 @@ export function buildEmailHref(payload: QuoteRequestPayload, email = DEFAULT_CON
 }
 
 export type SubmitResult =
-  | { mode: 'endpoint'; requestId?: string; confirmations?: { email: 'sent' | 'pending'; whatsapp: 'sent' | 'pending' | 'not_requested' } }
+  | { mode: 'endpoint'; requestId?: string; confirmations?: { email: 'sent' | 'pending'; whatsapp: ConfirmationDeliveryStatus } }
   | { mode: 'email'; href: string };
 
 function confirmationResult(value: unknown): Extract<SubmitResult, { mode: 'endpoint' }>['confirmations'] {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
   const result = value as Record<string, unknown>;
   const email = result.email === 'sent' ? 'sent' : 'pending';
-  const whatsapp = result.whatsapp === 'sent' || result.whatsapp === 'pending' ? result.whatsapp : 'not_requested';
+  // `unavailable` precisa sobreviver ao validador: cair no `not_requested`
+  // diria que o visitante não pediu a cópia, quando ele marcou a autorização.
+  const whatsapp = result.whatsapp === 'sent' || result.whatsapp === 'pending' || result.whatsapp === 'unavailable'
+    ? result.whatsapp
+    : 'not_requested';
   return { email, whatsapp };
 }
 

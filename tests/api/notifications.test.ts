@@ -78,6 +78,23 @@ describe('worker de comprovantes do orçamento', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it('relata o WhatsApp como indisponível quando o provedor não está configurado', async () => {
+    configure();
+    // Só o e-mail tem provedor; nenhuma WHATSAPP_* existe, como em produção hoje.
+    vi.stubEnv('RESEND_API_KEY', 're_synthetic_test_key');
+    vi.stubEnv('SITE_EMAIL_FROM', 'Promo Brindes <atendimento@example.test>');
+    vi.stubEnv('WHATSAPP_ACCESS_TOKEN', '');
+    vi.stubEnv('WHATSAPP_PHONE_NUMBER_ID', '');
+    vi.stubEnv('WHATSAPP_QUOTE_TEMPLATE', '');
+    vi.stubEnv('WHATSAPP_GRAPH_API_VERSION', '');
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('null', { status: 200 })));
+
+    // O visitante autorizou a cópia: `pending` prometeria um envio que nunca
+    // acontece, e `not_requested` negaria o consentimento dele.
+    const resultado = await deliverQuoteConfirmationsNow(emailJob.requestId, true);
+    expect(resultado.whatsapp).toBe('unavailable');
+  });
+
   it('envia e-mail transacional escapado e finaliza a entrega', async () => {
     configure();
     vi.stubEnv('RESEND_API_KEY', 're_synthetic_test_key');
