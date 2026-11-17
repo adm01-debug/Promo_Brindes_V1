@@ -5,17 +5,17 @@
   "vitest",
   "playwright"
  ],
- "total": 134,
+ "total": 135,
  "por_tipo": {
   "contrato": 2,
   "e2e": 2,
   "pytest": 4,
-  "unit": 97
+  "unit": 98
  },
  "onde_ficam": [
   {
    "padrao": "co-localizado (*.test)",
-   "arquivos": 52
+   "arquivos": 53
   },
   {
    "padrao": "tests/",
@@ -380,6 +380,16 @@
     "src/lib/http.ts"
    ],
    "casos": 8
+  },
+  {
+   "arquivo": "src/lib/ideaLandings.test.ts",
+   "tipo": "unit",
+   "linhas": 25,
+   "testa": [
+    "src/lib/ideaLandings.ts",
+    "src/lib/search.ts"
+   ],
+   "casos": 2
   },
   {
    "arquivo": "src/lib/kitBuilder.test.ts",
@@ -1099,6 +1109,7 @@
   "src/lib/customerQuoteContract.ts": 1,
   "src/lib/customerSelections.ts": 1,
   "src/lib/http.ts": 1,
+  "src/lib/ideaLandings.ts": 1,
   "src/lib/kitBuilder.ts": 1,
   "src/lib/personalDataReset.ts": 1,
   "src/lib/productBadges.ts": 1,
@@ -1111,7 +1122,7 @@
   "src/lib/quoteRequest.ts": 1,
   "src/lib/quoteSubmission.ts": 1,
   "src/lib/scrollRestoration.ts": 1,
-  "src/lib/search.ts": 1,
+  "src/lib/search.ts": 2,
   "src/lib/searchRelevance.ts": 1,
   "src/lib/sharedSelection.ts": 1,
   "src/lib/siteRpc.ts": 1,

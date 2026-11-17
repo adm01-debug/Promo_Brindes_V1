@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `f852e72740cb86c5e5eb5331a437e9b3625eb78e` (2026-11-17T15:12:16Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `1a3000032945e45e3b74cce869b84a0e01060c6d` (2026-11-17T16:01:34Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -14,7 +14,7 @@ Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR
 Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua tarefa; não carregue tudo.
 
 ## Stack
-- linguagens: TypeScript (206), Markdown (116), SQL (106), JavaScript (61), JSON (28), YAML (19), Python (8), CSS (4)
+- linguagens: TypeScript (207), Markdown (117), SQL (106), JavaScript (61), JSON (28), YAML (19), Python (8), CSS (4)
 - linguagem_principal: TypeScript
 - framework: React
 - backend_http: vercel-functions
@@ -34,9 +34,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Números
 | item | qtd |
 |---|---|
-| arquivos_total | 688 |
-| arquivos_codigo | 274 |
-| linhas_codigo | 53763 |
+| arquivos_total | 690 |
+| arquivos_codigo | 275 |
+| linhas_codigo | 53791 |
 | rotas | 32 |
 | rotas_http_backend | 14 |
 | vistas_por_id | 0 |
@@ -48,21 +48,21 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 | tabelas | 22 |
 | migrations | 69 |
 | cron_jobs | 0 |
-| testes | 134 |
+| testes | 135 |
 | workflows | 15 |
 | scripts | 35 |
-| docs_md | 116 |
+| docs_md | 117 |
 
 ## Onde ficam as coisas
 - telas: src/pages (18)
 - componentes: src/components (19), src/pages (18), src/context (2)
 - hooks: src/lib (4), src/context (2)
 - servicos_logica: src/lib (43), api/_lib (14), src/context (3)
-- testes: co-localizado (*.test) (52), tests/ (42), outro (9)
+- testes: co-localizado (*.test) (53), tests/ (42), outro (9)
 - edge_functions: n/d
 - migrations: site-supabase/supabase/migrations
 - scripts: scripts/maintenance (4), scripts/inventario (3), scripts/regras_negocio (3)
-- docs: docs (70), (raiz) (9), .github (1)
+- docs: docs (71), (raiz) (9), .github (1)
 - nomenclatura: {"componentes":"PascalCase (100%)","hooks":"use + PascalCase","servicos":"camelCase (86%)","edge_functions":null,"tabelas":"snake_case (95%)"}
 - instruções para agentes no repo: AGENTS.md, CLAUDE.md
 
@@ -324,6 +324,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `docs/GEN_Z_RESEARCH.md` — Pesquisa de audiência — Geração Z no marketing B2B (180 linhas)
 - `docs/GOVERNANCA_FECHAMENTO.md` — Governança do fechamento técnico (35 linhas)
 - `docs/GRAPHIFY.md` — Graphify no Promo Brindes (89 linhas)
+- `docs/GRAPHIFY_09105_EVALUATION_20261117.md` — Avaliação isolada do Graphify 0.9.105 — 17/11/2026 (44 linhas)
 - `docs/GRAPHIFY_0968_EVALUATION_20261005.md` — Avaliação isolada do Graphify 0.9.68 (65 linhas)
 - `docs/GRAPHIFY_0994_EVALUATION_20261027.md` — Avaliação isolada do Graphify 0.9.94 — 27/10/2026 (21 linhas)
 - `docs/GRAPHIFY_IMPLEMENTATION_20260911.md` — Execução da integração Graphify — 11/09/2026 (32 linhas)
@@ -377,6 +378,8 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-17 `1a30000` fix(ideias): landing de onboarding passa a ter curadoria própria (#177)
+- 2026-11-17 `5147c5a` chore(docs): homologa a 0.9.105 do graphify com avaliação isolada contra a 0.9.94 (#176)
 - 2026-11-17 `f852e72` fix(analytics): result_count passa a medir a curadoria vista e a queda deixa de inflar a conversão (#175)
 - 2026-11-17 `4b0f2cc` fix(analytics): landing de ideias para de contar a visita com o total do tópico anterior (#172)
 - 2026-11-17 `fce1a49` fix(seo): shell das landings volta a recusar campo desconhecido e usa um só nome de marca (#174)
@@ -390,8 +393,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-17 `bbfb77a` infra(release): o release aplica as migrations do banco isolado (#165)
 - 2026-11-17 `cc68e42` fix(orcamento): o consentimento de WhatsApp descreve o que o sistema envia (#160)
 - 2026-11-17 `0600922` fix(ci): separa o teto de performance de producao do teto de pior caso (#164)
-- 2026-11-17 `1d017c9` fix(ci): o resumo do quality gate para de acusar falha em passo que passou (#162)
-- 2026-11-17 `8ea1273` feat(lgpd): o apagamento de titular passa a apagar o que faltava (#161)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

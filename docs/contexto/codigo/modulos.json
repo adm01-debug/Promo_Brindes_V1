@@ -353,8 +353,8 @@
   {
    "modulo": "lib",
    "arquivos": 43,
-   "testes": 36,
-   "linhas": 5110,
+   "testes": 37,
+   "linhas": 5113,
    "itens_menu": [],
    "telas": [],
    "rotas_http": [],

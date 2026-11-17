@@ -1779,7 +1779,7 @@
     "ideaLandings"
    ],
    "export_default": null,
-   "linhas": 51,
+   "linhas": 54,
    "tabelas": [],
    "rpcs": [],
    "edges": [],
@@ -1792,7 +1792,7 @@
    "usado_por_modulos": [
     "pages"
    ],
-   "coberto_por_testes": 0,
+   "coberto_por_testes": 1,
    "orfao": false
   },
   {
@@ -2175,7 +2175,7 @@
     "components",
     "lib"
    ],
-   "coberto_por_testes": 1,
+   "coberto_por_testes": 2,
    "orfao": false
   },
   {

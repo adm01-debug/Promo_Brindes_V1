@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `f852e72740` · branch `main` · 2026-11-17 15:12 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `1a30000329` · branch `main` · 2026-11-17 16:02 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -1040,7 +1040,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1563 testes em 125 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1566 testes em 126 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1151,6 +1151,7 @@ _nenhum item encontrado_
 | `src/lib/campaignBrief.test.ts` | 3 | contexto de campanha · transforma uma data comemorativa em URL de catálogo sem perder o contexto · recusa dados de ocasião manipulados antes de gravá-los na seleção |
 | `src/lib/catalogComparison.test.ts` | 3 | comparação persistente · remove dados inválidos, duplicados e respeita o limite de três produtos · salva identificadores estáveis junto de um retrato local para sobreviver à navegação |
 | `src/lib/clientObservability.test.ts` | 3 | telemetria de erro da interface · envia apenas classe do erro e pathname, nunca mensagem ou query pessoal · não envia o identificador privado nem rotas arbitrárias ao reportar erros |
+| `src/lib/ideaLandings.test.ts` | 3 | curadoria das landings de ideias · dá a cada tema uma consulta própria, senão a landing vira o catálogo inteiro · resolve o termo de onboarding pelo grupo de sinônimos da intenção, sem exigir kit |
 | `src/lib/quoteDraft.test.ts` | 3 | rascunho do briefing · mantém o briefing na sessão para a pessoa voltar ao catálogo · remove o rascunho vencido em vez de reapresentar dados pessoais antigos |
 | `src/lib/quoteRepeat.test.ts` | 3 | repetição de orçamento · preserva apenas contexto de campanha e briefing por uma janela curta · não restaura briefing do titular anterior após a limpeza de sessão |
 | `src/lib/searchRelevance.test.ts` | 3 | baseline editorial de relevância · mantém cobertura integral do corpus versionado · expõe falhas em vez de arredondar a métrica |

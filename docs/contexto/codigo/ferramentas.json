@@ -3,8 +3,8 @@
  "format_version": 2,
  "stack": {
   "linguagens": [
-   "TypeScript (206)",
-   "Markdown (116)",
+   "TypeScript (207)",
+   "Markdown (117)",
    "SQL (106)",
    "JavaScript (61)",
    "JSON (28)",
@@ -782,6 +782,11 @@
    "arquivo": "docs/GRAPHIFY.md",
    "titulo": "Graphify no Promo Brindes",
    "linhas": 89
+  },
+  {
+   "arquivo": "docs/GRAPHIFY_09105_EVALUATION_20261117.md",
+   "titulo": "Avaliação isolada do Graphify 0.9.105 — 17/11/2026",
+   "linhas": 44
   },
   {
    "arquivo": "docs/GRAPHIFY_0968_EVALUATION_20261005.md",

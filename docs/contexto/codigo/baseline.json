@@ -2,11 +2,21 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "f852e72740cb86c5e5eb5331a437e9b3625eb78e",
+  "commit": "1a3000032945e45e3b74cce869b84a0e01060c6d",
   "branch": "main",
-  "data_commit": "2026-11-17T15:12:16Z",
+  "data_commit": "2026-11-17T16:01:34Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "1a30000",
+    "data": "2026-11-17",
+    "assunto": "fix(ideias): landing de onboarding passa a ter curadoria própria (#177)"
+   },
+   {
+    "sha": "5147c5a",
+    "data": "2026-11-17",
+    "assunto": "chore(docs): homologa a 0.9.105 do graphify com avaliação isolada contra a 0.9.94 (#176)"
+   },
    {
     "sha": "f852e72",
     "data": "2026-11-17",
@@ -121,19 +131,9 @@
     "sha": "7bd1520",
     "data": "2026-11-16",
     "assunto": "chore(deps): sobe TypeScript de 5.9.3 para 6.0.3 (#153)"
-   },
-   {
-    "sha": "401487f",
-    "data": "2026-11-16",
-    "assunto": "chore(ci): actions/github-script v7.0.1 para v9.0.0 em todas as ocorrencias (#152)"
-   },
-   {
-    "sha": "ba2bdf7",
-    "data": "2026-11-16",
-    "assunto": "chore: ignora os worktrees temporarios de agentes de IA (#151)"
    }
   ],
-  "arquivos_mudados_7d": 154,
+  "arquivos_mudados_7d": 156,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 60
+    "commits": 62
    },
    {
     "autor": "dependabot[bot]",
@@ -310,9 +310,9 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 688,
-  "arquivos_codigo": 274,
-  "linhas_codigo": 53763,
+  "arquivos_total": 690,
+  "arquivos_codigo": 275,
+  "linhas_codigo": 53791,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -324,10 +324,10 @@
   "tabelas": 22,
   "migrations": 69,
   "cron_jobs": 0,
-  "testes": 134,
+  "testes": 135,
   "workflows": 15,
   "scripts": 35,
-  "docs_md": 116
+  "docs_md": 117
  },
  "por_pasta": {
   "api/_lib": {
@@ -555,8 +555,8 @@
    "linhas": 749
   },
   "src/lib": {
-   "arquivos": 79,
-   "linhas": 7645
+   "arquivos": 80,
+   "linhas": 7673
   },
   "src/main.tsx": {
    "arquivos": 1,
