@@ -47,7 +47,7 @@ F-45,Por que este produto + ideias de uso,Regra deterministica + conteudo aplica
 F-46,Personalizacao por familia,Contrato so expoe allows_personalization e min_quantity,BLOQUEADA,20,,PF-46,P2
 F-47,WhatsApp iniciado pelo visitante,Link wa.me contextual com numero validado,PENDENTE,0,,PF-47,P2
 F-48,Menu visual de categorias,Cabecalho so com links de texto,PARCIAL,50,,PF-48,P3
-F-49,Landings /ideias/* descobriveis,4 paginas com SSR e sitemap sem link interno nem e2e,PARCIAL,60,,PF-49,P3
+F-49,Landings /ideias/* descobriveis,Coluna Ideias no rodape + 3 cards e chip da home + e2e,COMPLETA,100,#166,PF-49,P3
 F-50,Vitrine home/catalogo diversidade global,Home ordena so por flags; diversificacao so pagina corrente,PARCIAL,60,,PF-50,P3
 F-51,Grupos de decisao e links persistentes,Atras de flags; selo Referencia principal vaza na impressao,PARCIAL,60,,PF-51,P2
 F-52,Sync automatico carrinho entre dispositivos,So por selecoes salvas explicitas,BLOQUEADA,0,,PF-52,P3
