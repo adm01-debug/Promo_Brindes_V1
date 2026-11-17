@@ -429,7 +429,7 @@ test('toda entrada editorial da home aponta para a landing certa', async ({ page
   }
   // O card 03 segue no catálogo filtrado de propósito: não existe landing de
   // reconhecimento em src/lib/ideaLandings.ts.
-  await expect(page.getByRole('link', { name: /Reconhecimento com desejo/i })).toHaveAttribute('href', /^\/catalogo\?momento=reconhecimento/);
+  await expect(page.getByRole('link', { name: /Reconhecimento com desejo/i })).toHaveAttribute('href', '/catalogo?momento=reconhecimento&publico=colaboradores&clima=premium');
   // Coluna "Ideias" do rodapé: os quatro tópicos, inclusive o que a home não linka.
   const rodape = page.locator('footer');
   const entradasDoRodape: Array<[string, string]> = [
@@ -447,10 +447,17 @@ test('o card de eventos abre a landing e termina na curadoria do evento', async 
   await page.goto('/');
   await page.getByRole('link', { name: /Evento que continua no feed/i }).click();
   await expect(page).toHaveURL(/\/ideias\/eventos$/);
-  await expect(page).not.toHaveURL(/perfil=kits/);
   await expect(page.getByRole('heading', { name: 'Eventos que continuam depois da credencial.' })).toBeVisible();
+  // A guarda de kit pronto precisa ficar DEPOIS do clique, como no teste irmao
+  // (linha 412): antes dele a URL ja esta ancorada com $ e nao admite query,
+  // entao a assercao nao conseguia falhar. E e no catalogo que perfil=kits pode
+  // reaparecer, via catalogUrl em src/lib/ideaLandings.ts.
   await page.getByRole('link', { name: /Ver curadoria completa/ }).click();
-  await expect(page).toHaveURL(/momento=evento.*publico=publico-evento/);
+  // URL exata: o regex anterior casava por prefixo nos dois valores (aceitava
+  // `eventos-corporativos`) e ainda exigia a ordem dos parametros, que e
+  // detalhe incidental de escrita. O destino vem de src/lib/ideaLandings.ts.
+  await expect(page).toHaveURL(/\/catalogo\?momento=evento&publico=publico-evento$/);
+  await expect(page).not.toHaveURL(/perfil=kits/);
   await expect(page.getByRole('heading', { name: 'Curadoria para o seu briefing' })).toBeVisible();
 });
 
