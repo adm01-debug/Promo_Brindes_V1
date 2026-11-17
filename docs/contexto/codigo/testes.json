@@ -5,7 +5,7 @@
   "vitest",
   "playwright"
  ],
- "total": 132,
+ "total": 133,
  "por_tipo": {
   "contrato": 2,
   "e2e": 2,
@@ -627,11 +627,11 @@
   {
    "arquivo": "tests/api/commercial-team-alerts.test.ts",
    "tipo": "unit",
-   "linhas": 200,
+   "linhas": 253,
    "testa": [
     "api/_lib/commercialTeamAlerts.ts"
    ],
-   "casos": 12
+   "casos": 14
   },
   {
    "arquivo": "tests/api/curated-page-previews.test.ts",
@@ -667,9 +667,10 @@
   {
    "arquivo": "tests/api/maxDuration.test.ts",
    "tipo": "unit",
-   "linhas": 115,
+   "linhas": 125,
    "testa": [
     "api/_lib/catalogValidation.ts",
+    "api/_lib/commercialTeamAlerts.ts",
     "api/_lib/leadHandler.ts",
     "api/_lib/publicProductPage.ts",
     "api/_lib/sharedSelections.ts",
@@ -979,6 +980,7 @@
   "site-supabase/supabase/tests/database/adjustment_limits.test.sql",
   "site-supabase/supabase/tests/database/admin_write_audit.test.sql",
   "site-supabase/supabase/tests/database/briefing_assets.test.sql",
+  "site-supabase/supabase/tests/database/contact_commercial_alert.test.sql",
   "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
   "site-supabase/supabase/tests/database/customer_occasion_favorites.test.sql",
   "site-supabase/supabase/tests/database/customer_portal.test.sql",
@@ -1007,7 +1009,7 @@
  ],
  "cobertura_por_arquivo": {
   "api/_lib/catalogValidation.ts": 2,
-  "api/_lib/commercialTeamAlerts.ts": 1,
+  "api/_lib/commercialTeamAlerts.ts": 2,
   "api/_lib/contracts.ts": 1,
   "api/_lib/curatedPagePreviews.ts": 1,
   "api/_lib/fileSignatures.ts": 1,

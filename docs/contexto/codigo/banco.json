@@ -6,7 +6,7 @@
   "site-supabase/supabase/migrations",
   "src/types/site-database.types.ts"
  ],
- "migrations": 66,
+ "migrations": 67,
  "seeds": [],
  "avisos": [
   "4 bloco(s) com DDL dinâmico (EXECUTE format/...) não modelado — policies/colunas criadas dinamicamente podem faltar; confira no banco vivo"
@@ -63,11 +63,13 @@
   "site_private.assign_quote_protocol",
   "site_private.audit_actor",
   "site_private.commercial_team_alert_payload",
+  "site_private.commercial_team_contact_alert_payload",
   "site_private.consume_rate_limit",
   "site_private.consume_shared_selection_action_limit",
   "site_private.enforce_notification_delivery_lease_and_attempts",
   "site_private.enforce_status_transition",
   "site_private.enforce_valid_kit_reference_set",
+  "site_private.enqueue_contact_commercial_alert",
   "site_private.enqueue_quote_confirmations",
   "site_private.erase_customer_assets_on_profile_change",
   "site_private.erase_customer_occasion_favorites_on_profile_change",
@@ -95,6 +97,13 @@
    "evento": "update of status",
    "tabela": "site_private.contact_requests",
    "funcao": "site_private.enforce_status_transition"
+  },
+  {
+   "nome": "contact_requests_enqueue_commercial_alert",
+   "quando": "after",
+   "evento": "insert",
+   "tabela": "site_private.contact_requests",
+   "funcao": "site_private.enqueue_contact_commercial_alert"
   },
   {
    "nome": "contact_requests_set_updated_at",
@@ -699,6 +708,7 @@
    "usada_em_edges": [],
    "triggers": [
     "contact_requests_enforce_status_transition",
+    "contact_requests_enqueue_commercial_alert",
     "contact_requests_set_updated_at"
    ],
    "sem_rls": false,

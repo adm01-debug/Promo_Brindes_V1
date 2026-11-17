@@ -101,6 +101,10 @@
    "importado_por": 5
   },
   {
+   "arquivo": "api/_lib/commercialTeamAlerts.ts",
+   "importado_por": 4
+  },
+  {
    "arquivo": "api/_lib/contracts.ts",
    "importado_por": 4
   },
@@ -159,10 +163,6 @@
   {
    "arquivo": "src/lib/useOccasionFavorites.ts",
    "importado_por": 4
-  },
-  {
-   "arquivo": "api/_lib/catalogValidation.ts",
-   "importado_por": 3
   }
  ],
  "ciclos": {

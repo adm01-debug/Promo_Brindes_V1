@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `bcca66cd596069ed49d54f4824768cc4a26d572a` (2026-11-17T03:44:52Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `f48af644fc9a0da34c4358953fb32520d001ef5e` (2026-11-17T08:54:11Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -14,7 +14,7 @@ Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR
 Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua tarefa; não carregue tudo.
 
 ## Stack
-- linguagens: TypeScript (203), Markdown (116), SQL (102), JavaScript (61), JSON (28), YAML (19), Python (8), CSS (4)
+- linguagens: TypeScript (203), Markdown (116), SQL (104), JavaScript (61), JSON (28), YAML (19), Python (8), CSS (4)
 - linguagem_principal: TypeScript
 - framework: React
 - backend_http: vercel-functions
@@ -34,9 +34,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Números
 | item | qtd |
 |---|---|
-| arquivos_total | 681 |
+| arquivos_total | 683 |
 | arquivos_codigo | 271 |
-| linhas_codigo | 53379 |
+| linhas_codigo | 53468 |
 | rotas | 32 |
 | rotas_http_backend | 14 |
 | vistas_por_id | 0 |
@@ -46,9 +46,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 | hooks | 6 |
 | edge_functions | 0 |
 | tabelas | 22 |
-| migrations | 66 |
+| migrations | 67 |
 | cron_jobs | 0 |
-| testes | 132 |
+| testes | 133 |
 | workflows | 15 |
 | scripts | 35 |
 | docs_md | 116 |
@@ -174,17 +174,17 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - e2e/smoke.spec.ts (53)
 - package-lock.json (36)
 - src/styles.css (34)
-- vercel.json (25)
+- vercel.json (26)
 - .github/workflows/quality.yml (23)
+- site-supabase/supabase/tests/database/lead_storage.test.sql (23)
 - src/pages/QuotePage.tsx (23)
-- site-supabase/supabase/tests/database/lead_storage.test.sql (22)
+- docs/DATABASE_DICTIONARY.md (22)
 - src/components/Layout.tsx (22)
-- docs/DATABASE_DICTIONARY.md (21)
-- tests/api/lead-requests.test.ts (19)
+- tests/api/lead-requests.test.ts (20)
 - .github/workflows/release.yml (18)
 - src/App.tsx (17)
 - .github/workflows/database.yml (16)
-- api/_lib/siteDatabase.ts (16)
+- api/_lib/leadHandler.ts (16)
 
 ## Workflows
 - `automation-local.yml` — Automação local (pull_request, push, workflow_dispatch)
@@ -377,6 +377,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-17 `f48af64` feat(contato): avisa o comercial quando chega lead pelo formulario de contato (#158)
 - 2026-11-17 `bcca66c` feat(busca): corpus julgado de relevancia vai de 20 para 33 intencoes (#163)
 - 2026-11-16 `49ce59b` fix(a11y): devolve o foco ao titulo da etapa no localizador de briefing (#159)
 - 2026-11-16 `6a37e51` fix(obs): registra a falha dos dois endpoints da Area do Cliente (#157)
@@ -391,7 +392,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-16 `fd91246` chore(deps): bump playwright 1.65.1, eslint 10.15.0 e jsdom 31.0.1 (#148)
 - 2026-11-16 `e08af2a` chore: consolida os 6 bumps do dependabot e corrige o pin duplicado do graphify (#147)
 - 2026-11-16 `14dc730` chore(ci): expoe o log da sonda catalog-contract no stdout da Actions (#139)
-- 2026-11-14 `15d0af6` chore: contexto agendado de 10 min para 1x/hora (#140)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

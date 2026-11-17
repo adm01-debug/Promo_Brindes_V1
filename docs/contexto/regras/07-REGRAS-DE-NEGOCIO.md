@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `bcca66cd59` · branch `main` · 2026-11-17 03:45 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `f48af644fc` · branch `main` · 2026-11-17 08:54 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -243,6 +243,7 @@ _Nenhum arquivo em `manual/`. Copie `manual/TEMPLATE-regras-de-negocio.md` para 
 | customer_briefing_assets_require_verification | BEFORE UPDATE OF QUOTE_REQUEST_ID | `site_private.customer_briefing_assets` | `require_verified_briefing_asset_attachment` |  |
 | customer_briefing_assets_require_verification_on_insert | BEFORE INSERT | `site_private.customer_briefing_assets` | `require_verified_briefing_asset_attachment` |  |
 | customer_profile_occasion_favorite_erasure | AFTER UPDATE OF VERIFIED_EMAIL | `site_private.customer_profiles` | `erase_customer_occasion_favorites_on_profile_change` |  |
+| contact_requests_enqueue_commercial_alert | AFTER INSERT | `site_private.contact_requests` | `enqueue_contact_commercial_alert` |  |
 
 Erros lançados por funções SQL (`RAISE EXCEPTION` = regra de negócio no banco):
 
@@ -334,7 +335,7 @@ Erros lançados por funções SQL (`RAISE EXCEPTION` = regra de negócio no banc
 | `attach_my_briefing_assets_to_quote` | authentication_required | `site-supabase/supabase/migrations/20261006134751_make_briefing_asset_attachment_idempotent.sql` |
 | `attach_my_briefing_assets_to_quote` | invalid_briefing_asset_attachment | `site-supabase/supabase/migrations/20261006134751_make_briefing_asset_attachment_idempotent.sql` |
 | `attach_my_briefing_assets_to_quote` | briefing_asset_attachment_conflict | `site-supabase/supabase/migrations/20261006134751_make_briefing_asset_attachment_idempotent.sql` |
-| `claim_site_commercial_team_alerts` | invalid_notification_claim_input | `site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql` |
+| `claim_site_commercial_team_alerts` | invalid_notification_claim_input | `site-supabase/supabase/migrations/20261117010000_add_commercial_team_contact_alert.sql` |
 
 ## E. Estados, máquinas de estado e transições
 
@@ -1037,11 +1038,11 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1520 testes em 123 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1539 testes em 124 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
-| `site-supabase/supabase/tests/database/lead_storage.test.sql` | 68 | schema privado contém as vinte e uma tabelas planejadas, incluindo favoritos de datas sem PII · seleções persistentes ficam no schema privado · criação de links recebe rate limit próprio · máquina de estados administrativa vive em tabela dedicada (Etapa 8) … |
+| `site-supabase/supabase/tests/database/lead_storage.test.sql` | 69 | schema privado contém as vinte e uma tabelas planejadas, incluindo favoritos de datas sem PII · seleções persistentes ficam no schema privado · criação de links recebe rate limit próprio · máquina de estados administrativa vive em tabela dedicada (Etapa 8) … |
 | `tests/inventario-estado.node.mjs` | 63 | extrairInventario aceita objeto direto, envelope do PostgREST e envelope do MCP · extrairInventario recusa entrada sem as chaves obrigatórias, sem tabelas ou de outra versão · conferirOrigem aprova a resposta que cobre as tabelas das migrations e o ledger · conferirOrigem recusa um banco irmão: as tabelas das migrations não estão lá … |
 | `site-supabase/supabase/tests/database/briefing_assets.test.sql` | 57 | metadados privados de arquivos existem · assinatura binária possui recibo de verificação · fila de exclusão de Storage existe · bucket é privado e limitado a 10 MB … |
 | `e2e/smoke.spec.ts` | 56 | headline principal usa Fold Text sem perder acessibilidade · categorias usam fotografia de produto publicado como ponto de descoberta · rotas públicas essenciais não introduzem violações automáticas de acessibilidade · montador de kits preserva componentes e calcula a quantidade completa … |
@@ -1065,13 +1066,14 @@ _nenhum item encontrado_
 | `site-supabase/supabase/tests/database/status_state_machine.test.sql` | 19 | eventos têm coluna de ordem monotônica · sequence é única (identity) · sequence preserva a ordem de inserção independentemente de created_at · tabela de transições existe … |
 | `src/context/QuoteCartContext.test.ts` | 19 | seleção para orçamento · adiciona e mantém uma linha por produto e cor · respeita a quantidade mínima do item · limita quantidades acidentalmente excessivas … |
 | `tests/validate-migration-names.node.mjs` | 18 | aceita nomes de 14 dígitos em ordem estritamente crescente · rejeita o formato antigo com underscore no timestamp (regressão do incidente de 15/09) · rejeita data de calendário inválida · rejeita versão duplicada dentro do mesmo diretório … |
+| `tests/api/commercial-team-alerts.test.ts` | 18 | alerta comercial de orçamento (PF-01) · parseCommercialAlertJob · rejeita payload sem a forma mínima do job · normaliza e limita campos do envelope … |
 | `tests/api/notification-events-whatsapp.test.ts` | 18 | api/notification-events-whatsapp (Etapa 30) · rejeita método diferente de GET/POST · handshake GET · responde 503 quando o token de verificação não está configurado … |
 | `site-supabase/supabase/tests/database/quote_protocol.test.sql` | 17 | dígito verificador de 26000001 é determinístico e conhecido (conferido manualmente) · mod11_check_digit é determinística: mesma entrada, mesma saída · entradas diferentes tendem a produzir dígitos diferentes (não uma prova geral, só o par de teste) · soma zero cai no ramo remainder<2 e retorna 0 … |
 | `site-supabase/supabase/tests/database/selection_asset_integrity.test.sql` | 17 | leitura limitada recebe hash do solicitante · revogação limitada recebe hash do solicitante · site_api usa leitura limitada · anônimo não chama leitura limitada diretamente … |
 | `site-supabase/supabase/tests/database/site_api_privileges.test.sql` | 17 | anon continua sem create_site_quote_request · authenticated continua sem create_site_quote_request · site_api não tem acesso a customer_profiles (fora do escopo das 13 RPCs) · site_api não insere proposal_documents (isso é fluxo administrativo) … |
 | `tests/smoke-deployment.node.mjs` | 17 | aprova um deployment saudável consultando cada rota uma única vez · reprova status inesperado sem repetir a rota · reprova header de segurança ausente ou divergente em qualquer rota HTML · reprova corpo errado no sitemap e content-type errado no Analytics … |
-| `tests/api/commercial-team-alerts.test.ts` | 16 | alerta comercial de orçamento (PF-01) · parseCommercialAlertJob · rejeita payload sem a forma mínima do job · normaliza e limita campos do envelope … |
-| `tests/api/maxDuration.test.ts` | 16 | Etapa 24: maxDuration em vercel.json cobre o pior caso real de cada rota · api/quote-requests.ts: catalogValidation + siteDatabase + confirmação (canais em paralelo) · api/contact-requests.ts: apenas siteDatabase (sem catalogValidation nem confirmação) · api/notification-events-resend.ts (Etapa 30): apenas uma chamada de RPC (callSiteRpc) … |
+| `site-supabase/supabase/tests/database/contact_commercial_alert.test.sql` | 16 | novo contato alimenta a fila do alerta comercial na mesma transação · contato enfileira exatamente uma entrega · a entrega é o alerta comercial pendente do contato · o envelope identifica o tipo do lead (a API não renderiza texto de orçamento) … |
+| `tests/api/maxDuration.test.ts` | 16 | Etapa 24: maxDuration em vercel.json cobre o pior caso real de cada rota · api/quote-requests.ts: catalogValidation + siteDatabase + confirmação (canais em paralelo) · api/contact-requests.ts: preflight + siteDatabase + alerta comercial (sem catalogValidation nem confirmação) · api/notification-events-resend.ts (Etapa 30): apenas uma chamada de RPC (callSiteRpc) … |
 | `src/lib/sharedSelection.test.ts` | 14 | sharedSelection · preserva prioridade alternativa no link e na seleção reconstruída · preserva cor sem variantId e bloqueia fallback ambíguo ou removido · aceita nomes Unicode e mantém links Latin-1 antigos legíveis … |
 | `tests/api/notification-events-resend.test.ts` | 14 | api/notification-events-resend (Etapa 30) · rejeita método diferente de POST · responde 503 quando o segredo do webhook não está configurado · rejeita assinatura ausente ou inválida sem chamar o banco … |
 | `tests/scripts/verify-vercel-artifact.test.ts` | 14 | verificador do artefato Vercel · exige o app shell somente das funções de página declaradas em vercel.json · aceita includeFiles como lista sem perder o contrato do app shell · falha quando uma função de página declarada não existe no artefato … |

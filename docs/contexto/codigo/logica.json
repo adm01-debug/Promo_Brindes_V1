@@ -50,7 +50,7 @@
     "parseCommercialAlertJob"
    ],
    "export_default": null,
-   "linhas": 253,
+   "linhas": 273,
    "tabelas": [],
    "rpcs": [
     "claim_site_commercial_team_alert",
@@ -72,7 +72,7 @@
     "api",
     "api/_lib"
    ],
-   "coberto_por_testes": 1,
+   "coberto_por_testes": 2,
    "orfao": false
   },
   {
@@ -165,7 +165,7 @@
     "handleLeadRequest"
    ],
    "export_default": null,
-   "linhas": 168,
+   "linhas": 170,
    "tabelas": [],
    "rpcs": [],
    "edges": [],

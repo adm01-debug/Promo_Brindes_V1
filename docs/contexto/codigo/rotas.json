@@ -1262,7 +1262,7 @@
    "origem": "vercel/api",
    "rewrites_de": [],
    "cron": null,
-   "max_duration": 15,
+   "max_duration": 30,
    "chamada_por": [
     "src/lib/http.ts"
    ]
