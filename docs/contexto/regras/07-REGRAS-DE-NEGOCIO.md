@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `387263f3a7` · branch `main` · 2026-11-17 21:40 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `66f8223226` · branch `main` · 2026-11-17 21:53 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -1048,7 +1048,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1596 testes em 129 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1597 testes em 129 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1063,8 +1063,8 @@ _nenhum item encontrado_
 | `tests/api/lead-requests.test.ts` | 37 | APIs de leads isoladas · registra contato normalizado pelo RPC server-side · rejeita resposta malformada do banco: %s · repetição idempotente promete envio quando o provedor de WhatsApp existe … |
 | `tests/graphify-tools.node.mjs` | 31 | path encontra menor caminho, identidade e nós desconectados sem inventar relações · explain preserva fonte e confiança e identifica conexões de entrada · nomes ambíguos e símbolos ausentes não escolhem um resultado arbitrário · fingerprint muda ao mudar conteúdo e preserva ordem determinística … |
 | `site-supabase/supabase/tests/database/notification_provider_events.test.sql` | 30 | entrega ganha estado terminal pós-aceite (Etapa 30) · devolução guarda a categoria curta do provedor · reclamação é rastreada independentemente da entrega · deduplicação de eventos de webhook fica em tabela própria … |
+| `tests/api/notifications.test.ts` | 29 | worker de comprovantes do orçamento · recusa chamada sem o segredo agendado · não reivindica a fila enquanto nenhum provedor estiver configurado, mas mede o tamanho dela · fila velha sem provedor configurado alerta o canal operacional … |
 | `tests/validate-agent-instructions.node.mjs` | 28 | aceita AGENTS.md com todas as seções obrigatórias · acusa seção obrigatória apagada por outra sessão · ${CLAUDE_FILE} precisa ser exatamente o import do ${AGENTS_FILE} · acusa referência quebrada e referência órfã em docs/agentes … |
-| `tests/api/notifications.test.ts` | 28 | worker de comprovantes do orçamento · recusa chamada sem o segredo agendado · não reivindica a fila enquanto nenhum provedor estiver configurado · Preview não envia mensagens reais mesmo se herdar credenciais dos provedores … |
 | `site-supabase/supabase/tests/database/customer_selections.test.sql` | 26 | seleções privadas por titular existem · RLS é forçada na tabela · cliente não acessa o schema privado · cliente não consulta tabela diretamente … |
 | `src/lib/useOccasionFavorites.test.tsx` | 25 | useOccasionFavorites · preserva uma adição confirmada quando uma leitura iniciada antes dela retorna vazia · preserva uma remoção enquanto uma leitura antiga ainda contém o favorito · não deixa uma leitura antiga apagar a escrita anterior quando a intenção seguinte falha … |
 | `tests/catalog-public-contract.node.mjs` | 25 | aceita somente o contrato público exato de 36 colunas · falha se uma coluna esperada sumir ou uma coluna nova aparecer · falha explicitamente se preço, estoque ou fornecedor forem expostos · recusa identificador, arrays e swatches incompatíveis … |

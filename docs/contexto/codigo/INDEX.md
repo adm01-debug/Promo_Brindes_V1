@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `387263f3a7c1633ea5533628cae41b298d56362b` (2026-11-17T21:39:20Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `66f82232266aea75693afb4fa6d620b904c18252` (2026-11-17T21:53:11Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -36,7 +36,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 |---|---|
 | arquivos_total | 695 |
 | arquivos_codigo | 279 |
-| linhas_codigo | 54696 |
+| linhas_codigo | 54735 |
 | rotas | 32 |
 | rotas_http_backend | 14 |
 | vistas_por_id | 0 |
@@ -381,6 +381,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-17 `66f8223` fix(notificações): fila passa a ser medida mesmo sem provedor configurado (#190)
 - 2026-11-17 `387263f` feat(retenção): cron drena o lote na mesma execução e ganha orçamento de tempo (#189)
 - 2026-11-17 `8e5ce1d` chore(docs): registra a verificação dos 58 itens de engenharia da auditoria (#187)
 - 2026-11-17 `092d5c6` chore(config): variável de produção não documentada, com guard para não repetir (#186)
@@ -395,7 +396,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-17 `1a30000` fix(ideias): landing de onboarding passa a ter curadoria própria (#177)
 - 2026-11-17 `5147c5a` chore(docs): homologa a 0.9.105 do graphify com avaliação isolada contra a 0.9.94 (#176)
 - 2026-11-17 `f852e72` fix(analytics): result_count passa a medir a curadoria vista e a queda deixa de inflar a conversão (#175)
-- 2026-11-17 `4b0f2cc` fix(analytics): landing de ideias para de contar a visita com o total do tópico anterior (#172)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

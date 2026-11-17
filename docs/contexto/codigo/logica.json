@@ -640,7 +640,7 @@
     "whatsappChannelConfigured"
    ],
    "export_default": "handler",
-   "linhas": 711,
+   "linhas": 717,
    "tabelas": [],
    "rpcs": [
     "claim_site_notification_deliveries",

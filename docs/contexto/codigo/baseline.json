@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "387263f3a7c1633ea5533628cae41b298d56362b",
+  "commit": "66f82232266aea75693afb4fa6d620b904c18252",
   "branch": "main",
-  "data_commit": "2026-11-17T21:39:20Z",
+  "data_commit": "2026-11-17T21:53:11Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "66f8223",
+    "data": "2026-11-17",
+    "assunto": "fix(notificações): fila passa a ser medida mesmo sem provedor configurado (#190)"
+   },
    {
     "sha": "387263f",
     "data": "2026-11-17",
@@ -126,14 +131,9 @@
     "sha": "bbfb77a",
     "data": "2026-11-17",
     "assunto": "infra(release): o release aplica as migrations do banco isolado (#165)"
-   },
-   {
-    "sha": "cc68e42",
-    "data": "2026-11-17",
-    "assunto": "fix(orcamento): o consentimento de WhatsApp descreve o que o sistema envia (#160)"
    }
   ],
-  "arquivos_mudados_7d": 124,
+  "arquivos_mudados_7d": 119,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -262,6 +262,10 @@
     "mudancas": 17
    },
    {
+    "arquivo": "api/notifications.ts",
+    "mudancas": 17
+   },
+   {
     "arquivo": "src/App.tsx",
     "mudancas": 17
    },
@@ -274,15 +278,15 @@
     "mudancas": 16
    },
    {
-    "arquivo": "api/notifications.ts",
-    "mudancas": 16
-   },
-   {
     "arquivo": "docs/DATABASE_SCHEMA.md",
     "mudancas": 16
    },
    {
     "arquivo": "src/types/site-database.types.ts",
+    "mudancas": 15
+   },
+   {
+    "arquivo": "tests/api/notifications.test.ts",
     "mudancas": 15
    },
    {
@@ -292,16 +296,12 @@
    {
     "arquivo": "src/lib/analytics.ts",
     "mudancas": 14
-   },
-   {
-    "arquivo": "src/pages/CustomerQuotePage.tsx",
-    "mudancas": 14
    }
   ],
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 73
+    "commits": 74
    },
    {
     "autor": "dependabot[bot]",
@@ -312,7 +312,7 @@
  "contagens": {
   "arquivos_total": 695,
   "arquivos_codigo": 279,
-  "linhas_codigo": 54696,
+  "linhas_codigo": 54735,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -364,7 +364,7 @@
   },
   "api/notifications.ts": {
    "arquivos": 1,
-   "linhas": 711
+   "linhas": 717
   },
   "api/product-page.ts": {
    "arquivos": 1,
@@ -584,7 +584,7 @@
   },
   "tests/api": {
    "arquivos": 20,
-   "linhas": 3943
+   "linhas": 3976
   },
   "tests/catalog-public-contract.node.mjs": {
    "arquivos": 1,
@@ -726,7 +726,7 @@
   },
   {
    "arquivo": "api/notifications.ts",
-   "linhas": 711
+   "linhas": 717
   },
   {
    "arquivo": "scripts/inventario/gerar-banco.mjs",

@@ -725,12 +725,12 @@
   {
    "arquivo": "tests/api/notifications.test.ts",
    "tipo": "unit",
-   "linhas": 622,
+   "linhas": 655,
    "testa": [
     "api/_lib/leadHandler.ts",
     "api/notifications.ts"
    ],
-   "casos": 26
+   "casos": 27
   },
   {
    "arquivo": "tests/api/operationalAlerts.test.ts",

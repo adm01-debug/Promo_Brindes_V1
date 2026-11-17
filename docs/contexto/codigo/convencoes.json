@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "fix(notificações): fila passa a ser medida mesmo sem provedor configurado (#190)",
    "feat(retenção): cron drena o lote na mesma execução e ganha orçamento de tempo (#189)",
    "chore(docs): registra a verificação dos 58 itens de engenharia da auditoria (#187)",
    "chore(config): variável de produção não documentada, com guard para não repetir (#186)",
-   "fix(docs): contrato do banco deixa de descrever função e status que não existem (#185)",
-   "feat(retenção): resíduo de dado pessoal não apagado deixa de ser invisível (#184)"
+   "fix(docs): contrato do banco deixa de descrever função e status que não existem (#185)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",
