@@ -60,11 +60,15 @@ export function findUndocumentedEnvVars(
 
   // Citada em qualquer lugar do arquivo vale: SITE_PREVIEW_SUPABASE_PROJECT_REF é
   // documentada só em comentário, de propósito, porque só o escopo Preview a define.
-  // O limite à direita impede que CATALOG_SUPABASE_PUBLISHABLE_KEY_V2 passe por já
-  // existir CATALOG_SUPABASE_PUBLISHABLE_KEY no exemplo.
+  // Os dois limites são necessários e cada um pega um caso real: o da direita
+  // impede que CATALOG_SUPABASE_PUBLISHABLE_KEY documente ..._KEY_V2; o da
+  // esquerda impede que VITE_SITE_SUPABASE_URL, a chave do navegador, passe por
+  // documentação de SITE_SUPABASE_URL, a credencial de backend lida em
+  // api/_lib/siteDatabase.ts — exatamente a omissão que este guard existe para
+  // bloquear.
   return [...referenced]
     .filter((name) => !PLATFORM_PROVIDED.has(name) && !TEST_ONLY.has(name))
-    .filter((name) => !new RegExp(`${name}(?![A-Z0-9_])`).test(envExample))
+    .filter((name) => !new RegExp(`(?<![A-Z0-9_])${name}(?![A-Z0-9_])`).test(envExample))
     .sort();
 }
 
