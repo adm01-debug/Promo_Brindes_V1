@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `fccd45ae1ed7e667015d136aa4c0ed085afd5483` (2026-11-17T00:11:48Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `fa7365b78bb4e0dfc5fb7bff782d73303bd93407` (2026-11-17T01:00:48Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -176,9 +176,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - src/styles.css (34)
 - vercel.json (25)
 - .github/workflows/quality.yml (23)
+- src/pages/QuotePage.tsx (23)
 - site-supabase/supabase/tests/database/lead_storage.test.sql (22)
 - src/components/Layout.tsx (22)
-- src/pages/QuotePage.tsx (22)
 - docs/DATABASE_DICTIONARY.md (21)
 - tests/api/lead-requests.test.ts (19)
 - .github/workflows/release.yml (18)
@@ -377,6 +377,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-16 `fa7365b` fix(orcamento): selo de prioridade so sai no PDF se o recurso estiver ligado (#156)
 - 2026-11-16 `fccd45a` fix: aplica as 2 pendencias confirmadas da varredura de review dos agentes (#155)
 - 2026-11-16 `c0f2aeb` fix(seg): fecha os 5 alertas CodeQL high e conserta o paths-ignore (#154)
 - 2026-11-16 `7bd1520` chore(deps): sobe TypeScript de 5.9.3 para 6.0.3 (#153)
@@ -391,7 +392,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-14 `99e47fe` feat: relatorio de prontidao para producao (docs/prod-readiness.md)
 - 2026-11-13 `8a810bd` fix(lint): ignora o runtime local .tools/ no eslint (#137)
 - 2026-11-13 `7347bd4` fix(a11y): nomeia o link da imagem do card com o nome do produto (#136)
-- 2026-11-13 `9c5f21b` fix: minimatch 11 via overrides fecha dependabot #9 (DoS dev) (#135)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

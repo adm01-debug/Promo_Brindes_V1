@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "fccd45ae1ed7e667015d136aa4c0ed085afd5483",
+  "commit": "fa7365b78bb4e0dfc5fb7bff782d73303bd93407",
   "branch": "main",
-  "data_commit": "2026-11-17T00:11:48Z",
+  "data_commit": "2026-11-17T01:00:48Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "fa7365b",
+    "data": "2026-11-16",
+    "assunto": "fix(orcamento): selo de prioridade so sai no PDF se o recurso estiver ligado (#156)"
+   },
    {
     "sha": "fccd45a",
     "data": "2026-11-16",
@@ -126,14 +131,9 @@
     "sha": "432582a",
     "data": "2026-11-10",
     "assunto": "chore(deps): bump jsdom from 30.1.3 to 31.0.0 (#128)"
-   },
-   {
-    "sha": "223e655",
-    "data": "2026-11-10",
-    "assunto": "fix: endurece e cobre com testes todos os scripts do repositório (#130)"
    }
   ],
-  "arquivos_mudados_7d": 122,
+  "arquivos_mudados_7d": 124,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -222,15 +222,15 @@
     "mudancas": 23
    },
    {
+    "arquivo": "src/pages/QuotePage.tsx",
+    "mudancas": 23
+   },
+   {
     "arquivo": "site-supabase/supabase/tests/database/lead_storage.test.sql",
     "mudancas": 22
    },
    {
     "arquivo": "src/components/Layout.tsx",
-    "mudancas": 22
-   },
-   {
-    "arquivo": "src/pages/QuotePage.tsx",
     "mudancas": 22
    },
    {
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 40
+    "commits": 41
    },
    {
     "autor": "dependabot[bot]",
