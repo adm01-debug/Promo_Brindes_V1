@@ -76,7 +76,7 @@ export default function QuotePage() {
   const [draftNotice, setDraftNotice] = useState('');
   const [quantityDrafts, setQuantityDrafts] = useState<Record<string, string>>({});
   const [briefingAssetIds, setBriefingAssetIds] = useState<string[]>([]);
-  const [success, setSuccess] = useState<{ mode: 'endpoint' | 'email'; href?: string; requestId?: string; contactName?: string; itemCount?: number; confirmations?: { email: 'sent' | 'pending'; whatsapp: 'sent' | 'pending' | 'not_requested' }; assets?: { status: 'attached' | 'pending'; count: number } } | null>(null);
+  const [success, setSuccess] = useState<{ mode: 'endpoint' | 'email'; href?: string; requestId?: string; contactName?: string; itemCount?: number; confirmations?: { email: 'sent' | 'pending'; whatsapp: ConfirmationDeliveryStatus }; assets?: { status: 'attached' | 'pending'; count: number } } | null>(null);
   const [website, setWebsite] = useState('');
   const formRef = useRef<HTMLFormElement>(null);
   const availabilityNoticeRef = useRef<HTMLDivElement>(null);
