@@ -21,7 +21,7 @@
   ],
   "testes": [
    "co-localizado (*.test) (53)",
-   "tests/ (42)",
+   "tests/ (44)",
    "outro (9)"
   ],
   "edge_functions": null,
@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "feat(observabilidade): queda do catálogo público passa a alertar a equipe (#178)",
    "chore(ci): unifica o rótulo do pin do actions/checkout (#179)",
    "fix(ideias): landing de onboarding passa a ter curadoria própria (#177)",
    "chore(docs): homologa a 0.9.105 do graphify com avaliação isolada contra a 0.9.94 (#176)",
-   "fix(analytics): result_count passa a medir a curadoria vista e a queda deixa de inflar a conversão (#175)",
-   "fix(analytics): landing de ideias para de contar a visita com o total do tópico anterior (#172)"
+   "fix(analytics): result_count passa a medir a curadoria vista e a queda deixa de inflar a conversão (#175)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

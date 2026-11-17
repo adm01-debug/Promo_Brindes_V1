@@ -337,7 +337,7 @@
    "papeis": [
     "anon"
    ],
-   "arquivos_puxados": 2
+   "arquivos_puxados": 4
   },
   {
    "protegida": false,
@@ -1503,6 +1503,8 @@
    "tabelas": [],
    "env": [
     "NODE_ENV",
+    "OPERATIONS_ALERT_WEBHOOK_TOKEN",
+    "OPERATIONS_ALERT_WEBHOOK_URL",
     "SITE_PUBLIC_ORIGIN",
     "SITE_TEST_APP_SHELL",
     "VITE_PRODUCT_CATALOG_RESOURCE",
@@ -1513,7 +1515,9 @@
    "diretos": {
     "tabelas": [],
     "rpcs": [],
-    "env": []
+    "env": [
+     "OPERATIONS_ALERT_WEBHOOK_URL"
+    ]
    },
    "origem": "vercel/api",
    "rewrites_de": [

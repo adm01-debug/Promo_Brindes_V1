@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `bcf7e3345f` · branch `main` · 2026-11-17 16:24 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `3b2b02ed8d` · branch `main` · 2026-11-17 16:56 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -419,7 +419,7 @@ _nenhum mapa explícito encontrado no código — fora da tabela acima (se houve
 |---|---|---|
 | CommercialAlertResult | sent \| pending | `api/_lib/commercialTeamAlerts.ts` |
 | LeadKind | quote \| contact | `api/_lib/contracts.ts` |
-| OperationalAlertEvent | notification_queue_alert \| notification_cron_failed \| retention_cron_failed \| commercial_alerts_cron_failed | `api/_lib/operationalAlerts.ts` |
+| OperationalAlertEvent | notification_queue_alert \| notification_cron_failed \| retention_cron_failed \| commercial_alerts_cron_failed \| public_catalog_unavailable | `api/_lib/operationalAlerts.ts` |
 | ProviderEventApplyReason | duplicate \| delivery_not_found \| delivery_state_already_set | `api/_lib/siteDatabase.ts` |
 | CatalogEditorialStatus | published \| draft \| retired | `shared/catalogEditorial.ts` |
 | IdeaLandingId | onboarding \| eventos \| clientes-vip \| sustentaveis | `shared/ideaLandingPages.ts` |
@@ -625,6 +625,8 @@ _nenhum item encontrado_
 | `MIN_TIME_PER_JOB_MS` | `8_000` | `api/notifications.ts` |
 | `QUEUE_HEALTH_TIMEOUT_MS` | `3_000` | `api/notifications.ts` |
 | `QUEUE_AGE_ALERT_SECONDS` | `45 * 60` | `api/notifications.ts` |
+| `CATALOG_ALERT_SILENCE_MS` | `5 * 60_000` | `api/product-page.ts` |
+| `CATALOG_ALERT_RETRY_MS` | `30_000` | `api/product-page.ts` |
 | `REQUEST_TIMEOUT_MS` | `10_000` | `api/retention.ts` |
 | `RETENTION_BATCH_SIZE` | `100` | `api/retention.ts` |
 | `PROPOSAL_BUCKET` | `'customer-proposals'` | `api/retention.ts` |
@@ -1040,7 +1042,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1566 testes em 126 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1574 testes em 128 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1137,6 +1139,7 @@ _nenhum item encontrado_
 | `src/pages/CommemorativeDatesPage.test.tsx` | 5 | favoritos de datas comemorativas por titular · promove favoritos anônimos depois do login sem perdê-los · não exibe cache da conta anterior se o carregamento da nova conta falhar · ignora rollback tardio de uma mutação da conta anterior … |
 | `src/pages/IdeaLandingPage.test.tsx` | 5 | telemetria da landing de ideias · conta as referências que a própria página mostrou, não o total do catalogQuery · emite uma única visualização por tópico, com a contagem do próprio tópico · não grava o tópico revisitado com a contagem do tópico que o visitante deixou … |
 | `tests/api/catalog-validation.test.ts` | 5 | reconcileQuoteItems · reconcilia a cor legada pelo nome e a converte para o ID canônico publicado · não aceita uma cor legada que não está mais publicada · reconcilia swatch público sem variant_id por nome inequívoco … |
+| `tests/api/product-page-alert.test.ts` | 5 | alerta de queda do catálogo público · avisa o canal operacional quando o catálogo cai, em vez de só mostrar 503 ao visitante · entrega que falha não compra os cinco minutos de silêncio · duas visitas simultâneas na mesma instância geram um único alerta … |
 | `tests/scripts/release-workflow.test.ts` | 5 | workflow de release Vercel · valida Web Analytics no candidato sem chamar endpoint privado de configuração · faz smoke do candidato antes de promover e mantém rollback pós-promoção · sincroniza, verifica e testa o alias git-main depois da promoção … |
 | `src/lib/briefingAssets.test.ts` | 4 | arquivos privados do briefing · aceita somente os formatos publicados dentro de 10 MB · recusa arquivos vazios e nomes maiores que o contrato do banco · revoga o metadado e delega a remoção física à fila protegida |
 | `src/lib/customerQuoteContract.test.ts` | 4 | contrato runtime do histórico de orçamentos · aceita o formato público da RPC e remove somente imagens opcionais inseguras · rejeita status, identificadores e quantidades fora do contrato em vez de renderizar JSON arbitrário · mantém campanha e briefing legados opacos até a normalização de consumo, sem relaxar o snapshot de produtos |
@@ -1163,6 +1166,7 @@ _nenhum item encontrado_
 | `tests/api/campaign-years.test.ts` | 3 | anos editoriais da agenda · usa o calendário de São Paulo mesmo quando UTC já virou o ano · aceita somente o ano corrente e o próximo, normalizando os demais |
 | `tests/api/curated-page-previews.test.ts` | 3 | previews das rotas editoriais · mantém todas as coleções públicas sincronizadas com a biblioteca · mantém todas as datas públicas sincronizadas com a agenda |
 | `tests/api/operationalAlerts.test.ts` | 3 | alertas operacionais · não abre conexão sem endpoint HTTPS explicitamente configurado · envia somente o envelope técnico ao endpoint HTTPS configurado |
+| `tests/api/product-page-shell-alert.test.ts` | 3 | origem da falha decide o alerta quando o HTML inicial não carrega · não acusa o catálogo quando só o HTML falhou · ainda alerta a queda do catálogo quando o HTML falha primeiro e a consulta cai depois |
 | `site-supabase/supabase/tests/database/function_catalog_hygiene.test.sql` | 2 | nenhuma função pública tem duas assinaturas simultâneas (nenhum drop esquecido numa mudança de assinatura) · idem para site_private |
 | `src/components/AppErrorBoundary.test.tsx` | 2 | recuperação global da interface · mostra uma recuperação compreensível quando um componente falha |
 | `src/components/CatalogFeedback.test.tsx` | 2 | ProductGridSkeleton · anuncia o carregamento com um papel ARIA compatível |

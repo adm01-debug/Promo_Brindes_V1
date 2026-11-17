@@ -5,12 +5,12 @@
   "vitest",
   "playwright"
  ],
- "total": 135,
+ "total": 137,
  "por_tipo": {
   "contrato": 2,
   "e2e": 2,
   "pytest": 4,
-  "unit": 98
+  "unit": 100
  },
  "onde_ficam": [
   {
@@ -19,7 +19,7 @@
   },
   {
    "padrao": "tests/",
-   "arquivos": 42
+   "arquivos": 44
   },
   {
    "padrao": "outro",
@@ -742,6 +742,24 @@
    "casos": 2
   },
   {
+   "arquivo": "tests/api/product-page-alert.test.ts",
+   "tipo": "unit",
+   "linhas": 132,
+   "testa": [
+    "api/product-page.ts"
+   ],
+   "casos": 4
+  },
+  {
+   "arquivo": "tests/api/product-page-shell-alert.test.ts",
+   "tipo": "unit",
+   "linhas": 88,
+   "testa": [
+    "api/product-page.ts"
+   ],
+   "casos": 2
+  },
+  {
    "arquivo": "tests/api/product-page.test.ts",
    "tipo": "unit",
    "linhas": 122,
@@ -1050,7 +1068,7 @@
   "api/notification-events-resend.ts": 1,
   "api/notification-events-whatsapp.ts": 1,
   "api/notifications.ts": 2,
-  "api/product-page.ts": 1,
+  "api/product-page.ts": 3,
   "api/quote-requests.ts": 1,
   "api/retention.ts": 2,
   "api/shared-selections.ts": 1,

@@ -74,6 +74,8 @@
    "api/_lib/siteDatabase.ts"
   ],
   "api/product-page.ts": [
+   "api/_lib/observability.ts",
+   "api/_lib/operationalAlerts.ts",
    "api/_lib/pageShell.ts",
    "api/_lib/publicProductPage.ts"
   ],

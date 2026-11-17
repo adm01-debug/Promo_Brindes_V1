@@ -1,6 +1,6 @@
 # 11 · GLOSSÁRIO, DADOS DE REFERÊNCIA E LACUNAS
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `bcf7e3345f` · branch `main` · 2026-11-17 16:24 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `3b2b02ed8d` · branch `main` · 2026-11-17 16:56 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## Glossário do domínio (entidades do sistema)
@@ -30,7 +30,7 @@
 | `site_private.storage_deletion_queue` | Fila mínima de objetos privados para remoção pela Storage API; não contém conteúdo do arquivo. | 3 colunas | migration |
 | `CommercialAlertResult` (TS) | sent \| pending |  | `api/_lib/commercialTeamAlerts.ts` |
 | `LeadKind` (TS) | quote \| contact |  | `api/_lib/contracts.ts` |
-| `OperationalAlertEvent` (TS) | notification_queue_alert \| notification_cron_failed \| retention_cron_failed \| commercial_alerts_cron_failed |  | `api/_lib/operationalAlerts.ts` |
+| `OperationalAlertEvent` (TS) | notification_queue_alert \| notification_cron_failed \| retention_cron_failed \| commercial_alerts_cron_failed \| public_catalog_unavailable |  | `api/_lib/operationalAlerts.ts` |
 | `ProviderEventApplyReason` (TS) | duplicate \| delivery_not_found \| delivery_state_already_set |  | `api/_lib/siteDatabase.ts` |
 | `CatalogEditorialStatus` (TS) | published \| draft \| retired |  | `shared/catalogEditorial.ts` |
 | `IdeaLandingId` (TS) | onboarding \| eventos \| clientes-vip \| sustentaveis |  | `shared/ideaLandingPages.ts` |

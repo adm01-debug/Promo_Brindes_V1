@@ -2,7 +2,7 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "nos": 169,
- "arestas": 361,
+ "arestas": 363,
  "hubs": [
   {
    "arquivo": "src/types.ts",
@@ -49,6 +49,10 @@
    "importado_por": 10
   },
   {
+   "arquivo": "api/_lib/observability.ts",
+   "importado_por": 8
+  },
+  {
    "arquivo": "src/lib/images.ts",
    "importado_por": 8
   },
@@ -59,10 +63,6 @@
   {
    "arquivo": "src/lib/siteSupabase.ts",
    "importado_por": 8
-  },
-  {
-   "arquivo": "api/_lib/observability.ts",
-   "importado_por": 7
   },
   {
    "arquivo": "src/lib/customerAccount.ts",
@@ -83,6 +83,10 @@
   {
    "arquivo": "src/lib/catalogFilters.ts",
    "importado_por": 6
+  },
+  {
+   "arquivo": "api/_lib/operationalAlerts.ts",
+   "importado_por": 5
   },
   {
    "arquivo": "api/_lib/siteOrigin.ts",
@@ -106,10 +110,6 @@
   },
   {
    "arquivo": "api/_lib/contracts.ts",
-   "importado_por": 4
-  },
-  {
-   "arquivo": "api/_lib/operationalAlerts.ts",
    "importado_por": 4
   },
   {
