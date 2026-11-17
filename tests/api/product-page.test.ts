@@ -127,7 +127,10 @@ describe('alerta de queda do catálogo público', () => {
     configure();
     vi.stubEnv('OPERATIONS_ALERT_WEBHOOK_URL', 'https://alertas.test/hook');
     // Primeira chamada: catálogo; segunda: o próprio webhook de alerta.
-    const fetchMock = vi.fn(async (input: string | URL) => {
+    // O segundo parâmetro precisa existir na assinatura: o teste inspeciona o
+    // corpo enviado ao webhook, e sem ele a tupla de `mock.calls` tem tamanho 1.
+    const fetchMock = vi.fn(async (input: string | URL, init?: { body?: string }) => {
+      void init;
       if (String(input).includes('/rest/v1/')) throw new Error('catálogo fora do ar');
       return new Response('', { status: 204 });
     });
