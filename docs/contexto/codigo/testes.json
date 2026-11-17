@@ -773,12 +773,12 @@
   {
    "arquivo": "tests/api/retention.test.ts",
    "tipo": "unit",
-   "linhas": 384,
+   "linhas": 416,
    "testa": [
     "api/_lib/leadHandler.ts",
     "api/retention.ts"
    ],
-   "casos": 16
+   "casos": 17
   },
   {
    "arquivo": "tests/api/shared-selections.test.ts",

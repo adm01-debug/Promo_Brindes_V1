@@ -726,11 +726,14 @@
    "arquivo": "api/retention.ts",
    "camada": "api",
    "exports": [
+    "MAX_RETENTION_PASSES",
+    "PASS_RESERVE_MS",
     "REQUEST_TIMEOUT_MS",
+    "TOTAL_TIME_BUDGET_MS",
     "handler"
    ],
    "export_default": "handler",
-   "linhas": 218,
+   "linhas": 289,
    "tabelas": [],
    "rpcs": [
     "finalize_site_data_retention",

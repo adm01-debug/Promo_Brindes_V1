@@ -2,11 +2,21 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "092d5c6ea1298056c0db3e549c525753d9bf627b",
+  "commit": "387263f3a7c1633ea5533628cae41b298d56362b",
   "branch": "main",
-  "data_commit": "2026-11-17T21:02:20Z",
+  "data_commit": "2026-11-17T21:39:20Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "387263f",
+    "data": "2026-11-17",
+    "assunto": "feat(retenção): cron drena o lote na mesma execução e ganha orçamento de tempo (#189)"
+   },
+   {
+    "sha": "8e5ce1d",
+    "data": "2026-11-17",
+    "assunto": "chore(docs): registra a verificação dos 58 itens de engenharia da auditoria (#187)"
+   },
    {
     "sha": "092d5c6",
     "data": "2026-11-17",
@@ -121,19 +131,9 @@
     "sha": "cc68e42",
     "data": "2026-11-17",
     "assunto": "fix(orcamento): o consentimento de WhatsApp descreve o que o sistema envia (#160)"
-   },
-   {
-    "sha": "0600922",
-    "data": "2026-11-17",
-    "assunto": "fix(ci): separa o teto de performance de producao do teto de pior caso (#164)"
-   },
-   {
-    "sha": "1d017c9",
-    "data": "2026-11-17",
-    "assunto": "fix(ci): o resumo do quality gate para de acusar falha em passo que passou (#162)"
    }
   ],
-  "arquivos_mudados_7d": 123,
+  "arquivos_mudados_7d": 124,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -246,6 +246,10 @@
     "mudancas": 20
    },
    {
+    "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
+    "mudancas": 18
+   },
+   {
     "arquivo": ".github/workflows/database.yml",
     "mudancas": 17
    },
@@ -255,10 +259,6 @@
    },
    {
     "arquivo": "api/_lib/siteDatabase.ts",
-    "mudancas": 17
-   },
-   {
-    "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
     "mudancas": 17
    },
    {
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 71
+    "commits": 73
    },
    {
     "autor": "dependabot[bot]",
@@ -310,9 +310,9 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 694,
+  "arquivos_total": 695,
   "arquivos_codigo": 279,
-  "linhas_codigo": 54593,
+  "linhas_codigo": 54696,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -327,7 +327,7 @@
   "testes": 138,
   "workflows": 15,
   "scripts": 36,
-  "docs_md": 117
+  "docs_md": 118
  },
  "por_pasta": {
   "api/_lib": {
@@ -376,7 +376,7 @@
   },
   "api/retention.ts": {
    "arquivos": 1,
-   "linhas": 218
+   "linhas": 289
   },
   "api/shared-selections.ts": {
    "arquivos": 1,
@@ -584,7 +584,7 @@
   },
   "tests/api": {
    "arquivos": 20,
-   "linhas": 3911
+   "linhas": 3943
   },
   "tests/catalog-public-contract.node.mjs": {
    "arquivos": 1,
@@ -777,16 +777,16 @@
    "linhas": 304
   },
   {
+   "arquivo": "api/retention.ts",
+   "linhas": 289
+  },
+  {
    "arquivo": "src/components/QuoteDrawer.tsx",
    "linhas": 287
   },
   {
    "arquivo": "docs/audits/plan-review-20260912/build_matrix.py",
    "linhas": 286
-  },
-  {
-   "arquivo": "scripts/regras_negocio/indice.py",
-   "linhas": 285
   }
  ],
  "qualidade": {

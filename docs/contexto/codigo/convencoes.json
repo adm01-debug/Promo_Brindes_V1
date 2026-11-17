@@ -32,7 +32,7 @@
    "scripts/regras_negocio (3)"
   ],
   "docs": [
-   "docs (71)",
+   "docs (72)",
    "(raiz) (9)",
    ".github (1)"
   ]
@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "feat(retenção): cron drena o lote na mesma execução e ganha orçamento de tempo (#189)",
+   "chore(docs): registra a verificação dos 58 itens de engenharia da auditoria (#187)",
    "chore(config): variável de produção não documentada, com guard para não repetir (#186)",
    "fix(docs): contrato do banco deixa de descrever função e status que não existem (#185)",
-   "feat(retenção): resíduo de dado pessoal não apagado deixa de ser invisível (#184)",
-   "fix(portal): estouro de limite deixa de virar \"proposta não encontrada\" (#183)",
-   "fix(catálogo): porta editorial de onboarding deixa de abrir o catálogo inteiro (#182)"
+   "feat(retenção): resíduo de dado pessoal não apagado deixa de ser invisível (#184)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

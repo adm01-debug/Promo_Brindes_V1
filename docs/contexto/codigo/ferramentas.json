@@ -4,7 +4,7 @@
  "stack": {
   "linguagens": [
    "TypeScript (209)",
-   "Markdown (117)",
+   "Markdown (118)",
    "SQL (106)",
    "JavaScript (63)",
    "JSON (28)",
@@ -689,6 +689,11 @@
    "arquivo": "docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md",
    "titulo": "Auditoria de funcionalidades planejadas e não executadas — 11/10/2026",
    "linhas": 364
+  },
+  {
+   "arquivo": "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
+   "titulo": "Verificação das pendências de engenharia — 17/11/2026",
+   "linhas": 450
   },
   {
    "arquivo": "docs/AUDIT_REPORT_20260908.md",

@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `092d5c6ea1` · branch `main` · 2026-11-17 21:06 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `387263f3a7` · branch `main` · 2026-11-17 21:40 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -629,6 +629,9 @@ _nenhum item encontrado_
 | `CATALOG_ALERT_SILENCE_MS` | `5 * 60_000` | `api/product-page.ts` |
 | `CATALOG_ALERT_RETRY_MS` | `30_000` | `api/product-page.ts` |
 | `REQUEST_TIMEOUT_MS` | `10_000` | `api/retention.ts` |
+| `TOTAL_TIME_BUDGET_MS` | `12_000` | `api/retention.ts` |
+| `MAX_RETENTION_PASSES` | `5` | `api/retention.ts` |
+| `PASS_RESERVE_MS` | `3_000` | `api/retention.ts` |
 | `RETENTION_BATCH_SIZE` | `100` | `api/retention.ts` |
 | `PROPOSAL_BUCKET` | `'customer-proposals'` | `api/retention.ts` |
 | `BRIEFING_ASSET_BUCKET` | `'customer-briefing-assets'` | `api/retention.ts` |
@@ -1045,7 +1048,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1595 testes em 129 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1596 testes em 129 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1075,11 +1078,11 @@ _nenhum item encontrado_
 | `tests/validate-migration-names.node.mjs` | 18 | aceita nomes de 14 dígitos em ordem estritamente crescente · rejeita o formato antigo com underscore no timestamp (regressão do incidente de 15/09) · rejeita data de calendário inválida · rejeita versão duplicada dentro do mesmo diretório … |
 | `tests/api/commercial-team-alerts.test.ts` | 18 | alerta comercial de orçamento (PF-01) · parseCommercialAlertJob · rejeita payload sem a forma mínima do job · normaliza e limita campos do envelope … |
 | `tests/api/notification-events-whatsapp.test.ts` | 18 | api/notification-events-whatsapp (Etapa 30) · rejeita método diferente de GET/POST · handshake GET · responde 503 quando o token de verificação não está configurado … |
+| `tests/api/retention.test.ts` | 18 | tarefa de retenção · recusa chamadas sem o segredo da tarefa agendada · lote cheio sinaliza resíduo e alerta o canal operacional · lote cheio de contatos vencidos sinaliza resíduo mesmo sem orçamento vencido … |
 | `site-supabase/supabase/tests/database/quote_protocol.test.sql` | 17 | dígito verificador de 26000001 é determinístico e conhecido (conferido manualmente) · mod11_check_digit é determinística: mesma entrada, mesma saída · entradas diferentes tendem a produzir dígitos diferentes (não uma prova geral, só o par de teste) · soma zero cai no ramo remainder<2 e retorna 0 … |
 | `site-supabase/supabase/tests/database/selection_asset_integrity.test.sql` | 17 | leitura limitada recebe hash do solicitante · revogação limitada recebe hash do solicitante · site_api usa leitura limitada · anônimo não chama leitura limitada diretamente … |
 | `site-supabase/supabase/tests/database/site_api_privileges.test.sql` | 17 | anon continua sem create_site_quote_request · authenticated continua sem create_site_quote_request · site_api não tem acesso a customer_profiles (fora do escopo das 13 RPCs) · site_api não insere proposal_documents (isso é fluxo administrativo) … |
 | `tests/smoke-deployment.node.mjs` | 17 | aprova um deployment saudável consultando cada rota uma única vez · reprova status inesperado sem repetir a rota · reprova header de segurança ausente ou divergente em qualquer rota HTML · reprova corpo errado no sitemap e content-type errado no Analytics … |
-| `tests/api/retention.test.ts` | 17 | tarefa de retenção · recusa chamadas sem o segredo da tarefa agendada · lote cheio sinaliza resíduo e alerta o canal operacional · lote cheio de contatos vencidos sinaliza resíduo mesmo sem orçamento vencido … |
 | `site-supabase/supabase/tests/database/contact_commercial_alert.test.sql` | 16 | novo contato alimenta a fila do alerta comercial na mesma transação · contato enfileira exatamente uma entrega · a entrega é o alerta comercial pendente do contato · o envelope identifica o tipo do lead (a API não renderiza texto de orçamento) … |
 | `tests/api/maxDuration.test.ts` | 16 | Etapa 24: maxDuration em vercel.json cobre o pior caso real de cada rota · api/quote-requests.ts: catalogValidation + siteDatabase + confirmação (canais em paralelo) · api/contact-requests.ts: preflight + siteDatabase + alerta comercial (sem catalogValidation nem confirmação) · api/notification-events-resend.ts (Etapa 30): apenas uma chamada de RPC (callSiteRpc) … |
 | `src/lib/sharedSelection.test.ts` | 14 | sharedSelection · preserva prioridade alternativa no link e na seleção reconstruída · preserva cor sem variantId e bloqueia fallback ambíguo ou removido · aceita nomes Unicode e mantém links Latin-1 antigos legíveis … |
