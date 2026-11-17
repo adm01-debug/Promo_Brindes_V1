@@ -1,6 +1,6 @@
 # Dicionário de dados — site_private (Etapa 35)
 
-Gerado por `npm run db:site:dictionary` a partir de `pg_description` no banco local, na versão do schema da migration mais recente (2026-11-06). Não editar à mão — a fonte de verdade é o comentário na migration (`comment on table`/`comment on column`); rode o script de novo depois de qualquer mudança de schema.
+Gerado por `npm run db:site:dictionary` a partir de `pg_description` no banco local, na versão do schema da migration mais recente (2026-11-17). Não editar à mão — a fonte de verdade é o comentário na migration (`comment on table`/`comment on column`); rode o script de novo depois de qualquer mudança de schema.
 
 ## Tabelas
 
@@ -360,7 +360,7 @@ Fila mínima de objetos privados para remoção pela Storage API; não contém c
 | `create_site_shared_selection` | `p_items jsonb, p_management_token_hash text, p_identifier_hash text` | — |
 | `delete_my_briefing_asset` | `p_id uuid` | — |
 | `delete_my_selection` | `p_id uuid, p_expected_version integer` | — |
-| `erase_customer_data` | `p_email text` | Apagamento administrativo idempotente: anonimiza registros e texto livre, enfileira blobs, registra tombstone SHA-256, remove Auth/sessões por cascade e impede novo claim do mesmo e-mail. |
+| `erase_customer_data` | `p_email text` | Apagamento administrativo idempotente (F-31): anonimiza registros e texto livre — inclusive briefing.actionName, campaign.occasion.name/id em request_metadata e kit_name_snapshot dos itens —, cancela as entregas ainda reivindicaveis da fila (pending/failed/processing), enfileira blobs, registra tombstone SHA-256, remove Auth/sessoes por cascade e impede novo claim do mesmo e-mail. |
 | `finalize_briefing_asset_retention` | `p_storage_paths text[], p_batch_size integer` | — |
 | `finalize_site_data_retention` | `p_quote_ids uuid[], p_storage_paths text[], p_batch_size integer` | — |
 | `finalize_site_notification_delivery` | `p_delivery_id uuid, p_lease_token uuid, p_status text, p_provider text, p_provider_message_id text, p_error_code text, p_retry_after_seconds integer` | Finaliza uma tentativa previamente reivindicada; exige o lease_token da reivindicação ativa (R04). Backoff exponencial com jitter via site_private.next_retry_at (Etapa 11); p_retry_after_seconds é só um piso opcional do provedor. |
