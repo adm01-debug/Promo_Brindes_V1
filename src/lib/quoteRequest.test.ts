@@ -78,4 +78,16 @@ describe('solicitação de orçamento', () => {
     vi.stubEnv('VITE_QUOTE_REQUEST_ENDPOINT', 'https://');
     await expect(submitQuoteRequest(buildQuotePayload(contact, items))).rejects.toThrow('URL HTTPS válida');
   });
+
+  it('preserva o canal indisponível em vez de rebaixá-lo para não solicitado', async () => {
+    vi.stubEnv('VITE_QUOTE_REQUEST_ENDPOINT', '/api/quote-requests');
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(
+      JSON.stringify({ requestId: 'a2d1f4c6-1111-4222-8333-444455556666', confirmations: { email: 'sent', whatsapp: 'unavailable' } }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )));
+    const result = await submitQuoteRequest(buildQuotePayload(contact, items));
+    // O validador antigo só aceitava sent/pending e jogava o resto em
+    // not_requested, que negaria o consentimento dado pelo visitante.
+    expect(result).toMatchObject({ mode: 'endpoint', confirmations: { email: 'sent', whatsapp: 'unavailable' } });
+  });
 });

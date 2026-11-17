@@ -101,6 +101,10 @@ export function campaignLabels(selection: CampaignSelection): Array<{ key: keyof
 }
 
 export interface ResolvedCampaignFilters {
+  /** Termo de curadoria do momento editorial, aplicado na consulta sem virar
+   * `q` na URL: o catálogo continua se apresentando como curadoria (e não como
+   * resultado de busca) e o recorte sai junto com o chip da campanha. */
+  search?: string;
   profile?: 'featured' | 'new' | 'kits';
   materials: string[];
   colors: string[];
@@ -119,6 +123,15 @@ export function resolveCampaignFilters(selection: CampaignSelection, categories:
   // “Onboarding” e “colaboradores” descrevem contexto, não um formato de
   // produto. Só aplicamos kits quando a própria pessoa escolhe a direção
   // afetiva; os demais casos permanecem exploráveis e com filtros removíveis.
+  //
+  // O momento onboarding é o único que não tinha nenhum sinal estrutural para
+  // aplicar: profile, materials, colors e categoryIds saíam todos vazios, e a
+  // porta editorial abria o catálogo público inteiro. Medido no catálogo
+  // canônico: `profile: 'kits'` daria 978 de 7931 produtos (ainda genérico) e
+  // perderia 4 dos 25 itens de boas-vindas, que não são kits; as categorias
+  // desses 25 somam ~1900 produtos. O único sinal que expressa a ocasião é o
+  // termo, resolvido pelo grupo de sinônimos de onboarding em search.ts.
+  const search = selection.moment === 'onboarding' ? 'onboarding' : undefined;
   const profile = selection.mood === 'afetivo'
     ? 'kits'
     : selection.moment === 'evento' || selection.moment === 'relacionamento' || selection.moment === 'reconhecimento'
@@ -135,6 +148,7 @@ export function resolveCampaignFilters(selection: CampaignSelection, categories:
         : undefined;
 
   return {
+    search,
     profile,
     materials: selection.mood === 'sustentavel' ? ['reciclado'] : [],
     colors: selection.mood === 'divertido' ? ['colorido'] : [],

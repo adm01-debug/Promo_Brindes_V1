@@ -96,7 +96,9 @@ export function useCatalogPageState() {
     : campaignFilters.profile || (profile === 'destaques' ? 'featured' : profile === 'novos' ? 'new' : profile === 'kits' ? 'kits' : 'all');
   const filterPanelProfile: ProfileParam = effectiveProfile === 'featured' ? 'destaques' : effectiveProfile === 'new' ? 'novos' : effectiveProfile === 'kits' ? 'kits' : 'todos';
   const catalog = useCatalog({
-    page, pageSize: 24, search: query, categoryIds: catalogCategoryIds, colors: effectiveColors, materials: effectiveMaterials,
+    // A busca digitada vence o termo da campanha: quem escreve na barra está
+    // redefinindo o recorte, não acumulando sobre ele.
+    page, pageSize: 24, search: query || campaignFilters.search, categoryIds: catalogCategoryIds, colors: effectiveColors, materials: effectiveMaterials,
     personalizable: effectivePersonalizable, giftPackaging, maxMinQuantity: campaignFilters.maxMinQuantity, profile: effectiveProfile,
     sort: sort === 'recentes' ? 'newest' : sort === 'nome' ? 'name' : 'curated',
   }, retryKey, catalogEnabled);
