@@ -36,6 +36,7 @@
   "api/briefing-assets.ts": [
    "api/_lib/fileSignatures.ts",
    "api/_lib/leadHandler.ts",
+   "api/_lib/observability.ts",
    "api/_lib/siteDatabase.ts",
    "api/_lib/siteOrigin.ts"
   ],
@@ -51,6 +52,7 @@
   ],
   "api/customer-proposals.ts": [
    "api/_lib/leadHandler.ts",
+   "api/_lib/observability.ts",
    "api/_lib/siteDatabase.ts",
    "api/_lib/siteOrigin.ts"
   ],

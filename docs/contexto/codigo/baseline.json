@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "fa7365b78bb4e0dfc5fb7bff782d73303bd93407",
+  "commit": "6a37e51694c8975fc1582e1e3230f72412e9eca5",
   "branch": "main",
-  "data_commit": "2026-11-17T01:00:48Z",
+  "data_commit": "2026-11-17T01:10:09Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "6a37e51",
+    "data": "2026-11-16",
+    "assunto": "fix(obs): registra a falha dos dois endpoints da Area do Cliente (#157)"
+   },
    {
     "sha": "fa7365b",
     "data": "2026-11-16",
@@ -126,14 +131,9 @@
     "sha": "d312cad",
     "data": "2026-11-10",
     "assunto": "docs: análise complementar analise-prs (#112)"
-   },
-   {
-    "sha": "432582a",
-    "data": "2026-11-10",
-    "assunto": "chore(deps): bump jsdom from 30.1.3 to 31.0.0 (#128)"
    }
   ],
-  "arquivos_mudados_7d": 124,
+  "arquivos_mudados_7d": 126,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 41
+    "commits": 42
    },
    {
     "autor": "dependabot[bot]",
@@ -312,7 +312,7 @@
  "contagens": {
   "arquivos_total": 681,
   "arquivos_codigo": 271,
-  "linhas_codigo": 53298,
+  "linhas_codigo": 53307,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -336,7 +336,7 @@
   },
   "api/briefing-assets.ts": {
    "arquivos": 1,
-   "linhas": 177
+   "linhas": 181
   },
   "api/commercial-alerts.ts": {
    "arquivos": 1,
@@ -348,7 +348,7 @@
   },
   "api/customer-proposals.ts": {
    "arquivos": 1,
-   "linhas": 137
+   "linhas": 142
   },
   "api/not-found.ts": {
    "arquivos": 1,

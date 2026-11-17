@@ -2,7 +2,7 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "nos": 167,
- "arestas": 354,
+ "arestas": 356,
  "hubs": [
   {
    "arquivo": "src/types.ts",
@@ -61,6 +61,10 @@
    "importado_por": 8
   },
   {
+   "arquivo": "api/_lib/observability.ts",
+   "importado_por": 7
+  },
+  {
    "arquivo": "src/lib/customerAccount.ts",
    "importado_por": 7
   },
@@ -79,10 +83,6 @@
   {
    "arquivo": "src/lib/catalogFilters.ts",
    "importado_por": 6
-  },
-  {
-   "arquivo": "api/_lib/observability.ts",
-   "importado_por": 5
   },
   {
    "arquivo": "api/_lib/siteOrigin.ts",

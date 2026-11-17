@@ -202,7 +202,7 @@
    "zod_schemas": 0,
    "flags": [],
    "papeis": [],
-   "usado_por": 5,
+   "usado_por": 7,
    "usado_por_modulos": [
     "api",
     "api/_lib"
@@ -455,7 +455,7 @@
     "handler"
    ],
    "export_default": "handler",
-   "linhas": 177,
+   "linhas": 181,
    "tabelas": [],
    "rpcs": [
     "confirm_site_briefing_asset_verification",
@@ -531,7 +531,7 @@
     "handler"
    ],
    "export_default": "handler",
-   "linhas": 137,
+   "linhas": 142,
    "tabelas": [],
    "rpcs": [
     "get_my_proposal_document"

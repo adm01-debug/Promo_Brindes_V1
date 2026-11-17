@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "fa7365b78bb4e0dfc5fb7bff782d73303bd93407",
+  "sha": "6a37e51694c8975fc1582e1e3230f72412e9eca5",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-17 01:01 UTC",
+  "generated_at": "2026-11-17 01:10 UTC",
   "files_total": 574,
   "code_files": 374,
-  "code_lines": 65650,
+  "code_lines": 65659,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "99f672b55ace0e27",
+ "facts_hash": "1c94960d25f00dae",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -6931,7 +6931,7 @@
   {
    "module": "api",
    "files": 28,
-   "lines": 4076,
+   "lines": 4085,
    "tables": [],
    "exports": [
     "briefing-assets.ts: REQUEST_TIMEOUT_MS, handler, async",
@@ -23474,7 +23474,7 @@
   },
   "api/briefing-assets.ts": {
    "path": "api/briefing-assets.ts",
-   "lines": 177,
+   "lines": 181,
    "exports": [
     "const REQUEST_TIMEOUT_MS",
     "function handler",
@@ -23554,7 +23554,7 @@
   },
   "api/customer-proposals.ts": {
    "path": "api/customer-proposals.ts",
-   "lines": 137,
+   "lines": 142,
    "exports": [
     "const REQUEST_TIMEOUT_MS",
     "function handler",
@@ -31755,10 +31755,20 @@
   }
  },
  "git": {
-  "sha": "fa7365b78bb4e0dfc5fb7bff782d73303bd93407",
+  "sha": "6a37e51694c8975fc1582e1e3230f72412e9eca5",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "6a37e51",
+    "date": "2026-11-16",
+    "author": "adm01-debug",
+    "subject": "fix(obs): registra a falha dos dois endpoints da Area do Cliente (#157)",
+    "files": [
+     "api/briefing-assets.ts",
+     "api/customer-proposals.ts"
+    ]
+   },
    {
     "sha": "fa7365b",
     "date": "2026-11-16",
@@ -32151,51 +32161,12 @@
      ".graphify.project.json",
      "requirements-graphify.txt"
     ]
-   },
-   {
-    "sha": "713ebe4",
-    "date": "2026-11-09",
-    "author": "adm01-debug",
-    "subject": "feat(scripts): porta scripts autônomos de contexto de IA do Zapp Web V2",
-    "files": [
-     ".github/workflows/contexto.yml",
-     ".github/workflows/inventario-estado-semanal.yml",
-     ".gitignore",
-     ".gitleaks.toml",
-     "AGENTS.md",
-     "ai-context.config.json",
-     "docs/agentes/contexto-agentes.md",
-     "docs/contexto/regras/manual/README.md",
-     "docs/contexto/regras/manual/TEMPLATE-regras-de-negocio.md",
-     "eslint.config.js",
-     "inventario/estado/README.md",
-     "package.json",
-     "scripts/ai-context/README.md",
-     "scripts/ai-context/cenarios.mjs",
-     "scripts/ai-context/gerar.mjs",
-     "scripts/ai-context/gerar.unit.mjs",
-     "scripts/graphify.mjs",
-     "scripts/inventario/README.md",
-     "scripts/inventario/banco.sql",
-     "scripts/inventario/gerar-banco.mjs",
-     "scripts/inventario/mudou-conteudo.mjs",
-     "scripts/regras_negocio/README.md",
-     "scripts/regras_negocio/generate.py",
-     "scripts/regras_negocio/indice.py",
-     "scripts/regras_negocio/publish.sh",
-     "scripts/regras_negocio/test_generate.py",
-     "scripts/supabase_snapshot/README.md",
-     "scripts/supabase_snapshot/requirements.txt",
-     "scripts/supabase_snapshot/snapshot.py",
-     "scripts/supabase_snapshot/test_snapshot.py",
-     "tests/inventario-estado.node.mjs"
-    ]
    }
   ],
   "hot_files": [
    [
     "package.json",
-    9
+    8
    ],
    [
     "package-lock.json",
@@ -32203,10 +32174,6 @@
    ],
    [
     ".gitignore",
-    5
-   ],
-   [
-    "scripts/graphify.mjs",
     4
    ],
    [
@@ -32214,19 +32181,11 @@
     4
    ],
    [
-    "scripts/ai-context/gerar.mjs",
-    3
-   ],
-   [
-    ".github/workflows/inventario-estado-semanal.yml",
+    "scripts/graphify.mjs",
     3
    ],
    [
     ".github/workflows/quality.yml",
-    3
-   ],
-   [
-    ".github/workflows/contexto.yml",
     3
    ],
    [
@@ -32242,7 +32201,11 @@
     2
    ],
    [
-    "AGENTS.md",
+    "scripts/ai-context/gerar.mjs",
+    2
+   ],
+   [
+    ".github/workflows/inventario-estado-semanal.yml",
     2
    ],
    [
@@ -32250,7 +32213,7 @@
     2
    ],
    [
-    "eslint.config.js",
+    ".github/workflows/contexto.yml",
     2
    ],
    [
@@ -32271,6 +32234,14 @@
    ],
    [
     "analise-prs/funcionalidades.csv",
+    2
+   ],
+   [
+    "analise-prs/progresso.json",
+    2
+   ],
+   [
+    "analise-prs/regras-de-negocio.md",
     2
    ]
   ]
