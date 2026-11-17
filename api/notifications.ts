@@ -373,6 +373,14 @@ async function sendWhatsApp(job: NotificationJob, signal: AbortSignal, config = 
   return { provider: 'meta-whatsapp-cloud', id: id.slice(0, 240) };
 }
 
+// Exportada porque o atalho de api/_lib/leadHandler.ts (repeticao idempotente
+// ou pouco tempo restante) monta a resposta sem passar por
+// deliverQuoteConfirmationsNow, e sem esta checagem voltaria a prometer envio
+// de WhatsApp num ambiente que nao tem provedor.
+export function whatsappChannelConfigured(): boolean {
+  return configuredChannels().includes('whatsapp');
+}
+
 function configuredChannels(): Array<'email' | 'whatsapp'> {
   // Deploys de Preview nunca disparam mensagens reais, mesmo que herdem
   // acidentalmente credenciais de produção na Vercel.
