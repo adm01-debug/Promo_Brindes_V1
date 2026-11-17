@@ -44,6 +44,13 @@ describe('instrumentação segura', () => {
     expect(JSON.stringify(observed)).not.toMatch(/email|telefone|query_text|nome/i);
   });
 
+  it('mede o conteudo editorial sem vazar a URL da curadoria', () => {
+    trackFunnelEvent('idea_landing_viewed', { topic: 'onboarding', result_count: 7931 });
+    expect(trackMock).toHaveBeenCalledWith('idea_landing_viewed', { topic: 'onboarding', result_count: 7931 });
+    trackFunnelEvent('idea_catalog_opened', { topic: 'eventos', placement: 'hero', catalog_url: '/catalogo?momento=evento' } as never);
+    expect(trackMock).toHaveBeenCalledWith('idea_catalog_opened', { topic: 'eventos', placement: 'hero' });
+  });
+
   it('mede a biblioteca sem enviar o texto pesquisado', () => {
     trackFunnelEvent('catalog_library_filtered', {
       theme: 'events',

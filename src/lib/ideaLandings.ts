@@ -1,7 +1,8 @@
+import { ideaLandingMeta, type IdeaLandingId } from '../../shared/ideaLandingPages';
 import type { CatalogQuery } from './catalog';
 
 export interface IdeaLanding {
-  id: 'onboarding' | 'eventos' | 'clientes-vip' | 'sustentaveis';
+  id: IdeaLandingId;
   title: string;
   eyebrow: string;
   description: string;
@@ -13,8 +14,7 @@ export interface IdeaLanding {
 
 export const ideaLandings: IdeaLanding[] = [
   {
-    id: 'onboarding', eyebrow: 'People experience', title: 'Onboarding que começa antes do primeiro dia.',
-    description: 'Referências para transformar boas-vindas em pertencimento, utilidade e memória de marca.',
+    id: 'onboarding', eyebrow: 'People experience', ...ideaLandingMeta.onboarding,
     detail: 'Comece pelo contexto de quem chega, pela rotina que a pessoa vai viver e pelo que merece acompanhar esse início.',
     // Onboarding descreve a ocasião, não obriga uma composição em kit. A pessoa
     // pode partir de itens úteis e decidir depois se a campanha pede um conjunto.
@@ -23,24 +23,21 @@ export const ideaLandings: IdeaLanding[] = [
     checkpoints: [{ title: 'Cultura antes do logo', text: 'Escolha algo que ajude a pessoa a se reconhecer na experiência.' }, { title: 'Uso real', text: 'Priorize rotina, mobilidade e momentos de trabalho que continuam depois da entrega.' }, { title: 'Curadoria ajustável', text: 'Quantidade, personalização e apresentação entram na proposta — não são promessa automática.' }],
   },
   {
-    id: 'eventos', eyebrow: 'Live marketing', title: 'Eventos que continuam depois da credencial.',
-    description: 'Uma curadoria para criar pontos de contato úteis, fotografáveis e lembrados fora do evento.',
+    id: 'eventos', eyebrow: 'Live marketing', ...ideaLandingMeta.eventos,
     detail: 'O brinde não resolve sozinho a experiência: ele pode prolongar uma conversa, facilitar o dia ou virar um objeto de uso recorrente.',
     catalogQuery: { search: 'copo', pageSize: 8, sort: 'curated' },
     catalogUrl: '/catalogo?momento=evento&publico=publico-evento',
     checkpoints: [{ title: 'Contexto de uso', text: 'Pense na circulação, na duração e no que o público leva para fora do espaço.' }, { title: 'Escala honesta', text: 'Volume e data ajudam a orientar o briefing, mas prazo e disponibilidade são confirmados depois.' }, { title: 'Uma ideia reconhecível', text: 'Evite o item genérico: uma escolha com função cria mais chance de permanência.' }],
   },
   {
-    id: 'clientes-vip', eyebrow: 'Relacionamento', title: 'Presentes para relações que merecem ficar.',
-    description: 'Referências para agradecer, aproximar e demonstrar atenção sem transformar o gesto em protocolo.',
+    id: 'clientes-vip', eyebrow: 'Relacionamento', ...ideaLandingMeta['clientes-vip'],
     detail: 'Um presente corporativo funciona melhor quando enxerga o contexto de quem recebe — e não apenas quem entrega.',
     catalogQuery: { search: 'garrafa', pageSize: 8, sort: 'curated' },
     catalogUrl: '/catalogo?momento=relacionamento&publico=clientes',
     checkpoints: [{ title: 'Utilidade com intenção', text: 'Um objeto que acompanha a rotina dá continuidade à lembrança da marca.' }, { title: 'Acabamento importa', text: 'Material, embalagem e técnica dependem do produto escolhido e serão confirmados pela curadoria.' }, { title: 'Menos ruído', text: 'Uma seleção pequena e coerente ajuda a apresentar uma decisão internamente.' }],
   },
   {
-    id: 'sustentaveis', eyebrow: 'Impacto com contexto', title: 'Escolhas de menor impacto, sem selo automático.',
-    description: 'Produtos e perguntas para aproximar utilidade, material e narrativa com mais critério.',
+    id: 'sustentaveis', eyebrow: 'Impacto com contexto', ...ideaLandingMeta.sustentaveis,
     detail: 'Alegações ambientais precisam ser confirmadas por produto e fornecedor. Aqui, a curadoria abre possibilidades — não certifica o que não está documentado.',
     catalogQuery: { search: 'reciclado', pageSize: 8, sort: 'curated' },
     catalogUrl: '/catalogo?clima=sustentavel',
