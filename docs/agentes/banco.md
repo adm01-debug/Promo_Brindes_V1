@@ -31,7 +31,9 @@ Não altere o `Promo_Gifts_V4` por este site. As pendências de hardening do ban
 
 ## Banco isolado do site — como aplicar migration
 
-Ordem obrigatória:
+No caminho normal não há passo manual: o merge em `main` dispara `release.yml`, que aplica as migrations
+versionadas no projeto isolado antes de promover o deploy. Os comandos abaixo são para aplicar fora do
+release (diagnóstico, reconciliação de ledger), nesta ordem:
 
 ```bash
 npm run db:site:guard      # scripts/validate-site-supabase-target.mjs
@@ -65,8 +67,9 @@ npm run db:site:error-catalog:check
 
 ## Ledger de migrations e release
 
-`release.yml` compara, no projeto isolado, `supabase_migrations.schema_migrations` com os arquivos de
-`site-supabase/supabase/migrations/` e **aborta o release** se não forem exatamente iguais
+`release.yml` **aplica** as migrations versionadas no projeto isolado (`supabase db push`, com guard próprio
+contra o ref canônico) e só então compara `supabase_migrations.schema_migrations` com os arquivos de
+`site-supabase/supabase/migrations/`, **abortando o release** se não forem exatamente iguais
 ("O ledger remoto não corresponde exatamente às migrations versionadas"). Divergiu →
 `docs/RUNBOOK_RECONCILIACAO_LEDGER.md`. Estado dos requisitos (ledger de fechamento) é outro assunto:
 `docs/GOVERNANCA_FECHAMENTO.md` + `npm run ledger:check`.
