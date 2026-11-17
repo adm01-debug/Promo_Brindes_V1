@@ -38,7 +38,8 @@ describe('tarefa de retenção', () => {
     vi.stubEnv('OPERATIONS_ALERT_WEBHOOK_URL', 'https://alertas.test/hook');
     // 100 = RETENTION_BATCH_SIZE: o lote voltou cheio, logo sobrou trabalho.
     const quoteIds = Array.from({ length: 100 }, (_, index) => `${String(index).padStart(8, '0')}-1111-4111-8111-111111111111`);
-    const fetchMock = vi.fn(async (url: string) => {
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      void init;
       if (url.includes('/get_site_data_retention_candidates')) return new Response(JSON.stringify({ quoteIds, storagePaths: [] }), { status: 200 });
       if (url.includes('/finalize_site_data_retention')) return new Response(JSON.stringify({ quotesDeleted: 100 }), { status: 200 });
       if (url.includes('/purge_archived_customer_selections')) return new Response('0', { status: 200 });
@@ -59,6 +60,47 @@ describe('tarefa de retenção', () => {
     expect(alerta).toBeDefined();
     expect(String((alerta?.[1] as RequestInit | undefined)?.body)).toContain('retention_backlog_saturated');
     erro.mockRestore();
+  });
+
+  it('lote cheio de contatos vencidos sinaliza resíduo mesmo sem orçamento vencido', async () => {
+    configure();
+    vi.stubEnv('OPERATIONS_ALERT_WEBHOOK_URL', 'https://alertas.test/hook');
+    // Contatos têm lote próprio dentro da mesma RPC: 250 vencidos apagam 100 e
+    // deixam 150, sem nenhum orçamento vencido. Antes, isso reportava zero.
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes('/get_site_data_retention_candidates')) return new Response(JSON.stringify({ quoteIds: [], storagePaths: [] }), { status: 200 });
+      if (url.includes('/finalize_site_data_retention')) return new Response(JSON.stringify({ quotesDeleted: 0, contactsDeleted: 100 }), { status: 200 });
+      if (url.includes('/purge_archived_customer_selections')) return new Response('0', { status: 200 });
+      if (url.includes('/get_briefing_asset_retention_candidates')) return new Response(JSON.stringify({ objects: [] }), { status: 200 });
+      if (url.includes('/finalize_site_storage_retention')) return new Response('{}', { status: 200 });
+      if (url.includes('/purge_site_admin_audit_logs')) return new Response('{}', { status: 200 });
+      if (url === 'https://alertas.test/hook') return new Response(null, { status: 204 });
+      return new Response('{}', { status: 500 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const erro = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+    expect(result.body).toEqual({ ok: true, backlogSaturated: ['contact_retention'] });
+    expect(fetchMock.mock.calls.some(([url]) => String(url) === 'https://alertas.test/hook')).toBe(true);
+    erro.mockRestore();
+  });
+
+  it('99 contatos vencidos ficam abaixo do lote e não sinalizam resíduo', async () => {
+    configure();
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes('/get_site_data_retention_candidates')) return new Response(JSON.stringify({ quoteIds: [], storagePaths: [] }), { status: 200 });
+      if (url.includes('/finalize_site_data_retention')) return new Response(JSON.stringify({ quotesDeleted: 0, contactsDeleted: 99 }), { status: 200 });
+      if (url.includes('/purge_archived_customer_selections')) return new Response('0', { status: 200 });
+      if (url.includes('/get_briefing_asset_retention_candidates')) return new Response(JSON.stringify({ objects: [] }), { status: 200 });
+      if (url.includes('/finalize_site_storage_retention')) return new Response('{}', { status: 200 });
+      if (url.includes('/purge_site_admin_audit_logs')) return new Response('{}', { status: 200 });
+      return new Response('{}', { status: 500 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+    expect(result.body).toEqual({ ok: true, backlogSaturated: [] });
   });
 
   it('lote incompleto não sinaliza resíduo nem alerta', async () => {

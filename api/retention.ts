@@ -177,6 +177,12 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     // cheio e a evidencia que ja existe aqui, sem tocar o schema.
     const backlogSaturated = [
       quoteIds.length >= RETENTION_BATCH_SIZE ? 'quote_retention' : '',
+      // Contatos vencidos sao apagados num lote proprio dentro da mesma RPC
+      // (20260911190000_harden_retention_metadata.sql:55-62, `limit p_batch_size`
+      // independente dos orcamentos), e a contagem volta em contactsDeleted:62.
+      // Sem esta linha, 250 contatos vencidos e nenhum orcamento vencido
+      // apagariam 100 e reportariam residuo zero.
+      Number(finalized.contactsDeleted || 0) >= RETENTION_BATCH_SIZE ? 'contact_retention' : '',
       Number(archivedSelectionsDeleted || 0) >= RETENTION_BATCH_SIZE ? 'archived_selections' : '',
       storageObjects.length >= RETENTION_BATCH_SIZE ? 'briefing_assets' : '',
       Number(auditLogsPurged.writesDeleted || 0) >= AUDIT_LOG_BATCH_SIZE ? 'admin_write_audit_logs' : '',
