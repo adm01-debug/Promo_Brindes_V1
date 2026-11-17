@@ -9,7 +9,8 @@ Graphify é uma ferramenta local de engenharia para navegar relações estrutura
 - `.graphifyignore` exclui variáveis de ambiente, chaves, saídas de build, ativos públicos, material de auditoria e artefatos do próprio Graphify.
 - `graphify-out/` é ignorado pelo Git. Configuração, comandos, testes e este runbook são versionados.
 - A promoção do grafo é atômica: um candidato é validado e examinado antes de substituir o último mapa válido.
-- A versão homologada é `graphifyy 0.9.94`, após [comparação isolada com 0.9.48](GRAPHIFY_0994_EVALUATION_20261027.md). A avaliação anterior de `0.9.68` permanece [documentada](GRAPHIFY_0968_EVALUATION_20261005.md).
+- O pin em uso é `graphifyy[sql]==0.9.105` com `tree_sitter_sql==0.3.13`, declarado em `requirements-graphify.txt` e espelhado em `graphifyVersion` no `.graphify.project.json`. Ele avançou por três bumps posteriores à homologação: [#123](https://github.com/adm01-debug/Promo_Brindes_V1/pull/123) (0.9.97), [#126](https://github.com/adm01-debug/Promo_Brindes_V1/pull/126) (0.9.103) e [#147](https://github.com/adm01-debug/Promo_Brindes_V1/pull/147) (0.9.105).
+- A última versão com avaliação formal registrada é a `0.9.94`, na [comparação isolada com 0.9.48](GRAPHIFY_0994_EVALUATION_20261027.md); a avaliação anterior de `0.9.68` permanece [documentada](GRAPHIFY_0968_EVALUATION_20261005.md). Não há avaliação publicada para 0.9.97, 0.9.103 nem 0.9.105 — ao mexer no grafo, parta do pin real, não da versão homologada.
 
 ## Dois mapas, dois propósitos
 
