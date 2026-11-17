@@ -22,15 +22,28 @@ export const CATALOG_ALERT_SILENCE_MS = 5 * 60_000;
  * requisição enfileiraria POSTs para um canal que já está fora. */
 export const CATALOG_ALERT_RETRY_MS = 30_000;
 let catalogAlertGateUntil = 0;
+let catalogAlertInFlight: Promise<void> | null = null;
 
 async function alertCatalogUnavailable(error: unknown, now: number): Promise<void> {
   logServerError('public_catalog_unavailable', { errorClass: errorClass(error) });
   if (now < catalogAlertGateUntil) return;
-  const alerted = await sendOperationalAlert('public_catalog_unavailable', { errorClass: errorClass(error), route: '/produto/:identifier' });
-  catalogAlertGateUntil = now + (alerted ? CATALOG_ALERT_SILENCE_MS : CATALOG_ALERT_RETRY_MS);
-  if (process.env.OPERATIONS_ALERT_WEBHOOK_URL?.trim() && !alerted) {
-    logServerWarning('public_catalog_alert_delivery_failed', {});
-  }
+  // A instância atende requisições simultâneas. Sem este envio compartilhado,
+  // todas passariam pela checagem enquanto o primeiro POST aguarda o webhook e
+  // cada entrega sobrescreveria a janela da outra — inclusive encurtando o
+  // silêncio de uma entrega bem-sucedida.
+  if (catalogAlertInFlight) return catalogAlertInFlight;
+  catalogAlertInFlight = (async () => {
+    try {
+      const alerted = await sendOperationalAlert('public_catalog_unavailable', { errorClass: errorClass(error), route: '/produto/:identifier' });
+      catalogAlertGateUntil = now + (alerted ? CATALOG_ALERT_SILENCE_MS : CATALOG_ALERT_RETRY_MS);
+      if (process.env.OPERATIONS_ALERT_WEBHOOK_URL?.trim() && !alerted) {
+        logServerWarning('public_catalog_alert_delivery_failed', {});
+      }
+    } finally {
+      catalogAlertInFlight = null;
+    }
+  })();
+  return catalogAlertInFlight;
 }
 
 interface VercelRequest {
@@ -80,10 +93,16 @@ export default async function handler(request: VercelRequest, response: VercelRe
   // investigar o banco certo pelo motivo errado.
   let catalogLookupFailed = false;
   try {
-    const [product, shell] = await Promise.all([
-      fetchPublicProduct(identifier).catch((error: unknown) => { catalogLookupFailed = true; throw error; }),
-      loadAppShell(),
-    ]);
+    // allSettled, não all: `Promise.all` rejeita na primeira falha, então um
+    // shell que falha rápido (leitura local de arquivo) encerrava o handler
+    // antes de a consulta ao catálogo registrar a própria queda — e uma
+    // indisponibilidade real ficava sem alerta justamente quando os dois
+    // estavam fora. A falha da consulta tem precedência no erro propagado.
+    const [consulta, shellCarregado] = await Promise.allSettled([fetchPublicProduct(identifier), loadAppShell()]);
+    if (consulta.status === 'rejected') { catalogLookupFailed = true; throw consulta.reason; }
+    if (shellCarregado.status === 'rejected') throw shellCarregado.reason;
+    const product = consulta.value;
+    const shell = shellCarregado.value;
     if (!product) {
       response.setHeader('Content-Type', 'text/html; charset=utf-8');
       response.setHeader('Cache-Control', 'no-store');
