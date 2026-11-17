@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "c0f2aeb513112659df54b561c8901b3751acb88e",
+  "sha": "fccd45ae1ed7e667015d136aa4c0ed085afd5483",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-17 00:00 UTC",
+  "generated_at": "2026-11-17 00:12 UTC",
   "files_total": 574,
   "code_files": 374,
-  "code_lines": 65637,
+  "code_lines": 65648,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "8262534c8548732e",
+ "facts_hash": "31d50a6a2cf92608",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -6931,7 +6931,7 @@
   {
    "module": "api",
    "files": 28,
-   "lines": 4065,
+   "lines": 4076,
    "tables": [],
    "exports": [
     "briefing-assets.ts: REQUEST_TIMEOUT_MS, handler, async",
@@ -23516,7 +23516,7 @@
   },
   "api/commercial-alerts.ts": {
    "path": "api/commercial-alerts.ts",
-   "lines": 114,
+   "lines": 125,
    "exports": [
     "const COMMERCIAL_ALERTS_TIMEOUT_MS",
     "function handler",
@@ -31755,10 +31755,20 @@
   }
  },
  "git": {
-  "sha": "c0f2aeb513112659df54b561c8901b3751acb88e",
+  "sha": "fccd45ae1ed7e667015d136aa4c0ed085afd5483",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "fccd45a",
+    "date": "2026-11-16",
+    "author": "adm01-debug",
+    "subject": "fix: aplica as 2 pendencias confirmadas da varredura de review dos agentes (#155)",
+    "files": [
+     ".gitignore",
+     "api/commercial-alerts.ts"
+    ]
+   },
    {
     "sha": "c0f2aeb",
     "date": "2026-11-16",
@@ -32181,16 +32191,6 @@
      "scripts/validate-agent-instructions.mjs",
      "tests/validate-agent-instructions.node.mjs"
     ]
-   },
-   {
-    "sha": "3c3cc11",
-    "date": "2026-11-08",
-    "author": "adm01-debug",
-    "subject": "chore: iguala a forma do AGENTS.md à do Zapp Web V2 (#120)",
-    "files": [
-     "AGENTS.md",
-     "scripts/validate-agent-instructions.mjs"
-    ]
    }
   ],
   "hot_files": [
@@ -32203,11 +32203,11 @@
     6
    ],
    [
-    "scripts/graphify.mjs",
-    4
+    ".gitignore",
+    5
    ],
    [
-    ".gitignore",
+    "scripts/graphify.mjs",
     4
    ],
    [
@@ -32227,10 +32227,6 @@
     3
    ],
    [
-    "AGENTS.md",
-    3
-   ],
-   [
     ".github/workflows/contexto.yml",
     3
    ],
@@ -32239,11 +32235,15 @@
     3
    ],
    [
-    "scripts/validate-agent-instructions.mjs",
-    3
+    "api/commercial-alerts.ts",
+    2
    ],
    [
     ".github/workflows/codeql.yml",
+    2
+   ],
+   [
+    "AGENTS.md",
     2
    ],
    [

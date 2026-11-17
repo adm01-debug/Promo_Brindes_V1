@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "c0f2aeb513112659df54b561c8901b3751acb88e",
+  "commit": "fccd45ae1ed7e667015d136aa4c0ed085afd5483",
   "branch": "main",
-  "data_commit": "2026-11-17T00:00:10Z",
+  "data_commit": "2026-11-17T00:11:48Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "fccd45a",
+    "data": "2026-11-16",
+    "assunto": "fix: aplica as 2 pendencias confirmadas da varredura de review dos agentes (#155)"
+   },
    {
     "sha": "c0f2aeb",
     "data": "2026-11-16",
@@ -126,11 +131,6 @@
     "sha": "223e655",
     "data": "2026-11-10",
     "assunto": "fix: endurece e cobre com testes todos os scripts do repositório (#130)"
-   },
-   {
-    "sha": "860a0a0",
-    "data": "2026-11-10",
-    "assunto": "infra: liga a comparação real do guard de instruções no CI (#121)"
    }
   ],
   "arquivos_mudados_7d": 122,
@@ -152,6 +152,10 @@
     "mudancas": 7
    },
    {
+    "pasta": ".gitignore",
+    "mudancas": 5
+   },
+   {
     "pasta": ".graphify.project.json",
     "mudancas": 5
    },
@@ -161,10 +165,6 @@
    },
    {
     "pasta": ".github/workflows/quality.yml",
-    "mudancas": 4
-   },
-   {
-    "pasta": ".gitignore",
     "mudancas": 4
    },
    {
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 39
+    "commits": 40
    },
    {
     "autor": "dependabot[bot]",
@@ -312,7 +312,7 @@
  "contagens": {
   "arquivos_total": 681,
   "arquivos_codigo": 271,
-  "linhas_codigo": 53287,
+  "linhas_codigo": 53298,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -340,7 +340,7 @@
   },
   "api/commercial-alerts.ts": {
    "arquivos": 1,
-   "linhas": 114
+   "linhas": 125
   },
   "api/contact-requests.ts": {
    "arquivos": 1,
