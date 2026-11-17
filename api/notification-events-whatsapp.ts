@@ -106,13 +106,13 @@ async function applyStatus(status: WhatsAppStatus): Promise<'ignored' | 'applied
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
-    const rawResult = await callSiteRpc<unknown>('apply_site_notification_provider_event', {
+    const rawResult = await callSiteRpc<'apply_site_notification_provider_event', unknown>('apply_site_notification_provider_event', {
       p_provider: 'meta-whatsapp-cloud',
       p_provider_message_id: status.id,
       p_event_type: eventType,
       p_provider_event_id: `${status.id}:${status.status}`,
       p_occurred_at: occurredAt,
-      p_bounce_reason: eventType === 'bounced' ? ((status.errors?.[0]?.title || '').slice(0, 200) || null) : null,
+      p_bounce_reason: eventType === 'bounced' ? ((status.errors?.[0]?.title || '').slice(0, 200) || undefined) : undefined,
     }, controller.signal);
     const result = parseProviderEventApplyResponse(rawResult);
     console.info('site_notification_event_applied', { provider: 'meta-whatsapp-cloud', eventType, applied: result.applied, reason: result.reason });

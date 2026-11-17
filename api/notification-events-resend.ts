@@ -97,13 +97,13 @@ export default {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
-      const rawResult = await callSiteRpc<unknown>('apply_site_notification_provider_event', {
+      const rawResult = await callSiteRpc<'apply_site_notification_provider_event', unknown>('apply_site_notification_provider_event', {
         p_provider: 'resend',
         p_provider_message_id: emailId,
         p_event_type: eventType,
         p_provider_event_id: svixId,
         p_occurred_at: occurredAt,
-        p_bounce_reason: eventType === 'bounced' ? ((payload.data?.bounce?.type || '').slice(0, 200) || null) : null,
+        p_bounce_reason: eventType === 'bounced' ? ((payload.data?.bounce?.type || '').slice(0, 200) || undefined) : undefined,
       }, controller.signal);
       const result = parseProviderEventApplyResponse(rawResult);
       console.info('site_notification_event_applied', { provider: 'resend', eventType, applied: result.applied, reason: result.reason });

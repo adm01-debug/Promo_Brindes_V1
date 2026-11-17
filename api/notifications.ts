@@ -3,6 +3,7 @@ import { getSiteDatabaseConfig } from './_lib/siteDatabase.js';
 import type { ApiRequest, ApiResponse } from './_lib/leadHandler.js';
 import { errorClass, logServerError, logServerWarning } from './_lib/observability.js';
 import { OPERATIONAL_ALERT_TIMEOUT_MS, sendOperationalAlert } from './_lib/operationalAlerts.js';
+import type { SiteRpcArgs, SiteRpcName } from './_lib/siteRpcContract.js';
 
 const BATCH_SIZE = 10;
 // Orçamento total da invocação, com folga sobre o maxDuration de 30s
@@ -218,7 +219,7 @@ function parseBooleanRpc(value: unknown, name: string): boolean {
   return value;
 }
 
-async function rpc<T>(name: string, body: Record<string, unknown>, signal: AbortSignal): Promise<T> {
+async function rpc<Name extends SiteRpcName, T = unknown>(name: Name, body: SiteRpcArgs<Name>, signal: AbortSignal): Promise<T> {
   const config = getSiteDatabaseConfig();
   const response = await fetch(`${config.url}/rest/v1/rpc/${name}`, {
     method: 'POST',
@@ -402,9 +403,15 @@ async function finalize(job: NotificationJob, status: 'sent' | 'failed', signal:
   // banco por ser maior (base de 300s contra 60s) e o deixaria morto na
   // prática. p_retry_after_seconds só recebe um Retry-After válido do
   // provedor; sem esse header, a função usa apenas a política do banco.
-  const result = await rpc<unknown>('finalize_site_notification_delivery', {
-    p_delivery_id: job.id, p_lease_token: job.leaseToken, p_status: status, p_provider: delivery?.provider || null,
-    p_provider_message_id: delivery?.id || null, p_error_code: errorCode?.slice(0, 120) || null,
+  const result = await rpc<'finalize_site_notification_delivery', unknown>('finalize_site_notification_delivery', {
+    // Argumentos opcionais sao OMITIDOS, nao enviados como null. Na definicao
+    // vigente da funcao — 20260916110000_add_notification_queue_policy_lease_and_backoff.sql:228-233,
+    // a ultima que a redefine — os quatro tem `default null`, e o backoff usa
+    // `coalesce(p_retry_after_seconds, 0)` (:266), logo null e omissao sao
+    // equivalentes em todos. Omitir e so a forma consistente com o tipo gerado;
+    // nao ha default nao-nulo a proteger aqui.
+    p_delivery_id: job.id, p_lease_token: job.leaseToken, p_status: status, p_provider: delivery?.provider || undefined,
+    p_provider_message_id: delivery?.id || undefined, p_error_code: errorCode?.slice(0, 120) || undefined,
     p_retry_after_seconds: providerRetryAfter ?? undefined,
   }, signal);
   return parseBooleanRpc(result, 'finalize_site_notification_delivery');
@@ -431,7 +438,7 @@ async function tryFinalize(job: NotificationJob, status: 'sent' | 'failed', sign
  * mesmo par logo em seguida. */
 async function recordProviderAcceptance(job: NotificationJob, delivery: { provider: string; id: string }, signal: AbortSignal): Promise<void> {
   try {
-    const accepted = parseBooleanRpc(await rpc<unknown>('record_site_notification_provider_acceptance', {
+    const accepted = parseBooleanRpc(await rpc<'record_site_notification_provider_acceptance', unknown>('record_site_notification_provider_acceptance', {
       p_delivery_id: job.id, p_lease_token: job.leaseToken, p_provider: delivery.provider, p_provider_message_id: delivery.id,
     }, signal), 'record_site_notification_provider_acceptance');
     if (!accepted) {
@@ -444,7 +451,7 @@ async function recordProviderAcceptance(job: NotificationJob, delivery: { provid
 
 async function recordWhatsAppDispatchStarted(job: NotificationJob, signal: AbortSignal): Promise<boolean> {
   try {
-    const result = await rpc<unknown>('record_site_notification_dispatch_started', {
+    const result = await rpc<'record_site_notification_dispatch_started', unknown>('record_site_notification_dispatch_started', {
       p_delivery_id: job.id,
       p_lease_token: job.leaseToken,
     }, signal);
@@ -560,7 +567,7 @@ async function reportQueueHealth(): Promise<void> {
     const timeout = setTimeout(() => controller.abort(), QUEUE_HEALTH_TIMEOUT_MS);
     let channels: ChannelQueueHealth[];
     try {
-      channels = parseQueueHealth(await rpc<unknown>('site_notification_queue_health', {}, controller.signal));
+      channels = parseQueueHealth(await rpc<'site_notification_queue_health', unknown>('site_notification_queue_health', {}, controller.signal));
     } finally {
       clearTimeout(timeout);
     }
@@ -612,7 +619,7 @@ export async function deliverQuoteConfirmationsNow(requestId: string, whatsappRe
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 7_000);
     try {
-      const raw = await rpc<unknown>('claim_site_quote_notification', { p_request_id: requestId, p_channel: channel }, controller.signal);
+      const raw = await rpc<'claim_site_quote_notification', unknown>('claim_site_quote_notification', { p_request_id: requestId, p_channel: channel }, controller.signal);
       if (!raw) return 'pending';
       const job = parseJobs([raw])[0];
       if (!job) return 'pending';
@@ -681,7 +688,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       const claimTimeout = setTimeout(() => claimController.abort(), remainingMs);
       let jobs: NotificationJob[];
       try {
-        jobs = parseJobs(await rpc<unknown>('claim_site_notification_deliveries', { p_channels: channels, p_batch_size: batchSize }, claimController.signal));
+        jobs = parseJobs(await rpc<'claim_site_notification_deliveries', unknown>('claim_site_notification_deliveries', { p_channels: channels, p_batch_size: batchSize }, claimController.signal));
       } finally {
         clearTimeout(claimTimeout);
       }

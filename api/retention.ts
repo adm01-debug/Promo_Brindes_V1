@@ -3,6 +3,7 @@ import { getSiteDatabaseConfig } from './_lib/siteDatabase.js';
 import type { ApiRequest, ApiResponse } from './_lib/leadHandler.js';
 import { errorClass, logServerError, logServerWarning } from './_lib/observability.js';
 import { sendOperationalAlert } from './_lib/operationalAlerts.js';
+import type { SiteRpcArgs, SiteRpcName } from './_lib/siteRpcContract.js';
 
 /** Teto de cada chamada ao banco. */
 export const REQUEST_TIMEOUT_MS = 10_000;
@@ -54,7 +55,7 @@ function safeStoragePath(path: string): boolean {
   return path.split('/').every((segment) => segment.length > 0 && segment !== '.' && segment !== '..');
 }
 
-async function rpc<T>(baseUrl: string, secretKey: string, name: string, body: Record<string, unknown>, signal: AbortSignal): Promise<T> {
+async function rpc<Name extends SiteRpcName, T = unknown>(baseUrl: string, secretKey: string, name: Name, body: SiteRpcArgs<Name>, signal: AbortSignal): Promise<T> {
   const result = await fetch(`${baseUrl}/rest/v1/rpc/${name}`, {
     method: 'POST',
     headers: {
@@ -138,7 +139,7 @@ async function runRetentionPass(config: SiteDatabaseConfig, deadlineAt: number):
     return controller.signal;
   };
   try {
-    const candidates = await rpc<{ quoteIds?: unknown; storagePaths?: unknown }>(
+    const candidates = await rpc<'get_site_data_retention_candidates', { quoteIds?: unknown; storagePaths?: unknown }>(
       config.url,
       config.serviceCredential,
       'get_site_data_retention_candidates',
@@ -149,21 +150,21 @@ async function runRetentionPass(config: SiteDatabaseConfig, deadlineAt: number):
     const storagePaths = stringArray(candidates.storagePaths, RETENTION_BATCH_SIZE * 20, safeStoragePath);
     if (storagePaths.length && !config.storageDeleteCredential) throw new Error('storage_delete_credential_not_configured');
     await removeStorageObjects(config.url, config.storageDeleteCredential || '', PROPOSAL_BUCKET, storagePaths, budgetedSignal());
-    const finalized = await rpc<Record<string, number>>(
+    const finalized = await rpc<'finalize_site_data_retention', Record<string, number>>(
       config.url,
       config.serviceCredential,
       'finalize_site_data_retention',
       { p_quote_ids: quoteIds, p_storage_paths: storagePaths, p_batch_size: RETENTION_BATCH_SIZE },
       budgetedSignal(),
     );
-    const archivedSelectionsDeleted = await rpc<number>(
+    const archivedSelectionsDeleted = await rpc<'purge_archived_customer_selections', number>(
       config.url,
       config.serviceCredential,
       'purge_archived_customer_selections',
       { p_batch_size: RETENTION_BATCH_SIZE },
       budgetedSignal(),
     );
-    const briefingCandidates = await rpc<{ objects?: unknown }>(
+    const briefingCandidates = await rpc<'get_briefing_asset_retention_candidates', { objects?: unknown }>(
       config.url,
       config.serviceCredential,
       'get_briefing_asset_retention_candidates',
@@ -176,14 +177,14 @@ async function runRetentionPass(config: SiteDatabaseConfig, deadlineAt: number):
       const paths = storageObjects.filter((object) => object.bucket === bucket).map((object) => object.path);
       await removeStorageObjects(config.url, config.storageDeleteCredential || '', bucket, paths, budgetedSignal());
     }
-    const storageFinalized = await rpc<{ assetsDeleted?: number; queueEntriesDeleted?: number }>(
+    const storageFinalized = await rpc<'finalize_site_storage_retention', { assetsDeleted?: number; queueEntriesDeleted?: number }>(
       config.url,
       config.serviceCredential,
       'finalize_site_storage_retention',
       { p_objects: storageObjects, p_batch_size: RETENTION_BATCH_SIZE },
       budgetedSignal(),
     );
-    const auditLogsPurged = await rpc<{ writesDeleted?: number; ddlDeleted?: number }>(
+    const auditLogsPurged = await rpc<'purge_site_admin_audit_logs', { writesDeleted?: number; ddlDeleted?: number }>(
       config.url,
       config.serviceCredential,
       'purge_site_admin_audit_logs',
