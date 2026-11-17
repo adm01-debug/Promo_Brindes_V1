@@ -152,7 +152,7 @@ export function parseProviderEventApplyResponse(value: unknown): ProviderEventAp
   return { applied: result.applied, deliveryId: safeDeliveryId, reason: safeReason };
 }
 
-function responseErrorDetail(value: unknown): string {
+export function responseErrorDetail(value: unknown): string {
   const result = record(value);
   const message = typeof result?.message === 'string' ? result.message.slice(0, 160) : '';
   const code = typeof result?.code === 'string' ? result.code.slice(0, 80) : '';
