@@ -4,7 +4,20 @@ import type { ApiRequest, ApiResponse } from './_lib/leadHandler.js';
 import { errorClass, logServerError, logServerWarning } from './_lib/observability.js';
 import { sendOperationalAlert } from './_lib/operationalAlerts.js';
 
+/** Teto de cada chamada ao banco. */
 export const REQUEST_TIMEOUT_MS = 10_000;
+/**
+ * Orcamento da execucao inteira, sob o maxDuration de 15 s declarado para esta
+ * funcao em vercel.json. A folga restante paga a resposta HTTP e o alerta.
+ * Antes havia um unico timeout de 10 s compartilhado pelas seis RPCs da
+ * passada: a sexta podia abortar por causa do tempo gasto pela primeira, e nao
+ * sobrava como medir quanto ainda cabia.
+ */
+export const TOTAL_TIME_BUDGET_MS = 12_000;
+/** Teto de passadas por execucao, para o laco nunca depender so do relogio. */
+export const MAX_RETENTION_PASSES = 5;
+/** So inicia outra passada com esta folga; abaixo disso, para e reporta. */
+export const PASS_RESERVE_MS = 3_000;
 const RETENTION_BATCH_SIZE = 100;
 const PROPOSAL_BUCKET = 'customer-proposals';
 const BRIEFING_ASSET_BUCKET = 'customer-briefing-assets';
@@ -93,6 +106,121 @@ function storageDeletionObjects(value: unknown): StorageDeletionObject[] {
   return Array.from(unique.values());
 }
 
+const AUDIT_LOG_BATCH_SIZE = 1_000;
+
+type RetentionPass = {
+  quotesDeleted: number;
+  proposalDocumentsDeleted: number;
+  contactsDeleted: number;
+  notificationsDeleted: number;
+  archivedSelectionsDeleted: number;
+  briefingAssetsFinalized: number;
+  storageQueueEntriesFinalized: number;
+  adminWriteAuditLogsPurged: number;
+  adminDdlAuditLogsPurged: number;
+  backlogSaturated: string[];
+};
+
+type SiteDatabaseConfig = ReturnType<typeof getSiteDatabaseConfig>;
+
+/**
+ * Uma passada completa de retencao. Cada chamada recebe o seu proprio sinal,
+ * limitado ao menor valor entre REQUEST_TIMEOUT_MS e o tempo que resta do
+ * orcamento da execucao — e e isso que permite repetir a passada sem estourar
+ * o maxDuration.
+ */
+async function runRetentionPass(config: SiteDatabaseConfig, deadlineAt: number): Promise<RetentionPass> {
+  const timers: ReturnType<typeof setTimeout>[] = [];
+  const budgetedSignal = (): AbortSignal => {
+    const controller = new AbortController();
+    const remaining = deadlineAt - Date.now();
+    timers.push(setTimeout(() => controller.abort(), Math.max(0, Math.min(REQUEST_TIMEOUT_MS, remaining))));
+    return controller.signal;
+  };
+  try {
+    const candidates = await rpc<{ quoteIds?: unknown; storagePaths?: unknown }>(
+      config.url,
+      config.serviceCredential,
+      'get_site_data_retention_candidates',
+      { p_batch_size: RETENTION_BATCH_SIZE },
+      budgetedSignal(),
+    );
+    const quoteIds = stringArray(candidates.quoteIds, RETENTION_BATCH_SIZE, (value) => UUID_PATTERN.test(value));
+    const storagePaths = stringArray(candidates.storagePaths, RETENTION_BATCH_SIZE * 20, safeStoragePath);
+    if (storagePaths.length && !config.storageDeleteCredential) throw new Error('storage_delete_credential_not_configured');
+    await removeStorageObjects(config.url, config.storageDeleteCredential || '', PROPOSAL_BUCKET, storagePaths, budgetedSignal());
+    const finalized = await rpc<Record<string, number>>(
+      config.url,
+      config.serviceCredential,
+      'finalize_site_data_retention',
+      { p_quote_ids: quoteIds, p_storage_paths: storagePaths, p_batch_size: RETENTION_BATCH_SIZE },
+      budgetedSignal(),
+    );
+    const archivedSelectionsDeleted = await rpc<number>(
+      config.url,
+      config.serviceCredential,
+      'purge_archived_customer_selections',
+      { p_batch_size: RETENTION_BATCH_SIZE },
+      budgetedSignal(),
+    );
+    const briefingCandidates = await rpc<{ objects?: unknown }>(
+      config.url,
+      config.serviceCredential,
+      'get_briefing_asset_retention_candidates',
+      { p_batch_size: RETENTION_BATCH_SIZE },
+      budgetedSignal(),
+    );
+    const storageObjects = storageDeletionObjects(briefingCandidates.objects);
+    if (storageObjects.length && !config.storageDeleteCredential) throw new Error('storage_delete_credential_not_configured');
+    for (const bucket of [BRIEFING_ASSET_BUCKET, PROPOSAL_BUCKET] as const) {
+      const paths = storageObjects.filter((object) => object.bucket === bucket).map((object) => object.path);
+      await removeStorageObjects(config.url, config.storageDeleteCredential || '', bucket, paths, budgetedSignal());
+    }
+    const storageFinalized = await rpc<{ assetsDeleted?: number; queueEntriesDeleted?: number }>(
+      config.url,
+      config.serviceCredential,
+      'finalize_site_storage_retention',
+      { p_objects: storageObjects, p_batch_size: RETENTION_BATCH_SIZE },
+      budgetedSignal(),
+    );
+    const auditLogsPurged = await rpc<{ writesDeleted?: number; ddlDeleted?: number }>(
+      config.url,
+      config.serviceCredential,
+      'purge_site_admin_audit_logs',
+      { p_retention_days: 400, p_batch_size: AUDIT_LOG_BATCH_SIZE },
+      budgetedSignal(),
+    );
+    // Cada etapa pede um lote de tamanho fixo. Um lote que volta cheio significa
+    // que sobrou trabalho: com o laco abaixo isso passa a disparar outra passada
+    // na mesma execucao, e o que ainda estiver cheio no fim e o residuo real.
+    const backlogSaturated = [
+      quoteIds.length >= RETENTION_BATCH_SIZE ? 'quote_retention' : '',
+      // Contatos vencidos sao apagados num lote proprio dentro da mesma RPC
+      // (20260911190000_harden_retention_metadata.sql:55-62, `limit p_batch_size`
+      // independente dos orcamentos), e a contagem volta em contactsDeleted:62.
+      Number(finalized.contactsDeleted || 0) >= RETENTION_BATCH_SIZE ? 'contact_retention' : '',
+      Number(archivedSelectionsDeleted || 0) >= RETENTION_BATCH_SIZE ? 'archived_selections' : '',
+      storageObjects.length >= RETENTION_BATCH_SIZE ? 'briefing_assets' : '',
+      Number(auditLogsPurged.writesDeleted || 0) >= AUDIT_LOG_BATCH_SIZE ? 'admin_write_audit_logs' : '',
+      Number(auditLogsPurged.ddlDeleted || 0) >= AUDIT_LOG_BATCH_SIZE ? 'admin_ddl_audit_logs' : '',
+    ].filter(Boolean);
+    return {
+      quotesDeleted: Number(finalized.quotesDeleted || 0),
+      proposalDocumentsDeleted: Number(finalized.proposalDocumentsDeleted || 0),
+      contactsDeleted: Number(finalized.contactsDeleted || 0),
+      notificationsDeleted: Number(finalized.notificationsDeleted || 0),
+      archivedSelectionsDeleted: Number(archivedSelectionsDeleted || 0),
+      briefingAssetsFinalized: Number(storageFinalized.assetsDeleted || 0),
+      storageQueueEntriesFinalized: Number(storageFinalized.queueEntriesDeleted || 0),
+      adminWriteAuditLogsPurged: Number(auditLogsPurged.writesDeleted || 0),
+      adminDdlAuditLogsPurged: Number(auditLogsPurged.ddlDeleted || 0),
+      backlogSaturated,
+    };
+  } finally {
+    timers.forEach((timer) => clearTimeout(timer));
+  }
+}
+
 export default async function handler(request: ApiRequest, response: ApiResponse) {
   response.setHeader('Cache-Control', 'no-store');
   response.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -111,107 +239,50 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     return;
   }
 
-  let timeout: ReturnType<typeof setTimeout> | undefined;
   try {
     const config = getSiteDatabaseConfig();
-    const controller = new AbortController();
-    timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-    const candidates = await rpc<{ quoteIds?: unknown; storagePaths?: unknown }>(
-      config.url,
-      config.serviceCredential,
-      'get_site_data_retention_candidates',
-      { p_batch_size: RETENTION_BATCH_SIZE },
-      controller.signal,
-    );
-    const quoteIds = stringArray(candidates.quoteIds, RETENTION_BATCH_SIZE, (value) => UUID_PATTERN.test(value));
-    const storagePaths = stringArray(candidates.storagePaths, RETENTION_BATCH_SIZE * 20, safeStoragePath);
-    if (storagePaths.length && !config.storageDeleteCredential) throw new Error('storage_delete_credential_not_configured');
-    await removeStorageObjects(config.url, config.storageDeleteCredential || '', PROPOSAL_BUCKET, storagePaths, controller.signal);
-    const finalized = await rpc<Record<string, number>>(
-      config.url,
-      config.serviceCredential,
-      'finalize_site_data_retention',
-      { p_quote_ids: quoteIds, p_storage_paths: storagePaths, p_batch_size: RETENTION_BATCH_SIZE },
-      controller.signal,
-    );
-    const archivedSelectionsDeleted = await rpc<number>(
-      config.url,
-      config.serviceCredential,
-      'purge_archived_customer_selections',
-      { p_batch_size: RETENTION_BATCH_SIZE },
-      controller.signal,
-    );
-    const briefingCandidates = await rpc<{ objects?: unknown }>(
-      config.url,
-      config.serviceCredential,
-      'get_briefing_asset_retention_candidates',
-      { p_batch_size: RETENTION_BATCH_SIZE },
-      controller.signal,
-    );
-    const storageObjects = storageDeletionObjects(briefingCandidates.objects);
-    if (storageObjects.length && !config.storageDeleteCredential) throw new Error('storage_delete_credential_not_configured');
-    for (const bucket of [BRIEFING_ASSET_BUCKET, PROPOSAL_BUCKET] as const) {
-      const paths = storageObjects.filter((object) => object.bucket === bucket).map((object) => object.path);
-      await removeStorageObjects(config.url, config.storageDeleteCredential || '', bucket, paths, controller.signal);
+    const deadlineAt = Date.now() + TOTAL_TIME_BUDGET_MS;
+    const total = {
+      quotesDeleted: 0, proposalDocumentsDeleted: 0, contactsDeleted: 0, notificationsDeleted: 0,
+      archivedSelectionsDeleted: 0, briefingAssetsFinalized: 0, storageQueueEntriesFinalized: 0,
+      adminWriteAuditLogsPurged: 0, adminDdlAuditLogsPurged: 0,
+    };
+    let passes = 0;
+    let backlogSaturated: string[] = [];
+    let stopReason = 'drained';
+    // Drenagem: enquanto algum lote voltar cheio, repete a passada na mesma
+    // execucao. Antes a tarefa fazia uma passada por dia, de 100 por etapa, e um
+    // residuo que crescesse mais rapido que isso nunca era alcancado. O laco para
+    // por tres motivos declarados, e a resposta diz qual deles foi.
+    for (;;) {
+      const pass = await runRetentionPass(config, deadlineAt);
+      passes += 1;
+      total.quotesDeleted += pass.quotesDeleted;
+      total.proposalDocumentsDeleted += pass.proposalDocumentsDeleted;
+      total.contactsDeleted += pass.contactsDeleted;
+      total.notificationsDeleted += pass.notificationsDeleted;
+      total.archivedSelectionsDeleted += pass.archivedSelectionsDeleted;
+      total.briefingAssetsFinalized += pass.briefingAssetsFinalized;
+      total.storageQueueEntriesFinalized += pass.storageQueueEntriesFinalized;
+      total.adminWriteAuditLogsPurged += pass.adminWriteAuditLogsPurged;
+      total.adminDdlAuditLogsPurged += pass.adminDdlAuditLogsPurged;
+      backlogSaturated = pass.backlogSaturated;
+      if (!backlogSaturated.length) { stopReason = 'drained'; break; }
+      if (passes >= MAX_RETENTION_PASSES) { stopReason = 'max_passes'; break; }
+      if (Date.now() + PASS_RESERVE_MS >= deadlineAt) { stopReason = 'budget_exhausted'; break; }
     }
-    const storageFinalized = await rpc<{ assetsDeleted?: number; queueEntriesDeleted?: number }>(
-      config.url,
-      config.serviceCredential,
-      'finalize_site_storage_retention',
-      { p_objects: storageObjects, p_batch_size: RETENTION_BATCH_SIZE },
-      controller.signal,
-    );
-    const AUDIT_LOG_BATCH_SIZE = 1_000;
-    const auditLogsPurged = await rpc<{ writesDeleted?: number; ddlDeleted?: number }>(
-      config.url,
-      config.serviceCredential,
-      'purge_site_admin_audit_logs',
-      { p_retention_days: 400, p_batch_size: AUDIT_LOG_BATCH_SIZE },
-      controller.signal,
-    );
-    // Cada etapa pede um lote de tamanho fixo e a tarefa roda uma vez por dia.
-    // Um lote que volta cheio significa que sobrou trabalho para amanha: sem
-    // este sinal, um residuo que cresce mais rapido que o lote fica invisivel
-    // indefinidamente, e dado pessoal que deveria ter sido apagado permanece.
-    // O numero exato do residuo exigiria uma contagem nova no banco; o lote
-    // cheio e a evidencia que ja existe aqui, sem tocar o schema.
-    const backlogSaturated = [
-      quoteIds.length >= RETENTION_BATCH_SIZE ? 'quote_retention' : '',
-      // Contatos vencidos sao apagados num lote proprio dentro da mesma RPC
-      // (20260911190000_harden_retention_metadata.sql:55-62, `limit p_batch_size`
-      // independente dos orcamentos), e a contagem volta em contactsDeleted:62.
-      // Sem esta linha, 250 contatos vencidos e nenhum orcamento vencido
-      // apagariam 100 e reportariam residuo zero.
-      Number(finalized.contactsDeleted || 0) >= RETENTION_BATCH_SIZE ? 'contact_retention' : '',
-      Number(archivedSelectionsDeleted || 0) >= RETENTION_BATCH_SIZE ? 'archived_selections' : '',
-      storageObjects.length >= RETENTION_BATCH_SIZE ? 'briefing_assets' : '',
-      Number(auditLogsPurged.writesDeleted || 0) >= AUDIT_LOG_BATCH_SIZE ? 'admin_write_audit_logs' : '',
-      Number(auditLogsPurged.ddlDeleted || 0) >= AUDIT_LOG_BATCH_SIZE ? 'admin_ddl_audit_logs' : '',
-    ].filter(Boolean);
-    console.info('site_retention_completed', {
-      quotesDeleted: Number(finalized.quotesDeleted || 0),
-      proposalDocumentsDeleted: Number(finalized.proposalDocumentsDeleted || 0),
-      contactsDeleted: Number(finalized.contactsDeleted || 0),
-      notificationsDeleted: Number(finalized.notificationsDeleted || 0),
-      archivedSelectionsDeleted: Number(archivedSelectionsDeleted || 0),
-      briefingAssetsFinalized: Number(storageFinalized.assetsDeleted || 0),
-      storageQueueEntriesFinalized: Number(storageFinalized.queueEntriesDeleted || 0),
-      adminWriteAuditLogsPurged: Number(auditLogsPurged.writesDeleted || 0),
-      adminDdlAuditLogsPurged: Number(auditLogsPurged.ddlDeleted || 0),
-      backlogSaturated,
-    });
+    console.info('site_retention_completed', { ...total, passes, stopReason, backlogSaturated });
     if (backlogSaturated.length) {
-      console.error('site_retention_backlog_saturated', { stages: backlogSaturated, batchSize: RETENTION_BATCH_SIZE, auditLogBatchSize: AUDIT_LOG_BATCH_SIZE });
-      const alerted = await sendOperationalAlert('retention_backlog_saturated', { stages: backlogSaturated, batchSize: RETENTION_BATCH_SIZE, auditLogBatchSize: AUDIT_LOG_BATCH_SIZE });
+      const detalhe = { stages: backlogSaturated, passes, stopReason, batchSize: RETENTION_BATCH_SIZE, auditLogBatchSize: AUDIT_LOG_BATCH_SIZE };
+      console.error('site_retention_backlog_saturated', detalhe);
+      const alerted = await sendOperationalAlert('retention_backlog_saturated', detalhe);
       if (process.env.OPERATIONS_ALERT_WEBHOOK_URL?.trim() && !alerted) logServerWarning('site_retention_backlog_alert_delivery_failed', {});
     }
-    response.status(200).json({ ok: true, backlogSaturated });
+    response.status(200).json({ ok: true, passes, stopReason, backlogSaturated });
   } catch (error) {
     logServerError('site_retention_failed', { errorClass: errorClass(error) });
     const alerted = await sendOperationalAlert('retention_cron_failed', { errorClass: errorClass(error) });
     if (process.env.OPERATIONS_ALERT_WEBHOOK_URL?.trim() && !alerted) logServerWarning('site_retention_failure_alert_delivery_failed', {});
     response.status(503).json({ error: 'retention_unavailable' });
-  } finally {
-    if (timeout) clearTimeout(timeout);
   }
 }
