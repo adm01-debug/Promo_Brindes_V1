@@ -56,6 +56,7 @@ Não há checkout, pagamento, preço ou promessa de estoque. Não há status inv
 - Um UUID alheio retorna o mesmo estado genérico de item inexistente.
 - A secret key permanece exclusivamente nas Functions da Vercel.
 - O bucket não é público e nenhum cliente recebe política direta em `storage.objects`.
+  - **Correção de 17/11/2026:** isso valia em 09/09/2026, antes dos anexos de briefing. Desde `20260922150000_add_private_briefing_assets.sql:333,340,348` (com ajustes em `20260922210000_close_selection_and_asset_integrity_gaps.sql:310` e `20260922230000_lock_verified_briefing_assets.sql:49`) existem três policies `customer_briefing_assets_*` em `storage.objects` para o titular autenticado, no bucket `customer-briefing-assets`. O bucket segue privado.
 - O endpoint assina apenas objetos autorizados pelo RPC, no bucket esperado e no host isolado.
 
 ## Evidências locais de validação
