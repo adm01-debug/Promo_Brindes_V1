@@ -16,9 +16,12 @@ export const ideaLandings: IdeaLanding[] = [
   {
     id: 'onboarding', eyebrow: 'People experience', ...ideaLandingMeta.onboarding,
     detail: 'Comece pelo contexto de quem chega, pela rotina que a pessoa vai viver e pelo que merece acompanhar esse início.',
-    // Onboarding descreve a ocasião, não obriga uma composição em kit. A pessoa
-    // pode partir de itens úteis e decidir depois se a campanha pede um conjunto.
-    catalogQuery: { pageSize: 8, sort: 'curated' },
+    // A busca usa o grupo de sinônimos de onboarding (search.ts): o tema precisa
+    // de uma consulta própria como os outros três, senão a curadoria é o catálogo
+    // público inteiro ordenado e a página promete escolha entregando lista
+    // genérica. Continua sem `profile: 'kits'`: onboarding descreve a ocasião e
+    // não obriga uma composição em kit — quem decide isso é a proposta.
+    catalogQuery: { search: 'onboarding', pageSize: 8, sort: 'curated' },
     catalogUrl: '/catalogo?momento=onboarding&publico=colaboradores',
     checkpoints: [{ title: 'Cultura antes do logo', text: 'Escolha algo que ajude a pessoa a se reconhecer na experiência.' }, { title: 'Uso real', text: 'Priorize rotina, mobilidade e momentos de trabalho que continuam depois da entrega.' }, { title: 'Curadoria ajustável', text: 'Quantidade, personalização e apresentação entram na proposta — não são promessa automática.' }],
   },
