@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { TOTAL_TIME_BUDGET_MS as NOTIFICATIONS_BUDGET_MS } from '../../api/notifications.js';
-import { REQUEST_TIMEOUT_MS as SITE_DATABASE_TIMEOUT_MS } from '../../api/_lib/siteDatabase.js';
+import { LEAD_PREFLIGHT_TIMEOUT_MS, REQUEST_TIMEOUT_MS as SITE_DATABASE_TIMEOUT_MS } from '../../api/_lib/siteDatabase.js';
 import { REQUEST_TIMEOUT_MS as CATALOG_VALIDATION_TIMEOUT_MS } from '../../api/_lib/catalogValidation.js';
 import { TIMEOUT_MS as SHARED_SELECTIONS_TIMEOUT_MS } from '../../api/_lib/sharedSelections.js';
 import { NETWORK_TIMEOUT_MS as PUBLIC_PRODUCT_PAGE_TIMEOUT_MS } from '../../api/_lib/publicProductPage.js';
@@ -12,6 +12,7 @@ import { REQUEST_TIMEOUT_MS as BRIEFING_ASSETS_TIMEOUT_MS } from '../../api/brie
 import { REQUEST_TIMEOUT_MS as SITEMAP_TIMEOUT_MS } from '../../api/sitemap.js';
 import { COMMERCIAL_ALERTS_TIMEOUT_MS as COMMERCIAL_ALERTS_BUDGET_MS } from '../../api/commercial-alerts.js';
 import { LEAD_TOTAL_TIME_BUDGET_MS, MIN_CONFIRMATION_WINDOW_MS } from '../../api/_lib/leadHandler.js';
+import { COMMERCIAL_ALERT_TIMEOUT_MS } from '../../api/_lib/commercialTeamAlerts.js';
 
 // deliverQuoteConfirmationsNow (api/notifications.ts): 7s por canal, mas os
 // canais rodam em paralelo (Etapa 26) — soma uma vez só, não uma por canal.
@@ -53,8 +54,17 @@ describe('Etapa 24: maxDuration em vercel.json cobre o pior caso real de cada ro
     expect(SITE_DATABASE_TIMEOUT_MS).toBeLessThan(LEAD_TOTAL_TIME_BUDGET_MS);
   });
 
-  it('api/contact-requests.ts: apenas siteDatabase (sem catalogValidation nem confirmação)', () => {
-    expect(SITE_DATABASE_TIMEOUT_MS).toBeLessThan(maxDurationMs('api/contact-requests.ts'));
+  it('api/contact-requests.ts: preflight + siteDatabase + alerta comercial (sem catalogValidation nem confirmação)', () => {
+    // O contato passou a disparar o alerta comercial síncrono (PF-01, migration
+    // 20261117010000) com o MESMO deadline de 24 s do orçamento, então a rota
+    // não cabe mais em 15 s: preflight (2,5 s) + persistência (10 s) + webhook
+    // (7 s) = 19,5 s, e o guard do handler autoriza iniciar o webhook até
+    // deadline - 7 s = 17 s. Sem este par de asserções, a função é morta pela
+    // plataforma depois de reivindicar a entrega — o job preso em 'processing'
+    // (R03) que este arquivo existe para impedir.
+    expect(LEAD_TOTAL_TIME_BUDGET_MS).toBeLessThan(maxDurationMs('api/contact-requests.ts'));
+    expect(LEAD_PREFLIGHT_TIMEOUT_MS + SITE_DATABASE_TIMEOUT_MS + COMMERCIAL_ALERT_TIMEOUT_MS)
+      .toBeLessThan(LEAD_TOTAL_TIME_BUDGET_MS);
   });
 
   it('api/notification-events-resend.ts (Etapa 30): apenas uma chamada de RPC (callSiteRpc)', () => {
