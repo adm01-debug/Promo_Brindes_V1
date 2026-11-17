@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `0600922a57fd7d1f00a09398375563767aba8ea6` (2026-11-17T09:24:49Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `cc68e425edc204849d3a7c6fc7bd1c0a36a55827` (2026-11-17T09:34:32Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -171,14 +171,14 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 ## Hotspots (arquivos mais alterados, 90 dias)
 - package.json (63)
-- e2e/smoke.spec.ts (53)
+- e2e/smoke.spec.ts (54)
 - package-lock.json (36)
 - src/styles.css (34)
 - vercel.json (26)
 - .github/workflows/quality.yml (25)
+- src/pages/QuotePage.tsx (24)
 - docs/DATABASE_DICTIONARY.md (23)
 - site-supabase/supabase/tests/database/lead_storage.test.sql (23)
-- src/pages/QuotePage.tsx (23)
 - src/components/Layout.tsx (22)
 - tests/api/lead-requests.test.ts (20)
 - .github/workflows/release.yml (18)
@@ -377,6 +377,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-17 `cc68e42` fix(orcamento): o consentimento de WhatsApp descreve o que o sistema envia (#160)
 - 2026-11-17 `0600922` fix(ci): separa o teto de performance de producao do teto de pior caso (#164)
 - 2026-11-17 `1d017c9` fix(ci): o resumo do quality gate para de acusar falha em passo que passou (#162)
 - 2026-11-17 `8ea1273` feat(lgpd): o apagamento de titular passa a apagar o que faltava (#161)
@@ -391,7 +392,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-16 `401487f` chore(ci): actions/github-script v7.0.1 para v9.0.0 em todas as ocorrencias (#152)
 - 2026-11-16 `ba2bdf7` chore: ignora os worktrees temporarios de agentes de IA (#151)
 - 2026-11-16 `74bac8b` fix(ci): npm audit signatures volta a reprovar o gate (#150)
-- 2026-11-16 `6706d55` infra: blinda as permissoes de Actions e registra a decisao da etapa 32 (#149)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

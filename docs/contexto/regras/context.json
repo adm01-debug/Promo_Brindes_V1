@@ -1,9 +1,9 @@
 {
  "meta": {
-  "sha": "0600922a57fd7d1f00a09398375563767aba8ea6",
+  "sha": "cc68e425edc204849d3a7c6fc7bd1c0a36a55827",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-17 09:25 UTC",
+  "generated_at": "2026-11-17 09:34 UTC",
   "files_total": 578,
   "code_files": 378,
   "code_lines": 66668,
@@ -32252,10 +32252,20 @@
   }
  },
  "git": {
-  "sha": "0600922a57fd7d1f00a09398375563767aba8ea6",
+  "sha": "cc68e425edc204849d3a7c6fc7bd1c0a36a55827",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "cc68e42",
+    "date": "2026-11-17",
+    "author": "adm01-debug",
+    "subject": "fix(orcamento): o consentimento de WhatsApp descreve o que o sistema envia (#160)",
+    "files": [
+     "e2e/smoke.spec.ts",
+     "src/pages/QuotePage.tsx"
+    ]
+   },
    {
     "sha": "0600922",
     "date": "2026-11-17",
@@ -32592,20 +32602,6 @@
      "scripts/maintenance/run.sh",
      "scripts/maintenance/typecheck.mjs"
     ]
-   },
-   {
-    "sha": "49fc2af",
-    "date": "2026-11-10",
-    "author": "adm01-debug",
-    "subject": "docs: corrige fatos da analise analise-prs para o main d312cad (#132)",
-    "files": [
-     "analise-prs/RELATORIO_PRS.md",
-     "analise-prs/baseline/ci-checks.md",
-     "analise-prs/decisoes.md",
-     "analise-prs/funcionalidades.csv",
-     "analise-prs/progresso.json",
-     "analise-prs/regras-de-negocio.md"
-    ]
    }
   ],
   "hot_files": [
@@ -32636,6 +32632,10 @@
    [
     ".graphify.project.json",
     3
+   ],
+   [
+    "src/pages/QuotePage.tsx",
+    2
    ],
    [
     "api/_lib/commercialTeamAlerts.ts",
@@ -32683,10 +32683,6 @@
    ],
    [
     ".github/workflows/contexto.yml",
-    2
-   ],
-   [
-    "requirements-graphify.txt",
     2
    ]
   ]

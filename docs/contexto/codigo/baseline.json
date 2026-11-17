@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "0600922a57fd7d1f00a09398375563767aba8ea6",
+  "commit": "cc68e425edc204849d3a7c6fc7bd1c0a36a55827",
   "branch": "main",
-  "data_commit": "2026-11-17T09:24:49Z",
+  "data_commit": "2026-11-17T09:34:32Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "cc68e42",
+    "data": "2026-11-17",
+    "assunto": "fix(orcamento): o consentimento de WhatsApp descreve o que o sistema envia (#160)"
+   },
    {
     "sha": "0600922",
     "data": "2026-11-17",
@@ -126,14 +131,9 @@
     "sha": "d7242eb",
     "data": "2026-11-13",
     "assunto": "fix: garante dir do node no PATH do safeEnv (#134)"
-   },
-   {
-    "sha": "ad82577",
-    "data": "2026-11-12",
-    "assunto": "chore(deps): bump graphifyy from 0.9.97 to 0.9.103 (#126)"
    }
   ],
-  "arquivos_mudados_7d": 137,
+  "arquivos_mudados_7d": 138,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -203,7 +203,7 @@
    },
    {
     "arquivo": "e2e/smoke.spec.ts",
-    "mudancas": 53
+    "mudancas": 54
    },
    {
     "arquivo": "package-lock.json",
@@ -222,15 +222,15 @@
     "mudancas": 25
    },
    {
+    "arquivo": "src/pages/QuotePage.tsx",
+    "mudancas": 24
+   },
+   {
     "arquivo": "docs/DATABASE_DICTIONARY.md",
     "mudancas": 23
    },
    {
     "arquivo": "site-supabase/supabase/tests/database/lead_storage.test.sql",
-    "mudancas": 23
-   },
-   {
-    "arquivo": "src/pages/QuotePage.tsx",
     "mudancas": 23
    },
    {
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 48
+    "commits": 49
    },
    {
     "autor": "dependabot[bot]",
