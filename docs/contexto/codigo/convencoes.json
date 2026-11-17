@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "feat(home): entrada para as landings de ideias e estados vazios (#166)",
    "infra(release): o release aplica as migrations do banco isolado (#165)",
    "fix(orcamento): o consentimento de WhatsApp descreve o que o sistema envia (#160)",
    "fix(ci): separa o teto de performance de producao do teto de pior caso (#164)",
-   "fix(ci): o resumo do quality gate para de acusar falha em passo que passou (#162)",
-   "feat(lgpd): o apagamento de titular passa a apagar o que faltava (#161)"
+   "fix(ci): o resumo do quality gate para de acusar falha em passo que passou (#162)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

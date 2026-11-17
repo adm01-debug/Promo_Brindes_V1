@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `bbfb77a703a476e3ea1407dd67916b162e98ed05` (2026-11-17T11:08:10Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `0d9c07b58b31e83924358bef0a8502d8088591d3` (2026-11-17T11:43:57Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -36,7 +36,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 |---|---|
 | arquivos_total | 685 |
 | arquivos_codigo | 271 |
-| linhas_codigo | 53494 |
+| linhas_codigo | 53517 |
 | rotas | 32 |
 | rotas_http_backend | 14 |
 | vistas_por_id | 0 |
@@ -171,15 +171,15 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 ## Hotspots (arquivos mais alterados, 90 dias)
 - package.json (63)
-- e2e/smoke.spec.ts (54)
+- e2e/smoke.spec.ts (55)
 - package-lock.json (36)
-- src/styles.css (34)
+- src/styles.css (35)
 - vercel.json (26)
 - .github/workflows/quality.yml (25)
 - src/pages/QuotePage.tsx (24)
 - docs/DATABASE_DICTIONARY.md (23)
 - site-supabase/supabase/tests/database/lead_storage.test.sql (23)
-- src/components/Layout.tsx (22)
+- src/components/Layout.tsx (23)
 - tests/api/lead-requests.test.ts (20)
 - .github/workflows/release.yml (19)
 - src/App.tsx (17)
@@ -377,6 +377,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-17 `0d9c07b` feat(home): entrada para as landings de ideias e estados vazios (#166)
 - 2026-11-17 `bbfb77a` infra(release): o release aplica as migrations do banco isolado (#165)
 - 2026-11-17 `cc68e42` fix(orcamento): o consentimento de WhatsApp descreve o que o sistema envia (#160)
 - 2026-11-17 `0600922` fix(ci): separa o teto de performance de producao do teto de pior caso (#164)
@@ -391,7 +392,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-16 `c0f2aeb` fix(seg): fecha os 5 alertas CodeQL high e conserta o paths-ignore (#154)
 - 2026-11-16 `7bd1520` chore(deps): sobe TypeScript de 5.9.3 para 6.0.3 (#153)
 - 2026-11-16 `401487f` chore(ci): actions/github-script v7.0.1 para v9.0.0 em todas as ocorrencias (#152)
-- 2026-11-16 `ba2bdf7` chore: ignora os worktrees temporarios de agentes de IA (#151)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

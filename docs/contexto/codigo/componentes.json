@@ -200,7 +200,7 @@
     "Layout"
    ],
    "export_default": null,
-   "linhas": 273,
+   "linhas": 280,
    "dominio": "components",
    "hooks_locais": [
     "useCategories",
@@ -477,7 +477,7 @@
     "HomePage"
    ],
    "export_default": "HomePage",
-   "linhas": 371,
+   "linhas": 380,
    "dominio": "pages",
    "hooks_locais": [
     "useAllCategories",

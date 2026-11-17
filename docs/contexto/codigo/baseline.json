@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "bbfb77a703a476e3ea1407dd67916b162e98ed05",
+  "commit": "0d9c07b58b31e83924358bef0a8502d8088591d3",
   "branch": "main",
-  "data_commit": "2026-11-17T11:08:10Z",
+  "data_commit": "2026-11-17T11:43:57Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "0d9c07b",
+    "data": "2026-11-17",
+    "assunto": "feat(home): entrada para as landings de ideias e estados vazios (#166)"
+   },
    {
     "sha": "bbfb77a",
     "data": "2026-11-17",
@@ -126,14 +131,9 @@
     "sha": "7347bd4",
     "data": "2026-11-13",
     "assunto": "fix(a11y): nomeia o link da imagem do card com o nome do produto (#136)"
-   },
-   {
-    "sha": "9c5f21b",
-    "data": "2026-11-13",
-    "assunto": "fix: minimatch 11 via overrides fecha dependabot #9 (DoS dev) (#135)"
    }
   ],
-  "arquivos_mudados_7d": 140,
+  "arquivos_mudados_7d": 142,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -172,6 +172,10 @@
     "mudancas": 4
    },
    {
+    "pasta": "e2e/smoke.spec.ts",
+    "mudancas": 4
+   },
+   {
     "pasta": "requirements-graphify.txt",
     "mudancas": 4
    },
@@ -188,12 +192,8 @@
     "mudancas": 4
    },
    {
-    "pasta": ".github/workflows/codeql.yml",
-    "mudancas": 3
-   },
-   {
-    "pasta": ".github/workflows/contexto.yml",
-    "mudancas": 3
+    "pasta": "src/styles.css",
+    "mudancas": 4
    }
   ],
   "arquivos_mais_mudados_90d": [
@@ -203,7 +203,7 @@
    },
    {
     "arquivo": "e2e/smoke.spec.ts",
-    "mudancas": 54
+    "mudancas": 55
    },
    {
     "arquivo": "package-lock.json",
@@ -211,7 +211,7 @@
    },
    {
     "arquivo": "src/styles.css",
-    "mudancas": 34
+    "mudancas": 35
    },
    {
     "arquivo": "vercel.json",
@@ -235,7 +235,7 @@
    },
    {
     "arquivo": "src/components/Layout.tsx",
-    "mudancas": 22
+    "mudancas": 23
    },
    {
     "arquivo": "tests/api/lead-requests.test.ts",
@@ -290,18 +290,18 @@
     "mudancas": 14
    },
    {
-    "arquivo": "src/pages/ProductPage.tsx",
+    "arquivo": "src/pages/HomePage.tsx",
     "mudancas": 14
    },
    {
-    "arquivo": "scripts/graphify.mjs",
-    "mudancas": 13
+    "arquivo": "src/pages/ProductPage.tsx",
+    "mudancas": 14
    }
   ],
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 50
+    "commits": 51
    },
    {
     "autor": "dependabot[bot]",
@@ -312,7 +312,7 @@
  "contagens": {
   "arquivos_total": 685,
   "arquivos_codigo": 271,
-  "linhas_codigo": 53494,
+  "linhas_codigo": 53517,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -400,7 +400,7 @@
   },
   "e2e/smoke.spec.ts": {
    "arquivos": 1,
-   "linhas": 1489
+   "linhas": 1496
   },
   "eslint.config.js": {
    "arquivos": 1,
@@ -540,7 +540,7 @@
   },
   "src/components": {
    "arquivos": 29,
-   "linhas": 3006
+   "linhas": 3013
   },
   "src/context": {
    "arquivos": 7,
@@ -556,7 +556,7 @@
   },
   "src/pages": {
    "arquivos": 22,
-   "linhas": 3066
+   "linhas": 3075
   },
   "src/test": {
    "arquivos": 1,
@@ -737,11 +737,11 @@
    "linhas": 409
   },
   {
-   "arquivo": "scripts/graphify-quality.mjs",
-   "linhas": 371
+   "arquivo": "src/pages/HomePage.tsx",
+   "linhas": 380
   },
   {
-   "arquivo": "src/pages/HomePage.tsx",
+   "arquivo": "scripts/graphify-quality.mjs",
    "linhas": 371
   },
   {

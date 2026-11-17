@@ -41,7 +41,7 @@
   {
    "arquivo": "e2e/smoke.spec.ts",
    "tipo": "e2e",
-   "linhas": 1489,
+   "linhas": 1496,
    "testa": [],
    "casos": 62
   },
