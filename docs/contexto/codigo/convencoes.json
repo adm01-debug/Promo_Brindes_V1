@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "fix(seo): landing de ideias entrega um único título ao buscador (#169)",
    "feat(analytics): mede o funil das landings de ideias (#168)",
    "chore: fecha F-49 no ledger de funcionalidades (#167)",
    "feat(home): entrada para as landings de ideias e estados vazios (#166)",
-   "infra(release): o release aplica as migrations do banco isolado (#165)",
-   "fix(orcamento): o consentimento de WhatsApp descreve o que o sistema envia (#160)"
+   "infra(release): o release aplica as migrations do banco isolado (#165)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

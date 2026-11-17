@@ -1,6 +1,6 @@
 # 11 · GLOSSÁRIO, DADOS DE REFERÊNCIA E LACUNAS
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `d539fb2cf1` · branch `main` · 2026-11-17 12:34 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `671127811f` · branch `main` · 2026-11-17 12:47 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## Glossário do domínio (entidades do sistema)
@@ -33,6 +33,7 @@
 | `OperationalAlertEvent` (TS) | notification_queue_alert \| notification_cron_failed \| retention_cron_failed \| commercial_alerts_cron_failed |  | `api/_lib/operationalAlerts.ts` |
 | `ProviderEventApplyReason` (TS) | duplicate \| delivery_not_found \| delivery_state_already_set |  | `api/_lib/siteDatabase.ts` |
 | `CatalogEditorialStatus` (TS) | published \| draft \| retired |  | `shared/catalogEditorial.ts` |
+| `IdeaLandingId` (TS) | onboarding \| eventos \| clientes-vip \| sustentaveis |  | `shared/ideaLandingPages.ts` |
 | `CampaignMoment` (TS) | onboarding \| evento \| relacionamento \| reconhecimento \| sazonal |  | `src/types.ts` |
 | `CampaignAudience` (TS) | clientes \| colaboradores \| lideranca \| parceiros \| publico-evento |  | `src/types.ts` |
 | `CampaignScale` (TS) | ate-50 \| 51-200 \| 201-500 \| 500-mais |  | `src/types.ts` |

@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `d539fb2cf1` · branch `main` · 2026-11-17 12:34 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `671127811f` · branch `main` · 2026-11-17 12:47 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -422,6 +422,7 @@ _nenhum mapa explícito encontrado no código — fora da tabela acima (se houve
 | OperationalAlertEvent | notification_queue_alert \| notification_cron_failed \| retention_cron_failed \| commercial_alerts_cron_failed | `api/_lib/operationalAlerts.ts` |
 | ProviderEventApplyReason | duplicate \| delivery_not_found \| delivery_state_already_set | `api/_lib/siteDatabase.ts` |
 | CatalogEditorialStatus | published \| draft \| retired | `shared/catalogEditorial.ts` |
+| IdeaLandingId | onboarding \| eventos \| clientes-vip \| sustentaveis | `shared/ideaLandingPages.ts` |
 | CampaignMoment | onboarding \| evento \| relacionamento \| reconhecimento \| sazonal | `src/types.ts` |
 | CampaignAudience | clientes \| colaboradores \| lideranca \| parceiros \| publico-evento | `src/types.ts` |
 | CampaignScale | ate-50 \| 51-200 \| 201-500 \| 500-mais | `src/types.ts` |
@@ -1038,7 +1039,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1555 testes em 124 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1556 testes em 124 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1107,6 +1108,7 @@ _nenhum item encontrado_
 | `tests/inventario-banco-sql.node.mjs` | 8 | banco.sql roda inteiro em transação somente leitura e passa na prova de origem · banco.sql: a transação somente leitura barra escrita, e a consulta não muda nada no banco · banco.sql: fila travada conta só o que ainda vai ser tentado; erro sai como código, nunca como texto · banco.sql: pg_cron sai com nome estável, só o nome das funções chamadas e as contas certas … |
 | `tests/validate-site-supabase-target.node.mjs` | 8 | aprova somente o projeto isolado do site, com código 0 e o ref em stdout · independe do diretório de onde é chamado · bloqueia o catálogo canônico e diz como refazer o vínculo · bloqueia qualquer conteúdo que não seja exatamente o ref do site … |
 | `tests/api/customer-proposals.test.ts` | 8 | download autenticado de propostas · assina por 60 segundos somente o documento autorizado pelo RPC · usa o JWT limitado no RPC e a credencial de Storage somente para a assinatura · rejeita origem, sessão e identificador inválidos antes do banco … |
+| `tests/api/site-page.test.ts` | 8 | HTML inicial das páginas estáticas · entrega metadados específicos para catálogo e não indexa o detalhe privado · preserva 404 real para uma landing editorial desconhecida · serve para cada landing o mesmo título que o React grava depois da hidratação … |
 | `tests/api/sitemap.test.ts` | 8 | sitemap público · nunca ultrapassa 50 mil URLs incluindo páginas estáticas · mantém o ano das datas no fuso editorial durante a virada UTC · prioriza o host público configurado e remove a barra final … |
 | `site-supabase/supabase/tests/database/default_privileges.test.sql` | 7 | anon não recebe nenhum privilégio implícito em futura tabela pública · authenticated não recebe nenhum privilégio implícito em futura tabela pública · anon não recebe privilégio implícito em futura sequência pública · authenticated não recebe privilégio implícito em futura sequência pública … |
 | `site-supabase/supabase/tests/database/storage_tuning.test.sql` | 7 | rate_limit_buckets é UNLOGGED (Etapa 30) · shared_selection_rate_limits é UNLOGGED (Etapa 30) · notification_deliveries continua persistente (não é efêmera como as tabelas de rate limit) · notification_deliveries tem fillfactor 80 (Etapa 40, espaço para HOT updates) … |
@@ -1118,7 +1120,6 @@ _nenhum item encontrado_
 | `src/lib/quoteSubmission.test.ts` | 7 | reconciliação da seleção após o envio · considera inalterada uma seleção recriada por render sem edição · distingue edição de produto ou contexto da seleção enviada · remove somente os snapshots efetivamente enviados … |
 | `tests/soak-test-notification-queue.node.mjs` | 7 | percentile usa o método nearest-rank e devolve null para lista vazia · parseSoakConfig aplica os padrões e recusa valores fora do contrato · isTerminalDelivery reconhece sent, exhausted e failed com tentativas esgotadas · drena a fila sem falhas, só fala com o banco local e escreve o relatório com os padrões reais … |
 | `tests/api/product-page.test.ts` | 7 | HTML inicial de fichas de produto · escapa conteúdo de catálogo no head e no JSON-LD · entrega produto com metadados específicos e schema sem virar checkout · responde 404 e noindex para um identificador inválido sem consultar o catálogo … |
-| `tests/api/site-page.test.ts` | 7 | HTML inicial das páginas estáticas · entrega metadados específicos para catálogo e não indexa o detalhe privado · preserva 404 real para uma landing editorial desconhecida · publica o montador de kits com rewrite e metadados indexáveis próprios … |
 | `src/context/CustomerAuthContext.test.tsx` | 6 | inicialização da autenticação do cliente · sai do carregamento infinito, informa a falha e permite tentar novamente · trata o erro retornado pelo SDK mesmo quando a Promise é resolvida · não apaga a falha quando INITIAL_SESSION chega vazio após getSession falhar … |
 | `src/lib/campaignPresets.test.ts` | 6 | ache pelo briefing · gera URL compartilhável somente com escolhas válidas · expõe escolhas como contexto removível sem duplicar critérios ocultos · traduz apenas sinais confiáveis para o contrato público … |
 | `src/lib/catalogFilters.test.ts` | 6 | estado do superfiltro público · apresenta o perfil de novidades como Tendências · aceita apenas IDs conhecidos e remove repetições da URL · traduz IDs amigáveis para as grafias existentes no catálogo … |

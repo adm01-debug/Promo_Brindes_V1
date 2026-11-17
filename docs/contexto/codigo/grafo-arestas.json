@@ -97,7 +97,8 @@
    "api/_lib/pageShell.ts",
    "api/_lib/publicProductPage.ts",
    "shared/campaignYears.ts",
-   "shared/catalogEditorial.ts"
+   "shared/catalogEditorial.ts",
+   "shared/ideaLandingPages.ts"
   ],
   "api/sitemap.ts": [
    "api/_lib/curatedPagePreviews.ts",
@@ -338,6 +339,7 @@
    "src/types.ts"
   ],
   "src/lib/ideaLandings.ts": [
+   "shared/ideaLandingPages.ts",
    "src/lib/catalog.ts"
   ],
   "src/lib/kitBuilder.ts": [

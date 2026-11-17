@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "d539fb2cf1b1f4b82aec9ef425b56bbd69fa10a7",
+  "commit": "671127811f93cf1c0bd55e26be1eda7a189d6f28",
   "branch": "main",
-  "data_commit": "2026-11-17T12:33:47Z",
+  "data_commit": "2026-11-17T12:46:39Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "6711278",
+    "data": "2026-11-17",
+    "assunto": "fix(seo): landing de ideias entrega um único título ao buscador (#169)"
+   },
    {
     "sha": "d539fb2",
     "data": "2026-11-17",
@@ -126,14 +131,9 @@
     "sha": "15d0af6",
     "data": "2026-11-14",
     "assunto": "chore: contexto agendado de 10 min para 1x/hora (#140)"
-   },
-   {
-    "sha": "99e47fe",
-    "data": "2026-11-14",
-    "assunto": "feat: relatorio de prontidao para producao (docs/prod-readiness.md)"
    }
   ],
-  "arquivos_mudados_7d": 145,
+  "arquivos_mudados_7d": 149,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 53
+    "commits": 54
    },
    {
     "autor": "dependabot[bot]",
@@ -310,9 +310,9 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 685,
-  "arquivos_codigo": 271,
-  "linhas_codigo": 53540,
+  "arquivos_total": 686,
+  "arquivos_codigo": 272,
+  "linhas_codigo": 53595,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -384,7 +384,7 @@
   },
   "api/site-page.ts": {
    "arquivos": 1,
-   "linhas": 124
+   "linhas": 127
   },
   "api/sitemap.ts": {
    "arquivos": 1,
@@ -534,6 +534,10 @@
    "arquivos": 1,
    "linhas": 91
   },
+  "shared/ideaLandingPages.ts": {
+   "arquivos": 1,
+   "linhas": 35
+  },
   "src/App.tsx": {
    "arquivos": 1,
    "linhas": 138
@@ -548,7 +552,7 @@
   },
   "src/lib": {
    "arquivos": 79,
-   "linhas": 7642
+   "linhas": 7639
   },
   "src/main.tsx": {
    "arquivos": 1,
@@ -572,7 +576,7 @@
   },
   "tests/api": {
    "arquivos": 18,
-   "linhas": 3519
+   "linhas": 3539
   },
   "tests/catalog-public-contract.node.mjs": {
    "arquivos": 1,
