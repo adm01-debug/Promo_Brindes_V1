@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "108b0b2eb815825ff8b9ed10eaed6766d026ad03",
+  "sha": "e4a904ffbe86f7f146ac53170188e9354c5358a8",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-17 20:24 UTC",
+  "generated_at": "2026-11-17 20:39 UTC",
   "files_total": 585,
   "code_files": 384,
-  "code_lines": 67411,
+  "code_lines": 67528,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "60ba094373a20f38",
+ "facts_hash": "60f002d406073813",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -7075,7 +7075,7 @@
   {
    "module": "api",
    "files": 28,
-   "lines": 4201,
+   "lines": 4227,
    "tables": [],
    "exports": [
     "briefing-assets.ts: REQUEST_TIMEOUT_MS, handler, async",
@@ -7888,7 +7888,7 @@
   {
    "module": "tests",
    "files": 44,
-   "lines": 9740,
+   "lines": 9831,
    "tables": [
     "constructor",
     "quote_requests",
@@ -8830,7 +8830,7 @@
    {
     "file": "api/_lib/operationalAlerts.ts",
     "name": "OperationalAlertEvent",
-    "values": "notification_queue_alert | notification_cron_failed | retention_cron_failed | commercial_alerts_cron_failed | public_catalog_unavailable"
+    "values": "notification_queue_alert | notification_cron_failed | retention_cron_failed | commercial_alerts_cron_failed | public_catalog_unavailable | retention_backlog_saturated"
    },
    {
     "file": "api/_lib/siteDatabase.ts",
@@ -10195,6 +10195,10 @@
    {
     "file": "api/notifications.ts",
     "text": "um e-mail lento não pode consumir o tempo do WhatsApp até zero, como"
+   },
+   {
+    "file": "api/retention.ts",
+    "text": "(20260911190000_harden_retention_metadata.sql:55-62, `limit p_batch_size`"
    },
    {
     "file": "api/shared-selections.ts",
@@ -11583,6 +11587,11 @@
     "file": "api/retention.ts",
     "name": "BRIEFING_ASSET_BUCKET",
     "value": "'customer-briefing-assets'"
+   },
+   {
+    "file": "api/retention.ts",
+    "name": "AUDIT_LOG_BATCH_SIZE",
+    "value": "1_000"
    },
    {
     "file": "api/shared-selections.ts",
@@ -18866,6 +18875,22 @@
    },
    {
     "file": "tests/api/retention.test.ts",
+    "name": "lote cheio sinaliza resíduo e alerta o canal operacional"
+   },
+   {
+    "file": "tests/api/retention.test.ts",
+    "name": "lote cheio de contatos vencidos sinaliza resíduo mesmo sem orçamento vencido"
+   },
+   {
+    "file": "tests/api/retention.test.ts",
+    "name": "99 contatos vencidos ficam abaixo do lote e não sinalizam resíduo"
+   },
+   {
+    "file": "tests/api/retention.test.ts",
+    "name": "lote incompleto não sinaliza resíduo nem alerta"
+   },
+   {
+    "file": "tests/api/retention.test.ts",
     "name": "remove blobs pela Storage API e finaliza somente os metadados confirmados"
    },
    {
@@ -24424,7 +24449,7 @@
   },
   "api/retention.ts": {
    "path": "api/retention.ts",
-   "lines": 192,
+   "lines": 218,
    "exports": [
     "const REQUEST_TIMEOUT_MS",
     "function handler",
@@ -24457,7 +24482,14 @@
     {
      "name": "BRIEFING_ASSET_BUCKET",
      "value": "'customer-briefing-assets'"
+    },
+    {
+     "name": "AUDIT_LOG_BATCH_SIZE",
+     "value": "1_000"
     }
+   ],
+   "rule_comments": [
+    "(20260911190000_harden_retention_metadata.sql:55-62, `limit p_batch_size`"
    ]
   },
   "api/shared-selections.ts": {
@@ -24744,7 +24776,7 @@
    "enums": [
     {
      "name": "OperationalAlertEvent",
-     "values": "notification_queue_alert | notification_cron_failed | retention_cron_failed | commercial_alerts_cron_failed | public_catalog_unavailable"
+     "values": "notification_queue_alert | notification_cron_failed | retention_cron_failed | commercial_alerts_cron_failed | public_catalog_unavailable | retention_backlog_saturated"
     }
    ],
    "params": [
@@ -32437,7 +32469,7 @@
   },
   "tests/api/retention.test.ts": {
    "path": "tests/api/retention.test.ts",
-   "lines": 293,
+   "lines": 384,
    "is_test": true,
    "env": [
     "CRON_SECRET",
@@ -32449,6 +32481,10 @@
    "tests": [
     "tarefa de retenção",
     "recusa chamadas sem o segredo da tarefa agendada",
+    "lote cheio sinaliza resíduo e alerta o canal operacional",
+    "lote cheio de contatos vencidos sinaliza resíduo mesmo sem orçamento vencido",
+    "99 contatos vencidos ficam abaixo do lote e não sinalizam resíduo",
+    "lote incompleto não sinaliza resíduo nem alerta",
     "remove blobs pela Storage API e finaliza somente os metadados confirmados",
     "usa a role limitada para RPC e a chave de Storage separada ao migrar a autenticação",
     "não finaliza metadados quando falta credencial para apagar um blob existente",
@@ -32569,10 +32605,21 @@
   }
  },
  "git": {
-  "sha": "108b0b2eb815825ff8b9ed10eaed6766d026ad03",
+  "sha": "e4a904ffbe86f7f146ac53170188e9354c5358a8",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "e4a904f",
+    "date": "2026-11-17",
+    "author": "adm01-debug",
+    "subject": "feat(retenção): resíduo de dado pessoal não apagado deixa de ser invisível (#184)",
+    "files": [
+     "api/_lib/operationalAlerts.ts",
+     "api/retention.ts",
+     "tests/api/retention.test.ts"
+    ]
+   },
    {
     "sha": "108b0b2",
     "date": "2026-11-17",
@@ -32901,17 +32948,6 @@
      ".gitignore",
      "api/commercial-alerts.ts"
     ]
-   },
-   {
-    "sha": "c0f2aeb",
-    "date": "2026-11-16",
-    "author": "adm01-debug",
-    "subject": "fix(seg): fecha os 5 alertas CodeQL high e conserta o paths-ignore (#154)",
-    "files": [
-     ".github/workflows/codeql.yml",
-     "scripts/ai-context/gerar.mjs",
-     "scripts/graphify.mjs"
-    ]
    }
   ],
   "hot_files": [
@@ -32932,6 +32968,10 @@
     3
    ],
    [
+    "api/_lib/operationalAlerts.ts",
+    2
+   ],
+   [
     "api/briefing-assets.ts",
     2
    ],
@@ -32945,10 +32985,6 @@
    ],
    [
     "tests/api/lead-requests.test.ts",
-    2
-   ],
-   [
-    ".github/workflows/codeql.yml",
     2
    ],
    [
@@ -32984,15 +33020,15 @@
     2
    ],
    [
+    "api/retention.ts",
+    1
+   ],
+   [
+    "tests/api/retention.test.ts",
+    1
+   ],
+   [
     "api/_lib/siteDatabase.ts",
-    1
-   ],
-   [
-    "src/pages/CustomerQuotePage.tsx",
-    1
-   ],
-   [
-    "tests/api/briefing-assets.test.ts",
     1
    ]
   ]

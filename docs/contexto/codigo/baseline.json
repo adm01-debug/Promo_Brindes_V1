@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "108b0b2eb815825ff8b9ed10eaed6766d026ad03",
+  "commit": "e4a904ffbe86f7f146ac53170188e9354c5358a8",
   "branch": "main",
-  "data_commit": "2026-11-17T20:15:10Z",
+  "data_commit": "2026-11-17T20:35:16Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "e4a904f",
+    "data": "2026-11-17",
+    "assunto": "feat(retenção): resíduo de dado pessoal não apagado deixa de ser invisível (#184)"
+   },
    {
     "sha": "108b0b2",
     "data": "2026-11-17",
@@ -126,14 +131,9 @@
     "sha": "f48af64",
     "data": "2026-11-17",
     "assunto": "feat(contato): avisa o comercial quando chega lead pelo formulario de contato (#158)"
-   },
-   {
-    "sha": "bcca66c",
-    "data": "2026-11-17",
-    "assunto": "feat(busca): corpus julgado de relevancia vai de 20 para 33 intencoes (#163)"
    }
   ],
-  "arquivos_mudados_7d": 117,
+  "arquivos_mudados_7d": 119,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 68
+    "commits": 69
    },
    {
     "autor": "dependabot[bot]",
@@ -312,7 +312,7 @@
  "contagens": {
   "arquivos_total": 692,
   "arquivos_codigo": 277,
-  "linhas_codigo": 54237,
+  "linhas_codigo": 54354,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -376,7 +376,7 @@
   },
   "api/retention.ts": {
    "arquivos": 1,
-   "linhas": 192
+   "linhas": 218
   },
   "api/shared-selections.ts": {
    "arquivos": 1,
@@ -580,7 +580,7 @@
   },
   "tests/api": {
    "arquivos": 20,
-   "linhas": 3820
+   "linhas": 3911
   },
   "tests/catalog-public-contract.node.mjs": {
    "arquivos": 1,

@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `108b0b2eb8` · branch `main` · 2026-11-17 20:24 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `e4a904ffbe` · branch `main` · 2026-11-17 20:39 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -420,7 +420,7 @@ _nenhum mapa explícito encontrado no código — fora da tabela acima (se houve
 |---|---|---|
 | CommercialAlertResult | sent \| pending | `api/_lib/commercialTeamAlerts.ts` |
 | LeadKind | quote \| contact | `api/_lib/contracts.ts` |
-| OperationalAlertEvent | notification_queue_alert \| notification_cron_failed \| retention_cron_failed \| commercial_alerts_cron_failed \| public_catalog_unavailable | `api/_lib/operationalAlerts.ts` |
+| OperationalAlertEvent | notification_queue_alert \| notification_cron_failed \| retention_cron_failed \| commercial_alerts_cron_failed \| public_catalog_unavailable \| retention_backlog_saturated | `api/_lib/operationalAlerts.ts` |
 | ProviderEventApplyReason | duplicate \| delivery_not_found \| delivery_state_already_set | `api/_lib/siteDatabase.ts` |
 | CatalogEditorialStatus | published \| draft \| retired | `shared/catalogEditorial.ts` |
 | IdeaLandingId | onboarding \| eventos \| clientes-vip \| sustentaveis | `shared/ideaLandingPages.ts` |
@@ -632,6 +632,7 @@ _nenhum item encontrado_
 | `RETENTION_BATCH_SIZE` | `100` | `api/retention.ts` |
 | `PROPOSAL_BUCKET` | `'customer-proposals'` | `api/retention.ts` |
 | `BRIEFING_ASSET_BUCKET` | `'customer-briefing-assets'` | `api/retention.ts` |
+| `AUDIT_LOG_BATCH_SIZE` | `1_000` | `api/retention.ts` |
 | `MAX_SHARED_SELECTION_BODY_BYTES` | `32 * 1024` | `api/shared-selections.ts` |
 | `REQUEST_TIMEOUT_MS` | `8_000` | `api/sitemap.ts` |
 | `REQUEST_TIMEOUT_MS` | `5_000` | `api/_lib/catalogValidation.ts` |
@@ -1043,7 +1044,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1581 testes em 128 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1585 testes em 128 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1077,6 +1078,7 @@ _nenhum item encontrado_
 | `site-supabase/supabase/tests/database/selection_asset_integrity.test.sql` | 17 | leitura limitada recebe hash do solicitante · revogação limitada recebe hash do solicitante · site_api usa leitura limitada · anônimo não chama leitura limitada diretamente … |
 | `site-supabase/supabase/tests/database/site_api_privileges.test.sql` | 17 | anon continua sem create_site_quote_request · authenticated continua sem create_site_quote_request · site_api não tem acesso a customer_profiles (fora do escopo das 13 RPCs) · site_api não insere proposal_documents (isso é fluxo administrativo) … |
 | `tests/smoke-deployment.node.mjs` | 17 | aprova um deployment saudável consultando cada rota uma única vez · reprova status inesperado sem repetir a rota · reprova header de segurança ausente ou divergente em qualquer rota HTML · reprova corpo errado no sitemap e content-type errado no Analytics … |
+| `tests/api/retention.test.ts` | 17 | tarefa de retenção · recusa chamadas sem o segredo da tarefa agendada · lote cheio sinaliza resíduo e alerta o canal operacional · lote cheio de contatos vencidos sinaliza resíduo mesmo sem orçamento vencido … |
 | `site-supabase/supabase/tests/database/contact_commercial_alert.test.sql` | 16 | novo contato alimenta a fila do alerta comercial na mesma transação · contato enfileira exatamente uma entrega · a entrega é o alerta comercial pendente do contato · o envelope identifica o tipo do lead (a API não renderiza texto de orçamento) … |
 | `tests/api/maxDuration.test.ts` | 16 | Etapa 24: maxDuration em vercel.json cobre o pior caso real de cada rota · api/quote-requests.ts: catalogValidation + siteDatabase + confirmação (canais em paralelo) · api/contact-requests.ts: preflight + siteDatabase + alerta comercial (sem catalogValidation nem confirmação) · api/notification-events-resend.ts (Etapa 30): apenas uma chamada de RPC (callSiteRpc) … |
 | `src/lib/sharedSelection.test.ts` | 14 | sharedSelection · preserva prioridade alternativa no link e na seleção reconstruída · preserva cor sem variantId e bloqueia fallback ambíguo ou removido · aceita nomes Unicode e mantém links Latin-1 antigos legíveis … |
@@ -1086,7 +1088,6 @@ _nenhum item encontrado_
 | `tests/closure-ledger.node.mjs` | 13 | ledger atual contém todos os IDs, commits e fontes locais · não aceita trocar uma referência por um ID inexistente mantendo o total · fontes inexistentes e caminhos fora do site não passam como evidência · fonte atual que não existia no commit auditado não passa como evidência histórica … |
 | `tests/session-start-hook.node.mjs` | 13 | hook: fora da sessão remota sai com 0 sem saída e sem criar nada · hook: grafo já carimbado no commit atual responde async e não instala nem gera · hook: grafo de outro commit dispara o build e carimba o commit novo · hook: carimbo sem o mapa de banco não conta como grafo pronto … |
 | `tests/api/briefing-assets.test.ts` | 13 | inspeção server-side de anexos privados · estouro do limite devolve 429, não  · confirma um PNG somente depois de ler a assinatura no Storage privado · remove blob e metadado pelo caminho server-side quando o conteúdo contradiz o MIME declarado … |
-| `tests/api/retention.test.ts` | 13 | tarefa de retenção · recusa chamadas sem o segredo da tarefa agendada · remove blobs pela Storage API e finaliza somente os metadados confirmados · usa a role limitada para RPC e a chave de Storage separada ao migrar a autenticação … |
 | `tests/api/webhookSignature.test.ts` | 13 | verifySvixSignature (Etapa 30, Resend) · aceita uma assinatura válida · aceita quando o header traz múltiplas assinaturas e uma delas bate (rotação de segredo) · rejeita corpo adulterado … |
 | `site-supabase/supabase/tests/database/admin_write_audit.test.sql` | 12 | anon não lê a trilha de auditoria · authenticated não lê a trilha de auditoria · site_api não lê a própria trilha de auditoria (não precisa para operar) · service_role lê a trilha de auditoria … |
 | `site-supabase/supabase/tests/database/kit_persistence_guards.test.sql` | 12 | guarda estrutural de kits existe no schema privado · rascunho valida kits no insert · rascunho valida kits no update · link compartilhado valida kits no insert … |
@@ -1212,6 +1213,7 @@ _nenhum item encontrado_
 | não concluiu a finalização. Não reenvia a mensagem — apenas finaliza. | `api/notifications.ts` |
 | chamada. `console.error` funciona como o sinal mínimo (visível em log); | `api/notifications.ts` |
 | um e-mail lento não pode consumir o tempo do WhatsApp até zero, como | `api/notifications.ts` |
+| (20260911190000_harden_retention_metadata.sql:55-62, `limit p_batch_size` | `api/retention.ts` |
 | Cinquenta referências válidas com variantes e nomes de kit no limite ocupam | `api/shared-selections.ts` |
 | * O contrato público pode expor apenas o swatch, sem um ID interno. */ | `api/_lib/catalogValidation.ts` |
 | tiver nome. Um objeto sem nenhum identificador não pode ser conciliado. | `api/_lib/catalogValidation.ts` |
