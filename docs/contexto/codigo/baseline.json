@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "19599462d57f536baa008c61e29d598dbc5463fa",
+  "commit": "d539fb2cf1b1f4b82aec9ef425b56bbd69fa10a7",
   "branch": "main",
-  "data_commit": "2026-11-17T12:07:56Z",
+  "data_commit": "2026-11-17T12:33:47Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "d539fb2",
+    "data": "2026-11-17",
+    "assunto": "feat(analytics): mede o funil das landings de ideias (#168)"
+   },
    {
     "sha": "1959946",
     "data": "2026-11-17",
@@ -126,14 +131,9 @@
     "sha": "99e47fe",
     "data": "2026-11-14",
     "assunto": "feat: relatorio de prontidao para producao (docs/prod-readiness.md)"
-   },
-   {
-    "sha": "8a810bd",
-    "data": "2026-11-13",
-    "assunto": "fix(lint): ignora o runtime local .tools/ no eslint (#137)"
    }
   ],
-  "arquivos_mudados_7d": 142,
+  "arquivos_mudados_7d": 145,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -290,18 +290,18 @@
     "mudancas": 14
    },
    {
-    "arquivo": "src/pages/HomePage.tsx",
+    "arquivo": "src/lib/analytics.ts",
     "mudancas": 14
    },
    {
-    "arquivo": "src/pages/ProductPage.tsx",
+    "arquivo": "src/pages/HomePage.tsx",
     "mudancas": 14
    }
   ],
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 52
+    "commits": 53
    },
    {
     "autor": "dependabot[bot]",
@@ -312,7 +312,7 @@
  "contagens": {
   "arquivos_total": 685,
   "arquivos_codigo": 271,
-  "linhas_codigo": 53517,
+  "linhas_codigo": 53540,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -548,7 +548,7 @@
   },
   "src/lib": {
    "arquivos": 79,
-   "linhas": 7631
+   "linhas": 7642
   },
   "src/main.tsx": {
    "arquivos": 1,
@@ -556,7 +556,7 @@
   },
   "src/pages": {
    "arquivos": 22,
-   "linhas": 3075
+   "linhas": 3087
   },
   "src/test": {
    "arquivos": 1,

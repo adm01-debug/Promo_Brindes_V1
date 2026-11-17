@@ -769,7 +769,8 @@
     "useEffect",
     "useParams",
     "useProduct",
-    "useQuoteCart"
+    "useQuoteCart",
+    "useRef"
    ],
    "hooks_locais": [
     "useAllCategories",

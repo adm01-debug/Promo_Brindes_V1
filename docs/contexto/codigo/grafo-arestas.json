@@ -502,6 +502,7 @@
    "src/components/ContextualFaq.tsx",
    "src/components/ProductCard.tsx",
    "src/components/Seo.tsx",
+   "src/lib/analytics.ts",
    "src/lib/hooks.ts",
    "src/lib/ideaLandings.ts"
   ],

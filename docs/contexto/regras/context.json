@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "19599462d57f536baa008c61e29d598dbc5463fa",
+  "sha": "d539fb2cf1b1f4b82aec9ef425b56bbd69fa10a7",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-17 12:19 UTC",
+  "generated_at": "2026-11-17 12:34 UTC",
   "files_total": 578,
   "code_files": 378,
-  "code_lines": 66691,
+  "code_lines": 66714,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "373edf3d75b0e04c",
+ "facts_hash": "fc3f71e688ee94f1",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -7627,7 +7627,7 @@
   {
    "module": "src/lib",
    "files": 79,
-   "lines": 7631,
+   "lines": 7642,
    "tables": [],
    "exports": [
     "analytics.ts: FunnelEventMap, redactAnalyticsPathname, redactTelemetryUrl, redactAnalyticsUrl, trackFunnelEvent",
@@ -7774,7 +7774,7 @@
   {
    "module": "src/pages",
    "files": 22,
-   "lines": 3075,
+   "lines": 3087,
    "tables": [],
    "exports": [
     "AboutPage.tsx: AboutPage",
@@ -15704,6 +15704,10 @@
    {
     "file": "src/lib/analytics.test.ts",
     "name": "emite somente propriedades agregadas do contrato fechado"
+   },
+   {
+    "file": "src/lib/analytics.test.ts",
+    "name": "mede o conteudo editorial sem vazar a URL da curadoria"
    },
    {
     "file": "src/lib/analytics.test.ts",
@@ -29147,7 +29151,7 @@
   },
   "src/lib/analytics.test.ts": {
    "path": "src/lib/analytics.test.ts",
-   "lines": 66,
+   "lines": 73,
    "is_test": true,
    "tests": [
     "instrumentação segura",
@@ -29155,13 +29159,14 @@
     "normaliza identificadores da área privada antes do pageview",
     "aplica a mesma minimização de URL aos eventos de desempenho",
     "emite somente propriedades agregadas do contrato fechado",
+    "mede o conteudo editorial sem vazar a URL da curadoria",
     "mede a biblioteca sem enviar o texto pesquisado",
     "mede a área do cliente sem enviar identidade ou protocolo"
    ]
   },
   "src/lib/analytics.ts": {
    "path": "src/lib/analytics.ts",
-   "lines": 125,
+   "lines": 129,
    "exports": [
     "interface FunnelEventMap",
     "function redactAnalyticsPathname",
@@ -30895,7 +30900,7 @@
   },
   "src/pages/IdeaLandingPage.tsx": {
    "path": "src/pages/IdeaLandingPage.tsx",
-   "lines": 26,
+   "lines": 38,
    "exports": [
     "function IdeaLandingPage"
    ]
@@ -32253,10 +32258,21 @@
   }
  },
  "git": {
-  "sha": "19599462d57f536baa008c61e29d598dbc5463fa",
+  "sha": "d539fb2cf1b1f4b82aec9ef425b56bbd69fa10a7",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "d539fb2",
+    "date": "2026-11-17",
+    "author": "adm01-debug",
+    "subject": "feat(analytics): mede o funil das landings de ideias (#168)",
+    "files": [
+     "src/lib/analytics.test.ts",
+     "src/lib/analytics.ts",
+     "src/pages/IdeaLandingPage.tsx"
+    ]
+   },
    {
     "sha": "1959946",
     "date": "2026-11-17",
@@ -32563,26 +32579,16 @@
      "requirements-graphify.txt",
      "scripts/graphify.mjs"
     ]
-   },
-   {
-    "sha": "02c5c8d",
-    "date": "2026-11-12",
-    "author": "dependabot[bot]",
-    "subject": "chore(deps): bump the npm-minor-and-patch group across 1 directory with 12 updates (#127)",
-    "files": [
-     "package-lock.json",
-     "package.json"
-    ]
    }
   ],
   "hot_files": [
    [
     "package-lock.json",
-    5
+    4
    ],
    [
     "package.json",
-    5
+    4
    ],
    [
     ".github/workflows/quality.yml",
@@ -32637,23 +32643,23 @@
     2
    ],
    [
+    "src/lib/analytics.test.ts",
+    1
+   ],
+   [
+    "src/lib/analytics.ts",
+    1
+   ],
+   [
+    "src/pages/IdeaLandingPage.tsx",
+    1
+   ],
+   [
     "analise-prs/funcionalidades.csv",
     1
    ],
    [
     "src/components/Layout.tsx",
-    1
-   ],
-   [
-    "src/pages/HomePage.tsx",
-    1
-   ],
-   [
-    ".github/workflows/release.yml",
-    1
-   ],
-   [
-    "docs/agentes/banco.md",
     1
    ]
   ]

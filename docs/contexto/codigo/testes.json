@@ -216,11 +216,11 @@
   {
    "arquivo": "src/lib/analytics.test.ts",
    "tipo": "unit",
-   "linhas": 66,
+   "linhas": 73,
    "testa": [
     "src/lib/analytics.ts"
    ],
-   "casos": 6
+   "casos": 7
   },
   {
    "arquivo": "src/lib/briefingAssets.test.ts",
