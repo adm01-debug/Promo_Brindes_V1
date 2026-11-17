@@ -497,9 +497,3 @@ export async function fetchAllCategories(signal?: AbortSignal): Promise<Category
 export function defaultQuoteQuantity(product: Pick<CatalogProduct, 'minQuantity'>): number {
   return Math.max(product.minQuantity, 100);
 }
-
-export const catalogConfig = {
-  canonicalProjectId: CANONICAL_PROJECT_ID,
-  isCanonical: resolveUrl().includes(CANONICAL_PROJECT_ID),
-  preferredProductResource: PREFERRED_PRODUCT_RESOURCE,
-};

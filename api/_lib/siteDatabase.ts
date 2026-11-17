@@ -261,11 +261,6 @@ export async function persistLead(kind: LeadKind, payload: NormalizedLeadPayload
   }
 }
 
-export function assertSafeSiteDatabaseConfiguration(): boolean {
-  getSiteDatabaseConfig();
-  return true;
-}
-
 /** Chamada de RPC genérica ao banco do site (Etapa 30: webhooks de provedor). */
 export async function callSiteRpc<T>(name: string, body: Record<string, unknown>, signal: AbortSignal): Promise<T> {
   const config = getSiteDatabaseConfig();
