@@ -3655,7 +3655,7 @@ p {
 
 .footer-grid {
   display: grid;
-  grid-template-columns: 1.5fr 0.7fr 0.7fr 1fr;
+  grid-template-columns: 1.4fr 0.7fr 0.7fr 0.7fr 1fr;
   gap: 55px;
   padding-bottom: 60px;
 }
@@ -4339,6 +4339,9 @@ p {
 .category-grid {
   gap: 18px;
 }
+/* O estado vazio ocupa a faixa inteira: dentro de um grid de 4 colunas ele
+   apareceria comprimido em uma celula. */
+.category-grid > .catalog-empty { grid-column: 1 / -1; }
 
 .category-card {
   min-height: 210px;

@@ -224,7 +224,14 @@ export default function HomePage() {
           </div>
           {featured.loading && <ProductGridSkeleton />}
           {featured.error && <CatalogError message={featured.error} onRetry={() => setFeaturedRetryKey((key) => key + 1)} />}
-          {!featured.loading && !featured.error && (
+          {!featured.loading && !featured.error && !featured.data.products.length && (
+            <div className="catalog-empty">
+              <h3>A curadoria de destaques está sendo atualizada.</h3>
+              <p>Enquanto isso, o radar completo continua disponível para você filtrar por momento, público e contexto.</p>
+              <div><Link className="button button--dark" to="/catalogo">Abrir o radar de produtos <ArrowRight size={18} /></Link></div>
+            </div>
+          )}
+          {!featured.loading && !featured.error && featured.data.products.length > 0 && (
             <div className="product-grid" role="region" tabIndex={0} aria-label="Destaques do catálogo; deslize horizontalmente em telas pequenas">
               {featured.data.products.map((product, index) => (
                 <ProductCard
@@ -310,9 +317,11 @@ export default function HomePage() {
               ? <CatalogError message={categories.error} onRetry={() => setCategoryRetryKey((key) => key + 1)} />
               : categories.loading
               ? Array.from({ length: 8 }, (_, index) => <div key={index} className="category-card category-card--loading" />)
-              : homepageCategories.map(({ category, icon, label }, index) => (
+              : homepageCategories.length
+              ? homepageCategories.map(({ category, icon, label }, index) => (
                   <CategoryPhotoCard key={category.id} category={category} allCategories={allCategories.data} icon={icon} label={label} index={index} />
-                ))}
+                ))
+              : <div className="catalog-empty"><h3>As categorias estão sendo reorganizadas.</h3><p>Use a busca ou o radar completo para chegar aos produtos por momento e público.</p><div><Link className="button button--dark" to="/catalogo">Abrir o radar de produtos <ArrowRight size={18} /></Link></div></div>}
           </div>
         </div>
       </section>
