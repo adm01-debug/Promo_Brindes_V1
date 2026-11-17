@@ -17,12 +17,12 @@ export default function IdeaLandingPage() {
   // Mesmo contrato do catalogo (useCatalogPageState.ts:194-200): um evento por
   // combinacao de conteudo, emitido so quando a curadoria da landing carregou.
   useEffect(() => {
-    if (!landing || catalog.loading || catalog.error) return;
+    if (!landing || catalog.stale || catalog.loading || catalog.error) return;
     const viewKey = `${landing.id}|${catalog.data.total}`;
     if (trackedViewsRef.current.has(viewKey)) return;
     trackedViewsRef.current.add(viewKey);
     trackFunnelEvent('idea_landing_viewed', { topic: landing.id, result_count: catalog.data.total });
-  }, [catalog.data.total, catalog.error, catalog.loading, landing]);
+  }, [catalog.data.total, catalog.error, catalog.loading, catalog.stale, landing]);
 
   if (!landing) return <div className="idea-landing-state container"><Seo title="Ideia não encontrada" path="/ideias" noIndex /><h1>Essa ideia ainda não está publicada.</h1><p>Volte ao catálogo para explorar referências para a sua campanha.</p><Link className="button button--dark" to="/catalogo">Abrir catálogo</Link></div>;
 

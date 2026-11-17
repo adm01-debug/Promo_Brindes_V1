@@ -13,13 +13,14 @@ function errorMessage(error: unknown): string {
   return 'Não foi possível concluir esta consulta.';
 }
 
-export function useCatalog(query: CatalogQuery, refreshKey = 0, enabled = true): AsyncState<CatalogResult> {
-  const [state, setState] = useState<AsyncState<CatalogResult>>({
+export function useCatalog(query: CatalogQuery, refreshKey = 0, enabled = true): AsyncState<CatalogResult> & { stale: boolean } {
+  const queryKey = JSON.stringify(query);
+  const [state, setState] = useState<AsyncState<CatalogResult> & { queryKey: string }>({
     data: { products: [], total: 0, page: query.page ?? 1, pageSize: query.pageSize ?? 24 },
     loading: true,
     error: null,
+    queryKey,
   });
-  const queryKey = JSON.stringify(query);
 
   useEffect(() => {
     if (!enabled) {
@@ -27,16 +28,17 @@ export function useCatalog(query: CatalogQuery, refreshKey = 0, enabled = true):
         data: { products: [], total: 0, page: query.page ?? 1, pageSize: query.pageSize ?? 24 },
         loading: false,
         error: null,
+        queryKey,
       });
       return;
     }
     const controller = new AbortController();
     setState((current) => ({ ...current, loading: true, error: null }));
     void fetchCatalog(query, controller.signal)
-      .then((data) => setState({ data, loading: false, error: null }))
+      .then((data) => setState({ data, loading: false, error: null, queryKey }))
       .catch((error: unknown) => {
         if (controller.signal.aborted) return;
-        setState((current) => ({ ...current, loading: false, error: errorMessage(error) }));
+        setState((current) => ({ ...current, loading: false, error: errorMessage(error), queryKey }));
       });
     return () => controller.abort();
     // queryKey é a chave estável (JSON.stringify) derivada de query, usada no
@@ -45,7 +47,11 @@ export function useCatalog(query: CatalogQuery, refreshKey = 0, enabled = true):
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, queryKey, refreshKey]);
 
-  return state;
+  // `stale` marca o intervalo em que o estado ainda descreve a consulta
+  // anterior: o React só aplica o loading:true no flush seguinte, então um
+  // efeito do chamador que rode no mesmo flush da troca de query leria
+  // data/loading do conteúdo antigo achando que já são do novo.
+  return { data: state.data, loading: state.loading, error: state.error, stale: state.queryKey !== queryKey };
 }
 
 export function useCategories(refreshKey = 0): AsyncState<Category[]> {
