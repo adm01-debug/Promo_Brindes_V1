@@ -161,13 +161,27 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       { p_objects: storageObjects, p_batch_size: RETENTION_BATCH_SIZE },
       controller.signal,
     );
+    const AUDIT_LOG_BATCH_SIZE = 1_000;
     const auditLogsPurged = await rpc<{ writesDeleted?: number; ddlDeleted?: number }>(
       config.url,
       config.serviceCredential,
       'purge_site_admin_audit_logs',
-      { p_retention_days: 400, p_batch_size: 1000 },
+      { p_retention_days: 400, p_batch_size: AUDIT_LOG_BATCH_SIZE },
       controller.signal,
     );
+    // Cada etapa pede um lote de tamanho fixo e a tarefa roda uma vez por dia.
+    // Um lote que volta cheio significa que sobrou trabalho para amanha: sem
+    // este sinal, um residuo que cresce mais rapido que o lote fica invisivel
+    // indefinidamente, e dado pessoal que deveria ter sido apagado permanece.
+    // O numero exato do residuo exigiria uma contagem nova no banco; o lote
+    // cheio e a evidencia que ja existe aqui, sem tocar o schema.
+    const backlogSaturated = [
+      quoteIds.length >= RETENTION_BATCH_SIZE ? 'quote_retention' : '',
+      Number(archivedSelectionsDeleted || 0) >= RETENTION_BATCH_SIZE ? 'archived_selections' : '',
+      storageObjects.length >= RETENTION_BATCH_SIZE ? 'briefing_assets' : '',
+      Number(auditLogsPurged.writesDeleted || 0) >= AUDIT_LOG_BATCH_SIZE ? 'admin_write_audit_logs' : '',
+      Number(auditLogsPurged.ddlDeleted || 0) >= AUDIT_LOG_BATCH_SIZE ? 'admin_ddl_audit_logs' : '',
+    ].filter(Boolean);
     console.info('site_retention_completed', {
       quotesDeleted: Number(finalized.quotesDeleted || 0),
       proposalDocumentsDeleted: Number(finalized.proposalDocumentsDeleted || 0),
@@ -178,8 +192,14 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       storageQueueEntriesFinalized: Number(storageFinalized.queueEntriesDeleted || 0),
       adminWriteAuditLogsPurged: Number(auditLogsPurged.writesDeleted || 0),
       adminDdlAuditLogsPurged: Number(auditLogsPurged.ddlDeleted || 0),
+      backlogSaturated,
     });
-    response.status(200).json({ ok: true });
+    if (backlogSaturated.length) {
+      console.error('site_retention_backlog_saturated', { stages: backlogSaturated, batchSize: RETENTION_BATCH_SIZE, auditLogBatchSize: AUDIT_LOG_BATCH_SIZE });
+      const alerted = await sendOperationalAlert('retention_backlog_saturated', { stages: backlogSaturated, batchSize: RETENTION_BATCH_SIZE, auditLogBatchSize: AUDIT_LOG_BATCH_SIZE });
+      if (process.env.OPERATIONS_ALERT_WEBHOOK_URL?.trim() && !alerted) logServerWarning('site_retention_backlog_alert_delivery_failed', {});
+    }
+    response.status(200).json({ ok: true, backlogSaturated });
   } catch (error) {
     logServerError('site_retention_failed', { errorClass: errorClass(error) });
     const alerted = await sendOperationalAlert('retention_cron_failed', { errorClass: errorClass(error) });

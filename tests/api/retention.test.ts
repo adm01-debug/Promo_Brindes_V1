@@ -33,6 +33,55 @@ describe('tarefa de retenção', () => {
     expect(result.statusCode).toBe(401);
   });
 
+  it('lote cheio sinaliza resíduo e alerta o canal operacional', async () => {
+    configure();
+    vi.stubEnv('OPERATIONS_ALERT_WEBHOOK_URL', 'https://alertas.test/hook');
+    // 100 = RETENTION_BATCH_SIZE: o lote voltou cheio, logo sobrou trabalho.
+    const quoteIds = Array.from({ length: 100 }, (_, index) => `${String(index).padStart(8, '0')}-1111-4111-8111-111111111111`);
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes('/get_site_data_retention_candidates')) return new Response(JSON.stringify({ quoteIds, storagePaths: [] }), { status: 200 });
+      if (url.includes('/finalize_site_data_retention')) return new Response(JSON.stringify({ quotesDeleted: 100 }), { status: 200 });
+      if (url.includes('/purge_archived_customer_selections')) return new Response('0', { status: 200 });
+      if (url.includes('/get_briefing_asset_retention_candidates')) return new Response(JSON.stringify({ objects: [] }), { status: 200 });
+      if (url.includes('/finalize_site_storage_retention')) return new Response('{}', { status: 200 });
+      if (url.includes('/purge_site_admin_audit_logs')) return new Response('{}', { status: 200 });
+      if (url === 'https://alertas.test/hook') return new Response(null, { status: 204 });
+      return new Response('{}', { status: 500 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const erro = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+    expect(result.statusCode).toBe(200);
+    expect(result.body).toEqual({ ok: true, backlogSaturated: ['quote_retention'] });
+    expect(erro).toHaveBeenCalledWith('site_retention_backlog_saturated', expect.objectContaining({ stages: ['quote_retention'] }));
+    const alerta = fetchMock.mock.calls.find(([url]) => String(url) === 'https://alertas.test/hook');
+    expect(alerta).toBeDefined();
+    expect(String((alerta?.[1] as RequestInit | undefined)?.body)).toContain('retention_backlog_saturated');
+    erro.mockRestore();
+  });
+
+  it('lote incompleto não sinaliza resíduo nem alerta', async () => {
+    configure();
+    vi.stubEnv('OPERATIONS_ALERT_WEBHOOK_URL', 'https://alertas.test/hook');
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes('/get_site_data_retention_candidates')) return new Response(JSON.stringify({ quoteIds: ['11111111-1111-4111-8111-111111111111'], storagePaths: [] }), { status: 200 });
+      if (url.includes('/finalize_site_data_retention')) return new Response(JSON.stringify({ quotesDeleted: 1 }), { status: 200 });
+      if (url.includes('/purge_archived_customer_selections')) return new Response('99', { status: 200 });
+      if (url.includes('/get_briefing_asset_retention_candidates')) return new Response(JSON.stringify({ objects: [] }), { status: 200 });
+      if (url.includes('/finalize_site_storage_retention')) return new Response('{}', { status: 200 });
+      if (url.includes('/purge_site_admin_audit_logs')) return new Response(JSON.stringify({ writesDeleted: 999, ddlDeleted: 0 }), { status: 200 });
+      return new Response('{}', { status: 500 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+    expect(result.statusCode).toBe(200);
+    expect(result.body).toEqual({ ok: true, backlogSaturated: [] });
+    // 99 selecoes e 999 logs ficam um abaixo do lote: nenhum alerta disparado.
+    expect(fetchMock.mock.calls.some(([url]) => String(url) === 'https://alertas.test/hook')).toBe(false);
+  });
+
   it('remove blobs pela Storage API e finaliza somente os metadados confirmados', async () => {
     configure();
     const quoteId = '11111111-1111-4111-8111-111111111111';
