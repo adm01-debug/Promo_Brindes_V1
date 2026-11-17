@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "1d017c9ea2d3978ff31eb749be60c81b76594105",
+  "sha": "0600922a57fd7d1f00a09398375563767aba8ea6",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-17 09:15 UTC",
+  "generated_at": "2026-11-17 09:25 UTC",
   "files_total": 578,
   "code_files": 378,
-  "code_lines": 66646,
+  "code_lines": 66668,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "75f3adef75cdbac6",
+ "facts_hash": "b2f80046256791cc",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -7238,7 +7238,7 @@
   {
    "module": "scripts",
    "files": 41,
-   "lines": 21213,
+   "lines": 21235,
    "tables": [
     "a",
     "contacts",
@@ -8208,6 +8208,9 @@
    ],
    "PB_AUDIT_BASE_URL": [
     "docs/audits/plan-review-20260912/reproduce.mjs"
+   ],
+   "PERFORMANCE_BUDGET_PROFILE": [
+    "scripts/check-performance-budget.mjs"
    ],
    "PGBIN": [
     "tests/inventario-banco-sql.node.mjs"
@@ -25080,7 +25083,10 @@
   },
   "scripts/check-performance-budget.mjs": {
    "path": "scripts/check-performance-budget.mjs",
-   "lines": 120,
+   "lines": 142,
+   "env": [
+    "PERFORMANCE_BUDGET_PROFILE"
+   ],
    "errors": [
     "${label}: ${(value / 1024).toFixed(1)} KiB excede o limite de ${(maximum / 1024).toFixed(0)} KiB.",
     "Chunk ",
@@ -32246,10 +32252,20 @@
   }
  },
  "git": {
-  "sha": "1d017c9ea2d3978ff31eb749be60c81b76594105",
+  "sha": "0600922a57fd7d1f00a09398375563767aba8ea6",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "0600922",
+    "date": "2026-11-17",
+    "author": "adm01-debug",
+    "subject": "fix(ci): separa o teto de performance de producao do teto de pior caso (#164)",
+    "files": [
+     ".github/workflows/quality.yml",
+     "scripts/check-performance-budget.mjs"
+    ]
+   },
    {
     "sha": "1d017c9",
     "date": "2026-11-17",
@@ -32590,21 +32606,6 @@
      "analise-prs/progresso.json",
      "analise-prs/regras-de-negocio.md"
     ]
-   },
-   {
-    "sha": "d312cad",
-    "date": "2026-11-10",
-    "author": "adm01-debug",
-    "subject": "docs: análise complementar analise-prs (#112)",
-    "files": [
-     "analise-prs/RELATORIO_PRS.md",
-     "analise-prs/baseline/ci-checks.md",
-     "analise-prs/decisoes.md",
-     "analise-prs/fontes.json",
-     "analise-prs/funcionalidades.csv",
-     "analise-prs/progresso.json",
-     "analise-prs/regras-de-negocio.md"
-    ]
    }
   ],
   "hot_files": [
@@ -32618,7 +32619,7 @@
    ],
    [
     ".github/workflows/quality.yml",
-    3
+    4
    ],
    [
     "docs/DATABASE_DICTIONARY.md",

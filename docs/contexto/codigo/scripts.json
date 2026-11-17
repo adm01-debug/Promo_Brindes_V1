@@ -104,9 +104,11 @@
   },
   {
    "arquivo": "scripts/check-performance-budget.mjs",
-   "descricao": null,
-   "linhas": 120,
-   "env": [],
+   "descricao": "Dois artefatos distintos passam por este script e por isso cada um tem o seu teto, em vez de compartilharem um numero:",
+   "linhas": 142,
+   "env": [
+    "PERFORMANCE_BUDGET_PROFILE"
+   ],
    "npm_scripts": [
     "check:performance-budget"
    ],

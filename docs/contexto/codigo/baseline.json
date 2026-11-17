@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "1d017c9ea2d3978ff31eb749be60c81b76594105",
+  "commit": "0600922a57fd7d1f00a09398375563767aba8ea6",
   "branch": "main",
-  "data_commit": "2026-11-17T09:14:37Z",
+  "data_commit": "2026-11-17T09:24:49Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "0600922",
+    "data": "2026-11-17",
+    "assunto": "fix(ci): separa o teto de performance de producao do teto de pior caso (#164)"
+   },
    {
     "sha": "1d017c9",
     "data": "2026-11-17",
@@ -126,11 +131,6 @@
     "sha": "ad82577",
     "data": "2026-11-12",
     "assunto": "chore(deps): bump graphifyy from 0.9.97 to 0.9.103 (#126)"
-   },
-   {
-    "sha": "02c5c8d",
-    "data": "2026-11-12",
-    "assunto": "chore(deps): bump the npm-minor-and-patch group across 1 directory with 12 updates (#127)"
    }
   ],
   "arquivos_mudados_7d": 137,
@@ -157,7 +157,7 @@
    },
    {
     "pasta": ".github/workflows/quality.yml",
-    "mudancas": 5
+    "mudancas": 6
    },
    {
     "pasta": ".gitignore",
@@ -219,7 +219,7 @@
    },
    {
     "arquivo": ".github/workflows/quality.yml",
-    "mudancas": 24
+    "mudancas": 25
    },
    {
     "arquivo": "docs/DATABASE_DICTIONARY.md",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 47
+    "commits": 48
    },
    {
     "autor": "dependabot[bot]",
@@ -312,7 +312,7 @@
  "contagens": {
   "arquivos_total": 685,
   "arquivos_codigo": 271,
-  "linhas_codigo": 53472,
+  "linhas_codigo": 53494,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -436,7 +436,7 @@
   },
   "scripts/check-performance-budget.mjs": {
    "arquivos": 1,
-   "linhas": 120
+   "linhas": 142
   },
   "scripts/ci-health-metrics.mjs": {
    "arquivos": 1,
