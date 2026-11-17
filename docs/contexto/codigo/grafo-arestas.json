@@ -376,6 +376,7 @@
    "src/lib/campaignBrief.ts",
    "src/lib/http.ts",
    "src/lib/quoteBriefing.ts",
+   "src/lib/quoteConfirmation.ts",
    "src/lib/quoteItems.ts",
    "src/types.ts"
   ],

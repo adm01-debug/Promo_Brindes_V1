@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "c61d7f53e6b6daf98ae3d69865f679b3426e9c83",
+  "commit": "f95d773e91fb20f224dbd2263e0494526b779e81",
   "branch": "main",
-  "data_commit": "2026-11-17T19:11:26Z",
+  "data_commit": "2026-11-17T19:38:45Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "f95d773",
+    "data": "2026-11-17",
+    "assunto": "fix(orçamento): para de prometer WhatsApp quando o canal não pode entregar (#181)"
+   },
    {
     "sha": "c61d7f5",
     "data": "2026-11-17",
@@ -126,14 +131,9 @@
     "sha": "6a37e51",
     "data": "2026-11-16",
     "assunto": "fix(obs): registra a falha dos dois endpoints da Area do Cliente (#157)"
-   },
-   {
-    "sha": "fa7365b",
-    "data": "2026-11-16",
-    "assunto": "fix(orcamento): selo de prioridade so sai no PDF se o recurso estiver ligado (#156)"
    }
   ],
-  "arquivos_mudados_7d": 163,
+  "arquivos_mudados_7d": 169,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -223,7 +223,7 @@
    },
    {
     "arquivo": "src/pages/QuotePage.tsx",
-    "mudancas": 24
+    "mudancas": 25
    },
    {
     "arquivo": "docs/DATABASE_DICTIONARY.md",
@@ -238,15 +238,19 @@
     "mudancas": 23
    },
    {
+    "arquivo": "tests/api/lead-requests.test.ts",
+    "mudancas": 21
+   },
+   {
     "arquivo": ".github/workflows/release.yml",
     "mudancas": 20
    },
    {
-    "arquivo": "tests/api/lead-requests.test.ts",
-    "mudancas": 20
+    "arquivo": ".github/workflows/database.yml",
+    "mudancas": 17
    },
    {
-    "arquivo": ".github/workflows/database.yml",
+    "arquivo": "api/_lib/leadHandler.ts",
     "mudancas": 17
    },
    {
@@ -258,11 +262,11 @@
     "mudancas": 16
    },
    {
-    "arquivo": "api/_lib/leadHandler.ts",
+    "arquivo": "api/_lib/siteDatabase.ts",
     "mudancas": 16
    },
    {
-    "arquivo": "api/_lib/siteDatabase.ts",
+    "arquivo": "api/notifications.ts",
     "mudancas": 16
    },
    {
@@ -275,10 +279,6 @@
    },
    {
     "arquivo": ".env.example",
-    "mudancas": 15
-   },
-   {
-    "arquivo": "api/notifications.ts",
     "mudancas": 15
    },
    {
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 65
+    "commits": 66
    },
    {
     "autor": "dependabot[bot]",
@@ -312,7 +312,7 @@
  "contagens": {
   "arquivos_total": 692,
   "arquivos_codigo": 277,
-  "linhas_codigo": 54065,
+  "linhas_codigo": 54143,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -332,7 +332,7 @@
  "por_pasta": {
   "api/_lib": {
    "arquivos": 14,
-   "linhas": 1953
+   "linhas": 1957
   },
   "api/briefing-assets.ts": {
    "arquivos": 1,
@@ -364,7 +364,7 @@
   },
   "api/notifications.ts": {
    "arquivos": 1,
-   "linhas": 698
+   "linhas": 711
   },
   "api/product-page.ts": {
    "arquivos": 1,
@@ -556,7 +556,7 @@
   },
   "src/lib": {
    "arquivos": 80,
-   "linhas": 7673
+   "linhas": 7702
   },
   "src/main.tsx": {
    "arquivos": 1,
@@ -580,7 +580,7 @@
   },
   "tests/api": {
    "arquivos": 20,
-   "linhas": 3761
+   "linhas": 3793
   },
   "tests/catalog-public-contract.node.mjs": {
    "arquivos": 1,
@@ -718,7 +718,7 @@
   },
   {
    "arquivo": "api/notifications.ts",
-   "linhas": 698
+   "linhas": 711
   },
   {
    "arquivo": "scripts/inventario/gerar-banco.mjs",

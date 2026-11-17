@@ -1,6 +1,6 @@
 # 11 · GLOSSÁRIO, DADOS DE REFERÊNCIA E LACUNAS
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `c61d7f53e6` · branch `main` · 2026-11-17 19:13 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `f95d773e91` · branch `main` · 2026-11-17 19:43 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## Glossário do domínio (entidades do sistema)
@@ -52,7 +52,7 @@
 | `OccasionKind` (TS) | relacionamento \| cultura \| impacto \| sazonal |  | `src/lib/commemorativeDates.ts` |
 | `CustomerQuoteStatus` (TS) | new \| triaged \| in_progress \| quoted \| closed |  | `src/lib/customerQuoteContract.ts` |
 | `ProductBadgeKind` (TS) | new \| kit \| personalizable |  | `src/lib/productBadges.ts` |
-| `ConfirmationDeliveryStatus` (TS) | sent \| pending \| not_requested |  | `src/lib/quoteConfirmation.ts` |
+| `ConfirmationDeliveryStatus` (TS) | sent \| pending \| not_requested \| unavailable |  | `src/lib/quoteConfirmation.ts` |
 
 ## Dados de referência (seed — planos, categorias, perfis fixos)
 

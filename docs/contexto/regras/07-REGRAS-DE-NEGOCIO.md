@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `c61d7f53e6` · branch `main` · 2026-11-17 19:13 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `f95d773e91` · branch `main` · 2026-11-17 19:43 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -386,6 +386,7 @@ _nenhum mapa explícito encontrado no código — fora da tabela acima (se houve
 | `status` | `quoted` | compara | `src/lib/customerAccount.ts` |
 | `status` | `sent` | compara, escreve | `api/_lib/commercialTeamAlerts.ts`<br>`api/notifications.ts`<br>`src/lib/quoteConfirmation.ts`<br>`src/pages/QuotePage.tsx` |
 | `status` | `triaged` | compara | `src/lib/customerAccount.ts` |
+| `status` | `unavailable` | compara | `src/lib/quoteConfirmation.ts` |
 | `type` | `add` | compara, escreve | `src/context/QuoteCartContext.tsx`<br>`src/context/quoteCartReducer.ts` |
 | `type` | `body` | escreve | `api/notifications.ts` |
 | `type` | `campaign` | compara, escreve | `src/context/QuoteCartContext.tsx`<br>`src/context/quoteCartReducer.ts` |
@@ -441,7 +442,7 @@ _nenhum mapa explícito encontrado no código — fora da tabela acima (se houve
 | OccasionKind | relacionamento \| cultura \| impacto \| sazonal | `src/lib/commemorativeDates.ts` |
 | CustomerQuoteStatus | new \| triaged \| in_progress \| quoted \| closed | `src/lib/customerQuoteContract.ts` |
 | ProductBadgeKind | new \| kit \| personalizable | `src/lib/productBadges.ts` |
-| ConfirmationDeliveryStatus | sent \| pending \| not_requested | `src/lib/quoteConfirmation.ts` |
+| ConfirmationDeliveryStatus | sent \| pending \| not_requested \| unavailable | `src/lib/quoteConfirmation.ts` |
 
 ## F. Validações de entrada
 
@@ -1042,7 +1043,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1574 testes em 128 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1578 testes em 128 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1054,11 +1055,11 @@ _nenhum item encontrado_
 | `site-supabase/supabase/tests/database/customer_data_erasure.test.sql` | 43 | anon não apaga dados de titular · authenticated não apaga dados de titular (operação administrativa) · service_role executa o apagamento · anonimiza 1 quote_request (e-mail com espaço/maiúsculas normalizado na entrada) … |
 | `site-supabase/supabase/tests/database/customer_portal.test.sql` | 41 | orçamento possui titular autenticado opcional · perfil do cliente existe no schema privado · linha do tempo existe no schema privado · metadados de propostas existem no schema privado … |
 | `site-supabase/supabase/tests/database/notification_delivery_status_machine.test.sql` | 40 | pending -> pending (no-op) · pending -> processing · pending -> sent (rejeitado: pula processing) · pending -> failed (rejeitado: pula processing) … |
-| `tests/api/lead-requests.test.ts` | 36 | APIs de leads isoladas · registra contato normalizado pelo RPC server-side · rejeita resposta malformada do banco: %s · persiste orçamento e devolve 200 em repetição idempotente … |
+| `tests/api/lead-requests.test.ts` | 37 | APIs de leads isoladas · registra contato normalizado pelo RPC server-side · rejeita resposta malformada do banco: %s · repetição idempotente promete envio quando o provedor de WhatsApp existe … |
 | `tests/graphify-tools.node.mjs` | 31 | path encontra menor caminho, identidade e nós desconectados sem inventar relações · explain preserva fonte e confiança e identifica conexões de entrada · nomes ambíguos e símbolos ausentes não escolhem um resultado arbitrário · fingerprint muda ao mudar conteúdo e preserva ordem determinística … |
 | `site-supabase/supabase/tests/database/notification_provider_events.test.sql` | 30 | entrega ganha estado terminal pós-aceite (Etapa 30) · devolução guarda a categoria curta do provedor · reclamação é rastreada independentemente da entrega · deduplicação de eventos de webhook fica em tabela própria … |
 | `tests/validate-agent-instructions.node.mjs` | 28 | aceita AGENTS.md com todas as seções obrigatórias · acusa seção obrigatória apagada por outra sessão · ${CLAUDE_FILE} precisa ser exatamente o import do ${AGENTS_FILE} · acusa referência quebrada e referência órfã em docs/agentes … |
-| `tests/api/notifications.test.ts` | 27 | worker de comprovantes do orçamento · recusa chamada sem o segredo agendado · não reivindica a fila enquanto nenhum provedor estiver configurado · Preview não envia mensagens reais mesmo se herdar credenciais dos provedores … |
+| `tests/api/notifications.test.ts` | 28 | worker de comprovantes do orçamento · recusa chamada sem o segredo agendado · não reivindica a fila enquanto nenhum provedor estiver configurado · Preview não envia mensagens reais mesmo se herdar credenciais dos provedores … |
 | `site-supabase/supabase/tests/database/customer_selections.test.sql` | 26 | seleções privadas por titular existem · RLS é forçada na tabela · cliente não acessa o schema privado · cliente não consulta tabela diretamente … |
 | `src/lib/useOccasionFavorites.test.tsx` | 25 | useOccasionFavorites · preserva uma adição confirmada quando uma leitura iniciada antes dela retorna vazia · preserva uma remoção enquanto uma leitura antiga ainda contém o favorito · não deixa uma leitura antiga apagar a escrita anterior quando a intenção seguinte falha … |
 | `tests/catalog-public-contract.node.mjs` | 25 | aceita somente o contrato público exato de 36 colunas · falha se uma coluna esperada sumir ou uma coluna nova aparecer · falha explicitamente se preço, estoque ou fornecedor forem expostos · recusa identificador, arrays e swatches incompatíveis … |
@@ -1108,6 +1109,7 @@ _nenhum item encontrado_
 | `e2e/product-detail.spec.ts` | 8 | ficha compacta reúne seleção e especificações ao lado da galeria no desktop · galeria permite todas as fotos, volta ao início e amplia com foco contido · descrição completa formata marcadores sem perder conteúdo nem esconder especificações · cor e quantidade seguem para o orçamento, sem preço ou bloqueio por estoque … |
 | `src/components/CampaignFinder.test.tsx` | 8 | resumo editável do briefing · resume as quatro respostas antes de abrir a curadoria · remove só a escolha solicitada e volta à etapa correspondente · permite revisar todas as respostas sem apagar o que já foi escolhido … |
 | `src/lib/analytics.test.ts` | 8 | instrumentação segura · remove query string e fragmento antes de enviar pageview · normaliza identificadores da área privada antes do pageview · aplica a mesma minimização de URL aos eventos de desempenho … |
+| `src/lib/quoteRequest.test.ts` | 8 | solicitação de orçamento · separa o consentimento do contato e registra versão e instante · gera um e-mail com produtos, quantidade, cor e contato · não transmite um complemento opcional vazio ou manipulado … |
 | `tests/inventario-banco-sql.node.mjs` | 8 | banco.sql roda inteiro em transação somente leitura e passa na prova de origem · banco.sql: a transação somente leitura barra escrita, e a consulta não muda nada no banco · banco.sql: fila travada conta só o que ainda vai ser tentado; erro sai como código, nunca como texto · banco.sql: pg_cron sai com nome estável, só o nome das funções chamadas e as contas certas … |
 | `tests/validate-site-supabase-target.node.mjs` | 8 | aprova somente o projeto isolado do site, com código 0 e o ref em stdout · independe do diretório de onde é chamado · bloqueia o catálogo canônico e diz como refazer o vínculo · bloqueia qualquer conteúdo que não seja exatamente o ref do site … |
 | `tests/api/customer-proposals.test.ts` | 8 | download autenticado de propostas · assina por 60 segundos somente o documento autorizado pelo RPC · usa o JWT limitado no RPC e a credencial de Storage somente para a assinatura · rejeita origem, sessão e identificador inválidos antes do banco … |
@@ -1119,7 +1121,6 @@ _nenhum item encontrado_
 | `src/lib/contactRequest.test.ts` | 7 | contato rápido · separa o consentimento do contato e registra sua versão · não transmite query ou fragmento da página de contato · prepara fallback de e-mail sem depender de infraestrutura … |
 | `src/lib/kitBuilder.test.ts` | 7 | composição de kits · permite omitir extras, mas exige os dois componentes obrigatórios · recusa estouro de unidades sem degradar o kit para itens avulsos · calcula o mínimo pelo componente mais restritivo … |
 | `src/lib/quoteItems.test.ts` | 7 | revalidação de itens históricos · preserva referência removida como bloqueio visível · marca produto removido sem apagá-lo silenciosamente · mantém os marcadores ao normalizar armazenamento local … |
-| `src/lib/quoteRequest.test.ts` | 7 | solicitação de orçamento · separa o consentimento do contato e registra versão e instante · gera um e-mail com produtos, quantidade, cor e contato · não transmite um complemento opcional vazio ou manipulado … |
 | `src/lib/quoteSubmission.test.ts` | 7 | reconciliação da seleção após o envio · considera inalterada uma seleção recriada por render sem edição · distingue edição de produto ou contexto da seleção enviada · remove somente os snapshots efetivamente enviados … |
 | `tests/soak-test-notification-queue.node.mjs` | 7 | percentile usa o método nearest-rank e devolve null para lista vazia · parseSoakConfig aplica os padrões e recusa valores fora do contrato · isTerminalDelivery reconhece sent, exhausted e failed com tentativas esgotadas · drena a fila sem falhas, só fala com o banco local e escreve o relatório com os padrões reais … |
 | `tests/api/product-page.test.ts` | 7 | HTML inicial de fichas de produto · escapa conteúdo de catálogo no head e no JSON-LD · entrega produto com metadados específicos e schema sem virar checkout · responde 404 e noindex para um identificador inválido sem consultar o catálogo … |
@@ -1135,6 +1136,7 @@ _nenhum item encontrado_
 | `src/components/SavedSelections.test.tsx` | 5 | seleções salvas na Área do Cliente · mostra as seleções sem copiar automaticamente o carrinho para a conta · exige confirmação antes de substituir o carrinho e preserva a seleção ao cancelar · compara conflito entre dispositivos e permite preservar as duas versões … |
 | `src/lib/customerAccount.rpc.test.ts` | 5 | RPCs da Área do Cliente · aceita somente o contrato de leitura esperado para o histórico · não mascara JSON malformado como um histórico vazio · rejeita detalhe e confirmação de ajuste com identificadores ou datas inválidas … |
 | `src/lib/customerAccount.test.ts` | 5 | contrato da Área do Cliente · traduz somente estados operacionais reais · aceita retorno apenas para dentro da Área do Cliente · distingue a versão mais recente de uma proposta ainda válida … |
+| `src/lib/quoteConfirmation.test.ts` | 5 | confirmação honesta do orçamento · usa apenas o primeiro nome informado e flexiona produto no singular · mantém uma mensagem neutra quando não há nome e flexiona no plural · não apresenta uma confirmação pendente ou não solicitada como enviada … |
 | `src/pages/AuthConfirmPage.test.tsx` | 5 | confirmação de acesso do cliente · não anuncia identidade verificada enquanto a sessão ainda está carregando · expõe uma recuperação real quando a inicialização falha · só anuncia a identidade depois de receber um usuário autenticado … |
 | `src/pages/CommemorativeDatesPage.test.tsx` | 5 | favoritos de datas comemorativas por titular · promove favoritos anônimos depois do login sem perdê-los · não exibe cache da conta anterior se o carregamento da nova conta falhar · ignora rollback tardio de uma mutação da conta anterior … |
 | `src/pages/IdeaLandingPage.test.tsx` | 5 | telemetria da landing de ideias · conta as referências que a própria página mostrou, não o total do catalogQuery · emite uma única visualização por tópico, com a contagem do próprio tópico · não grava o tópico revisitado com a contagem do tópico que o visitante deixou … |
@@ -1144,7 +1146,6 @@ _nenhum item encontrado_
 | `src/lib/briefingAssets.test.ts` | 4 | arquivos privados do briefing · aceita somente os formatos publicados dentro de 10 MB · recusa arquivos vazios e nomes maiores que o contrato do banco · revoga o metadado e delega a remoção física à fila protegida |
 | `src/lib/customerQuoteContract.test.ts` | 4 | contrato runtime do histórico de orçamentos · aceita o formato público da RPC e remove somente imagens opcionais inseguras · rejeita status, identificadores e quantidades fora do contrato em vez de renderizar JSON arbitrário · mantém campanha e briefing legados opacos até a normalização de consumo, sem relaxar o snapshot de produtos |
 | `src/lib/productBadges.test.ts` | 4 | badges de produto · replica a janela de 30 dias do Promo Gifts sem aceitar datas futuras · prioriza is_kit e usa categoria ou prefixo somente como fallback legado · resolve exatamente um badge na ordem Novidade, Kit e Sua marca aqui |
-| `src/lib/quoteConfirmation.test.ts` | 4 | confirmação honesta do orçamento · usa apenas o primeiro nome informado e flexiona produto no singular · mantém uma mensagem neutra quando não há nome e flexiona no plural · não apresenta uma confirmação pendente ou não solicitada como enviada |
 | `src/lib/scrollRestoration.test.ts` | 4 | restauração de rolagem · aguarda uma rota assíncrona crescer antes de concluir a posição salva · para no limite de tempo quando a página não alcança a altura anterior · cancela frames pendentes quando a rota muda ou a pessoa interage |
 | `src/lib/siteRpc.test.ts` | 4 | deadline das RPCs do site · aborta a consulta no deadline padrão · propaga o aborto externo para a consulta · limpa o timer quando a consulta termina |
 | `src/lib/siteSupabase.test.ts` | 4 | configuração pública da Área do Cliente · aceita somente o projeto Supabase isolado do site · recusa secret key no bundle e aceita somente chave pública · em Preview recusa o banco de produção e o banco interno, inclusive sem configuração explícita |

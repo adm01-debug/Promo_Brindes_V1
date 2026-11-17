@@ -165,7 +165,7 @@
     "handleLeadRequest"
    ],
    "export_default": null,
-   "linhas": 170,
+   "linhas": 174,
    "tabelas": [],
    "rpcs": [],
    "edges": [],
@@ -635,10 +635,11 @@
     "QuoteConfirmationResult",
     "TOTAL_TIME_BUDGET_MS",
     "deliverQuoteConfirmationsNow",
-    "handler"
+    "handler",
+    "whatsappChannelConfigured"
    ],
    "export_default": "handler",
-   "linhas": 698,
+   "linhas": 711,
    "tabelas": [],
    "rpcs": [
     "claim_site_notification_deliveries",
@@ -1971,7 +1972,7 @@
     "quoteConfirmationTitle"
    ],
    "export_default": null,
-   "linhas": 15,
+   "linhas": 18,
    "tabelas": [],
    "rpcs": [],
    "edges": [],
@@ -1980,8 +1981,9 @@
    "zod_schemas": 0,
    "flags": [],
    "papeis": [],
-   "usado_por": 1,
+   "usado_por": 2,
    "usado_por_modulos": [
+    "lib",
     "pages"
    ],
    "coberto_por_testes": 1,
@@ -2085,7 +2087,7 @@
     "submitQuoteRequest"
    ],
    "export_default": null,
-   "linhas": 100,
+   "linhas": 105,
    "tabelas": [],
    "rpcs": [],
    "edges": [],

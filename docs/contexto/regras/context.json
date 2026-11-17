@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "c61d7f53e6b6daf98ae3d69865f679b3426e9c83",
+  "sha": "f95d773e91fb20f224dbd2263e0494526b779e81",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-17 19:13 UTC",
+  "generated_at": "2026-11-17 19:43 UTC",
   "files_total": 585,
   "code_files": 384,
-  "code_lines": 67239,
+  "code_lines": 67317,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "70ba3feee9ad6406",
+ "facts_hash": "2ad7a2a608d30fac",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -6470,7 +6470,7 @@
     "tables_transitive": [],
     "invokes_transitive": [],
     "rpc_transitive": [],
-    "deps_count": 26
+    "deps_count": 27
    },
    {
     "path": "/auth/confirm",
@@ -6511,7 +6511,7 @@
     "tables_transitive": [],
     "invokes_transitive": [],
     "rpc_transitive": [],
-    "deps_count": 10
+    "deps_count": 11
    },
    {
     "path": "/datas-comemorativas",
@@ -7075,7 +7075,7 @@
   {
    "module": "api",
    "files": 28,
-   "lines": 4169,
+   "lines": 4186,
    "tables": [],
    "exports": [
     "briefing-assets.ts: REQUEST_TIMEOUT_MS, handler, async",
@@ -7085,7 +7085,7 @@
     "not-found.ts: handler, async",
     "notification-events-resend.ts: REQUEST_TIMEOUT_MS, MAX_WEBHOOK_BODY_BYTES",
     "notification-events-whatsapp.ts: REQUEST_TIMEOUT_MS, MAX_WEBHOOK_BODY_BYTES, MAX_STATUSES_PER_WEBHOOK",
-    "notifications.ts: OVERALL_TIME_BUDGET_MS, MIN_TIME_PER_JOB_MS, QUEUE_HEALTH_TIMEOUT_MS, TOTAL_TIME_BUDGET_MS, QUEUE_AGE_ALERT_SECONDS, QuoteConfirmationResult",
+    "notifications.ts: OVERALL_TIME_BUDGET_MS, MIN_TIME_PER_JOB_MS, QUEUE_HEALTH_TIMEOUT_MS, TOTAL_TIME_BUDGET_MS, QUEUE_AGE_ALERT_SECONDS, whatsappChannelConfigured",
     "product-page.ts: CATALOG_ALERT_SILENCE_MS, CATALOG_ALERT_RETRY_MS, handler, async",
     "quote-requests.ts: handler, async",
     "retention.ts: REQUEST_TIMEOUT_MS, handler, async",
@@ -7644,7 +7644,7 @@
   {
    "module": "src/lib",
    "files": 80,
-   "lines": 7673,
+   "lines": 7702,
    "tables": [],
    "exports": [
     "analytics.ts: FunnelEventMap, redactAnalyticsPathname, redactTelemetryUrl, redactAnalyticsUrl, trackFunnelEvent",
@@ -7888,7 +7888,7 @@
   {
    "module": "tests",
    "files": 44,
-   "lines": 9681,
+   "lines": 9713,
    "tables": [
     "constructor",
     "quote_requests",
@@ -8940,7 +8940,7 @@
    {
     "file": "src/lib/quoteConfirmation.ts",
     "name": "ConfirmationDeliveryStatus",
-    "values": "sent | pending | not_requested"
+    "values": "sent | pending | not_requested | unavailable"
    }
   ],
   "error_messages": [
@@ -12330,6 +12330,12 @@
     "file": "src/lib/quoteConfirmation.ts",
     "field": "status",
     "value": "pending",
+    "kind": "compara"
+   },
+   {
+    "file": "src/lib/quoteConfirmation.ts",
+    "field": "status",
+    "value": "unavailable",
     "kind": "compara"
    },
    {
@@ -16315,6 +16321,10 @@
     "name": "não apresenta uma confirmação pendente ou não solicitada como enviada"
    },
    {
+    "file": "src/lib/quoteConfirmation.test.ts",
+    "name": "não promete envio quando o canal não tem provedor configurado"
+   },
+   {
     "file": "src/lib/quoteDraft.test.ts",
     "name": "rascunho do briefing"
    },
@@ -16393,6 +16403,10 @@
    {
     "file": "src/lib/quoteRequest.test.ts",
     "name": "bloqueia uma URL HTTPS incompleta"
+   },
+   {
+    "file": "src/lib/quoteRequest.test.ts",
+    "name": "preserva o canal indisponível em vez de rebaixá-lo para não solicitado"
    },
    {
     "file": "src/lib/quoteSubmission.test.ts",
@@ -18300,6 +18314,10 @@
    },
    {
     "file": "tests/api/lead-requests.test.ts",
+    "name": "repetição idempotente promete envio quando o provedor de WhatsApp existe"
+   },
+   {
+    "file": "tests/api/lead-requests.test.ts",
     "name": "persiste orçamento e devolve 200 em repetição idempotente"
    },
    {
@@ -18637,6 +18655,10 @@
    {
     "file": "tests/api/notifications.test.ts",
     "name": "Preview não envia mensagens reais mesmo se herdar credenciais dos provedores"
+   },
+   {
+    "file": "tests/api/notifications.test.ts",
+    "name": "relata o WhatsApp como indisponível quando o provedor não está configurado"
    },
    {
     "file": "tests/api/notifications.test.ts",
@@ -21333,6 +21355,9 @@
       "compara:src/lib/quoteConfirmation.ts",
       "compara:src/pages/QuotePage.tsx",
       "escreve:src/pages/QuotePage.tsx"
+     ],
+     "unavailable": [
+      "compara:src/lib/quoteConfirmation.ts"
      ],
      "attached": [
       "compara:src/pages/QuotePage.tsx",
@@ -24213,13 +24238,14 @@
   },
   "api/notifications.ts": {
    "path": "api/notifications.ts",
-   "lines": 698,
+   "lines": 711,
    "exports": [
     "const OVERALL_TIME_BUDGET_MS",
     "const MIN_TIME_PER_JOB_MS",
     "const QUEUE_HEALTH_TIMEOUT_MS",
     "const TOTAL_TIME_BUDGET_MS",
     "const QUEUE_AGE_ALERT_SECONDS",
+    "function whatsappChannelConfigured",
     "interface QuoteConfirmationResult",
     "function deliverQuoteConfirmationsNow",
     "function handler",
@@ -24620,7 +24646,7 @@
   },
   "api/_lib/leadHandler.ts": {
    "path": "api/_lib/leadHandler.ts",
-   "lines": 170,
+   "lines": 174,
    "exports": [
     "const LEAD_TOTAL_TIME_BUDGET_MS",
     "const MIN_CONFIRMATION_WINDOW_MS",
@@ -30335,18 +30361,19 @@
   },
   "src/lib/quoteConfirmation.test.ts": {
    "path": "src/lib/quoteConfirmation.test.ts",
-   "lines": 18,
+   "lines": 27,
    "is_test": true,
    "tests": [
     "confirmação honesta do orçamento",
     "usa apenas o primeiro nome informado e flexiona produto no singular",
     "mantém uma mensagem neutra quando não há nome e flexiona no plural",
-    "não apresenta uma confirmação pendente ou não solicitada como enviada"
+    "não apresenta uma confirmação pendente ou não solicitada como enviada",
+    "não promete envio quando o canal não tem provedor configurado"
    ]
   },
   "src/lib/quoteConfirmation.ts": {
    "path": "src/lib/quoteConfirmation.ts",
-   "lines": 15,
+   "lines": 18,
    "exports": [
     "type ConfirmationDeliveryStatus",
     "function quoteConfirmationTitle",
@@ -30355,7 +30382,7 @@
    "enums": [
     {
      "name": "ConfirmationDeliveryStatus",
-     "values": "sent | pending | not_requested"
+     "values": "sent | pending | not_requested | unavailable"
     }
    ],
    "status_values": [
@@ -30367,6 +30394,11 @@
     {
      "field": "status",
      "value": "pending",
+     "kind": "compara"
+    },
+    {
+     "field": "status",
+     "value": "unavailable",
      "kind": "compara"
     }
    ]
@@ -30483,7 +30515,7 @@
   },
   "src/lib/quoteRequest.test.ts": {
    "path": "src/lib/quoteRequest.test.ts",
-   "lines": 82,
+   "lines": 94,
    "is_test": true,
    "tests": [
     "solicitação de orçamento",
@@ -30492,12 +30524,13 @@
     "não transmite um complemento opcional vazio ou manipulado",
     "remove query, fragmento e credenciais da URL antes de montar o payload",
     "bloqueia endpoint sem HTTPS antes de transmitir dados pessoais",
-    "bloqueia uma URL HTTPS incompleta"
+    "bloqueia uma URL HTTPS incompleta",
+    "preserva o canal indisponível em vez de rebaixá-lo para não solicitado"
    ]
   },
   "src/lib/quoteRequest.ts": {
    "path": "src/lib/quoteRequest.ts",
-   "lines": 100,
+   "lines": 105,
    "exports": [
     "function sanitizeLeadPageUrl",
     "function buildQuotePayload",
@@ -32123,7 +32156,7 @@
   },
   "tests/api/lead-requests.test.ts": {
    "path": "tests/api/lead-requests.test.ts",
-   "lines": 713,
+   "lines": 728,
    "is_test": true,
    "errors": [
     "Fixture de orçamento sem item.",
@@ -32139,6 +32172,7 @@
     "APIs de leads isoladas",
     "registra contato normalizado pelo RPC server-side",
     "rejeita resposta malformada do banco: %s",
+    "repetição idempotente promete envio quando o provedor de WhatsApp existe",
     "persiste orçamento e devolve 200 em repetição idempotente",
     "encerra uma dependência que não responde antes do limite da função",
     "encerra o corpo do preflight que trava após os headers em 2,5 segundos",
@@ -32258,7 +32292,7 @@
   },
   "tests/api/notifications.test.ts": {
    "path": "tests/api/notifications.test.ts",
-   "lines": 605,
+   "lines": 622,
    "is_test": true,
    "env": [
     "CRON_SECRET"
@@ -32274,6 +32308,7 @@
     "recusa chamada sem o segredo agendado",
     "não reivindica a fila enquanto nenhum provedor estiver configurado",
     "Preview não envia mensagens reais mesmo se herdar credenciais dos provedores",
+    "relata o WhatsApp como indisponível quando o provedor não está configurado",
     "envia e-mail transacional escapado e finaliza a entrega",
     "R01: boolean false da finalização não vira sucesso nem some silenciosamente",
     "R01: resposta escalar malformada não vira sucesso por coerção truthy",
@@ -32486,10 +32521,27 @@
   }
  },
  "git": {
-  "sha": "c61d7f53e6b6daf98ae3d69865f679b3426e9c83",
+  "sha": "f95d773e91fb20f224dbd2263e0494526b779e81",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "f95d773",
+    "date": "2026-11-17",
+    "author": "adm01-debug",
+    "subject": "fix(orçamento): para de prometer WhatsApp quando o canal não pode entregar (#181)",
+    "files": [
+     "api/_lib/leadHandler.ts",
+     "api/notifications.ts",
+     "src/lib/quoteConfirmation.test.ts",
+     "src/lib/quoteConfirmation.ts",
+     "src/lib/quoteRequest.test.ts",
+     "src/lib/quoteRequest.ts",
+     "src/pages/QuotePage.tsx",
+     "tests/api/lead-requests.test.ts",
+     "tests/api/notifications.test.ts"
+    ]
+   },
    {
     "sha": "c61d7f5",
     "date": "2026-11-17",
@@ -32808,15 +32860,6 @@
      ".github/workflows/production-drift.yml",
      ".github/workflows/secrets-rotation-reminder.yml"
     ]
-   },
-   {
-    "sha": "ba2bdf7",
-    "date": "2026-11-16",
-    "author": "adm01-debug",
-    "subject": "chore: ignora os worktrees temporarios de agentes de IA (#151)",
-    "files": [
-     ".gitignore"
-    ]
    }
   ],
   "hot_files": [
@@ -32829,8 +32872,20 @@
     4
    ],
    [
+    "src/pages/QuotePage.tsx",
+    3
+   ],
+   [
     "src/pages/IdeaLandingPage.tsx",
     3
+   ],
+   [
+    "api/_lib/leadHandler.ts",
+    2
+   ],
+   [
+    "tests/api/lead-requests.test.ts",
+    2
    ],
    [
     ".github/workflows/ci-health.yml",
@@ -32865,10 +32920,6 @@
     2
    ],
    [
-    "src/pages/QuotePage.tsx",
-    2
-   ],
-   [
     "docs/DATABASE_DICTIONARY.md",
     2
    ],
@@ -32877,27 +32928,19 @@
     2
    ],
    [
-    ".gitignore",
-    2
-   ],
-   [
-    "api/_lib/operationalAlerts.ts",
+    "api/notifications.ts",
     1
    ],
    [
-    "api/product-page.ts",
+    "src/lib/quoteConfirmation.test.ts",
     1
    ],
    [
-    "tests/api/product-page-alert.test.ts",
+    "src/lib/quoteConfirmation.ts",
     1
    ],
    [
-    "tests/api/product-page-shell-alert.test.ts",
-    1
-   ],
-   [
-    ".github/workflows/catalog-contract.yml",
+    "src/lib/quoteRequest.test.ts",
     1
    ]
   ]

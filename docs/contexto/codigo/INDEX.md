@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `c61d7f53e6b6daf98ae3d69865f679b3426e9c83` (2026-11-17T19:11:26Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `f95d773e91fb20f224dbd2263e0494526b779e81` (2026-11-17T19:38:45Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -36,7 +36,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 |---|---|
 | arquivos_total | 692 |
 | arquivos_codigo | 277 |
-| linhas_codigo | 54065 |
+| linhas_codigo | 54143 |
 | rotas | 32 |
 | rotas_http_backend | 14 |
 | vistas_por_id | 0 |
@@ -176,15 +176,15 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - src/styles.css (35)
 - .github/workflows/quality.yml (27)
 - vercel.json (26)
-- src/pages/QuotePage.tsx (24)
+- src/pages/QuotePage.tsx (25)
 - docs/DATABASE_DICTIONARY.md (23)
 - site-supabase/supabase/tests/database/lead_storage.test.sql (23)
 - src/components/Layout.tsx (23)
+- tests/api/lead-requests.test.ts (21)
 - .github/workflows/release.yml (20)
-- tests/api/lead-requests.test.ts (20)
 - .github/workflows/database.yml (17)
+- api/_lib/leadHandler.ts (17)
 - src/App.tsx (17)
-- .github/workflows/graphify.yml (16)
 
 ## Workflows
 - `automation-local.yml` — Automação local (pull_request, push, workflow_dispatch)
@@ -378,6 +378,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-17 `f95d773` fix(orçamento): para de prometer WhatsApp quando o canal não pode entregar (#181)
 - 2026-11-17 `c61d7f5` infra(ci): gate de auditoria bloqueia pelo escopo que vai ao ar (#188)
 - 2026-11-17 `3b2b02e` feat(observabilidade): queda do catálogo público passa a alertar a equipe (#178)
 - 2026-11-17 `bcf7e33` chore(ci): unifica o rótulo do pin do actions/checkout (#179)
@@ -392,7 +393,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-17 `6711278` fix(seo): landing de ideias entrega um único título ao buscador (#169)
 - 2026-11-17 `d539fb2` feat(analytics): mede o funil das landings de ideias (#168)
 - 2026-11-17 `1959946` chore: fecha F-49 no ledger de funcionalidades (#167)
-- 2026-11-17 `0d9c07b` feat(home): entrada para as landings de ideias e estados vazios (#166)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "fix(orçamento): para de prometer WhatsApp quando o canal não pode entregar (#181)",
    "infra(ci): gate de auditoria bloqueia pelo escopo que vai ao ar (#188)",
    "feat(observabilidade): queda do catálogo público passa a alertar a equipe (#178)",
    "chore(ci): unifica o rótulo do pin do actions/checkout (#179)",
-   "fix(ideias): landing de onboarding passa a ter curadoria própria (#177)",
-   "chore(docs): homologa a 0.9.105 do graphify com avaliação isolada contra a 0.9.94 (#176)"
+   "fix(ideias): landing de onboarding passa a ter curadoria própria (#177)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",
