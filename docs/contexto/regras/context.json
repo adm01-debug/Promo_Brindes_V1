@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "fce1a493f0703f26f08c846d8a75438fc3dbfcf8",
+  "sha": "4b0f2cc2005c7290c6d84b05fbd4adab0f053e3b",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-17 14:31 UTC",
-  "files_total": 580,
-  "code_files": 380,
-  "code_lines": 66834,
+  "generated_at": "2026-11-17 14:42 UTC",
+  "files_total": 581,
+  "code_files": 381,
+  "code_lines": 66908,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "2d5a88f219ccf447",
+ "facts_hash": "168c49c41b488acf",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -279,7 +279,7 @@
   "languages": {
    ".ts": 144,
    ".sql": 106,
-   ".tsx": 61,
+   ".tsx": 62,
    ".mjs": 59,
    ".py": 8,
    ".js": 2
@@ -6446,6 +6446,15 @@
     "deps_count": 1
    },
    {
+    "path": "",
+    "file": "src/pages/IdeaLandingPage.test.tsx",
+    "component": "IdeaLandingPage.test",
+    "tables_transitive": [],
+    "invokes_transitive": [],
+    "rpc_transitive": [],
+    "deps_count": 17
+   },
+   {
     "path": "*",
     "file": "src/pages/NotFoundPage.tsx",
     "component": "NotFoundPage",
@@ -7635,7 +7644,7 @@
   {
    "module": "src/lib",
    "files": 79,
-   "lines": 7639,
+   "lines": 7645,
    "tables": [],
    "exports": [
     "analytics.ts: FunnelEventMap, redactAnalyticsPathname, redactTelemetryUrl, redactAnalyticsUrl, trackFunnelEvent",
@@ -7781,8 +7790,8 @@
   },
   {
    "module": "src/pages",
-   "files": 22,
-   "lines": 3087,
+   "files": 23,
+   "lines": 3155,
    "tables": [],
    "exports": [
     "AboutPage.tsx: AboutPage",
@@ -7833,6 +7842,7 @@
     "src/pages/CustomerLoginPage.tsx",
     "src/pages/CustomerQuotePage.tsx",
     "src/pages/HomePage.tsx",
+    "src/pages/IdeaLandingPage.test.tsx",
     "src/pages/IdeaLandingPage.tsx",
     "src/pages/KitBuilderPage.tsx",
     "src/pages/NotFoundPage.tsx",
@@ -16709,6 +16719,18 @@
    {
     "file": "src/pages/CustomerLoginPage.test.tsx",
     "name": "mantém links de autenticação na origem pública canônica"
+   },
+   {
+    "file": "src/pages/IdeaLandingPage.test.tsx",
+    "name": "telemetria da landing de ideias ao trocar de tópico"
+   },
+   {
+    "file": "src/pages/IdeaLandingPage.test.tsx",
+    "name": "emite uma única visualização por tópico, com o total do próprio tópico"
+   },
+   {
+    "file": "src/pages/IdeaLandingPage.test.tsx",
+    "name": "não grava o tópico revisitado com o total do tópico que o visitante acabou de deixar"
    },
    {
     "file": "src/pages/QuotePage.test.ts",
@@ -29994,7 +30016,7 @@
   },
   "src/lib/hooks.ts": {
    "path": "src/lib/hooks.ts",
-   "lines": 93,
+   "lines": 99,
    "exports": [
     "function useCatalog",
     "function useCategories",
@@ -30948,6 +30970,34 @@
    ],
    "env": [
     "VITE_PUBLIC_URL"
+   ]
+  },
+  "src/pages/IdeaLandingPage.test.tsx": {
+   "path": "src/pages/IdeaLandingPage.test.tsx",
+   "lines": 68,
+   "is_test": true,
+   "routes": [
+    {
+     "path": "/ideias/:topic",
+     "component": "IdeaLandingPage",
+     "guard": "",
+     "roles": []
+    }
+   ],
+   "rule_comments": [
+    "acumula as chaves da sessão. O que não pode acontecer é a chave errada"
+   ],
+   "calc_fns": [
+    {
+     "name": "totalsOf",
+     "params": "topic: string",
+     "body": "mocks.track.mock.calls"
+    }
+   ],
+   "tests": [
+    "telemetria da landing de ideias ao trocar de tópico",
+    "emite uma única visualização por tópico, com o total do próprio tópico",
+    "não grava o tópico revisitado com o total do tópico que o visitante acabou de deixar"
    ]
   },
   "src/pages/IdeaLandingPage.tsx": {
@@ -32311,10 +32361,21 @@
   }
  },
  "git": {
-  "sha": "fce1a493f0703f26f08c846d8a75438fc3dbfcf8",
+  "sha": "4b0f2cc2005c7290c6d84b05fbd4adab0f053e3b",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "4b0f2cc",
+    "date": "2026-11-17",
+    "author": "adm01-debug",
+    "subject": "fix(analytics): landing de ideias para de contar a visita com o total do tópico anterior (#172)",
+    "files": [
+     "src/lib/hooks.ts",
+     "src/pages/IdeaLandingPage.test.tsx",
+     "src/pages/IdeaLandingPage.tsx"
+    ]
+   },
    {
     "sha": "fce1a49",
     "date": "2026-11-17",
@@ -32625,15 +32686,6 @@
     "files": [
      ".github/workflows/contexto.yml"
     ]
-   },
-   {
-    "sha": "99e47fe",
-    "date": "2026-11-14",
-    "author": "adm01-debug",
-    "subject": "feat: relatorio de prontidao para producao (docs/prod-readiness.md)",
-    "files": [
-     "docs/prod-readiness.md"
-    ]
    }
   ],
   "hot_files": [
@@ -32652,6 +32704,10 @@
    [
     "package.json",
     3
+   ],
+   [
+    "src/pages/IdeaLandingPage.tsx",
+    2
    ],
    [
     "api/site-page.ts",
@@ -32690,6 +32746,14 @@
     2
    ],
    [
+    "src/lib/hooks.ts",
+    1
+   ],
+   [
+    "src/pages/IdeaLandingPage.test.tsx",
+    1
+   ],
+   [
     "shared/siteName.ts",
     1
    ],
@@ -32703,18 +32767,6 @@
    ],
    [
     "shared/ideaLandingPages.ts",
-    1
-   ],
-   [
-    "src/lib/ideaLandings.ts",
-    1
-   ],
-   [
-    "src/lib/analytics.test.ts",
-    1
-   ],
-   [
-    "src/lib/analytics.ts",
     1
    ]
   ]

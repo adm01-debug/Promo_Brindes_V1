@@ -38,7 +38,7 @@
   },
   {
    "arquivo": "src/lib/catalog.ts",
-   "importado_por": 10
+   "importado_por": 11
   },
   {
    "arquivo": "src/lib/quoteItems.ts",

@@ -20,7 +20,7 @@
    "src/context (3)"
   ],
   "testes": [
-   "co-localizado (*.test) (51)",
+   "co-localizado (*.test) (52)",
    "tests/ (42)",
    "outro (9)"
   ],
@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "fix(analytics): landing de ideias para de contar a visita com o total do tópico anterior (#172)",
    "fix(seo): shell das landings volta a recusar campo desconhecido e usa um só nome de marca (#174)",
    "test(e2e): guardas dos destinos editoriais passam a poder falhar (#173)",
    "chore(docs): runbook do graphify passa a declarar o pin real (#171)",
-   "test(e2e): trava os destinos editoriais da home e do rodapé (#170)",
-   "fix(seo): landing de ideias entrega um único título ao buscador (#169)"
+   "test(e2e): trava os destinos editoriais da home e do rodapé (#170)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

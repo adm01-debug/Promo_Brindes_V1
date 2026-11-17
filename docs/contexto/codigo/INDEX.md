@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `fce1a493f0703f26f08c846d8a75438fc3dbfcf8` (2026-11-17T14:29:28Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `4b0f2cc2005c7290c6d84b05fbd4adab0f053e3b` (2026-11-17T14:42:10Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -14,7 +14,7 @@ Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR
 Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua tarefa; não carregue tudo.
 
 ## Stack
-- linguagens: TypeScript (205), Markdown (116), SQL (106), JavaScript (61), JSON (28), YAML (19), Python (8), CSS (4)
+- linguagens: TypeScript (206), Markdown (116), SQL (106), JavaScript (61), JSON (28), YAML (19), Python (8), CSS (4)
 - linguagem_principal: TypeScript
 - framework: React
 - backend_http: vercel-functions
@@ -34,9 +34,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Números
 | item | qtd |
 |---|---|
-| arquivos_total | 687 |
-| arquivos_codigo | 273 |
-| linhas_codigo | 53660 |
+| arquivos_total | 688 |
+| arquivos_codigo | 274 |
+| linhas_codigo | 53734 |
 | rotas | 32 |
 | rotas_http_backend | 14 |
 | vistas_por_id | 0 |
@@ -48,7 +48,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 | tabelas | 22 |
 | migrations | 69 |
 | cron_jobs | 0 |
-| testes | 133 |
+| testes | 134 |
 | workflows | 15 |
 | scripts | 35 |
 | docs_md | 116 |
@@ -58,7 +58,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - componentes: src/components (19), src/pages (18), src/context (2)
 - hooks: src/lib (4), src/context (2)
 - servicos_logica: src/lib (43), api/_lib (14), src/context (3)
-- testes: co-localizado (*.test) (51), tests/ (42), outro (9)
+- testes: co-localizado (*.test) (52), tests/ (42), outro (9)
 - edge_functions: n/d
 - migrations: site-supabase/supabase/migrations
 - scripts: scripts/maintenance (4), scripts/inventario (3), scripts/regras_negocio (3)
@@ -377,6 +377,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-17 `4b0f2cc` fix(analytics): landing de ideias para de contar a visita com o total do tópico anterior (#172)
 - 2026-11-17 `fce1a49` fix(seo): shell das landings volta a recusar campo desconhecido e usa um só nome de marca (#174)
 - 2026-11-17 `5a524ad` test(e2e): guardas dos destinos editoriais passam a poder falhar (#173)
 - 2026-11-17 `b8870bf` chore(docs): runbook do graphify passa a declarar o pin real (#171)
@@ -391,7 +392,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-17 `1d017c9` fix(ci): o resumo do quality gate para de acusar falha em passo que passou (#162)
 - 2026-11-17 `8ea1273` feat(lgpd): o apagamento de titular passa a apagar o que faltava (#161)
 - 2026-11-17 `f48af64` feat(contato): avisa o comercial quando chega lead pelo formulario de contato (#158)
-- 2026-11-17 `bcca66c` feat(busca): corpus julgado de relevancia vai de 20 para 33 intencoes (#163)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

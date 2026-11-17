@@ -5,17 +5,17 @@
   "vitest",
   "playwright"
  ],
- "total": 133,
+ "total": 134,
  "por_tipo": {
   "contrato": 2,
   "e2e": 2,
   "pytest": 4,
-  "unit": 96
+  "unit": 97
  },
  "onde_ficam": [
   {
    "padrao": "co-localizado (*.test)",
-   "arquivos": 51
+   "arquivos": 52
   },
   {
    "padrao": "tests/",
@@ -579,6 +579,16 @@
    "casos": 1
   },
   {
+   "arquivo": "src/pages/IdeaLandingPage.test.tsx",
+   "tipo": "unit",
+   "linhas": 68,
+   "testa": [
+    "src/lib/catalog.ts",
+    "src/pages/IdeaLandingPage.tsx"
+   ],
+   "casos": 2
+  },
+  {
    "arquivo": "src/pages/QuotePage.test.ts",
    "tipo": "unit",
    "linhas": 14,
@@ -1075,7 +1085,7 @@
   "src/lib/briefingAssets.ts": 2,
   "src/lib/campaignBrief.ts": 2,
   "src/lib/campaignPresets.ts": 1,
-  "src/lib/catalog.ts": 1,
+  "src/lib/catalog.ts": 2,
   "src/lib/catalogComparison.ts": 1,
   "src/lib/catalogFilters.ts": 1,
   "src/lib/catalogLibrary.ts": 1,
@@ -1111,6 +1121,7 @@
   "src/lib/useOccasionFavorites.ts": 1,
   "src/pages/AuthConfirmPage.tsx": 1,
   "src/pages/CommemorativeDatesPage.tsx": 1,
+  "src/pages/IdeaLandingPage.tsx": 1,
   "src/types.ts": 10
  },
  "sem_teste": {
@@ -1123,7 +1134,6 @@
    "src/pages/CustomerLoginPage.tsx",
    "src/pages/CustomerQuotePage.tsx",
    "src/pages/HomePage.tsx",
-   "src/pages/IdeaLandingPage.tsx",
    "src/pages/KitBuilderPage.tsx",
    "src/pages/NotFoundPage.tsx",
    "src/pages/PrivacyPage.tsx",

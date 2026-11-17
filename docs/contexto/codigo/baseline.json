@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "fce1a493f0703f26f08c846d8a75438fc3dbfcf8",
+  "commit": "4b0f2cc2005c7290c6d84b05fbd4adab0f053e3b",
   "branch": "main",
-  "data_commit": "2026-11-17T14:29:28Z",
+  "data_commit": "2026-11-17T14:42:10Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "4b0f2cc",
+    "data": "2026-11-17",
+    "assunto": "fix(analytics): landing de ideias para de contar a visita com o total do tópico anterior (#172)"
+   },
    {
     "sha": "fce1a49",
     "data": "2026-11-17",
@@ -126,14 +131,9 @@
     "sha": "74bac8b",
     "data": "2026-11-16",
     "assunto": "fix(ci): npm audit signatures volta a reprovar o gate (#150)"
-   },
-   {
-    "sha": "6706d55",
-    "data": "2026-11-16",
-    "assunto": "infra: blinda as permissoes de Actions e registra a decisao da etapa 32 (#149)"
    }
   ],
-  "arquivos_mudados_7d": 152,
+  "arquivos_mudados_7d": 154,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 58
+    "commits": 59
    },
    {
     "autor": "dependabot[bot]",
@@ -310,9 +310,9 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 687,
-  "arquivos_codigo": 273,
-  "linhas_codigo": 53660,
+  "arquivos_total": 688,
+  "arquivos_codigo": 274,
+  "linhas_codigo": 53734,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -324,7 +324,7 @@
   "tabelas": 22,
   "migrations": 69,
   "cron_jobs": 0,
-  "testes": 133,
+  "testes": 134,
   "workflows": 15,
   "scripts": 35,
   "docs_md": 116
@@ -556,15 +556,15 @@
   },
   "src/lib": {
    "arquivos": 79,
-   "linhas": 7639
+   "linhas": 7645
   },
   "src/main.tsx": {
    "arquivos": 1,
    "linhas": 10
   },
   "src/pages": {
-   "arquivos": 22,
-   "linhas": 3087
+   "arquivos": 23,
+   "linhas": 3155
   },
   "src/test": {
    "arquivos": 1,
