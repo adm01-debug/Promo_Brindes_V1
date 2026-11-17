@@ -1,6 +1,6 @@
 # Verificação das pendências de engenharia — 17/11/2026
 
-Estado, **em 17/11/2026**, dos 58 itens de `docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md` cuja coluna "quem destrava" é exatamente `ENG`. A auditoria é de 11/10/2026 e a `main` andou cinco semanas desde então, por isso o estado precisava ser reconferido item a item em vez de assumido. Resultado: 4 dos 58 já estavam fechados sem a auditoria registrar, 26 seguem sem nenhum começo e 28 estão pela metade. Dos 54 que continuam abertos, 24 dependem de credencial ou endereço que só o dono tem e 30 não dependem.
+Estado, **em 17/11/2026**, dos 58 itens de `docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md` cuja coluna "quem destrava" é exatamente `ENG`. A auditoria é de 11/10/2026 e a `main` andou cinco semanas desde então, por isso o estado precisava ser reconferido item a item em vez de assumido. Resultado: 4 dos 58 já estavam fechados sem a auditoria registrar, **3 foram fechados e incorporados à `main` nesta sessão** (PF-27, PF-80, PF-112), 24 seguem sem nenhum começo e 27 estão pela metade (PF-85 entre eles: o alerta de resíduo entrou, a drenagem do lote não). Dos 51 que continuam abertos, 24 dependem de credencial ou endereço que só o dono tem e 27 não dependem.
 
 Os outros 70 itens da auditoria não entram aqui porque quem destrava é o dono (45), conteúdo comercial (9), pessoas (5) ou uma combinação.
 
@@ -17,7 +17,7 @@ Cada item foi conferido contra o código de hoje por um agente em leitura pura, 
 
 1. **Eu conferi pessoalmente, linha por linha, apenas quatro itens** — os que fechei nesta sessão: PF-27, PF-80, PF-85 e PF-112. Nos outros 54 a evidência vem da verificação paralela e **não foi reconferida por mim**. Ela é reproduzível: todo comando citado pode ser rodado de novo.
 2. **Três itens vieram com classificação divergente da auditoria** (PF-103, PF-114, PF-123 foram marcados DIVERGÊNCIA pelo lote mas a auditoria registra outro estado). Onde notei, anotei no próprio item.
-3. **Vinte e três comandos vinham com `|` sem `-E`** e foram corrigidos aqui. Em `grep` básico o `|` sem barra é literal, então aquelas buscas não provavam a ausência que afirmavam (as 26 que usam `\|` sempre estiveram corretas: em BRE a barra invertida é o operador de alternância). Reexecutei as 23 com `-E` e confiro o que mudou: nos casos decisivos que inspecionei — `max_age|age_cutoff` para PF-11, `suppression|supress` e `reprocess|requeue|reenfileir` para PF-12 — o resultado no escopo real continua negativo, então aqueles vereditos se sustentam. Nos demais, trate o comando corrigido como a fonte, não a contagem antiga. Depois disso validei a sintaxe de **todos** os padrões `-E` do documento executando cada um: só um era inválido — o de PF-85 trazia `for (let` com parêntese sem fechar, e em ERE isso faz o `grep` abortar com `Unmatched ( or \(` (rc=2) em vez de devolver zero ocorrência. Corrigido para `for \(let` e reexecutado: rc=1, zero ocorrência no escopo real, então o veredito de PF-85 se sustenta.
+3. **Vinte e três comandos vinham com `|` sem `-E`** e foram corrigidos aqui. Em `grep` básico o `|` sem barra é literal, então aquelas buscas não provavam a ausência que afirmavam (as 26 que usam `\|` sempre estiveram corretas: em BRE a barra invertida é o operador de alternância). Reexecutei as 23 com `-E` e confiro o que mudou: nos casos decisivos que inspecionei — `max_age|age_cutoff` para PF-11, `suppression|supress` e `reprocess|requeue|reenfileir` para PF-12 — o resultado no escopo real continua negativo, então aqueles vereditos se sustentam. Nos demais, trate o comando corrigido como a fonte, não a contagem antiga. Depois disso validei a sintaxe de **todos** os padrões `-E` do documento executando cada um: só um era inválido — o de PF-85 trazia `for (let` com parêntese sem fechar, e em ERE isso faz o `grep` abortar com `Unmatched ( or \(` (rc=2) em vez de devolver zero ocorrência. Corrigido para `for \(let` e reexecutado: rc=1, zero ocorrência no escopo real, então o veredito de PF-85 se sustenta. Depois disso estendi a varredura aos `grep` **sem aspas**, que a primeira passagem não cobria: apareceu mais um, no bloco de PF-112 (`grep -n CATALOG|PUBLISHABLE .env.example`), forma em que o shell tenta executar `PUBLISHABLE` como comando em vez de buscar a alternância. Corrigido para `grep -nE` com aspas. Depois dessas duas rodadas, nenhum comando do documento tem alternância que não funcione como escrito.
 4. **A chamada aos agentes foi degradada**: 54 dos 58 itens foram enviados com título genérico ("item 44") em vez do texto real da auditoria. Os agentes recuperaram o conteúdo lendo o documento original — as evidências provam isso —, mas uma releitura do documento é o caminho certo para qualquer item que você queira executar.
 
 ## Fechados nesta sessão
@@ -29,7 +29,7 @@ Cada item foi conferido contra o código de hoje por um agente em leitura pura, 
 | PF-80 | documentação do banco deixou de descrever função que não existe | [#185](https://github.com/adm01-debug/Promo_Brindes_V1/pull/185) |
 | PF-112 | variável de produção não documentada, com guard para não repetir | [#186](https://github.com/adm01-debug/Promo_Brindes_V1/pull/186) (parte de configuração) |
 
-As quatro estão em PR aberta aguardando o gate de CI (ver a seção final).
+As quatro foram **mergeadas na `main`** em 17/11/2026: #183 em `108b0b2`, #184 em `e4a904f`, #185 em `fbd51d9`, #186 em `092d5c6`. Os blocos de evidência de PF-27, PF-80, PF-85 e PF-112 mais abaixo descrevem o estado **anterior** à correção e cada um traz, no fim, a reconciliação com o código desta árvore.
 
 ## Já fechados antes desta sessão, sem a auditoria registrar
 
@@ -59,7 +59,7 @@ Os quatro vieram do lote sem bloco de evidência próprio, diferente dos 54 aber
 | PF-23 | PARCIAL HOJE | GRANDE | sim |
 | PF-24 | PARCIAL HOJE | MEDIO | sim |
 | PF-25 | PARCIAL HOJE | GRANDE | sim |
-| PF-27 | AINDA ABERTO | PEQUENO | não |
+| PF-27 | FECHADO HOJE (#183) | PEQUENO | não |
 | PF-29 | PARCIAL HOJE | PEQUENO | sim |
 | PF-34 | AINDA ABERTO | GRANDE | sim |
 | PF-35 | AINDA ABERTO | GRANDE | não |
@@ -74,10 +74,10 @@ Os quatro vieram do lote sem bloco de evidência próprio, diferente dos 54 aber
 | PF-75 | AINDA ABERTO | PEQUENO | não |
 | PF-78 | PARCIAL HOJE | MEDIO | sim |
 | PF-79 | PARCIAL HOJE | MEDIO | não |
-| PF-80 | AINDA ABERTO | PEQUENO | não |
+| PF-80 | FECHADO HOJE (#185) | PEQUENO | não |
 | PF-81 | AINDA ABERTO | PEQUENO | sim |
 | PF-82 | AINDA ABERTO | MEDIO | não |
-| PF-85 | PARCIAL HOJE | MEDIO | não |
+| PF-85 | PARCIAL HOJE (alerta fechado em #184; drenagem aberta) | MEDIO | não |
 | PF-87 | AINDA ABERTO | MEDIO | sim |
 | PF-90 | AINDA ABERTO | PEQUENO | sim |
 | PF-92 | PARCIAL HOJE | MEDIO | sim |
@@ -97,7 +97,7 @@ Os quatro vieram do lote sem bloco de evidência próprio, diferente dos 54 aber
 | PF-108 | PARCIAL HOJE | MEDIO | não |
 | PF-109 | AINDA ABERTO | GRANDE | não |
 | PF-111 | AINDA ABERTO | MEDIO | não |
-| PF-112 | PARCIAL HOJE | PEQUENO | não |
+| PF-112 | PARCIAL HOJE (parte de configuração fechada em #186) | PEQUENO | não |
 | PF-113 | AINDA ABERTO | GRANDE | não |
 | PF-114 | PARCIAL HOJE | PEQUENO | não |
 | PF-120 | AINDA ABERTO | MEDIO | sim |
@@ -158,11 +158,13 @@ Esforço: GRANDE · Depende de segredo: sim
 
 Existe: UI em src/pages/CustomerQuotePage.tsx:234 e RPC public.request_my_quote_adjustment em site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql:162-215, com o bloqueio de 3 pendentes em :205-208 (too_many_pending_adjustments). Falta (3 coisas): (1) continua atrás de flag desligada — src/lib/siteFeatureFlags.ts:6 e .env.example:25 `VITE_CUSTOMER_ADJUSTMENTS_ENABLED=false`; (2) não roteado ao comercial — os alertas novos cobrem só quote e contact (20261106150448_add_commercial_team_quote_alert.sql:86,107 e 20261117010000_add_commercial_team_contact_alert.sql:116,161), o CHECK de request_kind aceita só ('quote','contact') em 20260908230000_create_site_lead_storage.sql:70,86,103, e `grep -rn "quote_adjustment" site-supabase/supabase/migrations/*.sql | grep -i "notification_deliveries\|enqueue"` = 0; (3) o bug latente de PF-04 persiste: nada move o status para resolved/closed (`grep -rn "quote_adjustment_requests" .../migrations/*.sql | grep -i update` só acha os dois updates de anonimização, 20260923120000:290 e 20261117030000:186), então a 4ª tentativa fica bloqueada para sempre; (4) sem e2e — `grep -rln "adjustment\|ajustar" e2e/ tests/` só casa e2e/smoke.spec.ts, e `grep -n adjustment e2e/smoke.spec.ts` = 0 linhas.
 
-### PF-27 — AINDA ABERTO — **conferido por mim, linha por linha**
+### PF-27 — FECHADO HOJE (#183) — **conferido por mim, linha por linha**
 
 Esforço: PEQUENO · Depende de segredo: não
 
 `grep -c 429 api/customer-proposals.ts api/briefing-assets.ts` → 0 e 0. O estouro continua virando 404: a RPC levanta P0001 'rate_limit_exceeded' (site_private.consume_rate_limit em 20260927161243_harden_briefing_assets_and_audits.sql:112-114, consumido por get_my_proposal_document em :166-171 e get_my_briefing_asset_verification em :129-134), e os dois handlers colapsam qualquer resposta não-ok num 404 genérico: api/customer-proposals.ts:114-116 ('proposal_not_found') e api/briefing-assets.ts:126-130 ('briefing_asset_not_found'). Nenhum dos dois inspeciona o código/mensagem do erro. O 429 existe só em outros caminhos (api/_lib/siteDatabase.ts:196,248; api/_lib/sharedSelections.ts:102).
+
+**Reconciliação com esta árvore:** fechado. `api/customer-proposals.ts:119` e `api/briefing-assets.ts:129` respondem 429 com `proposal_download_rate_limited` / `briefing_asset_rate_limited` e a mensagem "Muitas tentativas em pouco tempo. Aguarde alguns minutos." (#183, `108b0b2`). A busca negativa acima descreve o estado antes do merge.
 
 ### PF-29 — PARCIAL HOJE
 
@@ -248,11 +250,13 @@ Esforço: MEDIO · Depende de segredo: não
 
 Existe hoje: tipos gerados versionados (src/types/site-database.types.ts) com guarda de drift no CI (.github/workflows/database.yml:50-57). FALTA: a API continua sem usar os tipos — `grep -rn "site-database.types" api/` → 0 ocorrências (só src/lib/siteSupabase.ts:2 e src/lib/customerSelections.ts:2); contagem no bloco Functions de src/types/site-database.types.ts: 44 RPCs, 30 ainda com `Returns: Json` (era 42/28 em 11/10), portanto parsers manuais seguem sem contrato tipado; nenhum inventário de contratos JSON das RPCs (docs/DATABASE_FUNCTION_CONTRACTS.md cataloga códigos de erro, não o shape dos retornos Json).
 
-### PF-80 — AINDA ABERTO — **conferido por mim, linha por linha**
+### PF-80 — FECHADO HOJE (#185) — **conferido por mim, linha por linha**
 
 Esforço: PEQUENO · Depende de segredo: não
 
 As 6 divergências continuam idênticas: (1) docs/DATABASE_FUNCTION_CONTRACTS.md:50 cita `purge_site_admin_audit_log`, mas o nome real é `purge_site_admin_audit_logs` (api/retention.ts:167); (2) docs/DATABASE_FUNCTION_CONTRACTS.md:51 cita `get_site_storage_retention_candidates` — `grep -rn "get_site_storage_retention_candidates" site-supabase/ api/ src/types/site-database.types.ts` → 0 ocorrências (função não existe); (3) docs/DATABASE_FUNCTION_CONTRACTS.md:66 descreve a legada `finalize_briefing_asset_retention` como usada por api/retention.ts, que chama `finalize_site_storage_retention` (api/retention.ts:160); (4) contrato documenta 400 para `invalid_notification_provider_event_input` (DATABASE_FUNCTION_CONTRACTS.md:43) mas o caminho de erro da RPC responde 500 (api/notification-events-resend.ts:116); (5) docs/SITE_SUPABASE_SETUP.md:28 ainda afirma "as 18 versões batem entre local e remoto" (hoje há 69 arquivos em site-supabase/supabase/migrations/) e :116 afirma que "os únicos RPCs públicos usam security invoker ... concedidos somente a service_role", contrariado por grants a `authenticated` em site-supabase/supabase/tests/database/briefing_assets.test.sql:19-31; (6) docs/CUSTOMER_PORTAL_IMPLEMENTATION_20260909.md:58 afirma que "nenhum cliente recebe política direta em storage.objects", mas briefing_assets.test.sql:33-35 exige 3 policies `customer_briefing_assets_%` em storage.objects.
+
+**Reconciliação com esta árvore:** fechado. `docs/DATABASE_FUNCTION_CONTRACTS.md:50` cita `purge_site_admin_audit_logs` (nome real), a função inexistente saiu, a legada deixou de ser descrita como a usada pelo cron, e as três linhas de retenção dizem `503 (retention_unavailable, api/retention.ts:213)` (#185, `fbd51d9`). As divergências acima descrevem o estado antes do merge.
 
 ### PF-81 — AINDA ABERTO
 
@@ -266,11 +270,13 @@ Esforço: MEDIO · Depende de segredo: não
 
 Os três entregáveis continuam ausentes: (a) policies de Storage ainda só contadas, não exercitadas com role cruzada — site-supabase/supabase/tests/database/briefing_assets.test.sql:33-35 faz apenas `count(*) ... polrelid='storage.objects'` = 3, e `grep -rn "role authenticated" site-supabase/supabase/tests/` → 0 ocorrências (os únicos `set local role` são site_api/postgres: admin_write_audit.test.sql:53, default_privileges.test.sql:14, lead_preflight_rate_limit.test.sql:85, site_api_privileges.test.sql:28), ou seja a RLS de storage.objects nunca roda sob `authenticated`; (b) captura real de DDL continua não verificada — admin_write_audit.test.sql:90-94 só faz `lives_ok` com o comentário "só confirma que o event trigger não quebra", e `grep -rnE "admin_ddl_log|command_tag|event_trigger" site-supabase/supabase/tests/database/*.sql` só acha a linha 75, que é um INSERT de fixture para a retenção, não uma asserção de DDL capturado; (c) estouro do rate limit de seleção compartilhada sem teste — `grep -rn "shared_selection_rate_limit_exceeded" site-supabase/supabase/tests/ tests/` → 0 (só api/_lib/sharedSelections.ts:101); os testes só conferem consumo de bucket (selection_asset_integrity.test.sql:45-46). Nota: existe teste de estouro para outro limite (briefing_assets.test.sql, 19 tentativas → rate_limit_exceeded), que não é o da seleção compartilhada.
 
-### PF-85 — PARCIAL HOJE — **conferido por mim, linha por linha**
+### PF-85 — PARCIAL HOJE (alerta fechado em #184) — **conferido por mim, linha por linha**
 
 Esforço: MEDIO · Depende de segredo: não
 
 A retenção existe e roda, mas sem drenagem — exatamente o quadro de 11/10: api/retention.ts:7 `REQUEST_TIMEOUT_MS = 10_000` e :8 `RETENTION_BATCH_SIZE = 100` seguem fixos, o handler faz uma única passada sequencial (api/retention.ts:119-170) e `grep -rnE "backlog|remaining|while|for \(let|drain|pending" api/retention.ts` → 0 ocorrências (nenhum laço de drenagem, nenhuma métrica de resíduo); o cron continua diário em vercel.json:7 (`0 3 * * *`). FALTA: repetir o lote até esvaziar (ou medir e alertar o backlog remanescente) e um orçamento de tempo por passada em vez do timeout único de 10 s compartilhado por todas as 6 RPCs da execução.
+
+**Reconciliação com esta árvore:** metade fechada. A medição e o alerta entraram — `api/retention.ts:178-208` monta `backlogSaturated` com as seis frentes de lote independente (orçamentos, contatos, seleções arquivadas, anexos e os dois logs de auditoria) e dispara alerta operacional quando qualquer uma satura (#184, `e4a904f`). **Continuam abertos** os outros dois pedidos do item: repetir o lote até esvaziar e um orçamento de tempo por passada — `REQUEST_TIMEOUT_MS = 10_000` e a passada única sequencial seguem como descrito acima.
 
 ### PF-87 — AINDA ABERTO
 
@@ -386,11 +392,13 @@ Esforço: MEDIO · Depende de segredo: não
 
 As cinco contradições citadas persistem, e `git log --oneline --since=2026-10-11 -- docs/PLANO_CORRECOES_50_ETAPAS_20260913.md docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260916.md docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260917.md PLANO_100.md plano-50-etapas.html vite.config.ts` → saída vazia (nenhum arquivo tocado desde a auditoria). (1) vite.config.ts:56 ainda diz "pelos 72 testes E2E do Playwright", mas `grep -rhn "^\s*test(" e2e/*.spec.ts | wc -l` = 66 (product-detail 8 + smoke 58). (2) docs/PLANO_CORRECOES_50_ETAPAS_20260913.md:100 ainda diz `noUncheckedIndexedAccess` "Revertida nesta rodada", enquanto tsconfig.app.json:11 e tsconfig.node.json:6 têm `"noUncheckedIndexedAccess": true`. (3) docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260917.md:500 "Fase 3 — Índices e desempenho (site DB) — ✅ integralmente fechada" contra a linha 513 do mesmo arquivo: "Etapa 19 — Revisão mensal de pg_stat_statements e índices sem uso — permanece aberta". (4) PLANO_100.md:5 ainda afirma "Nenhuma etapa foi executada." (5) plano-50-etapas.html:1055 ainda afirma "Nenhuma etapa deste plano foi executada." (6) docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260916.md segue com 103 checkboxes `[ ]` (ex.: linhas 131-134, 151-154).
 
-### PF-112 — PARCIAL HOJE — **conferido por mim, linha por linha**
+### PF-112 — PARCIAL HOJE (configuração fechada em #186) — **conferido por mim, linha por linha**
 
 Esforço: PEQUENO · Depende de segredo: não
 
-Dois dos oito achados foram fechados; seis seguem vivos. FECHADOS: (a) scripts/sql/verify-shared-selection-contract.sql deixou de ser órfão — tests/verify-shared-selection-contract.node.mjs:14 o lê (`fs.readFileSync(path.join(ROOT, 'scripts', 'sql', 'verify-shared-selection-contract.sql'))`) e o script `test:shared-selection-sql` (package.json:44) está dentro do gate `check` (package.json:28), via commit 223e655; (b) VERCEL_PROJECT_ID e VERCEL_SCOPE agora são definidos e consumidos em .github/workflows/release.yml:153-154 e usados em :194-196, :202, :234, :258, :299. AINDA ABERTOS: `catalogConfig` em src/lib/catalog.ts:501-505 sem nenhum consumidor (`grep -rn catalogConfig src/ --include=*.ts --include=*.tsx` só devolve a própria definição; o hit em scripts/check-catalog-public-contract.mjs:249 é uma função local homônima); `siteAuthConfigured` em src/lib/siteSupabase.ts:20 sem consumidor; `validateQuoteBriefing` em src/lib/quoteBriefing.ts:120 usado só em src/lib/quoteBriefing.test.ts:43-51; `hydrateSharedSelection` em src/lib/sharedSelection.ts:329 usado só em src/lib/sharedSelection.test.ts:86 (o que a produção usa é `hydrateSharedSelectionDetails`, src/lib/customerSelections.ts:157); public/brand/promo-brindes-logo-v1-360.webp sem referência (`grep -rn logo-v1-360 src/ api/ public/ index.html scripts/ .github/` → vazio); `CATALOG_SUPABASE_PUBLISHABLE_KEY` continua fora do .env.example (`grep -n CATALOG|PUBLISHABLE .env.example` devolve só VITE_SUPABASE_PUBLISHABLE_KEY:3, VITE_PRODUCT_CATALOG_RESOURCE:7 e VITE_SITE_SUPABASE_PUBLISHABLE_KEY:20).
+Dois dos oito achados foram fechados; seis seguem vivos. FECHADOS: (a) scripts/sql/verify-shared-selection-contract.sql deixou de ser órfão — tests/verify-shared-selection-contract.node.mjs:14 o lê (`fs.readFileSync(path.join(ROOT, 'scripts', 'sql', 'verify-shared-selection-contract.sql'))`) e o script `test:shared-selection-sql` (package.json:44) está dentro do gate `check` (package.json:28), via commit 223e655; (b) VERCEL_PROJECT_ID e VERCEL_SCOPE agora são definidos e consumidos em .github/workflows/release.yml:153-154 e usados em :194-196, :202, :234, :258, :299. AINDA ABERTOS: `catalogConfig` em src/lib/catalog.ts:501-505 sem nenhum consumidor (`grep -rn catalogConfig src/ --include=*.ts --include=*.tsx` só devolve a própria definição; o hit em scripts/check-catalog-public-contract.mjs:249 é uma função local homônima); `siteAuthConfigured` em src/lib/siteSupabase.ts:20 sem consumidor; `validateQuoteBriefing` em src/lib/quoteBriefing.ts:120 usado só em src/lib/quoteBriefing.test.ts:43-51; `hydrateSharedSelection` em src/lib/sharedSelection.ts:329 usado só em src/lib/sharedSelection.test.ts:86 (o que a produção usa é `hydrateSharedSelectionDetails`, src/lib/customerSelections.ts:157); public/brand/promo-brindes-logo-v1-360.webp sem referência (`grep -rn logo-v1-360 src/ api/ public/ index.html scripts/ .github/` → vazio); `CATALOG_SUPABASE_PUBLISHABLE_KEY` estava fora do .env.example (`grep -nE 'CATALOG|PUBLISHABLE' .env.example` devolvia só VITE_SUPABASE_PUBLISHABLE_KEY:3, VITE_PRODUCT_CATALOG_RESOURCE:7 e VITE_SITE_SUPABASE_PUBLISHABLE_KEY:20 — o comando foi publicado sem `-E` e sem aspas, forma em que o shell tenta executar `PUBLISHABLE` como comando; corrigido aqui).
+
+**Reconciliação com esta árvore:** a parte de configuração está fechada — `.env.example:8` declara `CATALOG_SUPABASE_PUBLISHABLE_KEY` e `scripts/validate-env-example.mjs` reprova o gate se a API ler variável que o exemplo não declara (#186, `092d5c6`). Os cinco achados de código morto seguem abertos.
 
 ### PF-113 — AINDA ABERTO
 
