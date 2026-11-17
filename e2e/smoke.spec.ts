@@ -1301,6 +1301,12 @@ test('falha ao abrir proposta fica visível e permite nova tentativa', async ({ 
   await openProposal.click();
   await expect(page.getByRole('alert')).toContainText('Não conseguimos abrir esta proposta agora.');
   await expect(openProposal).toBeEnabled();
+
+  // Mesmo botão, causa diferente: o estouro do limite de downloads precisa
+  // pedir espera, não convidar a repetir a tentativa que renova o limite.
+  await page.route('**/api/customer-proposals', (route) => route.fulfill({ status: 429, contentType: 'application/json', body: JSON.stringify({ error: 'proposal_download_rate_limited', message: 'Muitas tentativas em pouco tempo. Aguarde alguns minutos.' }) }));
+  await openProposal.click();
+  await expect(page.getByRole('alert')).toContainText('Muitas tentativas em pouco tempo.');
 });
 
 test('detalhe do orçamento recupera de indisponibilidade temporária', async ({ page }) => {

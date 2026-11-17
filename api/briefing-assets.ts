@@ -1,5 +1,5 @@
 import { matchesDeclaredFileSignature, readSignaturePrefix } from './_lib/fileSignatures.js';
-import { getSiteDatabaseConfig } from './_lib/siteDatabase.js';
+import { getSiteDatabaseConfig, responseErrorDetail } from './_lib/siteDatabase.js';
 import type { ApiRequest, ApiResponse } from './_lib/leadHandler.js';
 import { allowedSiteOrigins } from './_lib/siteOrigin.js';
 import { errorClass, logServerError } from './_lib/observability.js';
@@ -120,6 +120,13 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     const candidate = await lookup.json().catch(() => null) as VerificationCandidate | null;
     if (lookup.status === 401 || lookup.status === 403) {
       response.status(401).json({ error: 'authentication_required', message: 'Sua sessão expirou. Entre novamente.' });
+      return;
+    }
+    // Mesmo motivo do download de proposta: o limite de 20 verificacoes por 15
+    // minutos em get_my_briefing_asset_verification chegava como "Arquivo nao
+    // encontrado" e fazia o cliente reenviar o anexo que ja estava la.
+    if (!lookup.ok && responseErrorDetail(candidate).includes('rate_limit_exceeded')) {
+      response.status(429).json({ error: 'briefing_asset_rate_limited', message: 'Muitas tentativas em pouco tempo. Aguarde alguns minutos.' });
       return;
     }
     if (!lookup.ok || candidate?.id !== assetId || candidate.bucket !== BUCKET
