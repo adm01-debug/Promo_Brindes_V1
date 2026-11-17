@@ -36,8 +36,20 @@ jobs:
       - name: Use the declared npm version
         run: npm install --global npm@11.17.0
       - run: npm ci
-      - name: Run npm audit --audit-level=high
+      # O escopo que bloqueia e o que vai ao ar: vulnerabilidade em dependencia de
+      # producao continua reprovando o build. Ferramenta de build (vite, vitest,
+      # eslint) nao e publicada no bundle, e passou a ser informativa depois que
+      # GHSA-fc5q-39xc-vjpf travou toda PR por `picomatch <=4.0.7` — faixa que
+      # inclui a ultima versao publicada, ou seja sem correcao para aplicar. Com o
+      # escopo anterior, uma PR de tres arquivos markdown morria neste passo.
+      - name: Run npm audit --audit-level=high (escopo de producao)
         id: audit
+        run: npm audit --audit-level=high --omit=dev
+      # Mesma auditoria no escopo completo, sem bloquear: deixar de reprovar nao
+      # pode virar deixar de olhar. O resultado vai para o resumo do job.
+      - name: Run npm audit --audit-level=high (escopo completo, informativo)
+        id: audit_dev
+        continue-on-error: true
         run: npm audit --audit-level=high
       - name: Run npm audit signatures
         id: audit_signatures
@@ -105,6 +117,7 @@ jobs:
             echo "| Check | Result |"
             echo "| ----- | ------ |"
             echo "| npm audit | ${{ steps.audit.outcome || 'skipped' }} |"
+            echo "| npm audit (escopo completo, informativo) | ${{ steps.audit_dev.outcome || 'skipped' }} |"
             echo "| npm audit signatures | ${{ steps.audit_signatures.outcome || 'skipped' }} |"
             echo "| Lint / type-check / testes (npm run check) | ${{ steps.check.outcome || 'skipped' }} |"
             echo "| Unit + API coverage | ${{ steps.coverage.outcome || 'skipped' }} |"
