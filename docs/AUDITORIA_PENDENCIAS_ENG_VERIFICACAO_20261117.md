@@ -392,6 +392,15 @@ Esforço: MEDIO · Depende de segredo: não
 
 As cinco contradições citadas persistem, e `git log --oneline --since=2026-10-11 -- docs/PLANO_CORRECOES_50_ETAPAS_20260913.md docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260916.md docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260917.md PLANO_100.md plano-50-etapas.html vite.config.ts` → saída vazia (nenhum arquivo tocado desde a auditoria). (1) vite.config.ts:56 ainda diz "pelos 72 testes E2E do Playwright", mas `grep -rhn "^\s*test(" e2e/*.spec.ts | wc -l` = 66 (product-detail 8 + smoke 58). (2) docs/PLANO_CORRECOES_50_ETAPAS_20260913.md:100 ainda diz `noUncheckedIndexedAccess` "Revertida nesta rodada", enquanto tsconfig.app.json:11 e tsconfig.node.json:6 têm `"noUncheckedIndexedAccess": true`. (3) docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260917.md:500 "Fase 3 — Índices e desempenho (site DB) — ✅ integralmente fechada" contra a linha 513 do mesmo arquivo: "Etapa 19 — Revisão mensal de pg_stat_statements e índices sem uso — permanece aberta". (4) PLANO_100.md:5 ainda afirma "Nenhuma etapa foi executada." (5) plano-50-etapas.html:1055 ainda afirma "Nenhuma etapa deste plano foi executada." (6) docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260916.md segue com 103 checkboxes `[ ]` (ex.: linhas 131-134, 151-154).
 
+**Reconciliação com esta árvore (17/11/2026, conferido item a item):** das seis contradições, **uma era real e foi corrigida**; as outras cinco não se sustentam quando lidas por inteiro.
+
+- **(1) corrigida:** `vite.config.ts` afirmava "72 testes E2E"; a contagem real hoje é 68 (`grep -cE "^\s*test\(" e2e/*.spec.ts` → favorites 2, product-detail 8, smoke 58). O comentário passou a não citar número nenhum, porque o número muda a cada caso novo e envelhece errado sem que nada reprove.
+- **(5) não procede:** `plano-50-etapas.html:1055` afirma "Nenhuma etapa deste plano foi executada" **na mesma frase** em que declara ser "um plano derivado de inspeção do commit `f20df44`, não um relatório de execução". O documento está correto sobre o que é; reescrevê-lo apagaria o escopo que ele próprio declara.
+- **(4) mesmo caso:** `PLANO_100.md:5` é afirmação datada de 24/09/2026 sobre a própria base (`AUDITORIA.md`, A-001 a A-022).
+- **(2), (3) e (6)** estão em planos datados, e `AGENTS.md` já resolve isso por regra: "Se `docs/` contradisser, este arquivo vence (docs antigos são histórico)".
+
+Ou seja: o item pedia a correção de seis contradições e cinco delas eram leitura parcial de documento datado. Quem retomar isto não precisa reescrever plano histórico.
+
 ### PF-112 — PARCIAL HOJE (configuração fechada em #186) — **conferido por mim, linha por linha**
 
 Esforço: PEQUENO · Depende de segredo: não

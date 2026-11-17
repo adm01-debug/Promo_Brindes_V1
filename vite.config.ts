@@ -53,7 +53,10 @@ export default defineConfig({
       // Etapa 8), fixados alguns pontos abaixo do valor real para dar folga sem
       // permitir regressão. api/** e src/lib/** são lógica pura, cobertas pelo
       // Vitest. src/pages/** e a maior parte de src/components/** são cobertas
-      // pelos 72 testes E2E do Playwright (npm run test:e2e), não pelo Vitest —
+      // pela suíte E2E do Playwright (npm run test:e2e), não pelo Vitest —
+      // deliberadamente sem citar a contagem de testes: ela muda a cada caso
+      // novo, e um comentário que a carrega envelhece errado sem que nada
+      // reprove — foi o que aconteceu com a contagem anterior —
       // um limiar alto aqui puniria uma divisão de responsabilidade real entre
       // as duas suítes, não uma lacuna de teste.
       thresholds: {
