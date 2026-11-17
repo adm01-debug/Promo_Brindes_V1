@@ -59,7 +59,9 @@ const MAX_FILE_BYTES = (CFG.maxFileMB || 8) * 1024 * 1024;
 // workflow/branch em ai-context.config.json → "publicacao" (ou env AI_CONTEXT_PUBLICACAO).
 const PUBLICACAO = process.env.AI_CONTEXT_PUBLICACAO || CFG.publicacao || 'Publicado pelo workflow de contexto do repositório (ver .github/workflows).';
 const exists = (p) => fs.existsSync(abs(p));
-const readText = (p) => { try { const a = path.isAbsolute(p) ? p : abs(p); if (fs.statSync(a).size > MAX_FILE_BYTES) return ''; return fs.readFileSync(a, 'utf8'); } catch { return ''; } };
+// Abre uma vez e opera sobre o descritor: medir o tamanho pelo nome e depois ler pelo nome permitiria
+// trocar o arquivo entre as duas operacoes (CodeQL js/file-system-race).
+const readText = (p) => { const a = path.isAbsolute(p) ? p : abs(p); let fd; try { fd = fs.openSync(a, 'r'); if (fs.fstatSync(fd).size > MAX_FILE_BYTES) return ''; return fs.readFileSync(fd, 'utf8'); } catch { return ''; } finally { if (fd !== undefined) { try { fs.closeSync(fd); } catch { /* descritor ja fechado */ } } } };
 // Arquivo pode sumir entre o walk e a leitura (outro processo mexendo na árvore): vira "não lido", não derruba o gerador.
 const sizeOf = (p) => { try { return fs.statSync(abs(p)).size; } catch { return Infinity; } };
 const readJson = (p) => { try { return JSON.parse(readText(p).replace(/^﻿/, '')); } catch { return null; } };
@@ -67,6 +69,9 @@ const stripJsonc = (s) => s.replace(/"(?:\\.|[^"\\])*"|\/\/[^\n]*|\/\*[\s\S]*?\*
 // tsconfig/jsconfig aceitam comentários e vírgula sobrando (JSONC); JSON.parse puro descartaria o arquivo inteiro.
 const readJsonc = (p) => readJson(p) ?? (() => { try { return JSON.parse(stripJsonc(readText(p).replace(/^\uFEFF/, ''))); } catch { return null; } })();
 const uniq = (a) => [...new Set(a)].sort();
+// Escapa TODOS os metacaracteres de regex, a barra invertida inclusive: escapar apenas [.$] deixava um
+// identificador com \ montar padrao invalido ou que casa o que nao devia (CodeQL js/incomplete-sanitization).
+const reEscape = (s) => s.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&');
 // Ordenação com locale fixo: localeCompare segue LANG/LC_ALL do ambiente e mudaria a saída de máquina para máquina.
 const cmp = new Intl.Collator('en').compare;
 const escRe = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -456,7 +461,7 @@ secao('menu', () => {
       let papeisExpr = null; const roles = [];
       for (const x of block.matchAll(/(?:roles?|permissions?|allowedRoles|requiredRole)\s*:\s*(\[[^\]]*\]|[A-Za-z_$][\w$.]*)/g)) {
         let expr = x[1];
-        if (!expr.startsWith('[')) { const cm = new RegExp(`(?:const|let|var)\\s+${expr.replace(/[.$]/g, '\\$&')}\\b[^=]*=\\s*(\\[[^\\]]*\\])`).exec(src) || [...(FILE.get(f)?.imports || [])].map((i) => new RegExp(`(?:const|let|var)\\s+${expr.replace(/[.$]/g, '\\$&')}\\b[^=]*=\\s*(\\[[^\\]]*\\])`).exec(FILE.get(i)?.conteudo || '')).find(Boolean); if (cm) expr = cm[1]; else { papeisExpr = x[1]; continue; } }
+        if (!expr.startsWith('[')) { const cm = new RegExp(`(?:const|let|var)\\s+${reEscape(expr)}\\b[^=]*=\\s*(\\[[^\\]]*\\])`).exec(src) || [...(FILE.get(f)?.imports || [])].map((i) => new RegExp(`(?:const|let|var)\\s+${reEscape(expr)}\\b[^=]*=\\s*(\\[[^\\]]*\\])`).exec(FILE.get(i)?.conteudo || '')).find(Boolean); if (cm) expr = cm[1]; else { papeisExpr = x[1]; continue; } }
         roles.push(...expr.replace(/^\[|\]$/g, '').split(',').map((s0) => s0.replace(/['"`\s]/g, '')).filter((s0) => /^\w+$/.test(s0)));
       }
       menu.push({ rotulo: label, destino: dest, grupo: g.length ? g[g.length - 1][1] : null, papeis: uniq(roles), papeis_nao_resolvidos: papeisExpr, definido_em: f });
