@@ -54,7 +54,9 @@ describe('tarefa de retenção', () => {
     const { result, response } = responseDouble();
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
     expect(result.statusCode).toBe(200);
-    expect(result.body).toEqual({ ok: true, backlogSaturated: ['quote_retention'] });
+    // O mock devolve lote cheio em toda passada: o laco esgota MAX_RETENTION_PASSES
+    // e reporta o motivo, em vez de parar na primeira e esconder o residuo.
+    expect(result.body).toEqual({ ok: true, passes: 5, stopReason: 'max_passes', backlogSaturated: ['quote_retention'] });
     expect(erro).toHaveBeenCalledWith('site_retention_backlog_saturated', expect.objectContaining({ stages: ['quote_retention'] }));
     const alerta = fetchMock.mock.calls.find(([url]) => String(url) === 'https://alertas.test/hook');
     expect(alerta).toBeDefined();
@@ -81,7 +83,7 @@ describe('tarefa de retenção', () => {
     const erro = vi.spyOn(console, 'error').mockImplementation(() => {});
     const { result, response } = responseDouble();
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
-    expect(result.body).toEqual({ ok: true, backlogSaturated: ['contact_retention'] });
+    expect(result.body).toEqual({ ok: true, passes: 5, stopReason: 'max_passes', backlogSaturated: ['contact_retention'] });
     expect(fetchMock.mock.calls.some(([url]) => String(url) === 'https://alertas.test/hook')).toBe(true);
     erro.mockRestore();
   });
@@ -100,7 +102,37 @@ describe('tarefa de retenção', () => {
     vi.stubGlobal('fetch', fetchMock);
     const { result, response } = responseDouble();
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
-    expect(result.body).toEqual({ ok: true, backlogSaturated: [] });
+    expect(result.body).toEqual({ ok: true, passes: 1, stopReason: 'drained', backlogSaturated: [] });
+  });
+
+  it('dreno repete a passada e para quando o lote volta vazio, sem alertar', async () => {
+    configure();
+    vi.stubEnv('OPERATIONS_ALERT_WEBHOOK_URL', 'https://alertas.test/hook');
+    const quoteIds = Array.from({ length: 100 }, (_, index) => `${String(index).padStart(8, '0')}-1111-4111-8111-111111111111`);
+    let candidatos = 0;
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      void init;
+      if (url.includes('/get_site_data_retention_candidates')) {
+        candidatos += 1;
+        // Primeira passada cheia, segunda vazia: e o caso que a tarefa nao
+        // alcancava antes, porque fazia uma passada por dia.
+        return new Response(JSON.stringify({ quoteIds: candidatos === 1 ? quoteIds : [], storagePaths: [] }), { status: 200 });
+      }
+      if (url.includes('/finalize_site_data_retention')) return new Response(JSON.stringify({ quotesDeleted: candidatos === 1 ? 100 : 0 }), { status: 200 });
+      if (url.includes('/purge_archived_customer_selections')) return new Response('0', { status: 200 });
+      if (url.includes('/get_briefing_asset_retention_candidates')) return new Response(JSON.stringify({ objects: [] }), { status: 200 });
+      if (url.includes('/finalize_site_storage_retention')) return new Response('{}', { status: 200 });
+      if (url.includes('/purge_site_admin_audit_logs')) return new Response('{}', { status: 200 });
+      return new Response('{}', { status: 500 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
+    expect(result.statusCode).toBe(200);
+    expect(result.body).toEqual({ ok: true, passes: 2, stopReason: 'drained', backlogSaturated: [] });
+    expect(candidatos).toBe(2);
+    // Residuo drenado na mesma execucao nao e incidente: ninguem e acordado.
+    expect(fetchMock.mock.calls.some(([url]) => String(url) === 'https://alertas.test/hook')).toBe(false);
   });
 
   it('lote incompleto não sinaliza resíduo nem alerta', async () => {
@@ -119,7 +151,7 @@ describe('tarefa de retenção', () => {
     const { result, response } = responseDouble();
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
     expect(result.statusCode).toBe(200);
-    expect(result.body).toEqual({ ok: true, backlogSaturated: [] });
+    expect(result.body).toEqual({ ok: true, passes: 1, stopReason: 'drained', backlogSaturated: [] });
     // 99 selecoes e 999 logs ficam um abaixo do lote: nenhum alerta disparado.
     expect(fetchMock.mock.calls.some(([url]) => String(url) === 'https://alertas.test/hook')).toBe(false);
   });
