@@ -194,7 +194,7 @@ export default function HomePage() {
           />
           <nav className="hero__quick-links" aria-label="Sugestões de busca">
             <span>Sugestões:</span>
-            <Link to="/ideias/onboarding" onClick={() => trackFunnelEvent('search_started', { source: 'home', query_length: 0, suggestion: true })}>Ideias de onboarding</Link>
+            <Link to="/ideias/onboarding">Ideias de onboarding</Link>
             <Link to="/catalogo?q=camiseta" onClick={() => trackFunnelEvent('search_started', { source: 'home', query_length: 8, suggestion: true })}>Wearables</Link>
             <Link to="/catalogo?q=carregador" onClick={() => trackFunnelEvent('search_started', { source: 'home', query_length: 10, suggestion: true })}>Tech útil</Link>
             <Link to="/catalogo?q=reciclado" onClick={() => trackFunnelEvent('search_started', { source: 'home', query_length: 9, suggestion: true })}>Menor impacto</Link>
