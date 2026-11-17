@@ -1,5 +1,6 @@
 import { createHash, createHmac } from 'node:crypto';
 import type { LeadKind, NormalizedLeadPayload } from './contracts.js';
+import type { SiteRpcArgs, SiteRpcName } from './siteRpcContract.js';
 
 // Allowlist exata: por definição, o catálogo canônico não pode receber escritas do site.
 const SITE_DATABASE_PROJECT = 'xlzmclcjdncjfdrjxclt';
@@ -262,7 +263,7 @@ export async function persistLead(kind: LeadKind, payload: NormalizedLeadPayload
 }
 
 /** Chamada de RPC genérica ao banco do site (Etapa 30: webhooks de provedor). */
-export async function callSiteRpc<T>(name: string, body: Record<string, unknown>, signal: AbortSignal): Promise<T> {
+export async function callSiteRpc<Name extends SiteRpcName, T = unknown>(name: Name, body: SiteRpcArgs<Name>, signal: AbortSignal): Promise<T> {
   const config = getSiteDatabaseConfig();
   const response = await fetch(`${config.url}/rest/v1/rpc/${name}`, {
     method: 'POST',
