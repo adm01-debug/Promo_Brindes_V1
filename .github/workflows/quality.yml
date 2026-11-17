@@ -77,6 +77,9 @@ jobs:
           VITE_QUOTE_DECISION_GROUPS_ENABLED: 'true'
           VITE_PERSISTENT_SHARED_SELECTIONS_ENABLED: 'true'
           VITE_QUOTE_REQUEST_ENDPOINT: /api/quote-requests
+          # Este passo reconstroi com os tres recursos ligados, logo mede o pior
+          # caso e e conferido contra o teto de pior caso, nao contra o de producao.
+          PERFORMANCE_BUDGET_PROFILE: worst-case
         run: |
           set -o pipefail
           mkdir -p artifacts
