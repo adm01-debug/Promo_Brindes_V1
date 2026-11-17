@@ -404,10 +404,12 @@ async function finalize(job: NotificationJob, status: 'sent' | 'failed', signal:
   // prática. p_retry_after_seconds só recebe um Retry-After válido do
   // provedor; sem esse header, a função usa apenas a política do banco.
   const result = await rpc<'finalize_site_notification_delivery', unknown>('finalize_site_notification_delivery', {
-    // Argumentos opcionais sao OMITIDOS, nao enviados como null: no SQL todos
-    // estes tem `default null` (20260914120000_fix_notification_outbox_contract.sql:129-131),
-    // logo omitir e equivalente — e manter o tipo estrito impede nular por acidente
-    // o unico default que NAO e nulo, p_retry_after_seconds (`default 300`, :132).
+    // Argumentos opcionais sao OMITIDOS, nao enviados como null. Na definicao
+    // vigente da funcao — 20260916110000_add_notification_queue_policy_lease_and_backoff.sql:228-233,
+    // a ultima que a redefine — os quatro tem `default null`, e o backoff usa
+    // `coalesce(p_retry_after_seconds, 0)` (:266), logo null e omissao sao
+    // equivalentes em todos. Omitir e so a forma consistente com o tipo gerado;
+    // nao ha default nao-nulo a proteger aqui.
     p_delivery_id: job.id, p_lease_token: job.leaseToken, p_status: status, p_provider: delivery?.provider || undefined,
     p_provider_message_id: delivery?.id || undefined, p_error_code: errorCode?.slice(0, 120) || undefined,
     p_retry_after_seconds: providerRetryAfter ?? undefined,
