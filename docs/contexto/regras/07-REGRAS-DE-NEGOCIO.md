@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `66f8223226` · branch `main` · 2026-11-17 21:53 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `16b15f3b11` · branch `main` · 2026-11-17 22:09 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -551,10 +551,6 @@ _nenhum item encontrado_
 - **kitTotalUnits(quantity: number, components: KitComponent[])** — `src/lib/kitBuilder.ts`
   ```
   return components.reduce((total, component) => total + quantity * component.unitsPerKit, 0);
-  ```
-- **validateQuoteBriefing(value: QuoteBriefingForm, desiredDeadline?: string, minimumDate?: string)** — `src/lib/quoteBriefing.ts`
-  ```
-  return getQuoteBriefingValidationError(value, desiredDeadline, minimumDate)?.message || null;
   ```
 - **validProfile(value: string | null)** — `src/lib/useCatalogPageState.ts`
   ```

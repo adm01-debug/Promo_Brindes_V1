@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "66f82232266aea75693afb4fa6d620b904c18252",
+  "sha": "16b15f3b1166731a7a44517fbee800dd56728ee9",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-17 21:53 UTC",
+  "generated_at": "2026-11-17 22:09 UTC",
   "files_total": 588,
   "code_files": 386,
-  "code_lines": 67909,
+  "code_lines": 67891,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "3f5062aa8c04a394",
+ "facts_hash": "6fc2e71131c518be",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -7077,7 +7077,7 @@
   {
    "module": "api",
    "files": 28,
-   "lines": 4304,
+   "lines": 4299,
    "tables": [],
    "exports": [
     "briefing-assets.ts: REQUEST_TIMEOUT_MS, handler, async",
@@ -7648,7 +7648,7 @@
   {
    "module": "src/lib",
    "files": 80,
-   "lines": 7736,
+   "lines": 7723,
    "tables": [],
    "exports": [
     "analytics.ts: FunnelEventMap, redactAnalyticsPathname, redactTelemetryUrl, redactAnalyticsUrl, trackFunnelEvent",
@@ -7675,7 +7675,7 @@
     "kitBuilder.ts: KitSlotDefinition, KitTemplate, KitComponent, kitTemplates, missingRequiredKitSlots, minimumKitQuantity",
     "personalDataReset.ts: clearPersonalQuoteStorage",
     "productBadges.ts: isWithinNoveltyWindow, isCatalogKit, ProductBadgeKind, resolveProductBadge, productBadgeConfig",
-    "quoteBriefing.ts: EMPTY_QUOTE_BRIEFING, quoteBriefingLabels, QuoteBriefingValidationError, normalizeQuoteBriefing, getQuoteBriefingValidationError, validateQuoteBriefing",
+    "quoteBriefing.ts: EMPTY_QUOTE_BRIEFING, quoteBriefingLabels, QuoteBriefingValidationError, normalizeQuoteBriefing, getQuoteBriefingValidationError, quoteBriefingForm",
     "quoteCalendar.ts: localDateInputValue",
     "quoteConfirmation.ts: ConfirmationDeliveryStatus, quoteConfirmationTitle, confirmationDeliveryLabel",
     "quoteDraft.ts: QUOTE_DRAFT_RETENTION_LABEL, EMPTY_QUOTE_CONTACT, QuoteDraft, loadQuoteDraft, saveQuoteDraft, clearQuoteDraft",
@@ -7689,7 +7689,7 @@
     "sharedSelection.ts: MAX_SHARED_SELECTION_ITEMS, SharedSelectionItem, PersistentSharedSelection, SharedSelectionHydration, encodeSharedSelection, decodeSharedSelection",
     "siteFeatureFlags.ts: quoteDecisionGroupsEnabled, customerAdjustmentsEnabled, persistentSharedSelectionsEnabled",
     "siteRpc.ts: SITE_RPC_TIMEOUT_MS, runSiteRpc",
-    "siteSupabase.ts: siteSupabase, siteAuthConfigured",
+    "siteSupabase.ts: siteSupabase",
     "siteSupabaseConfig.ts: SITE_SUPABASE_URL, resolveSiteSupabaseUrl, resolveSitePublishableKey, hasSiteAuthConfiguration"
    ],
    "docs": [
@@ -12586,12 +12586,6 @@
     "name": "kitTotalUnits",
     "params": "quantity: number, components: KitComponent[]",
     "body": "return components.reduce((total, component) => total + quantity * component.unitsPerKit, 0);"
-   },
-   {
-    "file": "src/lib/quoteBriefing.ts",
-    "name": "validateQuoteBriefing",
-    "params": "value: QuoteBriefingForm, desiredDeadline?: string, minimumDate?: string",
-    "body": "return getQuoteBriefingValidationError(value, desiredDeadline, minimumDate)?.message || null;"
    },
    {
     "file": "src/lib/useCatalogPageState.ts",
@@ -24999,7 +24993,7 @@
   },
   "api/_lib/siteDatabase.ts": {
    "path": "api/_lib/siteDatabase.ts",
-   "lines": 281,
+   "lines": 276,
    "exports": [
     "const REQUEST_TIMEOUT_MS",
     "const LEAD_PREFLIGHT_TIMEOUT_MS",
@@ -25013,7 +25007,6 @@
     "function responseErrorDetail",
     "function enforceLeadPreflightRateLimit",
     "function persistLead",
-    "function assertSafeSiteDatabaseConfiguration",
     "function callSiteRpc"
    ],
    "env": [
@@ -29712,7 +29705,7 @@
   },
   "src/lib/catalog.ts": {
    "path": "src/lib/catalog.ts",
-   "lines": 506,
+   "lines": 500,
    "exports": [
     "function resolveSupabaseUrl",
     "function resolvePublicApiKey",
@@ -29731,8 +29724,7 @@
     "function fetchProductsByIds",
     "function fetchCategories",
     "function fetchAllCategories",
-    "function defaultQuoteQuantity",
-    "const catalogConfig"
+    "function defaultQuoteQuantity"
    ],
    "env": [
     "VITE_PRODUCT_CATALOG_RESOURCE",
@@ -30508,7 +30500,7 @@
   },
   "src/lib/quoteBriefing.test.ts": {
    "path": "src/lib/quoteBriefing.test.ts",
-   "lines": 54,
+   "lines": 57,
    "is_test": true,
    "tests": [
     "contexto opcional do briefing",
@@ -30521,23 +30513,15 @@
   },
   "src/lib/quoteBriefing.ts": {
    "path": "src/lib/quoteBriefing.ts",
-   "lines": 148,
+   "lines": 144,
    "exports": [
     "const EMPTY_QUOTE_BRIEFING",
     "const quoteBriefingLabels",
     "interface QuoteBriefingValidationError",
     "function normalizeQuoteBriefing",
     "function getQuoteBriefingValidationError",
-    "function validateQuoteBriefing",
     "function quoteBriefingForm",
     "function quoteBriefingSummary"
-   ],
-   "calc_fns": [
-    {
-     "name": "validateQuoteBriefing",
-     "params": "value: QuoteBriefingForm, desiredDeadline?: string, minimumDate?: string",
-     "body": "return getQuoteBriefingValidationError(value, desiredDeadline, minimumDate)?.message || null;"
-    }
    ]
   },
   "src/lib/quoteCalendar.ts": {
@@ -30874,7 +30858,7 @@
   },
   "src/lib/sharedSelection.ts": {
    "path": "src/lib/sharedSelection.ts",
-   "lines": 332,
+   "lines": 327,
    "exports": [
     "const MAX_SHARED_SELECTION_ITEMS",
     "interface SharedSelectionItem",
@@ -30889,8 +30873,7 @@
     "function createPersistentSharedSelection",
     "function fetchPersistentSharedSelection",
     "function revokePersistentSharedSelection",
-    "function hydrateSharedSelectionDetails",
-    "function hydrateSharedSelection"
+    "function hydrateSharedSelectionDetails"
    ],
    "errors": [
     "A seleção contém uma referência de produto inválida.",
@@ -30975,10 +30958,9 @@
   },
   "src/lib/siteSupabase.ts": {
    "path": "src/lib/siteSupabase.ts",
-   "lines": 22,
+   "lines": 21,
    "exports": [
-    "const siteSupabase",
-    "const siteAuthConfigured"
+    "const siteSupabase"
    ],
    "env": [
     "VITE_SITE_SUPABASE_PUBLISHABLE_KEY",
@@ -32760,10 +32742,26 @@
   }
  },
  "git": {
-  "sha": "66f82232266aea75693afb4fa6d620b904c18252",
+  "sha": "16b15f3b1166731a7a44517fbee800dd56728ee9",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "16b15f3",
+    "date": "2026-11-17",
+    "author": "adm01-debug",
+    "subject": "chore(código morto): remove os 6 achados da auditoria e cobre a função que a produção usa (#191)",
+    "files": [
+     "api/_lib/siteDatabase.ts",
+     "public/brand/promo-brindes-logo-v1-360.webp",
+     "src/lib/catalog.ts",
+     "src/lib/quoteBriefing.test.ts",
+     "src/lib/quoteBriefing.ts",
+     "src/lib/sharedSelection.test.ts",
+     "src/lib/sharedSelection.ts",
+     "src/lib/siteSupabase.ts"
+    ]
+   },
    {
     "sha": "66f8223",
     "date": "2026-11-17",
@@ -33087,26 +33085,6 @@
      "site-supabase/supabase/tests/database/notification_delivery_status_machine.test.sql",
      "src/types/site-database.types.ts"
     ]
-   },
-   {
-    "sha": "f48af64",
-    "date": "2026-11-17",
-    "author": "adm01-debug",
-    "subject": "feat(contato): avisa o comercial quando chega lead pelo formulario de contato (#158)",
-    "files": [
-     "api/_lib/commercialTeamAlerts.ts",
-     "api/_lib/leadHandler.ts",
-     "docs/DATABASE_DICTIONARY.md",
-     "docs/DATABASE_SCHEMA.md",
-     "site-supabase/supabase/migrations/20261117010000_add_commercial_team_contact_alert.sql",
-     "site-supabase/supabase/tests/database/contact_commercial_alert.test.sql",
-     "site-supabase/supabase/tests/database/lead_storage.test.sql",
-     "src/types/site-database.types.ts",
-     "tests/api/commercial-team-alerts.test.ts",
-     "tests/api/lead-requests.test.ts",
-     "tests/api/maxDuration.test.ts",
-     "vercel.json"
-    ]
    }
   ],
   "hot_files": [
@@ -33121,6 +33099,10 @@
    [
     "src/pages/IdeaLandingPage.tsx",
     3
+   ],
+   [
+    "api/_lib/siteDatabase.ts",
+    2
    ],
    [
     "api/notifications.ts",
@@ -33147,15 +33129,7 @@
     2
    ],
    [
-    "api/_lib/leadHandler.ts",
-    2
-   ],
-   [
     "src/pages/QuotePage.tsx",
-    2
-   ],
-   [
-    "tests/api/lead-requests.test.ts",
     2
    ],
    [
@@ -33183,12 +33157,16 @@
     2
    ],
    [
-    "docs/DATABASE_DICTIONARY.md",
-    2
+    "public/brand/promo-brindes-logo-v1-360.webp",
+    1
    ],
    [
-    "src/types/site-database.types.ts",
-    2
+    "src/lib/catalog.ts",
+    1
+   ],
+   [
+    "src/lib/quoteBriefing.test.ts",
+    1
    ]
   ]
  }

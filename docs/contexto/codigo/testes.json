@@ -413,7 +413,7 @@
   {
    "arquivo": "src/lib/quoteBriefing.test.ts",
    "tipo": "unit",
-   "linhas": 54,
+   "linhas": 57,
    "testa": [
     "src/lib/quoteBriefing.ts"
    ],

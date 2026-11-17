@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "66f82232266aea75693afb4fa6d620b904c18252",
+  "commit": "16b15f3b1166731a7a44517fbee800dd56728ee9",
   "branch": "main",
-  "data_commit": "2026-11-17T21:53:11Z",
+  "data_commit": "2026-11-17T22:09:21Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "16b15f3",
+    "data": "2026-11-17",
+    "assunto": "chore(código morto): remove os 6 achados da auditoria e cobre a função que a produção usa (#191)"
+   },
    {
     "sha": "66f8223",
     "data": "2026-11-17",
@@ -126,14 +131,9 @@
     "sha": "0d9c07b",
     "data": "2026-11-17",
     "assunto": "feat(home): entrada para as landings de ideias e estados vazios (#166)"
-   },
-   {
-    "sha": "bbfb77a",
-    "data": "2026-11-17",
-    "assunto": "infra(release): o release aplica as migrations do banco isolado (#165)"
    }
   ],
-  "arquivos_mudados_7d": 119,
+  "arquivos_mudados_7d": 126,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -246,6 +246,10 @@
     "mudancas": 20
    },
    {
+    "arquivo": "api/_lib/siteDatabase.ts",
+    "mudancas": 18
+   },
+   {
     "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
     "mudancas": 18
    },
@@ -255,10 +259,6 @@
    },
    {
     "arquivo": "api/_lib/leadHandler.ts",
-    "mudancas": 17
-   },
-   {
-    "arquivo": "api/_lib/siteDatabase.ts",
     "mudancas": 17
    },
    {
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 74
+    "commits": 75
    },
    {
     "autor": "dependabot[bot]",
@@ -310,9 +310,9 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 695,
+  "arquivos_total": 694,
   "arquivos_codigo": 279,
-  "linhas_codigo": 54735,
+  "linhas_codigo": 54717,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -332,7 +332,7 @@
  "por_pasta": {
   "api/_lib": {
    "arquivos": 14,
-   "linhas": 1957
+   "linhas": 1952
   },
   "api/briefing-assets.ts": {
    "arquivos": 1,
@@ -560,7 +560,7 @@
   },
   "src/lib": {
    "arquivos": 80,
-   "linhas": 7736
+   "linhas": 7723
   },
   "src/main.tsx": {
    "arquivos": 1,
@@ -733,12 +733,12 @@
    "linhas": 581
   },
   {
-   "arquivo": "src/lib/catalog.ts",
-   "linhas": 506
-  },
-  {
    "arquivo": "src/pages/QuotePage.tsx",
    "linhas": 503
+  },
+  {
+   "arquivo": "src/lib/catalog.ts",
+   "linhas": 500
   },
   {
    "arquivo": "api/_lib/contracts.ts",
@@ -770,7 +770,7 @@
   },
   {
    "arquivo": "src/lib/sharedSelection.ts",
-   "linhas": 332
+   "linhas": 327
   },
   {
    "arquivo": "src/pages/CatalogsPage.tsx",
@@ -795,7 +795,7 @@
   "ts_ignore": 0,
   "eslint_disable": 1,
   "todos": 3,
-  "arquivos_acima_500_linhas": 13
+  "arquivos_acima_500_linhas": 12
  },
  "todos": [
   {

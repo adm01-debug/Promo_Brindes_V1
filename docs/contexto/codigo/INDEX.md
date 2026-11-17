@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `66f82232266aea75693afb4fa6d620b904c18252` (2026-11-17T21:53:11Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `16b15f3b1166731a7a44517fbee800dd56728ee9` (2026-11-17T22:09:21Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -34,9 +34,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Números
 | item | qtd |
 |---|---|
-| arquivos_total | 695 |
+| arquivos_total | 694 |
 | arquivos_codigo | 279 |
-| linhas_codigo | 54735 |
+| linhas_codigo | 54717 |
 | rotas | 32 |
 | rotas_http_backend | 14 |
 | vistas_por_id | 0 |
@@ -182,9 +182,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - src/components/Layout.tsx (23)
 - tests/api/lead-requests.test.ts (21)
 - .github/workflows/release.yml (20)
+- api/_lib/siteDatabase.ts (18)
 - docs/DATABASE_FUNCTION_CONTRACTS.md (18)
 - .github/workflows/database.yml (17)
-- api/_lib/leadHandler.ts (17)
 
 ## Workflows
 - `automation-local.yml` — Automação local (pull_request, push, workflow_dispatch)
@@ -381,6 +381,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-17 `16b15f3` chore(código morto): remove os 6 achados da auditoria e cobre a função que a produção usa (#191)
 - 2026-11-17 `66f8223` fix(notificações): fila passa a ser medida mesmo sem provedor configurado (#190)
 - 2026-11-17 `387263f` feat(retenção): cron drena o lote na mesma execução e ganha orçamento de tempo (#189)
 - 2026-11-17 `8e5ce1d` chore(docs): registra a verificação dos 58 itens de engenharia da auditoria (#187)
@@ -395,7 +396,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-17 `bcf7e33` chore(ci): unifica o rótulo do pin do actions/checkout (#179)
 - 2026-11-17 `1a30000` fix(ideias): landing de onboarding passa a ter curadoria própria (#177)
 - 2026-11-17 `5147c5a` chore(docs): homologa a 0.9.105 do graphify com avaliação isolada contra a 0.9.94 (#176)
-- 2026-11-17 `f852e72` fix(analytics): result_count passa a medir a curadoria vista e a queda deixa de inflar a conversão (#175)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

@@ -352,7 +352,6 @@
     "REQUEST_TIMEOUT_MS",
     "RequestMetadata",
     "SiteDatabaseError",
-    "assertSafeSiteDatabaseConfiguration",
     "callSiteRpc",
     "enforceLeadPreflightRateLimit",
     "getSiteDatabaseConfig",
@@ -362,7 +361,7 @@
     "responseErrorDetail"
    ],
    "export_default": null,
-   "linhas": 281,
+   "linhas": 276,
    "tabelas": [],
    "rpcs": [
     "create_site_contact_request",
@@ -1303,7 +1302,6 @@
     "ProductRow",
     "buildCatalogParams",
     "buildNoveltyProfileFilter",
-    "catalogConfig",
     "defaultQuoteQuantity",
     "fetchAllCategories",
     "fetchCatalog",
@@ -1318,7 +1316,7 @@
     "sanitizeSearch"
    ],
    "export_default": null,
-   "linhas": 506,
+   "linhas": 500,
    "tabelas": [],
    "rpcs": [],
    "edges": [],
@@ -1923,11 +1921,10 @@
     "normalizeQuoteBriefing",
     "quoteBriefingForm",
     "quoteBriefingLabels",
-    "quoteBriefingSummary",
-    "validateQuoteBriefing"
+    "quoteBriefingSummary"
    ],
    "export_default": null,
-   "linhas": 148,
+   "linhas": 144,
    "tabelas": [],
    "rpcs": [],
    "edges": [],
@@ -2223,7 +2220,6 @@
     "decodeSharedSelection",
     "encodeSharedSelection",
     "fetchPersistentSharedSelection",
-    "hydrateSharedSelection",
     "hydrateSharedSelectionDetails",
     "isPersistentSharedSelectionToken",
     "managedSharedSelectionToken",
@@ -2232,7 +2228,7 @@
     "sharedSelectionUrl"
    ],
    "export_default": null,
-   "linhas": 332,
+   "linhas": 327,
    "tabelas": [],
    "rpcs": [],
    "edges": [],
@@ -2315,11 +2311,10 @@
     "hasSiteAuthConfiguration",
     "resolveSitePublishableKey",
     "resolveSiteSupabaseUrl",
-    "siteAuthConfigured",
     "siteSupabase"
    ],
    "export_default": null,
-   "linhas": 22,
+   "linhas": 21,
    "tabelas": [],
    "rpcs": [],
    "edges": [],
