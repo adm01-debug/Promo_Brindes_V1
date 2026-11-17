@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "4b0f2cc2005c7290c6d84b05fbd4adab0f053e3b",
+  "commit": "f852e72740cb86c5e5eb5331a437e9b3625eb78e",
   "branch": "main",
-  "data_commit": "2026-11-17T14:42:10Z",
+  "data_commit": "2026-11-17T15:12:16Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "f852e72",
+    "data": "2026-11-17",
+    "assunto": "fix(analytics): result_count passa a medir a curadoria vista e a queda deixa de inflar a conversão (#175)"
+   },
    {
     "sha": "4b0f2cc",
     "data": "2026-11-17",
@@ -126,11 +131,6 @@
     "sha": "ba2bdf7",
     "data": "2026-11-16",
     "assunto": "chore: ignora os worktrees temporarios de agentes de IA (#151)"
-   },
-   {
-    "sha": "74bac8b",
-    "data": "2026-11-16",
-    "assunto": "fix(ci): npm audit signatures volta a reprovar o gate (#150)"
    }
   ],
   "arquivos_mudados_7d": 154,
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 59
+    "commits": 60
    },
    {
     "autor": "dependabot[bot]",
@@ -312,7 +312,7 @@
  "contagens": {
   "arquivos_total": 688,
   "arquivos_codigo": 274,
-  "linhas_codigo": 53734,
+  "linhas_codigo": 53763,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -564,7 +564,7 @@
   },
   "src/pages": {
    "arquivos": 23,
-   "linhas": 3155
+   "linhas": 3184
   },
   "src/test": {
    "arquivos": 1,

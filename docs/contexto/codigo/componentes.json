@@ -495,7 +495,7 @@
     "IdeaLandingPage"
    ],
    "export_default": "IdeaLandingPage",
-   "linhas": 38,
+   "linhas": 47,
    "dominio": "pages",
    "hooks_locais": [
     "useCatalog"

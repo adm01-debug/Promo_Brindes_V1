@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `4b0f2cc2005c7290c6d84b05fbd4adab0f053e3b` (2026-11-17T14:42:10Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `f852e72740cb86c5e5eb5331a437e9b3625eb78e` (2026-11-17T15:12:16Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -36,7 +36,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 |---|---|
 | arquivos_total | 688 |
 | arquivos_codigo | 274 |
-| linhas_codigo | 53734 |
+| linhas_codigo | 53763 |
 | rotas | 32 |
 | rotas_http_backend | 14 |
 | vistas_por_id | 0 |
@@ -377,6 +377,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-17 `f852e72` fix(analytics): result_count passa a medir a curadoria vista e a queda deixa de inflar a conversão (#175)
 - 2026-11-17 `4b0f2cc` fix(analytics): landing de ideias para de contar a visita com o total do tópico anterior (#172)
 - 2026-11-17 `fce1a49` fix(seo): shell das landings volta a recusar campo desconhecido e usa um só nome de marca (#174)
 - 2026-11-17 `5a524ad` test(e2e): guardas dos destinos editoriais passam a poder falhar (#173)
@@ -391,7 +392,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-17 `0600922` fix(ci): separa o teto de performance de producao do teto de pior caso (#164)
 - 2026-11-17 `1d017c9` fix(ci): o resumo do quality gate para de acusar falha em passo que passou (#162)
 - 2026-11-17 `8ea1273` feat(lgpd): o apagamento de titular passa a apagar o que faltava (#161)
-- 2026-11-17 `f48af64` feat(contato): avisa o comercial quando chega lead pelo formulario de contato (#158)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

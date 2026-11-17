@@ -581,12 +581,12 @@
   {
    "arquivo": "src/pages/IdeaLandingPage.test.tsx",
    "tipo": "unit",
-   "linhas": 68,
+   "linhas": 88,
    "testa": [
     "src/lib/catalog.ts",
     "src/pages/IdeaLandingPage.tsx"
    ],
-   "casos": 2
+   "casos": 4
   },
   {
    "arquivo": "src/pages/QuotePage.test.ts",

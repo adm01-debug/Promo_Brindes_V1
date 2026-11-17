@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `4b0f2cc200` · branch `main` · 2026-11-17 14:42 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `f852e72740` · branch `main` · 2026-11-17 15:12 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -598,6 +598,7 @@ _nenhum item encontrado_
 |---|---|
 | `// 1000 jobs sintéticos, 10% de falha injetada, duas rodadas) — p95 real de tempo de` | `api/notifications.ts` |
 | `'--glitch-before-duration': `${speed * 0.85}s`,` | `src/components/GlitchText.tsx` |
+| `// idea_catalog_opened e a conversao passaria de 100% durante a queda.` | `src/pages/IdeaLandingPage.tsx` |
 
 ## H. Parâmetros de negócio (constantes, prazos, limites)
 
@@ -1039,7 +1040,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1561 testes em 125 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1563 testes em 125 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1134,6 +1135,7 @@ _nenhum item encontrado_
 | `src/lib/customerAccount.test.ts` | 5 | contrato da Área do Cliente · traduz somente estados operacionais reais · aceita retorno apenas para dentro da Área do Cliente · distingue a versão mais recente de uma proposta ainda válida … |
 | `src/pages/AuthConfirmPage.test.tsx` | 5 | confirmação de acesso do cliente · não anuncia identidade verificada enquanto a sessão ainda está carregando · expõe uma recuperação real quando a inicialização falha · só anuncia a identidade depois de receber um usuário autenticado … |
 | `src/pages/CommemorativeDatesPage.test.tsx` | 5 | favoritos de datas comemorativas por titular · promove favoritos anônimos depois do login sem perdê-los · não exibe cache da conta anterior se o carregamento da nova conta falhar · ignora rollback tardio de uma mutação da conta anterior … |
+| `src/pages/IdeaLandingPage.test.tsx` | 5 | telemetria da landing de ideias · conta as referências que a própria página mostrou, não o total do catalogQuery · emite uma única visualização por tópico, com a contagem do próprio tópico · não grava o tópico revisitado com a contagem do tópico que o visitante deixou … |
 | `tests/api/catalog-validation.test.ts` | 5 | reconcileQuoteItems · reconcilia a cor legada pelo nome e a converte para o ID canônico publicado · não aceita uma cor legada que não está mais publicada · reconcilia swatch público sem variant_id por nome inequívoco … |
 | `tests/scripts/release-workflow.test.ts` | 5 | workflow de release Vercel · valida Web Analytics no candidato sem chamar endpoint privado de configuração · faz smoke do candidato antes de promover e mantém rollback pós-promoção · sincroniza, verifica e testa o alias git-main depois da promoção … |
 | `src/lib/briefingAssets.test.ts` | 4 | arquivos privados do briefing · aceita somente os formatos publicados dentro de 10 MB · recusa arquivos vazios e nomes maiores que o contrato do banco · revoga o metadado e delega a remoção física à fila protegida |
@@ -1154,7 +1156,6 @@ _nenhum item encontrado_
 | `src/lib/searchRelevance.test.ts` | 3 | baseline editorial de relevância · mantém cobertura integral do corpus versionado · expõe falhas em vez de arredondar a métrica |
 | `src/lib/useCatalogPageState.test.tsx` | 3 | useCatalogPageState · preserva a resposta da API quando a ordem explícita é %s · aplica curadoria somente quando ela é a ordem escolhida |
 | `src/lib/useInitialSuccessScroll.test.tsx` | 3 | rolagem inicial da confirmação · reposiciona apenas na entrada do sucesso, não em atualizações posteriores · respeita a interação %s antes das tentativas atrasadas |
-| `src/pages/IdeaLandingPage.test.tsx` | 3 | telemetria da landing de ideias ao trocar de tópico · emite uma única visualização por tópico, com o total do próprio tópico · não grava o tópico revisitado com o total do tópico que o visitante acabou de deixar |
 | `src/pages/QuotePage.test.ts` | 3 | data mínima do briefing · usa o calendário comercial brasileiro em vez de converter o instante para UTC · permanece no dia de São Paulo durante a virada UTC |
 | `tests/queue-concurrency.node.mjs` | 3 | duas reivindicações concorrentes da fila obtêm conjuntos disjuntos de jobs · recuperação de lease expirada: duas conexões disputam o MESMO job preso, só uma vence · exhausted sob concorrência: duas conexões terminalizam o mesmo job preso, nenhuma o reivindica como novo |
 | `tests/verify-shared-selection-contract.node.mjs` | 3 | o ensaio é transacional, com timeouts, e termina em rollback sem commit · cada RPC é chamada com a aridade definida na migration mais recente · o leitor de argumentos não se confunde com vírgulas e parênteses dentro de chamadas aninhadas e strings |
