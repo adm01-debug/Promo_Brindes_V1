@@ -25,8 +25,25 @@ function validJob(overrides: Partial<CommercialAlertJob> = {}): CommercialAlertJ
     company: 'Empresa Exemplo',
     submittedAt: '2026-09-08T12:00:00.000Z',
     items: [{ name: 'Mochila', sku: 'MO-42', quantity: 100, colorName: 'Verde' }],
+    requestKind: 'quote',
+    preferredChannel: '',
+    pageUrl: '',
     ...overrides,
   };
+}
+
+/** Lead de contato: sem protocolo, empresa nem itens; com canal preferido e
+ * página de origem. O texto livre da mensagem não existe no envelope. */
+function validContactJob(overrides: Partial<CommercialAlertJob> = {}): CommercialAlertJob {
+  return validJob({
+    requestKind: 'contact',
+    protocol: '',
+    company: '',
+    items: [],
+    preferredChannel: 'whatsapp',
+    pageUrl: 'https://www.promobrindes.com.br/contato',
+    ...overrides,
+  });
 }
 
 function configureSiteDatabase() {
@@ -70,6 +87,16 @@ describe('alerta comercial de orçamento (PF-01)', () => {
       expect(job?.recipientEmail).toBe('ana@empresa.com.br');
       expect(job?.attempt).toBe(2);
       expect(job?.items[0]?.name).toBe('Mochila Grande');
+    });
+
+    it('classifica o tipo do lead e trata job antigo (sem requestKind) como orçamento', () => {
+      const { requestKind: _ignored, ...legacyJob } = validJob();
+      expect(parseCommercialAlertJob(legacyJob)?.requestKind).toBe('quote');
+      expect(parseCommercialAlertJob({ ...validJob(), requestKind: 'forjado' })?.requestKind).toBe('quote');
+      const contact = parseCommercialAlertJob(validContactJob({ preferredChannel: ' whatsapp ', pageUrl: 'https://www.promobrindes.com.br/contato' }));
+      expect(contact?.requestKind).toBe('contact');
+      expect(contact?.preferredChannel).toBe('whatsapp');
+      expect(contact?.pageUrl).toBe('https://www.promobrindes.com.br/contato');
     });
   });
 
@@ -143,6 +170,32 @@ describe('alerta comercial de orçamento (PF-01)', () => {
       expect(envelope.protocol).toBe('PB-2026-0001');
       expect(envelope.contact).toMatchObject({ name: 'Ana Silva', email: 'ana@empresa.com.br', company: 'Empresa Exemplo' });
       expect(envelope.items).toEqual([{ name: 'Mochila', sku: 'MO-42', quantity: 100, colorName: 'Verde' }]);
+    });
+
+    it('envia o envelope do contato, sem campo de orçamento e sem o texto livre do lead', async () => {
+      configureSiteDatabase();
+      vi.stubEnv('COMMERCIAL_TEAM_WEBHOOK_URL', WEBHOOK_URL);
+      vi.stubEnv('COMMERCIAL_TEAM_WEBHOOK_TOKEN', 'token-comercial-de-teste');
+      const fetchMock = commercialFetchMock(validContactJob());
+      vi.stubGlobal('fetch', fetchMock);
+
+      const controller = new AbortController();
+      await expect(deliverCommercialAlertJob(validContactJob(), controller.signal)).resolves.toBe('sent');
+
+      const webhookCall = fetchMock.mock.calls.find(([url]) => String(url) === WEBHOOK_URL);
+      expect(webhookCall).toBeDefined();
+      const [, init] = webhookCall as [unknown, RequestInit];
+      const envelope = JSON.parse(String(init.body)) as Record<string, unknown>;
+      expect(envelope.event).toBe('contact_request_submitted');
+      expect(envelope.requestId).toBe(REQUEST_ID);
+      expect(envelope.preferredChannel).toBe('whatsapp');
+      expect(envelope.pageUrl).toBe('https://www.promobrindes.com.br/contato');
+      expect(envelope.contact).toEqual({ name: 'Ana Silva', email: 'ana@empresa.com.br', phone: '(11) 99999-9999' });
+      // Minimização (migration 20261117010000): o alerta é um ponteiro para o
+      // lead, não uma cópia do texto do titular num endpoint de terceiro.
+      expect(envelope).not.toHaveProperty('message');
+      expect(envelope).not.toHaveProperty('protocol');
+      expect(envelope).not.toHaveProperty('items');
     });
 
     it('o timeout da entrega é menor que o orçamento da rodada do cron', () => {
