@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "e166177036d1994ffa78fb972c7c623a734381eb",
+  "sha": "108b0b2eb815825ff8b9ed10eaed6766d026ad03",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-17 20:09 UTC",
+  "generated_at": "2026-11-17 20:24 UTC",
   "files_total": 585,
   "code_files": 384,
-  "code_lines": 67351,
+  "code_lines": 67411,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "d64646c34d80264f",
+ "facts_hash": "60ba094373a20f38",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -7075,7 +7075,7 @@
   {
    "module": "api",
    "files": 28,
-   "lines": 4186,
+   "lines": 4201,
    "tables": [],
    "exports": [
     "briefing-assets.ts: REQUEST_TIMEOUT_MS, handler, async",
@@ -7215,7 +7215,7 @@
   {
    "module": "e2e",
    "files": 2,
-   "lines": 1700,
+   "lines": 1706,
    "tables": [],
    "exports": [],
    "docs": [],
@@ -7792,7 +7792,7 @@
   {
    "module": "src/pages",
    "files": 23,
-   "lines": 3184,
+   "lines": 3196,
    "tables": [],
    "exports": [
     "AboutPage.tsx: AboutPage",
@@ -7888,7 +7888,7 @@
   {
    "module": "tests",
    "files": 44,
-   "lines": 9713,
+   "lines": 9740,
    "tables": [
     "constructor",
     "quote_requests",
@@ -10145,8 +10145,20 @@
     "text": "A validação abaixo continua recusando PDF antes de qualquer leitura."
    },
    {
+    "file": "api/briefing-assets.ts",
+    "text": "Mesmo motivo do download de proposta: o limite de 20 verificacoes por 15"
+   },
+   {
     "file": "api/commercial-alerts.ts",
     "text": "o gate de CI tests/api/maxDuration.test.ts. O sinal de deadline da rodada"
+   },
+   {
+    "file": "api/customer-proposals.ts",
+    "text": "O limite de 30 downloads por 15 minutos (site_private.consume_rate_limit,"
+   },
+   {
+    "file": "api/customer-proposals.ts",
+    "text": "documento havia sumido e repetia a tentativa que o fez bater no limite."
    },
    {
     "file": "api/customer-proposals.ts",
@@ -10439,6 +10451,14 @@
    {
     "file": "src/lib/useOccasionFavorites.ts",
     "text": "`storage` é emitido somente nas outras abas do mesmo navegador. A ação"
+   },
+   {
+    "file": "src/pages/CustomerQuotePage.tsx",
+    "text": "O estouro do limite de downloads tem conserto proprio: tentar de novo"
+   },
+   {
+    "file": "src/pages/CustomerQuotePage.tsx",
+    "text": "\"em alguns instantes\" renova o limite em vez de abrir a proposta."
    },
    {
     "file": "src/pages/QuotePage.tsx",
@@ -18114,6 +18134,10 @@
    },
    {
     "file": "tests/api/briefing-assets.test.ts",
+    "name": "estouro do limite devolve 429, não "
+   },
+   {
+    "file": "tests/api/briefing-assets.test.ts",
     "name": "confirma um PNG somente depois de ler a assinatura no Storage privado"
    },
    {
@@ -18291,6 +18315,10 @@
    {
     "file": "tests/api/customer-proposals.test.ts",
     "name": "aceita o deployment Vercel Preview isolado e bloqueia corpo inválido antes do banco"
+   },
+   {
+    "file": "tests/api/customer-proposals.test.ts",
+    "name": "estouro do limite devolve 429, não "
    },
    {
     "file": "tests/api/customer-proposals.test.ts",
@@ -24046,7 +24074,7 @@
   },
   "api/briefing-assets.ts": {
    "path": "api/briefing-assets.ts",
-   "lines": 181,
+   "lines": 188,
    "exports": [
     "const REQUEST_TIMEOUT_MS",
     "function handler",
@@ -24076,7 +24104,8 @@
     }
    ],
    "rule_comments": [
-    "A validação abaixo continua recusando PDF antes de qualquer leitura."
+    "A validação abaixo continua recusando PDF antes de qualquer leitura.",
+    "Mesmo motivo do download de proposta: o limite de 20 verificacoes por 15"
    ],
    "calc_fns": [
     {
@@ -24126,7 +24155,7 @@
   },
   "api/customer-proposals.ts": {
    "path": "api/customer-proposals.ts",
-   "lines": 142,
+   "lines": 150,
    "exports": [
     "const REQUEST_TIMEOUT_MS",
     "function handler",
@@ -24152,6 +24181,8 @@
     }
    ],
    "rule_comments": [
+    "O limite de 30 downloads por 15 minutos (site_private.consume_rate_limit,",
+    "documento havia sumido e repetia a tentativa que o fez bater no limite.",
     "a leitura de propostas após o corte do privilégio mínimo."
    ],
    "temporal": [
@@ -24840,6 +24871,7 @@
     "type ProviderEventApplyReason",
     "interface ProviderEventApplyResult",
     "function parseProviderEventApplyResponse",
+    "function responseErrorDetail",
     "function enforceLeadPreflightRateLimit",
     "function persistLead",
     "function assertSafeSiteDatabaseConfiguration",
@@ -25061,7 +25093,7 @@
   },
   "e2e/smoke.spec.ts": {
    "path": "e2e/smoke.spec.ts",
-   "lines": 1544,
+   "lines": 1550,
    "is_test": true,
    "navigates": [
     "/catalogo?perfil=novos"
@@ -25079,7 +25111,9 @@
     "A navegação já abortou este fetch; cumprir a rota depois é apenas",
     "*/rest/v1/rpc/get_my_quote_requests', (route) => route.fulfill({ contentType: 'application/json', body: '{\"items\":[],\"total\":0,\"limit\":12,\"offset\":0}' })),",
     "A regressão real do R08: editar outro campo não pode regravar o contato anterior.",
-    "*/rest/v1/rpc/get_my_quote_requests', (route) => route.fulfill({ contentType: 'application/json', body: '{\"items\":[],\"total\":0,\"limit\":12,\"offset\":0}' }));"
+    "*/rest/v1/rpc/get_my_quote_requests', (route) => route.fulfill({ contentType: 'application/json', body: '{\"items\":[],\"total\":0,\"limit\":12,\"offset\":0}' }));",
+    "Mesmo botão, causa diferente: o estouro do limite de downloads precisa",
+    "pedir espera, não convidar a repetir a tentativa que renova o limite."
    ],
    "temporal": [
     "access_[REDACTED], refresh_[REDACTED], expires_in: 3600,",
@@ -31084,7 +31118,7 @@
   },
   "src/pages/CustomerQuotePage.tsx": {
    "path": "src/pages/CustomerQuotePage.tsx",
-   "lines": 245,
+   "lines": 257,
    "exports": [
     "function CustomerQuotePage"
    ],
@@ -31096,6 +31130,10 @@
      "field": "customer-adjustment-message",
      "rules": "disabled=adjustmentState === , max"
     }
+   ],
+   "rule_comments": [
+    "O estouro do limite de downloads tem conserto proprio: tentar de novo",
+    "\"em alguns instantes\" renova o limite em vez de abrir a proposta."
    ]
   },
   "src/pages/HomePage.tsx": {
@@ -32046,10 +32084,11 @@
   },
   "tests/api/briefing-assets.test.ts": {
    "path": "tests/api/briefing-assets.test.ts",
-   "lines": 195,
+   "lines": 208,
    "is_test": true,
    "tests": [
     "inspeção server-side de anexos privados",
+    "estouro do limite devolve 429, não ",
     "confirma um PNG somente depois de ler a assinatura no Storage privado",
     "remove blob e metadado pelo caminho server-side quando o conteúdo contradiz o MIME declarado",
     "descarta uma reserva PDF legada sem sequer interpretar o conteúdo",
@@ -32140,10 +32179,13 @@
   },
   "tests/api/customer-proposals.test.ts": {
    "path": "tests/api/customer-proposals.test.ts",
-   "lines": 147,
+   "lines": 161,
    "is_test": true,
    "errors": [
     "A assinatura de URL esperada não ocorreu."
+   ],
+   "rule_comments": [
+    "Nenhuma assinatura de URL: o limite barra antes do Storage."
    ],
    "temporal": [
     "expect(JSON.parse(String((signedUrlCall[1] as RequestInit).body))).toEqual({ expiresIn: 60 });"
@@ -32154,6 +32196,7 @@
     "usa o JWT limitado no RPC e a credencial de Storage somente para a assinatura",
     "rejeita origem, sessão e identificador inválidos antes do banco",
     "aceita o deployment Vercel Preview isolado e bloqueia corpo inválido antes do banco",
+    "estouro do limite devolve 429, não ",
     "não revela se proposta alheia existe",
     "recusa bucket e URL assinada fora do armazenamento isolado",
     "recusa caminho de proposta forjado antes de solicitar URL assinada"
@@ -32526,10 +32569,25 @@
   }
  },
  "git": {
-  "sha": "e166177036d1994ffa78fb972c7c623a734381eb",
+  "sha": "108b0b2eb815825ff8b9ed10eaed6766d026ad03",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "108b0b2",
+    "date": "2026-11-17",
+    "author": "adm01-debug",
+    "subject": "fix(portal): estouro de limite deixa de virar \"proposta não encontrada\" (#183)",
+    "files": [
+     "api/_lib/siteDatabase.ts",
+     "api/briefing-assets.ts",
+     "api/customer-proposals.ts",
+     "e2e/smoke.spec.ts",
+     "src/pages/CustomerQuotePage.tsx",
+     "tests/api/briefing-assets.test.ts",
+     "tests/api/customer-proposals.test.ts"
+    ]
+   },
    {
     "sha": "e166177",
     "date": "2026-11-17",
@@ -32854,25 +32912,15 @@
      "scripts/ai-context/gerar.mjs",
      "scripts/graphify.mjs"
     ]
-   },
-   {
-    "sha": "7bd1520",
-    "date": "2026-11-16",
-    "author": "adm01-debug",
-    "subject": "chore(deps): sobe TypeScript de 5.9.3 para 6.0.3 (#153)",
-    "files": [
-     "package-lock.json",
-     "package.json"
-    ]
    }
   ],
   "hot_files": [
    [
-    ".github/workflows/quality.yml",
-    4
+    "e2e/smoke.spec.ts",
+    5
    ],
    [
-    "e2e/smoke.spec.ts",
+    ".github/workflows/quality.yml",
     4
    ],
    [
@@ -32882,6 +32930,14 @@
    [
     "src/pages/IdeaLandingPage.tsx",
     3
+   ],
+   [
+    "api/briefing-assets.ts",
+    2
+   ],
+   [
+    "api/customer-proposals.ts",
+    2
    ],
    [
     "api/_lib/leadHandler.ts",
@@ -32928,23 +32984,15 @@
     2
    ],
    [
-    "src/lib/campaignPresets.test.ts",
+    "api/_lib/siteDatabase.ts",
     1
    ],
    [
-    "src/lib/campaignPresets.ts",
+    "src/pages/CustomerQuotePage.tsx",
     1
    ],
    [
-    "src/lib/useCatalogPageState.ts",
-    1
-   ],
-   [
-    "api/notifications.ts",
-    1
-   ],
-   [
-    "src/lib/quoteConfirmation.test.ts",
+    "tests/api/briefing-assets.test.ts",
     1
    ]
   ]

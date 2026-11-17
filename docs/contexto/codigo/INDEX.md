@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `e166177036d1994ffa78fb972c7c623a734381eb` (2026-11-17T19:59:24Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `108b0b2eb815825ff8b9ed10eaed6766d026ad03` (2026-11-17T20:15:10Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -36,7 +36,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 |---|---|
 | arquivos_total | 692 |
 | arquivos_codigo | 277 |
-| linhas_codigo | 54177 |
+| linhas_codigo | 54237 |
 | rotas | 32 |
 | rotas_http_backend | 14 |
 | vistas_por_id | 0 |
@@ -171,7 +171,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 ## Hotspots (arquivos mais alterados, 90 dias)
 - package.json (63)
-- e2e/smoke.spec.ts (57)
+- e2e/smoke.spec.ts (58)
 - package-lock.json (36)
 - src/styles.css (35)
 - .github/workflows/quality.yml (27)
@@ -184,7 +184,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - .github/workflows/release.yml (20)
 - .github/workflows/database.yml (17)
 - api/_lib/leadHandler.ts (17)
-- src/App.tsx (17)
+- api/_lib/siteDatabase.ts (17)
 
 ## Workflows
 - `automation-local.yml` — Automação local (pull_request, push, workflow_dispatch)
@@ -378,6 +378,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-17 `108b0b2` fix(portal): estouro de limite deixa de virar "proposta não encontrada" (#183)
 - 2026-11-17 `e166177` fix(catálogo): porta editorial de onboarding deixa de abrir o catálogo inteiro (#182)
 - 2026-11-17 `f95d773` fix(orçamento): para de prometer WhatsApp quando o canal não pode entregar (#181)
 - 2026-11-17 `c61d7f5` infra(ci): gate de auditoria bloqueia pelo escopo que vai ao ar (#188)
@@ -392,7 +393,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-17 `b8870bf` chore(docs): runbook do graphify passa a declarar o pin real (#171)
 - 2026-11-17 `1d2fa0a` test(e2e): trava os destinos editoriais da home e do rodapé (#170)
 - 2026-11-17 `6711278` fix(seo): landing de ideias entrega um único título ao buscador (#169)
-- 2026-11-17 `d539fb2` feat(analytics): mede o funil das landings de ideias (#168)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

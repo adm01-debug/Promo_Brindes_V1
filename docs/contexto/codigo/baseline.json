@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "e166177036d1994ffa78fb972c7c623a734381eb",
+  "commit": "108b0b2eb815825ff8b9ed10eaed6766d026ad03",
   "branch": "main",
-  "data_commit": "2026-11-17T19:59:24Z",
+  "data_commit": "2026-11-17T20:15:10Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "108b0b2",
+    "data": "2026-11-17",
+    "assunto": "fix(portal): estouro de limite deixa de virar \"proposta não encontrada\" (#183)"
+   },
    {
     "sha": "e166177",
     "data": "2026-11-17",
@@ -126,14 +131,9 @@
     "sha": "bcca66c",
     "data": "2026-11-17",
     "assunto": "feat(busca): corpus julgado de relevancia vai de 20 para 33 intencoes (#163)"
-   },
-   {
-    "sha": "49ce59b",
-    "data": "2026-11-16",
-    "assunto": "fix(a11y): devolve o foco ao titulo da etapa no localizador de briefing (#159)"
    }
   ],
-  "arquivos_mudados_7d": 113,
+  "arquivos_mudados_7d": 117,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -161,7 +161,7 @@
    },
    {
     "pasta": "e2e/smoke.spec.ts",
-    "mudancas": 6
+    "mudancas": 7
    },
    {
     "pasta": ".gitignore",
@@ -203,7 +203,7 @@
    },
    {
     "arquivo": "e2e/smoke.spec.ts",
-    "mudancas": 57
+    "mudancas": 58
    },
    {
     "arquivo": "package-lock.json",
@@ -254,15 +254,15 @@
     "mudancas": 17
    },
    {
+    "arquivo": "api/_lib/siteDatabase.ts",
+    "mudancas": 17
+   },
+   {
     "arquivo": "src/App.tsx",
     "mudancas": 17
    },
    {
     "arquivo": ".github/workflows/graphify.yml",
-    "mudancas": 16
-   },
-   {
-    "arquivo": "api/_lib/siteDatabase.ts",
     "mudancas": 16
    },
    {
@@ -294,14 +294,14 @@
     "mudancas": 14
    },
    {
-    "arquivo": "src/pages/HomePage.tsx",
+    "arquivo": "src/pages/CustomerQuotePage.tsx",
     "mudancas": 14
    }
   ],
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 67
+    "commits": 68
    },
    {
     "autor": "dependabot[bot]",
@@ -312,7 +312,7 @@
  "contagens": {
   "arquivos_total": 692,
   "arquivos_codigo": 277,
-  "linhas_codigo": 54177,
+  "linhas_codigo": 54237,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -336,7 +336,7 @@
   },
   "api/briefing-assets.ts": {
    "arquivos": 1,
-   "linhas": 181
+   "linhas": 188
   },
   "api/commercial-alerts.ts": {
    "arquivos": 1,
@@ -348,7 +348,7 @@
   },
   "api/customer-proposals.ts": {
    "arquivos": 1,
-   "linhas": 142
+   "linhas": 150
   },
   "api/not-found.ts": {
    "arquivos": 1,
@@ -400,7 +400,7 @@
   },
   "e2e/smoke.spec.ts": {
    "arquivos": 1,
-   "linhas": 1544
+   "linhas": 1550
   },
   "eslint.config.js": {
    "arquivos": 1,
@@ -564,7 +564,7 @@
   },
   "src/pages": {
    "arquivos": 23,
-   "linhas": 3184
+   "linhas": 3196
   },
   "src/test": {
    "arquivos": 1,
@@ -580,7 +580,7 @@
   },
   "tests/api": {
    "arquivos": 20,
-   "linhas": 3793
+   "linhas": 3820
   },
   "tests/catalog-public-contract.node.mjs": {
    "arquivos": 1,

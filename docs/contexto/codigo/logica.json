@@ -358,7 +358,8 @@
     "getSiteDatabaseConfig",
     "parseLeadPersistenceResponse",
     "parseProviderEventApplyResponse",
-    "persistLead"
+    "persistLead",
+    "responseErrorDetail"
    ],
    "export_default": null,
    "linhas": 281,
@@ -455,7 +456,7 @@
     "handler"
    ],
    "export_default": "handler",
-   "linhas": 181,
+   "linhas": 188,
    "tabelas": [],
    "rpcs": [
     "confirm_site_briefing_asset_verification",
@@ -531,7 +532,7 @@
     "handler"
    ],
    "export_default": "handler",
-   "linhas": 142,
+   "linhas": 150,
    "tabelas": [],
    "rpcs": [
     "get_my_proposal_document"

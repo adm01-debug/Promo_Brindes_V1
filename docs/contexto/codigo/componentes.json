@@ -460,7 +460,7 @@
     "CustomerQuotePage"
    ],
    "export_default": "CustomerQuotePage",
-   "linhas": 245,
+   "linhas": 257,
    "dominio": "pages",
    "hooks_locais": [
     "useCustomerAuth",

@@ -41,7 +41,7 @@
   {
    "arquivo": "e2e/smoke.spec.ts",
    "tipo": "e2e",
-   "linhas": 1544,
+   "linhas": 1550,
    "testa": [],
    "casos": 64
   },
@@ -617,13 +617,13 @@
   {
    "arquivo": "tests/api/briefing-assets.test.ts",
    "tipo": "unit",
-   "linhas": 195,
+   "linhas": 208,
    "testa": [
     "api/_lib/fileSignatures.ts",
     "api/_lib/leadHandler.ts",
     "api/briefing-assets.ts"
    ],
-   "casos": 11
+   "casos": 12
   },
   {
    "arquivo": "tests/api/campaign-years.test.ts",
@@ -666,12 +666,12 @@
   {
    "arquivo": "tests/api/customer-proposals.test.ts",
    "tipo": "unit",
-   "linhas": 147,
+   "linhas": 161,
    "testa": [
     "api/_lib/leadHandler.ts",
     "api/customer-proposals.ts"
    ],
-   "casos": 7
+   "casos": 8
   },
   {
    "arquivo": "tests/api/lead-requests.test.ts",
