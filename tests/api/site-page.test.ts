@@ -2,6 +2,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import handler from '../../api/site-page.js';
+import { ideaLandingIds, ideaLandingMeta } from '../../shared/ideaLandingPages.js';
+
+function escapeHtml(value: string) {
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
 
 const appShell = `<!doctype html><html><head>
   <meta name="description" content="genérica" />
@@ -60,6 +65,21 @@ describe('HTML inicial das páginas estáticas', () => {
     expect(result.statusCode).toBe(404);
     expect(result.body).toContain('Página não encontrada | Promo Brindes');
     expect(result.body).toContain('noindex,nofollow');
+  });
+
+  it('serve para cada landing o mesmo título que o React grava depois da hidratação', async () => {
+    vi.stubEnv('VITE_PUBLIC_URL', 'https://promo-brindes-v1.vercel.app');
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(appShell, { status: 200 })));
+    expect(ideaLandingIds).toHaveLength(4);
+    for (const id of ideaLandingIds) {
+      const { result, response } = responseDouble();
+      await handler({ method: 'GET', query: { page: 'ideia', topic: id } }, response);
+      expect(result.statusCode).toBe(200);
+      // Mesma composição de src/components/Seo.tsx:38 — `${title} | ${SITE_NAME}`.
+      expect(result.body).toContain(`<title>${escapeHtml(`${ideaLandingMeta[id].title} | Promo Brindes`)}</title>`);
+      expect(result.body).toContain(`content="${escapeHtml(ideaLandingMeta[id].description)}"`);
+      expect(result.body).toContain(`https://promo-brindes-v1.vercel.app/ideias/${id}`);
+    }
   });
 
   it('publica o montador de kits com rewrite e metadados indexáveis próprios', async () => {

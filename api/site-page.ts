@@ -3,6 +3,7 @@ import { configuredSiteOrigin, loadAppShell } from './_lib/publicProductPage.js'
 import { catalogPreviews, occasionPreviews } from './_lib/curatedPagePreviews.js';
 import { normalizeCampaignYear } from '../shared/campaignYears.js';
 import { resolveCatalogEditorialId } from '../shared/catalogEditorial.js';
+import { ideaLandingIds, ideaLandingMeta } from '../shared/ideaLandingPages.js';
 
 interface VercelRequest {
   method?: string;
@@ -41,12 +42,14 @@ const pages: Record<string, StaticPage> = {
   detalheOrcamento: { path: '/minha-conta/orcamentos', title: 'Detalhe do orçamento | Promo Brindes', description: 'Consulte o detalhe da sua solicitação.', noIndex: true },
 };
 
-const ideas: Record<string, StaticPage> = {
-  onboarding: { path: '/ideias/onboarding', title: 'Ideias para onboarding | Promo Brindes', description: 'Referências de brindes para começar relações de trabalho com contexto e cuidado.' },
-  eventos: { path: '/ideias/eventos', title: 'Ideias para eventos | Promo Brindes', description: 'Brindes corporativos para prolongar a experiência de eventos e ativações.' },
-  'clientes-vip': { path: '/ideias/clientes-vip', title: 'Ideias para clientes | Promo Brindes', description: 'Referências para relacionamento com clientes e parceiros estratégicos.' },
-  sustentaveis: { path: '/ideias/sustentaveis', title: 'Ideias de menor impacto | Promo Brindes', description: 'Referências para campanhas que unem utilidade, mensagem e escolhas mais conscientes.' },
-};
+// Derivado de shared/ideaLandingPages.ts: o shell pre-renderizado precisa servir
+// exatamente o titulo e a descricao que src/components/Seo.tsx grava depois da
+// hidratacao, senao a mesma URL entrega dois pares de metadados ao buscador.
+const ideas: Record<string, StaticPage> = Object.fromEntries(ideaLandingIds.map((id) => [id, {
+  path: `/ideias/${id}`,
+  title: `${ideaLandingMeta[id].title} | Promo Brindes`,
+  description: ideaLandingMeta[id].description,
+}]));
 
 function queryValue(request: VercelRequest, key: string): string {
   const value = request.query?.[key];
