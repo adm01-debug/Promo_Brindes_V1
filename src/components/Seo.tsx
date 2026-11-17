@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
+import { SITE_NAME } from '../../shared/siteName';
 
-const SITE_NAME = 'Promo Brindes';
 const DEFAULT_DESCRIPTION =
   'Brindes corporativos personalizados para campanhas, eventos, reconhecimento e relacionamento.';
 

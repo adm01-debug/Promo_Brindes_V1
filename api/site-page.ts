@@ -4,6 +4,7 @@ import { catalogPreviews, occasionPreviews } from './_lib/curatedPagePreviews.js
 import { normalizeCampaignYear } from '../shared/campaignYears.js';
 import { resolveCatalogEditorialId } from '../shared/catalogEditorial.js';
 import { ideaLandingIds, ideaLandingMeta } from '../shared/ideaLandingPages.js';
+import { SITE_NAME } from '../shared/siteName.js';
 
 interface VercelRequest {
   method?: string;
@@ -45,9 +46,13 @@ const pages: Record<string, StaticPage> = {
 // Derivado de shared/ideaLandingPages.ts: o shell pre-renderizado precisa servir
 // exatamente o titulo e a descricao que src/components/Seo.tsx grava depois da
 // hidratacao, senao a mesma URL entrega dois pares de metadados ao buscador.
-const ideas: Record<string, StaticPage> = Object.fromEntries(ideaLandingIds.map((id) => [id, {
+// O retorno anotado como [string, StaticPage] e necessario: sem ele o literal
+// fica dentro do callback sem tipo de contexto e o TypeScript para de recusar
+// campo desconhecido (um `noindex` mal grafado compilaria e a pagina ficaria
+// indexavel em silencio).
+const ideas: Record<string, StaticPage> = Object.fromEntries(ideaLandingIds.map((id): [string, StaticPage] => [id, {
   path: `/ideias/${id}`,
-  title: `${ideaLandingMeta[id].title} | Promo Brindes`,
+  title: `${ideaLandingMeta[id].title} | ${SITE_NAME}`,
   description: ideaLandingMeta[id].description,
 }]));
 

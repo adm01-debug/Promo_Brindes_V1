@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import handler from '../../api/site-page.js';
 import { ideaLandingIds, ideaLandingMeta } from '../../shared/ideaLandingPages.js';
+import { SITE_NAME } from '../../shared/siteName.js';
 
 function escapeHtml(value: string) {
   return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -75,8 +76,9 @@ describe('HTML inicial das páginas estáticas', () => {
       const { result, response } = responseDouble();
       await handler({ method: 'GET', query: { page: 'ideia', topic: id } }, response);
       expect(result.statusCode).toBe(200);
-      // Mesma composição de src/components/Seo.tsx:38 — `${title} | ${SITE_NAME}`.
-      expect(result.body).toContain(`<title>${escapeHtml(`${ideaLandingMeta[id].title} | Promo Brindes`)}</title>`);
+      // Mesma composição de src/components/Seo.tsx:36, pela mesma constante: um
+      // literal repetido aqui não conseguiria detectar divergência de sufixo.
+      expect(result.body).toContain(`<title>${escapeHtml(`${ideaLandingMeta[id].title} | ${SITE_NAME}`)}</title>`);
       expect(result.body).toContain(`content="${escapeHtml(ideaLandingMeta[id].description)}"`);
       expect(result.body).toContain(`https://promo-brindes-v1.vercel.app/ideias/${id}`);
     }
