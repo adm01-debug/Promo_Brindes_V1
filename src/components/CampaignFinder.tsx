@@ -1,5 +1,5 @@
 import { ArrowLeft, ArrowRight, CalendarDays, Check, Hash, RotateCcw, Sparkles, UsersRound, X } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   buildCampaignCatalogUrl,
@@ -25,6 +25,17 @@ export function CampaignFinder() {
   const [stepIndex, setStepIndex] = useState(0);
   const [summaryVisible, setSummaryVisible] = useState(false);
   const [sequentialReview, setSequentialReview] = useState(false);
+  const questionHeadingRef = useRef<HTMLHeadingElement>(null);
+  const summaryHeadingRef = useRef<HTMLHeadingElement>(null);
+  // Cada resposta desmonta o bloco anterior (as opcoes trocam de key a cada
+  // etapa, e a ultima troca a pergunta pelo resumo), entao o foco do teclado
+  // cai no body e a navegacao reinicia do topo da pagina a cada etapa. Devolve
+  // o foco ao titulo do bloco que acabou de aparecer. Mesmo padrao de
+  // QuoteDrawer.tsx:29 e do alerta de QuotePage.tsx:450.
+  function focusBlock(target: 'question' | 'summary') {
+    const ref = target === 'summary' ? summaryHeadingRef : questionHeadingRef;
+    window.requestAnimationFrame(() => ref.current?.focus());
+  }
   const step = steps[stepIndex];
   if (!step) throw new Error('Etapa de briefing inválida.');
   const selectedCount = campaignSelectionCount(selection);
@@ -43,29 +54,37 @@ export function CampaignFinder() {
     if (sequentialReview) {
       if (stepIndex < steps.length - 1) {
         setStepIndex((current) => current + 1);
+        focusBlock('question');
       } else {
         setSequentialReview(false);
         setSummaryVisible(true);
+        focusBlock('summary');
       }
       return;
     }
     if (campaignSelectionCount(nextSelection) === steps.length) {
       setSummaryVisible(true);
+      focusBlock('summary');
       return;
     }
-    if (stepIndex < steps.length - 1) setStepIndex((current) => current + 1);
+    if (stepIndex < steps.length - 1) {
+      setStepIndex((current) => current + 1);
+      focusBlock('question');
+    }
   }
 
   function editStep(index: number) {
     setSequentialReview(false);
     setSummaryVisible(false);
     setStepIndex(index);
+    focusBlock('question');
   }
 
   function reviewAll() {
     setSequentialReview(true);
     setSummaryVisible(false);
     setStepIndex(0);
+    focusBlock('question');
   }
 
   function removeSelection(key: keyof CampaignSelection, index: number) {
@@ -82,6 +101,7 @@ export function CampaignFinder() {
     setStepIndex(0);
     setSummaryVisible(false);
     setSequentialReview(false);
+    focusBlock('question');
   }
 
   function showResults() {
@@ -126,7 +146,7 @@ export function CampaignFinder() {
             <div className="brief-finder__summary" aria-live="polite">
               <div className="bf-head">
                 <span>SEU BRIEFING</span>
-                <h3>O que entendemos da sua campanha</h3>
+                <h3 ref={summaryHeadingRef} tabIndex={-1}>O que entendemos da sua campanha</h3>
                 <p>Confira antes de continuar. Você pode ajustar qualquer resposta.</p>
               </div>
               <div className="bf-grid">
@@ -151,7 +171,7 @@ export function CampaignFinder() {
             <>
               <div className="brief-finder__question" aria-live="polite">
                 <span>{step.eyebrow}</span>
-                <h3>{step.title}</h3>
+                <h3 ref={questionHeadingRef} tabIndex={-1}>{step.title}</h3>
               </div>
               <div className="brief-finder__options">
                 {step.options.map((option) => (

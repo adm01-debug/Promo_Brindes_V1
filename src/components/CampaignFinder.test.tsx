@@ -55,3 +55,37 @@ describe('resumo editável do briefing', () => {
     expect(screen.getByRole('heading', { name: 'O que entendemos da sua campanha' })).toBeVisible();
   });
 });
+
+describe('foco do teclado entre as etapas', () => {
+  afterEach(cleanup);
+
+  const nextFrame = () => new Promise<void>((resolve) => { window.requestAnimationFrame(() => resolve()); });
+
+  it('devolve o foco ao titulo da etapa seguinte em vez de perde-lo no body', async () => {
+    render(<MemoryRouter><CampaignFinder /></MemoryRouter>);
+
+    fireEvent.click(screen.getByText('Evento'));
+    await nextFrame();
+
+    expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Quem precisa ser encantado?' }));
+  });
+
+  it('devolve o foco ao titulo do resumo quando o briefing fecha', async () => {
+    render(<MemoryRouter><CampaignFinder /></MemoryRouter>);
+
+    completeBriefing();
+    await nextFrame();
+
+    expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'O que entendemos da sua campanha' }));
+  });
+
+  it('devolve o foco a etapa aberta pelo resumo', async () => {
+    render(<MemoryRouter><CampaignFinder /></MemoryRouter>);
+
+    completeBriefing();
+    fireEvent.click(screen.getByRole('button', { name: 'Ajustar respostas' }));
+    await nextFrame();
+
+    expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'O que está acontecendo?' }));
+  });
+});
