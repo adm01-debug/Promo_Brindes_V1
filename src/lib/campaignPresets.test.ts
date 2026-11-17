@@ -36,6 +36,7 @@ describe('ache pelo briefing', () => {
       { id: 'other', name: 'Casa', parentId: null },
     ];
     expect(resolveCampaignFilters({ moment: 'onboarding', scale: '201-500', mood: 'sustentavel', audience: 'clientes' }, categories)).toEqual({
+      search: 'onboarding',
       profile: 'featured',
       materials: ['reciclado'],
       colors: [],
@@ -44,6 +45,23 @@ describe('ache pelo briefing', () => {
     });
     expect(resolveCampaignFilters({ mood: 'tech' }, categories).categoryIds).toEqual(['tech']);
     expect(resolveCampaignFilters({ mood: 'divertido' }, categories).colors).toEqual(['colorido']);
+  });
+
+  it('dá ao momento onboarding um termo de curadoria, já que não há sinal estrutural', () => {
+    const categories: { id: string; name: string; parentId: null }[] = [];
+    // Sem o termo, a porta editorial de onboarding abria o catálogo público
+    // inteiro: profile, materials, colors e categoryIds saem todos vazios.
+    const onboarding = resolveCampaignFilters({ moment: 'onboarding', audience: 'colaboradores' }, categories);
+    expect(onboarding.search).toBe('onboarding');
+    expect(onboarding.profile).toBeUndefined();
+    expect(onboarding.materials).toEqual([]);
+    expect(onboarding.colors).toEqual([]);
+    expect(onboarding.categoryIds).toEqual([]);
+    // O termo é do momento, não do público: trocar o público não o remove.
+    expect(resolveCampaignFilters({ moment: 'onboarding' }, categories).search).toBe('onboarding');
+    // E não contamina os outros momentos, que já têm sinal próprio.
+    expect(resolveCampaignFilters({ moment: 'evento' }, categories).search).toBeUndefined();
+    expect(resolveCampaignFilters({ moment: 'relacionamento' }, categories).search).toBeUndefined();
   });
 
   it('não converte onboarding ou colaboradores em kit sem uma escolha explícita de clima', () => {

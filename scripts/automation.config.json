@@ -314,6 +314,14 @@
       "reason": "Legado mantido no fluxo existente; referências literais: package.json:scripts, .github/workflows/database.yml. O dispatcher não executa esta operação."
     },
     {
+      "id": "legacy-validate-env-example",
+      "kind": "legacy",
+      "files": ["scripts/validate-env-example.mjs"],
+      "manual": ["node", "scripts/validate-env-example.mjs"],
+      "triggers": ["manual"],
+      "reason": "Guarda do .env.example no mesmo padrão de validate-error-catalog.mjs; referências literais: package.json:scripts. O dispatcher não executa esta operação."
+    },
+    {
       "id": "legacy-2c3ea3d0a0479ea0",
       "kind": "legacy",
       "files": ["scripts/validate-migration-names.mjs"],

@@ -373,6 +373,14 @@ async function sendWhatsApp(job: NotificationJob, signal: AbortSignal, config = 
   return { provider: 'meta-whatsapp-cloud', id: id.slice(0, 240) };
 }
 
+// Exportada porque o atalho de api/_lib/leadHandler.ts (repeticao idempotente
+// ou pouco tempo restante) monta a resposta sem passar por
+// deliverQuoteConfirmationsNow, e sem esta checagem voltaria a prometer envio
+// de WhatsApp num ambiente que nao tem provedor.
+export function whatsappChannelConfigured(): boolean {
+  return configuredChannels().includes('whatsapp');
+}
+
 function configuredChannels(): Array<'email' | 'whatsapp'> {
   // Deploys de Preview nunca disparam mensagens reais, mesmo que herdem
   // acidentalmente credenciais de produção na Vercel.
@@ -582,13 +590,18 @@ async function reportQueueHealth(): Promise<void> {
 
 export interface QuoteConfirmationResult {
   email: 'sent' | 'pending';
-  whatsapp: 'sent' | 'pending' | 'not_requested';
+  /** `unavailable`: o visitante autorizou a cópia por WhatsApp, mas o canal não
+   * tem provedor configurado neste ambiente. Precisa ser distinto de `pending`:
+   * uma entrega que nunca será reivindicada não está "registrada para envio", e
+   * relatar isso como pendente promete ao lead algo que não vai acontecer. */
+  whatsapp: 'sent' | 'pending' | 'not_requested' | 'unavailable';
 }
 
 export async function deliverQuoteConfirmationsNow(requestId: string, whatsappRequested: boolean, correlationId?: string): Promise<QuoteConfirmationResult> {
   const result: QuoteConfirmationResult = { email: 'pending', whatsapp: whatsappRequested ? 'pending' : 'not_requested' };
   if (!UUID_PATTERN.test(requestId)) return result;
   const configured = configuredChannels();
+  if (whatsappRequested && !configured.includes('whatsapp')) result.whatsapp = 'unavailable';
   const requested = configured.filter((channel) => channel === 'email' || whatsappRequested);
   if (!requested.length) return result;
 

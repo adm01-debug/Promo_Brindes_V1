@@ -108,6 +108,20 @@ describe('download autenticado de propostas', () => {
     expect(spoofed.result.statusCode).toBe(415);
   });
 
+  it('estouro do limite devolve 429, não "proposta não encontrada"', async () => {
+    configure();
+    // Formato real do PostgREST para a exceção P0001 levantada por
+    // site_private.consume_rate_limit dentro de get_my_proposal_document.
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ code: 'P0001', message: 'rate_limit_exceeded' }), { status: 400 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    await proposalHandler(request(), response);
+    expect(result.statusCode).toBe(429);
+    expect(result.body).toMatchObject({ error: 'proposal_download_rate_limited' });
+    // Nenhuma assinatura de URL: o limite barra antes do Storage.
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it('não revela se proposta alheia existe', async () => {
     configure();
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('null', { status: 200 })));
