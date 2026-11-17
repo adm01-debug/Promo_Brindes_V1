@@ -53,7 +53,7 @@ Escrita no GitHub: MCP **`GITHUB - MCP - FOREVER`** (o padrão dá 403 em write;
 - Supabase **canônico** `doufsxqlfjyuvxuezpln` (catálogo): somente leitura via views `v_site_products_public`/`v_products_public`; sem migrations daqui; MCP `SUPABASE - GESTÃO DE PRODUTOS`; contrato quebrou → `docs/RUNBOOK_BANCO_PRINCIPAL.md`.
 - Supabase **isolado do site** `xlzmclcjdncjfdrjxclt` (leads, área do cliente): migrations em `site-supabase/supabase/migrations`, pgTAP em `site-supabase/supabase/tests/database`. Não há MCP deste projeto — use os comandos `npm run db:site:*`.
 - Não altere o projeto interno Promo Gifts (`Promo_Gifts_V4`) por este site.
-- Aplicar migration: `npm run db:site:guard` (bloqueia o ref canônico) → `npm run db:site:dry-run` → `SUPABASE_WORKDIR=site-supabase npx supabase@latest db push`. Nunca `db reset --linked`.
+- Aplicar migration: o merge em `main` dispara `release.yml`, que aplica no projeto isolado antes de promover o deploy. Fora do release: `npm run db:site:guard` (bloqueia o ref canônico) → `npm run db:site:dry-run` → `SUPABASE_WORKDIR=site-supabase npx supabase@latest db push`. Nunca `db reset --linked`.
 - Migration `YYYYMMDDHHMMSS_descricao.sql`, aditiva; nunca reverta schema destrutivamente em produção. `release.yml` exige ledger remoto idêntico às migrations do repo; divergiu → `docs/RUNBOOK_RECONCILIACAO_LEDGER.md`.
 - Mudou estado de requisito do ledger de fechamento? `docs/GOVERNANCA_FECHAMENTO.md` + `npm run ledger:check`.
 

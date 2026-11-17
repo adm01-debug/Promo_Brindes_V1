@@ -74,6 +74,33 @@ jobs:
             fi
             sleep 20
           done
+      - name: Install locked Supabase CLI
+        run: npm install --global supabase@2.115.0
+      - name: Apply versioned migrations to the isolated database
+        env:
+          SITE_SUPABASE_DB_URL: ${{ secrets.SITE_SUPABASE_DB_URL }}
+        run: |
+          set -eo pipefail
+          test -n "$SITE_SUPABASE_DB_URL" || {
+            echo '::error::SITE_SUPABASE_DB_URL ausente: sem ele o release nao aplica migration e o ledger trava o deploy.'
+            exit 1
+          }
+          # Mesmo guard do scripts/validate-site-supabase-target.mjs, aqui sobre a
+          # string de conexao: o alvo precisa ser o projeto ISOLADO DO SITE. O
+          # catalogo canonico doufsxqlfjyuvxuezpln e externo e somente leitura.
+          case "$SITE_SUPABASE_DB_URL" in
+            *doufsxqlfjyuvxuezpln*)
+              echo '::error::SITE_SUPABASE_DB_URL aponta para o catalogo canonico. Abortado antes de qualquer DDL.'
+              exit 1
+              ;;
+            *"$SUPABASE_PROJECT_REF"*) : ;;
+            *)
+              echo "::error::SITE_SUPABASE_DB_URL nao contem o ref $SUPABASE_PROJECT_REF do projeto isolado."
+              exit 1
+              ;;
+          esac
+          supabase db push --workdir site-supabase --db-url "$SITE_SUPABASE_DB_URL" --skip-vault --dry-run
+          supabase db push --workdir site-supabase --db-url "$SITE_SUPABASE_DB_URL" --skip-vault --yes
       - name: Wait for the isolated Supabase migration ledger
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
