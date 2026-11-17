@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `f95d773e91` · branch `main` · 2026-11-17 19:43 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `e166177036` · branch `main` · 2026-11-17 20:09 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -1043,7 +1043,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1578 testes em 128 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1579 testes em 128 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1117,6 +1117,7 @@ _nenhum item encontrado_
 | `tests/api/sitemap.test.ts` | 8 | sitemap público · nunca ultrapassa 50 mil URLs incluindo páginas estáticas · mantém o ano das datas no fuso editorial durante a virada UTC · prioriza o host público configurado e remove a barra final … |
 | `site-supabase/supabase/tests/database/default_privileges.test.sql` | 7 | anon não recebe nenhum privilégio implícito em futura tabela pública · authenticated não recebe nenhum privilégio implícito em futura tabela pública · anon não recebe privilégio implícito em futura sequência pública · authenticated não recebe privilégio implícito em futura sequência pública … |
 | `site-supabase/supabase/tests/database/storage_tuning.test.sql` | 7 | rate_limit_buckets é UNLOGGED (Etapa 30) · shared_selection_rate_limits é UNLOGGED (Etapa 30) · notification_deliveries continua persistente (não é efêmera como as tabelas de rate limit) · notification_deliveries tem fillfactor 80 (Etapa 40, espaço para HOT updates) … |
+| `src/lib/campaignPresets.test.ts` | 7 | ache pelo briefing · gera URL compartilhável somente com escolhas válidas · expõe escolhas como contexto removível sem duplicar critérios ocultos · traduz apenas sinais confiáveis para o contrato público … |
 | `src/lib/commemorativeDates.test.ts` | 7 | commemorativeDates · calcula datas móveis brasileiras sem depender do fuso do navegador · mantém todas as ocasiões ordenadas e com identificadores únicos · filtra por mês, público e busca sem exigir acentos … |
 | `src/lib/contactRequest.test.ts` | 7 | contato rápido · separa o consentimento do contato e registra sua versão · não transmite query ou fragmento da página de contato · prepara fallback de e-mail sem depender de infraestrutura … |
 | `src/lib/kitBuilder.test.ts` | 7 | composição de kits · permite omitir extras, mas exige os dois componentes obrigatórios · recusa estouro de unidades sem degradar o kit para itens avulsos · calcula o mínimo pelo componente mais restritivo … |
@@ -1125,7 +1126,6 @@ _nenhum item encontrado_
 | `tests/soak-test-notification-queue.node.mjs` | 7 | percentile usa o método nearest-rank e devolve null para lista vazia · parseSoakConfig aplica os padrões e recusa valores fora do contrato · isTerminalDelivery reconhece sent, exhausted e failed com tentativas esgotadas · drena a fila sem falhas, só fala com o banco local e escreve o relatório com os padrões reais … |
 | `tests/api/product-page.test.ts` | 7 | HTML inicial de fichas de produto · escapa conteúdo de catálogo no head e no JSON-LD · entrega produto com metadados específicos e schema sem virar checkout · responde 404 e noindex para um identificador inválido sem consultar o catálogo … |
 | `src/context/CustomerAuthContext.test.tsx` | 6 | inicialização da autenticação do cliente · sai do carregamento infinito, informa a falha e permite tentar novamente · trata o erro retornado pelo SDK mesmo quando a Promise é resolvida · não apaga a falha quando INITIAL_SESSION chega vazio após getSession falhar … |
-| `src/lib/campaignPresets.test.ts` | 6 | ache pelo briefing · gera URL compartilhável somente com escolhas válidas · expõe escolhas como contexto removível sem duplicar critérios ocultos · traduz apenas sinais confiáveis para o contrato público … |
 | `src/lib/catalogFilters.test.ts` | 6 | estado do superfiltro público · apresenta o perfil de novidades como Tendências · aceita apenas IDs conhecidos e remove repetições da URL · traduz IDs amigáveis para as grafias existentes no catálogo … |
 | `src/lib/catalogRanking.test.ts` | 6 | catalog ranking · prioriza intenção pesquisada sem usar preço ou estoque · intercala famílias equivalentes nos primeiros resultados · considera somente atributos publicados ao responder a um briefing … |
 | `src/lib/customerOccasionFavorites.test.ts` | 6 | favoritos de datas na conta · lê apenas IDs editoriais e elimina duplicidades · normaliza a escrita e exige confirmação idempotente do servidor · rejeita payloads e identificadores que não podem representar uma data editorial … |

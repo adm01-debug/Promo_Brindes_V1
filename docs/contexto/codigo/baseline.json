@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "f95d773e91fb20f224dbd2263e0494526b779e81",
+  "commit": "e166177036d1994ffa78fb972c7c623a734381eb",
   "branch": "main",
-  "data_commit": "2026-11-17T19:38:45Z",
+  "data_commit": "2026-11-17T19:59:24Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "e166177",
+    "data": "2026-11-17",
+    "assunto": "fix(catálogo): porta editorial de onboarding deixa de abrir o catálogo inteiro (#182)"
+   },
    {
     "sha": "f95d773",
     "data": "2026-11-17",
@@ -126,14 +131,9 @@
     "sha": "49ce59b",
     "data": "2026-11-16",
     "assunto": "fix(a11y): devolve o foco ao titulo da etapa no localizador de briefing (#159)"
-   },
-   {
-    "sha": "6a37e51",
-    "data": "2026-11-16",
-    "assunto": "fix(obs): registra a falha dos dois endpoints da Area do Cliente (#157)"
    }
   ],
-  "arquivos_mudados_7d": 169,
+  "arquivos_mudados_7d": 113,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 66
+    "commits": 67
    },
    {
     "autor": "dependabot[bot]",
@@ -312,7 +312,7 @@
  "contagens": {
   "arquivos_total": 692,
   "arquivos_codigo": 277,
-  "linhas_codigo": 54143,
+  "linhas_codigo": 54177,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -556,7 +556,7 @@
   },
   "src/lib": {
    "arquivos": 80,
-   "linhas": 7702
+   "linhas": 7736
   },
   "src/main.tsx": {
    "arquivos": 1,

@@ -243,11 +243,11 @@
   {
    "arquivo": "src/lib/campaignPresets.test.ts",
    "tipo": "unit",
-   "linhas": 66,
+   "linhas": 84,
    "testa": [
     "src/lib/campaignPresets.ts"
    ],
-   "casos": 5
+   "casos": 6
   },
   {
    "arquivo": "src/lib/catalog.test.ts",

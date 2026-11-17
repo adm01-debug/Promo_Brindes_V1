@@ -1272,7 +1272,7 @@
     "resolveCampaignFilters"
    ],
    "export_default": null,
-   "linhas": 146,
+   "linhas": 160,
    "tabelas": [],
    "rpcs": [],
    "edges": [],
@@ -2380,7 +2380,7 @@
     "useCatalogPageState"
    ],
    "export_default": null,
-   "linhas": 282,
+   "linhas": 284,
    "tabelas": [],
    "rpcs": [],
    "edges": [],
