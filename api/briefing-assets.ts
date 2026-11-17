@@ -2,6 +2,7 @@ import { matchesDeclaredFileSignature, readSignaturePrefix } from './_lib/fileSi
 import { getSiteDatabaseConfig } from './_lib/siteDatabase.js';
 import type { ApiRequest, ApiResponse } from './_lib/leadHandler.js';
 import { allowedSiteOrigins } from './_lib/siteOrigin.js';
+import { errorClass, logServerError } from './_lib/observability.js';
 
 export const REQUEST_TIMEOUT_MS = 10_000;
 const MAX_BODY_BYTES = 4 * 1024;
@@ -168,7 +169,10 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       return;
     }
     response.status(200).json({ verifiedAt });
-  } catch {
+  } catch (error) {
+    // Sem este registro, anexo recusado por falha de infraestrutura ficava
+    // indistinguivel de anexo recusado por assinatura invalida do arquivo.
+    logServerError('briefing_asset_verification_failed', { errorClass: errorClass(error) });
     response.status(503).json({ error: 'briefing_asset_verification_unavailable', message: 'Não conseguimos verificar o arquivo agora. Ele não foi anexado.' });
   } finally {
     clearTimeout(timeout);

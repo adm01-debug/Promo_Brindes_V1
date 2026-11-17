@@ -1,6 +1,7 @@
 import { getSiteDatabaseConfig } from './_lib/siteDatabase.js';
 import type { ApiRequest, ApiResponse } from './_lib/leadHandler.js';
 import { allowedSiteOrigins } from './_lib/siteOrigin.js';
+import { errorClass, logServerError } from './_lib/observability.js';
 
 const PROPOSAL_BUCKET = 'customer-proposals';
 export const REQUEST_TIMEOUT_MS = 10_000;
@@ -128,7 +129,11 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     const signed = await signedResponse.json().catch(() => null) as { signedURL?: string } | null;
     if (!signedResponse.ok || !signed?.signedURL) throw new Error('sign_failed');
     response.status(200).json({ url: signedStorageUrl(config.url, signed.signedURL) });
-  } catch {
+  } catch (error) {
+    // Sem este registro a falha era invisivel: o cliente via "nao conseguimos abrir"
+    // e nao sobrava rastro de qual etapa caiu (credencial ausente, assinatura
+    // recusada pelo storage, tempo esgotado).
+    logServerError('customer_proposal_download_failed', { errorClass: errorClass(error) });
     response.status(503).json({ error: 'proposal_unavailable', message: 'Não conseguimos abrir esta proposta agora.' });
   } finally {
     if (timeout) clearTimeout(timeout);
