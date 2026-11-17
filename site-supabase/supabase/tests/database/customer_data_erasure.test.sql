@@ -5,7 +5,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(28);
+select plan(43);
 
 select ok(not pg_catalog.has_function_privilege('anon', 'public.erase_customer_data(text)', 'execute'), 'anon não apaga dados de titular');
 select ok(not pg_catalog.has_function_privilege('authenticated', 'public.erase_customer_data(text)', 'execute'), 'authenticated não apaga dados de titular (operação administrativa)');
@@ -15,11 +15,40 @@ select ok(pg_catalog.has_function_privilege('service_role', 'public.erase_custom
 -- tabela); quem recebe o valor em maiúsculas/com espaço e precisa normalizar é o
 -- PARÂMETRO de erase_customer_data, testado abaixo com 'Fulano@Example.TEST'.
 insert into site_private.quote_requests (
-  client_request_id, request_hash, source, contact_name, company, email, phone, city, notes, client_submitted_at
+  client_request_id, request_hash, source, contact_name, company, email, phone, city, notes, client_submitted_at,
+  request_metadata
 ) values (
   'erasure-test-quote-1', repeat('9', 64), 'site-promo-brindes',
-  'Fulano de Tal', 'Empresa Fulano', 'fulano@example.test', '11988887777', 'São Paulo', 'Nota pessoal', now()
+  'Fulano de Tal', 'Empresa Fulano', 'fulano@example.test', '11988887777', 'São Paulo', 'Nota pessoal', now(),
+  jsonb_build_object(
+    'userAgent', 'Mozilla/5.0 (iPhone)',
+    'origin', 'https://promo-brindes-v1.vercel.app',
+    'campaign', jsonb_build_object('source', 'commemorative_date', 'occasion', jsonb_build_object(
+      'id', 'Fulana-de-Tal', 'name', 'Natal da Fulana de Tal', 'date', '2026-12-25')),
+    'briefing', jsonb_build_object('actionName', 'Kit de boas-vindas da Fulana', 'budgetRange', 'ate-25', 'responseChannel', 'email'),
+    'notificationPreferences', jsonb_build_object('emailCopy', true, 'whatsappCopy', false)
+  )
 );
+
+insert into site_private.quote_items (
+  quote_request_id, position, source_product_id, item_key, product_slug, product_name_snapshot,
+  sku_snapshot, quantity, minimum_quantity_snapshot, kit_group_id, kit_name_snapshot,
+  kit_quantity_snapshot, units_per_kit_snapshot
+)
+select id, 1, '11111111-1111-4111-8111-111111111111', '11111111-1111-4111-8111-111111111111::sem-cor',
+  'produto-a', 'Produto A', 'KIT-A', 200, 100,
+  'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'Kit da Fulana de Tal', 100, 2
+from site_private.quote_requests where client_request_id = 'erasure-test-quote-1';
+
+insert into site_private.quote_items (
+  quote_request_id, position, source_product_id, item_key, product_slug, product_name_snapshot,
+  sku_snapshot, quantity, minimum_quantity_snapshot, kit_group_id, kit_name_snapshot,
+  kit_quantity_snapshot, units_per_kit_snapshot
+)
+select id, 2, '22222222-2222-4222-8222-222222222222', '22222222-2222-4222-8222-222222222222::sem-cor',
+  'produto-b', 'Produto B', 'KIT-B', 100, 50,
+  'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'Kit da Fulana de Tal', 100, 1
+from site_private.quote_requests where client_request_id = 'erasure-test-quote-1';
 
 insert into site_private.contact_requests (
   client_request_id, request_hash, source, contact_name, email, phone, message, client_submitted_at
@@ -60,6 +89,17 @@ insert into site_private.customer_briefing_assets (
   'image/png', 128
 );
 
+update site_private.notification_deliveries delivery set
+  status = 'processing', attempts = delivery.attempts + 1, claimed_at = now(),
+  lease_token = gen_random_uuid(), lease_expires_at = now() + interval '5 minutes',
+  updated_at = now()
+where delivery.request_kind = 'quote'
+  and delivery.audience = 'customer'
+  and delivery.channel = 'email'
+  and delivery.request_id = (
+    select id from site_private.quote_requests where client_request_id = 'erasure-test-quote-1'
+  );
+
 create temporary table erasure_result as select public.erase_customer_data('  Fulano@Example.TEST  ') as result;
 
 select is((select (result ->> 'quotesAnonymized')::integer from erasure_result), 1, 'anonimiza 1 quote_request (e-mail com espaço/maiúsculas normalizado na entrada)');
@@ -93,6 +133,97 @@ select is(
 select ok(
   (select protocol from site_private.quote_requests where client_request_id = 'erasure-test-quote-1') is not null,
   'protocol é preservado (integridade referencial / evidência de conformidade, não é PII)'
+);
+
+select ok(
+  (select request_metadata #>> '{briefing,actionName}' from site_private.quote_requests
+   where client_request_id = 'erasure-test-quote-1') is null,
+  'briefing.actionName (texto digitado no formulario) e apagado'
+);
+select ok(
+  (select request_metadata #>> '{campaign,occasion,name}' from site_private.quote_requests
+   where client_request_id = 'erasure-test-quote-1') is null,
+  'campaign.occasion.name (texto do parametro ocasiao_nome) e apagado'
+);
+select ok(
+  (select request_metadata #>> '{campaign,occasion,id}' from site_private.quote_requests
+   where client_request_id = 'erasure-test-quote-1') is null,
+  'campaign.occasion.id tambem e apagado: nao e slug de catalogo, e texto de ate 80 caracteres so filtrado por charset (api/_lib/contracts.ts:206-207 aceita Fulana-de-Tal)'
+);
+select is(
+  (select request_metadata #>> '{briefing,budgetRange}' from site_private.quote_requests
+   where client_request_id = 'erasure-test-quote-1'),
+  'ate-25',
+  'enum operacional de briefing e preservado'
+);
+select is(
+  (select request_metadata #>> '{campaign,occasion,date}' from site_private.quote_requests
+   where client_request_id = 'erasure-test-quote-1'),
+  '2026-12-25',
+  'data de calendario da ocasiao e preservada (nao e texto livre)'
+);
+select is(
+  (select request_metadata #>> '{campaign,source}' from site_private.quote_requests
+   where client_request_id = 'erasure-test-quote-1'),
+  'commemorative_date',
+  'enum de origem da campanha e preservado'
+);
+
+select is(
+  (select request_metadata #>> '{notificationPreferences,whatsappCopy}' from site_private.quote_requests
+   where client_request_id = 'erasure-test-quote-1'),
+  'false',
+  'preferencia de notificacao e preservada'
+);
+select is(
+  (select jsonb_typeof(request_metadata) from site_private.quote_requests
+   where client_request_id = 'erasure-test-quote-1'),
+  'object',
+  'request_metadata continua objeto (CHECK jsonb_typeof, 20260908230000:26)'
+);
+select is(
+  (select request_metadata #>> '{userAgent}' from site_private.quote_requests
+   where client_request_id = 'erasure-test-quote-1'),
+  'Mozilla/5.0 (iPhone)',
+  'chave tecnica de rastreio e preservada (fora do escopo de texto do titular)'
+);
+
+select is(
+  (select count(distinct kit_name_snapshot) from site_private.quote_items item
+   join site_private.quote_requests request on request.id = item.quote_request_id
+   where request.client_request_id = 'erasure-test-quote-1'),
+  1::bigint,
+  'o kit inteiro recebe um unico placeholder (invariante de um nome por kit_group)'
+);
+select is(
+  (select min(kit_name_snapshot) from site_private.quote_items item
+   join site_private.quote_requests request on request.id = item.quote_request_id
+   where request.client_request_id = 'erasure-test-quote-1'),
+  '[apagado a pedido do titular]',
+  'kit_name_snapshot e substituido por texto, nao anulado (quote_items_kit_composition_check)'
+);
+
+select is(
+  (select count(*) from site_private.notification_deliveries delivery
+   join site_private.quote_requests request on request.id = delivery.request_id
+   where delivery.request_kind = 'quote'
+     and request.client_request_id = 'erasure-test-quote-1'
+     and delivery.status in ('pending', 'failed', 'processing')),
+  0::bigint,
+  'nenhuma entrega reivindicavel (os tres estados dos CTEs de claim) sobrevive ao apagamento'
+);
+select is(
+  (select (result ->> 'notificationsCancelled')::integer from erasure_result),
+  2,
+  'as 2 entregas enfileiradas pelo trigger sao canceladas'
+);
+select is(
+  (select delivery.status from site_private.notification_deliveries delivery
+   join site_private.quote_requests request on request.id = delivery.request_id
+   where request.client_request_id = 'erasure-test-quote-1'
+     and delivery.request_kind = 'quote' and delivery.audience = 'customer' and delivery.channel = 'email'),
+  'cancelled',
+  'entrega em processing com lease vivo tambem e cancelada (e a que a fila re-reivindica quando o lease vence, 20260922120000:55)'
 );
 select is(
   (select customer_user_id from site_private.quote_requests where client_request_id = 'erasure-test-quote-1'),
@@ -145,6 +276,10 @@ select is((select (result ->> 'contactsAnonymized')::integer from erasure_result
 select is(
   (select (result ->> 'profilesAnonymized')::integer from erasure_result_2), 0,
   'segunda execução é idempotente: 0 profiles reprocessados (cobre o fix de precedência do operador nesta sessão)'
+);
+select is(
+  (select (result ->> 'notificationsCancelled')::integer from erasure_result_2), 0,
+  'segunda execucao: 0 entregas canceladas porque o conjunto de orcamentos alcancaveis pelo e-mail ja esta vazio (a primeira trocou email por titular-...@erased.invalid e zerou customer_user_id)'
 );
 
 select throws_like(
