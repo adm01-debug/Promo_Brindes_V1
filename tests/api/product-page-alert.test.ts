@@ -93,7 +93,7 @@ describe('alerta de queda do catálogo público', () => {
   });
 
   it('duas visitas simultâneas na mesma instância geram um único alerta', async () => {
-    let liberar: (() => void) | null = null;
+    let liberar = () => {};
     const pendente = new Promise<void>((resolve) => { liberar = resolve; });
     const fetchMock = vi.fn(async (input: string | URL, init?: { body?: string }) => {
       void init;
@@ -112,7 +112,7 @@ describe('alerta de queda do catálogo público', () => {
     ]);
     // Deixa as duas chegarem ao envio antes de o webhook responder.
     await new Promise((resolve) => setTimeout(resolve, 0));
-    liberar?.();
+    liberar();
     await visitas;
 
     expect(a.result.statusCode).toBe(503);
