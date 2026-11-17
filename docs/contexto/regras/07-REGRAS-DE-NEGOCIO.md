@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `f48af644fc` · branch `main` · 2026-11-17 08:54 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `8ea12737c3` · branch `main` · 2026-11-17 09:04 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -311,7 +311,6 @@ Erros lançados por funções SQL (`RAISE EXCEPTION` = regra de negócio no banc
 | `request_my_quote_adjustment` | adjustment_message_required | `site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql` |
 | `request_my_quote_adjustment` | invalid_client_request_id | `site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql` |
 | `request_my_quote_adjustment` | too_many_pending_adjustments | `site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql` |
-| `erase_customer_data` | invalid_erasure_email | `site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql` |
 | `claim_my_quote_requests` | authentication_required | `site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql` |
 | `claim_my_quote_requests` | verified_email_required | `site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql` |
 | `claim_my_quote_requests` | identity_erased | `site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql` |
@@ -336,6 +335,7 @@ Erros lançados por funções SQL (`RAISE EXCEPTION` = regra de negócio no banc
 | `attach_my_briefing_assets_to_quote` | invalid_briefing_asset_attachment | `site-supabase/supabase/migrations/20261006134751_make_briefing_asset_attachment_idempotent.sql` |
 | `attach_my_briefing_assets_to_quote` | briefing_asset_attachment_conflict | `site-supabase/supabase/migrations/20261006134751_make_briefing_asset_attachment_idempotent.sql` |
 | `claim_site_commercial_team_alerts` | invalid_notification_claim_input | `site-supabase/supabase/migrations/20261117010000_add_commercial_team_contact_alert.sql` |
+| `erase_customer_data` | invalid_erasure_email | `site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql` |
 
 ## E. Estados, máquinas de estado e transições
 
@@ -365,9 +365,9 @@ Transições declaradas no banco — linhas que as migrations inserem em tabela 
 | `site_private.status_transitions` | `entity=contact_requests` | `new` | `triaged`, `in_progress`, `spam`, `closed` | `site-supabase/supabase/migrations/20260916100000_add_quote_event_sequence_and_status_state_machine.sql` |
 | `site_private.status_transitions` | `entity=contact_requests` | `triaged` | `in_progress`, `spam`, `closed` | `site-supabase/supabase/migrations/20260916100000_add_quote_event_sequence_and_status_state_machine.sql` |
 | `site_private.status_transitions` | `entity=contact_requests` | `in_progress` | `spam`, `closed` | `site-supabase/supabase/migrations/20260916100000_add_quote_event_sequence_and_status_state_machine.sql` |
-| `site_private.status_transitions` | `entity=notification_deliveries` | `pending` | `processing`, `exhausted` | `site-supabase/supabase/migrations/20260916220000_add_notification_delivery_status_machine.sql` |
+| `site_private.status_transitions` | `entity=notification_deliveries` | `pending` | `processing`, `exhausted`, `cancelled` | `site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql` |
 | `site_private.status_transitions` | `entity=notification_deliveries` | `processing` | `sent`, `failed`, `cancelled`, `exhausted` | `site-supabase/supabase/migrations/20260916220000_add_notification_delivery_status_machine.sql` |
-| `site_private.status_transitions` | `entity=notification_deliveries` | `failed` | `processing`, `exhausted` | `site-supabase/supabase/migrations/20260916220000_add_notification_delivery_status_machine.sql` |
+| `site_private.status_transitions` | `entity=notification_deliveries` | `failed` | `processing`, `exhausted`, `cancelled` | `site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql` |
 | `site_private.status_transitions` | `entity=notification_deliveries` | `exhausted` | `pending` | `site-supabase/supabase/migrations/20260916220000_add_notification_delivery_status_machine.sql` |
 
 _nenhum mapa explícito encontrado no código — fora da tabela acima (se houver), transições só existem implicitamente nos `if`s (veja E.3)_
@@ -1038,7 +1038,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1539 testes em 124 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1554 testes em 124 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1047,12 +1047,12 @@ _nenhum item encontrado_
 | `site-supabase/supabase/tests/database/briefing_assets.test.sql` | 57 | metadados privados de arquivos existem · assinatura binária possui recibo de verificação · fila de exclusão de Storage existe · bucket é privado e limitado a 10 MB … |
 | `e2e/smoke.spec.ts` | 56 | headline principal usa Fold Text sem perder acessibilidade · categorias usam fotografia de produto publicado como ponto de descoberta · rotas públicas essenciais não introduzem violações automáticas de acessibilidade · montador de kits preserva componentes e calcula a quantidade completa … |
 | `site-supabase/supabase/tests/database/notification_outbox.test.sql` | 47 | fila possui agenda de nova tentativa · fila identifica a reivindicação ativa (R04) · novo orçamento alimenta a fila na mesma transação · anon não reivindica notificações … |
+| `site-supabase/supabase/tests/database/customer_data_erasure.test.sql` | 43 | anon não apaga dados de titular · authenticated não apaga dados de titular (operação administrativa) · service_role executa o apagamento · anonimiza 1 quote_request (e-mail com espaço/maiúsculas normalizado na entrada) … |
 | `site-supabase/supabase/tests/database/customer_portal.test.sql` | 41 | orçamento possui titular autenticado opcional · perfil do cliente existe no schema privado · linha do tempo existe no schema privado · metadados de propostas existem no schema privado … |
 | `site-supabase/supabase/tests/database/notification_delivery_status_machine.test.sql` | 40 | pending -> pending (no-op) · pending -> processing · pending -> sent (rejeitado: pula processing) · pending -> failed (rejeitado: pula processing) … |
 | `tests/api/lead-requests.test.ts` | 36 | APIs de leads isoladas · registra contato normalizado pelo RPC server-side · rejeita resposta malformada do banco: %s · persiste orçamento e devolve 200 em repetição idempotente … |
 | `tests/graphify-tools.node.mjs` | 31 | path encontra menor caminho, identidade e nós desconectados sem inventar relações · explain preserva fonte e confiança e identifica conexões de entrada · nomes ambíguos e símbolos ausentes não escolhem um resultado arbitrário · fingerprint muda ao mudar conteúdo e preserva ordem determinística … |
 | `site-supabase/supabase/tests/database/notification_provider_events.test.sql` | 30 | entrega ganha estado terminal pós-aceite (Etapa 30) · devolução guarda a categoria curta do provedor · reclamação é rastreada independentemente da entrega · deduplicação de eventos de webhook fica em tabela própria … |
-| `site-supabase/supabase/tests/database/customer_data_erasure.test.sql` | 28 | anon não apaga dados de titular · authenticated não apaga dados de titular (operação administrativa) · service_role executa o apagamento · anonimiza 1 quote_request (e-mail com espaço/maiúsculas normalizado na entrada) … |
 | `tests/validate-agent-instructions.node.mjs` | 28 | aceita AGENTS.md com todas as seções obrigatórias · acusa seção obrigatória apagada por outra sessão · ${CLAUDE_FILE} precisa ser exatamente o import do ${AGENTS_FILE} · acusa referência quebrada e referência órfã em docs/agentes … |
 | `tests/api/notifications.test.ts` | 27 | worker de comprovantes do orçamento · recusa chamada sem o segredo agendado · não reivindica a fila enquanto nenhum provedor estiver configurado · Preview não envia mensagens reais mesmo se herdar credenciais dos provedores … |
 | `site-supabase/supabase/tests/database/customer_selections.test.sql` | 26 | seleções privadas por titular existem · RLS é forçada na tabela · cliente não acessa o schema privado · cliente não consulta tabela diretamente … |

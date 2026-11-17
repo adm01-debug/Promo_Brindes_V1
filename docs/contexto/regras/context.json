@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "f48af644fc9a0da34c4358953fb32520d001ef5e",
+  "sha": "8ea12737c3140691f7a1bda8d5ddb13aaf4b3b1c",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-17 08:54 UTC",
-  "files_total": 576,
-  "code_files": 376,
-  "code_lines": 66189,
+  "generated_at": "2026-11-17 09:04 UTC",
+  "files_total": 578,
+  "code_files": 378,
+  "code_lines": 66646,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "b33dbedd5f6a4739",
+ "facts_hash": "75f3adef75cdbac6",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -278,7 +278,7 @@
   "package_manager": "npm",
   "languages": {
    ".ts": 142,
-   ".sql": 104,
+   ".sql": 106,
    ".tsx": 61,
    ".mjs": 59,
    ".py": 8,
@@ -2583,10 +2583,10 @@
     "args": "p_email text",
     "returns": "jsonb",
     "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql",
+    "src": "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql",
     "security_definer": true,
     "search_path": true,
-    "body": "declare v_email text := site_private.normalize_email(p_email); v_email_hash text; v_quote_ids uuid[]; v_user_ids uuid[]; v_storage_paths jsonb; v_quotes integer := 0; v_contacts integer := 0; v_profiles integer := 0; v_documents integer := 0; v_users integer := 0; begin if length(v_email) not between 5 and 160 or v_email !~ '^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$' then raise exception using errcode = '22023', message = 'invalid_erasure_email'; end if; v_email_hash := encode(sha256(convert_to(v_email, 'UTF8')), 'hex'); select coalesce(array_agg(distinct candidate.user_id), '{}'::uuid[]) into v_user_ids from ( select profile.user_id from site_private.customer_profiles profile where profile.verified_email …",
+    "body": "declare v_email text := site_private.normalize_email(p_email); v_email_hash text; v_quote_ids uuid[]; v_user_ids uuid[]; v_storage_paths jsonb; v_quotes integer := 0; v_contacts integer := 0; v_profiles integer := 0; v_documents integer := 0; v_users integer := 0; v_kit_names integer := 0; v_notifications integer := 0; begin if length(v_email) not between 5 and 160 or v_email !~ '^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$' then raise exception using errcode = '22023', message = 'invalid_erasure_email'; end if; v_email_hash := encode(sha256(convert_to(v_email, 'UTF8')), 'hex'); select coalesce(array_agg(distinct candidate.user_id), '{}'::uuid[]) into v_user_ids from ( select profile.user_id from site_private …",
     "raises": [
      "invalid_erasure_email"
     ],
@@ -3248,6 +3248,17 @@
     "tables": [
      "site_private"
     ]
+   },
+   "erase_titular_request_metadata": {
+    "args": "p_metadata jsonb",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql",
+    "security_definer": false,
+    "search_path": true,
+    "body": "declare v_result jsonb := p_metadata; v_briefing jsonb; v_campaign jsonb; v_occasion jsonb; begin if jsonb_typeof(v_result) <> 'object' then return v_result; end if; v_briefing := v_result -> 'briefing'; if jsonb_typeof(v_briefing) = 'object' then v_result := jsonb_set(v_result, '{briefing}', v_briefing - 'actionName'); end if; v_campaign := v_result -> 'campaign'; if jsonb_typeof(v_campaign) = 'object' then v_occasion := v_campaign -> 'occasion'; if jsonb_typeof(v_occasion) = 'object' then v_result := jsonb_set(v_result, '{campaign,occasion}', (v_occasion - 'name') - 'id'); end if; end if; return v_result; end;",
+    "raises": [],
+    "tables": []
    }
   },
   "enums": {},
@@ -3602,7 +3613,9 @@
    "site-supabase/supabase/migrations/20261001130320_preflight_lead_rate_limit.sql",
    "site-supabase/supabase/migrations/20261006134751_make_briefing_asset_attachment_idempotent.sql",
    "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql",
-   "site-supabase/supabase/migrations/20261117010000_add_commercial_team_contact_alert.sql"
+   "site-supabase/supabase/migrations/20261117010000_add_commercial_team_contact_alert.sql",
+   "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql",
+   "site-supabase/supabase/migrations/20261117030100_repair_incomplete_customer_data_erasure.sql"
   ],
   "rls": {
    "site_private.quote_requests": "forced",
@@ -5675,6 +5688,14 @@
     "objkind": "function",
     "roles": "site_api, service_role",
     "src": "site-supabase/supabase/migrations/20261117010000_add_commercial_team_contact_alert.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.erase_titular_request_metadata",
+    "objkind": "function",
+    "roles": "public, anon, authenticated, service_role, site_api",
+    "src": "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql"
    }
   ],
   "raises": [
@@ -5989,11 +6010,6 @@
     "src": "site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql"
    },
    {
-    "function": "erase_customer_data",
-    "msg": "invalid_erasure_email",
-    "src": "site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql"
-   },
-   {
     "function": "claim_my_quote_requests",
     "msg": "authentication_required",
     "src": "site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql"
@@ -6112,6 +6128,11 @@
     "function": "claim_site_commercial_team_alerts",
     "msg": "invalid_notification_claim_input",
     "src": "site-supabase/supabase/migrations/20261117010000_add_commercial_team_contact_alert.sql"
+   },
+   {
+    "function": "erase_customer_data",
+    "msg": "invalid_erasure_email",
+    "src": "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql"
    }
   ],
   "seed": [],
@@ -6362,6 +6383,20 @@
     "from": "exhausted",
     "to": "pending",
     "src": "site-supabase/supabase/migrations/20260916220000_add_notification_delivery_status_machine.sql"
+   },
+   {
+    "table": "site_private.status_transitions",
+    "scope": "entity=notification_deliveries",
+    "from": "pending",
+    "to": "cancelled",
+    "src": "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql"
+   },
+   {
+    "table": "site_private.status_transitions",
+    "scope": "entity=notification_deliveries",
+    "from": "failed",
+    "to": "cancelled",
+    "src": "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql"
    }
   ],
   "transition_notes": [],
@@ -7361,8 +7396,8 @@
   },
   {
    "module": "site-supabase",
-   "files": 96,
-   "lines": 12095,
+   "files": 98,
+   "lines": 12548,
    "tables": [],
    "exports": [],
    "docs": [],
@@ -7436,6 +7471,8 @@
     "site-supabase/supabase/migrations/20261006134751_make_briefing_asset_attachment_idempotent.sql",
     "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql",
     "site-supabase/supabase/migrations/20261117010000_add_commercial_team_contact_alert.sql",
+    "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql",
+    "site-supabase/supabase/migrations/20261117030100_repair_incomplete_customer_data_erasure.sql",
     "site-supabase/supabase/tests/database/adjustment_limits.test.sql",
     "site-supabase/supabase/tests/database/admin_write_audit.test.sql",
     "site-supabase/supabase/tests/database/briefing_assets.test.sql",
@@ -7446,9 +7483,7 @@
     "site-supabase/supabase/tests/database/customer_selections.test.sql",
     "site-supabase/supabase/tests/database/default_privileges.test.sql",
     "site-supabase/supabase/tests/database/email_normalization.test.sql",
-    "site-supabase/supabase/tests/database/force_rls_hygiene.test.sql",
-    "site-supabase/supabase/tests/database/function_catalog_hygiene.test.sql",
-    "site-supabase/supabase/tests/database/kit_composition.test.sql"
+    "site-supabase/supabase/tests/database/force_rls_hygiene.test.sql"
    ]
   },
   {
@@ -7819,7 +7854,7 @@
   {
    "module": "src/types",
    "files": 1,
-   "lines": 1274,
+   "lines": 1278,
    "tables": [],
    "exports": [
     "site-database.types.ts: Json, Database, Tables, TablesInsert, TablesUpdate, Enums"
@@ -13413,6 +13448,62 @@
    },
    {
     "file": "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
+    "name": "briefing.actionName (texto digitado no formulario) e apagado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
+    "name": "campaign.occasion.name (texto do parametro ocasiao_nome) e apagado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
+    "name": "campaign.occasion.id tambem e apagado: nao e slug de catalogo, e texto de ate 80 caracteres so filtrado por charset (api/_lib/contracts.ts:206-207 aceita Fulana-de-Tal)"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
+    "name": "enum operacional de briefing e preservado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
+    "name": "data de calendario da ocasiao e preservada (nao e texto livre)"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
+    "name": "enum de origem da campanha e preservado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
+    "name": "preferencia de notificacao e preservada"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
+    "name": "request_metadata continua objeto (CHECK jsonb_typeof, 20260908230000:26)"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
+    "name": "chave tecnica de rastreio e preservada (fora do escopo de texto do titular)"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
+    "name": "o kit inteiro recebe um unico placeholder (invariante de um nome por kit_group)"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
+    "name": "kit_name_snapshot e substituido por texto, nao anulado (quote_items_kit_composition_check)"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
+    "name": "nenhuma entrega reivindicavel (os tres estados dos CTEs de claim) sobrevive ao apagamento"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
+    "name": "as 2 entregas enfileiradas pelo trigger sao canceladas"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
+    "name": "entrega em processing com lease vivo tambem e cancelada (e a que a fila re-reivindica quando o lease vence, 20260922120000:55)"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
     "name": "vínculo reversível com a conta apagada é removido"
    },
    {
@@ -13454,6 +13545,10 @@
    {
     "file": "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
     "name": "segunda execução é idempotente: 0 profiles reprocessados (cobre o fix de precedência do operador nesta sessão)"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
+    "name": "segunda execucao: 0 entregas canceladas porque o conjunto de orcamentos alcancaveis pelo e-mail ja esta vazio (a primeira trocou email por titular-...@erased.invalid e zerou customer_user_id)"
    },
    {
     "file": "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
@@ -14377,7 +14472,7 @@
    },
    {
     "file": "site-supabase/supabase/tests/database/notification_delivery_status_machine.test.sql",
-    "name": "pending -> cancelled (rejeitado: pula processing)"
+    "name": "pending -> cancelled (apagamento de titular, F-31)"
    },
    {
     "file": "site-supabase/supabase/tests/database/notification_delivery_status_machine.test.sql",
@@ -14449,7 +14544,7 @@
    },
    {
     "file": "site-supabase/supabase/tests/database/notification_delivery_status_machine.test.sql",
-    "name": "failed -> cancelled (rejeitado: pula processing)"
+    "name": "failed -> cancelled (apagamento de titular, F-31)"
    },
    {
     "file": "site-supabase/supabase/tests/database/notification_delivery_status_machine.test.sql",
@@ -19633,10 +19728,10 @@
     "args": "p_email text",
     "returns": "jsonb",
     "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql",
+    "src": "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql",
     "security_definer": true,
     "search_path": true,
-    "body": "declare v_email text := site_private.normalize_email(p_email); v_email_hash text; v_quote_ids uuid[]; v_user_ids uuid[]; v_storage_paths jsonb; v_quotes integer := 0; v_contacts integer := 0; v_profiles integer := 0; v_documents integer := 0; v_users integer := 0; begin if length(v_email) not between 5 and 160 or v_email !~ '^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$' then raise exception using errcode = '22023', message = 'invalid_erasure_email'; end if; v_email_hash := encode(sha256(convert_to(v_email, 'UTF8')), 'hex'); select coalesce(array_agg(distinct candidate.user_id), '{}'::uuid[]) into v_user_ids from ( select profile.user_id from site_private.customer_profiles profile where profile.verified_email …",
+    "body": "declare v_email text := site_private.normalize_email(p_email); v_email_hash text; v_quote_ids uuid[]; v_user_ids uuid[]; v_storage_paths jsonb; v_quotes integer := 0; v_contacts integer := 0; v_profiles integer := 0; v_documents integer := 0; v_users integer := 0; v_kit_names integer := 0; v_notifications integer := 0; begin if length(v_email) not between 5 and 160 or v_email !~ '^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$' then raise exception using errcode = '22023', message = 'invalid_erasure_email'; end if; v_email_hash := encode(sha256(convert_to(v_email, 'UTF8')), 'hex'); select coalesce(array_agg(distinct candidate.user_id), '{}'::uuid[]) into v_user_ids from ( select profile.user_id from site_private …",
     "raises": [
      "invalid_erasure_email"
     ],
@@ -20298,6 +20393,17 @@
     "tables": [
      "site_private"
     ]
+   },
+   "erase_titular_request_metadata": {
+    "args": "p_metadata jsonb",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql",
+    "security_definer": false,
+    "search_path": true,
+    "body": "declare v_result jsonb := p_metadata; v_briefing jsonb; v_campaign jsonb; v_occasion jsonb; begin if jsonb_typeof(v_result) <> 'object' then return v_result; end if; v_briefing := v_result -> 'briefing'; if jsonb_typeof(v_briefing) = 'object' then v_result := jsonb_set(v_result, '{briefing}', v_briefing - 'actionName'); end if; v_campaign := v_result -> 'campaign'; if jsonb_typeof(v_campaign) = 'object' then v_occasion := v_campaign -> 'occasion'; if jsonb_typeof(v_occasion) = 'object' then v_result := jsonb_set(v_result, '{campaign,occasion}', (v_occasion - 'name') - 'id'); end if; end if; return v_result; end;",
+    "raises": [],
+    "tables": []
    }
   },
   "db_enums": {},
@@ -20613,11 +20719,6 @@
     "src": "site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql"
    },
    {
-    "function": "erase_customer_data",
-    "msg": "invalid_erasure_email",
-    "src": "site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql"
-   },
-   {
     "function": "claim_my_quote_requests",
     "msg": "authentication_required",
     "src": "site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql"
@@ -20736,6 +20837,11 @@
     "function": "claim_site_commercial_team_alerts",
     "msg": "invalid_notification_claim_input",
     "src": "site-supabase/supabase/migrations/20261117010000_add_commercial_team_contact_alert.sql"
+   },
+   {
+    "function": "erase_customer_data",
+    "msg": "invalid_erasure_email",
+    "src": "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql"
    }
   ],
   "db_generated": [],
@@ -20950,6 +21056,20 @@
     "from": "exhausted",
     "to": "pending",
     "src": "site-supabase/supabase/migrations/20260916220000_add_notification_delivery_status_machine.sql"
+   },
+   {
+    "table": "site_private.status_transitions",
+    "scope": "entity=notification_deliveries",
+    "from": "pending",
+    "to": "cancelled",
+    "src": "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql"
+   },
+   {
+    "table": "site_private.status_transitions",
+    "scope": "entity=notification_deliveries",
+    "from": "failed",
+    "to": "cancelled",
+    "src": "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql"
    }
   ],
   "db_transition_notes": [],
@@ -23606,6 +23726,14 @@
     "objkind": "function",
     "roles": "site_api, service_role",
     "src": "site-supabase/supabase/migrations/20261117010000_add_commercial_team_contact_alert.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.erase_titular_request_metadata",
+    "objkind": "function",
+    "roles": "public, anon, authenticated, service_role, site_api",
+    "src": "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql"
    }
   ],
   "guards": [],
@@ -27216,6 +27344,15 @@
    "lines": 221,
    "uses_service_role": true
   },
+  "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql": {
+   "path": "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql",
+   "lines": 269,
+   "uses_service_role": true
+  },
+  "site-supabase/supabase/migrations/20261117030100_repair_incomplete_customer_data_erasure.sql": {
+   "path": "site-supabase/supabase/migrations/20261117030100_repair_incomplete_customer_data_erasure.sql",
+   "lines": 46
+  },
   "site-supabase/supabase/tests/database/adjustment_limits.test.sql": {
    "path": "site-supabase/supabase/tests/database/adjustment_limits.test.sql",
    "lines": 87,
@@ -27352,8 +27489,11 @@
   },
   "site-supabase/supabase/tests/database/customer_data_erasure.test.sql": {
    "path": "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
-   "lines": 173,
+   "lines": 308,
    "is_test": true,
+   "temporal": [
+    "lease_token = gen_random_uuid(), lease_expires_at = now() + interval '5 minutes',"
+   ],
    "tests": [
     "anon não apaga dados de titular",
     "authenticated não apaga dados de titular (operação administrativa)",
@@ -27370,6 +27510,20 @@
     "quote_requests.contact_name anonimizado",
     "quote_requests.city removido (não é preservado, ao contrário de id/protocol/created_at)",
     "protocol é preservado (integridade referencial / evidência de conformidade, não é PII)",
+    "briefing.actionName (texto digitado no formulario) e apagado",
+    "campaign.occasion.name (texto do parametro ocasiao_nome) e apagado",
+    "campaign.occasion.id tambem e apagado: nao e slug de catalogo, e texto de ate 80 caracteres so filtrado por charset (api/_lib/contracts.ts:206-207 aceita Fulana-de-Tal)",
+    "enum operacional de briefing e preservado",
+    "data de calendario da ocasiao e preservada (nao e texto livre)",
+    "enum de origem da campanha e preservado",
+    "preferencia de notificacao e preservada",
+    "request_metadata continua objeto (CHECK jsonb_typeof, 20260908230000:26)",
+    "chave tecnica de rastreio e preservada (fora do escopo de texto do titular)",
+    "o kit inteiro recebe um unico placeholder (invariante de um nome por kit_group)",
+    "kit_name_snapshot e substituido por texto, nao anulado (quote_items_kit_composition_check)",
+    "nenhuma entrega reivindicavel (os tres estados dos CTEs de claim) sobrevive ao apagamento",
+    "as 2 entregas enfileiradas pelo trigger sao canceladas",
+    "entrega em processing com lease vivo tambem e cancelada (e a que a fila re-reivindica quando o lease vence, 20260922120000:55)",
     "vínculo reversível com a conta apagada é removido",
     "proposal_documents da linha foi apagado",
     "texto livre do contato é removido",
@@ -27381,6 +27535,7 @@
     "segunda execução é idempotente: 0 quotes reprocessadas",
     "segunda execução é idempotente: 0 contacts reprocessados",
     "segunda execução é idempotente: 0 profiles reprocessados (cobre o fix de precedência do operador nesta sessão)",
+    "segunda execucao: 0 entregas canceladas porque o conjunto de orcamentos alcancaveis pelo e-mail ja esta vazio (a primeira trocou email por titular-...@erased.invalid e zerou customer_user_id)",
     "e-mail fora do formato mínimo é rejeitado",
     "nova conta com o mesmo e-mail não consegue reverter o apagamento reivindicando histórico"
    ],
@@ -27710,7 +27865,7 @@
   },
   "site-supabase/supabase/tests/database/notification_delivery_status_machine.test.sql": {
    "path": "site-supabase/supabase/tests/database/notification_delivery_status_machine.test.sql",
-   "lines": 184,
+   "lines": 187,
    "is_test": true,
    "temporal": [
     "set status = 'processing', attempts = 1, lease_token = gen_random_uuid(), lease_expires_at = now() + interval '10 minutes'",
@@ -27722,7 +27877,7 @@
     "pending -> processing",
     "pending -> sent (rejeitado: pula processing)",
     "pending -> failed (rejeitado: pula processing)",
-    "pending -> cancelled (rejeitado: pula processing)",
+    "pending -> cancelled (apagamento de titular, F-31)",
     "pending -> exhausted (housekeeping de claim)",
     "processing -> pending (rejeitado: não existe no sistema real)",
     "processing -> processing (recuperação de lease expirada)",
@@ -27740,7 +27895,7 @@
     "failed -> processing",
     "failed -> sent (rejeitado: pula processing)",
     "failed -> failed (no-op)",
-    "failed -> cancelled (rejeitado: pula processing)",
+    "failed -> cancelled (apagamento de titular, F-31)",
     "failed -> exhausted (housekeeping de claim)",
     "cancelled -> pending (rejeitado: terminal)",
     "cancelled -> processing (rejeitado: terminal)",
@@ -30957,7 +31112,7 @@
   },
   "src/types/site-database.types.ts": {
    "path": "src/types/site-database.types.ts",
-   "lines": 1274,
+   "lines": 1278,
    "exports": [
     "type Json",
     "type Database",
@@ -32091,10 +32246,24 @@
   }
  },
  "git": {
-  "sha": "f48af644fc9a0da34c4358953fb32520d001ef5e",
+  "sha": "8ea12737c3140691f7a1bda8d5ddb13aaf4b3b1c",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "8ea1273",
+    "date": "2026-11-17",
+    "author": "adm01-debug",
+    "subject": "feat(lgpd): o apagamento de titular passa a apagar o que faltava (#161)",
+    "files": [
+     "docs/DATABASE_DICTIONARY.md",
+     "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql",
+     "site-supabase/supabase/migrations/20261117030100_repair_incomplete_customer_data_erasure.sql",
+     "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
+     "site-supabase/supabase/tests/database/notification_delivery_status_machine.test.sql",
+     "src/types/site-database.types.ts"
+    ]
+   },
    {
     "sha": "f48af64",
     "date": "2026-11-17",
@@ -32437,95 +32606,27 @@
      "package-lock.json",
      "package.json"
     ]
-   },
-   {
-    "sha": "223e655",
-    "date": "2026-11-10",
-    "author": "adm01-debug",
-    "subject": "fix: endurece e cobre com testes todos os scripts do repositório (#130)",
-    "files": [
-     ".claude/hooks/session-start.sh",
-     ".gitignore",
-     "docs/DATABASE_FUNCTION_CONTRACTS.md",
-     "package.json",
-     "scripts/_lib/supabaseDbQuery.mjs",
-     "scripts/ai-context/README.md",
-     "scripts/ai-context/cenarios.mjs",
-     "scripts/ai-context/gerar.mjs",
-     "scripts/ai-context/gerar.unit.mjs",
-     "scripts/check-catalog-public-contract.mjs",
-     "scripts/check-performance-budget.mjs",
-     "scripts/ci-health-metrics.mjs",
-     "scripts/generate-database-dictionary.mjs",
-     "scripts/generate-database-schema-doc.mjs",
-     "scripts/generate-site-api-jwt.mjs",
-     "scripts/graphify-quality.mjs",
-     "scripts/graphify.mjs",
-     "scripts/inventario/README.md",
-     "scripts/inventario/banco.sql",
-     "scripts/inventario/gerar-banco.mjs",
-     "scripts/inventario/mudou-conteudo.mjs",
-     "scripts/normalize-vercel-deployment-url.mjs",
-     "scripts/regras_negocio/README.md",
-     "scripts/regras_negocio/generate.py",
-     "scripts/regras_negocio/indice.py",
-     "scripts/regras_negocio/publish.sh",
-     "scripts/regras_negocio/test_generate.py",
-     "scripts/regras_negocio/test_indice.py",
-     "scripts/regras_negocio/test_publish.py",
-     "scripts/smoke-deployment.mjs",
-     "scripts/soak-test-notification-queue.mjs",
-     "scripts/sql/verify-shared-selection-contract.sql",
-     "scripts/stage-app-shell.mjs",
-     "scripts/supabase_snapshot/README.md",
-     "scripts/supabase_snapshot/requirements.txt",
-     "scripts/supabase_snapshot/snapshot.py",
-     "scripts/supabase_snapshot/test_snapshot.py",
-     "scripts/validate-agent-instructions.mjs",
-     "scripts/validate-closure-ledger.mjs",
-     "scripts/validate-error-catalog.mjs",
-     "scripts/validate-migration-names.mjs",
-     "scripts/validate-site-supabase-target.mjs",
-     "scripts/verify-vercel-artifact.mjs",
-     "tests/catalog-public-contract.node.mjs",
-     "tests/check-performance-budget.node.mjs",
-     "tests/ci-health-metrics.node.mjs",
-     "tests/closure-ledger.node.mjs",
-     "tests/generate-database-docs.node.mjs",
-     "tests/generate-site-api-jwt.node.mjs",
-     "tests/graphify-tools.node.mjs",
-     "tests/inventario-banco-sql.node.mjs",
-     "tests/inventario-estado.node.mjs",
-     "tests/normalize-vercel-deployment-url.node.mjs",
-     "tests/scripts/verify-vercel-artifact.test.ts",
-     "tests/session-start-hook.node.mjs",
-     "tests/smoke-deployment.node.mjs",
-     "tests/soak-test-notification-queue.node.mjs",
-     "tests/stage-app-shell.node.mjs",
-     "tests/supabase-db-query.node.mjs",
-     "tests/validate-agent-instructions.node.mjs",
-     "tests/validate-error-catalog.node.mjs",
-     "tests/validate-migration-names.node.mjs",
-     "tests/validate-site-supabase-target.node.mjs",
-     "tests/verify-shared-selection-contract.node.mjs"
-    ]
    }
   ],
   "hot_files": [
    [
     "package.json",
-    8
+    7
    ],
    [
     "package-lock.json",
     6
    ],
    [
-    ".gitignore",
-    4
+    "docs/DATABASE_DICTIONARY.md",
+    3
    ],
    [
-    "scripts/graphify.mjs",
+    "src/types/site-database.types.ts",
+    3
+   ],
+   [
+    ".gitignore",
     3
    ],
    [
@@ -32541,19 +32642,11 @@
     2
    ],
    [
-    "docs/DATABASE_DICTIONARY.md",
-    2
-   ],
-   [
     "docs/DATABASE_SCHEMA.md",
     2
    ],
    [
     "site-supabase/supabase/tests/database/lead_storage.test.sql",
-    2
-   ],
-   [
-    "src/types/site-database.types.ts",
     2
    ],
    [
@@ -32573,7 +32666,7 @@
     2
    ],
    [
-    "scripts/ai-context/gerar.mjs",
+    "scripts/graphify.mjs",
     2
    ],
    [
@@ -32590,6 +32683,10 @@
    ],
    [
     ".github/workflows/contexto.yml",
+    2
+   ],
+   [
+    "requirements-graphify.txt",
     2
    ]
   ]

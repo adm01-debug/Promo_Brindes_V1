@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "feat(lgpd): o apagamento de titular passa a apagar o que faltava (#161)",
    "feat(contato): avisa o comercial quando chega lead pelo formulario de contato (#158)",
    "feat(busca): corpus julgado de relevancia vai de 20 para 33 intencoes (#163)",
    "fix(a11y): devolve o foco ao titulo da etapa no localizador de briefing (#159)",
-   "fix(obs): registra a falha dos dois endpoints da Area do Cliente (#157)",
-   "fix(orcamento): selo de prioridade so sai no PDF se o recurso estiver ligado (#156)"
+   "fix(obs): registra a falha dos dois endpoints da Area do Cliente (#157)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

@@ -1,6 +1,6 @@
 # 10 · ACESSO E SEGURANÇA — quem pode o quê
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `f48af644fc` · branch `main` · 2026-11-17 08:54 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `8ea12737c3` · branch `main` · 2026-11-17 09:04 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## Perfis / roles identificados
@@ -155,7 +155,7 @@ Middleware matcher (Next.js): nenhum
 | revoke | public, anon | all | `claim_my_quote_requests`, `get_my_quote_requests`, `get_my_quote_request`, `get_my_proposal_document`, `get_my_quote_request`, `get_my_quote_requests`, `get_my_quote_request`, `request_my_quote_adjustment`, `get_my_quote_request`, `get_my_quote_request`, `get_my_quote_request`, `get_my_quote_requests`, `list_my_selections`, `save_my_selection`, `set_my_selection_archived` … +4 |
 | revoke | public, anon, authenticated | all | `site_private`, `create_site_quote_request`, `create_site_contact_request`, `create_site_contact_request`, `create_site_quote_request`, `create_site_contact_request`, `site_private.quote_adjustment_requests`, `create_site_quote_request`, `site_private.purge_expired_site_data`, `run_site_data_retention`, `create_site_shared_selection`, `get_site_shared_selection`, `revoke_site_shared_selection`, `site_private.enqueue_quote_confirmations`, `claim_site_notification_deliveries` … +48 |
 | revoke | public, anon, authenticated, service_role | all | `rls_auto_enable` |
-| revoke | public, anon, authenticated, service_role, site_api | all | `site_private.queue_briefing_asset_deletion`, `site_private.erase_customer_assets_on_profile_change`, `site_private.enforce_valid_kit_reference_set`, `site_private.has_unsafe_display_controls`, `site_private.normalize_selection_references`, `site_private.require_verified_briefing_asset_attachment`, `site_private.audit_actor`, `site_private.erase_customer_occasion_favorites_on_profile_change`, `list_my_occasion_favorites`, `set_my_occasion_favorite` |
+| revoke | public, anon, authenticated, service_role, site_api | all | `site_private.queue_briefing_asset_deletion`, `site_private.erase_customer_assets_on_profile_change`, `site_private.enforce_valid_kit_reference_set`, `site_private.has_unsafe_display_controls`, `site_private.normalize_selection_references`, `site_private.require_verified_briefing_asset_attachment`, `site_private.audit_actor`, `site_private.erase_customer_occasion_favorites_on_profile_change`, `list_my_occasion_favorites`, `set_my_occasion_favorite`, `site_private.erase_titular_request_metadata` |
 | revoke | public, anon, authenticated, site_api | all | `site_private.admin_audit_log`, `site_private.admin_ddl_log`, `site_private.erased_customer_identities`, `erase_customer_data` |
 | revoke | public, anon, service_role | all | `save_my_selection`, `save_my_selection` |
 | revoke | public, anon, service_role, site_api | all | `create_my_briefing_asset`, `list_my_briefing_assets`, `owns_my_briefing_asset_path`, `delete_my_briefing_asset`, `attach_my_briefing_assets_to_quote`, `matches_my_briefing_asset_upload`, `get_my_briefing_asset_verification`, `can_delete_my_unverified_briefing_asset_path` |

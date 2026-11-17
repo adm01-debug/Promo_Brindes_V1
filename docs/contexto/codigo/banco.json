@@ -6,7 +6,7 @@
   "site-supabase/supabase/migrations",
   "src/types/site-database.types.ts"
  ],
- "migrations": 67,
+ "migrations": 69,
  "seeds": [],
  "avisos": [
   "4 bloco(s) com DDL dinâmico (EXECUTE format/...) não modelado — policies/colunas criadas dinamicamente podem faltar; confira no banco vivo"
@@ -74,6 +74,7 @@
   "site_private.erase_customer_assets_on_profile_change",
   "site_private.erase_customer_occasion_favorites_on_profile_change",
   "site_private.erase_customer_selections_on_profile_change",
+  "site_private.erase_titular_request_metadata",
   "site_private.finalize_expired_site_data",
   "site_private.get_expired_site_data_candidates",
   "site_private.has_unsafe_display_controls",
