@@ -132,7 +132,7 @@ describe('alerta de queda do catálogo público', () => {
     const fetchMock = vi.fn(async (input: string | URL, init?: { body?: string }) => {
       void init;
       if (String(input).includes('/rest/v1/')) throw new Error('catálogo fora do ar');
-      return new Response('', { status: 204 });
+      return new Response(null, { status: 204 });
     });
     vi.stubGlobal('fetch', fetchMock);
     const { result, response } = responseDouble();
@@ -151,10 +151,52 @@ describe('alerta de queda do catálogo público', () => {
     expect(fetchMock.mock.calls.filter(([url]) => String(url) === 'https://alertas.test/hook')).toHaveLength(1);
   });
 
+  it('entrega que falha não compra os cinco minutos de silêncio', async () => {
+    configure();
+    vi.stubEnv('OPERATIONS_ALERT_WEBHOOK_URL', 'https://alertas.test/hook');
+    // Tempo fixo e bem à frente do estado de módulo deixado pelos testes
+    // anteriores, para a primeira tentativa não cair numa janela ainda aberta.
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2027-01-01T00:00:00.000Z'));
+    let webhookOk = false;
+    const fetchMock = vi.fn(async (input: string | URL, init?: { body?: string }) => {
+      void init;
+      if (String(input).includes('/rest/v1/')) throw new Error('catálogo fora do ar');
+      return new Response(null, { status: webhookOk ? 204 : 500 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const chamadas = () => fetchMock.mock.calls.filter(([url]) => String(url) === 'https://alertas.test/hook').length;
+    const visita = async () => {
+      const { result, response } = responseDouble();
+      await handler({ method: 'GET', url: '/api/product-page?identifier=squeeze-inox' } as never, response as never);
+      expect(result.statusCode).toBe(503);
+    };
+
+    await visita();
+    expect(chamadas()).toBe(1);
+
+    // 31 s depois: acima da espera de retentativa (30 s) e muito abaixo da
+    // janela de silêncio (5 min). Como nada foi entregue, tenta de novo.
+    vi.advanceTimersByTime(31_000);
+    await visita();
+    expect(chamadas()).toBe(2);
+
+    // Agora o canal volta: a entrega acontece e aí sim vale o silêncio longo.
+    webhookOk = true;
+    vi.advanceTimersByTime(31_000);
+    await visita();
+    expect(chamadas()).toBe(3);
+    vi.advanceTimersByTime(31_000);
+    await visita();
+    expect(chamadas()).toBe(3);
+
+    vi.useRealTimers();
+  });
+
   it('não alerta quando o identificador é inválido, que não é queda de catálogo', async () => {
     configure();
     vi.stubEnv('OPERATIONS_ALERT_WEBHOOK_URL', 'https://alertas.test/hook');
-    const fetchMock = vi.fn(async () => new Response('', { status: 204 }));
+    const fetchMock = vi.fn(async () => new Response(null, { status: 204 }));
     vi.stubGlobal('fetch', fetchMock);
     const { result, response } = responseDouble();
     await handler({ method: 'GET', url: '/api/product-page?identifier=' } as never, response as never);
