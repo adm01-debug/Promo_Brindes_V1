@@ -1,9 +1,9 @@
 {
  "meta": {
-  "sha": "1d2fa0a04e0c560e267e590e35efd55b483de149",
+  "sha": "b8870bf011f35f5102d00bd5978853f8849cb51f",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-17 13:17 UTC",
+  "generated_at": "2026-11-17 14:15 UTC",
   "files_total": 579,
   "code_files": 379,
   "code_lines": 66810,
@@ -32299,10 +32299,19 @@
   }
  },
  "git": {
-  "sha": "1d2fa0a04e0c560e267e590e35efd55b483de149",
+  "sha": "b8870bf011f35f5102d00bd5978853f8849cb51f",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "b8870bf",
+    "date": "2026-11-17",
+    "author": "adm01-debug",
+    "subject": "chore(docs): runbook do graphify passa a declarar o pin real (#171)",
+    "files": [
+     "docs/GRAPHIFY.md"
+    ]
+   },
    {
     "sha": "1d2fa0a",
     "date": "2026-11-17",
@@ -32611,33 +32620,23 @@
      "src/components/ProductCard.tsx",
      "src/styles.css"
     ]
-   },
-   {
-    "sha": "9c5f21b",
-    "date": "2026-11-13",
-    "author": "adm01-debug",
-    "subject": "fix: minimatch 11 via overrides fecha dependabot #9 (DoS dev) (#135)",
-    "files": [
-     "package-lock.json",
-     "package.json"
-    ]
    }
   ],
   "hot_files": [
-   [
-    "package-lock.json",
-    4
-   ],
-   [
-    "package.json",
-    4
-   ],
    [
     "e2e/smoke.spec.ts",
     3
    ],
    [
     ".github/workflows/quality.yml",
+    3
+   ],
+   [
+    "package-lock.json",
+    3
+   ],
+   [
+    "package.json",
     3
    ],
    [
@@ -32673,6 +32672,10 @@
     2
    ],
    [
+    "docs/GRAPHIFY.md",
+    1
+   ],
+   [
     "api/site-page.ts",
     1
    ],
@@ -32698,10 +32701,6 @@
    ],
    [
     "src/pages/IdeaLandingPage.tsx",
-    1
-   ],
-   [
-    "analise-prs/funcionalidades.csv",
     1
    ]
   ]

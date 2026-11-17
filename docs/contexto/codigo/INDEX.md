@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `1d2fa0a04e0c560e267e590e35efd55b483de149` (2026-11-17T13:04:13Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `b8870bf011f35f5102d00bd5978853f8849cb51f` (2026-11-17T13:56:33Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -323,7 +323,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `docs/FREESHOP_BENCHMARK_20260909.md` — Benchmark estratégico — Free Shop × Promo Brindes (322 linhas)
 - `docs/GEN_Z_RESEARCH.md` — Pesquisa de audiência — Geração Z no marketing B2B (180 linhas)
 - `docs/GOVERNANCA_FECHAMENTO.md` — Governança do fechamento técnico (35 linhas)
-- `docs/GRAPHIFY.md` — Graphify no Promo Brindes (88 linhas)
+- `docs/GRAPHIFY.md` — Graphify no Promo Brindes (89 linhas)
 - `docs/GRAPHIFY_0968_EVALUATION_20261005.md` — Avaliação isolada do Graphify 0.9.68 (65 linhas)
 - `docs/GRAPHIFY_0994_EVALUATION_20261027.md` — Avaliação isolada do Graphify 0.9.94 — 27/10/2026 (21 linhas)
 - `docs/GRAPHIFY_IMPLEMENTATION_20260911.md` — Execução da integração Graphify — 11/09/2026 (32 linhas)
@@ -377,6 +377,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-17 `b8870bf` chore(docs): runbook do graphify passa a declarar o pin real (#171)
 - 2026-11-17 `1d2fa0a` test(e2e): trava os destinos editoriais da home e do rodapé (#170)
 - 2026-11-17 `6711278` fix(seo): landing de ideias entrega um único título ao buscador (#169)
 - 2026-11-17 `d539fb2` feat(analytics): mede o funil das landings de ideias (#168)
@@ -391,7 +392,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-17 `bcca66c` feat(busca): corpus julgado de relevancia vai de 20 para 33 intencoes (#163)
 - 2026-11-16 `49ce59b` fix(a11y): devolve o foco ao titulo da etapa no localizador de briefing (#159)
 - 2026-11-16 `6a37e51` fix(obs): registra a falha dos dois endpoints da Area do Cliente (#157)
-- 2026-11-16 `fa7365b` fix(orcamento): selo de prioridade so sai no PDF se o recurso estiver ligado (#156)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

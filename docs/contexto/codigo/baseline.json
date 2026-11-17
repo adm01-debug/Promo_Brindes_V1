@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "1d2fa0a04e0c560e267e590e35efd55b483de149",
+  "commit": "b8870bf011f35f5102d00bd5978853f8849cb51f",
   "branch": "main",
-  "data_commit": "2026-11-17T13:04:13Z",
+  "data_commit": "2026-11-17T13:56:33Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "b8870bf",
+    "data": "2026-11-17",
+    "assunto": "chore(docs): runbook do graphify passa a declarar o pin real (#171)"
+   },
    {
     "sha": "1d2fa0a",
     "data": "2026-11-17",
@@ -126,14 +131,9 @@
     "sha": "e08af2a",
     "data": "2026-11-16",
     "assunto": "chore: consolida os 6 bumps do dependabot e corrige o pin duplicado do graphify (#147)"
-   },
-   {
-    "sha": "14dc730",
-    "data": "2026-11-16",
-    "assunto": "chore(ci): expoe o log da sonda catalog-contract no stdout da Actions (#139)"
    }
   ],
-  "arquivos_mudados_7d": 149,
+  "arquivos_mudados_7d": 150,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 55
+    "commits": 56
    },
    {
     "autor": "dependabot[bot]",
