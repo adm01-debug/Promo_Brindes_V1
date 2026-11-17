@@ -167,16 +167,28 @@ function QuoteContent() {
     proposalAbortRef.current = controller;
     setDownloading(proposal.id);
     setProposalError('');
+    // O estouro do limite de downloads tem conserto proprio: tentar de novo
+    // "em alguns instantes" renova o limite em vez de abrir a proposta.
+    let rateLimited = false;
     try {
       const { data } = await siteSupabase.auth.getSession();
       if (controller.signal.aborted || currentContextRef.current !== operationContext) return;
       const response = await fetch('/api/customer-proposals', { method: 'POST', signal: controller.signal, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.session?.access_token || ''}` }, body: JSON.stringify({ proposalId: proposal.id }) });
       const result = await response.json() as { url?: string; message?: string };
-      if (!response.ok || !result.url) throw new Error(result.message);
+      if (!response.ok || !result.url) {
+        rateLimited = response.status === 429;
+        throw new Error(result.message);
+      }
       if (controller.signal.aborted || currentContextRef.current !== operationContext) return;
       trackFunnelEvent('customer_proposal_opened', { version: proposal.version });
       window.location.assign(result.url);
-    } catch { if (!controller.signal.aborted && currentContextRef.current === operationContext) setProposalError('Não conseguimos abrir esta proposta agora. Tente novamente em alguns instantes.'); }
+    } catch {
+      if (!controller.signal.aborted && currentContextRef.current === operationContext) {
+        setProposalError(rateLimited
+          ? 'Muitas tentativas em pouco tempo. Aguarde alguns minutos e abra a proposta de novo.'
+          : 'Não conseguimos abrir esta proposta agora. Tente novamente em alguns instantes.');
+      }
+    }
     finally {
       if (proposalAbortRef.current === controller) proposalAbortRef.current = null;
       if (currentContextRef.current === operationContext) setDownloading('');
