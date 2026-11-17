@@ -9,6 +9,25 @@ import {
   configuredSiteOrigin,
 } from './_lib/publicProductPage.js';
 import { renderPageShell } from './_lib/pageShell.js';
+import { errorClass, logServerError, logServerWarning } from './_lib/observability.js';
+import { sendOperationalAlert } from './_lib/operationalAlerts.js';
+
+/** Janela de silêncio entre alertas de queda do catálogo. Uma indisponibilidade
+ * com tráfego dispararia um alerta por requisição; o canal operacional precisa
+ * receber o sinal, não o volume. O estado é por instância da função, então a
+ * supressão é melhor esforço: pior caso, um alerta por instância aquecida. */
+export const CATALOG_ALERT_SILENCE_MS = 5 * 60_000;
+let lastCatalogAlertAt = 0;
+
+async function alertCatalogUnavailable(error: unknown, now: number): Promise<void> {
+  logServerError('public_catalog_unavailable', { errorClass: errorClass(error) });
+  if (now - lastCatalogAlertAt < CATALOG_ALERT_SILENCE_MS) return;
+  lastCatalogAlertAt = now;
+  const alerted = await sendOperationalAlert('public_catalog_unavailable', { errorClass: errorClass(error), route: '/produto/:identifier' });
+  if (process.env.OPERATIONS_ALERT_WEBHOOK_URL?.trim() && !alerted) {
+    logServerWarning('public_catalog_alert_delivery_failed', {});
+  }
+}
 
 interface VercelRequest {
   method?: string;
@@ -65,6 +84,10 @@ export default async function handler(request: VercelRequest, response: VercelRe
     response.status(200).send(request.method === 'HEAD' ? '' : renderPageShell(shell, metadata));
   } catch (error) {
     const status = error instanceof PublicProductPageError ? error.status : 503;
+    // 400 é identificador inválido — não é queda. Só a indisponibilidade real do
+    // catálogo público vira alerta: antes disso ela só aparecia na tela do
+    // visitante, e a equipe não tinha como saber que a ficha caiu.
+    if (status !== 400) await alertCatalogUnavailable(error, Date.now());
     const shell = await loadAppShell().catch(() => null);
     const title = status === 400 ? 'Produto não encontrado | Promo Brindes' : 'Produto temporariamente indisponível | Promo Brindes';
     const description = status === 400 ? 'Não encontramos este produto. Continue explorando o catálogo da Promo Brindes.' : 'Não foi possível consultar este produto agora. Tente novamente em instantes.';

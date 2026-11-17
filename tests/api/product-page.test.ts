@@ -119,3 +119,43 @@ describe('HTML inicial de fichas de produto', () => {
     expect(result.body).not.toContain('Log in to Vercel');
   });
 });
+
+describe('alerta de queda do catálogo público', () => {
+  afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
+
+  it('avisa o canal operacional quando o catálogo cai, em vez de só mostrar 503 ao visitante', async () => {
+    configure();
+    vi.stubEnv('OPERATIONS_ALERT_WEBHOOK_URL', 'https://alertas.test/hook');
+    // Primeira chamada: catálogo; segunda: o próprio webhook de alerta.
+    const fetchMock = vi.fn(async (input: string | URL) => {
+      if (String(input).includes('/rest/v1/')) throw new Error('catálogo fora do ar');
+      return new Response('', { status: 204 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    await handler({ method: 'GET', url: '/api/product-page?identifier=squeeze-inox' } as never, response as never);
+
+    expect(result.statusCode).toBe(503);
+    const alerta = fetchMock.mock.calls.find(([url]) => String(url) === 'https://alertas.test/hook');
+    expect(alerta).toBeDefined();
+    expect(String((alerta?.[1] as { body?: string } | undefined)?.body)).toContain('public_catalog_unavailable');
+
+    // Segunda queda dentro da janela de silêncio: o visitante recebe 503 de
+    // novo, mas o canal operacional não recebe um segundo alerta.
+    const segunda = responseDouble();
+    await handler({ method: 'GET', url: '/api/product-page?identifier=squeeze-inox' } as never, segunda.response as never);
+    expect(segunda.result.statusCode).toBe(503);
+    expect(fetchMock.mock.calls.filter(([url]) => String(url) === 'https://alertas.test/hook')).toHaveLength(1);
+  });
+
+  it('não alerta quando o identificador é inválido, que não é queda de catálogo', async () => {
+    configure();
+    vi.stubEnv('OPERATIONS_ALERT_WEBHOOK_URL', 'https://alertas.test/hook');
+    const fetchMock = vi.fn(async () => new Response('', { status: 204 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    await handler({ method: 'GET', url: '/api/product-page?identifier=' } as never, response as never);
+    expect(result.statusCode).toBe(404);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
