@@ -3,7 +3,7 @@ import { evaluateSearchRelevance, searchRelevanceJudgments } from './searchRelev
 
 describe('baseline editorial de relevância', () => {
   it('mantém cobertura integral do corpus versionado', () => {
-    expect(searchRelevanceJudgments.length).toBeGreaterThanOrEqual(20);
+    expect(searchRelevanceJudgments.length).toBeGreaterThanOrEqual(30);
     const evaluation = evaluateSearchRelevance();
     expect(evaluation.results.filter((item) => !item.passed)).toEqual([]);
     expect(evaluation.score).toBe(1);

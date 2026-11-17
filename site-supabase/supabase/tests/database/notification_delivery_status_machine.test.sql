@@ -74,14 +74,17 @@ begin
 end;
 $$;
 
--- Matriz completa: 6 estados x 6 estados. 14 aceitas, 22 rejeitadas (ver cabeçalho
+-- Matriz completa: 6 estados x 6 estados. 17 aceitas, 19 rejeitadas (ver cabeçalho
 -- da migration 20260916220000 para o mapa de transições reais que justifica cada
--- valor abaixo).
+-- valor abaixo, e 20261117030000 para pending -> cancelled e failed -> cancelled,
+-- adicionadas pelo apagamento de titular). O "14 aceitas, 22 rejeitadas" que estava
+-- aqui já estava errado antes desta mudança: a contagem mecânica das 36 células
+-- sempre deu 15 aceitas e 21 rejeitadas.
 select is(pg_temp.try_notification_transition('pending', 'pending'), true, 'pending -> pending (no-op)');
 select is(pg_temp.try_notification_transition('pending', 'processing'), true, 'pending -> processing');
 select is(pg_temp.try_notification_transition('pending', 'sent'), false, 'pending -> sent (rejeitado: pula processing)');
 select is(pg_temp.try_notification_transition('pending', 'failed'), false, 'pending -> failed (rejeitado: pula processing)');
-select is(pg_temp.try_notification_transition('pending', 'cancelled'), false, 'pending -> cancelled (rejeitado: pula processing)');
+select is(pg_temp.try_notification_transition('pending', 'cancelled'), true, 'pending -> cancelled (apagamento de titular, F-31)');
 select is(pg_temp.try_notification_transition('pending', 'exhausted'), true, 'pending -> exhausted (housekeeping de claim)');
 
 select is(pg_temp.try_notification_transition('processing', 'pending'), false, 'processing -> pending (rejeitado: não existe no sistema real)');
@@ -102,7 +105,7 @@ select is(pg_temp.try_notification_transition('failed', 'pending'), false, 'fail
 select is(pg_temp.try_notification_transition('failed', 'processing'), true, 'failed -> processing');
 select is(pg_temp.try_notification_transition('failed', 'sent'), false, 'failed -> sent (rejeitado: pula processing)');
 select is(pg_temp.try_notification_transition('failed', 'failed'), true, 'failed -> failed (no-op)');
-select is(pg_temp.try_notification_transition('failed', 'cancelled'), false, 'failed -> cancelled (rejeitado: pula processing)');
+select is(pg_temp.try_notification_transition('failed', 'cancelled'), true, 'failed -> cancelled (apagamento de titular, F-31)');
 select is(pg_temp.try_notification_transition('failed', 'exhausted'), true, 'failed -> exhausted (housekeeping de claim)');
 
 select is(pg_temp.try_notification_transition('cancelled', 'pending'), false, 'cancelled -> pending (rejeitado: terminal)');
