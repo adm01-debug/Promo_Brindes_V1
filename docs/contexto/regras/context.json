@@ -1,9 +1,9 @@
 {
  "meta": {
-  "sha": "cc68e425edc204849d3a7c6fc7bd1c0a36a55827",
+  "sha": "bbfb77a703a476e3ea1407dd67916b162e98ed05",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-17 09:34 UTC",
+  "generated_at": "2026-11-17 11:08 UTC",
   "files_total": 578,
   "code_files": 378,
   "code_lines": 66668,
@@ -32252,10 +32252,21 @@
   }
  },
  "git": {
-  "sha": "cc68e425edc204849d3a7c6fc7bd1c0a36a55827",
+  "sha": "bbfb77a703a476e3ea1407dd67916b162e98ed05",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "bbfb77a",
+    "date": "2026-11-17",
+    "author": "adm01-debug",
+    "subject": "infra(release): o release aplica as migrations do banco isolado (#165)",
+    "files": [
+     ".github/workflows/release.yml",
+     "AGENTS.md",
+     "docs/agentes/banco.md"
+    ]
+   },
    {
     "sha": "cc68e42",
     "date": "2026-11-17",
@@ -32576,41 +32587,15 @@
      "tests/queue-concurrency.node.mjs",
      "vercel.json"
     ]
-   },
-   {
-    "sha": "52aa025",
-    "date": "2026-11-11",
-    "author": "adm01-debug",
-    "subject": "chore(automacao): conecta testes, grafo e manutenção aos gatilhos (#131)",
-    "files": [
-     ".github/workflows/automation-local.yml",
-     ".gitignore",
-     "docs/AUTOMACAO_LOCAL.md",
-     "graphify.local.json",
-     "package.json",
-     "scripts/automation.config.json",
-     "scripts/automation.mjs",
-     "scripts/automation.unit.mjs",
-     "scripts/graphify-local.mjs",
-     "scripts/graphify-local.unit.mjs",
-     "scripts/maintenance/README.md",
-     "scripts/maintenance/config.example.json",
-     "scripts/maintenance/config.json",
-     "scripts/maintenance/lib.mjs",
-     "scripts/maintenance/maintenance.unit.mjs",
-     "scripts/maintenance/run.mjs",
-     "scripts/maintenance/run.sh",
-     "scripts/maintenance/typecheck.mjs"
-    ]
    }
   ],
   "hot_files": [
    [
-    "package.json",
-    6
+    "package-lock.json",
+    5
    ],
    [
-    "package-lock.json",
+    "package.json",
     5
    ],
    [
@@ -32626,12 +32611,12 @@
     3
    ],
    [
-    ".gitignore",
+    ".graphify.project.json",
     3
    ],
    [
-    ".graphify.project.json",
-    3
+    "AGENTS.md",
+    2
    ],
    [
     "src/pages/QuotePage.tsx",
@@ -32666,6 +32651,10 @@
     2
    ],
    [
+    ".gitignore",
+    2
+   ],
+   [
     "api/commercial-alerts.ts",
     2
    ],
@@ -32675,10 +32664,6 @@
    ],
    [
     ".github/workflows/inventario-estado-semanal.yml",
-    2
-   ],
-   [
-    ".github/workflows/automation-local.yml",
     2
    ],
    [

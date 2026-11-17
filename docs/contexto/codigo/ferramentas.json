@@ -546,6 +546,7 @@
     "smoke:deployment"
    ],
    "secrets": [
+    "SITE_SUPABASE_DB_URL",
     "SUPABASE_ACCESS_TOKEN",
     "VERCEL_TOKEN"
    ],

@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `cc68e425edc204849d3a7c6fc7bd1c0a36a55827` (2026-11-17T09:34:32Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `bbfb77a703a476e3ea1407dd67916b162e98ed05` (2026-11-17T11:08:10Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -181,7 +181,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - site-supabase/supabase/tests/database/lead_storage.test.sql (23)
 - src/components/Layout.tsx (22)
 - tests/api/lead-requests.test.ts (20)
-- .github/workflows/release.yml (18)
+- .github/workflows/release.yml (19)
 - src/App.tsx (17)
 - .github/workflows/database.yml (16)
 - api/_lib/leadHandler.ts (16)
@@ -377,6 +377,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-17 `bbfb77a` infra(release): o release aplica as migrations do banco isolado (#165)
 - 2026-11-17 `cc68e42` fix(orcamento): o consentimento de WhatsApp descreve o que o sistema envia (#160)
 - 2026-11-17 `0600922` fix(ci): separa o teto de performance de producao do teto de pior caso (#164)
 - 2026-11-17 `1d017c9` fix(ci): o resumo do quality gate para de acusar falha em passo que passou (#162)
@@ -391,7 +392,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-16 `7bd1520` chore(deps): sobe TypeScript de 5.9.3 para 6.0.3 (#153)
 - 2026-11-16 `401487f` chore(ci): actions/github-script v7.0.1 para v9.0.0 em todas as ocorrencias (#152)
 - 2026-11-16 `ba2bdf7` chore: ignora os worktrees temporarios de agentes de IA (#151)
-- 2026-11-16 `74bac8b` fix(ci): npm audit signatures volta a reprovar o gate (#150)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

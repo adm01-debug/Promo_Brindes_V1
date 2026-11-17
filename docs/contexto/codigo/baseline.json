@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "cc68e425edc204849d3a7c6fc7bd1c0a36a55827",
+  "commit": "bbfb77a703a476e3ea1407dd67916b162e98ed05",
   "branch": "main",
-  "data_commit": "2026-11-17T09:34:32Z",
+  "data_commit": "2026-11-17T11:08:10Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "bbfb77a",
+    "data": "2026-11-17",
+    "assunto": "infra(release): o release aplica as migrations do banco isolado (#165)"
+   },
    {
     "sha": "cc68e42",
     "data": "2026-11-17",
@@ -126,14 +131,9 @@
     "sha": "9c5f21b",
     "data": "2026-11-13",
     "assunto": "fix: minimatch 11 via overrides fecha dependabot #9 (DoS dev) (#135)"
-   },
-   {
-    "sha": "d7242eb",
-    "data": "2026-11-13",
-    "assunto": "fix: garante dir do node no PATH do safeEnv (#134)"
    }
   ],
-  "arquivos_mudados_7d": 138,
+  "arquivos_mudados_7d": 140,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -153,7 +153,7 @@
    },
    {
     "pasta": "AGENTS.md",
-    "mudancas": 7
+    "mudancas": 8
    },
    {
     "pasta": ".github/workflows/quality.yml",
@@ -243,7 +243,7 @@
    },
    {
     "arquivo": ".github/workflows/release.yml",
-    "mudancas": 18
+    "mudancas": 19
    },
    {
     "arquivo": "src/App.tsx",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 49
+    "commits": 50
    },
    {
     "autor": "dependabot[bot]",
