@@ -1,9 +1,9 @@
 {
  "meta": {
-  "sha": "8ea12737c3140691f7a1bda8d5ddb13aaf4b3b1c",
+  "sha": "1d017c9ea2d3978ff31eb749be60c81b76594105",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-17 09:04 UTC",
+  "generated_at": "2026-11-17 09:15 UTC",
   "files_total": 578,
   "code_files": 378,
   "code_lines": 66646,
@@ -32246,10 +32246,19 @@
   }
  },
  "git": {
-  "sha": "8ea12737c3140691f7a1bda8d5ddb13aaf4b3b1c",
+  "sha": "1d017c9ea2d3978ff31eb749be60c81b76594105",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "1d017c9",
+    "date": "2026-11-17",
+    "author": "adm01-debug",
+    "subject": "fix(ci): o resumo do quality gate para de acusar falha em passo que passou (#162)",
+    "files": [
+     ".github/workflows/quality.yml"
+    ]
+   },
    {
     "sha": "8ea1273",
     "date": "2026-11-17",
@@ -32596,26 +32605,20 @@
      "analise-prs/progresso.json",
      "analise-prs/regras-de-negocio.md"
     ]
-   },
-   {
-    "sha": "432582a",
-    "date": "2026-11-10",
-    "author": "dependabot[bot]",
-    "subject": "chore(deps): bump jsdom from 30.1.3 to 31.0.0 (#128)",
-    "files": [
-     "package-lock.json",
-     "package.json"
-    ]
    }
   ],
   "hot_files": [
    [
     "package.json",
-    7
+    6
    ],
    [
     "package-lock.json",
-    6
+    5
+   ],
+   [
+    ".github/workflows/quality.yml",
+    3
    ],
    [
     "docs/DATABASE_DICTIONARY.md",
@@ -32671,10 +32674,6 @@
    ],
    [
     ".github/workflows/inventario-estado-semanal.yml",
-    2
-   ],
-   [
-    ".github/workflows/quality.yml",
     2
    ],
    [

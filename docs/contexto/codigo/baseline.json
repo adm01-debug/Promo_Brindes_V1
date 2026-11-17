@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "8ea12737c3140691f7a1bda8d5ddb13aaf4b3b1c",
+  "commit": "1d017c9ea2d3978ff31eb749be60c81b76594105",
   "branch": "main",
-  "data_commit": "2026-11-17T09:04:00Z",
+  "data_commit": "2026-11-17T09:14:37Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "1d017c9",
+    "data": "2026-11-17",
+    "assunto": "fix(ci): o resumo do quality gate para de acusar falha em passo que passou (#162)"
+   },
    {
     "sha": "8ea1273",
     "data": "2026-11-17",
@@ -126,11 +131,6 @@
     "sha": "02c5c8d",
     "data": "2026-11-12",
     "assunto": "chore(deps): bump the npm-minor-and-patch group across 1 directory with 12 updates (#127)"
-   },
-   {
-    "sha": "b3bb691",
-    "data": "2026-11-11",
-    "assunto": "infra: adiciona retry transitório na instalação do Chromium (quality.yml) (#133)"
    }
   ],
   "arquivos_mudados_7d": 137,
@@ -156,16 +156,16 @@
     "mudancas": 7
    },
    {
+    "pasta": ".github/workflows/quality.yml",
+    "mudancas": 5
+   },
+   {
     "pasta": ".gitignore",
     "mudancas": 5
    },
    {
     "pasta": ".graphify.project.json",
     "mudancas": 5
-   },
-   {
-    "pasta": ".github/workflows/quality.yml",
-    "mudancas": 4
    },
    {
     "pasta": "PENDENCIAS.md",
@@ -219,7 +219,7 @@
    },
    {
     "arquivo": ".github/workflows/quality.yml",
-    "mudancas": 23
+    "mudancas": 24
    },
    {
     "arquivo": "docs/DATABASE_DICTIONARY.md",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 46
+    "commits": 47
    },
    {
     "autor": "dependabot[bot]",
