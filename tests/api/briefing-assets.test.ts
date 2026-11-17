@@ -40,6 +40,19 @@ function candidate(mimeType = 'image/png') {
 describe('inspeção server-side de anexos privados', () => {
   afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
 
+  it('estouro do limite devolve 429, não "arquivo não encontrado"', async () => {
+    configure();
+    // P0001 de site_private.consume_rate_limit em
+    // get_my_briefing_asset_verification, como o PostgREST o devolve.
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ code: 'P0001', message: 'rate_limit_exceeded' }), { status: 400 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+    await handler(request(), response);
+    expect(result.statusCode).toBe(429);
+    expect(result.body).toMatchObject({ error: 'briefing_asset_rate_limited' });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it('confirma um PNG somente depois de ler a assinatura no Storage privado', async () => {
     configure();
     const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00]);

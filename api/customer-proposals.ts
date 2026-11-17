@@ -1,4 +1,4 @@
-import { getSiteDatabaseConfig } from './_lib/siteDatabase.js';
+import { getSiteDatabaseConfig, responseErrorDetail } from './_lib/siteDatabase.js';
 import type { ApiRequest, ApiResponse } from './_lib/leadHandler.js';
 import { allowedSiteOrigins } from './_lib/siteOrigin.js';
 import { errorClass, logServerError } from './_lib/observability.js';
@@ -109,6 +109,14 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     const document = await rpcResponse.json().catch(() => null) as { bucket?: string; path?: string } | null;
     if (rpcResponse.status === 401 || rpcResponse.status === 403) {
       response.status(401).json({ error: 'authentication_required', message: 'Sua sessão expirou. Entre novamente.' });
+      return;
+    }
+    // O limite de 30 downloads por 15 minutos (site_private.consume_rate_limit,
+    // chamado por get_my_proposal_document) chega aqui como P0001. Sem este ramo
+    // o estouro virava "Proposta nao encontrada": o cliente concluia que o
+    // documento havia sumido e repetia a tentativa que o fez bater no limite.
+    if (!rpcResponse.ok && responseErrorDetail(document).includes('rate_limit_exceeded')) {
+      response.status(429).json({ error: 'proposal_download_rate_limited', message: 'Muitas tentativas em pouco tempo. Aguarde alguns minutos.' });
       return;
     }
     if (!rpcResponse.ok || document?.bucket !== PROPOSAL_BUCKET || !isSafeProposalPath(document?.path)) {
