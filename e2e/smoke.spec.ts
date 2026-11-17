@@ -551,7 +551,7 @@ test('envio confirmado remove contato e consentimento do rascunho da aba', async
   });
   await page.goto('/orcamento');
   await fillRequiredQuoteContact(page);
-  await page.getByRole('checkbox', { name: /cópia desta solicitação também pelo WhatsApp/ }).check();
+  await page.getByRole('checkbox', { name: /confirmação deste envio também pelo WhatsApp/ }).check();
   await page.getByRole('button', { name: 'Enviar briefing' }).click();
 
   await expect(page.getByRole('heading', { name: 'Pessoa, recebemos sua seleção com 1 produto.' })).toBeVisible();
