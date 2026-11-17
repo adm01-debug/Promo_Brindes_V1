@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(68);
+select plan(69);
 
 select is(
   (select count(*) from pg_catalog.pg_tables where schemaname = 'site_private'),
@@ -205,7 +205,20 @@ select is(
     jsonb_build_object('requestHash', repeat('f', 64), 'identifierHash', repeat('a', 64))
   )) ->> 'duplicate',
   'false',
-  'RPC de contato registra preferência sem criar notificação'
+  'RPC de contato registra a preferência de canal'
+);
+
+-- O contato passou a enfileirar o alerta comercial no mesmo INSERT (migration
+-- 20261117010000). A descrição anterior ('sem criar notificação') afirmava o
+-- contrário do comportamento atual e passava verde, porque só checava
+-- `duplicate`. Agora a fila é conferida de verdade.
+select is(
+  (select count(*) from site_private.notification_deliveries delivery
+   join site_private.contact_requests request on request.id = delivery.request_id
+   where request.client_request_id = 'contact-channel-test-1'
+     and delivery.audience = 'commercial_team' and delivery.request_kind = 'contact'),
+  1::bigint,
+  'o contato enfileira exatamente o alerta comercial, e nenhuma notificação de cliente'
 );
 
 select is(
@@ -314,7 +327,8 @@ select is(
 -- Etapa 20) na mesma delivery, com notification_deliveries.delivery_state_source_event_id
 -- apontando de volta para um dos próprios eventos que serão cascade-deletados — a
 -- referência circular real que a função grava sempre que aplica delivered/bounced. Cobre
--- também request_kind='contact', que não tem delivery auto-criada por trigger.
+-- também request_kind='contact', cuja delivery agora nasce do trigger
+-- (20261117010000) e aqui só recebe os dados de provedor.
 insert into site_private.quote_requests (
   id, client_request_id, request_hash, source, contact_name, company, email, phone,
   client_submitted_at, request_metadata, retention_until
@@ -354,7 +368,9 @@ insert into site_private.contact_requests (
 );
 insert into site_private.notification_deliveries (request_kind, request_id, channel, audience, provider, provider_message_id)
 select 'contact', id, 'email', 'commercial_team', 'resend', 'msg-regressao-cascade-contact-1'
-from site_private.contact_requests where client_request_id = 'expired-contact-with-provider-event-1';
+from site_private.contact_requests where client_request_id = 'expired-contact-with-provider-event-1'
+on conflict (request_kind, request_id, channel, audience)
+  do update set provider = excluded.provider, provider_message_id = excluded.provider_message_id;
 select public.apply_site_notification_provider_event('resend', 'msg-regressao-cascade-contact-1', 'delivered', 'evt-regressao-cascade-contact-1', now());
 
 -- Uma única chamada: a limpeza de contact_requests dentro de finalize_expired_site_data

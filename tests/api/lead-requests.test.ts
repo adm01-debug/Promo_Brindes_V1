@@ -127,7 +127,7 @@ describe('APIs de leads isoladas', () => {
     await contactHandler(request(contactPayload), response);
 
     expect(result.statusCode).toBe(201);
-    expect(result.body).toEqual({ requestId: REQUEST_ID, duplicate: false });
+    expect(result.body).toEqual({ requestId: REQUEST_ID, duplicate: false, commercialAlert: 'pending' });
     const [url, init] = fetchMock.mock.calls.find(([calledUrl]) => String(calledUrl).includes('/create_site_contact_request')) as [string, RequestInit];
     expect(url).toBe('https://xlzmclcjdncjfdrjxclt.supabase.co/rest/v1/rpc/create_site_contact_request');
     expect(init.headers).toMatchObject({ apikey: expect.stringMatching(/^sb_secret_/) });

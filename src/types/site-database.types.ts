@@ -1081,6 +1081,10 @@ export type Database = {
         Args: { p_delivery_id: string }
         Returns: Json
       }
+      commercial_team_contact_alert_payload: {
+        Args: { p_delivery_id: string }
+        Returns: Json
+      }
       consume_rate_limit: {
         Args: {
           p_identifier_hash: string
@@ -1093,6 +1097,10 @@ export type Database = {
       consume_shared_selection_action_limit: {
         Args: { p_identifier_hash: string; p_limit: number }
         Returns: undefined
+      }
+      erase_titular_request_metadata: {
+        Args: { p_metadata: Json }
+        Returns: Json
       }
       finalize_expired_site_data: {
         Args: {

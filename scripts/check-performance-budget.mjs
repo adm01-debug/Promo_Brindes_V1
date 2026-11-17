@@ -7,6 +7,20 @@ import { promisify } from 'node:util';
 const assetsDirectory = new URL('../dist/assets/', import.meta.url);
 const manifestUrl = new URL('../dist/.vite/manifest.json', import.meta.url);
 const rawBytes = (kilobytes) => kilobytes * 1024;
+// Dois artefatos distintos passam por este script e por isso cada um tem o seu
+// teto, em vez de compartilharem um numero:
+//   - build de PRODUCAO (o que o visitante baixa hoje, com os tres recursos
+//     persistentes desligados), medido dentro de `npm run check`;
+//   - build de PIOR CASO (os tres recursos ligados), reconstruido de proposito
+//     pelo passo "Record the performance budget evidence" de quality.yml.
+// As flags custam +1,2 KiB Brotli, medido nos dois sentidos em 17/11/2026 no
+// mesmo SHA: 265,7 KiB desligadas contra 266,9 KiB ligadas. Enquanto os dois
+// compartilhavam o teto de 267 KiB, a medicao de producao ficava frouxa (sobra
+// de 1,3 KiB) e a de pior caso vivia a 0,1 KiB de reprovar por variacao de
+// runner — o mesmo commit passava num passo e reprovava no outro.
+// PERFORMANCE_BUDGET_PROFILE=worst-case seleciona o teto de pior caso; sem a
+// variavel vale o de producao, que NAO foi afrouxado.
+const WORST_CASE = process.env.PERFORMANCE_BUDGET_PROFILE === 'worst-case';
 const brotli = promisify(brotliCompress);
 
 async function assets() {
@@ -102,7 +116,15 @@ try {
   // O resumo editável do briefing e a confirmação aprovada acrescentam 1,3 KiB
   // nas rotas lazy (medição conjunta em 27/10/2026). Os tetos de entrada,
   // carga inicial, maior chunk e bytes brutos permanecem independentes.
-  assertBudget('JavaScript total (Brotli)', javascriptBrotli, rawBytes(267));
+  // Producao: 267 KiB, inalterado. Pior caso: 270 KiB, que e o teto de producao
+  // mais os 1,2 KiB das flags mais 1,8 KiB de folga — a folga existe porque a
+  // mesma arvore mede 266,9 KiB aqui e 267,1 KiB no runner da CI, e um gate que
+  // reprova por essa diferenca nao esta medindo o codigo, esta medindo a maquina.
+  assertBudget(
+    WORST_CASE ? 'JavaScript total (Brotli, pior caso com as flags ligadas)' : 'JavaScript total (Brotli)',
+    javascriptBrotli,
+    rawBytes(WORST_CASE ? 270 : 267),
+  );
   assertBudget('Bundle de entrada (Brotli)', entryBrotli, rawBytes(90));
   assertBudget('JavaScript inicial (Brotli)', initialJavascriptBrotli, rawBytes(150));
   assertBudget('Maior chunk JavaScript assíncrono (Brotli)', largestAsyncJavascriptBrotli, rawBytes(50));

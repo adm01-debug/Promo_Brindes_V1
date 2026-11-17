@@ -36,8 +36,12 @@ jobs:
       - name: Use the declared npm version
         run: npm install --global npm@11.17.0
       - run: npm ci
-      - run: npm audit --audit-level=high
-      - run: npm audit signatures
+      - name: Run npm audit --audit-level=high
+        id: audit
+        run: npm audit --audit-level=high
+      - name: Run npm audit signatures
+        id: audit_signatures
+        run: npm audit signatures
       - run: npm run ledger:check
       - name: Vigiar integridade das instruções para agentes
         run: |
@@ -65,8 +69,11 @@ jobs:
           done
           echo "Playwright install falhou após 3 tentativas."
           exit 1
-      - run: npm run check
+      - name: Run npm run check
+        id: check
+        run: npm run check
       - name: Enforce unit and API coverage thresholds
+        id: coverage
         run: npm run test:coverage
       - name: Record the performance budget evidence
         id: performance
@@ -77,6 +84,9 @@ jobs:
           VITE_QUOTE_DECISION_GROUPS_ENABLED: 'true'
           VITE_PERSISTENT_SHARED_SELECTIONS_ENABLED: 'true'
           VITE_QUOTE_REQUEST_ENDPOINT: /api/quote-requests
+          # Este passo reconstroi com os tres recursos ligados, logo mede o pior
+          # caso e e conferido contra o teto de pior caso, nao contra o de producao.
+          PERFORMANCE_BUDGET_PROFILE: worst-case
         run: |
           set -o pipefail
           mkdir -p artifacts
@@ -94,11 +104,14 @@ jobs:
             echo ""
             echo "| Check | Result |"
             echo "| ----- | ------ |"
-            echo "| npm audit | ${{ job.status }} |"
-            echo "| npm audit signatures | ${{ job.status }} |"
-            echo "| Lint / type-check | ${{ job.status }} |"
-            echo "| Unit + API coverage | ${{ job.status }} |"
-            echo "| Performance budget | ${{ steps.performance.outcome }} |"
+            echo "| npm audit | ${{ steps.audit.outcome || 'skipped' }} |"
+            echo "| npm audit signatures | ${{ steps.audit_signatures.outcome || 'skipped' }} |"
+            echo "| Lint / type-check / testes (npm run check) | ${{ steps.check.outcome || 'skipped' }} |"
+            echo "| Unit + API coverage | ${{ steps.coverage.outcome || 'skipped' }} |"
+            echo "| Performance budget | ${{ steps.performance.outcome || 'skipped' }} |"
+            echo ""
+            echo "Resultado do job: \`${{ job.status }}\`. Cada linha acima e o resultado do PROPRIO passo;"
+            echo "um passo que nao chegou a rodar aparece como \`skipped\`, nao como \`failure\`."
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload coverage, browser and budget evidence
         if: always()

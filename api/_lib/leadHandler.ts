@@ -133,12 +133,14 @@ export async function handleLeadRequest(kind: LeadKind, request: ApiRequest, res
         ? { email: 'pending' as const, whatsapp: payload.notificationPreferences.whatsappCopy ? 'pending' as const : 'not_requested' as const }
         : await deliverQuoteConfirmationsNow(result.requestId, payload.notificationPreferences.whatsappCopy, correlationId)
       : undefined;
-    // PF-01: alerta comercial do orçamento recém-submetido. Só tenta se sobrar
+    // PF-01: alerta comercial do lead recém-submetido. Só tenta se sobrar
     // tempo confortável dentro do orçamento da requisição (o webhook usa até
     // COMMERCIAL_ALERT_TIMEOUT_MS); sem endpoint configurado devolve 'pending'
     // sem conexão — o cron /api/commercial-alerts drena o backlog.
     // Repetições idempotentes (200) nunca realertam.
-    const commercialAlert = payload.source === 'site-promo-brindes' && !result.duplicate && confirmations
+    // Vale para os dois tipos de lead: `source` é união fechada de dois
+    // valores (contracts.ts:38 e :62) e ambos alertam o comercial.
+    const commercialAlert = !result.duplicate
       && Date.now() < deadline - COMMERCIAL_ALERT_TIMEOUT_MS
       ? await deliverCommercialTeamAlertNow(result.requestId, { correlationId, signal: deadlineController.signal })
       : undefined;
