@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "aef900d5204cf5c0fc32980a39e7c62b676a0c8d",
+  "commit": "b1c5c6a186a1b1c7588ef4b176a99a63d0724934",
   "branch": "main",
-  "data_commit": "2026-11-17T22:29:46Z",
+  "data_commit": "2026-11-17T22:46:15Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "b1c5c6a",
+    "data": "2026-11-17",
+    "assunto": "test(e2e): favoritos ganham cobertura de reload e de sincronia entre abas (#193)"
+   },
    {
     "sha": "aef900d",
     "data": "2026-11-17",
@@ -126,14 +131,9 @@
     "sha": "d539fb2",
     "data": "2026-11-17",
     "assunto": "feat(analytics): mede o funil das landings de ideias (#168)"
-   },
-   {
-    "sha": "1959946",
-    "data": "2026-11-17",
-    "assunto": "chore: fecha F-49 no ledger de funcionalidades (#167)"
    }
   ],
-  "arquivos_mudados_7d": 130,
+  "arquivos_mudados_7d": 131,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 76
+    "commits": 77
    },
    {
     "autor": "dependabot[bot]",
@@ -310,9 +310,9 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 695,
-  "arquivos_codigo": 280,
-  "linhas_codigo": 54746,
+  "arquivos_total": 696,
+  "arquivos_codigo": 281,
+  "linhas_codigo": 54798,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -324,7 +324,7 @@
   "tabelas": 22,
   "migrations": 69,
   "cron_jobs": 0,
-  "testes": 138,
+  "testes": 139,
   "workflows": 15,
   "scripts": 36,
   "docs_md": 118
@@ -393,6 +393,10 @@
   "docs/audits": {
    "arquivos": 12,
    "linhas": 967
+  },
+  "e2e/favorites.spec.ts": {
+   "arquivos": 1,
+   "linhas": 52
   },
   "e2e/product-detail.spec.ts": {
    "arquivos": 1,

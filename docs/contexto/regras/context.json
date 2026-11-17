@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "aef900d5204cf5c0fc32980a39e7c62b676a0c8d",
+  "sha": "b1c5c6a186a1b1c7588ef4b176a99a63d0724934",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-17 22:30 UTC",
-  "files_total": 589,
-  "code_files": 387,
-  "code_lines": 67920,
+  "generated_at": "2026-11-17 23:12 UTC",
+  "files_total": 590,
+  "code_files": 388,
+  "code_lines": 67972,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "f788ae4098e61b75",
+ "facts_hash": "b7d8fedc3c084767",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -279,7 +279,7 @@
   ],
   "package_manager": "npm",
   "languages": {
-   ".ts": 148,
+   ".ts": 149,
    ".sql": 106,
    ".tsx": 62,
    ".mjs": 61,
@@ -7219,8 +7219,8 @@
   },
   {
    "module": "e2e",
-   "files": 2,
-   "lines": 1706,
+   "files": 3,
+   "lines": 1758,
    "tables": [],
    "exports": [],
    "docs": [],
@@ -7230,6 +7230,7 @@
    ],
    "imports_modules": [],
    "file_list": [
+    "e2e/favorites.spec.ts",
     "e2e/product-detail.spec.ts",
     "e2e/smoke.spec.ts"
    ]
@@ -12866,6 +12867,14 @@
    }
   ],
   "tests": [
+   {
+    "file": "e2e/favorites.spec.ts",
+    "name": "favorito sobrevive ao recarregar a pagina, sem conta"
+   },
+   {
+    "file": "e2e/favorites.spec.ts",
+    "name": "favorito salvo numa aba aparece na outra sem recarregar"
+   },
    {
     "file": "e2e/product-detail.spec.ts",
     "name": "ficha compacta reúne seleção e especificações ao lado da galeria no desktop"
@@ -25219,6 +25228,19 @@
    "path": "docs/sql/canonical-principal/pendente_indices_fk_kit.sql",
    "lines": 27
   },
+  "e2e/favorites.spec.ts": {
+   "path": "e2e/favorites.spec.ts",
+   "lines": 52,
+   "is_test": true,
+   "temporal": [
+    "await expect(abaA.getByLabel(rotulo)).toHaveAttribute('aria-pressed', 'false', { timeout: 10_000 });",
+    "await expect(abaB.getByLabel(rotulo.replace('Salvar', 'Remover'))).toHaveAttribute('aria-pressed', 'true', { timeout: 10_000 });"
+   ],
+   "tests": [
+    "favorito sobrevive ao recarregar a pagina, sem conta",
+    "favorito salvo numa aba aparece na outra sem recarregar"
+   ]
+  },
   "e2e/product-detail.spec.ts": {
    "path": "e2e/product-detail.spec.ts",
    "lines": 156,
@@ -32753,10 +32775,19 @@
   }
  },
  "git": {
-  "sha": "aef900d5204cf5c0fc32980a39e7c62b676a0c8d",
+  "sha": "b1c5c6a186a1b1c7588ef4b176a99a63d0724934",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "b1c5c6a",
+    "date": "2026-11-17",
+    "author": "adm01-debug",
+    "subject": "test(e2e): favoritos ganham cobertura de reload e de sincronia entre abas (#193)",
+    "files": [
+     "e2e/favorites.spec.ts"
+    ]
+   },
    {
     "sha": "aef900d",
     "date": "2026-11-17",
@@ -33088,25 +33119,12 @@
      ".github/workflows/quality.yml",
      "scripts/check-performance-budget.mjs"
     ]
-   },
-   {
-    "sha": "1d017c9",
-    "date": "2026-11-17",
-    "author": "adm01-debug",
-    "subject": "fix(ci): o resumo do quality gate para de acusar falha em passo que passou (#162)",
-    "files": [
-     ".github/workflows/quality.yml"
-    ]
    }
   ],
   "hot_files": [
    [
     "e2e/smoke.spec.ts",
     5
-   ],
-   [
-    ".github/workflows/quality.yml",
-    4
    ],
    [
     "api/_lib/siteDatabase.ts",
@@ -33118,6 +33136,10 @@
    ],
    [
     "api/retention.ts",
+    3
+   ],
+   [
+    ".github/workflows/quality.yml",
     3
    ],
    [
@@ -33169,15 +33191,15 @@
     2
    ],
    [
+    "e2e/favorites.spec.ts",
+    1
+   ],
+   [
     "api/_lib/siteRpcContract.ts",
     1
    ],
    [
     "api/notification-events-resend.ts",
-    1
-   ],
-   [
-    "api/notification-events-whatsapp.ts",
     1
    ]
   ]

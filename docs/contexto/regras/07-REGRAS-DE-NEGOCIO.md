@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `aef900d520` · branch `main` · 2026-11-17 22:30 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `b1c5c6a186` · branch `main` · 2026-11-17 23:12 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -1044,7 +1044,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1597 testes em 129 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1599 testes em 130 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1170,6 +1170,7 @@ _nenhum item encontrado_
 | `tests/api/curated-page-previews.test.ts` | 3 | previews das rotas editoriais · mantém todas as coleções públicas sincronizadas com a biblioteca · mantém todas as datas públicas sincronizadas com a agenda |
 | `tests/api/operationalAlerts.test.ts` | 3 | alertas operacionais · não abre conexão sem endpoint HTTPS explicitamente configurado · envia somente o envelope técnico ao endpoint HTTPS configurado |
 | `tests/api/product-page-shell-alert.test.ts` | 3 | origem da falha decide o alerta quando o HTML inicial não carrega · não acusa o catálogo quando só o HTML falhou · ainda alerta a queda do catálogo quando o HTML falha primeiro e a consulta cai depois |
+| `e2e/favorites.spec.ts` | 2 | favorito sobrevive ao recarregar a pagina, sem conta · favorito salvo numa aba aparece na outra sem recarregar |
 | `site-supabase/supabase/tests/database/function_catalog_hygiene.test.sql` | 2 | nenhuma função pública tem duas assinaturas simultâneas (nenhum drop esquecido numa mudança de assinatura) · idem para site_private |
 | `src/components/AppErrorBoundary.test.tsx` | 2 | recuperação global da interface · mostra uma recuperação compreensível quando um componente falha |
 | `src/components/CatalogFeedback.test.tsx` | 2 | ProductGridSkeleton · anuncia o carregamento com um papel ARIA compatível |

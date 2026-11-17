@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "test(e2e): favoritos ganham cobertura de reload e de sincronia entre abas (#193)",
    "feat(api): nome e argumentos de RPC passam a ser checados contra o catálogo do banco (#192)",
    "chore(código morto): remove os 6 achados da auditoria e cobre a função que a produção usa (#191)",
    "fix(notificações): fila passa a ser medida mesmo sem provedor configurado (#190)",
-   "feat(retenção): cron drena o lote na mesma execução e ganha orçamento de tempo (#189)",
-   "chore(docs): registra a verificação dos 58 itens de engenharia da auditoria (#187)"
+   "feat(retenção): cron drena o lote na mesma execução e ganha orçamento de tempo (#189)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

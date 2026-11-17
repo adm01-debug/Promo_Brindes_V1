@@ -5,10 +5,10 @@
   "vitest",
   "playwright"
  ],
- "total": 138,
+ "total": 139,
  "por_tipo": {
   "contrato": 2,
-  "e2e": 2,
+  "e2e": 3,
   "pytest": 4,
   "unit": 101
  },
@@ -27,10 +27,17 @@
   },
   {
    "padrao": "e2e/",
-   "arquivos": 2
+   "arquivos": 3
   }
  ],
  "arquivos": [
+  {
+   "arquivo": "e2e/favorites.spec.ts",
+   "tipo": "e2e",
+   "linhas": 52,
+   "testa": [],
+   "casos": 2
+  },
   {
    "arquivo": "e2e/product-detail.spec.ts",
    "tipo": "e2e",
