@@ -41,9 +41,9 @@
   {
    "arquivo": "e2e/smoke.spec.ts",
    "tipo": "e2e",
-   "linhas": 1496,
+   "linhas": 1537,
    "testa": [],
-   "casos": 62
+   "casos": 64
   },
   {
    "arquivo": "scripts/ai-context/gerar.unit.mjs",

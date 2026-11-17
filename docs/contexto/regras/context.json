@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "671127811f93cf1c0bd55e26be1eda7a189d6f28",
+  "sha": "1d2fa0a04e0c560e267e590e35efd55b483de149",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-17 12:47 UTC",
+  "generated_at": "2026-11-17 13:17 UTC",
   "files_total": 579,
   "code_files": 379,
-  "code_lines": 66769,
+  "code_lines": 66810,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "4dd06e17e63b9909",
+ "facts_hash": "b536b419ccf997e9",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -7206,7 +7206,7 @@
   {
    "module": "e2e",
    "files": 2,
-   "lines": 1652,
+   "lines": 1693,
    "tables": [],
    "exports": [],
    "docs": [],
@@ -12837,6 +12837,14 @@
    {
     "file": "e2e/smoke.spec.ts",
     "name": "soluções editoriais levam a uma curadoria explícita, não a uma promessa de estoque"
+   },
+   {
+    "file": "e2e/smoke.spec.ts",
+    "name": "toda entrada editorial da home aponta para a landing certa"
+   },
+   {
+    "file": "e2e/smoke.spec.ts",
+    "name": "o card de eventos abre a landing e termina na curadoria do evento"
    },
    {
     "file": "e2e/smoke.spec.ts",
@@ -24912,7 +24920,7 @@
   },
   "e2e/smoke.spec.ts": {
    "path": "e2e/smoke.spec.ts",
-   "lines": 1496,
+   "lines": 1537,
    "is_test": true,
    "navigates": [
     "/catalogo?perfil=novos"
@@ -24950,6 +24958,8 @@
     "seleção compartilhada bloqueia kit quando o mínimo atual descaracteriza a composição",
     "link persistente espera a consulta e confirma antes de substituir a seleção local",
     "soluções editoriais levam a uma curadoria explícita, não a uma promessa de estoque",
+    "toda entrada editorial da home aponta para a landing certa",
+    "o card de eventos abre a landing e termina na curadoria do evento",
     "ache pelo briefing transforma intenção em filtros explicáveis e compartilháveis",
     "briefing tech espera a taxonomia antes de consultar produtos",
     "briefing tech falha fechado quando a taxonomia está indisponível",
@@ -32289,10 +32299,19 @@
   }
  },
  "git": {
-  "sha": "671127811f93cf1c0bd55e26be1eda7a189d6f28",
+  "sha": "1d2fa0a04e0c560e267e590e35efd55b483de149",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "1d2fa0a",
+    "date": "2026-11-17",
+    "author": "adm01-debug",
+    "subject": "test(e2e): trava os destinos editoriais da home e do rodapé (#170)",
+    "files": [
+     "e2e/smoke.spec.ts"
+    ]
+   },
    {
     "sha": "6711278",
     "date": "2026-11-17",
@@ -32602,15 +32621,6 @@
      "package-lock.json",
      "package.json"
     ]
-   },
-   {
-    "sha": "d7242eb",
-    "date": "2026-11-13",
-    "author": "adm01-debug",
-    "subject": "fix: garante dir do node no PATH do safeEnv (#134)",
-    "files": [
-     "scripts/maintenance/lib.mjs"
-    ]
    }
   ],
   "hot_files": [
@@ -32623,12 +32633,12 @@
     4
    ],
    [
-    ".github/workflows/quality.yml",
+    "e2e/smoke.spec.ts",
     3
    ],
    [
-    "e2e/smoke.spec.ts",
-    2
+    ".github/workflows/quality.yml",
+    3
    ],
    [
     "src/styles.css",

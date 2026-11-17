@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "671127811f93cf1c0bd55e26be1eda7a189d6f28",
+  "commit": "1d2fa0a04e0c560e267e590e35efd55b483de149",
   "branch": "main",
-  "data_commit": "2026-11-17T12:46:39Z",
+  "data_commit": "2026-11-17T13:04:13Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "1d2fa0a",
+    "data": "2026-11-17",
+    "assunto": "test(e2e): trava os destinos editoriais da home e do rodapé (#170)"
+   },
    {
     "sha": "6711278",
     "data": "2026-11-17",
@@ -126,11 +131,6 @@
     "sha": "14dc730",
     "data": "2026-11-16",
     "assunto": "chore(ci): expoe o log da sonda catalog-contract no stdout da Actions (#139)"
-   },
-   {
-    "sha": "15d0af6",
-    "data": "2026-11-14",
-    "assunto": "chore: contexto agendado de 10 min para 1x/hora (#140)"
    }
   ],
   "arquivos_mudados_7d": 149,
@@ -168,15 +168,15 @@
     "mudancas": 5
    },
    {
+    "pasta": "e2e/smoke.spec.ts",
+    "mudancas": 5
+   },
+   {
     "pasta": "PENDENCIAS.md",
     "mudancas": 4
    },
    {
     "pasta": "analise-prs/funcionalidades.csv",
-    "mudancas": 4
-   },
-   {
-    "pasta": "e2e/smoke.spec.ts",
     "mudancas": 4
    },
    {
@@ -203,7 +203,7 @@
    },
    {
     "arquivo": "e2e/smoke.spec.ts",
-    "mudancas": 55
+    "mudancas": 56
    },
    {
     "arquivo": "package-lock.json",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 54
+    "commits": 55
    },
    {
     "autor": "dependabot[bot]",
@@ -312,7 +312,7 @@
  "contagens": {
   "arquivos_total": 686,
   "arquivos_codigo": 272,
-  "linhas_codigo": 53595,
+  "linhas_codigo": 53636,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -400,7 +400,7 @@
   },
   "e2e/smoke.spec.ts": {
    "arquivos": 1,
-   "linhas": 1496
+   "linhas": 1537
   },
   "eslint.config.js": {
    "arquivos": 1,

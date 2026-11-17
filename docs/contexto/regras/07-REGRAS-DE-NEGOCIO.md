@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `671127811f` · branch `main` · 2026-11-17 12:47 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `1d2fa0a04e` · branch `main` · 2026-11-17 13:17 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -1039,14 +1039,14 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1556 testes em 124 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1558 testes em 124 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
 | `site-supabase/supabase/tests/database/lead_storage.test.sql` | 69 | schema privado contém as vinte e uma tabelas planejadas, incluindo favoritos de datas sem PII · seleções persistentes ficam no schema privado · criação de links recebe rate limit próprio · máquina de estados administrativa vive em tabela dedicada (Etapa 8) … |
 | `tests/inventario-estado.node.mjs` | 63 | extrairInventario aceita objeto direto, envelope do PostgREST e envelope do MCP · extrairInventario recusa entrada sem as chaves obrigatórias, sem tabelas ou de outra versão · conferirOrigem aprova a resposta que cobre as tabelas das migrations e o ledger · conferirOrigem recusa um banco irmão: as tabelas das migrations não estão lá … |
+| `e2e/smoke.spec.ts` | 58 | headline principal usa Fold Text sem perder acessibilidade · categorias usam fotografia de produto publicado como ponto de descoberta · rotas públicas essenciais não introduzem violações automáticas de acessibilidade · montador de kits preserva componentes e calcula a quantidade completa … |
 | `site-supabase/supabase/tests/database/briefing_assets.test.sql` | 57 | metadados privados de arquivos existem · assinatura binária possui recibo de verificação · fila de exclusão de Storage existe · bucket é privado e limitado a 10 MB … |
-| `e2e/smoke.spec.ts` | 56 | headline principal usa Fold Text sem perder acessibilidade · categorias usam fotografia de produto publicado como ponto de descoberta · rotas públicas essenciais não introduzem violações automáticas de acessibilidade · montador de kits preserva componentes e calcula a quantidade completa … |
 | `site-supabase/supabase/tests/database/notification_outbox.test.sql` | 47 | fila possui agenda de nova tentativa · fila identifica a reivindicação ativa (R04) · novo orçamento alimenta a fila na mesma transação · anon não reivindica notificações … |
 | `site-supabase/supabase/tests/database/customer_data_erasure.test.sql` | 43 | anon não apaga dados de titular · authenticated não apaga dados de titular (operação administrativa) · service_role executa o apagamento · anonimiza 1 quote_request (e-mail com espaço/maiúsculas normalizado na entrada) … |
 | `site-supabase/supabase/tests/database/customer_portal.test.sql` | 41 | orçamento possui titular autenticado opcional · perfil do cliente existe no schema privado · linha do tempo existe no schema privado · metadados de propostas existem no schema privado … |
