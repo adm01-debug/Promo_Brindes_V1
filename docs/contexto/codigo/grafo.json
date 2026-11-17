@@ -1,8 +1,8 @@
 {
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
- "nos": 170,
- "arestas": 364,
+ "nos": 171,
+ "arestas": 368,
  "hubs": [
   {
    "arquivo": "src/types.ts",
@@ -192,6 +192,11 @@
    "importado_por": 5
   },
   {
+   "modulo": "api/_lib",
+   "depende_de": 3,
+   "importado_por": 1
+  },
+  {
    "modulo": "components",
    "depende_de": 3,
    "importado_por": 1
@@ -212,14 +217,9 @@
    "importado_por": 1
   },
   {
-   "modulo": "api/_lib",
-   "depende_de": 2,
-   "importado_por": 1
-  },
-  {
    "modulo": "types",
    "depende_de": 0,
-   "importado_por": 1
+   "importado_por": 2
   },
   {
    "modulo": "test",

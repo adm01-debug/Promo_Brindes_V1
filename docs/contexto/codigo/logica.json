@@ -1,9 +1,9 @@
 {
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
- "total": 77,
+ "total": 78,
  "por_camada": {
-  "api": 28,
+  "api": 29,
   "context": 3,
   "lib": 43,
   "python": 3
@@ -361,7 +361,7 @@
     "responseErrorDetail"
    ],
    "export_default": null,
-   "linhas": 276,
+   "linhas": 277,
    "tabelas": [],
    "rpcs": [
     "create_site_contact_request",
@@ -412,6 +412,31 @@
    "flags": [],
    "papeis": [],
    "usado_por": 5,
+   "usado_por_modulos": [
+    "api",
+    "api/_lib"
+   ],
+   "coberto_por_testes": 0,
+   "orfao": false
+  },
+  {
+   "arquivo": "api/_lib/siteRpcContract.ts",
+   "camada": "api",
+   "exports": [
+    "SiteRpcArgs",
+    "SiteRpcName"
+   ],
+   "export_default": null,
+   "linhas": 20,
+   "tabelas": [],
+   "rpcs": [],
+   "edges": [],
+   "env": [],
+   "externos": [],
+   "zod_schemas": 0,
+   "flags": [],
+   "papeis": [],
+   "usado_por": 3,
    "usado_por_modulos": [
     "api",
     "api/_lib"
@@ -639,7 +664,7 @@
     "whatsappChannelConfigured"
    ],
    "export_default": "handler",
-   "linhas": 717,
+   "linhas": 724,
    "tabelas": [],
    "rpcs": [
     "claim_site_notification_deliveries",
@@ -732,7 +757,7 @@
     "handler"
    ],
    "export_default": "handler",
-   "linhas": 289,
+   "linhas": 290,
    "tabelas": [],
    "rpcs": [
     "finalize_site_data_retention",

@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "16b15f3b1166731a7a44517fbee800dd56728ee9",
+  "commit": "aef900d5204cf5c0fc32980a39e7c62b676a0c8d",
   "branch": "main",
-  "data_commit": "2026-11-17T22:09:21Z",
+  "data_commit": "2026-11-17T22:29:46Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "aef900d",
+    "data": "2026-11-17",
+    "assunto": "feat(api): nome e argumentos de RPC passam a ser checados contra o catálogo do banco (#192)"
+   },
    {
     "sha": "16b15f3",
     "data": "2026-11-17",
@@ -126,14 +131,9 @@
     "sha": "1959946",
     "data": "2026-11-17",
     "assunto": "chore: fecha F-49 no ledger de funcionalidades (#167)"
-   },
-   {
-    "sha": "0d9c07b",
-    "data": "2026-11-17",
-    "assunto": "feat(home): entrada para as landings de ideias e estados vazios (#166)"
    }
   ],
-  "arquivos_mudados_7d": 126,
+  "arquivos_mudados_7d": 130,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -247,6 +247,10 @@
    },
    {
     "arquivo": "api/_lib/siteDatabase.ts",
+    "mudancas": 19
+   },
+   {
+    "arquivo": "api/notifications.ts",
     "mudancas": 18
    },
    {
@@ -259,10 +263,6 @@
    },
    {
     "arquivo": "api/_lib/leadHandler.ts",
-    "mudancas": 17
-   },
-   {
-    "arquivo": "api/notifications.ts",
     "mudancas": 17
    },
    {
@@ -290,18 +290,18 @@
     "mudancas": 15
    },
    {
-    "arquivo": "src/components/QuoteDrawer.tsx",
+    "arquivo": "api/retention.ts",
     "mudancas": 14
    },
    {
-    "arquivo": "src/lib/analytics.ts",
+    "arquivo": "src/components/QuoteDrawer.tsx",
     "mudancas": 14
    }
   ],
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 75
+    "commits": 76
    },
    {
     "autor": "dependabot[bot]",
@@ -310,9 +310,9 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 694,
-  "arquivos_codigo": 279,
-  "linhas_codigo": 54717,
+  "arquivos_total": 695,
+  "arquivos_codigo": 280,
+  "linhas_codigo": 54746,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -331,8 +331,8 @@
  },
  "por_pasta": {
   "api/_lib": {
-   "arquivos": 14,
-   "linhas": 1952
+   "arquivos": 15,
+   "linhas": 1973
   },
   "api/briefing-assets.ts": {
    "arquivos": 1,
@@ -364,7 +364,7 @@
   },
   "api/notifications.ts": {
    "arquivos": 1,
-   "linhas": 717
+   "linhas": 724
   },
   "api/product-page.ts": {
    "arquivos": 1,
@@ -376,7 +376,7 @@
   },
   "api/retention.ts": {
    "arquivos": 1,
-   "linhas": 289
+   "linhas": 290
   },
   "api/shared-selections.ts": {
    "arquivos": 1,
@@ -726,7 +726,7 @@
   },
   {
    "arquivo": "api/notifications.ts",
-   "linhas": 717
+   "linhas": 724
   },
   {
    "arquivo": "scripts/inventario/gerar-banco.mjs",
@@ -778,7 +778,7 @@
   },
   {
    "arquivo": "api/retention.ts",
-   "linhas": 289
+   "linhas": 290
   },
   {
    "arquivo": "src/components/QuoteDrawer.tsx",

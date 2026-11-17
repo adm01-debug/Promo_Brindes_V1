@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "16b15f3b1166731a7a44517fbee800dd56728ee9",
+  "sha": "aef900d5204cf5c0fc32980a39e7c62b676a0c8d",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-17 22:09 UTC",
-  "files_total": 588,
-  "code_files": 386,
-  "code_lines": 67891,
+  "generated_at": "2026-11-17 22:30 UTC",
+  "files_total": 589,
+  "code_files": 387,
+  "code_lines": 67920,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "6fc2e71131c518be",
+ "facts_hash": "f788ae4098e61b75",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -279,7 +279,7 @@
   ],
   "package_manager": "npm",
   "languages": {
-   ".ts": 147,
+   ".ts": 148,
    ".sql": 106,
    ".tsx": 62,
    ".mjs": 61,
@@ -7076,8 +7076,8 @@
   },
   {
    "module": "api",
-   "files": 28,
-   "lines": 4299,
+   "files": 29,
+   "lines": 4328,
    "tables": [],
    "exports": [
     "briefing-assets.ts: REQUEST_TIMEOUT_MS, handler, async",
@@ -7107,6 +7107,7 @@
     "sharedSelections.ts: TIMEOUT_MS, SharedSelectionReference, normalizeSharedSelectionReferences, createSharedSelection, readSharedSelection, revokeSharedSelection",
     "siteDatabase.ts: REQUEST_TIMEOUT_MS, LEAD_PREFLIGHT_TIMEOUT_MS, SiteDatabaseError, RequestMetadata, getSiteDatabaseConfig, parseLeadPersistenceResponse",
     "siteOrigin.ts: allowedSiteOrigins",
+    "siteRpcContract.ts: SiteRpcName, SiteRpcArgs",
     "webhookSignature.ts: VerifySvixSignatureInput, verifySvixSignature, VerifyMetaSignatureInput, verifyMetaSignature"
    ],
    "docs": [
@@ -7121,7 +7122,8 @@
     "node:path"
    ],
    "imports_modules": [
-    "shared"
+    "shared",
+    "src/types"
    ],
    "file_list": [
     "api/briefing-assets.ts",
@@ -7151,6 +7153,7 @@
     "api/_lib/sharedSelections.ts",
     "api/_lib/siteDatabase.ts",
     "api/_lib/siteOrigin.ts",
+    "api/_lib/siteRpcContract.ts",
     "api/_lib/webhookSignature.ts"
    ]
   },
@@ -24384,7 +24387,7 @@
   },
   "api/notifications.ts": {
    "path": "api/notifications.ts",
-   "lines": 717,
+   "lines": 724,
    "exports": [
     "const OVERALL_TIME_BUDGET_MS",
     "const MIN_TIME_PER_JOB_MS",
@@ -24535,7 +24538,7 @@
   },
   "api/retention.ts": {
    "path": "api/retention.ts",
-   "lines": 289,
+   "lines": 290,
    "exports": [
     "const REQUEST_TIMEOUT_MS",
     "const TOTAL_TIME_BUDGET_MS",
@@ -24993,7 +24996,7 @@
   },
   "api/_lib/siteDatabase.ts": {
    "path": "api/_lib/siteDatabase.ts",
-   "lines": 276,
+   "lines": 277,
    "exports": [
     "const REQUEST_TIMEOUT_MS",
     "const LEAD_PREFLIGHT_TIMEOUT_MS",
@@ -25074,6 +25077,14 @@
     "VERCEL_URL"
    ],
    "doc": "Exact browser origins allowed for the current deployment. Preview never trusts production."
+  },
+  "api/_lib/siteRpcContract.ts": {
+   "path": "api/_lib/siteRpcContract.ts",
+   "lines": 20,
+   "exports": [
+    "type SiteRpcName",
+    "type SiteRpcArgs"
+   ]
   },
   "api/_lib/webhookSignature.ts": {
    "path": "api/_lib/webhookSignature.ts",
@@ -32742,10 +32753,25 @@
   }
  },
  "git": {
-  "sha": "16b15f3b1166731a7a44517fbee800dd56728ee9",
+  "sha": "aef900d5204cf5c0fc32980a39e7c62b676a0c8d",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "aef900d",
+    "date": "2026-11-17",
+    "author": "adm01-debug",
+    "subject": "feat(api): nome e argumentos de RPC passam a ser checados contra o catálogo do banco (#192)",
+    "files": [
+     "api/_lib/siteDatabase.ts",
+     "api/_lib/siteRpcContract.ts",
+     "api/notification-events-resend.ts",
+     "api/notification-events-whatsapp.ts",
+     "api/notifications.ts",
+     "api/retention.ts",
+     "tsconfig.node.json"
+    ]
+   },
    {
     "sha": "16b15f3",
     "date": "2026-11-17",
@@ -33071,20 +33097,6 @@
     "files": [
      ".github/workflows/quality.yml"
     ]
-   },
-   {
-    "sha": "8ea1273",
-    "date": "2026-11-17",
-    "author": "adm01-debug",
-    "subject": "feat(lgpd): o apagamento de titular passa a apagar o que faltava (#161)",
-    "files": [
-     "docs/DATABASE_DICTIONARY.md",
-     "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql",
-     "site-supabase/supabase/migrations/20261117030100_repair_incomplete_customer_data_erasure.sql",
-     "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
-     "site-supabase/supabase/tests/database/notification_delivery_status_machine.test.sql",
-     "src/types/site-database.types.ts"
-    ]
    }
   ],
   "hot_files": [
@@ -33097,23 +33109,23 @@
     4
    ],
    [
+    "api/_lib/siteDatabase.ts",
+    3
+   ],
+   [
+    "api/notifications.ts",
+    3
+   ],
+   [
+    "api/retention.ts",
+    3
+   ],
+   [
     "src/pages/IdeaLandingPage.tsx",
     3
    ],
    [
-    "api/_lib/siteDatabase.ts",
-    2
-   ],
-   [
-    "api/notifications.ts",
-    2
-   ],
-   [
     "tests/api/notifications.test.ts",
-    2
-   ],
-   [
-    "api/retention.ts",
     2
    ],
    [
@@ -33157,15 +33169,15 @@
     2
    ],
    [
-    "public/brand/promo-brindes-logo-v1-360.webp",
+    "api/_lib/siteRpcContract.ts",
     1
    ],
    [
-    "src/lib/catalog.ts",
+    "api/notification-events-resend.ts",
     1
    ],
    [
-    "src/lib/quoteBriefing.test.ts",
+    "api/notification-events-whatsapp.ts",
     1
    ]
   ]

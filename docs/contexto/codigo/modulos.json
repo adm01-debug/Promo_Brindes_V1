@@ -7,7 +7,7 @@
    "modulo": "api",
    "arquivos": 14,
    "testes": 0,
-   "linhas": 2347,
+   "linhas": 2355,
    "itens_menu": [],
    "telas": [],
    "rotas_http": [
@@ -131,9 +131,9 @@
   },
   {
    "modulo": "api/_lib",
-   "arquivos": 14,
+   "arquivos": 15,
    "testes": 0,
-   "linhas": 1952,
+   "linhas": 1973,
    "itens_menu": [],
    "telas": [],
    "rotas_http": [],
@@ -210,7 +210,8 @@
    ],
    "depende_de_modulos": [
     "api",
-    "shared"
+    "shared",
+    "types"
    ],
    "pacotes_externos": [
     "node:crypto",
@@ -653,6 +654,7 @@
     "rpcs": []
    },
    "importado_por_outros_modulos": [
+    "api/_lib",
     "lib"
    ],
    "depende_de_modulos": [],

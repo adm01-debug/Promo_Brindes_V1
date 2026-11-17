@@ -16,7 +16,7 @@
   ],
   "servicos_logica": [
    "src/lib (43)",
-   "api/_lib (14)",
+   "api/_lib (15)",
    "src/context (3)"
   ],
   "testes": [
@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "feat(api): nome e argumentos de RPC passam a ser checados contra o catálogo do banco (#192)",
    "chore(código morto): remove os 6 achados da auditoria e cobre a função que a produção usa (#191)",
    "fix(notificações): fila passa a ser medida mesmo sem provedor configurado (#190)",
    "feat(retenção): cron drena o lote na mesma execução e ganha orçamento de tempo (#189)",
-   "chore(docs): registra a verificação dos 58 itens de engenharia da auditoria (#187)",
-   "chore(config): variável de produção não documentada, com guard para não repetir (#186)"
+   "chore(docs): registra a verificação dos 58 itens de engenharia da auditoria (#187)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",
