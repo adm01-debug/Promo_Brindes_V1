@@ -2,11 +2,21 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "aff11ee318e1d15763d23a2bd25bb532966328cc",
+  "commit": "e82b4d9d0f345758a7922de7f8df1bc4b2e9854d",
   "branch": "main",
-  "data_commit": "2026-11-18T17:52:56Z",
+  "data_commit": "2026-11-18T18:43:07Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "e82b4d9",
+    "data": "2026-11-18",
+    "assunto": "fix(contrato): 401 transitório da camada Auth deixa de reprovar o contrato do catálogo (#202)"
+   },
+   {
+    "sha": "0a138dd",
+    "data": "2026-11-18",
+    "assunto": "feat(testes): cobre sessão expirada entre o upload e a verificação do anexo (#200)"
+   },
    {
     "sha": "aff11ee",
     "data": "2026-11-18",
@@ -121,19 +131,9 @@
     "sha": "4b0f2cc",
     "data": "2026-11-17",
     "assunto": "fix(analytics): landing de ideias para de contar a visita com o total do tópico anterior (#172)"
-   },
-   {
-    "sha": "fce1a49",
-    "data": "2026-11-17",
-    "assunto": "fix(seo): shell das landings volta a recusar campo desconhecido e usa um só nome de marca (#174)"
-   },
-   {
-    "sha": "5a524ad",
-    "data": "2026-11-17",
-    "assunto": "test(e2e): guardas dos destinos editoriais passam a poder falhar (#173)"
    }
   ],
-  "arquivos_mudados_7d": 122,
+  "arquivos_mudados_7d": 119,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 81
+    "commits": 83
    },
    {
     "autor": "dependabot[bot]",
@@ -310,9 +310,9 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 697,
+  "arquivos_total": 698,
   "arquivos_codigo": 281,
-  "linhas_codigo": 54867,
+  "linhas_codigo": 54921,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -327,7 +327,7 @@
   "testes": 139,
   "workflows": 15,
   "scripts": 36,
-  "docs_md": 119
+  "docs_md": 120
  },
  "por_pasta": {
   "api/_lib": {
@@ -436,7 +436,7 @@
   },
   "scripts/check-catalog-public-contract.mjs": {
    "arquivos": 1,
-   "linhas": 409
+   "linhas": 416
   },
   "scripts/check-performance-budget.mjs": {
    "arquivos": 1,
@@ -588,11 +588,11 @@
   },
   "tests/api": {
    "arquivos": 20,
-   "linhas": 3976
+   "linhas": 3995
   },
   "tests/catalog-public-contract.node.mjs": {
    "arquivos": 1,
-   "linhas": 514
+   "linhas": 542
   },
   "tests/check-performance-budget.node.mjs": {
    "arquivos": 1,
@@ -749,12 +749,12 @@
    "linhas": 417
   },
   {
-   "arquivo": "src/lib/useOccasionFavorites.ts",
+   "arquivo": "scripts/check-catalog-public-contract.mjs",
    "linhas": 416
   },
   {
-   "arquivo": "scripts/check-catalog-public-contract.mjs",
-   "linhas": 409
+   "arquivo": "src/lib/useOccasionFavorites.ts",
+   "linhas": 416
   },
   {
    "arquivo": "scripts/graphify-quality.mjs",

@@ -89,7 +89,7 @@
   {
    "arquivo": "scripts/check-catalog-public-contract.mjs",
    "descricao": null,
-   "linhas": 409,
+   "linhas": 416,
    "env": [
     "VITE_SUPABASE_PUBLISHABLE_KEY",
     "VITE_SUPABASE_URL"

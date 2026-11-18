@@ -624,13 +624,13 @@
   {
    "arquivo": "tests/api/briefing-assets.test.ts",
    "tipo": "unit",
-   "linhas": 208,
+   "linhas": 227,
    "testa": [
     "api/_lib/fileSignatures.ts",
     "api/_lib/leadHandler.ts",
     "api/briefing-assets.ts"
    ],
-   "casos": 12
+   "casos": 13
   },
   {
    "arquivo": "tests/api/campaign-years.test.ts",
@@ -830,11 +830,11 @@
   {
    "arquivo": "tests/catalog-public-contract.node.mjs",
    "tipo": "contrato",
-   "linhas": 514,
+   "linhas": 542,
    "testa": [
     "scripts/check-catalog-public-contract.mjs"
    ],
-   "casos": 24
+   "casos": 26
   },
   {
    "arquivo": "tests/check-performance-budget.node.mjs",

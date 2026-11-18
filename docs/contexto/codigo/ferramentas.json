@@ -4,7 +4,7 @@
  "stack": {
   "linguagens": [
    "TypeScript (211)",
-   "Markdown (119)",
+   "Markdown (120)",
    "SQL (106)",
    "JavaScript (63)",
    "JSON (28)",
@@ -694,6 +694,11 @@
    "arquivo": "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
    "titulo": "Verificação das pendências de engenharia — 17/11/2026",
    "linhas": 459
+  },
+  {
+   "arquivo": "docs/AUDITORIA_REFS_AUTOSAVE_20261118.md",
+   "titulo": "Auditoria do namespace `refs/autosave/*` — 18/11/2026",
+   "linhas": 77
   },
   {
    "arquivo": "docs/AUDIT_REPORT_20260908.md",

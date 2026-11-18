@@ -32,7 +32,7 @@
    "scripts/regras_negocio (3)"
   ],
   "docs": [
-   "docs (73)",
+   "docs (74)",
    "(raiz) (9)",
    ".github (1)"
   ]
@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "fix(contrato): 401 transitório da camada Auth deixa de reprovar o contrato do catálogo (#202)",
+   "feat(testes): cobre sessão expirada entre o upload e a verificação do anexo (#200)",
    "docs: matriz risco de negocio para camada de teste, com os vazios nomeados (#205)",
    "fix(graphify): graph:status deixa de exigir npm ci em clone limpo (#196)",
-   "fix(config): comentário de cobertura para de citar contagem de teste que envelhece (#195)",
-   "fix(graphify): scanner de segredos passa a cobrir os formatos que este projeto usa (#194)",
-   "test(e2e): favoritos ganham cobertura de reload e de sincronia entre abas (#193)"
+   "fix(config): comentário de cobertura para de citar contagem de teste que envelhece (#195)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

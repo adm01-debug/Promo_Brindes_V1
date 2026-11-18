@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `aff11ee318e1d15763d23a2bd25bb532966328cc` (2026-11-18T17:52:56Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `e82b4d9d0f345758a7922de7f8df1bc4b2e9854d` (2026-11-18T18:43:07Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -14,7 +14,7 @@ Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR
 Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua tarefa; não carregue tudo.
 
 ## Stack
-- linguagens: TypeScript (211), Markdown (119), SQL (106), JavaScript (63), JSON (28), YAML (19), Python (8), CSS (4)
+- linguagens: TypeScript (211), Markdown (120), SQL (106), JavaScript (63), JSON (28), YAML (19), Python (8), CSS (4)
 - linguagem_principal: TypeScript
 - framework: React
 - backend_http: vercel-functions
@@ -34,9 +34,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Números
 | item | qtd |
 |---|---|
-| arquivos_total | 697 |
+| arquivos_total | 698 |
 | arquivos_codigo | 281 |
-| linhas_codigo | 54867 |
+| linhas_codigo | 54921 |
 | rotas | 32 |
 | rotas_http_backend | 14 |
 | vistas_por_id | 0 |
@@ -51,7 +51,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 | testes | 139 |
 | workflows | 15 |
 | scripts | 36 |
-| docs_md | 119 |
+| docs_md | 120 |
 
 ## Onde ficam as coisas
 - telas: src/pages (18)
@@ -62,7 +62,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - edge_functions: n/d
 - migrations: site-supabase/supabase/migrations
 - scripts: scripts/maintenance (4), scripts/inventario (3), scripts/regras_negocio (3)
-- docs: docs (73), (raiz) (9), .github (1)
+- docs: docs (74), (raiz) (9), .github (1)
 - nomenclatura: {"componentes":"PascalCase (100%)","hooks":"use + PascalCase","servicos":"camelCase (86%)","edge_functions":null,"tabelas":"snake_case (95%)"}
 - instruções para agentes no repo: AGENTS.md, CLAUDE.md
 
@@ -308,6 +308,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `docs/AUDITORIA_5_ESPECIALISTAS_20260922.md` — Auditoria técnica dos cinco especialistas — 22/09/2026 (65 linhas)
 - `docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md` — Auditoria de funcionalidades planejadas e não executadas — 11/10/2026 (364 linhas)
 - `docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md` — Verificação das pendências de engenharia — 17/11/2026 (459 linhas)
+- `docs/AUDITORIA_REFS_AUTOSAVE_20261118.md` — Auditoria do namespace `refs/autosave/*` — 18/11/2026 (77 linhas)
 - `docs/AUDIT_REPORT_20260908.md` — Auditoria técnica consolidada — 08–09/09/2026 (75 linhas)
 - `docs/AUTOMACAO_LOCAL.md` — Automação local — Promo_Brindes_V1 (104 linhas)
 - `docs/CUSTOMER_PORTAL_IMPLEMENTATION_20260909.md` — Área do Cliente — implementação e critérios de aceite (92 linhas)
@@ -382,6 +383,8 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-18 `e82b4d9` fix(contrato): 401 transitório da camada Auth deixa de reprovar o contrato do catálogo (#202)
+- 2026-11-18 `0a138dd` feat(testes): cobre sessão expirada entre o upload e a verificação do anexo (#200)
 - 2026-11-18 `aff11ee` docs: matriz risco de negocio para camada de teste, com os vazios nomeados (#205)
 - 2026-11-17 `dbc6479` fix(graphify): graph:status deixa de exigir npm ci em clone limpo (#196)
 - 2026-11-17 `2a09509` fix(config): comentário de cobertura para de citar contagem de teste que envelhece (#195)
@@ -395,8 +398,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-17 `092d5c6` chore(config): variável de produção não documentada, com guard para não repetir (#186)
 - 2026-11-17 `fbd51d9` fix(docs): contrato do banco deixa de descrever função e status que não existem (#185)
 - 2026-11-17 `e4a904f` feat(retenção): resíduo de dado pessoal não apagado deixa de ser invisível (#184)
-- 2026-11-17 `108b0b2` fix(portal): estouro de limite deixa de virar "proposta não encontrada" (#183)
-- 2026-11-17 `e166177` fix(catálogo): porta editorial de onboarding deixa de abrir o catálogo inteiro (#182)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

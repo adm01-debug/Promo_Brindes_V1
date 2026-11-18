@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `aff11ee318` · branch `main` · 2026-11-18 18:16 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `e82b4d9d0f` · branch `main` · 2026-11-18 19:11 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -1045,7 +1045,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1601 testes em 130 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1604 testes em 130 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1062,9 +1062,9 @@ _nenhum item encontrado_
 | `site-supabase/supabase/tests/database/notification_provider_events.test.sql` | 30 | entrega ganha estado terminal pós-aceite (Etapa 30) · devolução guarda a categoria curta do provedor · reclamação é rastreada independentemente da entrega · deduplicação de eventos de webhook fica em tabela própria … |
 | `tests/api/notifications.test.ts` | 29 | worker de comprovantes do orçamento · recusa chamada sem o segredo agendado · não reivindica a fila enquanto nenhum provedor estiver configurado, mas mede o tamanho dela · fila velha sem provedor configurado alerta o canal operacional … |
 | `tests/validate-agent-instructions.node.mjs` | 28 | aceita AGENTS.md com todas as seções obrigatórias · acusa seção obrigatória apagada por outra sessão · ${CLAUDE_FILE} precisa ser exatamente o import do ${AGENTS_FILE} · acusa referência quebrada e referência órfã em docs/agentes … |
+| `tests/catalog-public-contract.node.mjs` | 27 | aceita somente o contrato público exato de 36 colunas · falha se uma coluna esperada sumir ou uma coluna nova aparecer · falha explicitamente se preço, estoque ou fornecedor forem expostos · recusa identificador, arrays e swatches incompatíveis … |
 | `site-supabase/supabase/tests/database/customer_selections.test.sql` | 26 | seleções privadas por titular existem · RLS é forçada na tabela · cliente não acessa o schema privado · cliente não consulta tabela diretamente … |
 | `src/lib/useOccasionFavorites.test.tsx` | 25 | useOccasionFavorites · preserva uma adição confirmada quando uma leitura iniciada antes dela retorna vazia · preserva uma remoção enquanto uma leitura antiga ainda contém o favorito · não deixa uma leitura antiga apagar a escrita anterior quando a intenção seguinte falha … |
-| `tests/catalog-public-contract.node.mjs` | 25 | aceita somente o contrato público exato de 36 colunas · falha se uma coluna esperada sumir ou uma coluna nova aparecer · falha explicitamente se preço, estoque ou fornecedor forem expostos · recusa identificador, arrays e swatches incompatíveis … |
 | `src/lib/catalog.test.ts` | 24 | catálogo público · normaliza apenas os dados necessários para a experiência do cliente · marca como novidade um produto dentro da janela canônica mesmo sem flag explícita · não confirma personalização quando o dado público ainda é desconhecido … |
 | `site-supabase/supabase/tests/database/customer_occasion_favorites.test.sql` | 22 | favoritos de datas existem no schema privado · RLS é forçada nos favoritos de datas · cliente não recebe uso do schema privado · cliente não lê a tabela diretamente … |
 | `site-supabase/supabase/tests/database/lead_preflight_rate_limit.test.sql` | 20 | preflight distribuído existe · anon não executa preflight · authenticated não executa preflight · service_role executa preflight … |
@@ -1083,12 +1083,12 @@ _nenhum item encontrado_
 | `site-supabase/supabase/tests/database/contact_commercial_alert.test.sql` | 16 | novo contato alimenta a fila do alerta comercial na mesma transação · contato enfileira exatamente uma entrega · a entrega é o alerta comercial pendente do contato · o envelope identifica o tipo do lead (a API não renderiza texto de orçamento) … |
 | `tests/api/maxDuration.test.ts` | 16 | Etapa 24: maxDuration em vercel.json cobre o pior caso real de cada rota · api/quote-requests.ts: catalogValidation + siteDatabase + confirmação (canais em paralelo) · api/contact-requests.ts: preflight + siteDatabase + alerta comercial (sem catalogValidation nem confirmação) · api/notification-events-resend.ts (Etapa 30): apenas uma chamada de RPC (callSiteRpc) … |
 | `src/lib/sharedSelection.test.ts` | 14 | sharedSelection · preserva prioridade alternativa no link e na seleção reconstruída · preserva cor sem variantId e bloqueia fallback ambíguo ou removido · aceita nomes Unicode e mantém links Latin-1 antigos legíveis … |
+| `tests/api/briefing-assets.test.ts` | 14 | inspeção server-side de anexos privados · estouro do limite devolve 429, não  · sessão que expira entre o upload e a verificação devolve 401, não  · confirma um PNG somente depois de ler a assinatura no Storage privado … |
 | `tests/api/notification-events-resend.test.ts` | 14 | api/notification-events-resend (Etapa 30) · rejeita método diferente de POST · responde 503 quando o segredo do webhook não está configurado · rejeita assinatura ausente ou inválida sem chamar o banco … |
 | `tests/scripts/verify-vercel-artifact.test.ts` | 14 | verificador do artefato Vercel · exige o app shell somente das funções de página declaradas em vercel.json · aceita includeFiles como lista sem perder o contrato do app shell · falha quando uma função de página declarada não existe no artefato … |
 | `site-supabase/supabase/tests/database/kit_composition.test.sql` | 13 | item preserva o grupo do kit · item preserva o nome do kit · item preserva a quantidade de kits · item preserva unidades por kit … |
 | `tests/closure-ledger.node.mjs` | 13 | ledger atual contém todos os IDs, commits e fontes locais · não aceita trocar uma referência por um ID inexistente mantendo o total · fontes inexistentes e caminhos fora do site não passam como evidência · fonte atual que não existia no commit auditado não passa como evidência histórica … |
 | `tests/session-start-hook.node.mjs` | 13 | hook: fora da sessão remota sai com 0 sem saída e sem criar nada · hook: grafo já carimbado no commit atual responde async e não instala nem gera · hook: grafo de outro commit dispara o build e carimba o commit novo · hook: carimbo sem o mapa de banco não conta como grafo pronto … |
-| `tests/api/briefing-assets.test.ts` | 13 | inspeção server-side de anexos privados · estouro do limite devolve 429, não  · confirma um PNG somente depois de ler a assinatura no Storage privado · remove blob e metadado pelo caminho server-side quando o conteúdo contradiz o MIME declarado … |
 | `tests/api/webhookSignature.test.ts` | 13 | verifySvixSignature (Etapa 30, Resend) · aceita uma assinatura válida · aceita quando o header traz múltiplas assinaturas e uma delas bate (rotação de segredo) · rejeita corpo adulterado … |
 | `site-supabase/supabase/tests/database/admin_write_audit.test.sql` | 12 | anon não lê a trilha de auditoria · authenticated não lê a trilha de auditoria · site_api não lê a própria trilha de auditoria (não precisa para operar) · service_role lê a trilha de auditoria … |
 | `site-supabase/supabase/tests/database/kit_persistence_guards.test.sql` | 12 | guarda estrutural de kits existe no schema privado · rascunho valida kits no insert · rascunho valida kits no update · link compartilhado valida kits no insert … |

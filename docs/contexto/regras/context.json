@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "aff11ee318e1d15763d23a2bd25bb532966328cc",
+  "sha": "e82b4d9d0f345758a7922de7f8df1bc4b2e9854d",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-18 18:16 UTC",
-  "files_total": 591,
+  "generated_at": "2026-11-18 19:11 UTC",
+  "files_total": 592,
   "code_files": 388,
-  "code_lines": 68041,
+  "code_lines": 68095,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "d9982c2a34910791",
+ "facts_hash": "5b5929ec853f7a9b",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -7253,7 +7253,7 @@
   {
    "module": "scripts",
    "files": 42,
-   "lines": 21374,
+   "lines": 21381,
    "tables": [
     "a",
     "contacts",
@@ -7896,7 +7896,7 @@
   {
    "module": "tests",
    "files": 45,
-   "lines": 10062,
+   "lines": 10109,
    "tables": [
     "constructor",
     "quote_requests",
@@ -16957,11 +16957,19 @@
    },
    {
     "file": "tests/catalog-public-contract.node.mjs",
+    "name": "repetição de leitura também cobre 401 da camada Auth com backoff nas contagens e na varredura"
+   },
+   {
+    "file": "tests/catalog-public-contract.node.mjs",
+    "name": "401 persistente nas leituras reprova com o código HTTP, sem esperar para sempre"
+   },
+   {
+    "file": "tests/catalog-public-contract.node.mjs",
     "name": "falha de rede persistente reprova com causa e recurso, depois de três tentativas"
    },
    {
     "file": "tests/catalog-public-contract.node.mjs",
-    "name": "erro HTTP persistente reprova com o status; 4xx não é repetido"
+    "name": "erro HTTP persistente reprova com o status; 4xx de recusa não é repetido"
    },
    {
     "file": "tests/catalog-public-contract.node.mjs",
@@ -18246,6 +18254,10 @@
    {
     "file": "tests/api/briefing-assets.test.ts",
     "name": "estouro do limite devolve 429, não "
+   },
+   {
+    "file": "tests/api/briefing-assets.test.ts",
+    "name": "sessão que expira entre o upload e a verificação devolve 401, não "
    },
    {
     "file": "tests/api/briefing-assets.test.ts",
@@ -25411,7 +25423,7 @@
   },
   "scripts/check-catalog-public-contract.mjs": {
    "path": "scripts/check-catalog-public-contract.mjs",
-   "lines": 409,
+   "lines": 416,
    "exports": [
     "const EXPECTED_CATALOG_COLUMNS",
     "function validateCatalogPublicContract",
@@ -25448,6 +25460,7 @@
     "anon"
    ],
    "rule_comments": [
+    "401 é transitório somente para leituras desta sonda pública (a camada Auth do",
     "Só uma recusa do próprio PostgREST (4xx) prova que a coluna não pode ser lida;",
     "um 5xx ou 429 não diz nada sobre o contrato e não pode contar como aprovação.",
     "define o limite superior, independentemente do max-rows do PostgREST.",
@@ -31593,7 +31606,7 @@
   },
   "tests/catalog-public-contract.node.mjs": {
    "path": "tests/catalog-public-contract.node.mjs",
-   "lines": 514,
+   "lines": 542,
    "is_test": true,
    "env": [
     "VITE_SUPABASE_PUBLISHABLE_KEY",
@@ -31634,8 +31647,10 @@
     "sonda de coluna proibida não conta erro do servidor como recusa (falha fechada)",
     "sonda de coluna proibida aceita como recusa somente resposta 4xx do PostgREST",
     "repete leitura após falha transitória de rede, 5xx ou 429 e aprova quando a origem se recupera",
+    "repetição de leitura também cobre 401 da camada Auth com backoff nas contagens e na varredura",
+    "401 persistente nas leituras reprova com o código HTTP, sem esperar para sempre",
     "falha de rede persistente reprova com causa e recurso, depois de três tentativas",
-    "erro HTTP persistente reprova com o status; 4xx não é repetido",
+    "erro HTTP persistente reprova com o status; 4xx de recusa não é repetido",
     "erro que não é de rede atravessa sem repetição nem disfarce",
     "resposta sem contagem exata, corpo que não é JSON ou não é lista é reprovada",
     "configuração ausente, malformada ou apontando para outra origem é recusada antes de qualquer requisição",
@@ -32301,11 +32316,12 @@
   },
   "tests/api/briefing-assets.test.ts": {
    "path": "tests/api/briefing-assets.test.ts",
-   "lines": 208,
+   "lines": 227,
    "is_test": true,
    "tests": [
     "inspeção server-side de anexos privados",
     "estouro do limite devolve 429, não ",
+    "sessão que expira entre o upload e a verificação devolve 401, não ",
     "confirma um PNG somente depois de ler a assinatura no Storage privado",
     "remove blob e metadado pelo caminho server-side quando o conteúdo contradiz o MIME declarado",
     "descarta uma reserva PDF legada sem sequer interpretar o conteúdo",
@@ -32793,10 +32809,30 @@
   }
  },
  "git": {
-  "sha": "aff11ee318e1d15763d23a2bd25bb532966328cc",
+  "sha": "e82b4d9d0f345758a7922de7f8df1bc4b2e9854d",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "e82b4d9",
+    "date": "2026-11-18",
+    "author": "adm01-debug",
+    "subject": "fix(contrato): 401 transitório da camada Auth deixa de reprovar o contrato do catálogo (#202)",
+    "files": [
+     "docs/AUDITORIA_REFS_AUTOSAVE_20261118.md",
+     "scripts/check-catalog-public-contract.mjs",
+     "tests/catalog-public-contract.node.mjs"
+    ]
+   },
+   {
+    "sha": "0a138dd",
+    "date": "2026-11-18",
+    "author": "adm01-debug",
+    "subject": "feat(testes): cobre sessão expirada entre o upload e a verificação do anexo (#200)",
+    "files": [
+     "tests/api/briefing-assets.test.ts"
+    ]
+   },
    {
     "sha": "aff11ee",
     "date": "2026-11-18",
@@ -33112,26 +33148,6 @@
      "src/lib/ideaLandings.ts",
      "tests/api/site-page.test.ts"
     ]
-   },
-   {
-    "sha": "d539fb2",
-    "date": "2026-11-17",
-    "author": "adm01-debug",
-    "subject": "feat(analytics): mede o funil das landings de ideias (#168)",
-    "files": [
-     "src/lib/analytics.test.ts",
-     "src/lib/analytics.ts",
-     "src/pages/IdeaLandingPage.tsx"
-    ]
-   },
-   {
-    "sha": "1959946",
-    "date": "2026-11-17",
-    "author": "adm01-debug",
-    "subject": "chore: fecha F-49 no ledger de funcionalidades (#167)",
-    "files": [
-     "analise-prs/funcionalidades.csv"
-    ]
    }
   ],
   "hot_files": [
@@ -33152,8 +33168,8 @@
     3
    ],
    [
-    "src/pages/IdeaLandingPage.tsx",
-    3
+    "tests/api/briefing-assets.test.ts",
+    2
    ],
    [
     "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
@@ -33192,6 +33208,10 @@
     2
    ],
    [
+    "src/pages/IdeaLandingPage.tsx",
+    2
+   ],
+   [
     "api/site-page.ts",
     2
    ],
@@ -33200,19 +33220,15 @@
     2
    ],
    [
-    "docs/MATRIZ_RISCO_CAMADA_TESTE.md",
+    "docs/AUDITORIA_REFS_AUTOSAVE_20261118.md",
     1
    ],
    [
-    "scripts/graphify-quality.mjs",
+    "scripts/check-catalog-public-contract.mjs",
     1
    ],
    [
-    "vite.config.ts",
-    1
-   ],
-   [
-    "scripts/graphify.mjs",
+    "tests/catalog-public-contract.node.mjs",
     1
    ]
   ]
