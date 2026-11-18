@@ -4,7 +4,7 @@
  "stack": {
   "linguagens": [
    "TypeScript (211)",
-   "Markdown (118)",
+   "Markdown (119)",
    "SQL (106)",
    "JavaScript (63)",
    "JSON (28)",
@@ -823,6 +823,11 @@
   {
    "arquivo": "docs/MATRIZ_INDEX.md",
    "titulo": "Índice de planos e aceites",
+   "linhas": 59
+  },
+  {
+   "arquivo": "docs/MATRIZ_RISCO_CAMADA_TESTE.md",
+   "titulo": "Matriz risco → camada de teste — 18/11/2026",
    "linhas": 59
   },
   {

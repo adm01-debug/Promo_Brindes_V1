@@ -1,10 +1,10 @@
 {
  "meta": {
-  "sha": "dbc64798a1421484a18cc24b01ad093adc525855",
+  "sha": "aff11ee318e1d15763d23a2bd25bb532966328cc",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-18 00:35 UTC",
-  "files_total": 590,
+  "generated_at": "2026-11-18 18:16 UTC",
+  "files_total": 591,
   "code_files": 388,
   "code_lines": 68041,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
@@ -32793,10 +32793,19 @@
   }
  },
  "git": {
-  "sha": "dbc64798a1421484a18cc24b01ad093adc525855",
+  "sha": "aff11ee318e1d15763d23a2bd25bb532966328cc",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "aff11ee",
+    "date": "2026-11-18",
+    "author": "adm01-debug",
+    "subject": "docs: matriz risco de negocio para camada de teste, com os vazios nomeados (#205)",
+    "files": [
+     "docs/MATRIZ_RISCO_CAMADA_TESTE.md"
+    ]
+   },
    {
     "sha": "dbc6479",
     "date": "2026-11-17",
@@ -33123,25 +33132,9 @@
     "files": [
      "analise-prs/funcionalidades.csv"
     ]
-   },
-   {
-    "sha": "0d9c07b",
-    "date": "2026-11-17",
-    "author": "adm01-debug",
-    "subject": "feat(home): entrada para as landings de ideias e estados vazios (#166)",
-    "files": [
-     "e2e/smoke.spec.ts",
-     "src/components/Layout.tsx",
-     "src/pages/HomePage.tsx",
-     "src/styles.css"
-    ]
    }
   ],
   "hot_files": [
-   [
-    "e2e/smoke.spec.ts",
-    4
-   ],
    [
     "api/_lib/siteDatabase.ts",
     3
@@ -33152,6 +33145,10 @@
    ],
    [
     "api/retention.ts",
+    3
+   ],
+   [
+    "e2e/smoke.spec.ts",
     3
    ],
    [
@@ -33203,6 +33200,10 @@
     2
    ],
    [
+    "docs/MATRIZ_RISCO_CAMADA_TESTE.md",
+    1
+   ],
+   [
     "scripts/graphify-quality.mjs",
     1
    ],
@@ -33212,10 +33213,6 @@
    ],
    [
     "scripts/graphify.mjs",
-    1
-   ],
-   [
-    "tests/graphify-tools.node.mjs",
     1
    ]
   ]

@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `dbc64798a1421484a18cc24b01ad093adc525855` (2026-11-18T00:09:05Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `aff11ee318e1d15763d23a2bd25bb532966328cc` (2026-11-18T17:52:56Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -14,7 +14,7 @@ Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR
 Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua tarefa; não carregue tudo.
 
 ## Stack
-- linguagens: TypeScript (211), Markdown (118), SQL (106), JavaScript (63), JSON (28), YAML (19), Python (8), CSS (4)
+- linguagens: TypeScript (211), Markdown (119), SQL (106), JavaScript (63), JSON (28), YAML (19), Python (8), CSS (4)
 - linguagem_principal: TypeScript
 - framework: React
 - backend_http: vercel-functions
@@ -34,7 +34,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Números
 | item | qtd |
 |---|---|
-| arquivos_total | 696 |
+| arquivos_total | 697 |
 | arquivos_codigo | 281 |
 | linhas_codigo | 54867 |
 | rotas | 32 |
@@ -51,7 +51,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 | testes | 139 |
 | workflows | 15 |
 | scripts | 36 |
-| docs_md | 118 |
+| docs_md | 119 |
 
 ## Onde ficam as coisas
 - telas: src/pages (18)
@@ -62,7 +62,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - edge_functions: n/d
 - migrations: site-supabase/supabase/migrations
 - scripts: scripts/maintenance (4), scripts/inventario (3), scripts/regras_negocio (3)
-- docs: docs (72), (raiz) (9), .github (1)
+- docs: docs (73), (raiz) (9), .github (1)
 - nomenclatura: {"componentes":"PascalCase (100%)","hooks":"use + PascalCase","servicos":"camelCase (86%)","edge_functions":null,"tabelas":"snake_case (95%)"}
 - instruções para agentes no repo: AGENTS.md, CLAUDE.md
 
@@ -334,6 +334,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `docs/GUIA_DE_VOZ.md` — Guia de voz da Promo Brindes (43 linhas)
 - `docs/LUKKA_BENCHMARK_PLANO_50_ETAPAS_20260909.md` — Promo Brindes: análise da Lukka e plano de melhorias em 50 etapas (335 linhas)
 - `docs/MATRIZ_INDEX.md` — Índice de planos e aceites (59 linhas)
+- `docs/MATRIZ_RISCO_CAMADA_TESTE.md` — Matriz risco → camada de teste — 18/11/2026 (59 linhas)
 - `docs/PLANO_CARNEGIE_UX_100_ETAPAS_20261005.md` — Plano em 100 etapas para aplicar os princípios de Carnegie à experiência da Promo Brindes (832 linhas)
 - `docs/PLANO_CORRECOES_50_ETAPAS_20260913.md` — Plano de melhorias e correções — 50 etapas — 13/09/2026 (770 linhas)
 - `docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260916.md` — Plano de correções e melhorias — 50 etapas (banco de dados, integração e governança) (1518 linhas)
@@ -381,6 +382,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-18 `aff11ee` docs: matriz risco de negocio para camada de teste, com os vazios nomeados (#205)
 - 2026-11-17 `dbc6479` fix(graphify): graph:status deixa de exigir npm ci em clone limpo (#196)
 - 2026-11-17 `2a09509` fix(config): comentário de cobertura para de citar contagem de teste que envelhece (#195)
 - 2026-11-17 `b06b1e5` fix(graphify): scanner de segredos passa a cobrir os formatos que este projeto usa (#194)
@@ -395,7 +397,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-17 `e4a904f` feat(retenção): resíduo de dado pessoal não apagado deixa de ser invisível (#184)
 - 2026-11-17 `108b0b2` fix(portal): estouro de limite deixa de virar "proposta não encontrada" (#183)
 - 2026-11-17 `e166177` fix(catálogo): porta editorial de onboarding deixa de abrir o catálogo inteiro (#182)
-- 2026-11-17 `f95d773` fix(orçamento): para de prometer WhatsApp quando o canal não pode entregar (#181)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "dbc64798a1421484a18cc24b01ad093adc525855",
+  "commit": "aff11ee318e1d15763d23a2bd25bb532966328cc",
   "branch": "main",
-  "data_commit": "2026-11-18T00:09:05Z",
+  "data_commit": "2026-11-18T17:52:56Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "aff11ee",
+    "data": "2026-11-18",
+    "assunto": "docs: matriz risco de negocio para camada de teste, com os vazios nomeados (#205)"
+   },
    {
     "sha": "dbc6479",
     "data": "2026-11-17",
@@ -126,14 +131,9 @@
     "sha": "5a524ad",
     "data": "2026-11-17",
     "assunto": "test(e2e): guardas dos destinos editoriais passam a poder falhar (#173)"
-   },
-   {
-    "sha": "b8870bf",
-    "data": "2026-11-17",
-    "assunto": "chore(docs): runbook do graphify passa a declarar o pin real (#171)"
    }
   ],
-  "arquivos_mudados_7d": 134,
+  "arquivos_mudados_7d": 122,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 80
+    "commits": 81
    },
    {
     "autor": "dependabot[bot]",
@@ -310,7 +310,7 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 696,
+  "arquivos_total": 697,
   "arquivos_codigo": 281,
   "linhas_codigo": 54867,
   "rotas": 32,
@@ -327,7 +327,7 @@
   "testes": 139,
   "workflows": 15,
   "scripts": 36,
-  "docs_md": 118
+  "docs_md": 119
  },
  "por_pasta": {
   "api/_lib": {
