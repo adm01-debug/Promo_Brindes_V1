@@ -12,11 +12,11 @@ As contagens e diagnósticos abaixo permanecem como registros históricos. Não 
 
 ## Matriz e evidências históricas
 
-Fonte vigente dos 230 requisitos: [matriz de fechamento](MATRIZ_FECHAMENTO_PLANOS_20260912.csv). A data no nome é a origem do arquivo, não a data da última revisão.
+Matriz completa dos 230 requisitos: [matriz de fechamento](MATRIZ_FECHAMENTO_PLANOS_20260912.csv). A data no nome é a origem do arquivo. **A última revisão de conteúdo dela foi em 22/09/2026** (`dafd3d9`); desde esse commit a `main` recebeu **190 commits em 93 pull requests**, nenhum deles tocando o arquivo. Ela é a única matriz completa que existe, e por isso segue sendo a referência de escopo — mas não é um retrato do estado de hoje.
 
 Última execução técnica: [lote controlado do plano de fechamento de 01/10/2026](EXECUCAO_PLANO_FECHAMENTO_20261001.md). A [navegação, impressão e governança editorial de 22/09/2026](EXECUCAO_VALIDACOES_UX_EDITORIAL_20260922.md), com código funcional `909b1eff043a45690a8b08f3b0f55d1dd624474f`, o [fechamento técnico anterior](EXECUCAO_FECHAMENTO_TECNICO_20260922.md), a [rodada complementar](EXECUCAO_COMPLEMENTAR_20260922.md) e a [validação independente](AUDITORIA_5_ESPECIALISTAS_20260922.md) permanecem como evidências históricas.
 
-Distribuição vigente: **118 I / 100 P / 1 N / 11 E**. A contagem não é um percentual de qualidade: cada linha conserva seu próprio critério e dependências externas não viram implementação por decreto.
+Distribuição **apurada em 22/09/2026**: 118 I / 100 P / 1 N / 11 E. Não é a distribuição de hoje, e tratá-la como tal subestima o que foi entregue nas 93 pull requests seguintes. A contagem também não é percentual de qualidade: cada linha conserva seu próprio critério, e dependência externa não vira implementação por decreto. Reconciliar linha por linha continua previsto nas etapas 002-003 e 099 do plano de fechamento; até lá, o número correto a citar é o desta data, com a data.
 
 ## Como ler
 
