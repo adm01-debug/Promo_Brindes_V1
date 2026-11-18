@@ -2,11 +2,21 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "148318ec88af1e1355cc5e44d6c814830b5ae113",
+  "commit": "4a231556ea122bc2b9395f2c1fc5bd8b05159c4a",
   "branch": "main",
-  "data_commit": "2026-11-18T21:28:12Z",
+  "data_commit": "2026-11-18T23:00:27Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "4a23155",
+    "data": "2026-11-18",
+    "assunto": "feat(guarda): aponta trabalho estacionado em refs fora de heads e pull (#203)"
+   },
+   {
+    "sha": "6d13174",
+    "data": "2026-11-18",
+    "assunto": "fix(graphify): .graphifyignore passa a excluir da indexação, não só da impressão digital (#198)"
+   },
    {
     "sha": "148318e",
     "data": "2026-11-18",
@@ -121,23 +131,13 @@
     "sha": "bcf7e33",
     "data": "2026-11-17",
     "assunto": "chore(ci): unifica o rótulo do pin do actions/checkout (#179)"
-   },
-   {
-    "sha": "1a30000",
-    "data": "2026-11-17",
-    "assunto": "fix(ideias): landing de onboarding passa a ter curadoria própria (#177)"
-   },
-   {
-    "sha": "5147c5a",
-    "data": "2026-11-17",
-    "assunto": "chore(docs): homologa a 0.9.105 do graphify com avaliação isolada contra a 0.9.94 (#176)"
    }
   ],
-  "arquivos_mudados_7d": 121,
+  "arquivos_mudados_7d": 124,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
-    "mudancas": 15
+    "mudancas": 16
    },
    {
     "pasta": "docs/audits/pending-features-20261011",
@@ -164,6 +164,10 @@
     "mudancas": 7
    },
    {
+    "pasta": "scripts/graphify.mjs",
+    "mudancas": 6
+   },
+   {
     "pasta": ".gitignore",
     "mudancas": 5
    },
@@ -173,10 +177,6 @@
    },
    {
     "pasta": "requirements-graphify.txt",
-    "mudancas": 5
-   },
-   {
-    "pasta": "scripts/graphify.mjs",
     "mudancas": 5
    },
    {
@@ -192,14 +192,14 @@
     "mudancas": 4
    },
    {
-    "pasta": "scripts/validate-agent-instructions.mjs",
+    "pasta": "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
     "mudancas": 4
    }
   ],
   "arquivos_mais_mudados_90d": [
    {
     "arquivo": "package.json",
-    "mudancas": 64
+    "mudancas": 65
    },
    {
     "arquivo": "e2e/smoke.spec.ts",
@@ -282,6 +282,10 @@
     "mudancas": 16
    },
    {
+    "arquivo": "scripts/graphify.mjs",
+    "mudancas": 15
+   },
+   {
     "arquivo": "src/types/site-database.types.ts",
     "mudancas": 15
    },
@@ -292,16 +296,12 @@
    {
     "arquivo": "api/retention.ts",
     "mudancas": 14
-   },
-   {
-    "arquivo": "scripts/graphify.mjs",
-    "mudancas": 14
    }
   ],
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 85
+    "commits": 87
    },
    {
     "autor": "dependabot[bot]",
@@ -310,9 +310,9 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 699,
-  "arquivos_codigo": 281,
-  "linhas_codigo": 54921,
+  "arquivos_total": 702,
+  "arquivos_codigo": 283,
+  "linhas_codigo": 55171,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -324,9 +324,9 @@
   "tabelas": 22,
   "migrations": 69,
   "cron_jobs": 0,
-  "testes": 139,
+  "testes": 140,
   "workflows": 15,
-  "scripts": 36,
+  "scripts": 37,
   "docs_md": 120
  },
  "por_pasta": {
@@ -438,6 +438,10 @@
    "arquivos": 1,
    "linhas": 416
   },
+  "scripts/check-orphan-refs.mjs": {
+   "arquivos": 1,
+   "linhas": 112
+  },
   "scripts/check-performance-budget.mjs": {
    "arquivos": 1,
    "linhas": 142
@@ -472,7 +476,7 @@
   },
   "scripts/graphify.mjs": {
    "arquivos": 1,
-   "linhas": 914
+   "linhas": 962
   },
   "scripts/inventario": {
    "arquivos": 2,
@@ -616,7 +620,7 @@
   },
   "tests/graphify-tools.node.mjs": {
    "arquivos": 1,
-   "linhas": 644
+   "linhas": 687
   },
   "tests/inventario-banco-sql.node.mjs": {
    "arquivos": 1,
@@ -629,6 +633,10 @@
   "tests/normalize-vercel-deployment-url.node.mjs": {
    "arquivos": 1,
    "linhas": 119
+  },
+  "tests/orphan-refs.node.mjs": {
+   "arquivos": 1,
+   "linhas": 47
   },
   "tests/queue-concurrency.node.mjs": {
    "arquivos": 1,
@@ -722,7 +730,7 @@
   },
   {
    "arquivo": "scripts/graphify.mjs",
-   "linhas": 914
+   "linhas": 962
   },
   {
    "arquivo": "scripts/maintenance/run.mjs",
@@ -795,7 +803,7 @@
  ],
  "qualidade": {
   "any": 3,
-  "console_log": 91,
+  "console_log": 93,
   "ts_ignore": 0,
   "eslint_disable": 1,
   "todos": 3,

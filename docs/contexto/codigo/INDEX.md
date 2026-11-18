@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `148318ec88af1e1355cc5e44d6c814830b5ae113` (2026-11-18T21:28:12Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `4a231556ea122bc2b9395f2c1fc5bd8b05159c4a` (2026-11-18T23:00:27Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -14,7 +14,7 @@ Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR
 Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua tarefa; não carregue tudo.
 
 ## Stack
-- linguagens: TypeScript (211), Markdown (120), SQL (106), JavaScript (63), JSON (28), YAML (19), Python (8), CSS (4)
+- linguagens: TypeScript (211), Markdown (120), SQL (106), JavaScript (65), JSON (29), YAML (19), Python (8), CSS (4)
 - linguagem_principal: TypeScript
 - framework: React
 - backend_http: vercel-functions
@@ -34,9 +34,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Números
 | item | qtd |
 |---|---|
-| arquivos_total | 699 |
-| arquivos_codigo | 281 |
-| linhas_codigo | 54921 |
+| arquivos_total | 702 |
+| arquivos_codigo | 283 |
+| linhas_codigo | 55171 |
 | rotas | 32 |
 | rotas_http_backend | 14 |
 | vistas_por_id | 0 |
@@ -48,9 +48,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 | tabelas | 22 |
 | migrations | 69 |
 | cron_jobs | 0 |
-| testes | 139 |
+| testes | 140 |
 | workflows | 15 |
-| scripts | 36 |
+| scripts | 37 |
 | docs_md | 120 |
 
 ## Onde ficam as coisas
@@ -58,7 +58,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - componentes: src/components (19), src/pages (18), src/context (2)
 - hooks: src/lib (4), src/context (2)
 - servicos_logica: src/lib (43), api/_lib (15), src/context (3)
-- testes: co-localizado (*.test) (53), tests/ (45), outro (9)
+- testes: co-localizado (*.test) (53), tests/ (46), outro (9)
 - edge_functions: n/d
 - migrations: site-supabase/supabase/migrations
 - scripts: scripts/maintenance (4), scripts/inventario (3), scripts/regras_negocio (3)
@@ -170,7 +170,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - não gerado neste run. npm run graph:update (wrapper do repositório; não rode o CLI do graphify direto); saída em graphify-out/, não versionada
 
 ## Hotspots (arquivos mais alterados, 90 dias)
-- package.json (64)
+- package.json (65)
 - e2e/smoke.spec.ts (58)
 - package-lock.json (36)
 - src/styles.css (35)
@@ -240,6 +240,8 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `test:soak-queue`: `node --test tests/soak-test-notification-queue.node.mjs`
 - `test:shared-selection-sql`: `node --test tests/verify-shared-selection-contract.node.mjs`
 - `test:catalog-contract`: `node --test tests/catalog-public-contract.node.mjs`
+- `test:orphan-refs`: `node --test tests/orphan-refs.node.mjs`
+- `refs:orfaos`: `node scripts/check-orphan-refs.mjs`
 - `check:catalog-contract`: `node scripts/check-catalog-public-contract.mjs`
 - `agents:instructions:check`: `node scripts/validate-agent-instructions.mjs`
 - `test:agent-instructions`: `node --test tests/validate-agent-instructions.node.mjs`
@@ -307,7 +309,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `UX_AUDIT_REPORT.md` — Auditoria total de design, layout e UX (409 linhas)
 - `docs/AUDITORIA_5_ESPECIALISTAS_20260922.md` — Auditoria técnica dos cinco especialistas — 22/09/2026 (65 linhas)
 - `docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md` — Auditoria de funcionalidades planejadas e não executadas — 11/10/2026 (364 linhas)
-- `docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md` — Verificação das pendências de engenharia — 17/11/2026 (461 linhas)
+- `docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md` — Verificação das pendências de engenharia — 17/11/2026 (465 linhas)
 - `docs/AUDITORIA_REFS_AUTOSAVE_20261118.md` — Auditoria do namespace `refs/autosave/*` — 18/11/2026 (77 linhas)
 - `docs/AUDIT_REPORT_20260908.md` — Auditoria técnica consolidada — 08–09/09/2026 (75 linhas)
 - `docs/AUTOMACAO_LOCAL.md` — Automação local — Promo_Brindes_V1 (104 linhas)
@@ -383,6 +385,8 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-18 `4a23155` feat(guarda): aponta trabalho estacionado em refs fora de heads e pull (#203)
+- 2026-11-18 `6d13174` fix(graphify): .graphifyignore passa a excluir da indexação, não só da impressão digital (#198)
 - 2026-11-18 `148318e` docs: matriz dos 230 requisitos deixa de se declarar vigente (#208)
 - 2026-11-18 `ab6ea69` infra(graphify): cria o requirements-graphify.in que o comentario citava e nao existia (#197)
 - 2026-11-18 `e82b4d9` fix(contrato): 401 transitório da camada Auth deixa de reprovar o contrato do catálogo (#202)
@@ -396,8 +400,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-17 `16b15f3` chore(código morto): remove os 6 achados da auditoria e cobre a função que a produção usa (#191)
 - 2026-11-17 `66f8223` fix(notificações): fila passa a ser medida mesmo sem provedor configurado (#190)
 - 2026-11-17 `387263f` feat(retenção): cron drena o lote na mesma execução e ganha orçamento de tempo (#189)
-- 2026-11-17 `8e5ce1d` chore(docs): registra a verificação dos 58 itens de engenharia da auditoria (#187)
-- 2026-11-17 `092d5c6` chore(config): variável de produção não documentada, com guard para não repetir (#186)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

@@ -21,7 +21,7 @@
   ],
   "testes": [
    "co-localizado (*.test) (53)",
-   "tests/ (45)",
+   "tests/ (46)",
    "outro (9)"
   ],
   "edge_functions": null,
@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "feat(guarda): aponta trabalho estacionado em refs fora de heads e pull (#203)",
+   "fix(graphify): .graphifyignore passa a excluir da indexação, não só da impressão digital (#198)",
    "docs: matriz dos 230 requisitos deixa de se declarar vigente (#208)",
    "infra(graphify): cria o requirements-graphify.in que o comentario citava e nao existia (#197)",
-   "fix(contrato): 401 transitório da camada Auth deixa de reprovar o contrato do catálogo (#202)",
-   "feat(testes): cobre sessão expirada entre o upload e a verificação do anexo (#200)",
-   "docs: matriz risco de negocio para camada de teste, com os vazios nomeados (#205)"
+   "fix(contrato): 401 transitório da camada Auth deixa de reprovar o contrato do catálogo (#202)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "148318ec88af1e1355cc5e44d6c814830b5ae113",
+  "sha": "4a231556ea122bc2b9395f2c1fc5bd8b05159c4a",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-18 22:12 UTC",
-  "files_total": 593,
-  "code_files": 388,
-  "code_lines": 68095,
+  "generated_at": "2026-11-18 23:00 UTC",
+  "files_total": 596,
+  "code_files": 390,
+  "code_lines": 68345,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "5b5929ec853f7a9b",
+ "facts_hash": "50953ce7613dd67d",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -90,6 +90,8 @@
    "test:soak-queue": "node --test tests/soak-test-notification-queue.node.mjs",
    "test:shared-selection-sql": "node --test tests/verify-shared-selection-contract.node.mjs",
    "test:catalog-contract": "node --test tests/catalog-public-contract.node.mjs",
+   "test:orphan-refs": "node --test tests/orphan-refs.node.mjs",
+   "refs:orfaos": "node scripts/check-orphan-refs.mjs",
    "check:catalog-contract": "node scripts/check-catalog-public-contract.mjs",
    "agents:instructions:check": "node scripts/validate-agent-instructions.mjs",
    "test:agent-instructions": "node --test tests/validate-agent-instructions.node.mjs",
@@ -281,8 +283,8 @@
   "languages": {
    ".ts": 149,
    ".sql": 106,
+   ".mjs": 63,
    ".tsx": 62,
-   ".mjs": 61,
    ".py": 8,
    ".js": 2
   },
@@ -7252,8 +7254,8 @@
   },
   {
    "module": "scripts",
-   "files": 42,
-   "lines": 21381,
+   "files": 43,
+   "lines": 21541,
    "tables": [
     "a",
     "contacts",
@@ -7276,10 +7278,11 @@
    "exports": [
     "automation.mjs: parseArgs, validateConfig, execute, appendExclude, removeExclude, main",
     "check-catalog-public-contract.mjs: EXPECTED_CATALOG_COLUMNS, validateCatalogPublicContract, checkCatalogPublicContract",
+    "check-orphan-refs.mjs: BASELINE_PATH, WATCHED_NAMESPACES, readBaseline, objectsOf, blobsOfRef, findOrphans",
     "ci-health-metrics.mjs: calculateCiHealthMetrics, isDirectExecution",
     "graphify-local.mjs: GraphError, run, acquire, validateConfig, fingerprint, validateGraph",
     "graphify-quality.mjs: stageCorpusFiles, splitGraphSourceFiles, enrichTypeScriptReferences, projectGapMetrics, normalizeGraphReport, validateSeparatedCorpora",
-    "graphify.mjs: GRAPH_FINGERPRINT_CONFIG_FILES, assertSafeRoot, readProjectConfig, fingerprintEntries, validateGraph, compareGraphStructures",
+    "graphify.mjs: GRAPH_FINGERPRINT_CONFIG_FILES, assertSafeRoot, readProjectConfig, loadGraphIgnorePatterns, isGraphIgnored, listSourceFiles",
     "normalize-vercel-deployment-url.mjs: normalizeVercelDeploymentUrl",
     "smoke-deployment.mjs: runSmoke",
     "soak-test-notification-queue.mjs: parseSoakConfig, percentile, isTerminalDelivery",
@@ -7304,11 +7307,11 @@
    ],
    "docs": [
     "automation.mjs: !/usr/bin/env node",
+    "check-orphan-refs.mjs: !/usr/bin/env node Trabalho de agente estacionado fora de `refs/heads` e `refs/pull` não aparece em nenhuma PR e não é revisado por ninguém. Foi assim que a correção de repetição de 401 na sonda do contrato ficou quatro dias só em `refs/autosave/claude/fix-contract-401-retry-261114-1605` — ver docs/ …",
     "graphify-local.mjs: !/usr/bin/env node",
     "graphify.mjs: !/usr/bin/env node",
     "validate-agent-instructions.mjs: !/usr/bin/env node Guarda das instruções para agentes: AGENTS.md (regras) + CLAUDE.md (só `@AGENTS.md`) + docs/agentes/*.md (referência) + os dois skills do repo. Verifica: seções obrigatórias do AGENTS.md; CLAUDE.md sendo exatamente o import; nenhuma referência órfã ou quebrada em docs/agentes/; sk …",
-    "cenarios.mjs: Simulação de cenários do gerador: monta centenas de repositórios sintéticos (variantes de SQL, rotas, menus, edges, workflows, monorepo, Python, arquivos corrompidos, fuzz) e confere: não trava, erros_do_gerador vazio, saída determinística e extração esperada. Rodar: node scripts/ai-context/cenarios …",
-    "gerar.mjs: !/usr/bin/env node Gera o contexto de projeto para agentes de IA (padrão: inventario/ia/*). Zero dependências. Node >= 18. Genérico: funciona em qualquer repositório. JS/TS (React, Next, Vue, Svelte, Nuxt, Remix, Astro, Express/Hono/Fastify/Nest), Python (FastAPI/Flask/Django), e qualquer outra ling …"
+    "cenarios.mjs: Simulação de cenários do gerador: monta centenas de repositórios sintéticos (variantes de SQL, rotas, menus, edges, workflows, monorepo, Python, arquivos corrompidos, fuzz) e confere: não trava, erros_do_gerador vazio, saída determinística e extração esperada. Rodar: node scripts/ai-context/cenarios …"
    ],
    "deps": [
     "#",
@@ -7353,6 +7356,7 @@
     "scripts/automation.mjs",
     "scripts/automation.unit.mjs",
     "scripts/check-catalog-public-contract.mjs",
+    "scripts/check-orphan-refs.mjs",
     "scripts/check-performance-budget.mjs",
     "scripts/ci-health-metrics.mjs",
     "scripts/generate-database-dictionary.mjs",
@@ -7895,8 +7899,8 @@
   },
   {
    "module": "tests",
-   "files": 45,
-   "lines": 10109,
+   "files": 46,
+   "lines": 10199,
    "tables": [
     "constructor",
     "quote_requests",
@@ -7938,6 +7942,7 @@
     "tests/inventario-banco-sql.node.mjs",
     "tests/inventario-estado.node.mjs",
     "tests/normalize-vercel-deployment-url.node.mjs",
+    "tests/orphan-refs.node.mjs",
     "tests/queue-concurrency.node.mjs",
     "tests/session-start-hook.node.mjs",
     "tests/smoke-deployment.node.mjs",
@@ -9402,6 +9407,14 @@
     "msg": "VITE_SUPABASE_URL inválida: não é uma URL absoluta."
    },
    {
+    "file": "scripts/check-orphan-refs.mjs",
+    "msg": "Linha de base inválida em ${file}."
+   },
+   {
+    "file": "scripts/check-orphan-refs.mjs",
+    "msg": "linha de base sem a lista "
+   },
+   {
     "file": "scripts/check-performance-budget.mjs",
     "msg": "${label}: ${(value / 1024).toFixed(1)} KiB excede o limite de ${(maximum / 1024).toFixed(0)} KiB."
    },
@@ -9468,6 +9481,10 @@
    {
     "file": "scripts/graphify-quality.mjs",
     "msg": "O enriquecimento de referencias TypeScript precisa da dependencia "
+   },
+   {
+    "file": "scripts/graphify.mjs",
+    "msg": "${GRAPH_IGNORE_FILE}: padrão não suportado "
    },
    {
     "file": "scripts/graphify.mjs",
@@ -17332,6 +17349,18 @@
     "name": "saída cortada pelo leitor (| head) não derruba o CLI com EPIPE"
    },
    {
+    "file": "tests/graphify-tools.node.mjs",
+    "name": ".graphifyignore exclui da indexação, não só da impressão digital"
+   },
+   {
+    "file": "tests/graphify-tools.node.mjs",
+    "name": "padrões do .graphifyignore: diretório em qualquer profundidade, caminho ancorado e extensão"
+   },
+   {
+    "file": "tests/graphify-tools.node.mjs",
+    "name": ".graphifyignore recusa padrão que não seria aplicado em vez de ignorá-lo em silêncio"
+   },
+   {
     "file": "tests/inventario-banco-sql.node.mjs",
     "name": "banco.sql roda inteiro em transação somente leitura e passa na prova de origem"
    },
@@ -17650,6 +17679,18 @@
    {
     "file": "tests/normalize-vercel-deployment-url.node.mjs",
     "name": "importar o módulo não executa a CLI"
+   },
+   {
+    "file": "tests/orphan-refs.node.mjs",
+    "name": "aponta só o blob que não está na main nem na linha de base"
+   },
+   {
+    "file": "tests/orphan-refs.node.mjs",
+    "name": "linha de base ausente não é erro; inválida falha com a causa"
+   },
+   {
+    "file": "tests/orphan-refs.node.mjs",
+    "name": "a linha de base versionada tem veredito legível em toda entrada"
    },
    {
     "file": "tests/queue-concurrency.node.mjs",
@@ -25474,6 +25515,26 @@
     }
    ]
   },
+  "scripts/check-orphan-refs.mjs": {
+   "path": "scripts/check-orphan-refs.mjs",
+   "lines": 112,
+   "exports": [
+    "const BASELINE_PATH",
+    "const WATCHED_NAMESPACES",
+    "function readBaseline",
+    "function objectsOf",
+    "function blobsOfRef",
+    "function findOrphans"
+   ],
+   "errors": [
+    "Linha de base inválida em ${file}.",
+    "linha de base sem a lista "
+   ],
+   "rule_comments": [
+    "aí o realpath lança — importar este módulo não pode quebrar por isso."
+   ],
+   "doc": "!/usr/bin/env node Trabalho de agente estacionado fora de `refs/heads` e `refs/pull` não aparece em nenhuma PR e não é revisado por ninguém. Foi assim que a correção de repetição de 401 na sonda do contrato ficou quatro dias só em `refs/autosave/claude/fix-contract-401-retry-261114-1605` — ver docs/ …"
+  },
   "scripts/check-performance-budget.mjs": {
    "path": "scripts/check-performance-budget.mjs",
    "lines": 142,
@@ -25632,11 +25693,14 @@
   },
   "scripts/graphify.mjs": {
    "path": "scripts/graphify.mjs",
-   "lines": 914,
+   "lines": 962,
    "exports": [
     "const GRAPH_FINGERPRINT_CONFIG_FILES",
     "function assertSafeRoot",
     "function readProjectConfig",
+    "function loadGraphIgnorePatterns",
+    "function isGraphIgnored",
+    "function listSourceFiles",
     "function fingerprintEntries",
     "function validateGraph",
     "function compareGraphStructures",
@@ -25653,6 +25717,7 @@
     "GRAPHIFY_TIMEOUT_MS"
    ],
    "errors": [
+    "${GRAPH_IGNORE_FILE}: padrão não suportado ",
     "${command} ${args[0] ?? ",
     "${command} falhou com ${result.signal ? ",
     "Arquivo ${label} inválido: ${candidate}",
@@ -25699,9 +25764,14 @@
     {
      "name": "COMMAND_MAX_BUFFER_BYTES",
      "value": "64 * 1024 * 1024"
+    },
+    {
+     "name": "GRAPH_IGNORE_FILE",
+     "value": "'.graphifyignore'"
     }
    ],
    "rule_comments": [
+    "O `.graphifyignore` entrava apenas na impressão digital do grafo: um padrão",
     "impressão digital; não pode impedir o status nem a reconstrução.",
     "host cujo PID não existe mais; qualquer dúvida mantém a trava até o limite de idade."
    ],
@@ -31766,7 +31836,7 @@
   },
   "tests/graphify-tools.node.mjs": {
    "path": "tests/graphify-tools.node.mjs",
-   "lines": 644,
+   "lines": 687,
    "is_test": true,
    "enums": [
     {
@@ -31810,7 +31880,10 @@
     "subprocesso travado é interrompido pelo limite de tempo com mensagem acionável",
     "trava de build órfã (processo morto) é recuperada; trava de processo vivo é respeitada",
     "falha ao criar o diretório temporário não deixa a trava de build para trás",
-    "saída cortada pelo leitor (| head) não derruba o CLI com EPIPE"
+    "saída cortada pelo leitor (| head) não derruba o CLI com EPIPE",
+    ".graphifyignore exclui da indexação, não só da impressão digital",
+    "padrões do .graphifyignore: diretório em qualquer profundidade, caminho ancorado e extensão",
+    ".graphifyignore recusa padrão que não seria aplicado em vez de ignorá-lo em silêncio"
    ]
   },
   "tests/inventario-banco-sql.node.mjs": {
@@ -31988,6 +32061,16 @@
     "CLI recusa argumento excedente em vez de ignorá-lo",
     "CLI responde quando o script é chamado por um caminho com symlink",
     "importar o módulo não executa a CLI"
+   ]
+  },
+  "tests/orphan-refs.node.mjs": {
+   "path": "tests/orphan-refs.node.mjs",
+   "lines": 47,
+   "is_test": true,
+   "tests": [
+    "aponta só o blob que não está na main nem na linha de base",
+    "linha de base ausente não é erro; inválida falha com a causa",
+    "a linha de base versionada tem veredito legível em toda entrada"
    ]
   },
   "tests/queue-concurrency.node.mjs": {
@@ -32809,10 +32892,34 @@
   }
  },
  "git": {
-  "sha": "148318ec88af1e1355cc5e44d6c814830b5ae113",
+  "sha": "4a231556ea122bc2b9395f2c1fc5bd8b05159c4a",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "4a23155",
+    "date": "2026-11-18",
+    "author": "adm01-debug",
+    "subject": "feat(guarda): aponta trabalho estacionado em refs fora de heads e pull (#203)",
+    "files": [
+     "package.json",
+     "scripts/automation.config.json",
+     "scripts/check-orphan-refs.mjs",
+     "scripts/orphan-refs-baseline.json",
+     "tests/orphan-refs.node.mjs"
+    ]
+   },
+   {
+    "sha": "6d13174",
+    "date": "2026-11-18",
+    "author": "adm01-debug",
+    "subject": "fix(graphify): .graphifyignore passa a excluir da indexação, não só da impressão digital (#198)",
+    "files": [
+     "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
+     "scripts/graphify.mjs",
+     "tests/graphify-tools.node.mjs"
+    ]
+   },
    {
     "sha": "148318e",
     "date": "2026-11-18",
@@ -33129,30 +33236,12 @@
      "src/components/Seo.tsx",
      "tests/api/site-page.test.ts"
     ]
-   },
-   {
-    "sha": "5a524ad",
-    "date": "2026-11-17",
-    "author": "adm01-debug",
-    "subject": "test(e2e): guardas dos destinos editoriais passam a poder falhar (#173)",
-    "files": [
-     "e2e/smoke.spec.ts"
-    ]
-   },
-   {
-    "sha": "b8870bf",
-    "date": "2026-11-17",
-    "author": "adm01-debug",
-    "subject": "chore(docs): runbook do graphify passa a declarar o pin real (#171)",
-    "files": [
-     "docs/GRAPHIFY.md"
-    ]
    }
   ],
   "hot_files": [
    [
     "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
-    3
+    4
    ],
    [
     "api/_lib/siteDatabase.ts",
@@ -33165,6 +33254,22 @@
    [
     "api/retention.ts",
     3
+   ],
+   [
+    "package.json",
+    2
+   ],
+   [
+    "scripts/automation.config.json",
+    2
+   ],
+   [
+    "scripts/graphify.mjs",
+    2
+   ],
+   [
+    "tests/graphify-tools.node.mjs",
+    2
    ],
    [
     "tests/api/briefing-assets.test.ts",
@@ -33187,15 +33292,7 @@
     2
    ],
    [
-    "e2e/smoke.spec.ts",
-    2
-   ],
-   [
     ".github/workflows/quality.yml",
-    2
-   ],
-   [
-    "docs/GRAPHIFY.md",
     2
    ],
    [
@@ -33207,27 +33304,19 @@
     2
    ],
    [
+    "scripts/check-orphan-refs.mjs",
+    1
+   ],
+   [
+    "scripts/orphan-refs-baseline.json",
+    1
+   ],
+   [
+    "tests/orphan-refs.node.mjs",
+    1
+   ],
+   [
     "docs/MATRIZ_INDEX.md",
-    1
-   ],
-   [
-    "requirements-graphify.in",
-    1
-   ],
-   [
-    "requirements-graphify.txt",
-    1
-   ],
-   [
-    "docs/AUDITORIA_REFS_AUTOSAVE_20261118.md",
-    1
-   ],
-   [
-    "scripts/check-catalog-public-contract.mjs",
-    1
-   ],
-   [
-    "tests/catalog-public-contract.node.mjs",
     1
    ]
   ]

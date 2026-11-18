@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `148318ec88` · branch `main` · 2026-11-18 22:12 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `4a231556ea` · branch `main` · 2026-11-18 23:00 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -849,6 +849,8 @@ _nenhum item encontrado_
 | Contrato indisponível: v_site_products_public respondeu HTTP ${response.status}. | `scripts/check-catalog-public-contract.mjs` |
 | Drift no contrato público: ausentes [${missing.join( | `scripts/check-catalog-public-contract.mjs` |
 | VITE_SUPABASE_URL inválida: não é uma URL absoluta. | `scripts/check-catalog-public-contract.mjs` |
+| Linha de base inválida em ${file}. | `scripts/check-orphan-refs.mjs` |
+| linha de base sem a lista  | `scripts/check-orphan-refs.mjs` |
 | ${label}: ${(value / 1024).toFixed(1)} KiB excede o limite de ${(maximum / 1024).toFixed(0)} KiB. | `scripts/check-performance-budget.mjs` |
 | Chunk  | `scripts/check-performance-budget.mjs` |
 | Manifest do Vite sem entrada principal. | `scripts/check-performance-budget.mjs` |
@@ -866,6 +868,7 @@ _nenhum item encontrado_
 | Mapa de banco contém ${nonSqlInDatabase.length} nó(s) fora de SQL. | `scripts/graphify-quality.mjs` |
 | Mapa principal contém ${sqlInMain.length} nó(s) SQL. | `scripts/graphify-quality.mjs` |
 | O enriquecimento de referencias TypeScript precisa da dependencia  | `scripts/graphify-quality.mjs` |
+| ${GRAPH_IGNORE_FILE}: padrão não suportado  | `scripts/graphify.mjs` |
 | ${command} ${args[0] ??  | `scripts/graphify.mjs` |
 | ${command} falhou com ${result.signal ?  | `scripts/graphify.mjs` |
 | Arquivo ${label} inválido: ${candidate} | `scripts/graphify.mjs` |
@@ -1045,7 +1048,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1604 testes em 130 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1610 testes em 131 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1058,7 +1061,7 @@ _nenhum item encontrado_
 | `site-supabase/supabase/tests/database/customer_portal.test.sql` | 41 | orçamento possui titular autenticado opcional · perfil do cliente existe no schema privado · linha do tempo existe no schema privado · metadados de propostas existem no schema privado … |
 | `site-supabase/supabase/tests/database/notification_delivery_status_machine.test.sql` | 40 | pending -> pending (no-op) · pending -> processing · pending -> sent (rejeitado: pula processing) · pending -> failed (rejeitado: pula processing) … |
 | `tests/api/lead-requests.test.ts` | 37 | APIs de leads isoladas · registra contato normalizado pelo RPC server-side · rejeita resposta malformada do banco: %s · repetição idempotente promete envio quando o provedor de WhatsApp existe … |
-| `tests/graphify-tools.node.mjs` | 33 | path encontra menor caminho, identidade e nós desconectados sem inventar relações · explain preserva fonte e confiança e identifica conexões de entrada · nomes ambíguos e símbolos ausentes não escolhem um resultado arbitrário · fingerprint muda ao mudar conteúdo e preserva ordem determinística … |
+| `tests/graphify-tools.node.mjs` | 36 | path encontra menor caminho, identidade e nós desconectados sem inventar relações · explain preserva fonte e confiança e identifica conexões de entrada · nomes ambíguos e símbolos ausentes não escolhem um resultado arbitrário · fingerprint muda ao mudar conteúdo e preserva ordem determinística … |
 | `site-supabase/supabase/tests/database/notification_provider_events.test.sql` | 30 | entrega ganha estado terminal pós-aceite (Etapa 30) · devolução guarda a categoria curta do provedor · reclamação é rastreada independentemente da entrega · deduplicação de eventos de webhook fica em tabela própria … |
 | `tests/api/notifications.test.ts` | 29 | worker de comprovantes do orçamento · recusa chamada sem o segredo agendado · não reivindica a fila enquanto nenhum provedor estiver configurado, mas mede o tamanho dela · fila velha sem provedor configurado alerta o canal operacional … |
 | `tests/validate-agent-instructions.node.mjs` | 28 | aceita AGENTS.md com todas as seções obrigatórias · acusa seção obrigatória apagada por outra sessão · ${CLAUDE_FILE} precisa ser exatamente o import do ${AGENTS_FILE} · acusa referência quebrada e referência órfã em docs/agentes … |
@@ -1165,6 +1168,7 @@ _nenhum item encontrado_
 | `src/lib/useCatalogPageState.test.tsx` | 3 | useCatalogPageState · preserva a resposta da API quando a ordem explícita é %s · aplica curadoria somente quando ela é a ordem escolhida |
 | `src/lib/useInitialSuccessScroll.test.tsx` | 3 | rolagem inicial da confirmação · reposiciona apenas na entrada do sucesso, não em atualizações posteriores · respeita a interação %s antes das tentativas atrasadas |
 | `src/pages/QuotePage.test.ts` | 3 | data mínima do briefing · usa o calendário comercial brasileiro em vez de converter o instante para UTC · permanece no dia de São Paulo durante a virada UTC |
+| `tests/orphan-refs.node.mjs` | 3 | aponta só o blob que não está na main nem na linha de base · linha de base ausente não é erro; inválida falha com a causa · a linha de base versionada tem veredito legível em toda entrada |
 | `tests/queue-concurrency.node.mjs` | 3 | duas reivindicações concorrentes da fila obtêm conjuntos disjuntos de jobs · recuperação de lease expirada: duas conexões disputam o MESMO job preso, só uma vence · exhausted sob concorrência: duas conexões terminalizam o mesmo job preso, nenhuma o reivindica como novo |
 | `tests/verify-shared-selection-contract.node.mjs` | 3 | o ensaio é transacional, com timeouts, e termina em rollback sem commit · cada RPC é chamada com a aridade definida na migration mais recente · o leitor de argumentos não se confunde com vírgulas e parênteses dentro de chamadas aninhadas e strings |
 | `tests/api/campaign-years.test.ts` | 3 | anos editoriais da agenda · usa o calendário de São Paulo mesmo quando UTC já virou o ano · aceita somente o ano corrente e o próximo, normalizando os demais |

@@ -5,12 +5,12 @@
   "vitest",
   "playwright"
  ],
- "total": 139,
+ "total": 140,
  "por_tipo": {
   "contrato": 2,
   "e2e": 3,
   "pytest": 4,
-  "unit": 101
+  "unit": 102
  },
  "onde_ficam": [
   {
@@ -19,7 +19,7 @@
   },
   {
    "padrao": "tests/",
-   "arquivos": 45
+   "arquivos": 46
   },
   {
    "padrao": "outro",
@@ -878,11 +878,11 @@
   {
    "arquivo": "tests/graphify-tools.node.mjs",
    "tipo": "unit",
-   "linhas": 644,
+   "linhas": 687,
    "testa": [
     "scripts/graphify.mjs"
    ],
-   "casos": 33
+   "casos": 36
   },
   {
    "arquivo": "tests/inventario-banco-sql.node.mjs",
@@ -911,6 +911,15 @@
     "scripts/normalize-vercel-deployment-url.mjs"
    ],
    "casos": 9
+  },
+  {
+   "arquivo": "tests/orphan-refs.node.mjs",
+   "tipo": "unit",
+   "linhas": 47,
+   "testa": [
+    "scripts/check-orphan-refs.mjs"
+   ],
+   "casos": 3
   },
   {
    "arquivo": "tests/queue-concurrency.node.mjs",
@@ -1093,6 +1102,7 @@
   "scripts/_lib/supabaseDbQuery.mjs": 1,
   "scripts/automation.mjs": 1,
   "scripts/check-catalog-public-contract.mjs": 1,
+  "scripts/check-orphan-refs.mjs": 1,
   "scripts/ci-health-metrics.mjs": 1,
   "scripts/graphify-local.mjs": 1,
   "scripts/graphify.mjs": 1,

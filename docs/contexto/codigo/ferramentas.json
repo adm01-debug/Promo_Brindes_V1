@@ -6,8 +6,8 @@
    "TypeScript (211)",
    "Markdown (120)",
    "SQL (106)",
-   "JavaScript (63)",
-   "JSON (28)",
+   "JavaScript (65)",
+   "JSON (29)",
    "YAML (19)",
    "Python (8)",
    "CSS (4)"
@@ -104,6 +104,7 @@
    "maintenance:doctor": "sh scripts/maintenance/run.sh doctor --root .",
    "maintenance:heal": "sh scripts/maintenance/run.sh heal --root . --ref origin/main",
    "preview": "vite preview",
+   "refs:orfaos": "node scripts/check-orphan-refs.mjs",
    "smoke:deployment": "node scripts/smoke-deployment.mjs",
    "test": "vitest run",
    "test:agent-instructions": "node --test tests/validate-agent-instructions.node.mjs",
@@ -120,6 +121,7 @@
    "test:inventario:banco-sql": "node --test tests/inventario-banco-sql.node.mjs",
    "test:maintenance": "node --test scripts/maintenance/maintenance.unit.mjs",
    "test:migration-names": "node --test tests/validate-migration-names.node.mjs",
+   "test:orphan-refs": "node --test tests/orphan-refs.node.mjs",
    "test:performance-budget": "node --test tests/check-performance-budget.node.mjs",
    "test:queue-concurrency": "node --test tests/queue-concurrency.node.mjs",
    "test:release-url": "node --test tests/normalize-vercel-deployment-url.node.mjs",
@@ -693,7 +695,7 @@
   {
    "arquivo": "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
    "titulo": "Verificação das pendências de engenharia — 17/11/2026",
-   "linhas": 461
+   "linhas": 465
   },
   {
    "arquivo": "docs/AUDITORIA_REFS_AUTOSAVE_20261118.md",

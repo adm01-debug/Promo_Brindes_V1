@@ -1,7 +1,7 @@
 {
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
- "total": 36,
+ "total": 37,
  "scripts": [
   {
    "arquivo": "scripts/_lib/supabaseDbQuery.mjs",
@@ -103,6 +103,17 @@
    "orfao": false
   },
   {
+   "arquivo": "scripts/check-orphan-refs.mjs",
+   "descricao": "Trabalho de agente estacionado fora de `refs/heads` e `refs/pull` não aparece em nenhuma PR e não é revisado por ninguém. Foi assim que a correção de",
+   "linhas": 112,
+   "env": [],
+   "npm_scripts": [
+    "refs:orfaos"
+   ],
+   "workflows": [],
+   "orfao": false
+  },
+  {
    "arquivo": "scripts/check-performance-budget.mjs",
    "descricao": "Dois artefatos distintos passam por este script e por isso cada um tem o seu teto, em vez de compartilharem um numero:",
    "linhas": 142,
@@ -183,7 +194,7 @@
   {
    "arquivo": "scripts/graphify.mjs",
    "descricao": null,
-   "linhas": 914,
+   "linhas": 962,
    "env": [
     "GRAPHIFY_BIN",
     "GRAPHIFY_TIMEOUT_MS"
