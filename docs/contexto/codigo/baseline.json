@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "e82b4d9d0f345758a7922de7f8df1bc4b2e9854d",
+  "commit": "ab6ea699cce73c57092501d4285b3b545ef5294c",
   "branch": "main",
-  "data_commit": "2026-11-18T18:43:07Z",
+  "data_commit": "2026-11-18T20:03:12Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "ab6ea69",
+    "data": "2026-11-18",
+    "assunto": "infra(graphify): cria o requirements-graphify.in que o comentario citava e nao existia (#197)"
+   },
    {
     "sha": "e82b4d9",
     "data": "2026-11-18",
@@ -126,14 +131,9 @@
     "sha": "f852e72",
     "data": "2026-11-17",
     "assunto": "fix(analytics): result_count passa a medir a curadoria vista e a queda deixa de inflar a conversão (#175)"
-   },
-   {
-    "sha": "4b0f2cc",
-    "data": "2026-11-17",
-    "assunto": "fix(analytics): landing de ideias para de contar a visita com o total do tópico anterior (#172)"
    }
   ],
-  "arquivos_mudados_7d": 119,
+  "arquivos_mudados_7d": 120,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -172,6 +172,10 @@
     "mudancas": 5
    },
    {
+    "pasta": "requirements-graphify.txt",
+    "mudancas": 5
+   },
+   {
     "pasta": "scripts/graphify.mjs",
     "mudancas": 5
    },
@@ -185,10 +189,6 @@
    },
    {
     "pasta": "analise-prs/funcionalidades.csv",
-    "mudancas": 4
-   },
-   {
-    "pasta": "requirements-graphify.txt",
     "mudancas": 4
    },
    {
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 83
+    "commits": 84
    },
    {
     "autor": "dependabot[bot]",
@@ -310,7 +310,7 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 698,
+  "arquivos_total": 699,
   "arquivos_codigo": 281,
   "linhas_codigo": 54921,
   "rotas": 32,

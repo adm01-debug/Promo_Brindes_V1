@@ -1,10 +1,10 @@
 {
  "meta": {
-  "sha": "e82b4d9d0f345758a7922de7f8df1bc4b2e9854d",
+  "sha": "ab6ea699cce73c57092501d4285b3b545ef5294c",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-18 19:11 UTC",
-  "files_total": 592,
+  "generated_at": "2026-11-18 20:16 UTC",
+  "files_total": 593,
   "code_files": 388,
   "code_lines": 68095,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
@@ -32809,10 +32809,20 @@
   }
  },
  "git": {
-  "sha": "e82b4d9d0f345758a7922de7f8df1bc4b2e9854d",
+  "sha": "ab6ea699cce73c57092501d4285b3b545ef5294c",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "ab6ea69",
+    "date": "2026-11-18",
+    "author": "adm01-debug",
+    "subject": "infra(graphify): cria o requirements-graphify.in que o comentario citava e nao existia (#197)",
+    "files": [
+     "requirements-graphify.in",
+     "requirements-graphify.txt"
+    ]
+   },
    {
     "sha": "e82b4d9",
     "date": "2026-11-18",
@@ -33136,18 +33146,6 @@
     "files": [
      "e2e/smoke.spec.ts"
     ]
-   },
-   {
-    "sha": "6711278",
-    "date": "2026-11-17",
-    "author": "adm01-debug",
-    "subject": "fix(seo): landing de ideias entrega um único título ao buscador (#169)",
-    "files": [
-     "api/site-page.ts",
-     "shared/ideaLandingPages.ts",
-     "src/lib/ideaLandings.ts",
-     "tests/api/site-page.test.ts"
-    ]
    }
   ],
   "hot_files": [
@@ -33196,10 +33194,6 @@
     2
    ],
    [
-    "src/lib/ideaLandings.ts",
-    2
-   ],
-   [
     "docs/GRAPHIFY.md",
     2
    ],
@@ -33212,12 +33206,12 @@
     2
    ],
    [
-    "api/site-page.ts",
-    2
+    "requirements-graphify.in",
+    1
    ],
    [
-    "tests/api/site-page.test.ts",
-    2
+    "requirements-graphify.txt",
+    1
    ],
    [
     "docs/AUDITORIA_REFS_AUTOSAVE_20261118.md",
@@ -33229,6 +33223,10 @@
    ],
    [
     "tests/catalog-public-contract.node.mjs",
+    1
+   ],
+   [
+    "docs/MATRIZ_RISCO_CAMADA_TESTE.md",
     1
    ]
   ]
