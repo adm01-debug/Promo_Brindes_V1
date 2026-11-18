@@ -1,5 +1,18 @@
 # Dependências do Graphify CLI — fixadas para builds reproduzíveis.
-# Para regenerar com hashes: pip-compile requirements-graphify.in --generate-hashes -o requirements-graphify.txt
+# Versões diretas vivem em requirements-graphify.in; este arquivo é o que a CI e
+# o hook de sessão instalam.
 # Atualizar também graphifyVersion em .graphify.project.json quando mudar a versão.
+#
+# SOBRE HASHES (--generate-hashes), medido em 18/11/2026 antes de aplicar:
+#   uv pip compile requirements-graphify.in --generate-hashes -o requirements-graphify.txt
+# resolve as transitivas e gera 571 linhas, mas escreve a linha principal como
+# `graphifyy==0.9.105` — SEM o extra `[sql]`. Isso quebra o leitor de versão de
+# .claude/hooks/session-start.sh:73, que casa `^graphifyy\[sql\]==`: o resultado
+# fica vazio, a checagem de versão se perde e o hook reinstala a cada sessão.
+# Além disso este arquivo é instalado por .github/workflows/graphify.yml:43 (o
+# check obrigatório "Build structural Graphify map") e por contexto.yml:156, e
+# `pip install -r` com hashes é estrito. Por isso a mudança para hashes precisa
+# vir junto com o ajuste daquele leitor, e é decisão do dono — não foi aplicada
+# aqui para não alterar o que a CI instala.
 graphifyy[sql]==0.9.105
 tree_sitter_sql==0.3.13
