@@ -388,6 +388,8 @@ Esforço: GRANDE · Depende de segredo: não
 
 Busca negativa: `git log --oneline --since=2026-10-11 -- docs/MATRIZ_FECHAMENTO_PLANOS_20260912.csv docs/MATRIZ_INDEX.md` → saída vazia. Último commit da matriz: `git log -1 --format="%ad %H" -- docs/MATRIZ_FECHAMENTO_PLANOS_20260912.csv` → Tue Sep 22 2026, dafd3d9 (mesmo SHA citado pela auditoria). docs/MATRIZ_INDEX.md:15 ainda chama o CSV de 12/09 de "Fonte vigente dos 230 requisitos" e docs/MATRIZ_INDEX.md:19 ainda declara "Distribuição vigente: 118 I / 100 P / 1 N / 11 E". Nenhum documento novo de reconciliação em docs/ (`ls docs/ | grep -i matriz|reconcil` só devolve os CSVs de 11/09, 12/09 e o RUNBOOK_RECONCILIACAO_LEDGER.md, que trata do ledger de migrations, não dos 230 requisitos).
 
+**Reconciliação com esta árvore:** fechado o dano real, recusada a parte caríssima. O documento afirmava um estado atual que ninguém verificara: `docs/MATRIZ_INDEX.md:15` chamava o CSV de 12/09 de "Fonte vigente" e `:19` declarava "Distribuição vigente: 118 I / 100 P / 1 N / 11 E". A última revisão de conteúdo daquele arquivo é de 22/09/2026 (`dafd3d9`) e desde então a `main` recebeu 190 commits em 93 pull requests, nenhuma tocando o arquivo — logo a distribuição citada subestima o que foi entregue. As duas frases passaram a ser datadas em vez de "vigentes", com o tamanho da defasagem escrito. **Não** reconciliei linha a linha os 230 requisitos: é esforço de dias sobre planos de setembro, sem efeito no comportamento do site, e segue previsto nas etapas 002-003 e 099 do plano de fechamento. O que importava era parar de afirmar um número que ninguém pode sustentar.
+
 ### PF-111 — AINDA ABERTO
 
 Esforço: MEDIO · Depende de segredo: não
