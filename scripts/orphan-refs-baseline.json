@@ -1,0 +1,209 @@
+{
+  "note": "Blobs de refs/autosave/* auditados contra a main em 18/11/2026. Metodo e vereditos item a item: docs/AUDITORIA_REFS_AUTOSAVE_20261118.md. Nao acrescente entrada sem ler o conteudo do blob: a linha de base silencia a guarda.",
+  "triaged": [
+    {
+      "blob": "4115cdc503545b6d51fa1e07286edf087dc9cf50",
+      "ref": "autosave/branches/backup/pre-pr33-local-main-20260923",
+      "path": "site-supabase/supabase/tests/database/customer_occasion_favorites.test.sql",
+      "verdict": "revisao anterior do pgTAP de favoritos, superada na main"
+    },
+    {
+      "blob": "0ca4b43dad6d4d513a04c6ed3722e20ca41c8c78",
+      "ref": "autosave/branches/claude/chore-manutencao-local-261110-0831",
+      "path": "package.json",
+      "verdict": "a main tem a versao evoluida: statePath com REPO_AUTOMATION_STATE, e acquire com verificacao de dono por PID em scripts/graphify-local.mjs"
+    },
+    {
+      "blob": "78d1e93146000e1964e1f7ea9d98fa391d96f52b",
+      "ref": "autosave/branches/claude/chore-manutencao-local-261110-0831",
+      "path": "scripts/maintenance/config.json",
+      "verdict": "a main tem a versao evoluida: statePath com REPO_AUTOMATION_STATE, e acquire com verificacao de dono por PID em scripts/graphify-local.mjs"
+    },
+    {
+      "blob": "223438df67eeb81029833ec4450655dfe16d43ce",
+      "ref": "autosave/branches/claude/chore-manutencao-local-261110-0831",
+      "path": "scripts/maintenance/lib.mjs",
+      "verdict": "a main tem a versao evoluida: statePath com REPO_AUTOMATION_STATE, e acquire com verificacao de dono por PID em scripts/graphify-local.mjs"
+    },
+    {
+      "blob": "5da8f234f08832a7d1ce4860212e4ff1670d97b3",
+      "ref": "autosave/branches/claude/chore-manutencao-local-261110-0831",
+      "path": "scripts/maintenance/maintenance.unit.mjs",
+      "verdict": "a main tem a versao evoluida: statePath com REPO_AUTOMATION_STATE, e acquire com verificacao de dono por PID em scripts/graphify-local.mjs"
+    },
+    {
+      "blob": "8eb24b6fe19d3b4072807161e9fb101655418e57",
+      "ref": "autosave/branches/claude/chore-manutencao-local-261110-0831",
+      "path": "scripts/maintenance/README.md",
+      "verdict": "a main tem a versao evoluida: statePath com REPO_AUTOMATION_STATE, e acquire com verificacao de dono por PID em scripts/graphify-local.mjs"
+    },
+    {
+      "blob": "be4d4622140e62098e2382982807e4f32baf48c2",
+      "ref": "autosave/branches/claude/chore-manutencao-local-261110-0831",
+      "path": "scripts/maintenance/run.mjs",
+      "verdict": "a main tem a versao evoluida: statePath com REPO_AUTOMATION_STATE, e acquire com verificacao de dono por PID em scripts/graphify-local.mjs"
+    },
+    {
+      "blob": "eff16db945f8edaaba6fbe2af05856c3fa78de04",
+      "ref": "autosave/branches/claude/chore-manutencao-local-261110-0831",
+      "path": "scripts/maintenance/run.sh",
+      "verdict": "a main tem a versao evoluida: statePath com REPO_AUTOMATION_STATE, e acquire com verificacao de dono por PID em scripts/graphify-local.mjs"
+    },
+    {
+      "blob": "5fbb95130de1b3812cafc72e47d1653b2f3babd5",
+      "ref": "autosave/branches/claude/chore-manutencao-local-261110-0831",
+      "path": "scripts/maintenance/typecheck.mjs",
+      "verdict": "a main tem a versao evoluida: statePath com REPO_AUTOMATION_STATE, e acquire com verificacao de dono por PID em scripts/graphify-local.mjs"
+    },
+    {
+      "blob": "9661e8b9f2b703850d2f9a097850b07fc057814a",
+      "ref": "autosave/branches/feat/carnegie-briefing-confirmation",
+      "path": "e2e/smoke.spec.ts",
+      "verdict": "revisao de 29/10/2026 anterior a main: funcionalidade presente hoje com outra nomenclatura de classe e marcacao"
+    },
+    {
+      "blob": "3c6847ea5dbed0fa9f7d262e20a17a0b281454ec",
+      "ref": "autosave/branches/feat/carnegie-briefing-confirmation",
+      "path": "src/components/CampaignFinder.tsx",
+      "verdict": "revisao de 29/10/2026 anterior a main: funcionalidade presente hoje com outra nomenclatura de classe e marcacao"
+    },
+    {
+      "blob": "41210554f4b8de8633125aff2914afed128a0c33",
+      "ref": "autosave/branches/feat/carnegie-briefing-confirmation",
+      "path": "src/lib/useInitialSuccessScroll.test.tsx",
+      "verdict": "revisao de 29/10/2026 anterior a main: funcionalidade presente hoje com outra nomenclatura de classe e marcacao"
+    },
+    {
+      "blob": "311631b8a8dfd60f455ebe70fcce39b24770e3ed",
+      "ref": "autosave/branches/feat/carnegie-briefing-confirmation",
+      "path": "src/lib/useInitialSuccessScroll.ts",
+      "verdict": "revisao de 29/10/2026 anterior a main: funcionalidade presente hoje com outra nomenclatura de classe e marcacao"
+    },
+    {
+      "blob": "bcd577868d2a82b901677c4872c2f02c955856c5",
+      "ref": "autosave/branches/feat/carnegie-briefing-confirmation",
+      "path": "src/pages/QuotePage.tsx",
+      "verdict": "revisao de 29/10/2026 anterior a main: funcionalidade presente hoje com outra nomenclatura de classe e marcacao"
+    },
+    {
+      "blob": "f21384d19b49b2a3eea274f80b938bdc35cbf4bd",
+      "ref": "autosave/branches/feat/carnegie-briefing-confirmation",
+      "path": "src/styles.css",
+      "verdict": "revisao de 29/10/2026 anterior a main: funcionalidade presente hoje com outra nomenclatura de classe e marcacao"
+    },
+    {
+      "blob": "184397a788be0578572cf62223c8d542964905ec",
+      "ref": "autosave/branches/fix/pr-102-merge",
+      "path": "package-lock.json",
+      "verdict": "revisao de 29/10/2026 anterior a main: funcionalidade presente hoje com outra nomenclatura de classe e marcacao"
+    },
+    {
+      "blob": "6adc00229968baf00dc9af912a2f1442a3cf1226",
+      "ref": "autosave/branches/fix/pr-102-merge",
+      "path": "src/components/ProductCard.tsx",
+      "verdict": "revisao de 29/10/2026 anterior a main: funcionalidade presente hoje com outra nomenclatura de classe e marcacao"
+    },
+    {
+      "blob": "d8d5c7cc5c947db79a6b08411a89560e577af862",
+      "ref": "autosave/branches/fix/pr-102-merge",
+      "path": "src/pages/ProductPage.tsx",
+      "verdict": "revisao de 29/10/2026 anterior a main: funcionalidade presente hoje com outra nomenclatura de classe e marcacao"
+    },
+    {
+      "blob": "8ba1e4b2baa3a04aff3ab025fbd0772647378bb1",
+      "ref": "autosave/branches/fix/product-card-clean-image-background",
+      "path": "src/styles.css",
+      "verdict": "revisao de 29/10/2026 anterior a main: funcionalidade presente hoje com outra nomenclatura de classe e marcacao"
+    },
+    {
+      "blob": "dafa5fdb45098392ecbfc523dc231f82c8f215a3",
+      "ref": "autosave/branches/integration/preview-94-102",
+      "path": "e2e/smoke.spec.ts",
+      "verdict": "revisao de 29/10/2026 anterior a main: funcionalidade presente hoje com outra nomenclatura de classe e marcacao"
+    },
+    {
+      "blob": "9c9c76ac24d006cd6594bd012726fd8268665ecf",
+      "ref": "autosave/branches/integration/preview-94-102",
+      "path": "src/pages/QuotePage.tsx",
+      "verdict": "revisao de 29/10/2026 anterior a main: funcionalidade presente hoje com outra nomenclatura de classe e marcacao"
+    },
+    {
+      "blob": "4a0f9c6053e0089f4f638605f3744eb776f45126",
+      "ref": "autosave/branches/integration/preview-94-102",
+      "path": "src/styles.css",
+      "verdict": "revisao de 29/10/2026 anterior a main: funcionalidade presente hoje com outra nomenclatura de classe e marcacao"
+    },
+    {
+      "blob": "e2331caf5e4e1bfee022affe4856ad99deaff9c4",
+      "ref": "autosave/claude/chore-manutencao-local-261110-0831",
+      "path": ".gitignore",
+      "verdict": "a main tem a versao evoluida: statePath com REPO_AUTOMATION_STATE, e acquire com verificacao de dono por PID em scripts/graphify-local.mjs"
+    },
+    {
+      "blob": "7b094d9e90234854c56ef40e7acbacda6c6f58e0",
+      "ref": "autosave/claude/chore-manutencao-local-261110-0831",
+      "path": "graphify.local.json",
+      "verdict": "a main tem a versao evoluida: statePath com REPO_AUTOMATION_STATE, e acquire com verificacao de dono por PID em scripts/graphify-local.mjs"
+    },
+    {
+      "blob": "1910542d3c1c278cfb62510ee5bc086f27f53280",
+      "ref": "autosave/claude/chore-manutencao-local-261110-0831",
+      "path": "package.json",
+      "verdict": "a main tem a versao evoluida: statePath com REPO_AUTOMATION_STATE, e acquire com verificacao de dono por PID em scripts/graphify-local.mjs"
+    },
+    {
+      "blob": "303872cb6f4b379da84fd25478199fcfe0f3bab8",
+      "ref": "autosave/claude/chore-manutencao-local-261110-0831",
+      "path": "scripts/automation.config.json",
+      "verdict": "a main tem a versao evoluida: statePath com REPO_AUTOMATION_STATE, e acquire com verificacao de dono por PID em scripts/graphify-local.mjs"
+    },
+    {
+      "blob": "1e678df59bfcfb248610e1abc82a87dd6a5658e2",
+      "ref": "autosave/claude/chore-manutencao-local-261110-0831",
+      "path": "scripts/automation.mjs",
+      "verdict": "a main tem a versao evoluida: statePath com REPO_AUTOMATION_STATE, e acquire com verificacao de dono por PID em scripts/graphify-local.mjs"
+    },
+    {
+      "blob": "297a13dfc539d1a6c0e89a052c377d23d6aa291a",
+      "ref": "autosave/claude/chore-manutencao-local-261110-0831",
+      "path": "scripts/automation.unit.mjs",
+      "verdict": "a main tem a versao evoluida: statePath com REPO_AUTOMATION_STATE, e acquire com verificacao de dono por PID em scripts/graphify-local.mjs"
+    },
+    {
+      "blob": "c143fa90815444f6adb8a51b86cfe249a6e90f88",
+      "ref": "autosave/claude/chore-manutencao-local-261110-0831",
+      "path": "scripts/graphify-local.unit.mjs",
+      "verdict": "a main tem a versao evoluida: statePath com REPO_AUTOMATION_STATE, e acquire com verificacao de dono por PID em scripts/graphify-local.mjs"
+    },
+    {
+      "blob": "72830c0a14dfcb35153c169a0be2c6bb15ab81e5",
+      "ref": "autosave/claude/chore-manutencao-local-261110-0831",
+      "path": "scripts/maintenance/lib.mjs",
+      "verdict": "a main tem a versao evoluida: statePath com REPO_AUTOMATION_STATE, e acquire com verificacao de dono por PID em scripts/graphify-local.mjs"
+    },
+    {
+      "blob": "f5f50006753972c705bef65546c3dcf88fea8149",
+      "ref": "autosave/claude/feat-prod-readiness-261113-2010",
+      "path": "docs/prod-readiness.md",
+      "verdict": "relatorio datado de 13/11/2026 cujo sucessor na main e de 13-14/11 e resolve os itens que estavam aguardando"
+    },
+    {
+      "blob": "8ac2c97d7b4f2d45e0252330e31c2e3edbd30ce4",
+      "ref": "autosave/feat/carnegie-briefing-confirmation",
+      "path": "package-lock.json",
+      "verdict": "revisao de 29/10/2026 anterior a main: funcionalidade presente hoje com outra nomenclatura de classe e marcacao"
+    },
+    {
+      "blob": "39935a1aefbb96318e0fbd412c6b44091ac13997",
+      "ref": "autosave/feat/carnegie-briefing-confirmation",
+      "path": "package.json",
+      "verdict": "revisao de 29/10/2026 anterior a main: funcionalidade presente hoje com outra nomenclatura de classe e marcacao"
+    },
+    {
+      "blob": "059a93911b96feb7729225543e612eafc5432800",
+      "ref": "autosave/stash/085205b8ecf5",
+      "path": "tests/api/lead-requests.test.ts",
+      "verdict": "descartado pelo proprio autor, motivo na mensagem do stash: RECENT_INSTANT quebra 9 testes"
+    }
+  ]
+}
