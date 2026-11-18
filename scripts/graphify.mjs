@@ -175,17 +175,65 @@ function ensureWithinRoot(root, candidate) {
   throw new Error(`Caminho fora da raiz recusado: ${candidate}`);
 }
 
-function listSourceFiles(root, roots) {
+// O `.graphifyignore` entrava apenas na impressão digital do grafo: um padrão
+// novo no arquivo invalidava o artefato mas não excluía nada da indexação. Ler
+// os padrões aqui faz o arquivo valer para o que ele promete governar.
+const GRAPH_IGNORE_FILE = '.graphifyignore';
+
+export function loadGraphIgnorePatterns(root) {
+  let raw;
+  try {
+    raw = fs.readFileSync(path.join(root, GRAPH_IGNORE_FILE), 'utf8');
+  } catch (error) {
+    if (error?.code === 'ENOENT') return [];
+    throw error;
+  }
+  return raw
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith('#'))
+    .map((line) => {
+      // Recusar é mais seguro que aceitar sem aplicar: um padrão silenciosamente
+      // inerte daria a impressão de uma exclusão que não existe.
+      if (/^!|\*\*|[[\]?]/.test(line)) {
+        throw new Error(`${GRAPH_IGNORE_FILE}: padrão não suportado "${line}". Use "nome", "prefixo/" ou "*.ext".`);
+      }
+      return line.replace(/\\/g, '/').replace(/^\.\//, '');
+    });
+}
+
+function graphIgnoreRegex(pattern) {
+  return pattern.replace(/[.+^${}()|\\]/g, '\\$&').replace(/\*/g, '[^/]*');
+}
+
+export function isGraphIgnored(relativePath, patterns) {
+  const normalized = relativePath.replace(/\\/g, '/');
+  const segments = normalized.split('/').filter(Boolean);
+  return patterns.some((pattern) => {
+    const bare = pattern.replace(/\/$/, '');
+    // Com barra o padrão é ancorado na raiz, como no .gitignore.
+    if (bare.includes('/')) return new RegExp(`^${graphIgnoreRegex(bare)}(/|$)`).test(normalized);
+    // Sem barra vale em qualquer profundidade; `dist/` só casa diretório, por
+    // isso o último segmento (o nome do arquivo) sai do escopo.
+    const scope = pattern.endsWith('/') ? segments.slice(0, -1) : segments;
+    const matches = new RegExp(`^${graphIgnoreRegex(bare)}$`);
+    return scope.some((segment) => matches.test(segment));
+  });
+}
+
+export function listSourceFiles(root, roots) {
   const tracked = execFileSync('git', ['ls-files', '-co', '--exclude-standard', '-z'], { cwd: root, encoding: 'buffer' })
     .toString('utf8')
     .split('\0')
     .filter(Boolean)
     .sort(compareText);
   const allowedRoots = roots.map((entry) => entry.replace(/\\/g, '/').replace(/\/$/, ''));
+  const ignorePatterns = loadGraphIgnorePatterns(root);
   return tracked.filter((relative) => {
     const normalized = relative.replace(/\\/g, '/');
     const isAllowed = allowedRoots.some((allowed) => normalized === allowed || normalized.startsWith(`${allowed}/`));
     if (!isAllowed || normalized.includes('/..') || normalized.startsWith('../')) return false;
+    if (isGraphIgnored(normalized, ignorePatterns)) return false;
     const absolute = path.resolve(root, normalized);
     ensureWithinRoot(root, absolute);
     // `git ls-files -c` ainda lista o arquivo rastreado que foi apagado do disco sem `git rm`.
