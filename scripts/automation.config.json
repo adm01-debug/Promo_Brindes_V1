@@ -314,6 +314,21 @@
       "reason": "Legado mantido no fluxo existente; referências literais: package.json:scripts, .github/workflows/database.yml. O dispatcher não executa esta operação."
     },
     {
+      "id": "legacy-check-orphan-refs",
+      "kind": "legacy",
+      "files": [
+        "scripts/check-orphan-refs.mjs"
+      ],
+      "manual": [
+        "node",
+        "scripts/check-orphan-refs.mjs"
+      ],
+      "triggers": [
+        "manual"
+      ],
+      "reason": "Guarda dos refs fora de refs/heads e refs/pull, no mesmo padrão de validate-env-example.mjs; referências literais: package.json:scripts. O dispatcher não executa esta operação."
+    },
+    {
       "id": "legacy-validate-env-example",
       "kind": "legacy",
       "files": ["scripts/validate-env-example.mjs"],
