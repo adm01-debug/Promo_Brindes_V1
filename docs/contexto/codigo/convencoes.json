@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "fix(graphify): graph:status deixa de exigir npm ci em clone limpo (#196)",
+   "fix(config): comentário de cobertura para de citar contagem de teste que envelhece (#195)",
+   "fix(graphify): scanner de segredos passa a cobrir os formatos que este projeto usa (#194)",
    "test(e2e): favoritos ganham cobertura de reload e de sincronia entre abas (#193)",
-   "feat(api): nome e argumentos de RPC passam a ser checados contra o catálogo do banco (#192)",
-   "chore(código morto): remove os 6 achados da auditoria e cobre a função que a produção usa (#191)",
-   "fix(notificações): fila passa a ser medida mesmo sem provedor configurado (#190)",
-   "feat(retenção): cron drena o lote na mesma execução e ganha orçamento de tempo (#189)"
+   "feat(api): nome e argumentos de RPC passam a ser checados contra o catálogo do banco (#192)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

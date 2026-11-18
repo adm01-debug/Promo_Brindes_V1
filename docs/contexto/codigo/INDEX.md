@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `b1c5c6a186a1b1c7588ef4b176a99a63d0724934` (2026-11-17T22:46:15Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `dbc64798a1421484a18cc24b01ad093adc525855` (2026-11-18T00:09:05Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -36,7 +36,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 |---|---|
 | arquivos_total | 696 |
 | arquivos_codigo | 281 |
-| linhas_codigo | 54798 |
+| linhas_codigo | 54867 |
 | rotas | 32 |
 | rotas_http_backend | 14 |
 | vistas_por_id | 0 |
@@ -307,7 +307,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `UX_AUDIT_REPORT.md` — Auditoria total de design, layout e UX (409 linhas)
 - `docs/AUDITORIA_5_ESPECIALISTAS_20260922.md` — Auditoria técnica dos cinco especialistas — 22/09/2026 (65 linhas)
 - `docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md` — Auditoria de funcionalidades planejadas e não executadas — 11/10/2026 (364 linhas)
-- `docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md` — Verificação das pendências de engenharia — 17/11/2026 (450 linhas)
+- `docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md` — Verificação das pendências de engenharia — 17/11/2026 (459 linhas)
 - `docs/AUDIT_REPORT_20260908.md` — Auditoria técnica consolidada — 08–09/09/2026 (75 linhas)
 - `docs/AUTOMACAO_LOCAL.md` — Automação local — Promo_Brindes_V1 (104 linhas)
 - `docs/CUSTOMER_PORTAL_IMPLEMENTATION_20260909.md` — Área do Cliente — implementação e critérios de aceite (92 linhas)
@@ -381,6 +381,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-17 `dbc6479` fix(graphify): graph:status deixa de exigir npm ci em clone limpo (#196)
+- 2026-11-17 `2a09509` fix(config): comentário de cobertura para de citar contagem de teste que envelhece (#195)
+- 2026-11-17 `b06b1e5` fix(graphify): scanner de segredos passa a cobrir os formatos que este projeto usa (#194)
 - 2026-11-17 `b1c5c6a` test(e2e): favoritos ganham cobertura de reload e de sincronia entre abas (#193)
 - 2026-11-17 `aef900d` feat(api): nome e argumentos de RPC passam a ser checados contra o catálogo do banco (#192)
 - 2026-11-17 `16b15f3` chore(código morto): remove os 6 achados da auditoria e cobre a função que a produção usa (#191)
@@ -393,9 +396,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-17 `108b0b2` fix(portal): estouro de limite deixa de virar "proposta não encontrada" (#183)
 - 2026-11-17 `e166177` fix(catálogo): porta editorial de onboarding deixa de abrir o catálogo inteiro (#182)
 - 2026-11-17 `f95d773` fix(orçamento): para de prometer WhatsApp quando o canal não pode entregar (#181)
-- 2026-11-17 `c61d7f5` infra(ci): gate de auditoria bloqueia pelo escopo que vai ao ar (#188)
-- 2026-11-17 `3b2b02e` feat(observabilidade): queda do catálogo público passa a alertar a equipe (#178)
-- 2026-11-17 `bcf7e33` chore(ci): unifica o rótulo do pin do actions/checkout (#179)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

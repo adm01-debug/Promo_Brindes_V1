@@ -173,8 +173,8 @@
   },
   {
    "arquivo": "scripts/graphify-quality.mjs",
-   "descricao": null,
-   "linhas": 371,
+   "descricao": "* `typescript` e necessario apenas para enriquecer referencias de TS/TSX",
+   "linhas": 395,
    "env": [],
    "npm_scripts": [],
    "workflows": [],
@@ -183,7 +183,7 @@
   {
    "arquivo": "scripts/graphify.mjs",
    "descricao": null,
-   "linhas": 905,
+   "linhas": 914,
    "env": [
     "GRAPHIFY_BIN",
     "GRAPHIFY_TIMEOUT_MS"

@@ -878,11 +878,11 @@
   {
    "arquivo": "tests/graphify-tools.node.mjs",
    "tipo": "unit",
-   "linhas": 611,
+   "linhas": 644,
    "testa": [
     "scripts/graphify.mjs"
    ],
-   "casos": 31
+   "casos": 33
   },
   {
    "arquivo": "tests/inventario-banco-sql.node.mjs",

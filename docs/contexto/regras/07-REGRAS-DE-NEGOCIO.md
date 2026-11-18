@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `b1c5c6a186` · branch `main` · 2026-11-17 23:12 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `dbc64798a1` · branch `main` · 2026-11-18 00:35 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -865,6 +865,7 @@ _nenhum item encontrado_
 | Corpus Graphify inválido: caminho fora do diretório de staging (${relative}). | `scripts/graphify-quality.mjs` |
 | Mapa de banco contém ${nonSqlInDatabase.length} nó(s) fora de SQL. | `scripts/graphify-quality.mjs` |
 | Mapa principal contém ${sqlInMain.length} nó(s) SQL. | `scripts/graphify-quality.mjs` |
+| O enriquecimento de referencias TypeScript precisa da dependencia  | `scripts/graphify-quality.mjs` |
 | ${command} ${args[0] ??  | `scripts/graphify.mjs` |
 | ${command} falhou com ${result.signal ?  | `scripts/graphify.mjs` |
 | Arquivo ${label} inválido: ${candidate} | `scripts/graphify.mjs` |
@@ -1044,7 +1045,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1599 testes em 130 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1601 testes em 130 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1057,7 +1058,7 @@ _nenhum item encontrado_
 | `site-supabase/supabase/tests/database/customer_portal.test.sql` | 41 | orçamento possui titular autenticado opcional · perfil do cliente existe no schema privado · linha do tempo existe no schema privado · metadados de propostas existem no schema privado … |
 | `site-supabase/supabase/tests/database/notification_delivery_status_machine.test.sql` | 40 | pending -> pending (no-op) · pending -> processing · pending -> sent (rejeitado: pula processing) · pending -> failed (rejeitado: pula processing) … |
 | `tests/api/lead-requests.test.ts` | 37 | APIs de leads isoladas · registra contato normalizado pelo RPC server-side · rejeita resposta malformada do banco: %s · repetição idempotente promete envio quando o provedor de WhatsApp existe … |
-| `tests/graphify-tools.node.mjs` | 31 | path encontra menor caminho, identidade e nós desconectados sem inventar relações · explain preserva fonte e confiança e identifica conexões de entrada · nomes ambíguos e símbolos ausentes não escolhem um resultado arbitrário · fingerprint muda ao mudar conteúdo e preserva ordem determinística … |
+| `tests/graphify-tools.node.mjs` | 33 | path encontra menor caminho, identidade e nós desconectados sem inventar relações · explain preserva fonte e confiança e identifica conexões de entrada · nomes ambíguos e símbolos ausentes não escolhem um resultado arbitrário · fingerprint muda ao mudar conteúdo e preserva ordem determinística … |
 | `site-supabase/supabase/tests/database/notification_provider_events.test.sql` | 30 | entrega ganha estado terminal pós-aceite (Etapa 30) · devolução guarda a categoria curta do provedor · reclamação é rastreada independentemente da entrega · deduplicação de eventos de webhook fica em tabela própria … |
 | `tests/api/notifications.test.ts` | 29 | worker de comprovantes do orçamento · recusa chamada sem o segredo agendado · não reivindica a fila enquanto nenhum provedor estiver configurado, mas mede o tamanho dela · fila velha sem provedor configurado alerta o canal operacional … |
 | `tests/validate-agent-instructions.node.mjs` | 28 | aceita AGENTS.md com todas as seções obrigatórias · acusa seção obrigatória apagada por outra sessão · ${CLAUDE_FILE} precisa ser exatamente o import do ${AGENTS_FILE} · acusa referência quebrada e referência órfã em docs/agentes … |

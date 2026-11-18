@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "b1c5c6a186a1b1c7588ef4b176a99a63d0724934",
+  "sha": "dbc64798a1421484a18cc24b01ad093adc525855",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-17 23:12 UTC",
+  "generated_at": "2026-11-18 00:35 UTC",
   "files_total": 590,
   "code_files": 388,
-  "code_lines": 67972,
+  "code_lines": 68041,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "b7d8fedc3c084767",
+ "facts_hash": "d9982c2a34910791",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -7045,7 +7045,7 @@
   {
    "module": "(raiz)",
    "files": 3,
-   "lines": 234,
+   "lines": 237,
    "tables": [],
    "exports": [
     "eslint.config.js: tseslint",
@@ -7253,7 +7253,7 @@
   {
    "module": "scripts",
    "files": 42,
-   "lines": 21341,
+   "lines": 21374,
    "tables": [
     "a",
     "contacts",
@@ -7896,7 +7896,7 @@
   {
    "module": "tests",
    "files": 45,
-   "lines": 10029,
+   "lines": 10062,
    "tables": [
     "constructor",
     "quote_requests",
@@ -9464,6 +9464,10 @@
    {
     "file": "scripts/graphify-quality.mjs",
     "msg": "Mapa principal contém ${sqlInMain.length} nó(s) SQL."
+   },
+   {
+    "file": "scripts/graphify-quality.mjs",
+    "msg": "O enriquecimento de referencias TypeScript precisa da dependencia "
    },
    {
     "file": "scripts/graphify.mjs",
@@ -17253,6 +17257,14 @@
    },
    {
     "file": "tests/graphify-tools.node.mjs",
+    "name": "varredura bloqueia os formatos de segredo que este projeto usa"
+   },
+   {
+    "file": "tests/graphify-tools.node.mjs",
+    "name": "varredura nao acusa o prefixo de segredo que aparece em codigo legitimo"
+   },
+   {
+    "file": "tests/graphify-tools.node.mjs",
     "name": "varredura bloqueia famílias adicionais de token antes do upload"
    },
    {
@@ -24181,7 +24193,7 @@
   },
   "vite.config.ts": {
    "path": "vite.config.ts",
-   "lines": 66,
+   "lines": 69,
    "exports": [
     "default defineConfig"
    ],
@@ -25579,7 +25591,7 @@
   },
   "scripts/graphify-quality.mjs": {
    "path": "scripts/graphify-quality.mjs",
-   "lines": 371,
+   "lines": 395,
    "exports": [
     "function stageCorpusFiles",
     "function splitGraphSourceFiles",
@@ -25591,7 +25603,11 @@
    "errors": [
     "Corpus Graphify inválido: caminho fora do diretório de staging (${relative}).",
     "Mapa de banco contém ${nonSqlInDatabase.length} nó(s) fora de SQL.",
-    "Mapa principal contém ${sqlInMain.length} nó(s) SQL."
+    "Mapa principal contém ${sqlInMain.length} nó(s) SQL.",
+    "O enriquecimento de referencias TypeScript precisa da dependencia "
+   ],
+   "rule_comments": [
+    "* `typescript` e necessario apenas para enriquecer referencias de TS/TSX"
    ],
    "calc_fns": [
     {
@@ -25603,7 +25619,7 @@
   },
   "scripts/graphify.mjs": {
    "path": "scripts/graphify.mjs",
-   "lines": 905,
+   "lines": 914,
    "exports": [
     "const GRAPH_FINGERPRINT_CONFIG_FILES",
     "function assertSafeRoot",
@@ -31735,7 +31751,7 @@
   },
   "tests/graphify-tools.node.mjs": {
    "path": "tests/graphify-tools.node.mjs",
-   "lines": 611,
+   "lines": 644,
    "is_test": true,
    "enums": [
     {
@@ -31763,6 +31779,8 @@
     "validação impede mistura entre mapa principal e mapa SQL",
     "benchmark exige recuperação pelo grafo e busca direta para cada cenário",
     "varredura de artefatos identifica token de exemplo sem expor o valor",
+    "varredura bloqueia os formatos de segredo que este projeto usa",
+    "varredura nao acusa o prefixo de segredo que aparece em codigo legitimo",
     "varredura bloqueia famílias adicionais de token antes do upload",
     "CLI chamado por caminho com symlink executa em vez de sair com 0 em silêncio",
     "--help e -h mostram o uso com código 0; comando desconhecido continua falhando",
@@ -32775,10 +32793,39 @@
   }
  },
  "git": {
-  "sha": "b1c5c6a186a1b1c7588ef4b176a99a63d0724934",
+  "sha": "dbc64798a1421484a18cc24b01ad093adc525855",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "dbc6479",
+    "date": "2026-11-17",
+    "author": "adm01-debug",
+    "subject": "fix(graphify): graph:status deixa de exigir npm ci em clone limpo (#196)",
+    "files": [
+     "scripts/graphify-quality.mjs"
+    ]
+   },
+   {
+    "sha": "2a09509",
+    "date": "2026-11-17",
+    "author": "adm01-debug",
+    "subject": "fix(config): comentário de cobertura para de citar contagem de teste que envelhece (#195)",
+    "files": [
+     "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
+     "vite.config.ts"
+    ]
+   },
+   {
+    "sha": "b06b1e5",
+    "date": "2026-11-17",
+    "author": "adm01-debug",
+    "subject": "fix(graphify): scanner de segredos passa a cobrir os formatos que este projeto usa (#194)",
+    "files": [
+     "scripts/graphify.mjs",
+     "tests/graphify-tools.node.mjs"
+    ]
+   },
    {
     "sha": "b1c5c6a",
     "date": "2026-11-17",
@@ -33088,43 +33135,12 @@
      "src/pages/HomePage.tsx",
      "src/styles.css"
     ]
-   },
-   {
-    "sha": "bbfb77a",
-    "date": "2026-11-17",
-    "author": "adm01-debug",
-    "subject": "infra(release): o release aplica as migrations do banco isolado (#165)",
-    "files": [
-     ".github/workflows/release.yml",
-     "AGENTS.md",
-     "docs/agentes/banco.md"
-    ]
-   },
-   {
-    "sha": "cc68e42",
-    "date": "2026-11-17",
-    "author": "adm01-debug",
-    "subject": "fix(orcamento): o consentimento de WhatsApp descreve o que o sistema envia (#160)",
-    "files": [
-     "e2e/smoke.spec.ts",
-     "src/pages/QuotePage.tsx"
-    ]
-   },
-   {
-    "sha": "0600922",
-    "date": "2026-11-17",
-    "author": "adm01-debug",
-    "subject": "fix(ci): separa o teto de performance de producao do teto de pior caso (#164)",
-    "files": [
-     ".github/workflows/quality.yml",
-     "scripts/check-performance-budget.mjs"
-    ]
    }
   ],
   "hot_files": [
    [
     "e2e/smoke.spec.ts",
-    5
+    4
    ],
    [
     "api/_lib/siteDatabase.ts",
@@ -33139,12 +33155,12 @@
     3
    ],
    [
-    ".github/workflows/quality.yml",
+    "src/pages/IdeaLandingPage.tsx",
     3
    ],
    [
-    "src/pages/IdeaLandingPage.tsx",
-    3
+    "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
+    2
    ],
    [
     "tests/api/notifications.test.ts",
@@ -33163,11 +33179,7 @@
     2
    ],
    [
-    "src/pages/QuotePage.tsx",
-    2
-   ],
-   [
-    ".github/workflows/release.yml",
+    ".github/workflows/quality.yml",
     2
    ],
    [
@@ -33191,15 +33203,19 @@
     2
    ],
    [
-    "e2e/favorites.spec.ts",
+    "scripts/graphify-quality.mjs",
     1
    ],
    [
-    "api/_lib/siteRpcContract.ts",
+    "vite.config.ts",
     1
    ],
    [
-    "api/notification-events-resend.ts",
+    "scripts/graphify.mjs",
+    1
+   ],
+   [
+    "tests/graphify-tools.node.mjs",
     1
    ]
   ]

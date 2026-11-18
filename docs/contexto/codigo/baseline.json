@@ -2,11 +2,26 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "b1c5c6a186a1b1c7588ef4b176a99a63d0724934",
+  "commit": "dbc64798a1421484a18cc24b01ad093adc525855",
   "branch": "main",
-  "data_commit": "2026-11-17T22:46:15Z",
+  "data_commit": "2026-11-18T00:09:05Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "dbc6479",
+    "data": "2026-11-17",
+    "assunto": "fix(graphify): graph:status deixa de exigir npm ci em clone limpo (#196)"
+   },
+   {
+    "sha": "2a09509",
+    "data": "2026-11-17",
+    "assunto": "fix(config): comentário de cobertura para de citar contagem de teste que envelhece (#195)"
+   },
+   {
+    "sha": "b06b1e5",
+    "data": "2026-11-17",
+    "assunto": "fix(graphify): scanner de segredos passa a cobrir os formatos que este projeto usa (#194)"
+   },
    {
     "sha": "b1c5c6a",
     "data": "2026-11-17",
@@ -116,24 +131,9 @@
     "sha": "b8870bf",
     "data": "2026-11-17",
     "assunto": "chore(docs): runbook do graphify passa a declarar o pin real (#171)"
-   },
-   {
-    "sha": "1d2fa0a",
-    "data": "2026-11-17",
-    "assunto": "test(e2e): trava os destinos editoriais da home e do rodapé (#170)"
-   },
-   {
-    "sha": "6711278",
-    "data": "2026-11-17",
-    "assunto": "fix(seo): landing de ideias entrega um único título ao buscador (#169)"
-   },
-   {
-    "sha": "d539fb2",
-    "data": "2026-11-17",
-    "assunto": "feat(analytics): mede o funil das landings de ideias (#168)"
    }
   ],
-  "arquivos_mudados_7d": 131,
+  "arquivos_mudados_7d": 134,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -172,6 +172,10 @@
     "mudancas": 5
    },
    {
+    "pasta": "scripts/graphify.mjs",
+    "mudancas": 5
+   },
+   {
     "pasta": ".github/workflows/codeql.yml",
     "mudancas": 4
    },
@@ -185,10 +189,6 @@
    },
    {
     "pasta": "requirements-graphify.txt",
-    "mudancas": 4
-   },
-   {
-    "pasta": "scripts/graphify.mjs",
     "mudancas": 4
    },
    {
@@ -294,14 +294,14 @@
     "mudancas": 14
    },
    {
-    "arquivo": "src/components/QuoteDrawer.tsx",
+    "arquivo": "scripts/graphify.mjs",
     "mudancas": 14
    }
   ],
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 77
+    "commits": 80
    },
    {
     "autor": "dependabot[bot]",
@@ -312,7 +312,7 @@
  "contagens": {
   "arquivos_total": 696,
   "arquivos_codigo": 281,
-  "linhas_codigo": 54798,
+  "linhas_codigo": 54867,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -468,11 +468,11 @@
   },
   "scripts/graphify-quality.mjs": {
    "arquivos": 1,
-   "linhas": 371
+   "linhas": 395
   },
   "scripts/graphify.mjs": {
    "arquivos": 1,
-   "linhas": 905
+   "linhas": 914
   },
   "scripts/inventario": {
    "arquivos": 2,
@@ -616,7 +616,7 @@
   },
   "tests/graphify-tools.node.mjs": {
    "arquivos": 1,
-   "linhas": 611
+   "linhas": 644
   },
   "tests/inventario-banco-sql.node.mjs": {
    "arquivos": 1,
@@ -688,7 +688,7 @@
   },
   "vite.config.ts": {
    "arquivos": 1,
-   "linhas": 66
+   "linhas": 69
   }
  },
  "maiores_arquivos": [
@@ -722,7 +722,7 @@
   },
   {
    "arquivo": "scripts/graphify.mjs",
-   "linhas": 905
+   "linhas": 914
   },
   {
    "arquivo": "scripts/maintenance/run.mjs",
@@ -757,12 +757,12 @@
    "linhas": 409
   },
   {
-   "arquivo": "src/pages/HomePage.tsx",
-   "linhas": 380
+   "arquivo": "scripts/graphify-quality.mjs",
+   "linhas": 395
   },
   {
-   "arquivo": "scripts/graphify-quality.mjs",
-   "linhas": 371
+   "arquivo": "src/pages/HomePage.tsx",
+   "linhas": 380
   },
   {
    "arquivo": "src/pages/CommemorativeDatesPage.tsx",
