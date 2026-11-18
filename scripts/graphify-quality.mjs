@@ -1,6 +1,30 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import ts from 'typescript';
+import { createRequire } from 'node:module';
+
+const requireFromModule = createRequire(import.meta.url);
+let cachedTypeScript = null;
+
+/**
+ * `typescript` e necessario apenas para enriquecer referencias de TS/TSX
+ * (enrichTypeScriptReferences). Carregado no topo, ele quebrava todo comando
+ * `graph:*` num clone sem `npm ci` — inclusive `graph:status`, que nao analisa
+ * codigo nenhum. Sob demanda, so quem precisa paga, e a falta da dependencia
+ * passa a dizer o que fazer em vez de estourar ERR_MODULE_NOT_FOUND.
+ */
+function typeScriptApi() {
+  if (cachedTypeScript) return cachedTypeScript;
+  try {
+    cachedTypeScript = requireFromModule('typescript');
+  } catch (error) {
+    throw new Error(
+      'O enriquecimento de referencias TypeScript precisa da dependencia `typescript`. '
+      + 'Rode `npm ci` antes de `npm run graph:update`.',
+      { cause: error },
+    );
+  }
+  return cachedTypeScript;
+}
 
 const TYPESCRIPT_EXTENSIONS = new Set(['.ts', '.tsx']);
 const CONFIGURATION_BASENAMES = new Set([
@@ -70,27 +94,27 @@ function graphNodeByLabel(graph, sourceFile, labels) {
 }
 
 function declarationName(node) {
-  return node.name && ts.isIdentifier(node.name) ? node.name.text : '';
+  return node.name && typeScriptApi().isIdentifier(node.name) ? node.name.text : '';
 }
 
 function declarationKind(node) {
-  return ts.isInterfaceDeclaration(node)
-    || ts.isTypeAliasDeclaration(node)
-    || ts.isClassDeclaration(node)
-    || ts.isEnumDeclaration(node);
+  return typeScriptApi().isInterfaceDeclaration(node)
+    || typeScriptApi().isTypeAliasDeclaration(node)
+    || typeScriptApi().isClassDeclaration(node)
+    || typeScriptApi().isEnumDeclaration(node);
 }
 
 function typeReferenceName(node) {
-  if (ts.isTypeReferenceNode(node)) {
-    if (ts.isIdentifier(node.typeName)) return node.typeName.text;
+  if (typeScriptApi().isTypeReferenceNode(node)) {
+    if (typeScriptApi().isIdentifier(node.typeName)) return node.typeName.text;
     return node.typeName.right.text;
   }
-  if (ts.isExpressionWithTypeArguments(node)) {
-    if (ts.isIdentifier(node.expression)) return node.expression.text;
-    if (ts.isPropertyAccessExpression(node.expression)) return node.expression.name.text;
+  if (typeScriptApi().isExpressionWithTypeArguments(node)) {
+    if (typeScriptApi().isIdentifier(node.expression)) return node.expression.text;
+    if (typeScriptApi().isPropertyAccessExpression(node.expression)) return node.expression.name.text;
   }
-  if (ts.isTypeQueryNode(node)) {
-    if (ts.isIdentifier(node.exprName)) return node.exprName.text;
+  if (typeScriptApi().isTypeQueryNode(node)) {
+    if (typeScriptApi().isIdentifier(node.exprName)) return node.exprName.text;
     return node.exprName.right.text;
   }
   return '';
@@ -98,12 +122,12 @@ function typeReferenceName(node) {
 
 function ownerLabels(node) {
   for (let current = node.parent; current; current = current.parent) {
-    if (ts.isFunctionDeclaration(current) && current.name) return [`${current.name.text}()`];
-    if (ts.isMethodDeclaration(current) && current.name) {
+    if (typeScriptApi().isFunctionDeclaration(current) && current.name) return [`${current.name.text}()`];
+    if (typeScriptApi().isMethodDeclaration(current) && current.name) {
       const name = current.name.getText().replace(/^['"]|['"]$/gu, '');
       return [`${name}()`, `.${name}()`];
     }
-    if ((ts.isArrowFunction(current) || ts.isFunctionExpression(current)) && ts.isVariableDeclaration(current.parent)) {
+    if ((typeScriptApi().isArrowFunction(current) || typeScriptApi().isFunctionExpression(current)) && typeScriptApi().isVariableDeclaration(current.parent)) {
       const name = current.parent.name.getText();
       return [`${name}()`, name];
     }
@@ -185,7 +209,7 @@ export function enrichTypeScriptReferences(graphPath, scanRoot, sourceFiles) {
 
   for (const relative of normalizedFiles) {
     const text = fs.readFileSync(path.join(scanRoot, relative), 'utf8');
-    const source = ts.createSourceFile(relative, text, ts.ScriptTarget.Latest, true, relative.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
+    const source = typeScriptApi().createSourceFile(relative, text, typeScriptApi().ScriptTarget.Latest, true, relative.endsWith('.tsx') ? typeScriptApi().ScriptKind.TSX : typeScriptApi().ScriptKind.TS);
     parsed.set(relative, source);
     const byName = new Map();
     const visit = (node) => {
@@ -212,7 +236,7 @@ export function enrichTypeScriptReferences(graphPath, scanRoot, sourceFiles) {
           byName.set(name, graphNode);
         }
       }
-      ts.forEachChild(node, visit);
+      typeScriptApi().forEachChild(node, visit);
     };
     visit(source);
     declarations.set(relative, byName);
@@ -248,12 +272,12 @@ export function enrichTypeScriptReferences(graphPath, scanRoot, sourceFiles) {
   for (const [relative, source] of parsed) {
     const imports = new Map();
     for (const statement of source.statements) {
-      if (!ts.isImportDeclaration(statement) || !statement.importClause || !ts.isStringLiteral(statement.moduleSpecifier)) continue;
+      if (!typeScriptApi().isImportDeclaration(statement) || !statement.importClause || !typeScriptApi().isStringLiteral(statement.moduleSpecifier)) continue;
       const targetFile = resolveModuleSource(relative, statement.moduleSpecifier.text, fileSet);
       if (!targetFile) continue;
       const clause = statement.importClause;
       if (clause.name) imports.set(clause.name.text, { targetFile, exported: 'default' });
-      if (clause.namedBindings && ts.isNamedImports(clause.namedBindings)) {
+      if (clause.namedBindings && typeScriptApi().isNamedImports(clause.namedBindings)) {
         for (const element of clause.namedBindings.elements) {
           imports.set(element.name.text, { targetFile, exported: element.propertyName?.text || element.name.text });
         }
@@ -274,7 +298,7 @@ export function enrichTypeScriptReferences(graphPath, scanRoot, sourceFiles) {
           if (!seenReferences.has(signature) && addEdge(owner?.id, target.id, relative)) seenReferences.add(signature);
         }
       }
-      ts.forEachChild(node, visit);
+      typeScriptApi().forEachChild(node, visit);
     };
     visit(source);
   }
