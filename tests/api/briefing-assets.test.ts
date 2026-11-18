@@ -53,6 +53,25 @@ describe('inspeção server-side de anexos privados', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it('sessão que expira entre o upload e a verificação devolve 401, não "arquivo não encontrado"', async () => {
+    configure();
+    // O JWT era válido quando o anexo subiu e expirou antes desta chamada; o
+    // PostgREST recusa a RPC do titular com 401, e o 403 aparece quando a RLS
+    // nega depois de uma troca de sessão. Responder 404 aqui mandaria o cliente
+    // reenviar um arquivo que já está no bucket, e o 503 esconderia a causa.
+    for (const status of [401, 403]) {
+      const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ code: 'PGRST301', message: 'JWT expired' }), { status }));
+      vi.stubGlobal('fetch', fetchMock);
+      const current = responseDouble();
+      await handler(request(), current.response);
+      expect(current.result.statusCode).toBe(401);
+      expect(current.result.body).toMatchObject({ error: 'authentication_required' });
+      // E nada é lido no Storage com a credencial de serviço depois de uma
+      // sessão recusada.
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    }
+  });
+
   it('confirma um PNG somente depois de ler a assinatura no Storage privado', async () => {
     configure();
     const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00]);
