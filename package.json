@@ -45,6 +45,8 @@
     "test:soak-queue": "node --test tests/soak-test-notification-queue.node.mjs",
     "test:shared-selection-sql": "node --test tests/verify-shared-selection-contract.node.mjs",
     "test:catalog-contract": "node --test tests/catalog-public-contract.node.mjs",
+    "test:orphan-refs": "node --test tests/orphan-refs.node.mjs",
+    "refs:orfaos": "node scripts/check-orphan-refs.mjs",
     "check:catalog-contract": "node scripts/check-catalog-public-contract.mjs",
     "agents:instructions:check": "node scripts/validate-agent-instructions.mjs",
     "test:agent-instructions": "node --test tests/validate-agent-instructions.node.mjs",
