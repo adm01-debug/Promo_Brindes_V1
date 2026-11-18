@@ -16,6 +16,9 @@ import {
   explainGraphNode,
   fingerprintEntries,
   findSensitiveArtifacts,
+  isGraphIgnored,
+  listSourceFiles,
+  loadGraphIgnorePatterns,
   normalizeGraphReport,
   normalizeQuery,
   projectGapMetrics,
@@ -639,5 +642,45 @@ test('saída cortada pelo leitor (| head) não derruba o CLI com EPIPE', async (
     assert.equal(status, 0);
   } finally {
     project.cleanup();
+  }
+});
+
+test('.graphifyignore exclui da indexação, não só da impressão digital', () => {
+  const project = makeProjectFixture();
+  try {
+    fs.mkdirSync(path.join(project.root, 'src', 'gerado'));
+    fs.writeFileSync(path.join(project.root, 'src', 'gerado', 'x.ts'), 'export const x = 1;\n');
+    assert.deepEqual(listSourceFiles(project.root, ['src']), ['src/a.ts', 'src/b.ts', 'src/gerado/x.ts']);
+    fs.appendFileSync(path.join(project.root, '.graphifyignore'), 'src/gerado/\n');
+    assert.deepEqual(listSourceFiles(project.root, ['src']), ['src/a.ts', 'src/b.ts']);
+  } finally {
+    project.cleanup();
+  }
+});
+
+test('padrões do .graphifyignore: diretório em qualquer profundidade, caminho ancorado e extensão', () => {
+  const patterns = ['coverage/', 'docs/audits/', '*.log', 'raw'];
+  assert.equal(isGraphIgnored('src/coverage/relatorio.ts', patterns), true);
+  assert.equal(isGraphIgnored('docs/audits/x.ts', patterns), true);
+  assert.equal(isGraphIgnored('scripts/saida.log', patterns), true);
+  assert.equal(isGraphIgnored('raw/base.sql', patterns), true);
+  // `coverage/` casa diretório: um arquivo com esse nome continua indexado.
+  assert.equal(isGraphIgnored('src/coverage', patterns), false);
+  // Padrão com barra é ancorado na raiz, como no .gitignore.
+  assert.equal(isGraphIgnored('src/docs/audits/x.ts', patterns), false);
+  assert.equal(isGraphIgnored('src/a.ts', patterns), false);
+});
+
+test('.graphifyignore recusa padrão que não seria aplicado em vez de ignorá-lo em silêncio', () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'graphify-ignore-'));
+  try {
+    fs.writeFileSync(path.join(directory, '.graphifyignore'), '# comentario\nsrc/**/gerado\n');
+    assert.throws(() => loadGraphIgnorePatterns(directory), /padrão não suportado "src\/\*\*\/gerado"/);
+    fs.writeFileSync(path.join(directory, '.graphifyignore'), 'dist/\n');
+    assert.deepEqual(loadGraphIgnorePatterns(directory), ['dist/']);
+    fs.rmSync(path.join(directory, '.graphifyignore'));
+    assert.deepEqual(loadGraphIgnorePatterns(directory), []);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
   }
 });
