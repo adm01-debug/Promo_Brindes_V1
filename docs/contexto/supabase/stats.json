@@ -93,12 +93,12 @@
           "total_ms": 6740
         },
         {
-          "calls": 617,
+          "calls": 626,
           "mean_ms": 6.54,
           "query": "WITH pgrst_source AS (SELECT pgrst_call.pgrst_scalar FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT \"p_channels\", \"p_batch_size\" FROM json_to_record(pgrst_payload.json_data) AS _(\"p_channels\" text[], \"p_bat",
           "role": "service_role",
-          "rows": 617,
-          "total_ms": 4035
+          "rows": 626,
+          "total_ms": 4092
         },
         {
           "calls": 118,
@@ -109,68 +109,68 @@
           "total_ms": 3998
         },
         {
-          "calls": 438,
-          "mean_ms": 7.3,
+          "calls": 440,
+          "mean_ms": 7.29,
           "query": "SELECT t.oid, t.typname, t.typsend, t.typreceive, t.typoutput, t.typinput, coalesce(d.typelem, t.typelem), coalesce(r.rngsubtype, $1), ARRAY ( SELECT a.atttypid FROM pg_attribute AS a WHERE a.attrelid = t.typrelid AND a.",
           "role": "pgbouncer",
-          "rows": 95916,
-          "total_ms": 3195
+          "rows": 96354,
+          "total_ms": 3210
         },
         {
-          "calls": 222,
-          "mean_ms": 10.82,
+          "calls": 224,
+          "mean_ms": 10.81,
           "query": "SELECT n.nspname AS schema, p.proname AS name, pg_get_function_identity_arguments(p.oid) AS args, pg_get_function_result(p.oid) AS returns, l.lanname AS language, CASE p.prokind WHEN $1 THEN $2 WHEN $3 THEN $4 WHEN $5 TH",
           "role": "postgres",
-          "rows": 16056,
-          "total_ms": 2402
+          "rows": 16206,
+          "total_ms": 2422
         },
         {
-          "calls": 222,
-          "mean_ms": 10.51,
+          "calls": 224,
+          "mean_ms": 10.5,
           "query": "SELECT n.nspname AS schema, c.relname AS \"table\", con.conname AS name, CASE con.contype WHEN $1 THEN $2 WHEN $3 THEN $4 WHEN $5 THEN $6 WHEN $7 THEN $8 WHEN $9 THEN $10 ELSE con.contype::text END AS type, pg_get_constrai",
           "role": "postgres",
-          "rows": 32412,
-          "total_ms": 2334
+          "rows": 32704,
+          "total_ms": 2353
         },
         {
-          "calls": 222,
-          "mean_ms": 7.96,
+          "calls": 224,
+          "mean_ms": 7.95,
           "query": "SELECT n.nspname AS schema, c.relname AS name, GREATEST(c.reltuples::bigint, $1) AS est_rows, pg_total_relation_size(c.oid) AS total_bytes, pg_relation_size(c.oid) AS heap_bytes, pg_indexes_size(c.oid) AS index_bytes, s.",
           "role": "postgres",
-          "rows": 4662,
-          "total_ms": 1766
+          "rows": 4704,
+          "total_ms": 1782
         },
         {
-          "calls": 222,
-          "mean_ms": 7.76,
+          "calls": 224,
+          "mean_ms": 7.75,
           "query": "SELECT n.nspname AS schema, t.relname AS \"table\", ic.relname AS name, pg_get_indexdef(ix.indexrelid) AS definition, ix.indisunique AS is_unique, ix.indisprimary AS is_primary, ix.indisvalid AS is_valid, am.amname AS meth",
           "role": "postgres",
-          "rows": 14874,
-          "total_ms": 1723
+          "rows": 15008,
+          "total_ms": 1736
         },
         {
-          "calls": 222,
-          "mean_ms": 7.26,
+          "calls": 224,
+          "mean_ms": 7.25,
           "query": "SELECT n.nspname AS schema, c.relname AS \"table\", a.attnum AS position, a.attname AS name, format_type(a.atttypid, a.atttypmod) AS type, NOT a.attnotnull AS nullable, pg_get_expr(d.adbin, d.adrelid) AS \"default\", NULLIF(",
           "role": "postgres",
-          "rows": 42180,
-          "total_ms": 1612
+          "rows": 42560,
+          "total_ms": 1624
         },
         {
-          "calls": 222,
+          "calls": 224,
           "mean_ms": 6.78,
           "query": "SELECT version, name, statements FROM supabase_migrations.schema_migrations ORDER BY version",
           "role": "postgres",
-          "rows": 14724,
-          "total_ms": 1505
+          "rows": 14862,
+          "total_ms": 1518
         },
         {
-          "calls": 4311,
+          "calls": 4325,
           "mean_ms": 0.31,
           "query": "SELECT * FROM pgbouncer.get_auth($1)",
           "role": "pgbouncer",
-          "rows": 4311,
-          "total_ms": 1338
+          "rows": 4325,
+          "total_ms": 1342
         }
       ]
     },
@@ -432,7 +432,7 @@
         "is_primary": true,
         "is_unique": true,
         "name": "notification_deliveries_pkey",
-        "scans": 8310,
+        "scans": 8346,
         "schema": "site_private",
         "table": "notification_deliveries"
       },
@@ -784,13 +784,13 @@
         "dead_rows": 32,
         "est_rows": 4,
         "heap_bytes": 16384,
-        "idx_scan": 8557,
+        "idx_scan": 8593,
         "index_bytes": 106496,
         "last_autoanalyze": "2026-11-11T23:21:01.151989+00:00",
         "last_autovacuum": "2026-11-11T23:41:01.591129+00:00",
         "name": "notification_deliveries",
         "schema": "site_private",
-        "seq_scan": 5473,
+        "seq_scan": 5509,
         "total_bytes": 163840
       },
       {
