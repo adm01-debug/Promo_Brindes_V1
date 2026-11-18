@@ -1,0 +1,5 @@
+# Dependências diretas do Graphify CLI. Fonte de verdade das versões.
+# Gere o lock com hashes: uv pip compile requirements-graphify.in --generate-hashes -o requirements-graphify.txt
+# Atualize também graphifyVersion em .graphify.project.json quando mudar a versão.
+graphifyy[sql]==0.9.105
+tree_sitter_sql==0.3.13
