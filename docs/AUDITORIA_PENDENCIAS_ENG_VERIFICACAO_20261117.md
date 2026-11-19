@@ -1,6 +1,6 @@
 # Verificação das pendências de engenharia — 17/11/2026
 
-Estado, **em 17/11/2026**, dos 58 itens de `docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md` cuja coluna "quem destrava" é exatamente `ENG`. A auditoria é de 11/10/2026 e a `main` andou cinco semanas desde então, por isso o estado precisava ser reconferido item a item em vez de assumido. Resultado, contado linha a linha na tabela de estado abaixo: 4 dos 58 já estavam fechados sem a auditoria registrar, **2 foram fechados por inteiro e incorporados à `main` nesta sessão** (PF-27 e PF-80), 24 seguem sem nenhum começo e 28 estão pela metade. **PF-85 e PF-112 continuam entre os parciais**, não entre os fechados: cada um teve uma parte incorporada nesta sessão (o alerta de resíduo em PF-85; a variável e o guard em PF-112) e o resto segue aberto — a drenagem do lote e o orçamento de tempo num caso, cinco achados de código morto no outro. Restam portanto **52 pendências**: 24 dependem de credencial ou endereço que só o dono tem e 28 não dependem.
+Estado, **em 17/11/2026**, dos 58 itens de `docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md` cuja coluna "quem destrava" é exatamente `ENG`. A auditoria é de 11/10/2026 e a `main` andou cinco semanas desde então, por isso o estado precisava ser reconferido item a item em vez de assumido. Resultado, contado linha a linha na tabela de estado abaixo: 4 dos 58 já estavam fechados sem a auditoria registrar, **3 foram fechados por inteiro nesta sessão** (PF-27, PF-80 e PF-102), 24 seguem sem nenhum começo e 27 estão pela metade. **PF-85 e PF-112 continuam entre os parciais**, não entre os fechados: cada um teve uma parte incorporada nesta sessão (o alerta de resíduo em PF-85; a variável e o guard em PF-112) e o resto segue aberto — a drenagem do lote e o orçamento de tempo num caso, cinco achados de código morto no outro. Restam portanto **51 pendências**: 24 dependem de credencial ou endereço que só o dono tem e 27 não dependem.
 
 Os outros 70 itens da auditoria não entram aqui porque quem destrava é o dono (45), conteúdo comercial (9), pessoas (5) ou uma combinação.
 
@@ -90,7 +90,7 @@ Os quatro vieram do lote sem bloco de evidência próprio, diferente dos 54 aber
 | PF-99 | AINDA ABERTO | PEQUENO | não |
 | PF-100 | PARCIAL HOJE | GRANDE | sim |
 | PF-101 | PARCIAL HOJE | MEDIO | sim |
-| PF-102 | PARCIAL HOJE | MEDIO | não |
+| PF-102 | FECHADO HOJE | MEDIO | não |
 | PF-103 | AINDA ABERTO | GRANDE | não |
 | PF-106 | PARCIAL HOJE | MEDIO | não |
 | PF-107 | AINDA ABERTO | GRANDE | sim |
@@ -350,11 +350,13 @@ Esforço: MEDIO · Depende de segredo: sim
 
 Nada do 'falta' mudou. playwright.config.ts:21 ainda constrói o e2e com as três flags ligadas (`VITE_CUSTOMER_ADJUSTMENTS_ENABLED=true VITE_QUOTE_DECISION_GROUPS_ENABLED=true VITE_PERSISTENT_SHARED_SELECTIONS_ENABLED=true`) e :20-26 sobe só `npm run build && npm run preview` (Vite), sem `vercel dev` — logo as funções de api/*.ts nunca rodam no e2e; os quatro projects (:27-32) são apenas navegadores, sem variante com flags desligadas (`grep -rn "ENABLED" e2e/ playwright.config.ts` só acha a linha 21). As APIs continuam simuladas no teste: e2e/smoke.spec.ts:52-73 (mockCatalog roteia categories e v_site_products_public) e :104-107 (route de **/api/quote-requests). Existe hoje apenas a base realista de navegador/viewport (desktop+mobile chromium, firefox, webkit) e retries no CI (:12). Falta: execução e2e com flags desligadas e pelo menos um fluxo contra as funções serverless reais (api/quote-requests, api/notifications) em vez de route.fulfill.
 
-### PF-102 — PARCIAL HOJE
+### PF-102 — FECHADO HOJE — **conferido por mim, linha por linha**
 
 Esforço: MEDIO · Depende de segredo: não
 
 Existem os trechos: e2e/smoke.spec.ts tem ~60 testes por rota (e2e/smoke.spec.ts:134,464,550,628,734) e e2e/product-detail.spec.ts:1-155. Falta a jornada única e os dois modificadores: `grep -rnE "jornada|rede lenta|storage bloqueado|setOffline|throttl" e2e/ tests/` → 0 linhas; `awk` contando page.goto por teste em e2e/smoke.spec.ts → nenhum teste passa de 3 rotas (o máximo é 'biblioteca de catálogos'); playwright.config.ts:27-32 tem 4 projetos sem perfil de rede lenta; a única simulação próxima é um envio lento em rota única (e2e/smoke.spec.ts:628).
+
+**Reconciliação com esta árvore:** fechado. `e2e/journey.spec.ts` entrega a jornada única — home → `/catalogos` → `/catalogo` → `/produto/:slug` → `/orcamento` → briefing enviado, cinco rotas por clique real, sem atalho por URL e sem semear a seleção no armazenamento: se ela se perdesse em qualquer rota, o envio iria vazio e a asserção do `productId` no payload falharia. Os dois modificadores entram como casos próprios: rede lenta (1,2 s em cada resposta do catálogo, exigindo que o visitante veja "Buscando produtos…" antes da contagem) e armazenamento bloqueado (o próprio acesso a `window.localStorage` lança `SecurityError`, como em navegação privada — o briefing é enviado igual e, ao recarregar, a rota cai no estado vazio com a saída para o catálogo em vez de quebrar). Os modificadores ficam no caso, não como projetos do `playwright.config.ts`: um projeto novo rodaria a suíte inteira sob atraso e multiplicaria o tempo de CI sem cobrir nada além. Verificado: 6/6 em `desktop-chromium` e `mobile-chromium`; Firefox e WebKit não rodam neste contêiner e ficam com o check `cross-browser`.
 
 ### PF-103 — AINDA ABERTO
 
