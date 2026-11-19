@@ -38,9 +38,9 @@ jobs:
     name: Verify DB migration and gates
     needs: authorize-main
     runs-on: ubuntu-24.04
-    # Gates podem esperar 30 min e o ledger 15 min; reserva margem de rede
+    # Gates podem esperar ate 40 min (cross-browser teto 35) e o ledger 15 min; reserva margem de rede
     # explícita em vez de encerrar o job antes do seu próprio limite lógico.
-    timeout-minutes: 55
+    timeout-minutes: 70
     env:
       SUPABASE_PROJECT_REF: xlzmclcjdncjfdrjxclt
     steps:
@@ -51,7 +51,7 @@ jobs:
         run: |
           set -eo pipefail
           required=('validate' 'cross-browser' 'Migrations and pgTAP' 'Build structural Graphify map')
-          for attempt in $(seq 1 90); do
+          for attempt in $(seq 1 120); do
             checks="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/check-runs?per_page=100")"
             total="$(jq -r '.total_count' <<<"$checks")"
             count="$(jq -r '.check_runs | length' <<<"$checks")"
