@@ -143,7 +143,14 @@ jobs:
   cross-browser:
     needs: validate
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    # 20 minutos nao davam conta: em 17-18/11/2026 este job foi cancelado no
+    # teto tres vezes sem rodar um unico teste, sempre ainda dentro do apt-get
+    # de `playwright install --with-deps` (a execucao 44205830066 estava no
+    # pacote 130 de ~130 quando o teto chegou, com o mirror da Ubuntu a
+    # ~65 KB/s). O custo normal do job e de 258 a 360 segundos, entao 35
+    # minutos nao afrouxam o gate: so impedem que um mirror lento reprove PR
+    # sem relacao com o diff.
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -155,8 +162,14 @@ jobs:
       - name: Use the declared npm version
         run: npm install --global npm@11.17.0
       - run: npm ci
-      - name: Install Firefox and WebKit for Playwright
-        run: npx playwright install --with-deps firefox webkit
+      # Separado em dois passos de proposito: `--with-deps` junta a instalacao de
+      # ~130 pacotes de sistema com o download dos navegadores, e no log do job
+      # as duas aparecem como um passo so. Separadas, o relatorio diz qual das
+      # duas gastou o tempo quando este job voltar a estourar.
+      - name: Dependencias de sistema do Firefox e do WebKit
+        run: npx playwright install-deps firefox webkit
+      - name: Navegadores Firefox e WebKit
+        run: npx playwright install firefox webkit
       - run: npm run test:e2e:cross-browser
       - name: Upload cross-browser evidence
         if: always()
