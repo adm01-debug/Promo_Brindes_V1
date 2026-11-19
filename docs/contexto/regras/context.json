@@ -1,9 +1,9 @@
 {
  "meta": {
-  "sha": "8e896a7e690f83d9d78eaced23e2ba57cbf8e4d6",
+  "sha": "40f642030aee9bca9552761bc8a6e6abed4f8fb7",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-19 10:32 UTC",
+  "generated_at": "2026-11-19 15:07 UTC",
   "files_total": 599,
   "code_files": 393,
   "code_lines": 68770,
@@ -32985,10 +32985,19 @@
   }
  },
  "git": {
-  "sha": "8e896a7e690f83d9d78eaced23e2ba57cbf8e4d6",
+  "sha": "40f642030aee9bca9552761bc8a6e6abed4f8fb7",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "40f6420",
+    "date": "2026-11-19",
+    "author": "adm01-debug",
+    "subject": "infra(ci): verify-db tolera espera dos gates quando cross-browser chega ao teto de 35min (#210)",
+    "files": [
+     ".github/workflows/release.yml"
+    ]
+   },
    {
     "sha": "8e896a7",
     "date": "2026-11-19",
@@ -33305,33 +33314,12 @@
      "tests/api/product-page-alert.test.ts",
      "tests/api/product-page-shell-alert.test.ts"
     ]
-   },
-   {
-    "sha": "bcf7e33",
-    "date": "2026-11-17",
-    "author": "adm01-debug",
-    "subject": "chore(ci): unifica o rótulo do pin do actions/checkout (#179)",
-    "files": [
-     ".github/workflows/catalog-contract.yml",
-     ".github/workflows/ci-health.yml",
-     ".github/workflows/codeql.yml",
-     ".github/workflows/database.yml",
-     ".github/workflows/graphify.yml",
-     ".github/workflows/quality.yml",
-     ".github/workflows/release.yml",
-     ".github/workflows/stale-branches.yml",
-     ".github/workflows/workflows-lint.yml"
-    ]
    }
   ],
   "hot_files": [
    [
     "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
     6
-   ],
-   [
-    ".github/workflows/quality.yml",
-    3
    ],
    [
     "api/_lib/siteDatabase.ts",
@@ -33344,6 +33332,10 @@
    [
     "api/retention.ts",
     3
+   ],
+   [
+    ".github/workflows/quality.yml",
+    2
    ],
    [
     "package.json",
@@ -33382,6 +33374,10 @@
     2
    ],
    [
+    ".github/workflows/release.yml",
+    1
+   ],
+   [
     "e2e/journey.spec.ts",
     1
    ],
@@ -33399,10 +33395,6 @@
    ],
    [
     "scripts/orphan-refs-baseline.json",
-    1
-   ],
-   [
-    "tests/orphan-refs.node.mjs",
     1
    ]
   ]

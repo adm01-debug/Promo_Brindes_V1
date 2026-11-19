@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "8e896a7e690f83d9d78eaced23e2ba57cbf8e4d6",
+  "commit": "40f642030aee9bca9552761bc8a6e6abed4f8fb7",
   "branch": "main",
-  "data_commit": "2026-11-19T10:32:05Z",
+  "data_commit": "2026-11-19T15:07:28Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "40f6420",
+    "data": "2026-11-19",
+    "assunto": "infra(ci): verify-db tolera espera dos gates quando cross-browser chega ao teto de 35min (#210)"
+   },
    {
     "sha": "8e896a7",
     "data": "2026-11-19",
@@ -126,11 +131,6 @@
     "sha": "e4a904f",
     "data": "2026-11-17",
     "assunto": "feat(retenção): resíduo de dado pessoal não apagado deixa de ser invisível (#184)"
-   },
-   {
-    "sha": "108b0b2",
-    "data": "2026-11-17",
-    "assunto": "fix(portal): estouro de limite deixa de virar \"proposta não encontrada\" (#183)"
    }
   ],
   "arquivos_mudados_7d": 127,
@@ -188,11 +188,11 @@
     "mudancas": 4
    },
    {
-    "pasta": "PENDENCIAS.md",
+    "pasta": ".github/workflows/release.yml",
     "mudancas": 4
    },
    {
-    "pasta": "analise-prs/funcionalidades.csv",
+    "pasta": "PENDENCIAS.md",
     "mudancas": 4
    }
   ],
@@ -238,12 +238,12 @@
     "mudancas": 23
    },
    {
-    "arquivo": "tests/api/lead-requests.test.ts",
+    "arquivo": ".github/workflows/release.yml",
     "mudancas": 21
    },
    {
-    "arquivo": ".github/workflows/release.yml",
-    "mudancas": 20
+    "arquivo": "tests/api/lead-requests.test.ts",
+    "mudancas": 21
    },
    {
     "arquivo": "api/_lib/siteDatabase.ts",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 92
+    "commits": 93
    },
    {
     "autor": "dependabot[bot]",

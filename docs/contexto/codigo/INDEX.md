@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `8e896a7e690f83d9d78eaced23e2ba57cbf8e4d6` (2026-11-19T10:32:05Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `40f642030aee9bca9552761bc8a6e6abed4f8fb7` (2026-11-19T15:07:28Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -180,8 +180,8 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - docs/DATABASE_DICTIONARY.md (23)
 - site-supabase/supabase/tests/database/lead_storage.test.sql (23)
 - src/components/Layout.tsx (23)
+- .github/workflows/release.yml (21)
 - tests/api/lead-requests.test.ts (21)
-- .github/workflows/release.yml (20)
 - api/_lib/siteDatabase.ts (19)
 - api/notifications.ts (18)
 - docs/DATABASE_FUNCTION_CONTRACTS.md (18)
@@ -385,6 +385,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-19 `40f6420` infra(ci): verify-db tolera espera dos gates quando cross-browser chega ao teto de 35min (#210)
 - 2026-11-19 `8e896a7` infra(ci): cross-browser deixa de ser cancelado no teto antes de rodar teste (#204)
 - 2026-11-19 `3038a45` feat(e2e): cobre a jornada completa do visitante com rede lenta e armazenamento bloqueado (#199)
 - 2026-11-18 `fd18af6` docs: corrige a ressalva de confianca que subestimava o que foi conferido (#207)
@@ -399,7 +400,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-18 `aff11ee` docs: matriz risco de negocio para camada de teste, com os vazios nomeados (#205)
 - 2026-11-17 `dbc6479` fix(graphify): graph:status deixa de exigir npm ci em clone limpo (#196)
 - 2026-11-17 `2a09509` fix(config): comentário de cobertura para de citar contagem de teste que envelhece (#195)
-- 2026-11-17 `b06b1e5` fix(graphify): scanner de segredos passa a cobrir os formatos que este projeto usa (#194)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`
