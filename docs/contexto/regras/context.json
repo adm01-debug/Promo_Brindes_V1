@@ -1,9 +1,9 @@
 {
  "meta": {
-  "sha": "3038a456b2b76d69ca7ef8b8af3db0ccd6736dd7",
+  "sha": "8e896a7e690f83d9d78eaced23e2ba57cbf8e4d6",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-19 00:35 UTC",
+  "generated_at": "2026-11-19 10:32 UTC",
   "files_total": 599,
   "code_files": 393,
   "code_lines": 68770,
@@ -32985,10 +32985,19 @@
   }
  },
  "git": {
-  "sha": "3038a456b2b76d69ca7ef8b8af3db0ccd6736dd7",
+  "sha": "8e896a7e690f83d9d78eaced23e2ba57cbf8e4d6",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "8e896a7",
+    "date": "2026-11-19",
+    "author": "adm01-debug",
+    "subject": "infra(ci): cross-browser deixa de ser cancelado no teto antes de rodar teste (#204)",
+    "files": [
+     ".github/workflows/quality.yml"
+    ]
+   },
    {
     "sha": "3038a45",
     "date": "2026-11-18",
@@ -33313,22 +33322,16 @@
      ".github/workflows/stale-branches.yml",
      ".github/workflows/workflows-lint.yml"
     ]
-   },
-   {
-    "sha": "1a30000",
-    "date": "2026-11-17",
-    "author": "adm01-debug",
-    "subject": "fix(ideias): landing de onboarding passa a ter curadoria própria (#177)",
-    "files": [
-     "src/lib/ideaLandings.test.ts",
-     "src/lib/ideaLandings.ts"
-    ]
    }
   ],
   "hot_files": [
    [
     "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
     6
+   ],
+   [
+    ".github/workflows/quality.yml",
+    3
    ],
    [
     "api/_lib/siteDatabase.ts",
@@ -33376,10 +33379,6 @@
    ],
    [
     "api/_lib/operationalAlerts.ts",
-    2
-   ],
-   [
-    ".github/workflows/quality.yml",
     2
    ],
    [

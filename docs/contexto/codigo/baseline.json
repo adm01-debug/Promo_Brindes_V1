@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "3038a456b2b76d69ca7ef8b8af3db0ccd6736dd7",
+  "commit": "8e896a7e690f83d9d78eaced23e2ba57cbf8e4d6",
   "branch": "main",
-  "data_commit": "2026-11-19T00:23:34Z",
+  "data_commit": "2026-11-19T10:32:05Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "8e896a7",
+    "data": "2026-11-19",
+    "assunto": "infra(ci): cross-browser deixa de ser cancelado no teto antes de rodar teste (#204)"
+   },
    {
     "sha": "3038a45",
     "data": "2026-11-19",
@@ -126,11 +131,6 @@
     "sha": "108b0b2",
     "data": "2026-11-17",
     "assunto": "fix(portal): estouro de limite deixa de virar \"proposta não encontrada\" (#183)"
-   },
-   {
-    "sha": "e166177",
-    "data": "2026-11-17",
-    "assunto": "fix(catálogo): porta editorial de onboarding deixa de abrir o catálogo inteiro (#182)"
    }
   ],
   "arquivos_mudados_7d": 127,
@@ -148,12 +148,12 @@
     "mudancas": 10
    },
    {
-    "pasta": "site-supabase/supabase/tests",
+    "pasta": ".github/workflows/quality.yml",
     "mudancas": 9
    },
    {
-    "pasta": ".github/workflows/quality.yml",
-    "mudancas": 8
+    "pasta": "site-supabase/supabase/tests",
+    "mudancas": 9
    },
    {
     "pasta": "AGENTS.md",
@@ -215,7 +215,7 @@
    },
    {
     "arquivo": ".github/workflows/quality.yml",
-    "mudancas": 27
+    "mudancas": 28
    },
    {
     "arquivo": "vercel.json",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 91
+    "commits": 92
    },
    {
     "autor": "dependabot[bot]",
