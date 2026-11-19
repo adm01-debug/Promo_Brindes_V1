@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `4a231556ea` · branch `main` · 2026-11-18 23:00 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `3038a456b2` · branch `main` · 2026-11-19 00:35 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -1048,7 +1048,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1610 testes em 131 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1617 testes em 134 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1155,6 +1155,7 @@ _nenhum item encontrado_
 | `src/lib/scrollRestoration.test.ts` | 4 | restauração de rolagem · aguarda uma rota assíncrona crescer antes de concluir a posição salva · para no limite de tempo quando a página não alcança a altura anterior · cancela frames pendentes quando a rota muda ou a pessoa interage |
 | `src/lib/siteRpc.test.ts` | 4 | deadline das RPCs do site · aborta a consulta no deadline padrão · propaga o aborto externo para a consulta · limpa o timer quando a consulta termina |
 | `src/lib/siteSupabase.test.ts` | 4 | configuração pública da Área do Cliente · aceita somente o projeto Supabase isolado do site · recusa secret key no bundle e aceita somente chave pública · em Preview recusa o banco de produção e o banco interno, inclusive sem configuração explícita |
+| `e2e/journey.spec.ts` | 3 | jornada completa: home, catálogos, catálogo, produto, briefing enviado · jornada sobrevive a rede lenta: o visitante vê o progresso e a seleção chega ao briefing · jornada sobrevive a armazenamento bloqueado: envia o briefing e não guarda nada |
 | `site-supabase/supabase/tests/database/force_rls_hygiene.test.sql` | 3 | toda tabela de site_private tem row level security habilitada (rowsecurity) · toda tabela de site_private tem row level security FORÇADA (Etapa 26) — nem o dono bypassa sem bypassrls explícito · nenhuma tabela de site_private concede select/insert/update/delete a public, anon ou authenticated |
 | `site-supabase/supabase/tests/database/site_api_timeouts.test.sql` | 3 | site_api tem statement_timeout de 8s · site_api tem lock_timeout de 2s · site_api tem idle_in_transaction_session_timeout de 10s |
 | `src/components/SearchAutocomplete.test.tsx` | 3 | SearchAutocomplete · nomeia o landmark de busca %s de forma única · remove a opção ativa do leitor de tela quando o campo perde foco |
@@ -1175,6 +1176,8 @@ _nenhum item encontrado_
 | `tests/api/curated-page-previews.test.ts` | 3 | previews das rotas editoriais · mantém todas as coleções públicas sincronizadas com a biblioteca · mantém todas as datas públicas sincronizadas com a agenda |
 | `tests/api/operationalAlerts.test.ts` | 3 | alertas operacionais · não abre conexão sem endpoint HTTPS explicitamente configurado · envia somente o envelope técnico ao endpoint HTTPS configurado |
 | `tests/api/product-page-shell-alert.test.ts` | 3 | origem da falha decide o alerta quando o HTML inicial não carrega · não acusa o catálogo quando só o HTML falhou · ainda alerta a queda do catálogo quando o HTML falha primeiro e a consulta cai depois |
+| `e2e/briefing-upload.spec.ts` | 2 | cliente anexa um PNG: reserva, transferência, verificação e arquivo disponível no briefing · verificação recusa o conteúdo: o cliente é avisado e o arquivo não fica para trás |
+| `e2e/concurrency.spec.ts` | 2 | seleção feita num dispositivo aparece no outro, e limpar num deles esvazia o outro · o mesmo produto escolhido nos dois dispositivos ao mesmo tempo não duplica a seleção |
 | `e2e/favorites.spec.ts` | 2 | favorito sobrevive ao recarregar a pagina, sem conta · favorito salvo numa aba aparece na outra sem recarregar |
 | `site-supabase/supabase/tests/database/function_catalog_hygiene.test.sql` | 2 | nenhuma função pública tem duas assinaturas simultâneas (nenhum drop esquecido numa mudança de assinatura) · idem para site_private |
 | `src/components/AppErrorBoundary.test.tsx` | 2 | recuperação global da interface · mostra uma recuperação compreensível quando um componente falha |

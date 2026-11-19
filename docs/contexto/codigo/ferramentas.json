@@ -3,7 +3,7 @@
  "format_version": 2,
  "stack": {
   "linguagens": [
-   "TypeScript (211)",
+   "TypeScript (214)",
    "Markdown (120)",
    "SQL (106)",
    "JavaScript (65)",
@@ -695,7 +695,7 @@
   {
    "arquivo": "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
    "titulo": "Verificação das pendências de engenharia — 17/11/2026",
-   "linhas": 465
+   "linhas": 467
   },
   {
    "arquivo": "docs/AUDITORIA_REFS_AUTOSAVE_20261118.md",

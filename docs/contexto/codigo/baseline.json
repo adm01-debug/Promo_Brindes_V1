@@ -2,11 +2,31 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "4a231556ea122bc2b9395f2c1fc5bd8b05159c4a",
+  "commit": "3038a456b2b76d69ca7ef8b8af3db0ccd6736dd7",
   "branch": "main",
-  "data_commit": "2026-11-18T23:00:27Z",
+  "data_commit": "2026-11-19T00:23:34Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "3038a45",
+    "data": "2026-11-19",
+    "assunto": "feat(e2e): cobre a jornada completa do visitante com rede lenta e armazenamento bloqueado (#199)"
+   },
+   {
+    "sha": "fd18af6",
+    "data": "2026-11-18",
+    "assunto": "docs: corrige a ressalva de confianca que subestimava o que foi conferido (#207)"
+   },
+   {
+    "sha": "a1aeeed",
+    "data": "2026-11-18",
+    "assunto": "feat(e2e): cobre o envio de anexo do briefing em navegador (#206)"
+   },
+   {
+    "sha": "13c5acb",
+    "data": "2026-11-18",
+    "assunto": "feat(e2e): cobre dois dispositivos escolhendo na mesma seleção de orçamento (#201)"
+   },
    {
     "sha": "4a23155",
     "data": "2026-11-18",
@@ -111,29 +131,9 @@
     "sha": "e166177",
     "data": "2026-11-17",
     "assunto": "fix(catálogo): porta editorial de onboarding deixa de abrir o catálogo inteiro (#182)"
-   },
-   {
-    "sha": "f95d773",
-    "data": "2026-11-17",
-    "assunto": "fix(orçamento): para de prometer WhatsApp quando o canal não pode entregar (#181)"
-   },
-   {
-    "sha": "c61d7f5",
-    "data": "2026-11-17",
-    "assunto": "infra(ci): gate de auditoria bloqueia pelo escopo que vai ao ar (#188)"
-   },
-   {
-    "sha": "3b2b02e",
-    "data": "2026-11-17",
-    "assunto": "feat(observabilidade): queda do catálogo público passa a alertar a equipe (#178)"
-   },
-   {
-    "sha": "bcf7e33",
-    "data": "2026-11-17",
-    "assunto": "chore(ci): unifica o rótulo do pin do actions/checkout (#179)"
    }
   ],
-  "arquivos_mudados_7d": 124,
+  "arquivos_mudados_7d": 127,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -164,6 +164,10 @@
     "mudancas": 7
    },
    {
+    "pasta": "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
+    "mudancas": 6
+   },
+   {
     "pasta": "scripts/graphify.mjs",
     "mudancas": 6
    },
@@ -189,10 +193,6 @@
    },
    {
     "pasta": "analise-prs/funcionalidades.csv",
-    "mudancas": 4
-   },
-   {
-    "pasta": "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
     "mudancas": 4
    }
   ],
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 87
+    "commits": 91
    },
    {
     "autor": "dependabot[bot]",
@@ -310,9 +310,9 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 702,
-  "arquivos_codigo": 283,
-  "linhas_codigo": 55171,
+  "arquivos_total": 705,
+  "arquivos_codigo": 286,
+  "linhas_codigo": 55596,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -324,7 +324,7 @@
   "tabelas": 22,
   "migrations": 69,
   "cron_jobs": 0,
-  "testes": 140,
+  "testes": 143,
   "workflows": 15,
   "scripts": 37,
   "docs_md": 120
@@ -394,9 +394,21 @@
    "arquivos": 12,
    "linhas": 967
   },
+  "e2e/briefing-upload.spec.ts": {
+   "arquivos": 1,
+   "linhas": 140
+  },
+  "e2e/concurrency.spec.ts": {
+   "arquivos": 1,
+   "linhas": 118
+  },
   "e2e/favorites.spec.ts": {
    "arquivos": 1,
    "linhas": 52
+  },
+  "e2e/journey.spec.ts": {
+   "arquivos": 1,
+   "linhas": 167
   },
   "e2e/product-detail.spec.ts": {
    "arquivos": 1,

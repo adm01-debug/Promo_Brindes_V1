@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `4a231556ea122bc2b9395f2c1fc5bd8b05159c4a` (2026-11-18T23:00:27Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `3038a456b2b76d69ca7ef8b8af3db0ccd6736dd7` (2026-11-19T00:23:34Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -14,7 +14,7 @@ Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR
 Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua tarefa; não carregue tudo.
 
 ## Stack
-- linguagens: TypeScript (211), Markdown (120), SQL (106), JavaScript (65), JSON (29), YAML (19), Python (8), CSS (4)
+- linguagens: TypeScript (214), Markdown (120), SQL (106), JavaScript (65), JSON (29), YAML (19), Python (8), CSS (4)
 - linguagem_principal: TypeScript
 - framework: React
 - backend_http: vercel-functions
@@ -34,9 +34,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Números
 | item | qtd |
 |---|---|
-| arquivos_total | 702 |
-| arquivos_codigo | 283 |
-| linhas_codigo | 55171 |
+| arquivos_total | 705 |
+| arquivos_codigo | 286 |
+| linhas_codigo | 55596 |
 | rotas | 32 |
 | rotas_http_backend | 14 |
 | vistas_por_id | 0 |
@@ -48,7 +48,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 | tabelas | 22 |
 | migrations | 69 |
 | cron_jobs | 0 |
-| testes | 140 |
+| testes | 143 |
 | workflows | 15 |
 | scripts | 37 |
 | docs_md | 120 |
@@ -309,7 +309,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `UX_AUDIT_REPORT.md` — Auditoria total de design, layout e UX (409 linhas)
 - `docs/AUDITORIA_5_ESPECIALISTAS_20260922.md` — Auditoria técnica dos cinco especialistas — 22/09/2026 (65 linhas)
 - `docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md` — Auditoria de funcionalidades planejadas e não executadas — 11/10/2026 (364 linhas)
-- `docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md` — Verificação das pendências de engenharia — 17/11/2026 (465 linhas)
+- `docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md` — Verificação das pendências de engenharia — 17/11/2026 (467 linhas)
 - `docs/AUDITORIA_REFS_AUTOSAVE_20261118.md` — Auditoria do namespace `refs/autosave/*` — 18/11/2026 (77 linhas)
 - `docs/AUDIT_REPORT_20260908.md` — Auditoria técnica consolidada — 08–09/09/2026 (75 linhas)
 - `docs/AUTOMACAO_LOCAL.md` — Automação local — Promo_Brindes_V1 (104 linhas)
@@ -385,6 +385,10 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-19 `3038a45` feat(e2e): cobre a jornada completa do visitante com rede lenta e armazenamento bloqueado (#199)
+- 2026-11-18 `fd18af6` docs: corrige a ressalva de confianca que subestimava o que foi conferido (#207)
+- 2026-11-18 `a1aeeed` feat(e2e): cobre o envio de anexo do briefing em navegador (#206)
+- 2026-11-18 `13c5acb` feat(e2e): cobre dois dispositivos escolhendo na mesma seleção de orçamento (#201)
 - 2026-11-18 `4a23155` feat(guarda): aponta trabalho estacionado em refs fora de heads e pull (#203)
 - 2026-11-18 `6d13174` fix(graphify): .graphifyignore passa a excluir da indexação, não só da impressão digital (#198)
 - 2026-11-18 `148318e` docs: matriz dos 230 requisitos deixa de se declarar vigente (#208)
@@ -396,10 +400,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-17 `2a09509` fix(config): comentário de cobertura para de citar contagem de teste que envelhece (#195)
 - 2026-11-17 `b06b1e5` fix(graphify): scanner de segredos passa a cobrir os formatos que este projeto usa (#194)
 - 2026-11-17 `b1c5c6a` test(e2e): favoritos ganham cobertura de reload e de sincronia entre abas (#193)
-- 2026-11-17 `aef900d` feat(api): nome e argumentos de RPC passam a ser checados contra o catálogo do banco (#192)
-- 2026-11-17 `16b15f3` chore(código morto): remove os 6 achados da auditoria e cobre a função que a produção usa (#191)
-- 2026-11-17 `66f8223` fix(notificações): fila passa a ser medida mesmo sem provedor configurado (#190)
-- 2026-11-17 `387263f` feat(retenção): cron drena o lote na mesma execução e ganha orçamento de tempo (#189)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

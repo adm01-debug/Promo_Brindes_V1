@@ -5,10 +5,10 @@
   "vitest",
   "playwright"
  ],
- "total": 140,
+ "total": 143,
  "por_tipo": {
   "contrato": 2,
-  "e2e": 3,
+  "e2e": 6,
   "pytest": 4,
   "unit": 102
  },
@@ -27,16 +27,37 @@
   },
   {
    "padrao": "e2e/",
-   "arquivos": 3
+   "arquivos": 6
   }
  ],
  "arquivos": [
+  {
+   "arquivo": "e2e/briefing-upload.spec.ts",
+   "tipo": "e2e",
+   "linhas": 140,
+   "testa": [],
+   "casos": 2
+  },
+  {
+   "arquivo": "e2e/concurrency.spec.ts",
+   "tipo": "e2e",
+   "linhas": 118,
+   "testa": [],
+   "casos": 2
+  },
   {
    "arquivo": "e2e/favorites.spec.ts",
    "tipo": "e2e",
    "linhas": 52,
    "testa": [],
    "casos": 2
+  },
+  {
+   "arquivo": "e2e/journey.spec.ts",
+   "tipo": "e2e",
+   "linhas": 167,
+   "testa": [],
+   "casos": 3
   },
   {
    "arquivo": "e2e/product-detail.spec.ts",
