@@ -68,8 +68,8 @@ jobs:
               [ "$conclusion" = success ] || pending=1
             done
             [ "$pending" -eq 0 ] && break
-            if [ "$attempt" -eq 90 ]; then
-              echo "::error::Timeout aguardando os gates protegidos."
+            if [ "$attempt" -eq 120 ]; then
+              echo "::error::Timeout aguardando os gates protegidos (40 min)."
               exit 1
             fi
             sleep 20
