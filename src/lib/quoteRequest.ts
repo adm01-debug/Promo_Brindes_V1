@@ -74,13 +74,13 @@ export function buildEmailHref(payload: QuoteRequestPayload, email = DEFAULT_CON
 }
 
 export type SubmitResult =
-  | { mode: 'endpoint'; requestId?: string; confirmations?: { email: 'sent' | 'pending'; whatsapp: ConfirmationDeliveryStatus } }
+  | { mode: 'endpoint'; requestId?: string; confirmations?: { email: 'sent' | 'pending' | 'unavailable'; whatsapp: ConfirmationDeliveryStatus } }
   | { mode: 'email'; href: string };
 
 function confirmationResult(value: unknown): Extract<SubmitResult, { mode: 'endpoint' }>['confirmations'] {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
   const result = value as Record<string, unknown>;
-  const email = result.email === 'sent' ? 'sent' : 'pending';
+  const email = result.email === 'sent' || result.email === 'pending' || result.email === 'unavailable' ? result.email : 'pending';
   // `unavailable` precisa sobreviver ao validador: cair no `not_requested`
   // diria que o visitante não pediu a cópia, quando ele marcou a autorização.
   const whatsapp = result.whatsapp === 'sent' || result.whatsapp === 'pending' || result.whatsapp === 'unavailable'
