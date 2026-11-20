@@ -80,7 +80,6 @@ export default function QuotePage() {
   const [sending, setSending] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [draftNotice, setDraftNotice] = useState('');
-  const [draftSaving, setDraftSaving] = useState(true);
   const [quantityDrafts, setQuantityDrafts] = useState<Record<string, string>>({});
   const [briefingAssetIds, setBriefingAssetIds] = useState<string[]>([]);
   const [success, setSuccess] = useState<{ mode: 'endpoint' | 'email'; href?: string; requestId?: string; contactName?: string; itemCount?: number; confirmations?: { email: 'sent' | 'pending' | 'unavailable'; whatsapp: ConfirmationDeliveryStatus }; assets?: { status: 'attached' | 'pending'; count: number } } | null>(null);
@@ -178,12 +177,10 @@ export default function QuotePage() {
   useEffect(() => {
     if (success) {
       clearQuoteDraft();
-      setDraftSaving(true);
       return;
     }
     const saved = saveQuoteDraft({ contact, briefing });
-    setDraftSaving(saved);
-    if (!saved) setDraftNotice('Não foi possível salvar o rascunho nesta aba. Os campos continuam visíveis até você sair da página.');
+    setDraftNotice(saved ? '' : 'Não foi possível salvar o rascunho nesta aba. Os campos continuam visíveis até você sair da página.');
   }, [briefing, contact, success]);
 
   function updateField<Key extends keyof QuoteContact>(key: Key, value: QuoteContact[Key]) {
@@ -235,7 +232,6 @@ export default function QuotePage() {
 
   function discardDraft() {
     clearQuoteDraft();
-    setDraftSaving(true);
     setContact(EMPTY_QUOTE_CONTACT);
     setBriefing(EMPTY_QUOTE_BRIEFING);
     setErrors({});
@@ -493,8 +489,7 @@ export default function QuotePage() {
 
         <section className="quote-form-section" aria-labelledby="briefing-title">
           <div className="quote-section-heading"><div><span>02</span><div><h2 id="briefing-title">Seu briefing</h2><p>Campos com * são obrigatórios</p></div></div><button type="button" className="text-button" disabled={sending} onClick={discardDraft}>Apagar rascunho</button></div>
-          <p className="quote-draft-notice" role="status">{draftSaving ? `Seus dados deste formulário ficam salvos por ${QUOTE_DRAFT_RETENTION_LABEL} para evitar perda de trabalho.` : 'Seu navegador bloqueou o salvamento automático; não feche esta aba antes de enviar.'} Não use este campo para dados sensíveis.</p>
-          {draftNotice && <p className="quote-draft-notice quote-draft-notice--success" role="status">{draftNotice}</p>}
+          <p className="quote-draft-notice" role="status">{draftNotice || `Seus dados deste formulário ficam salvos por ${QUOTE_DRAFT_RETENTION_LABEL} para evitar perda de trabalho.`} Não use este campo para dados sensíveis.</p>
           {(campaignLabels.length > 0 || campaignContextOpen) && (
             <aside className="quote-campaign-context" aria-label="Contexto recuperado da sua campanha">
               <div>
