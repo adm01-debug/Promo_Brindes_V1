@@ -107,6 +107,8 @@ export default function QuotePage() {
   const setActiveCampaign = (campaign: CampaignBrief | undefined) => {
     setCampaignContextOpen(false);
     cart.setCampaign(campaign);
+    requestAttemptRef.current = null;
+    clearSubmissionAttempt('promo-brindes:quote-attempt');
   };
   const updateActiveCampaign = <Key extends keyof CampaignBrief>(key: Key, value: CampaignBrief[Key]) => {
     const next: CampaignBrief = {
@@ -115,6 +117,8 @@ export default function QuotePage() {
       [key]: value,
     };
     cart.setCampaign(next);
+    requestAttemptRef.current = null;
+    clearSubmissionAttempt('promo-brindes:quote-attempt');
   };
   const minimumDeadline = localDateInputValue();
   const hasSuccess = Boolean(success);
@@ -486,7 +490,7 @@ export default function QuotePage() {
           <div className="quote-section-heading"><div><span>02</span><div><h2 id="briefing-title">Seu briefing</h2><p>Campos com * são obrigatórios</p></div></div><button type="button" className="text-button" disabled={sending} onClick={discardDraft}>Apagar rascunho</button></div>
           <p className="quote-draft-notice" role="status">Seus dados deste formulário ficam salvos por {QUOTE_DRAFT_RETENTION_LABEL} para evitar perda de trabalho. Não use este campo para dados sensíveis.</p>
           {draftNotice && <p className="quote-draft-notice quote-draft-notice--success" role="status">{draftNotice}</p>}
-          {campaignLabels.length > 0 && (
+          {(campaignLabels.length > 0 || campaignContextOpen) && (
             <aside className="quote-campaign-context" aria-label="Contexto recuperado da sua campanha">
               <div>
                 <span>Contexto recuperado</span>

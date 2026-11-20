@@ -1,13 +1,20 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { normalizeCampaignBrief } from '../lib/campaignBrief';
 import { localDateInputValue } from '../lib/quoteCalendar';
 
-const mocks = vi.hoisted(() => ({
-  setCampaign: vi.fn(),
-  setSelectionTitle: vi.fn(),
-  user: null as { id: string } | null,
-}));
+const mocks = vi.hoisted(() => {
+  let campaign: ReturnType<typeof normalizeCampaignBrief> = { source: 'finder', moment: 'evento', audience: 'clientes', scale: '51-200', mood: 'util' };
+  return {
+    get campaign() { return campaign; },
+    setCampaign: vi.fn((next: ReturnType<typeof normalizeCampaignBrief>) => { campaign = normalizeCampaignBrief(next); }),
+    resetCampaign: () => { campaign = { source: 'finder', moment: 'evento', audience: 'clientes', scale: '51-200', mood: 'util' }; },
+    clearSubmissionAttempt: vi.fn(),
+    setSelectionTitle: vi.fn(),
+    user: null as { id: string } | null,
+  };
+});
 
 vi.mock('../context/quoteCart', () => ({
   useQuoteCart: () => ({
@@ -18,7 +25,7 @@ vi.mock('../context/quoteCart', () => ({
     }],
     itemCount: 1,
     selectionTitle: 'Feira de outubro',
-    campaign: { source: 'finder', moment: 'evento', audience: 'clientes', scale: '51-200', mood: 'util' } as const,
+    campaign: mocks.campaign,
     setCampaign: mocks.setCampaign,
     setSelectionTitle: mocks.setSelectionTitle,
     totalUnits: 0,
@@ -36,7 +43,7 @@ vi.mock('../lib/quoteSubmission', () => ({
 }));
 vi.mock('../lib/briefingAssets', () => ({ attachMyBriefingAssetsToQuote: vi.fn() }));
 vi.mock('../lib/http', () => ({
-  ClientRequestError: class extends Error {}, getOrCreateSubmissionAttempt: () => ({ submittedAt: new Date(0).toISOString(), id: 'a1b2c3' }), clearSubmissionAttempt: vi.fn(),
+  ClientRequestError: class extends Error {}, getOrCreateSubmissionAttempt: () => ({ submittedAt: new Date(0).toISOString(), id: 'a1b2c3' }), clearSubmissionAttempt: mocks.clearSubmissionAttempt,
 }));
 vi.mock('../lib/analytics', () => ({ trackFunnelEvent: vi.fn() }));
 vi.mock('../lib/quoteDraft', () => ({
@@ -67,8 +74,15 @@ describe('data mínima do briefing', () => {
 });
 
 describe('editor do contexto da campanha no orçamento (PF-41)', () => {
-  beforeEach(() => mocks.setCampaign.mockReset());
-  afterEach(() => { cleanup(); mocks.setCampaign.mockClear(); });
+  beforeEach(() => {
+    mocks.resetCampaign();
+    mocks.setCampaign.mockClear();
+  });
+  afterEach(() => {
+    cleanup();
+    mocks.setCampaign.mockClear();
+    mocks.clearSubmissionAttempt.mockClear();
+  });
 
   it('deixa ajustar uma dimensão do contexto e salva no carrinho', () => {
     renderPage();
@@ -82,5 +96,30 @@ describe('editor do contexto da campanha no orçamento (PF-41)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Ajustar contexto' }));
     fireEvent.click(screen.getByRole('button', { name: 'Remover contexto' }));
     expect(mocks.setCampaign).toHaveBeenCalledWith(undefined);
+  });
+
+  it('invalida a tentativa de envio ao editar o contexto (reenvio sem 409)', () => {
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: 'Ajustar contexto' }));
+    fireEvent.change(screen.getByLabelText('Clima'), { target: { value: 'premium' } });
+    expect(mocks.clearSubmissionAttempt).toHaveBeenCalledWith('promo-brindes:quote-attempt');
+  });
+
+  it('invalida a tentativa de envio ao remover o contexto', () => {
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: 'Ajustar contexto' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Remover contexto' }));
+    expect(mocks.clearSubmissionAttempt).toHaveBeenCalledWith('promo-brindes:quote-attempt');
+  });
+
+  it('mantém o editor visível ao limpar o último campo do contexto', () => {
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: 'Ajustar contexto' }));
+    fireEvent.change(screen.getByLabelText('Momento'), { target: { value: '' } });
+    fireEvent.change(screen.getByLabelText('Público'), { target: { value: '' } });
+    fireEvent.change(screen.getByLabelText('Escala'), { target: { value: '' } });
+    fireEvent.change(screen.getByLabelText('Clima'), { target: { value: '' } });
+    expect(screen.getByLabelText('Clima')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Concluir' })).toBeInTheDocument();
   });
 });
