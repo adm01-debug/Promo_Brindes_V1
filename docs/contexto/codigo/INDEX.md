@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `804efbc2180fce1cb851752b3229ad5acf9b90c2` (2026-11-20T19:08:44Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `0afb33e3570d7ed95abf7035766cdebd11c1efad` (2026-11-20T19:41:32Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -14,7 +14,7 @@ Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR
 Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua tarefa; não carregue tudo.
 
 ## Stack
-- linguagens: TypeScript (215), Markdown (130), SQL (106), JavaScript (65), JSON (29), YAML (19), Python (8), CSS (4)
+- linguagens: TypeScript (215), Markdown (134), SQL (106), JavaScript (65), JSON (29), YAML (19), Python (8), CSS (4)
 - linguagem_principal: TypeScript
 - framework: React
 - backend_http: vercel-functions
@@ -34,7 +34,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Números
 | item | qtd |
 |---|---|
-| arquivos_total | 716 |
+| arquivos_total | 720 |
 | arquivos_codigo | 287 |
 | linhas_codigo | 55908 |
 | rotas | 32 |
@@ -51,7 +51,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 | testes | 144 |
 | workflows | 15 |
 | scripts | 37 |
-| docs_md | 130 |
+| docs_md | 134 |
 
 ## Onde ficam as coisas
 - telas: src/pages (18)
@@ -382,10 +382,11 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `docs/SITE_SUPABASE_SETUP.md` — Supabase exclusivo do Site Promo Brindes (124 linhas)
 - `docs/UX_STRATEGY.md` — Estratégia de experiência — Site Promo Brindes (154 linhas)
 - `docs/prod-readiness.md` — Prod Readiness — Promo_Brindes_V1 (87 linhas)
-- subpastas de docs/: docs/audits (22), docs/agentes (9), docs/contexto (2)
+- subpastas de docs/: docs/audits (22), docs/agentes (9), docs/pendencias (4), docs/contexto (2)
 
 
 ## Últimos commits
+- 2026-11-20 `0afb33e` chore(docs): linha de base, regras de negocio e mapa do sistema (GOAL fase 0) (#216)
 - 2026-11-20 `804efbc` fix: promessas honestas em orcamento e catalogo (PF-14, PF-19, PF-20, PF-21) (#215)
 - 2026-11-20 `5ad589f` feat: permite ajustar o contexto da campanha no orçamento (#213)
 - 2026-11-20 `1bb2a90` fix: limpa contexto da campanha quando o recorte sai do catálogo (#212)
@@ -400,7 +401,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-18 `4a23155` feat(guarda): aponta trabalho estacionado em refs fora de heads e pull (#203)
 - 2026-11-18 `6d13174` fix(graphify): .graphifyignore passa a excluir da indexação, não só da impressão digital (#198)
 - 2026-11-18 `148318e` docs: matriz dos 230 requisitos deixa de se declarar vigente (#208)
-- 2026-11-18 `ab6ea69` infra(graphify): cria o requirements-graphify.in que o comentario citava e nao existia (#197)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

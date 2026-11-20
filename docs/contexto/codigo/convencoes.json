@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "chore(docs): linha de base, regras de negocio e mapa do sistema (GOAL fase 0) (#216)",
    "fix: promessas honestas em orcamento e catalogo (PF-14, PF-19, PF-20, PF-21) (#215)",
    "feat: permite ajustar o contexto da campanha no orçamento (#213)",
    "fix: limpa contexto da campanha quando o recorte sai do catálogo (#212)",
-   "feat: caminho 'ainda não sei o que escolher' desbloqueia quem chega sem briefing (#211)",
-   "chore(docs): auditoria planejado × implementado em 40f6420 — 128 itens reverificados, 108 novos (#214)"
+   "feat: caminho 'ainda não sei o que escolher' desbloqueia quem chega sem briefing (#211)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

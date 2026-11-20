@@ -1,10 +1,10 @@
 {
  "meta": {
-  "sha": "804efbc2180fce1cb851752b3229ad5acf9b90c2",
+  "sha": "0afb33e3570d7ed95abf7035766cdebd11c1efad",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-20 19:09 UTC",
-  "files_total": 610,
+  "generated_at": "2026-11-20 20:14 UTC",
+  "files_total": 614,
   "code_files": 394,
   "code_lines": 69082,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
@@ -33140,10 +33140,22 @@
   }
  },
  "git": {
-  "sha": "804efbc2180fce1cb851752b3229ad5acf9b90c2",
+  "sha": "0afb33e3570d7ed95abf7035766cdebd11c1efad",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "0afb33e",
+    "date": "2026-11-20",
+    "author": "adm01-debug",
+    "subject": "chore(docs): linha de base, regras de negocio e mapa do sistema (GOAL fase 0) (#216)",
+    "files": [
+     "docs/pendencias/_achados.md",
+     "docs/pendencias/_linha-de-base.md",
+     "docs/pendencias/_mapa-sistema.md",
+     "docs/pendencias/_regras-de-negocio.md"
+    ]
+   },
    {
     "sha": "804efbc",
     "date": "2026-11-20",
@@ -33462,17 +33474,6 @@
      "docs/DATABASE_FUNCTION_CONTRACTS.md",
      "docs/SITE_SUPABASE_SETUP.md"
     ]
-   },
-   {
-    "sha": "e4a904f",
-    "date": "2026-11-17",
-    "author": "adm01-debug",
-    "subject": "feat(retenção): resíduo de dado pessoal não apagado deixa de ser invisível (#184)",
-    "files": [
-     "api/_lib/operationalAlerts.ts",
-     "api/retention.ts",
-     "tests/api/retention.test.ts"
-    ]
    }
   ],
   "hot_files": [
@@ -33482,10 +33483,6 @@
    ],
    [
     "api/notifications.ts",
-    3
-   ],
-   [
-    "api/retention.ts",
     3
    ],
    [
@@ -33517,12 +33514,28 @@
     2
    ],
    [
+    "api/retention.ts",
+    2
+   ],
+   [
     "docs/DATABASE_FUNCTION_CONTRACTS.md",
     2
    ],
    [
-    "tests/api/retention.test.ts",
-    2
+    "docs/pendencias/_achados.md",
+    1
+   ],
+   [
+    "docs/pendencias/_linha-de-base.md",
+    1
+   ],
+   [
+    "docs/pendencias/_mapa-sistema.md",
+    1
+   ],
+   [
+    "docs/pendencias/_regras-de-negocio.md",
+    1
    ],
    [
     "src/components/ProductCard.tsx",
@@ -33542,18 +33555,6 @@
    ],
    [
     "src/lib/quoteDraft.test.ts",
-    1
-   ],
-   [
-    "src/lib/quoteDraft.ts",
-    1
-   ],
-   [
-    "src/lib/quoteRequest.test.ts",
-    1
-   ],
-   [
-    "src/lib/quoteRequest.ts",
     1
    ]
   ]
