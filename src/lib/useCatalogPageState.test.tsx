@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CatalogProduct } from '../types';
@@ -69,10 +69,24 @@ describe('useCatalogPageState', () => {
     expect(mocks.cart.setCampaign).toHaveBeenLastCalledWith({ source: 'finder', moment: 'evento' });
   });
 
-  it('limpa o contexto do carrinho quando não há recorte de campanha ativo', () => {
+  it('preserva o contexto do carrinho na montagem sem recorte de campanha ativo', () => {
     renderHook(() => useCatalogPageState(), {
       wrapper: ({ children }) => <MemoryRouter initialEntries={['/catalogo']}>{children}</MemoryRouter>,
     });
+
+    expect(mocks.cart.setCampaign).not.toHaveBeenCalledWith(undefined);
+  });
+
+  it('limpa o contexto do carrinho ao remover o último filtro de campanha na sessão', () => {
+    const { result } = renderHook(() => useCatalogPageState(), {
+      wrapper: ({ children }) => <MemoryRouter initialEntries={['/catalogo?momento=evento']}>{children}</MemoryRouter>,
+    });
+
+    // Montou com campanha ativa: o contexto é sincronizado.
+    expect(mocks.cart.setCampaign).toHaveBeenLastCalledWith({ source: 'finder', moment: 'evento' });
+
+    // Remove o último filtro de campanha dentro da mesma sessão: ativa → inativa.
+    act(() => result.current.updateParams({ momento: null }));
 
     expect(mocks.cart.setCampaign).toHaveBeenLastCalledWith(undefined);
   });
