@@ -493,21 +493,21 @@ export default function QuotePage() {
                 <strong>Esta seleção já tem uma direção.</strong>
                 <p>Você pode complementar no briefing; essas referências acompanham a análise do nosso time de especialistas. Se a direção mudou, ajuste o contexto antes de enviar.</p>
                 {campaignContextOpen && (
-                  <div className="quote-campaign-context__editor" aria-label="Editor do contexto da campanha">
+                  <div className="quote-campaign-context__editor" style={{ display: 'grid', gap: 14, marginTop: 12 }} aria-label="Editor do contexto da campanha">
                     <div className="form-field form-field--wide"><label htmlFor="campaignMoment">Momento</label><select id="campaignMoment" value={activeCampaign?.moment ?? ''} onChange={(event) => updateActiveCampaign('moment', event.target.value as CampaignBrief['moment'])}><option value="">Sem momento definido</option>{CAMPAIGN_MOMENTS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></div>
                     <div className="form-field form-field--wide"><label htmlFor="campaignAudience">Público</label><select id="campaignAudience" value={activeCampaign?.audience ?? ''} onChange={(event) => updateActiveCampaign('audience', event.target.value as CampaignBrief['audience'])}><option value="">Sem público definido</option>{CAMPAIGN_AUDIENCES.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></div>
                     <div className="form-field form-field--wide"><label htmlFor="campaignScale">Escala</label><select id="campaignScale" value={activeCampaign?.scale ?? ''} onChange={(event) => updateActiveCampaign('scale', event.target.value as CampaignBrief['scale'])}><option value="">Sem escala definida</option>{CAMPAIGN_SCALES.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></div>
                     <div className="form-field form-field--wide"><label htmlFor="campaignMood">Clima</label><select id="campaignMood" value={activeCampaign?.mood ?? ''} onChange={(event) => updateActiveCampaign('mood', event.target.value as CampaignBrief['mood'])}><option value="">Sem clima definido</option>{CAMPAIGN_MOODS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></div>
-                    <button type="button" className="button button--compact button--green" onClick={() => setCampaignContextOpen(false)}>Concluir</button>
+                    <button type="button" className="button button--compact button--green" style={{ justifySelf: 'start' }} onClick={() => setCampaignContextOpen(false)}>Concluir</button>
                   </div>
                 )}
               </div>
               {campaignContextOpen ? (
-                <div className="quote-campaign-context__actions">
+                <div className="quote-campaign-context__actions" style={{ display: 'grid', gap: 10, justifyItems: 'end' }}>
                   <button type="button" className="text-button text-button--danger" onClick={() => setActiveCampaign(undefined)}>Remover contexto</button>
                 </div>
               ) : (
-                <div className="quote-campaign-context__actions">
+                <div className="quote-campaign-context__actions" style={{ display: 'grid', gap: 10, justifyItems: 'end' }}>
                   <ul>{campaignLabels.map((label) => <li key={label}>{label}</li>)}</ul>
                   <button type="button" className="text-button" onClick={() => setCampaignContextOpen(true)}>Ajustar contexto</button>
                 </div>
