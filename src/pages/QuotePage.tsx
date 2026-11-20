@@ -180,8 +180,13 @@ export default function QuotePage() {
       return;
     }
     const saved = saveQuoteDraft({ contact, briefing });
-    setDraftNotice(saved ? '' : 'Não foi possível salvar o rascunho nesta aba. Os campos continuam visíveis até você sair da página.');
-  }, [briefing, contact, success]);
+    if (saved) {
+      // Preserva avisos de descarte; limpa apenas o aviso de falha de salvamento.
+      setDraftNotice((current) => (current.startsWith('Não foi possível') ? '' : current));
+    } else {
+      setDraftNotice('Não foi possível salvar o rascunho nesta aba. Os campos continuam visíveis até você sair da página.');
+    }
+  }, [briefing, contact, draftNotice, success]);
 
   function updateField<Key extends keyof QuoteContact>(key: Key, value: QuoteContact[Key]) {
     setContact((current) => ({ ...current, [key]: value }));
