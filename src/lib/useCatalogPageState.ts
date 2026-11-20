@@ -131,9 +131,21 @@ export function useCatalogPageState() {
   const comparisonIds = useMemo(() => comparison.map((product) => product.id).sort().join(','), [comparison]);
 
   useEffect(() => setSearchInput(query), [query]);
+  // Guarda se havia campanha ativa na última execução do efeito. Em montagem
+  // nova do /catalogo (ex.: "Adicionar mais produtos" vindo do orçamento) não há
+  // estado anterior, então o contexto do carrinho é preservado — só limpamos em
+  // transição ativa → inativa dentro desta mesma sessão (remover o último filtro).
+  const campaignActiveRef = useRef<boolean | null>(null);
   useEffect(() => {
     const brief = occasionCampaign || campaignBriefFromSelection(campaignSelection);
+    const nowActive = Boolean(brief);
+    const wasActive = campaignActiveRef.current;
+    campaignActiveRef.current = nowActive;
     if (brief) cart.setCampaign(brief);
+    // Sem recorte de campanha ativo, o contexto do carrinho não deve reter uma
+    // direção descartada: limpar tudo ou remover o último filtro no catálogo
+    // não pode fazer o briefing herdar um contexto errado rumo ao comercial.
+    else if (wasActive && !nowActive) cart.setCampaign(undefined);
     // campaignKey estabiliza campaignSelection, lido pela closure deste efeito.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [campaignKey, cart, occasionCampaign]);
