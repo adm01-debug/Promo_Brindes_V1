@@ -60,4 +60,20 @@ describe('useCatalogPageState', () => {
 
     expect(result.current.catalog.data.products.map((item) => item.id)).toEqual(['b', 'a']);
   });
+
+  it('sincroniza o contexto da campanha a partir da URL', () => {
+    renderHook(() => useCatalogPageState(), {
+      wrapper: ({ children }) => <MemoryRouter initialEntries={['/catalogo?momento=evento']}>{children}</MemoryRouter>,
+    });
+
+    expect(mocks.cart.setCampaign).toHaveBeenLastCalledWith({ source: 'finder', moment: 'evento' });
+  });
+
+  it('limpa o contexto do carrinho quando não há recorte de campanha ativo', () => {
+    renderHook(() => useCatalogPageState(), {
+      wrapper: ({ children }) => <MemoryRouter initialEntries={['/catalogo']}>{children}</MemoryRouter>,
+    });
+
+    expect(mocks.cart.setCampaign).toHaveBeenLastCalledWith(undefined);
+  });
 });

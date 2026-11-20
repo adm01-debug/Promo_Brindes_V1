@@ -134,6 +134,10 @@ export function useCatalogPageState() {
   useEffect(() => {
     const brief = occasionCampaign || campaignBriefFromSelection(campaignSelection);
     if (brief) cart.setCampaign(brief);
+    // Sem recorte de campanha ativo, o contexto do carrinho não deve reter uma
+    // direção descartada: limpar tudo ou remover o último filtro no catálogo
+    // não pode fazer o briefing herdar um contexto errado rumo ao comercial.
+    else if (!campaignCount && !occasionCampaign) cart.setCampaign(undefined);
     // campaignKey estabiliza campaignSelection, lido pela closure deste efeito.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [campaignKey, cart, occasionCampaign]);
