@@ -82,7 +82,7 @@ export default function QuotePage() {
   const [draftNotice, setDraftNotice] = useState('');
   const [quantityDrafts, setQuantityDrafts] = useState<Record<string, string>>({});
   const [briefingAssetIds, setBriefingAssetIds] = useState<string[]>([]);
-  const [success, setSuccess] = useState<{ mode: 'endpoint' | 'email'; href?: string; requestId?: string; contactName?: string; itemCount?: number; confirmations?: { email: 'sent' | 'pending'; whatsapp: ConfirmationDeliveryStatus }; assets?: { status: 'attached' | 'pending'; count: number } } | null>(null);
+  const [success, setSuccess] = useState<{ mode: 'endpoint' | 'email'; href?: string; requestId?: string; contactName?: string; itemCount?: number; confirmations?: { email: 'sent' | 'pending' | 'unavailable'; whatsapp: ConfirmationDeliveryStatus }; assets?: { status: 'attached' | 'pending'; count: number } } | null>(null);
   const [website, setWebsite] = useState('');
   const formRef = useRef<HTMLFormElement>(null);
   const availabilityNoticeRef = useRef<HTMLDivElement>(null);
@@ -179,8 +179,14 @@ export default function QuotePage() {
       clearQuoteDraft();
       return;
     }
-    saveQuoteDraft({ contact, briefing });
-  }, [briefing, contact, success]);
+    const saved = saveQuoteDraft({ contact, briefing });
+    if (saved) {
+      // Preserva avisos de descarte; limpa apenas o aviso de falha de salvamento.
+      setDraftNotice((current) => (current.startsWith('Não foi possível') ? '' : current));
+    } else {
+      setDraftNotice('Não foi possível salvar o rascunho nesta aba. Os campos continuam visíveis até você sair da página.');
+    }
+  }, [briefing, contact, draftNotice, success]);
 
   function updateField<Key extends keyof QuoteContact>(key: Key, value: QuoteContact[Key]) {
     setContact((current) => ({ ...current, [key]: value }));
@@ -235,7 +241,7 @@ export default function QuotePage() {
     setBriefing(EMPTY_QUOTE_BRIEFING);
     setErrors({});
     setBriefingErrors({});
-    setDraftNotice('Rascunho apagado deste navegador. A sua seleção de produtos foi mantida.');
+    setDraftNotice('O rascunho foi apagado deste navegador. A sua seleção de produtos foi mantida.');
   }
 
   useEffect(() => {
@@ -488,8 +494,7 @@ export default function QuotePage() {
 
         <section className="quote-form-section" aria-labelledby="briefing-title">
           <div className="quote-section-heading"><div><span>02</span><div><h2 id="briefing-title">Seu briefing</h2><p>Campos com * são obrigatórios</p></div></div><button type="button" className="text-button" disabled={sending} onClick={discardDraft}>Apagar rascunho</button></div>
-          <p className="quote-draft-notice" role="status">Seus dados deste formulário ficam salvos por {QUOTE_DRAFT_RETENTION_LABEL} para evitar perda de trabalho. Não use este campo para dados sensíveis.</p>
-          {draftNotice && <p className="quote-draft-notice quote-draft-notice--success" role="status">{draftNotice}</p>}
+          <p className="quote-draft-notice" role="status">{draftNotice || `Seus dados deste formulário ficam salvos por ${QUOTE_DRAFT_RETENTION_LABEL} para evitar perda de trabalho.`} Não use este campo para dados sensíveis.</p>
           {(campaignLabels.length > 0 || campaignContextOpen) && (
             <aside className="quote-campaign-context" aria-label="Contexto recuperado da sua campanha">
               <div>

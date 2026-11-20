@@ -15,6 +15,12 @@ describe('rascunho do briefing', () => {
     expect(loadQuoteDraft(Date.parse('2026-09-10T12:30:00.000Z'))).toEqual({ contact, briefing });
   });
 
+  it('confirma que o rascunho foi persistido e que o navegador aceitou o storage', () => {
+    const persisted = saveQuoteDraft({ contact, briefing: EMPTY_QUOTE_BRIEFING }, new Date('2026-09-10T12:00:00.000Z'));
+    expect(persisted).toBe(true);
+    expect(saveQuoteDraft({ contact: EMPTY_QUOTE_CONTACT, briefing: EMPTY_QUOTE_BRIEFING })).toBe(true);
+  });
+
   it('remove o rascunho vencido em vez de reapresentar dados pessoais antigos', () => {
     saveQuoteDraft({ contact, briefing: EMPTY_QUOTE_BRIEFING }, new Date('2026-09-08T11:00:00.000Z'));
     expect(loadQuoteDraft(Date.parse('2026-09-10T12:00:00.000Z'))).toEqual({ contact: EMPTY_QUOTE_CONTACT, briefing: EMPTY_QUOTE_BRIEFING });

@@ -26,7 +26,7 @@ describe('ache pelo briefing', () => {
     expect(campaignSelectionCount(selection)).toBe(2);
     expect(campaignLabels(selection)).toEqual([
       { key: 'moment', label: 'Momento: Evento' },
-      { key: 'scale', label: 'Escala: Até 50 un.' },
+      { key: 'scale', label: 'Escala: Até 50 pessoas' },
     ]);
   });
 

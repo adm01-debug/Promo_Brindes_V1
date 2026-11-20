@@ -90,4 +90,16 @@ describe('solicitação de orçamento', () => {
     // not_requested, que negaria o consentimento dado pelo visitante.
     expect(result).toMatchObject({ mode: 'endpoint', confirmations: { email: 'sent', whatsapp: 'unavailable' } });
   });
+
+  it('preserva e-mail indisponível em vez de rebaixá-lo para pendente', async () => {
+    vi.stubEnv('VITE_QUOTE_REQUEST_ENDPOINT', '/api/quote-requests');
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(
+      JSON.stringify({ requestId: 'a2d1f4c6-1111-4222-8333-444455556666', confirmations: { email: 'unavailable', whatsapp: 'sent' } }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    )));
+    const result = await submitQuoteRequest(buildQuotePayload(contact, items));
+    // Sem provedor de e-mail, a API marca unavailable; o cliente não pode
+    // rebaixar para pending e voltar a prometer 'Registrado para envio'.
+    expect(result).toMatchObject({ mode: 'endpoint', confirmations: { email: 'unavailable', whatsapp: 'sent' } });
+  });
 });
