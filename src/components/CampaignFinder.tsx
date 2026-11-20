@@ -116,6 +116,14 @@ export function CampaignFinder() {
     void navigate(buildCampaignCatalogUrl(selection));
   }
 
+  // Quem chega sem intenção definida não deve ficar preso no briefing: este
+  // caminho abre o catálogo público sem exigir resposta, mantendo o restante
+  // do funil fechado (CTA "Ver minha curadoria" segue exigindo ≥1 resposta).
+  function exploreCatalogWithoutBriefing() {
+    trackFunnelEvent('campaign_finder_skipped', { choices: selectedCount });
+    void navigate('/catalogo');
+  }
+
   return (
     <section id="ache-pelo-briefing" className="brief-finder section" aria-labelledby="brief-finder-title">
       <div className="container brief-finder__shell">
@@ -196,6 +204,11 @@ export function CampaignFinder() {
                 <button type="button" className="brief-finder__skip" onClick={() => setStepIndex((current) => Math.min(steps.length - 1, current + 1))} disabled={stepIndex === steps.length - 1}>
                   Pular etapa
                 </button>
+                {!selectedCount && (
+                  <button type="button" className="brief-finder__explore" onClick={exploreCatalogWithoutBriefing}>
+                    Ainda não sei o que escolher
+                  </button>
+                )}
                 <button type="button" className="button button--green" disabled={!selectedCount} onClick={showResults}>
                   Ver minha curadoria <ArrowRight size={17} />
                 </button>

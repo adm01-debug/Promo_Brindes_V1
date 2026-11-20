@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { CampaignFinder } from './CampaignFinder';
 
 function completeBriefing() {
@@ -87,5 +87,40 @@ describe('foco do teclado entre as etapas', () => {
     await nextFrame();
 
     expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'O que está acontecendo?' }));
+  });
+});
+
+describe('caminho sem briefing ("ainda não sei")', () => {
+  afterEach(cleanup);
+
+  it('oferece a saída para o catálogo quando nenhuma resposta foi dada', () => {
+    render(<MemoryRouter><CampaignFinder /></MemoryRouter>);
+
+    const explore = screen.getByRole('button', { name: 'Ainda não sei o que escolher' });
+    expect(explore).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Ver minha curadoria' })).toBeDisabled();
+  });
+
+  it('esconde a saída assim que o briefing começa a ser respondido', () => {
+    render(<MemoryRouter><CampaignFinder /></MemoryRouter>);
+
+    fireEvent.click(screen.getByText('Evento'));
+
+    expect(screen.queryByRole('button', { name: 'Ainda não sei o que escolher' })).not.toBeInTheDocument();
+  });
+
+  it('navega ao catálogo sem exigir briefing', () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <Routes>
+          <Route path="/" element={<CampaignFinder />} />
+          <Route path="/catalogo" element={<div>Catálogo desbloqueado</div>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ainda não sei o que escolher' }));
+
+    expect(screen.getByText('Catálogo desbloqueado')).toBeInTheDocument();
   });
 });

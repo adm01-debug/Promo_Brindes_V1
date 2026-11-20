@@ -5950,6 +5950,9 @@ form.catalog-search > .search-suggestions.is-open { display: grid; pointer-event
 .brief-finder__back:disabled,
 .brief-finder__skip:disabled,
 .brief-finder__actions .button:disabled { cursor: not-allowed; opacity: 0.45; }
+
+.brief-finder__explore { color: var(--blue); border-bottom: 1px solid currentColor; }
+.brief-finder__explore:hover { opacity: .8; }
 .brief-finder__reset { margin-top: 12px; color: var(--green-dark); }
 
 .bf-head > span { color: var(--blue); font-size: .66rem; font-weight: 900; letter-spacing: .11em; }

@@ -4,6 +4,7 @@ import type { BeforeSendEvent } from '@vercel/analytics/react';
 export interface FunnelEventMap {
   search_started: { source: 'home' | 'catalog' | 'header'; query_length: number; suggestion: boolean };
   campaign_finder_completed: { moment: string; audience: string; scale: string; mood: string; choices: number };
+  campaign_finder_skipped: { choices: number };
   catalog_result_viewed: { result_count: number; page: number; active_filters: number; campaign: boolean };
   product_viewed: { product_id: string; category_id: string };
   product_saved: { product_id: string; category_id: string; has_color: boolean };
@@ -42,6 +43,7 @@ type FunnelEventName = keyof FunnelEventMap;
 const ALLOWED_PROPERTIES: { [Name in FunnelEventName]: ReadonlyArray<keyof FunnelEventMap[Name]> } = {
   search_started: ['source', 'query_length', 'suggestion'],
   campaign_finder_completed: ['moment', 'audience', 'scale', 'mood', 'choices'],
+  campaign_finder_skipped: ['choices'],
   catalog_result_viewed: ['result_count', 'page', 'active_filters', 'campaign'],
   product_viewed: ['product_id', 'category_id'],
   product_saved: ['product_id', 'category_id', 'has_color'],
