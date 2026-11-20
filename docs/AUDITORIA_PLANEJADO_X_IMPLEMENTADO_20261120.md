@@ -81,7 +81,7 @@ Quem destrava: **ENG** = engenharia pode fazer agora · **DONO** = decisão/cred
 
 ### Estado remoto lido em 20/11 (GitHub) — detalhe no [anexo 09](audits/planejado-x-implementado-20261120/09-estado-remoto-github-vercel-supabase.md)
 
-- Secret scanning, push protection e Dependabot security **ativos**. `allowed_actions` = **`selected`** (AGENTS.md manda `all` e registra que `selected` travou o CI em 14–16/11); `sha_pinning_required` = true. Em 19/11 à noite houve 8 `startup_failure` (drift detector e contexto) e o inventário semanal não rodou em 16/11.
+- Secret scanning, push protection e Dependabot security **ativos**. `allowed_actions` estava em **`selected`** (AGENTS.md manda `all` e registra que `selected` travou o CI em 14–16/11); isso derrubou o Quality gate (`gitleaks/gitleaks-action`, de terceiro) com `startup_failure` em todas as PRs de 20/11 (#211–#214) e 8 runs de 19/11 à noite (drift detector, contexto). **Restaurado para `all` às 10:36 UTC de 20/11**; `sha_pinning_required` segue true. O inventário semanal não rodou em 16/11.
 - Proteção de `main`: `strict` = true, resolução de conversa obrigatória, `enforce_admins` = true, **0 aprovações exigidas**, sem histórico linear, **nenhum ruleset**; checks obrigatórios só os 4 (CodeQL e dependency review não).
 - Environments `Production`/`Preview`/`copilot` sem regra nem segredo; nenhum job declara `environment:`.
 - **Nenhuma tag** no repositório. Secrets do repositório: `E2E_PADRAO_EMAIL`, `E2E_PADRAO_PASSWORD`, `RESEND_API_KEY` (desde 11/11 e **nenhum workflow a usa**), `SITE_SUPABASE_DB_URL`, `SUPABASE_ACCESS_TOKEN`, `VERCEL_TOKEN`.
@@ -174,7 +174,7 @@ Tabela consolidada (uma linha por item). Evidência completa, comandos reproduz�
 | PF-64 | Página de projeto especial | BLOQUEADO | Confirmação comercial | `App.tsx:110-127` | não | DONO |
 | PF-65 | Redes, horário e canal oficiais | PARCIAL-VALIDAÇÃO | Horário de atendimento (0 ocorrências) | `Layout.tsx:22-27,238-240` | não | DONO |
 | PF-66 | Secret scanning + push protection | IMPLEMENTADO | — | API GitHub 20/11: enabled | sim | — |
-| PF-67 | Dependabot security, SHA pinning, Actions | IMPLEMENTADO + DIVERGÊNCIA | `allowed_actions: selected` contraria AGENTS.md; `startup_failure` em 19/11 | API 20/11; 100% `uses:` por SHA | sim | ENG (remoto) |
+| PF-67 | Dependabot security, SHA pinning, Actions | IMPLEMENTADO | `allowed_actions` estava em `selected` (contra AGENTS.md) e derrubava o Quality gate de todas as PRs desde 20/11 00:05; restaurado para `all` nesta auditoria às 10:36 UTC | API 20/11; 100% `uses:` por SHA | sim | — |
 | PF-68 | Segredos por Environment; `environment:` nos jobs | NÃO INICIADO | `grep environment: workflows` = 0; Environments sem regra | API 20/11 | não | ENG |
 | PF-69 | Revisão legítima (2º revisor) | BLOQUEADO | 0 aprovações nas 25 últimas PRs; CODEOWNERS único | API 20/11; `.github/CODEOWNERS:3` | não | DONO |
 | PF-70 | Ruleset, linear history, CodeQL/dep-review obrigatórios | PARCIAL | `strict` e conversa ok; rulesets `[]`; linear `false`; só 4 checks | API 20/11 | parcial | ENG (regra 8) |
@@ -403,7 +403,7 @@ Encontrados na releitura etapa a etapa dos planos (anexos 06 e 07), dos runbooks
 | D10 | Cutover do JWT `site_api` | PF-73 | — |
 | D11 | Promo Gifts: `mcp_kv_get`, `pendente_*`, recuo `v_products_public`, swatches | PF-76, 83, NOVO-UX-09 | 4 SQLs sem recibo de aplicação |
 | D12 | Pesquisa com compradores; acessibilidade manual | PF-104, 105 | — |
-| D13 (novo) | `allowed_actions`: voltar a `all` como manda AGENTS.md ou manter `selected` e corrigir AGENTS.md | PF-67 | 8 `startup_failure` em 19/11 |
+| D13 (novo) | `allowed_actions` | PF-67 | **Resolvido em 20/11 10:36 UTC**: o valor `selected` fazia o Quality gate falhar na inicialização em todas as PRs (#211–#214, 12 `startup_failure` entre 00:05 e 10:32), bloqueando `validate`/`cross-browser`; restaurado para `all` + `sha_pinning_required: true`, como AGENTS.md exige. Resta ao dono decidir se quer um guard contra regressão |
 | D14 (novo) | Aplicar o reparo retroativo `20261117030100` (destrutivo) | PF-31 | Snapshot indica aplicado; confirmar no projeto |
 | D15 (novo) | Mockups [AV] para 8 etapas Carnegie ainda sem proposta visual | NOVO-CA-10..17, PF-37/38/39/41/48/60/116/118/119/121 | PRs #211–#213 avançam sem mockup aprovado versionado |
 
