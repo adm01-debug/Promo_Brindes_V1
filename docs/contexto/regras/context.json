@@ -1,10 +1,10 @@
 {
  "meta": {
-  "sha": "40f642030aee9bca9552761bc8a6e6abed4f8fb7",
+  "sha": "a9dab6d7a75d191ff0f1c51336c9db383a6d9eaf",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-19 15:07 UTC",
-  "files_total": 599,
+  "generated_at": "2026-11-20 11:13 UTC",
+  "files_total": 609,
   "code_files": 393,
   "code_lines": 68770,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
@@ -32985,10 +32985,28 @@
   }
  },
  "git": {
-  "sha": "40f642030aee9bca9552761bc8a6e6abed4f8fb7",
+  "sha": "a9dab6d7a75d191ff0f1c51336c9db383a6d9eaf",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "a9dab6d",
+    "date": "2026-11-20",
+    "author": "adm01-debug",
+    "subject": "chore(docs): auditoria planejado × implementado em 40f6420 — 128 itens reverificados, 108 novos (#214)",
+    "files": [
+     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
+     "docs/audits/planejado-x-implementado-20261120/01-pf-01-22-comercial-confirmacoes-promessas.md",
+     "docs/audits/planejado-x-implementado-20261120/02-pf-23-56-portal-lgpd-experiencia.md",
+     "docs/audits/planejado-x-implementado-20261120/03-pf-57-85-conteudo-seguranca-banco.md",
+     "docs/audits/planejado-x-implementado-20261120/04-pf-86-113-operacao-ci-testes-graphify.md",
+     "docs/audits/planejado-x-implementado-20261120/05-pf-114-127-ux-benchmarks.md",
+     "docs/audits/planejado-x-implementado-20261120/06-plano-fechamento-100-e-carnegie-100.md",
+     "docs/audits/planejado-x-implementado-20261120/07-workflows-100-correcoes-5x50-graphify-50.md",
+     "docs/audits/planejado-x-implementado-20261120/08-banco-api-runbooks-docs.md",
+     "docs/audits/planejado-x-implementado-20261120/09-estado-remoto-github-vercel-supabase.md"
+    ]
+   },
    {
     "sha": "40f6420",
     "date": "2026-11-19",
@@ -33302,18 +33320,6 @@
     "files": [
      ".github/workflows/quality.yml"
     ]
-   },
-   {
-    "sha": "3b2b02e",
-    "date": "2026-11-17",
-    "author": "adm01-debug",
-    "subject": "feat(observabilidade): queda do catálogo público passa a alertar a equipe (#178)",
-    "files": [
-     "api/_lib/operationalAlerts.ts",
-     "api/product-page.ts",
-     "tests/api/product-page-alert.test.ts",
-     "tests/api/product-page-shell-alert.test.ts"
-    ]
    }
   ],
   "hot_files": [
@@ -33370,31 +33376,31 @@
     2
    ],
    [
-    "api/_lib/operationalAlerts.ts",
-    2
-   ],
-   [
-    ".github/workflows/release.yml",
+    "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
     1
    ],
    [
-    "e2e/journey.spec.ts",
+    "docs/audits/planejado-x-implementado-20261120/01-pf-01-22-comercial-confirmacoes-promessas.md",
     1
    ],
    [
-    "e2e/briefing-upload.spec.ts",
+    "docs/audits/planejado-x-implementado-20261120/02-pf-23-56-portal-lgpd-experiencia.md",
     1
    ],
    [
-    "e2e/concurrency.spec.ts",
+    "docs/audits/planejado-x-implementado-20261120/03-pf-57-85-conteudo-seguranca-banco.md",
     1
    ],
    [
-    "scripts/check-orphan-refs.mjs",
+    "docs/audits/planejado-x-implementado-20261120/04-pf-86-113-operacao-ci-testes-graphify.md",
     1
    ],
    [
-    "scripts/orphan-refs-baseline.json",
+    "docs/audits/planejado-x-implementado-20261120/05-pf-114-127-ux-benchmarks.md",
+    1
+   ],
+   [
+    "docs/audits/planejado-x-implementado-20261120/06-plano-fechamento-100-e-carnegie-100.md",
     1
    ]
   ]

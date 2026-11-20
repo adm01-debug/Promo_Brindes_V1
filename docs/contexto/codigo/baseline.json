@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "40f642030aee9bca9552761bc8a6e6abed4f8fb7",
+  "commit": "a9dab6d7a75d191ff0f1c51336c9db383a6d9eaf",
   "branch": "main",
-  "data_commit": "2026-11-19T15:07:28Z",
+  "data_commit": "2026-11-20T10:56:55Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "a9dab6d",
+    "data": "2026-11-20",
+    "assunto": "chore(docs): auditoria planejado × implementado em 40f6420 — 128 itens reverificados, 108 novos (#214)"
+   },
    {
     "sha": "40f6420",
     "data": "2026-11-19",
@@ -126,14 +131,9 @@
     "sha": "fbd51d9",
     "data": "2026-11-17",
     "assunto": "fix(docs): contrato do banco deixa de descrever função e status que não existem (#185)"
-   },
-   {
-    "sha": "e4a904f",
-    "data": "2026-11-17",
-    "assunto": "feat(retenção): resíduo de dado pessoal não apagado deixa de ser invisível (#184)"
    }
   ],
-  "arquivos_mudados_7d": 127,
+  "arquivos_mudados_7d": 137,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -149,6 +149,10 @@
    },
    {
     "pasta": ".github/workflows/quality.yml",
+    "mudancas": 9
+   },
+   {
+    "pasta": "docs/audits/planejado-x-implementado-20261120",
     "mudancas": 9
    },
    {
@@ -189,10 +193,6 @@
    },
    {
     "pasta": ".github/workflows/release.yml",
-    "mudancas": 4
-   },
-   {
-    "pasta": "PENDENCIAS.md",
     "mudancas": 4
    }
   ],
@@ -310,7 +310,7 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 705,
+  "arquivos_total": 715,
   "arquivos_codigo": 286,
   "linhas_codigo": 55596,
   "rotas": 32,
@@ -327,7 +327,7 @@
   "testes": 143,
   "workflows": 15,
   "scripts": 37,
-  "docs_md": 120
+  "docs_md": 130
  },
  "por_pasta": {
   "api/_lib": {

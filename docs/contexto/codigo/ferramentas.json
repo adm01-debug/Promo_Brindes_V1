@@ -4,7 +4,7 @@
  "stack": {
   "linguagens": [
    "TypeScript (214)",
-   "Markdown (120)",
+   "Markdown (130)",
    "SQL (106)",
    "JavaScript (65)",
    "JSON (29)",
@@ -698,6 +698,11 @@
    "linhas": 467
   },
   {
+   "arquivo": "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
+   "titulo": "Auditoria planejado × implementado — 20/11/2026",
+   "linhas": 435
+  },
+  {
    "arquivo": "docs/AUDITORIA_REFS_AUTOSAVE_20261118.md",
    "titulo": "Auditoria do namespace `refs/autosave/*` — 18/11/2026",
    "linhas": 77
@@ -1056,7 +1061,7 @@
  "docs_em_subpastas": [
   {
    "pasta": "docs/audits",
-   "arquivos_md": 13
+   "arquivos_md": 22
   },
   {
    "pasta": "docs/agentes",

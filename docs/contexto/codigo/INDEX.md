@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `40f642030aee9bca9552761bc8a6e6abed4f8fb7` (2026-11-19T15:07:28Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `a9dab6d7a75d191ff0f1c51336c9db383a6d9eaf` (2026-11-20T10:56:55Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -14,7 +14,7 @@ Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR
 Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua tarefa; não carregue tudo.
 
 ## Stack
-- linguagens: TypeScript (214), Markdown (120), SQL (106), JavaScript (65), JSON (29), YAML (19), Python (8), CSS (4)
+- linguagens: TypeScript (214), Markdown (130), SQL (106), JavaScript (65), JSON (29), YAML (19), Python (8), CSS (4)
 - linguagem_principal: TypeScript
 - framework: React
 - backend_http: vercel-functions
@@ -34,7 +34,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Números
 | item | qtd |
 |---|---|
-| arquivos_total | 705 |
+| arquivos_total | 715 |
 | arquivos_codigo | 286 |
 | linhas_codigo | 55596 |
 | rotas | 32 |
@@ -51,7 +51,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 | testes | 143 |
 | workflows | 15 |
 | scripts | 37 |
-| docs_md | 120 |
+| docs_md | 130 |
 
 ## Onde ficam as coisas
 - telas: src/pages (18)
@@ -62,7 +62,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - edge_functions: n/d
 - migrations: site-supabase/supabase/migrations
 - scripts: scripts/maintenance (4), scripts/inventario (3), scripts/regras_negocio (3)
-- docs: docs (74), (raiz) (9), .github (1)
+- docs: docs (75), (raiz) (9), .github (1)
 - nomenclatura: {"componentes":"PascalCase (100%)","hooks":"use + PascalCase","servicos":"camelCase (86%)","edge_functions":null,"tabelas":"snake_case (95%)"}
 - instruções para agentes no repo: AGENTS.md, CLAUDE.md
 
@@ -310,6 +310,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `docs/AUDITORIA_5_ESPECIALISTAS_20260922.md` — Auditoria técnica dos cinco especialistas — 22/09/2026 (65 linhas)
 - `docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md` — Auditoria de funcionalidades planejadas e não executadas — 11/10/2026 (364 linhas)
 - `docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md` — Verificação das pendências de engenharia — 17/11/2026 (467 linhas)
+- `docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md` — Auditoria planejado × implementado — 20/11/2026 (435 linhas)
 - `docs/AUDITORIA_REFS_AUTOSAVE_20261118.md` — Auditoria do namespace `refs/autosave/*` — 18/11/2026 (77 linhas)
 - `docs/AUDIT_REPORT_20260908.md` — Auditoria técnica consolidada — 08–09/09/2026 (75 linhas)
 - `docs/AUTOMACAO_LOCAL.md` — Automação local — Promo_Brindes_V1 (104 linhas)
@@ -381,10 +382,11 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `docs/SITE_SUPABASE_SETUP.md` — Supabase exclusivo do Site Promo Brindes (124 linhas)
 - `docs/UX_STRATEGY.md` — Estratégia de experiência — Site Promo Brindes (154 linhas)
 - `docs/prod-readiness.md` — Prod Readiness — Promo_Brindes_V1 (87 linhas)
-- subpastas de docs/: docs/audits (13), docs/agentes (9), docs/contexto (2)
+- subpastas de docs/: docs/audits (22), docs/agentes (9), docs/contexto (2)
 
 
 ## Últimos commits
+- 2026-11-20 `a9dab6d` chore(docs): auditoria planejado × implementado em 40f6420 — 128 itens reverificados, 108 novos (#214)
 - 2026-11-19 `40f6420` infra(ci): verify-db tolera espera dos gates quando cross-browser chega ao teto de 35min (#210)
 - 2026-11-19 `8e896a7` infra(ci): cross-browser deixa de ser cancelado no teto antes de rodar teste (#204)
 - 2026-11-19 `3038a45` feat(e2e): cobre a jornada completa do visitante com rede lenta e armazenamento bloqueado (#199)
@@ -399,7 +401,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-18 `0a138dd` feat(testes): cobre sessão expirada entre o upload e a verificação do anexo (#200)
 - 2026-11-18 `aff11ee` docs: matriz risco de negocio para camada de teste, com os vazios nomeados (#205)
 - 2026-11-17 `dbc6479` fix(graphify): graph:status deixa de exigir npm ci em clone limpo (#196)
-- 2026-11-17 `2a09509` fix(config): comentário de cobertura para de citar contagem de teste que envelhece (#195)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`
