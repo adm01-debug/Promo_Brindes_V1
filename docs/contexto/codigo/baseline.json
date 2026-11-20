@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "a9dab6d7a75d191ff0f1c51336c9db383a6d9eaf",
+  "commit": "01b873c17d37fb4069938113efa1a9dd3d3541f7",
   "branch": "main",
-  "data_commit": "2026-11-20T10:56:55Z",
+  "data_commit": "2026-11-20T11:21:18Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "01b873c",
+    "data": "2026-11-20",
+    "assunto": "feat: caminho 'ainda não sei o que escolher' desbloqueia quem chega sem briefing (#211)"
+   },
    {
     "sha": "a9dab6d",
     "data": "2026-11-20",
@@ -126,11 +131,6 @@
     "sha": "092d5c6",
     "data": "2026-11-17",
     "assunto": "chore(config): variável de produção não documentada, com guard para não repetir (#186)"
-   },
-   {
-    "sha": "fbd51d9",
-    "data": "2026-11-17",
-    "assunto": "fix(docs): contrato do banco deixa de descrever função e status que não existem (#185)"
    }
   ],
   "arquivos_mudados_7d": 137,
@@ -286,22 +286,22 @@
     "mudancas": 15
    },
    {
+    "arquivo": "src/lib/analytics.ts",
+    "mudancas": 15
+   },
+   {
     "arquivo": "src/types/site-database.types.ts",
     "mudancas": 15
    },
    {
     "arquivo": "tests/api/notifications.test.ts",
     "mudancas": 15
-   },
-   {
-    "arquivo": "api/retention.ts",
-    "mudancas": 14
    }
   ],
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 93
+    "commits": 94
    },
    {
     "autor": "dependabot[bot]",
@@ -312,7 +312,7 @@
  "contagens": {
   "arquivos_total": 715,
   "arquivos_codigo": 286,
-  "linhas_codigo": 55596,
+  "linhas_codigo": 55646,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -572,7 +572,7 @@
   },
   "src/components": {
    "arquivos": 29,
-   "linhas": 3013
+   "linhas": 3061
   },
   "src/context": {
    "arquivos": 7,
@@ -580,7 +580,7 @@
   },
   "src/lib": {
    "arquivos": 80,
-   "linhas": 7723
+   "linhas": 7725
   },
   "src/main.tsx": {
    "arquivos": 1,

@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `a9dab6d7a7` · branch `main` · 2026-11-20 11:13 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `01b873c17d` · branch `main` · 2026-11-20 11:22 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -1048,7 +1048,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1617 testes em 134 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1621 testes em 134 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1095,6 +1095,7 @@ _nenhum item encontrado_
 | `tests/api/webhookSignature.test.ts` | 13 | verifySvixSignature (Etapa 30, Resend) · aceita uma assinatura válida · aceita quando o header traz múltiplas assinaturas e uma delas bate (rotação de segredo) · rejeita corpo adulterado … |
 | `site-supabase/supabase/tests/database/admin_write_audit.test.sql` | 12 | anon não lê a trilha de auditoria · authenticated não lê a trilha de auditoria · site_api não lê a própria trilha de auditoria (não precisa para operar) · service_role lê a trilha de auditoria … |
 | `site-supabase/supabase/tests/database/kit_persistence_guards.test.sql` | 12 | guarda estrutural de kits existe no schema privado · rascunho valida kits no insert · rascunho valida kits no update · link compartilhado valida kits no insert … |
+| `src/components/CampaignFinder.test.tsx` | 12 | resumo editável do briefing · resume as quatro respostas antes de abrir a curadoria · remove só a escolha solicitada e volta à etapa correspondente · permite revisar todas as respostas sem apagar o que já foi escolhido … |
 | `site-supabase/supabase/tests/database/adjustment_limits.test.sql` | 11 | limite de pendências serializa transações concorrentes no mesmo orçamento · primeiro pedido é criado · replay idempotente devolve o mesmo pedido · replay não duplica a linha … |
 | `site-supabase/supabase/tests/database/query_plans.test.sql` | 11 | consulta de reivindicação da fila não usa Seq Scan em notification_deliveries com distribuição de regime permanente (Etapa 17) · recuperação de leases expiradas usa acesso indexado · reconciliação de webhook pelo identificador do provedor usa acesso indexado · histórico do cliente usa acesso indexado por titular e data … |
 | `tests/ci-health-metrics.node.mjs` | 11 | não contabiliza cancelamento, timeout ou execução pendente como sucesso · separa conclusões neutras e ignoradas do denominador terminal · amostra sem conclusão terminal permanece inconclusiva · taxas arredondadas continuam somando exatamente 100 … |
@@ -1114,7 +1115,6 @@ _nenhum item encontrado_
 | `tests/stage-app-shell.node.mjs` | 9 | copia o HTML do build byte a byte e não deixa arquivo temporário · aceita as variações de marcação que a função serverless aceita · reprova build sem root ou sem script de /assets e não grava o destino · reprova página de proteção da Vercel, que a função recusaria com 503 … |
 | `tests/api/customer-proposals.test.ts` | 9 | download autenticado de propostas · assina por 60 segundos somente o documento autorizado pelo RPC · usa o JWT limitado no RPC e a credencial de Storage somente para a assinatura · rejeita origem, sessão e identificador inválidos antes do banco … |
 | `e2e/product-detail.spec.ts` | 8 | ficha compacta reúne seleção e especificações ao lado da galeria no desktop · galeria permite todas as fotos, volta ao início e amplia com foco contido · descrição completa formata marcadores sem perder conteúdo nem esconder especificações · cor e quantidade seguem para o orçamento, sem preço ou bloqueio por estoque … |
-| `src/components/CampaignFinder.test.tsx` | 8 | resumo editável do briefing · resume as quatro respostas antes de abrir a curadoria · remove só a escolha solicitada e volta à etapa correspondente · permite revisar todas as respostas sem apagar o que já foi escolhido … |
 | `src/lib/analytics.test.ts` | 8 | instrumentação segura · remove query string e fragmento antes de enviar pageview · normaliza identificadores da área privada antes do pageview · aplica a mesma minimização de URL aos eventos de desempenho … |
 | `src/lib/quoteRequest.test.ts` | 8 | solicitação de orçamento · separa o consentimento do contato e registra versão e instante · gera um e-mail com produtos, quantidade, cor e contato · não transmite um complemento opcional vazio ou manipulado … |
 | `tests/inventario-banco-sql.node.mjs` | 8 | banco.sql roda inteiro em transação somente leitura e passa na prova de origem · banco.sql: a transação somente leitura barra escrita, e a consulta não muda nada no banco · banco.sql: fila travada conta só o que ainda vai ser tentado; erro sai como código, nunca como texto · banco.sql: pg_cron sai com nome estável, só o nome das funções chamadas e as contas certas … |
@@ -1246,6 +1246,7 @@ _nenhum item encontrado_
 | capturá-lo aqui é equivalente a lê-lo no cleanup — mas satisfaz a regra, | `src/App.tsx` |
 | * A variante referenciada pelo link não está mais publicada; não deve ser enviada sem revisão. */ | `src/types.ts` |
 | no coletor registramos apenas classe e rota; o detalhe fica no ambiente | `src/components/AppErrorBoundary.tsx` |
+| Quem chega sem intenção definida não deve ficar preso no briefing: este | `src/components/CampaignFinder.tsx` |
 | decorativo: carregá-lo somente depois da pintura remove a biblioteca do | `src/components/FoldText.tsx` |
 | excluímos somente os modificadores/targets que o React Router deixa o | `src/components/Layout.tsx` |
 | Catálogo é conteúdo externo: apenas texto e negrito, nunca HTML executável. | `src/components/ProductDescription.tsx` |
