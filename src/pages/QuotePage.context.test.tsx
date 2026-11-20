@@ -5,34 +5,45 @@ import { normalizeCampaignBrief } from '../lib/campaignBrief';
 import { localDateInputValue } from '../lib/quoteCalendar';
 
 const mocks = vi.hoisted(() => {
+  const items = [{
+    key: '11111111-1111-4111-8111-111111111111::sem-cor', productId: '11111111-1111-4111-8111-111111111111',
+    slug: 'mochila', name: 'Mochila', sku: 'MO-42', imageUrl: '/images/product-placeholder.svg',
+    minQuantity: 50, quantity: 100, productUnavailable: false, variantUnavailable: false,
+  }];
+  let listeners: Array<() => void> = [];
   let campaign: ReturnType<typeof normalizeCampaignBrief> = { source: 'finder', moment: 'evento', audience: 'clientes', scale: '51-200', mood: 'util' };
+  const emit = () => { for (const listener of [...listeners]) listener(); };
   return {
-    get campaign() { return campaign; },
-    setCampaign: vi.fn((next: ReturnType<typeof normalizeCampaignBrief>) => { campaign = normalizeCampaignBrief(next); }),
-    resetCampaign: () => { campaign = { source: 'finder', moment: 'evento', audience: 'clientes', scale: '51-200', mood: 'util' }; },
+    items,
+    subscribe: (listener: () => void) => { listeners.push(listener); return () => { listeners = listeners.filter((candidate: () => void) => candidate !== listener); }; },
+    getCampaign: () => campaign,
+    setCampaign: vi.fn((next: ReturnType<typeof normalizeCampaignBrief>) => { campaign = normalizeCampaignBrief(next); emit(); }),
+    resetCampaign: () => { campaign = { source: 'finder', moment: 'evento', audience: 'clientes', scale: '51-200', mood: 'util' }; emit(); },
     clearSubmissionAttempt: vi.fn(),
     setSelectionTitle: vi.fn(),
     user: null as { id: string } | null,
   };
 });
 
-vi.mock('../context/quoteCart', () => ({
-  useQuoteCart: () => ({
-    items: [{
-      key: '11111111-1111-4111-8111-111111111111::sem-cor', productId: '11111111-1111-4111-8111-111111111111',
-      slug: 'mochila', name: 'Mochila', sku: 'MO-42', imageUrl: '/images/product-placeholder.svg',
-      minQuantity: 50, quantity: 100, productUnavailable: false, variantUnavailable: false,
-    }],
-    itemCount: 1,
-    selectionTitle: 'Feira de outubro',
-    campaign: mocks.campaign,
-    setCampaign: mocks.setCampaign,
-    setSelectionTitle: mocks.setSelectionTitle,
-    totalUnits: 0,
-    setDrawerOpen: vi.fn(),
-    clear: vi.fn(),
-  }),
-}));
+vi.mock('../context/quoteCart', async () => {
+  const { useSyncExternalStore } = await import('react');
+  return {
+    useQuoteCart: () => {
+      const campaign = useSyncExternalStore(mocks.subscribe, mocks.getCampaign, mocks.getCampaign);
+      return {
+        items: mocks.items,
+        itemCount: 1,
+        selectionTitle: 'Feira de outubro',
+        campaign,
+        setCampaign: mocks.setCampaign,
+        setSelectionTitle: mocks.setSelectionTitle,
+        totalUnits: 0,
+        setDrawerOpen: vi.fn(),
+        clear: vi.fn(),
+      };
+    },
+  };
+});
 vi.mock('../context/customerAuth', () => ({ useCustomerAuth: () => ({ user: mocks.user }) }));
 vi.mock('../components/Seo', () => ({ Seo: () => null }));
 vi.mock('../components/ContextualFaq', () => ({ ContextualFaq: () => null }));
