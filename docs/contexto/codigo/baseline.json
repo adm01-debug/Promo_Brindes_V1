@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "0afb33e3570d7ed95abf7035766cdebd11c1efad",
+  "commit": "fc333d471f2de34db1f621dcdfa4135374926633",
   "branch": "main",
-  "data_commit": "2026-11-20T19:41:32Z",
+  "data_commit": "2026-11-20T20:27:52Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "fc333d4",
+    "data": "2026-11-20",
+    "assunto": "chore(docs): reconcilia funcionalidades.csv com a main (nov/2026) (#217)"
+   },
    {
     "sha": "0afb33e",
     "data": "2026-11-20",
@@ -126,11 +131,6 @@
     "sha": "aef900d",
     "data": "2026-11-17",
     "assunto": "feat(api): nome e argumentos de RPC passam a ser checados contra o catálogo do banco (#192)"
-   },
-   {
-    "sha": "16b15f3",
-    "data": "2026-11-17",
-    "assunto": "chore(código morto): remove os 6 achados da auditoria e cobre a função que a produção usa (#191)"
    }
   ],
   "arquivos_mudados_7d": 144,
@@ -188,12 +188,12 @@
     "mudancas": 5
    },
    {
-    "pasta": "requirements-graphify.txt",
+    "pasta": "analise-prs/funcionalidades.csv",
     "mudancas": 5
    },
    {
-    "pasta": ".github/workflows/codeql.yml",
-    "mudancas": 4
+    "pasta": "requirements-graphify.txt",
+    "mudancas": 5
    }
   ],
   "arquivos_mais_mudados_90d": [
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 98
+    "commits": 99
    },
    {
     "autor": "dependabot[bot]",

@@ -1,9 +1,9 @@
 {
  "meta": {
-  "sha": "0afb33e3570d7ed95abf7035766cdebd11c1efad",
+  "sha": "fc333d471f2de34db1f621dcdfa4135374926633",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-20 20:14 UTC",
+  "generated_at": "2026-11-20 21:12 UTC",
   "files_total": 614,
   "code_files": 394,
   "code_lines": 69082,
@@ -33140,10 +33140,19 @@
   }
  },
  "git": {
-  "sha": "0afb33e3570d7ed95abf7035766cdebd11c1efad",
+  "sha": "fc333d471f2de34db1f621dcdfa4135374926633",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "fc333d4",
+    "date": "2026-11-20",
+    "author": "adm01-debug",
+    "subject": "chore(docs): reconcilia funcionalidades.csv com a main (nov/2026) (#217)",
+    "files": [
+     "analise-prs/funcionalidades.csv"
+    ]
+   },
    {
     "sha": "0afb33e",
     "date": "2026-11-20",
@@ -33463,17 +33472,6 @@
      "scripts/validate-env-example.mjs",
      "tests/validate-env-example.node.mjs"
     ]
-   },
-   {
-    "sha": "fbd51d9",
-    "date": "2026-11-17",
-    "author": "adm01-debug",
-    "subject": "fix(docs): contrato do banco deixa de descrever função e status que não existem (#185)",
-    "files": [
-     "docs/CUSTOMER_PORTAL_IMPLEMENTATION_20260909.md",
-     "docs/DATABASE_FUNCTION_CONTRACTS.md",
-     "docs/SITE_SUPABASE_SETUP.md"
-    ]
    }
   ],
   "hot_files": [
@@ -33518,8 +33516,8 @@
     2
    ],
    [
-    "docs/DATABASE_FUNCTION_CONTRACTS.md",
-    2
+    "analise-prs/funcionalidades.csv",
+    1
    ],
    [
     "docs/pendencias/_achados.md",
