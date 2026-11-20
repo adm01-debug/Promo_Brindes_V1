@@ -16,7 +16,7 @@
 | `npm run lint` (eslint .) | OK, 0 erros | saída `eslint .` sem ocorrências |
 | `npm run typecheck` (`tsc -b`) | OK | sem erros |
 | `npm run test` (vitest run) | **538/538 passed** (7.02s) | saída vitest |
-| Build worst-case (deps + budget) | 950.3 KiB JS raw (CI mede ~0.4 KiB menor; #215 passou) | `check-performance-budget.mjs` |
+| Build worst-case (deps + budget) | local: 950,3 KiB JS raw acima do teto de 950 KiB (`check-performance-budget.mjs`); CI: passou (mede ~0,4 KiB menor) — ver pendencia por resolver na Fase 1 | `check-performance-budget.mjs` |
 | pgTAP / db:site:test | não reexecutado nesta sessão (toca Supabase) | NÃO VERIFICADO na linha de base |
 
 ## Consistência documental verificada
@@ -29,3 +29,5 @@
 - `docs/pendencias/` é a pasta de rastreio do GOAL; um arquivo por item na Fase 1.
 - Migrations apenas aditivas; nunca renomear/remover em produção.
 - Seção 10 do GOAL (parada obrigatória): dado destrutivo, custo, segredo, CI/workflow, regra de negócio sem base, mudança de comportamento existente.
+
+
