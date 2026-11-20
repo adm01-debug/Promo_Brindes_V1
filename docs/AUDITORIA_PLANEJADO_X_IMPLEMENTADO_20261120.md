@@ -36,7 +36,7 @@ Quem destrava: **ENG** = engenharia pode fazer agora · **DONO** = decisão/cred
 
 ## 1. Resumo para o dono
 
-**O site vende a vitrine e coleta o briefing; o ciclo comercial depois do envio continua manual.** Desde 11/10 a engenharia fechou 14 dos 128 itens e avançou outros 30, mas as três coisas que mais custam continuam iguais: (1) nenhuma proposta jamais foi publicada no portal porque não existe ferramenta para publicar, mudar status ou responder ajuste (PF-03/04/05/23); (2) e-mail e WhatsApp de confirmação seguem desligados por falta de credencial (PF-07/08/09), e a tela ainda diz ao cliente que o e-mail foi "registrado para envio" (PF-14); (3) o aviso ao time comercial agora existe no código para orçamento e contato (#116, #158), mas só funciona se `COMMERCIAL_TEAM_WEBHOOK_URL` estiver configurada na Vercel, o que não pôde ser confirmado, e o pedido de ajuste não gera aviso nenhum (PF-01).
+**O site vende a vitrine e coleta o briefing; o ciclo comercial depois do envio continua manual.** Desde 11/10 a engenharia fechou 14 dos 128 itens e avançou outros 30, mas as três coisas que mais custam continuam iguais: (1) nenhuma proposta jamais foi publicada no portal porque não existe ferramenta para publicar, mudar status ou responder ajuste (PF-03/04/05/23); (2) e-mail e WhatsApp de confirmação dependem de credenciais na Vercel que esta auditoria **não conseguiu ler** (PF-07/08/09 — estado inferido da decisão registrada em `EXECUCAO_PLANO_FECHAMENTO_20261001.md:65-66` e de `notification_deliveries` com 4 linhas no snapshot de 19/11; NÃO VERIFICADO em produção), e a tela ainda diz ao cliente que o e-mail foi "registrado para envio" mesmo quando não há provedor (PF-14); (3) o aviso ao time comercial agora existe no código para orçamento e contato (#116, #158), mas só funciona se `COMMERCIAL_TEAM_WEBHOOK_URL` estiver configurada na Vercel, o que não pôde ser confirmado, e o pedido de ajuste não gera aviso nenhum (PF-01).
 
 ### Placar dos 128 itens da auditoria de 11/10, reverificados hoje
 
@@ -68,7 +68,7 @@ Quem destrava: **ENG** = engenharia pode fazer agora · **DONO** = decisão/cred
 | --- | --- | --- | --- | --- |
 | 1 | Aviso ao comercial quando chega orçamento/contato/ajuste (PF-01) | PARCIAL: orçamento e contato enfileiram e o cron `/api/commercial-alerts` entrega por webhook; **ajuste não**; destino depende de env remota | sim (#116, #158) | DONO (URL/token) + ENG (ajuste) |
 | 2 | Ferramenta interna para publicar proposta, mudar status e responder ajuste (PF-03/04/05/23) | NÃO INICIADO; cliente ainda trava após 3 ajustes pendentes | não | ENG após decisão D1 |
-| 3 | Confirmação ao cliente por e-mail/WhatsApp (PF-07/08/09) e texto "registrado para envio" (PF-14) | BLOQUEADO; WhatsApp já mostra "Indisponível" (#181), e-mail não | parcial (#181) | DONO (credenciais) + ENG |
+| 3 | Confirmação ao cliente por e-mail/WhatsApp (PF-07/08/09) e texto "registrado para envio" (PF-14) | BLOQUEADO (ativação em produção NÃO VERIFICADA: depende de `RESEND_API_KEY`/`SITE_EMAIL_FROM`/`WHATSAPP_*` na Vercel, lidas por `api/notifications.ts:385-393`); WhatsApp já mostra "Indisponível" quando falta canal (#181), e-mail não | parcial (#181) | DONO (credenciais) + ENG |
 | 4 | Checkbox de WhatsApp sempre visível sem canal ligado (PF-15) | PARCIAL: texto corrigido (#160), exibição incondicional | parcial | ENG + DONO |
 | 5 | Secret scanning e push protection (PF-66) | IMPLEMENTADO (API 20/11) | sim | — |
 | 6 | Restore nunca ensaiado, sem RPO/RTO, Storage sem backup (PF-86) | BLOQUEADO | não | DONO |
@@ -373,7 +373,7 @@ Encontrados na releitura etapa a etapa dos planos (anexos 06 e 07), dos runbooks
 | `docs/PLANO_CORRECOES_50_ETAPAS_20260913.md:100` | `noUncheckedIndexedAccess` adiada | Ativa | `tsconfig.app.json:11` |
 | `docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260917.md:500` | Fase 3 fechada | Etapa 19 aberta | `:513` |
 | `docs/PLANO_WORKFLOWS_100_ETAPAS_20260927.md:75` | 6 workflows | 15 | `.github/workflows` |
-| `docs/MATRIZ_FECHAMENTO_PLANOS_20260912.csv` | 118 I / 100 P / 1 N / 11 E | LK10, UX35, UX49, UX88 já resolvidas; LK44 errada; UX83/LK15/UX12/UX14/UX19 otimistas; GR03/06/11/14/24/38/40/44 "I" ainda parciais; GR25/31/34/37 "P" não iniciadas | PF-109 |
+| `docs/MATRIZ_FECHAMENTO_PLANOS_20260912.csv` | 118 I / 100 P / 1 N / 11 E | LK10, UX35, UX49, UX88 já resolvidas; LK44 errada; UX83/LK15/UX12/UX14/UX19 otimistas; GR03/06/11/38 "I" ainda parciais; GR14/24/40/44 "I" atendidos no escopo estrutural por decisão registrada em `GOVERNANCA_FECHAMENTO.md:22-34` (melhorias além do escopo, não pendências); GR25/31/34/37 "P" não iniciadas | PF-109 |
 | `docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md` | PR #94 e #88 abertas; "nenhum mockup após 09/09"; 77 fontes pequenas; PF-49/53/117 pendentes | #94 (27/10) e #88 (27/10) mergeadas; 16 PNGs (#103); 142; PF-49/117 fechados, PF-53 parcial | anexos 02, 05 |
 | `docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md` | PF-10 aberto; `e2e/` só 2 specs; 3 tags `backup/*` | #190; 6 specs; 0 tags | anexos 01, 04 |
 | `analise-prs/funcionalidades.csv`, `analise-prs/regras-de-negocio.md`, `PENDENCIAS.md` | ver NOVO-DOC-08/09/10 | defasados | anexo 08 |
@@ -391,8 +391,8 @@ Encontrados na releitura etapa a etapa dos planos (anexos 06 e 07), dos runbooks
 
 | # | Decisão | Itens destravados | Nota de hoje |
 | --- | --- | --- | --- |
-| D1 | Destino do lead (CRM/canal interno) e quem responde | PF-01, 03, 04, 05, 06, 16, 25, NOVO-DB-01 | Código do webhook pronto; falta `COMMERCIAL_TEAM_WEBHOOK_URL/_TOKEN` em produção e o back-office |
-| D2 | Ligar Resend e WhatsApp Cloud | PF-07, 08, 09, 13, 14, 15 | `RESEND_API_KEY` já existe como secret do **GitHub** (sem uso); precisa estar na **Vercel** |
+| D1 | Destino do lead (CRM/canal interno) e quem responde | PF-01, 03, 04, 05, 06, 16, 25, NOVO-DB-01 | Código do webhook pronto; presença de `COMMERCIAL_TEAM_WEBHOOK_URL/_TOKEN` em produção NÃO VERIFICADA (Vercel inacessível); back-office inexistente |
+| D2 | Ligar Resend e WhatsApp Cloud | PF-07, 08, 09, 13, 14, 15 | `RESEND_API_KEY` existe como secret do **GitHub** (sem uso em workflow); a ativação real depende das variáveis na **Vercel**, não lidas — NÃO VERIFICADO |
 | D3 | Domínio oficial | PF-59, 60, NOVO-DOC-05 | `prod-readiness.md` já cita `www.promobrindes.com.br` |
 | D4 | RPO/RTO e PITR | PF-86 | — |
 | D5 | Segundo revisor de PR | PF-69, 70 | 25 últimas PRs com 0 aprovações |
