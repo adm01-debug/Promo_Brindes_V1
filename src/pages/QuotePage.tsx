@@ -13,9 +13,15 @@ import { replaceBrokenProductImage } from '../lib/images';
 import { clearQuoteDraft, EMPTY_QUOTE_CONTACT, loadQuoteDraft, QUOTE_DRAFT_RETENTION_LABEL, saveQuoteDraft } from '../lib/quoteDraft';
 import { clearPersonalQuoteStorage } from '../lib/personalDataReset';
 import { campaignBriefLabels } from '../lib/campaignBrief';
+import {
+  CAMPAIGN_AUDIENCES,
+  CAMPAIGN_MOMENTS,
+  CAMPAIGN_MOODS,
+  CAMPAIGN_SCALES,
+} from '../lib/campaignPresets';
 import { EMPTY_QUOTE_BRIEFING, getQuoteBriefingValidationError, normalizeQuoteBriefing, quoteBriefingLabels } from '../lib/quoteBriefing';
 import { clearQuoteRepeat, loadQuoteRepeat } from '../lib/quoteRepeat';
-import type { QuoteBriefingForm, QuoteContact } from '../types';
+import type { CampaignBrief, QuoteBriefingForm, QuoteContact } from '../types';
 import { quoteDecisionGroupsEnabled } from '../lib/siteFeatureFlags';
 import { localDateInputValue } from '../lib/quoteCalendar';
 import { attachMyBriefingAssetsToQuote } from '../lib/briefingAssets';
@@ -96,6 +102,24 @@ export default function QuotePage() {
   latestSelectionRef.current = { items: cart.items, campaign: cart.campaign, selectionTitle: cart.selectionTitle };
   const totalUnits = useMemo(() => cart.items.reduce((sum, item) => sum + item.quantity, 0), [cart.items]);
   const campaignLabels = useMemo(() => campaignBriefLabels(cart.campaign), [cart.campaign]);
+  const [campaignContextOpen, setCampaignContextOpen] = useState(false);
+  const activeCampaign = cart.campaign;
+  const setActiveCampaign = (campaign: CampaignBrief | undefined) => {
+    setCampaignContextOpen(false);
+    cart.setCampaign(campaign);
+    requestAttemptRef.current = null;
+    clearSubmissionAttempt('promo-brindes:quote-attempt');
+  };
+  const updateActiveCampaign = <Key extends keyof CampaignBrief>(key: Key, value: CampaignBrief[Key]) => {
+    const next: CampaignBrief = {
+      source: activeCampaign?.source ?? 'finder',
+      ...activeCampaign,
+      [key]: value,
+    };
+    cart.setCampaign(next);
+    requestAttemptRef.current = null;
+    clearSubmissionAttempt('promo-brindes:quote-attempt');
+  };
   const minimumDeadline = localDateInputValue();
   const hasSuccess = Boolean(success);
   useInitialSuccessScroll(hasSuccess);
@@ -466,7 +490,33 @@ export default function QuotePage() {
           <div className="quote-section-heading"><div><span>02</span><div><h2 id="briefing-title">Seu briefing</h2><p>Campos com * são obrigatórios</p></div></div><button type="button" className="text-button" disabled={sending} onClick={discardDraft}>Apagar rascunho</button></div>
           <p className="quote-draft-notice" role="status">Seus dados deste formulário ficam salvos por {QUOTE_DRAFT_RETENTION_LABEL} para evitar perda de trabalho. Não use este campo para dados sensíveis.</p>
           {draftNotice && <p className="quote-draft-notice quote-draft-notice--success" role="status">{draftNotice}</p>}
-          {campaignLabels.length > 0 && <aside className="quote-campaign-context" aria-label="Contexto recuperado da sua campanha"><div><span>Contexto recuperado</span><strong>Esta seleção já tem uma direção.</strong><p>Você pode complementar no briefing; essas referências acompanham a análise do nosso time de especialistas.</p></div><ul>{campaignLabels.map((label) => <li key={label}>{label}</li>)}</ul></aside>}
+          {(campaignLabels.length > 0 || campaignContextOpen) && (
+            <aside className="quote-campaign-context" aria-label="Contexto recuperado da sua campanha">
+              <div>
+                <span>Contexto recuperado</span>
+                <strong>Esta seleção já tem uma direção.</strong>
+                <p>Você pode complementar no briefing; essas referências acompanham a análise do nosso time de especialistas. Se a direção mudou, ajuste o contexto antes de enviar.</p>
+                {campaignContextOpen && (
+                  <div className="quote-campaign-context__editor" style={{ display: 'grid', gap: 14, marginTop: 12 }} aria-label="Editor do contexto da campanha">
+                    {([{ key: 'moment', id: 'campaignMoment', label: 'Momento', empty: 'Sem momento definido', options: CAMPAIGN_MOMENTS }, { key: 'audience', id: 'campaignAudience', label: 'Público', empty: 'Sem público definido', options: CAMPAIGN_AUDIENCES }, { key: 'scale', id: 'campaignScale', label: 'Escala', empty: 'Sem escala definida', options: CAMPAIGN_SCALES }, { key: 'mood', id: 'campaignMood', label: 'Clima', empty: 'Sem clima definido', options: CAMPAIGN_MOODS }] as const).map((field) => (
+                      <div className="form-field form-field--wide" key={field.id}><label htmlFor={field.id}>{field.label}</label><select id={field.id} value={activeCampaign?.[field.key] ?? ''} onChange={(event) => updateActiveCampaign(field.key, event.target.value as CampaignBrief[typeof field.key])}><option value="">{field.empty}</option>{field.options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></div>
+                    ))}
+                    <button type="button" className="button button--compact button--green" style={{ justifySelf: 'start' }} onClick={() => setCampaignContextOpen(false)}>Concluir</button>
+                  </div>
+                )}
+              </div>
+              {campaignContextOpen ? (
+                <div className="quote-campaign-context__actions" style={{ display: 'grid', gap: 10, justifyItems: 'end' }}>
+                  <button type="button" className="text-button text-button--danger" onClick={() => setActiveCampaign(undefined)}>Remover contexto</button>
+                </div>
+              ) : (
+                <div className="quote-campaign-context__actions" style={{ display: 'grid', gap: 10, justifyItems: 'end' }}>
+                  <ul>{campaignLabels.map((label) => <li key={label}>{label}</li>)}</ul>
+                  <button type="button" className="text-button" onClick={() => setCampaignContextOpen(true)}>Ajustar contexto</button>
+                </div>
+              )}
+            </aside>
+          )}
           <form ref={formRef} className="quote-form" onSubmit={(event) => void submit(event)} noValidate aria-busy={sending}>
             <fieldset className="submission-lock" disabled={sending}>
             <div className="honeypot" aria-hidden="true"><label>Website<input value={website} onChange={(event) => setWebsite(event.target.value)} autoComplete="off" tabIndex={-1} /></label></div>
