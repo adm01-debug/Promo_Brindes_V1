@@ -32,5 +32,6 @@
 
 ## Fraudes/limites
 
-- 3 ajustes pendentes -> cliente bloqueado (PF-04 DIVERGENCIA: regra existe, sem saida clara na UI).
+- 3 ajustes pendentes novos/triados -> impede novo ajuste naquele pedido para aquele solicitante (nao bloqueia o cliente inteiro) (PF-04 DIVERGENCIA: regra existe, sem saida clara na UI).
 - Anexos: 10 arquivos / 50 MB por conta; PDF recusado; reencode e remocao de EXIF.
+
