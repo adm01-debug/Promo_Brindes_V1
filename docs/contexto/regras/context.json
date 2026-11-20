@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "1bb2a9051887fe56d8082d6559d551ac251c7f5b",
+  "sha": "5ad589f89225b99622f5f3d707190fcd02e49e72",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-20 13:55 UTC",
-  "files_total": 609,
-  "code_files": 393,
-  "code_lines": 68862,
+  "generated_at": "2026-11-20 16:34 UTC",
+  "files_total": 610,
+  "code_files": 394,
+  "code_lines": 69049,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "86a54886958d36a9",
+ "facts_hash": "e9819988007a1cf2",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -284,7 +284,7 @@
    ".ts": 152,
    ".sql": 106,
    ".mjs": 63,
-   ".tsx": 62,
+   ".tsx": 63,
    ".py": 8,
    ".js": 2
   },
@@ -6459,6 +6459,20 @@
     "deps_count": 17
    },
    {
+    "path": "",
+    "file": "src/pages/QuotePage.context.test.tsx",
+    "component": "QuotePage.context.test",
+    "tables_transitive": [],
+    "invokes_transitive": [],
+    "rpc_transitive": [
+     "attach_my_briefing_assets_to_quote",
+     "create_my_briefing_asset",
+     "delete_my_briefing_asset",
+     "list_my_briefing_assets"
+    ],
+    "deps_count": 30
+   },
+   {
     "path": "*",
     "file": "src/pages/NotFoundPage.tsx",
     "component": "NotFoundPage",
@@ -6614,7 +6628,7 @@
      "delete_my_briefing_asset",
      "list_my_briefing_assets"
     ],
-    "deps_count": 27
+    "deps_count": 29
    },
    {
     "path": "/privacidade",
@@ -7806,8 +7820,8 @@
   },
   {
    "module": "src/pages",
-   "files": 23,
-   "lines": 3196,
+   "files": 24,
+   "lines": 3383,
    "tables": [],
    "exports": [
     "AboutPage.tsx: AboutPage",
@@ -7864,6 +7878,7 @@
     "src/pages/NotFoundPage.tsx",
     "src/pages/PrivacyPage.tsx",
     "src/pages/ProductPage.tsx",
+    "src/pages/QuotePage.context.test.tsx",
     "src/pages/QuotePage.test.ts",
     "src/pages/QuotePage.tsx",
     "src/pages/SetPasswordPage.tsx",
@@ -16958,6 +16973,42 @@
    {
     "file": "src/pages/IdeaLandingPage.test.tsx",
     "name": "conta a visita mesmo quando a curadoria falha, para o funil não passar de 100%"
+   },
+   {
+    "file": "src/pages/QuotePage.context.test.tsx",
+    "name": "data mínima do briefing"
+   },
+   {
+    "file": "src/pages/QuotePage.context.test.tsx",
+    "name": "usa o calendário comercial brasileiro em vez de converter o instante para UTC"
+   },
+   {
+    "file": "src/pages/QuotePage.context.test.tsx",
+    "name": "permanece no dia de São Paulo durante a virada UTC"
+   },
+   {
+    "file": "src/pages/QuotePage.context.test.tsx",
+    "name": "editor do contexto da campanha no orçamento (PF-41)"
+   },
+   {
+    "file": "src/pages/QuotePage.context.test.tsx",
+    "name": "deixa ajustar uma dimensão do contexto e salva no carrinho"
+   },
+   {
+    "file": "src/pages/QuotePage.context.test.tsx",
+    "name": "permite remover o contexto recuperado do carrinho"
+   },
+   {
+    "file": "src/pages/QuotePage.context.test.tsx",
+    "name": "invalida a tentativa de envio ao editar o contexto (reenvio sem 409)"
+   },
+   {
+    "file": "src/pages/QuotePage.context.test.tsx",
+    "name": "invalida a tentativa de envio ao remover o contexto"
+   },
+   {
+    "file": "src/pages/QuotePage.context.test.tsx",
+    "name": "mantém o editor visível ao limpar o último campo do contexto"
    },
    {
     "file": "src/pages/QuotePage.test.ts",
@@ -31645,6 +31696,22 @@
     }
    ]
   },
+  "src/pages/QuotePage.context.test.tsx": {
+   "path": "src/pages/QuotePage.context.test.tsx",
+   "lines": 137,
+   "is_test": true,
+   "tests": [
+    "data mínima do briefing",
+    "usa o calendário comercial brasileiro em vez de converter o instante para UTC",
+    "permanece no dia de São Paulo durante a virada UTC",
+    "editor do contexto da campanha no orçamento (PF-41)",
+    "deixa ajustar uma dimensão do contexto e salva no carrinho",
+    "permite remover o contexto recuperado do carrinho",
+    "invalida a tentativa de envio ao editar o contexto (reenvio sem 409)",
+    "invalida a tentativa de envio ao remover o contexto",
+    "mantém o editor visível ao limpar o último campo do contexto"
+   ]
+  },
   "src/pages/QuotePage.test.ts": {
    "path": "src/pages/QuotePage.test.ts",
    "lines": 14,
@@ -31657,7 +31724,7 @@
   },
   "src/pages/QuotePage.tsx": {
    "path": "src/pages/QuotePage.tsx",
-   "lines": 503,
+   "lines": 553,
    "exports": [
     "function QuotePage"
    ],
@@ -33054,10 +33121,20 @@
   }
  },
  "git": {
-  "sha": "1bb2a9051887fe56d8082d6559d551ac251c7f5b",
+  "sha": "5ad589f89225b99622f5f3d707190fcd02e49e72",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "5ad589f",
+    "date": "2026-11-20",
+    "author": "adm01-debug",
+    "subject": "feat: permite ajustar o contexto da campanha no orçamento (#213)",
+    "files": [
+     "src/pages/QuotePage.context.test.tsx",
+     "src/pages/QuotePage.tsx"
+    ]
+   },
    {
     "sha": "1bb2a90",
     "date": "2026-11-20",
@@ -33373,17 +33450,6 @@
      "tests/api/briefing-assets.test.ts",
      "tests/api/customer-proposals.test.ts"
     ]
-   },
-   {
-    "sha": "e166177",
-    "date": "2026-11-17",
-    "author": "adm01-debug",
-    "subject": "fix(catálogo): porta editorial de onboarding deixa de abrir o catálogo inteiro (#182)",
-    "files": [
-     "src/lib/campaignPresets.test.ts",
-     "src/lib/campaignPresets.ts",
-     "src/lib/useCatalogPageState.ts"
-    ]
    }
   ],
   "hot_files": [
@@ -33398,10 +33464,6 @@
    [
     "api/retention.ts",
     3
-   ],
-   [
-    "src/lib/useCatalogPageState.ts",
-    2
    ],
    [
     "package.json",
@@ -33436,7 +33498,19 @@
     2
    ],
    [
+    "src/pages/QuotePage.context.test.tsx",
+    1
+   ],
+   [
+    "src/pages/QuotePage.tsx",
+    1
+   ],
+   [
     "src/lib/useCatalogPageState.test.tsx",
+    1
+   ],
+   [
+    "src/lib/useCatalogPageState.ts",
     1
    ],
    [
@@ -33457,14 +33531,6 @@
    ],
    [
     "docs/audits/planejado-x-implementado-20261120/01-pf-01-22-comercial-confirmacoes-promessas.md",
-    1
-   ],
-   [
-    "docs/audits/planejado-x-implementado-20261120/02-pf-23-56-portal-lgpd-experiencia.md",
-    1
-   ],
-   [
-    "docs/audits/planejado-x-implementado-20261120/03-pf-57-85-conteudo-seguranca-banco.md",
     1
    ]
   ]

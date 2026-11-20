@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "1bb2a9051887fe56d8082d6559d551ac251c7f5b",
+  "commit": "5ad589f89225b99622f5f3d707190fcd02e49e72",
   "branch": "main",
-  "data_commit": "2026-11-20T13:55:13Z",
+  "data_commit": "2026-11-20T16:34:12Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "5ad589f",
+    "data": "2026-11-20",
+    "assunto": "feat: permite ajustar o contexto da campanha no orçamento (#213)"
+   },
    {
     "sha": "1bb2a90",
     "data": "2026-11-20",
@@ -126,11 +131,6 @@
     "sha": "387263f",
     "data": "2026-11-17",
     "assunto": "feat(retenção): cron drena o lote na mesma execução e ganha orçamento de tempo (#189)"
-   },
-   {
-    "sha": "8e5ce1d",
-    "data": "2026-11-17",
-    "assunto": "chore(docs): registra a verificação dos 58 itens de engenharia da auditoria (#187)"
    }
   ],
   "arquivos_mudados_7d": 138,
@@ -188,11 +188,11 @@
     "mudancas": 5
    },
    {
-    "pasta": ".github/workflows/codeql.yml",
-    "mudancas": 4
+    "pasta": "src/pages/QuotePage.tsx",
+    "mudancas": 5
    },
    {
-    "pasta": ".github/workflows/release.yml",
+    "pasta": ".github/workflows/codeql.yml",
     "mudancas": 4
    }
   ],
@@ -218,12 +218,12 @@
     "mudancas": 28
    },
    {
-    "arquivo": "vercel.json",
+    "arquivo": "src/pages/QuotePage.tsx",
     "mudancas": 26
    },
    {
-    "arquivo": "src/pages/QuotePage.tsx",
-    "mudancas": 25
+    "arquivo": "vercel.json",
+    "mudancas": 26
    },
    {
     "arquivo": "docs/DATABASE_DICTIONARY.md",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 95
+    "commits": 96
    },
    {
     "autor": "dependabot[bot]",
@@ -310,9 +310,9 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 715,
-  "arquivos_codigo": 286,
-  "linhas_codigo": 55688,
+  "arquivos_total": 716,
+  "arquivos_codigo": 287,
+  "linhas_codigo": 55875,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -324,7 +324,7 @@
   "tabelas": 22,
   "migrations": 69,
   "cron_jobs": 0,
-  "testes": 143,
+  "testes": 144,
   "workflows": 15,
   "scripts": 37,
   "docs_md": 130
@@ -587,8 +587,8 @@
    "linhas": 10
   },
   "src/pages": {
-   "arquivos": 23,
-   "linhas": 3196
+   "arquivos": 24,
+   "linhas": 3383
   },
   "src/test": {
    "arquivos": 1,
@@ -758,7 +758,7 @@
   },
   {
    "arquivo": "src/pages/QuotePage.tsx",
-   "linhas": 503
+   "linhas": 553
   },
   {
    "arquivo": "src/lib/catalog.ts",

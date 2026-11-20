@@ -461,8 +461,8 @@
   {
    "modulo": "pages",
    "arquivos": 18,
-   "testes": 5,
-   "linhas": 2908,
+   "testes": 6,
+   "linhas": 2958,
    "itens_menu": [
     "Catálogos",
     "Como funciona",

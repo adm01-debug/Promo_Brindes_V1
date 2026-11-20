@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `1bb2a9051887fe56d8082d6559d551ac251c7f5b` (2026-11-20T13:55:13Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `5ad589f89225b99622f5f3d707190fcd02e49e72` (2026-11-20T16:34:12Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -14,7 +14,7 @@ Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR
 Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua tarefa; não carregue tudo.
 
 ## Stack
-- linguagens: TypeScript (214), Markdown (130), SQL (106), JavaScript (65), JSON (29), YAML (19), Python (8), CSS (4)
+- linguagens: TypeScript (215), Markdown (130), SQL (106), JavaScript (65), JSON (29), YAML (19), Python (8), CSS (4)
 - linguagem_principal: TypeScript
 - framework: React
 - backend_http: vercel-functions
@@ -34,9 +34,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Números
 | item | qtd |
 |---|---|
-| arquivos_total | 715 |
-| arquivos_codigo | 286 |
-| linhas_codigo | 55688 |
+| arquivos_total | 716 |
+| arquivos_codigo | 287 |
+| linhas_codigo | 55875 |
 | rotas | 32 |
 | rotas_http_backend | 14 |
 | vistas_por_id | 0 |
@@ -48,7 +48,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 | tabelas | 22 |
 | migrations | 69 |
 | cron_jobs | 0 |
-| testes | 143 |
+| testes | 144 |
 | workflows | 15 |
 | scripts | 37 |
 | docs_md | 130 |
@@ -58,7 +58,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - componentes: src/components (19), src/pages (18), src/context (2)
 - hooks: src/lib (4), src/context (2)
 - servicos_logica: src/lib (43), api/_lib (15), src/context (3)
-- testes: co-localizado (*.test) (53), tests/ (46), outro (9)
+- testes: co-localizado (*.test) (54), tests/ (46), outro (9)
 - edge_functions: n/d
 - migrations: site-supabase/supabase/migrations
 - scripts: scripts/maintenance (4), scripts/inventario (3), scripts/regras_negocio (3)
@@ -175,8 +175,8 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - package-lock.json (36)
 - src/styles.css (35)
 - .github/workflows/quality.yml (28)
+- src/pages/QuotePage.tsx (26)
 - vercel.json (26)
-- src/pages/QuotePage.tsx (25)
 - docs/DATABASE_DICTIONARY.md (23)
 - site-supabase/supabase/tests/database/lead_storage.test.sql (23)
 - src/components/Layout.tsx (23)
@@ -386,6 +386,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-20 `5ad589f` feat: permite ajustar o contexto da campanha no orçamento (#213)
 - 2026-11-20 `1bb2a90` fix: limpa contexto da campanha quando o recorte sai do catálogo (#212)
 - 2026-11-20 `01b873c` feat: caminho 'ainda não sei o que escolher' desbloqueia quem chega sem briefing (#211)
 - 2026-11-20 `a9dab6d` chore(docs): auditoria planejado × implementado em 40f6420 — 128 itens reverificados, 108 novos (#214)
@@ -400,7 +401,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-18 `148318e` docs: matriz dos 230 requisitos deixa de se declarar vigente (#208)
 - 2026-11-18 `ab6ea69` infra(graphify): cria o requirements-graphify.in que o comentario citava e nao existia (#197)
 - 2026-11-18 `e82b4d9` fix(contrato): 401 transitório da camada Auth deixa de reprovar o contrato do catálogo (#202)
-- 2026-11-18 `0a138dd` feat(testes): cobre sessão expirada entre o upload e a verificação do anexo (#200)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

@@ -2,7 +2,7 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "nos": 172,
- "arestas": 368,
+ "arestas": 369,
  "hubs": [
   {
    "arquivo": "src/types.ts",
@@ -29,11 +29,11 @@
    "importado_por": 12
   },
   {
-   "arquivo": "src/context/customerAuth.ts",
-   "importado_por": 11
+   "arquivo": "src/lib/campaignBrief.ts",
+   "importado_por": 12
   },
   {
-   "arquivo": "src/lib/campaignBrief.ts",
+   "arquivo": "src/context/customerAuth.ts",
    "importado_por": 11
   },
   {
@@ -101,6 +101,10 @@
    "importado_por": 5
   },
   {
+   "arquivo": "src/lib/campaignPresets.ts",
+   "importado_por": 5
+  },
+  {
    "arquivo": "src/lib/siteRpc.ts",
    "importado_por": 5
   },
@@ -134,10 +138,6 @@
   },
   {
    "arquivo": "src/lib/briefingAssets.ts",
-   "importado_por": 4
-  },
-  {
-   "arquivo": "src/lib/campaignPresets.ts",
    "importado_por": 4
   },
   {

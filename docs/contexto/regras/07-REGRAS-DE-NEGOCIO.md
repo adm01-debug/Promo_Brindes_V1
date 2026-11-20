@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `1bb2a90518` · branch `main` · 2026-11-20 13:55 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `5ad589f892` · branch `main` · 2026-11-20 16:34 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -1048,7 +1048,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1624 testes em 134 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1633 testes em 135 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1109,6 +1109,7 @@ _nenhum item encontrado_
 | `site-supabase/supabase/tests/database/email_normalization.test.sql` | 9 | normalize_email tira espaços e baixa a caixa · valor já normalizado permanece idêntico (idempotente) · quote_requests rejeita e-mail com maiúsculas não normalizado · quote_requests rejeita e-mail com espaço não normalizado … |
 | `src/lib/catalogLibrary.test.ts` | 9 | biblioteca de catálogos · combina tema e busca sem depender de acentos · não inventa resultados quando os termos não aparecem juntos · usa o nome atual em links novos e mantém links antigos da coleção … |
 | `src/lib/http.test.ts` | 9 | transporte dos formulários · recusa endpoint malformado antes de chamar fetch · envia JSON com chave de idempotência apenas para a API do site · aceita rota server-side de mesma origem sem expor outro host … |
+| `src/pages/QuotePage.context.test.tsx` | 9 | data mínima do briefing · usa o calendário comercial brasileiro em vez de converter o instante para UTC · permanece no dia de São Paulo durante a virada UTC · editor do contexto da campanha no orçamento (PF-41) … |
 | `tests/check-performance-budget.node.mjs` | 9 | aprova um dist coerente e imprime o resumo em uma linha de stdout · é determinístico e funciona em caminho com espaço e acento · mede a entrada declarada no manifest mesmo quando ela não se chama index-* · não confunde um chunk lazy chamado index-* com a entrada … |
 | `tests/generate-database-docs.node.mjs` | 9 | ida e volta: com as mesmas linhas do banco, o dicionário gerado é idêntico ao versionado · ida e volta: com as mesmas linhas do banco, o ERD gerado é idêntico ao versionado · gerar duas vezes produz o mesmo arquivo e a data vem da migration mais recente, não do relógio · comentário com quebra de linha ou barra vertical não parte a tabela Markdown … |
 | `tests/normalize-vercel-deployment-url.node.mjs` | 9 | adiciona https somente quando a CLI devolve hostname · preserva URL https já completa sem duplicar o protocolo · recusa protocolo, credencial, porta, caminho e domínio inesperados · CLI imprime exatamente uma origem normalizada … |

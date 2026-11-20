@@ -5,17 +5,17 @@
   "vitest",
   "playwright"
  ],
- "total": 143,
+ "total": 144,
  "por_tipo": {
   "contrato": 2,
   "e2e": 6,
   "pytest": 4,
-  "unit": 102
+  "unit": 103
  },
  "onde_ficam": [
   {
    "padrao": "co-localizado (*.test)",
-   "arquivos": 53
+   "arquivos": 54
   },
   {
    "padrao": "tests/",
@@ -627,6 +627,17 @@
    "casos": 4
   },
   {
+   "arquivo": "src/pages/QuotePage.context.test.tsx",
+   "tipo": "unit",
+   "linhas": 137,
+   "testa": [
+    "src/lib/campaignBrief.ts",
+    "src/lib/quoteCalendar.ts",
+    "src/pages/QuotePage.tsx"
+   ],
+   "casos": 7
+  },
+  {
    "arquivo": "src/pages/QuotePage.test.ts",
    "tipo": "unit",
    "linhas": 14,
@@ -1159,7 +1170,7 @@
   "src/context/quoteCartReducer.ts": 1,
   "src/lib/analytics.ts": 1,
   "src/lib/briefingAssets.ts": 2,
-  "src/lib/campaignBrief.ts": 2,
+  "src/lib/campaignBrief.ts": 3,
   "src/lib/campaignPresets.ts": 1,
   "src/lib/catalog.ts": 2,
   "src/lib/catalogComparison.ts": 1,
@@ -1180,7 +1191,7 @@
   "src/lib/personalDataReset.ts": 1,
   "src/lib/productBadges.ts": 1,
   "src/lib/quoteBriefing.ts": 3,
-  "src/lib/quoteCalendar.ts": 1,
+  "src/lib/quoteCalendar.ts": 2,
   "src/lib/quoteConfirmation.ts": 1,
   "src/lib/quoteDraft.ts": 1,
   "src/lib/quoteItems.ts": 2,
@@ -1199,6 +1210,7 @@
   "src/pages/AuthConfirmPage.tsx": 1,
   "src/pages/CommemorativeDatesPage.tsx": 1,
   "src/pages/IdeaLandingPage.tsx": 1,
+  "src/pages/QuotePage.tsx": 1,
   "src/types.ts": 10
  },
  "sem_teste": {
@@ -1215,7 +1227,6 @@
    "src/pages/NotFoundPage.tsx",
    "src/pages/PrivacyPage.tsx",
    "src/pages/ProductPage.tsx",
-   "src/pages/QuotePage.tsx",
    "src/pages/SetPasswordPage.tsx",
    "src/pages/SharedSelectionPage.tsx"
   ],
