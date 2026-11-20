@@ -205,7 +205,7 @@ export function CampaignFinder() {
                   Pular etapa
                 </button>
                 {!selectedCount && (
-                  <button type="button" className="brief-finder__explore" onClick={exploreCatalogWithoutBriefing}>
+                  <button type="button" className="text-link" onClick={exploreCatalogWithoutBriefing}>
                     Ainda não sei o que escolher
                   </button>
                 )}
