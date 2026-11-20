@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `5ad589f89225b99622f5f3d707190fcd02e49e72` (2026-11-20T16:34:12Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `804efbc2180fce1cb851752b3229ad5acf9b90c2` (2026-11-20T19:08:44Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -36,7 +36,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 |---|---|
 | arquivos_total | 716 |
 | arquivos_codigo | 287 |
-| linhas_codigo | 55875 |
+| linhas_codigo | 55908 |
 | rotas | 32 |
 | rotas_http_backend | 14 |
 | vistas_por_id | 0 |
@@ -175,7 +175,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - package-lock.json (36)
 - src/styles.css (35)
 - .github/workflows/quality.yml (28)
-- src/pages/QuotePage.tsx (26)
+- src/pages/QuotePage.tsx (27)
 - vercel.json (26)
 - docs/DATABASE_DICTIONARY.md (23)
 - site-supabase/supabase/tests/database/lead_storage.test.sql (23)
@@ -183,7 +183,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - .github/workflows/release.yml (21)
 - tests/api/lead-requests.test.ts (21)
 - api/_lib/siteDatabase.ts (19)
-- api/notifications.ts (18)
+- api/notifications.ts (19)
 - docs/DATABASE_FUNCTION_CONTRACTS.md (18)
 
 ## Workflows
@@ -386,6 +386,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-20 `804efbc` fix: promessas honestas em orcamento e catalogo (PF-14, PF-19, PF-20, PF-21) (#215)
 - 2026-11-20 `5ad589f` feat: permite ajustar o contexto da campanha no orçamento (#213)
 - 2026-11-20 `1bb2a90` fix: limpa contexto da campanha quando o recorte sai do catálogo (#212)
 - 2026-11-20 `01b873c` feat: caminho 'ainda não sei o que escolher' desbloqueia quem chega sem briefing (#211)
@@ -400,7 +401,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-18 `6d13174` fix(graphify): .graphifyignore passa a excluir da indexação, não só da impressão digital (#198)
 - 2026-11-18 `148318e` docs: matriz dos 230 requisitos deixa de se declarar vigente (#208)
 - 2026-11-18 `ab6ea69` infra(graphify): cria o requirements-graphify.in que o comentario citava e nao existia (#197)
-- 2026-11-18 `e82b4d9` fix(contrato): 401 transitório da camada Auth deixa de reprovar o contrato do catálogo (#202)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

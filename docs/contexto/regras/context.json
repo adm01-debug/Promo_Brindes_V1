@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "5ad589f89225b99622f5f3d707190fcd02e49e72",
+  "sha": "804efbc2180fce1cb851752b3229ad5acf9b90c2",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-20 16:34 UTC",
+  "generated_at": "2026-11-20 19:09 UTC",
   "files_total": 610,
   "code_files": 394,
-  "code_lines": 69049,
+  "code_lines": 69082,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "e9819988007a1cf2",
+ "facts_hash": "f7caafba8ba8a125",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -7093,7 +7093,7 @@
   {
    "module": "api",
    "files": 29,
-   "lines": 4328,
+   "lines": 4329,
    "tables": [],
    "exports": [
     "briefing-assets.ts: REQUEST_TIMEOUT_MS, handler, async",
@@ -7673,7 +7673,7 @@
   {
    "module": "src/lib",
    "files": 80,
-   "lines": 7767,
+   "lines": 7790,
    "tables": [],
    "exports": [
     "analytics.ts: FunnelEventMap, redactAnalyticsPathname, redactTelemetryUrl, redactAnalyticsUrl, trackFunnelEvent",
@@ -7821,7 +7821,7 @@
   {
    "module": "src/pages",
    "files": 24,
-   "lines": 3383,
+   "lines": 3388,
    "tables": [],
    "exports": [
     "AboutPage.tsx: AboutPage",
@@ -7918,7 +7918,7 @@
   {
    "module": "tests",
    "files": 46,
-   "lines": 10199,
+   "lines": 10203,
    "tables": [
     "constructor",
     "quote_requests",
@@ -10563,6 +10563,10 @@
    {
     "file": "src/pages/QuotePage.tsx",
     "text": "efeitos deste projeto); só a troca de titular deve disparar este reset."
+   },
+   {
+    "file": "src/pages/QuotePage.tsx",
+    "text": "Preserva avisos de descarte; limpa apenas o aviso de falha de salvamento."
    },
    {
     "file": "src/pages/QuotePage.tsx",
@@ -16512,6 +16516,10 @@
    },
    {
     "file": "src/lib/quoteDraft.test.ts",
+    "name": "confirma que o rascunho foi persistido e que o navegador aceitou o storage"
+   },
+   {
+    "file": "src/lib/quoteDraft.test.ts",
     "name": "remove o rascunho vencido em vez de reapresentar dados pessoais antigos"
    },
    {
@@ -16585,6 +16593,10 @@
    {
     "file": "src/lib/quoteRequest.test.ts",
     "name": "preserva o canal indisponível em vez de rebaixá-lo para não solicitado"
+   },
+   {
+    "file": "src/lib/quoteRequest.test.ts",
+    "name": "preserva e-mail indisponível em vez de rebaixá-lo para pendente"
    },
    {
     "file": "src/lib/quoteSubmission.test.ts",
@@ -24583,7 +24595,7 @@
   },
   "api/notifications.ts": {
    "path": "api/notifications.ts",
-   "lines": 724,
+   "lines": 725,
    "exports": [
     "const OVERALL_TIME_BUDGET_MS",
     "const MIN_TIME_PER_JOB_MS",
@@ -30874,7 +30886,7 @@
   },
   "src/lib/quoteConfirmation.test.ts": {
    "path": "src/lib/quoteConfirmation.test.ts",
-   "lines": 27,
+   "lines": 28,
    "is_test": true,
    "tests": [
     "confirmação honesta do orçamento",
@@ -30918,17 +30930,18 @@
   },
   "src/lib/quoteDraft.test.ts": {
    "path": "src/lib/quoteDraft.test.ts",
-   "lines": 23,
+   "lines": 29,
    "is_test": true,
    "tests": [
     "rascunho do briefing",
     "mantém o briefing na sessão para a pessoa voltar ao catálogo",
+    "confirma que o rascunho foi persistido e que o navegador aceitou o storage",
     "remove o rascunho vencido em vez de reapresentar dados pessoais antigos"
    ]
   },
   "src/lib/quoteDraft.ts": {
    "path": "src/lib/quoteDraft.ts",
-   "lines": 93,
+   "lines": 97,
    "exports": [
     "const QUOTE_DRAFT_RETENTION_LABEL",
     "const EMPTY_QUOTE_CONTACT",
@@ -31028,8 +31041,11 @@
   },
   "src/lib/quoteRequest.test.ts": {
    "path": "src/lib/quoteRequest.test.ts",
-   "lines": 94,
+   "lines": 106,
    "is_test": true,
+   "rule_comments": [
+    "Sem provedor de e-mail, a API marca unavailable; o cliente não pode"
+   ],
    "tests": [
     "solicitação de orçamento",
     "separa o consentimento do contato e registra versão e instante",
@@ -31038,7 +31054,8 @@
     "remove query, fragmento e credenciais da URL antes de montar o payload",
     "bloqueia endpoint sem HTTPS antes de transmitir dados pessoais",
     "bloqueia uma URL HTTPS incompleta",
-    "preserva o canal indisponível em vez de rebaixá-lo para não solicitado"
+    "preserva o canal indisponível em vez de rebaixá-lo para não solicitado",
+    "preserva e-mail indisponível em vez de rebaixá-lo para pendente"
    ]
   },
   "src/lib/quoteRequest.ts": {
@@ -31724,7 +31741,7 @@
   },
   "src/pages/QuotePage.tsx": {
    "path": "src/pages/QuotePage.tsx",
-   "lines": 553,
+   "lines": 558,
    "exports": [
     "function QuotePage"
    ],
@@ -31833,6 +31850,7 @@
     "A navegação não pode deixar uma solicitação antiga concluir em segundo",
     "deve invalidar os dados pessoais ativos deste formulário. Sem isto, o",
     "efeitos deste projeto); só a troca de titular deve disparar este reset.",
+    "Preserva avisos de descarte; limpa apenas o aviso de falha de salvamento.",
     "Estas linhas espelham apenas o estado devolvido pela API; não"
    ],
    "calc_fns": [
@@ -32885,7 +32903,7 @@
   },
   "tests/api/notifications.test.ts": {
    "path": "tests/api/notifications.test.ts",
-   "lines": 655,
+   "lines": 659,
    "is_test": true,
    "env": [
     "CRON_SECRET"
@@ -32895,7 +32913,8 @@
    ],
    "rule_comments": [
     "4 horas de espera: acima do limite de idade, logo e incidente.",
-    "A string \"false\" é truthy em JavaScript; o worker deve falhar fechado."
+    "A string \"false\" é truthy em JavaScript; o worker deve falhar fechado.",
+    "Só o WhatsApp tem provedor neste cenário; sem Resend, o e-mail não pode"
    ],
    "tests": [
     "worker de comprovantes do orçamento",
@@ -33121,10 +33140,29 @@
   }
  },
  "git": {
-  "sha": "5ad589f89225b99622f5f3d707190fcd02e49e72",
+  "sha": "804efbc2180fce1cb851752b3229ad5acf9b90c2",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "804efbc",
+    "date": "2026-11-20",
+    "author": "adm01-debug",
+    "subject": "fix: promessas honestas em orcamento e catalogo (PF-14, PF-19, PF-20, PF-21) (#215)",
+    "files": [
+     "api/notifications.ts",
+     "src/components/ProductCard.tsx",
+     "src/lib/campaignPresets.test.ts",
+     "src/lib/campaignPresets.ts",
+     "src/lib/quoteConfirmation.test.ts",
+     "src/lib/quoteDraft.test.ts",
+     "src/lib/quoteDraft.ts",
+     "src/lib/quoteRequest.test.ts",
+     "src/lib/quoteRequest.ts",
+     "src/pages/QuotePage.tsx",
+     "tests/api/notifications.test.ts"
+    ]
+   },
    {
     "sha": "5ad589f",
     "date": "2026-11-20",
@@ -33435,21 +33473,6 @@
      "api/retention.ts",
      "tests/api/retention.test.ts"
     ]
-   },
-   {
-    "sha": "108b0b2",
-    "date": "2026-11-17",
-    "author": "adm01-debug",
-    "subject": "fix(portal): estouro de limite deixa de virar \"proposta não encontrada\" (#183)",
-    "files": [
-     "api/_lib/siteDatabase.ts",
-     "api/briefing-assets.ts",
-     "api/customer-proposals.ts",
-     "e2e/smoke.spec.ts",
-     "src/pages/CustomerQuotePage.tsx",
-     "tests/api/briefing-assets.test.ts",
-     "tests/api/customer-proposals.test.ts"
-    ]
    }
   ],
   "hot_files": [
@@ -33458,12 +33481,20 @@
     6
    ],
    [
-    "api/_lib/siteDatabase.ts",
+    "api/notifications.ts",
     3
    ],
    [
     "api/retention.ts",
     3
+   ],
+   [
+    "src/pages/QuotePage.tsx",
+    2
+   ],
+   [
+    "tests/api/notifications.test.ts",
+    2
    ],
    [
     "package.json",
@@ -33482,11 +33513,7 @@
     2
    ],
    [
-    "tests/api/briefing-assets.test.ts",
-    2
-   ],
-   [
-    "api/notifications.ts",
+    "api/_lib/siteDatabase.ts",
     2
    ],
    [
@@ -33498,39 +33525,35 @@
     2
    ],
    [
-    "src/pages/QuotePage.context.test.tsx",
+    "src/components/ProductCard.tsx",
     1
    ],
    [
-    "src/pages/QuotePage.tsx",
+    "src/lib/campaignPresets.test.ts",
     1
    ],
    [
-    "src/lib/useCatalogPageState.test.tsx",
+    "src/lib/campaignPresets.ts",
     1
    ],
    [
-    "src/lib/useCatalogPageState.ts",
+    "src/lib/quoteConfirmation.test.ts",
     1
    ],
    [
-    "src/components/CampaignFinder.test.tsx",
+    "src/lib/quoteDraft.test.ts",
     1
    ],
    [
-    "src/components/CampaignFinder.tsx",
+    "src/lib/quoteDraft.ts",
     1
    ],
    [
-    "src/lib/analytics.ts",
+    "src/lib/quoteRequest.test.ts",
     1
    ],
    [
-    "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
-    1
-   ],
-   [
-    "docs/audits/planejado-x-implementado-20261120/01-pf-01-22-comercial-confirmacoes-promessas.md",
+    "src/lib/quoteRequest.ts",
     1
    ]
   ]

@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "5ad589f89225b99622f5f3d707190fcd02e49e72",
+  "commit": "804efbc2180fce1cb851752b3229ad5acf9b90c2",
   "branch": "main",
-  "data_commit": "2026-11-20T16:34:12Z",
+  "data_commit": "2026-11-20T19:08:44Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "804efbc",
+    "data": "2026-11-20",
+    "assunto": "fix: promessas honestas em orcamento e catalogo (PF-14, PF-19, PF-20, PF-21) (#215)"
+   },
    {
     "sha": "5ad589f",
     "data": "2026-11-20",
@@ -126,14 +131,9 @@
     "sha": "66f8223",
     "data": "2026-11-17",
     "assunto": "fix(notificações): fila passa a ser medida mesmo sem provedor configurado (#190)"
-   },
-   {
-    "sha": "387263f",
-    "data": "2026-11-17",
-    "assunto": "feat(retenção): cron drena o lote na mesma execução e ganha orçamento de tempo (#189)"
    }
   ],
-  "arquivos_mudados_7d": 138,
+  "arquivos_mudados_7d": 140,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -176,6 +176,10 @@
     "mudancas": 6
    },
    {
+    "pasta": "src/pages/QuotePage.tsx",
+    "mudancas": 6
+   },
+   {
     "pasta": ".gitignore",
     "mudancas": 5
    },
@@ -185,10 +189,6 @@
    },
    {
     "pasta": "requirements-graphify.txt",
-    "mudancas": 5
-   },
-   {
-    "pasta": "src/pages/QuotePage.tsx",
     "mudancas": 5
    },
    {
@@ -219,7 +219,7 @@
    },
    {
     "arquivo": "src/pages/QuotePage.tsx",
-    "mudancas": 26
+    "mudancas": 27
    },
    {
     "arquivo": "vercel.json",
@@ -251,7 +251,7 @@
    },
    {
     "arquivo": "api/notifications.ts",
-    "mudancas": 18
+    "mudancas": 19
    },
    {
     "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
@@ -282,6 +282,10 @@
     "mudancas": 16
    },
    {
+    "arquivo": "tests/api/notifications.test.ts",
+    "mudancas": 16
+   },
+   {
     "arquivo": "scripts/graphify.mjs",
     "mudancas": 15
    },
@@ -292,16 +296,12 @@
    {
     "arquivo": "src/types/site-database.types.ts",
     "mudancas": 15
-   },
-   {
-    "arquivo": "tests/api/notifications.test.ts",
-    "mudancas": 15
    }
   ],
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 96
+    "commits": 97
    },
    {
     "autor": "dependabot[bot]",
@@ -312,7 +312,7 @@
  "contagens": {
   "arquivos_total": 716,
   "arquivos_codigo": 287,
-  "linhas_codigo": 55875,
+  "linhas_codigo": 55908,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -364,7 +364,7 @@
   },
   "api/notifications.ts": {
    "arquivos": 1,
-   "linhas": 724
+   "linhas": 725
   },
   "api/product-page.ts": {
    "arquivos": 1,
@@ -580,7 +580,7 @@
   },
   "src/lib": {
    "arquivos": 80,
-   "linhas": 7767
+   "linhas": 7790
   },
   "src/main.tsx": {
    "arquivos": 1,
@@ -588,7 +588,7 @@
   },
   "src/pages": {
    "arquivos": 24,
-   "linhas": 3383
+   "linhas": 3388
   },
   "src/test": {
    "arquivos": 1,
@@ -604,7 +604,7 @@
   },
   "tests/api": {
    "arquivos": 20,
-   "linhas": 3995
+   "linhas": 3999
   },
   "tests/catalog-public-contract.node.mjs": {
    "arquivos": 1,
@@ -750,7 +750,7 @@
   },
   {
    "arquivo": "api/notifications.ts",
-   "linhas": 724
+   "linhas": 725
   },
   {
    "arquivo": "scripts/inventario/gerar-banco.mjs",
@@ -758,7 +758,7 @@
   },
   {
    "arquivo": "src/pages/QuotePage.tsx",
-   "linhas": 553
+   "linhas": 558
   },
   {
    "arquivo": "src/lib/catalog.ts",

@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `5ad589f892` · branch `main` · 2026-11-20 16:34 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `804efbc218` · branch `main` · 2026-11-20 19:09 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -1048,7 +1048,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1633 testes em 135 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1635 testes em 135 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1109,6 +1109,7 @@ _nenhum item encontrado_
 | `site-supabase/supabase/tests/database/email_normalization.test.sql` | 9 | normalize_email tira espaços e baixa a caixa · valor já normalizado permanece idêntico (idempotente) · quote_requests rejeita e-mail com maiúsculas não normalizado · quote_requests rejeita e-mail com espaço não normalizado … |
 | `src/lib/catalogLibrary.test.ts` | 9 | biblioteca de catálogos · combina tema e busca sem depender de acentos · não inventa resultados quando os termos não aparecem juntos · usa o nome atual em links novos e mantém links antigos da coleção … |
 | `src/lib/http.test.ts` | 9 | transporte dos formulários · recusa endpoint malformado antes de chamar fetch · envia JSON com chave de idempotência apenas para a API do site · aceita rota server-side de mesma origem sem expor outro host … |
+| `src/lib/quoteRequest.test.ts` | 9 | solicitação de orçamento · separa o consentimento do contato e registra versão e instante · gera um e-mail com produtos, quantidade, cor e contato · não transmite um complemento opcional vazio ou manipulado … |
 | `src/pages/QuotePage.context.test.tsx` | 9 | data mínima do briefing · usa o calendário comercial brasileiro em vez de converter o instante para UTC · permanece no dia de São Paulo durante a virada UTC · editor do contexto da campanha no orçamento (PF-41) … |
 | `tests/check-performance-budget.node.mjs` | 9 | aprova um dist coerente e imprime o resumo em uma linha de stdout · é determinístico e funciona em caminho com espaço e acento · mede a entrada declarada no manifest mesmo quando ela não se chama index-* · não confunde um chunk lazy chamado index-* com a entrada … |
 | `tests/generate-database-docs.node.mjs` | 9 | ida e volta: com as mesmas linhas do banco, o dicionário gerado é idêntico ao versionado · ida e volta: com as mesmas linhas do banco, o ERD gerado é idêntico ao versionado · gerar duas vezes produz o mesmo arquivo e a data vem da migration mais recente, não do relógio · comentário com quebra de linha ou barra vertical não parte a tabela Markdown … |
@@ -1117,7 +1118,6 @@ _nenhum item encontrado_
 | `tests/api/customer-proposals.test.ts` | 9 | download autenticado de propostas · assina por 60 segundos somente o documento autorizado pelo RPC · usa o JWT limitado no RPC e a credencial de Storage somente para a assinatura · rejeita origem, sessão e identificador inválidos antes do banco … |
 | `e2e/product-detail.spec.ts` | 8 | ficha compacta reúne seleção e especificações ao lado da galeria no desktop · galeria permite todas as fotos, volta ao início e amplia com foco contido · descrição completa formata marcadores sem perder conteúdo nem esconder especificações · cor e quantidade seguem para o orçamento, sem preço ou bloqueio por estoque … |
 | `src/lib/analytics.test.ts` | 8 | instrumentação segura · remove query string e fragmento antes de enviar pageview · normaliza identificadores da área privada antes do pageview · aplica a mesma minimização de URL aos eventos de desempenho … |
-| `src/lib/quoteRequest.test.ts` | 8 | solicitação de orçamento · separa o consentimento do contato e registra versão e instante · gera um e-mail com produtos, quantidade, cor e contato · não transmite um complemento opcional vazio ou manipulado … |
 | `tests/inventario-banco-sql.node.mjs` | 8 | banco.sql roda inteiro em transação somente leitura e passa na prova de origem · banco.sql: a transação somente leitura barra escrita, e a consulta não muda nada no banco · banco.sql: fila travada conta só o que ainda vai ser tentado; erro sai como código, nunca como texto · banco.sql: pg_cron sai com nome estável, só o nome das funções chamadas e as contas certas … |
 | `tests/validate-site-supabase-target.node.mjs` | 8 | aprova somente o projeto isolado do site, com código 0 e o ref em stdout · independe do diretório de onde é chamado · bloqueia o catálogo canônico e diz como refazer o vínculo · bloqueia qualquer conteúdo que não seja exatamente o ref do site … |
 | `tests/api/site-page.test.ts` | 8 | HTML inicial das páginas estáticas · entrega metadados específicos para catálogo e não indexa o detalhe privado · preserva 404 real para uma landing editorial desconhecida · serve para cada landing o mesmo título que o React grava depois da hidratação … |
@@ -1154,6 +1154,7 @@ _nenhum item encontrado_
 | `src/lib/briefingAssets.test.ts` | 4 | arquivos privados do briefing · aceita somente os formatos publicados dentro de 10 MB · recusa arquivos vazios e nomes maiores que o contrato do banco · revoga o metadado e delega a remoção física à fila protegida |
 | `src/lib/customerQuoteContract.test.ts` | 4 | contrato runtime do histórico de orçamentos · aceita o formato público da RPC e remove somente imagens opcionais inseguras · rejeita status, identificadores e quantidades fora do contrato em vez de renderizar JSON arbitrário · mantém campanha e briefing legados opacos até a normalização de consumo, sem relaxar o snapshot de produtos |
 | `src/lib/productBadges.test.ts` | 4 | badges de produto · replica a janela de 30 dias do Promo Gifts sem aceitar datas futuras · prioriza is_kit e usa categoria ou prefixo somente como fallback legado · resolve exatamente um badge na ordem Novidade, Kit e Sua marca aqui |
+| `src/lib/quoteDraft.test.ts` | 4 | rascunho do briefing · mantém o briefing na sessão para a pessoa voltar ao catálogo · confirma que o rascunho foi persistido e que o navegador aceitou o storage · remove o rascunho vencido em vez de reapresentar dados pessoais antigos |
 | `src/lib/scrollRestoration.test.ts` | 4 | restauração de rolagem · aguarda uma rota assíncrona crescer antes de concluir a posição salva · para no limite de tempo quando a página não alcança a altura anterior · cancela frames pendentes quando a rota muda ou a pessoa interage |
 | `src/lib/siteRpc.test.ts` | 4 | deadline das RPCs do site · aborta a consulta no deadline padrão · propaga o aborto externo para a consulta · limpa o timer quando a consulta termina |
 | `src/lib/siteSupabase.test.ts` | 4 | configuração pública da Área do Cliente · aceita somente o projeto Supabase isolado do site · recusa secret key no bundle e aceita somente chave pública · em Preview recusa o banco de produção e o banco interno, inclusive sem configuração explícita |
@@ -1165,7 +1166,6 @@ _nenhum item encontrado_
 | `src/lib/catalogComparison.test.ts` | 3 | comparação persistente · remove dados inválidos, duplicados e respeita o limite de três produtos · salva identificadores estáveis junto de um retrato local para sobreviver à navegação |
 | `src/lib/clientObservability.test.ts` | 3 | telemetria de erro da interface · envia apenas classe do erro e pathname, nunca mensagem ou query pessoal · não envia o identificador privado nem rotas arbitrárias ao reportar erros |
 | `src/lib/ideaLandings.test.ts` | 3 | curadoria das landings de ideias · dá a cada tema uma consulta própria, senão a landing vira o catálogo inteiro · resolve o termo de onboarding pelo grupo de sinônimos da intenção, sem exigir kit |
-| `src/lib/quoteDraft.test.ts` | 3 | rascunho do briefing · mantém o briefing na sessão para a pessoa voltar ao catálogo · remove o rascunho vencido em vez de reapresentar dados pessoais antigos |
 | `src/lib/quoteRepeat.test.ts` | 3 | repetição de orçamento · preserva apenas contexto de campanha e briefing por uma janela curta · não restaura briefing do titular anterior após a limpeza de sessão |
 | `src/lib/searchRelevance.test.ts` | 3 | baseline editorial de relevância · mantém cobertura integral do corpus versionado · expõe falhas em vez de arredondar a métrica |
 | `src/lib/useInitialSuccessScroll.test.tsx` | 3 | rolagem inicial da confirmação · reposiciona apenas na entrada do sucesso, não em atualizações posteriores · respeita a interação %s antes das tentativas atrasadas |
@@ -1298,4 +1298,5 @@ _nenhum item encontrado_
 | A navegação não pode deixar uma solicitação antiga concluir em segundo | `src/pages/QuotePage.tsx` |
 | deve invalidar os dados pessoais ativos deste formulário. Sem isto, o | `src/pages/QuotePage.tsx` |
 | efeitos deste projeto); só a troca de titular deve disparar este reset. | `src/pages/QuotePage.tsx` |
+| Preserva avisos de descarte; limpa apenas o aviso de falha de salvamento. | `src/pages/QuotePage.tsx` |
 | Estas linhas espelham apenas o estado devolvido pela API; não | `src/pages/QuotePage.tsx` |

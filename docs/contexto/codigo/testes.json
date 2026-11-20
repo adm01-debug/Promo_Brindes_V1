@@ -450,7 +450,7 @@
   {
    "arquivo": "src/lib/quoteConfirmation.test.ts",
    "tipo": "unit",
-   "linhas": 27,
+   "linhas": 28,
    "testa": [
     "src/lib/quoteConfirmation.ts"
    ],
@@ -459,12 +459,12 @@
   {
    "arquivo": "src/lib/quoteDraft.test.ts",
    "tipo": "unit",
-   "linhas": 23,
+   "linhas": 29,
    "testa": [
     "src/lib/quoteBriefing.ts",
     "src/lib/quoteDraft.ts"
    ],
-   "casos": 2
+   "casos": 3
   },
   {
    "arquivo": "src/lib/quoteItems.test.ts",
@@ -489,12 +489,12 @@
   {
    "arquivo": "src/lib/quoteRequest.test.ts",
    "tipo": "unit",
-   "linhas": 94,
+   "linhas": 106,
    "testa": [
     "src/lib/quoteRequest.ts",
     "src/types.ts"
    ],
-   "casos": 7
+   "casos": 8
   },
   {
    "arquivo": "src/lib/quoteSubmission.test.ts",
@@ -764,7 +764,7 @@
   {
    "arquivo": "tests/api/notifications.test.ts",
    "tipo": "unit",
-   "linhas": 655,
+   "linhas": 659,
    "testa": [
     "api/_lib/leadHandler.ts",
     "api/notifications.ts"

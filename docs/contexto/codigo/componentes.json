@@ -575,7 +575,7 @@
     "QuotePage"
    ],
    "export_default": "QuotePage",
-   "linhas": 553,
+   "linhas": 558,
    "dominio": "pages",
    "hooks_locais": [
     "useCustomerAuth",

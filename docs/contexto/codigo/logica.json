@@ -664,7 +664,7 @@
     "whatsappChannelConfigured"
    ],
    "export_default": "handler",
-   "linhas": 724,
+   "linhas": 725,
    "tabelas": [],
    "rpcs": [
     "claim_site_notification_deliveries",
@@ -2028,7 +2028,7 @@
     "saveQuoteDraft"
    ],
    "export_default": null,
-   "linhas": 93,
+   "linhas": 97,
    "tabelas": [],
    "rpcs": [],
    "edges": [],
