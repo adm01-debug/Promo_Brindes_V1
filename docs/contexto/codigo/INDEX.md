@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `01b873c17d37fb4069938113efa1a9dd3d3541f7` (2026-11-20T11:21:18Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `1bb2a9051887fe56d8082d6559d551ac251c7f5b` (2026-11-20T13:55:13Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -36,7 +36,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 |---|---|
 | arquivos_total | 715 |
 | arquivos_codigo | 286 |
-| linhas_codigo | 55646 |
+| linhas_codigo | 55688 |
 | rotas | 32 |
 | rotas_http_backend | 14 |
 | vistas_por_id | 0 |
@@ -386,6 +386,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-20 `1bb2a90` fix: limpa contexto da campanha quando o recorte sai do catálogo (#212)
 - 2026-11-20 `01b873c` feat: caminho 'ainda não sei o que escolher' desbloqueia quem chega sem briefing (#211)
 - 2026-11-20 `a9dab6d` chore(docs): auditoria planejado × implementado em 40f6420 — 128 itens reverificados, 108 novos (#214)
 - 2026-11-19 `40f6420` infra(ci): verify-db tolera espera dos gates quando cross-browser chega ao teto de 35min (#210)
@@ -400,7 +401,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-18 `ab6ea69` infra(graphify): cria o requirements-graphify.in que o comentario citava e nao existia (#197)
 - 2026-11-18 `e82b4d9` fix(contrato): 401 transitório da camada Auth deixa de reprovar o contrato do catálogo (#202)
 - 2026-11-18 `0a138dd` feat(testes): cobre sessão expirada entre o upload e a verificação do anexo (#200)
-- 2026-11-18 `aff11ee` docs: matriz risco de negocio para camada de teste, com os vazios nomeados (#205)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

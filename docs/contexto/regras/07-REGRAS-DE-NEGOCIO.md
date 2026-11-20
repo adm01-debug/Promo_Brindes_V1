@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `01b873c17d` · branch `main` · 2026-11-20 11:22 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `1bb2a90518` · branch `main` · 2026-11-20 13:55 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -1048,7 +1048,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1621 testes em 134 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1624 testes em 134 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1137,6 +1137,7 @@ _nenhum item encontrado_
 | `src/lib/customerOccasionFavorites.test.ts` | 6 | favoritos de datas na conta · lê apenas IDs editoriais e elimina duplicidades · normaliza a escrita e exige confirmação idempotente do servidor · rejeita payloads e identificadores que não podem representar uma data editorial … |
 | `src/lib/customerSelections.test.ts` | 6 | seleções privadas da conta · envia somente referências públicas e preserva o grupo alternativo · preserva o nome da cor quando o catálogo não fornece variantId · lista, cria e atualiza usando a versão recebida do servidor … |
 | `src/lib/quoteBriefing.test.ts` | 6 | contexto opcional do briefing · preserva apenas escolhas reconhecidas e texto limitado · descarta briefing vazio ou valores manipulados · gera um resumo humano para e-mail e área do cliente … |
+| `src/lib/useCatalogPageState.test.tsx` | 6 | useCatalogPageState · preserva a resposta da API quando a ordem explícita é %s · aplica curadoria somente quando ela é a ordem escolhida · sincroniza o contexto da campanha a partir da URL … |
 | `site-supabase/supabase/tests/database/shared_selection_priorities.test.sql` | 5 | criar e ler preserva prioridade alternativa · referência sem prioridade continua compatível como principal · recusa prioridade desconhecida · recusa null explícito … |
 | `src/components/BriefingAssetUploader.test.tsx` | 5 | privacidade de anexos durante troca de sessão · ignora upload da sessão anterior após %s · mantém o upload da sessão atual disponível para selecionar · não restaura anexos da sessão anterior após renovar a mesma conta … |
 | `src/components/SavedSelections.test.tsx` | 5 | seleções salvas na Área do Cliente · mostra as seleções sem copiar automaticamente o carrinho para a conta · exige confirmação antes de substituir o carrinho e preserva a seleção ao cancelar · compara conflito entre dispositivos e permite preservar as duas versões … |
@@ -1166,7 +1167,6 @@ _nenhum item encontrado_
 | `src/lib/quoteDraft.test.ts` | 3 | rascunho do briefing · mantém o briefing na sessão para a pessoa voltar ao catálogo · remove o rascunho vencido em vez de reapresentar dados pessoais antigos |
 | `src/lib/quoteRepeat.test.ts` | 3 | repetição de orçamento · preserva apenas contexto de campanha e briefing por uma janela curta · não restaura briefing do titular anterior após a limpeza de sessão |
 | `src/lib/searchRelevance.test.ts` | 3 | baseline editorial de relevância · mantém cobertura integral do corpus versionado · expõe falhas em vez de arredondar a métrica |
-| `src/lib/useCatalogPageState.test.tsx` | 3 | useCatalogPageState · preserva a resposta da API quando a ordem explícita é %s · aplica curadoria somente quando ela é a ordem escolhida |
 | `src/lib/useInitialSuccessScroll.test.tsx` | 3 | rolagem inicial da confirmação · reposiciona apenas na entrada do sucesso, não em atualizações posteriores · respeita a interação %s antes das tentativas atrasadas |
 | `src/pages/QuotePage.test.ts` | 3 | data mínima do briefing · usa o calendário comercial brasileiro em vez de converter o instante para UTC · permanece no dia de São Paulo durante a virada UTC |
 | `tests/orphan-refs.node.mjs` | 3 | aponta só o blob que não está na main nem na linha de base · linha de base ausente não é erro; inválida falha com a causa · a linha de base versionada tem veredito legível em toda entrada |
@@ -1283,6 +1283,8 @@ _nenhum item encontrado_
 | * Nome da cor legado, usado somente quando o fornecedor não publica variantId. */ | `src/lib/sharedSelection.ts` |
 | * Executa uma consulta PostgREST com deadline real. O AbortSignal chega até o | `src/lib/siteRpc.ts` |
 | apenas quando essa é a ordem selecionada. | `src/lib/useCatalogPageState.ts` |
+| Sem recorte de campanha ativo, o contexto do carrinho não deve reter uma | `src/lib/useCatalogPageState.ts` |
+| não pode fazer o briefing herdar um contexto errado rumo ao comercial. | `src/lib/useCatalogPageState.ts` |
 | Um storage bloqueado não pode impedir a consulta pública do calendário. | `src/lib/useOccasionFavorites.ts` |
 | Intenções pertencem somente à sessão de sincronização do titular atual. | `src/lib/useOccasionFavorites.ts` |
 | Atualiza a identidade somente quando o render foi efetivamente commitado. | `src/lib/useOccasionFavorites.ts` |

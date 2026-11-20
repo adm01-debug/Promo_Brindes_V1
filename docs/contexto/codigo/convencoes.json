@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "fix: limpa contexto da campanha quando o recorte sai do catálogo (#212)",
    "feat: caminho 'ainda não sei o que escolher' desbloqueia quem chega sem briefing (#211)",
    "chore(docs): auditoria planejado × implementado em 40f6420 — 128 itens reverificados, 108 novos (#214)",
    "infra(ci): verify-db tolera espera dos gates quando cross-browser chega ao teto de 35min (#210)",
-   "infra(ci): cross-browser deixa de ser cancelado no teto antes de rodar teste (#204)",
-   "feat(e2e): cobre a jornada completa do visitante com rede lenta e armazenamento bloqueado (#199)"
+   "infra(ci): cross-browser deixa de ser cancelado no teto antes de rodar teste (#204)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

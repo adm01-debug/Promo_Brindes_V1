@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "01b873c17d37fb4069938113efa1a9dd3d3541f7",
+  "commit": "1bb2a9051887fe56d8082d6559d551ac251c7f5b",
   "branch": "main",
-  "data_commit": "2026-11-20T11:21:18Z",
+  "data_commit": "2026-11-20T13:55:13Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "1bb2a90",
+    "data": "2026-11-20",
+    "assunto": "fix: limpa contexto da campanha quando o recorte sai do catálogo (#212)"
+   },
    {
     "sha": "01b873c",
     "data": "2026-11-20",
@@ -126,14 +131,9 @@
     "sha": "8e5ce1d",
     "data": "2026-11-17",
     "assunto": "chore(docs): registra a verificação dos 58 itens de engenharia da auditoria (#187)"
-   },
-   {
-    "sha": "092d5c6",
-    "data": "2026-11-17",
-    "assunto": "chore(config): variável de produção não documentada, com guard para não repetir (#186)"
    }
   ],
-  "arquivos_mudados_7d": 137,
+  "arquivos_mudados_7d": 138,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 94
+    "commits": 95
    },
    {
     "autor": "dependabot[bot]",
@@ -312,7 +312,7 @@
  "contagens": {
   "arquivos_total": 715,
   "arquivos_codigo": 286,
-  "linhas_codigo": 55646,
+  "linhas_codigo": 55688,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -580,7 +580,7 @@
   },
   "src/lib": {
    "arquivos": 80,
-   "linhas": 7725
+   "linhas": 7767
   },
   "src/main.tsx": {
    "arquivos": 1,
@@ -801,16 +801,16 @@
    "linhas": 304
   },
   {
+   "arquivo": "src/lib/useCatalogPageState.ts",
+   "linhas": 296
+  },
+  {
    "arquivo": "api/retention.ts",
    "linhas": 290
   },
   {
    "arquivo": "src/components/QuoteDrawer.tsx",
    "linhas": 287
-  },
-  {
-   "arquivo": "docs/audits/plan-review-20260912/build_matrix.py",
-   "linhas": 286
   }
  ],
  "qualidade": {

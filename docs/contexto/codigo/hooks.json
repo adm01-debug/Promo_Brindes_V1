@@ -96,7 +96,7 @@
    "hooks_exportados": [
     "useCatalogPageState"
    ],
-   "linhas": 284,
+   "linhas": 296,
    "dominio": "lib",
    "tabelas": [],
    "rpcs": [],

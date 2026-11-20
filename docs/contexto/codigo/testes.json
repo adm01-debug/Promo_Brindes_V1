@@ -564,12 +564,12 @@
   {
    "arquivo": "src/lib/useCatalogPageState.test.tsx",
    "tipo": "unit",
-   "linhas": 64,
+   "linhas": 94,
    "testa": [
     "src/lib/useCatalogPageState.ts",
     "src/types.ts"
    ],
-   "casos": 2
+   "casos": 5
   },
   {
    "arquivo": "src/lib/useInitialSuccessScroll.test.tsx",
