@@ -54,7 +54,7 @@ export function ProductCard({ product, categoryName, priority = false, compariso
         <p className="product-card__eyebrow">{categoryName || 'Brindes corporativos'} · Cód. {product.sku}</p>
         <Link className="product-card__title" to={`/produto/${product.slug}`}>{product.name}</Link>
         <p className="product-card__description">
-          {product.shortDescription || 'Personalize este produto para sua próxima ação de marca.'}
+          {product.shortDescription || (product.allowsPersonalization ? 'Personalize este produto para sua próxima ação de marca.' : 'Consulte nosso time de especialistas para escolher a melhor personalização.')}
         </p>
         <div className="product-card__decision-signals">
           <span>{product.minQuantity > 1 ? `Mín. ${product.minQuantity.toLocaleString('pt-BR')} un.` : 'Quantidade a confirmar'}</span>

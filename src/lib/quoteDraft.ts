@@ -59,8 +59,8 @@ export function loadQuoteDraft(now = Date.now()): QuoteDraft {
   }
 }
 
-export function saveQuoteDraft(draft: QuoteDraft, now = new Date()): void {
-  if (typeof window === 'undefined') return;
+export function saveQuoteDraft(draft: QuoteDraft, now = new Date()): boolean {
+  if (typeof window === 'undefined') return false;
   try {
     const normalizedContact = normalizeContact(draft.contact);
     const normalizedBriefing = quoteBriefingForm(draft.briefing);
@@ -70,15 +70,19 @@ export function saveQuoteDraft(draft: QuoteDraft, now = new Date()): void {
       || Object.values(normalizedBriefing).some((value) => typeof value === 'string' && Boolean(value.trim()));
     if (!hasContent) {
       window.sessionStorage.removeItem(STORAGE_KEY);
-      return;
+      return true;
     }
     window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
       contact: normalizedContact,
       briefing: normalizedBriefing,
       updatedAt: now.toISOString(),
     } satisfies StoredQuoteDraft));
+    return true;
   } catch {
     // Session storage is an enhancement; the live form remains the source of truth.
+    // Devolver o resultado evita que a UI prometa "rascunho salvo" quando o
+    // navegador bloqueou o storage.
+    return false;
   }
 }
 

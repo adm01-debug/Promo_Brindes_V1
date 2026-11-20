@@ -95,7 +95,7 @@ export function campaignLabels(selection: CampaignSelection): Array<{ key: keyof
   return [
     selection.moment && { key: 'moment' as const, label: `Momento: ${optionLabel(CAMPAIGN_MOMENTS, selection.moment)}` },
     selection.audience && { key: 'audience' as const, label: `Público: ${optionLabel(CAMPAIGN_AUDIENCES, selection.audience)}` },
-    selection.scale && { key: 'scale' as const, label: `Escala: ${optionLabel(CAMPAIGN_SCALES, selection.scale)} un.` },
+    selection.scale && { key: 'scale' as const, label: `Escala: ${optionLabel(CAMPAIGN_SCALES, selection.scale)} pessoas` },
     selection.mood && { key: 'mood' as const, label: `Clima: ${optionLabel(CAMPAIGN_MOODS, selection.mood)}` },
   ].filter((item): item is { key: keyof CampaignSelection; label: string } => Boolean(item));
 }

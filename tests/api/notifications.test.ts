@@ -104,7 +104,9 @@ describe('worker de comprovantes do orçamento', () => {
     vi.stubEnv('SITE_EMAIL_FROM', 'Promo Brindes <atendimento@example.test>');
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);
-    await expect(deliverQuoteConfirmationsNow(emailJob.requestId, false)).resolves.toEqual({ email: 'pending', whatsapp: 'not_requested' });
+    // Preview nunca envia mensagens reais: sem provedor, não existe entrega
+    // "registrada para envio" — o canal é honestamente reportado como indisponível.
+    await expect(deliverQuoteConfirmationsNow(emailJob.requestId, false)).resolves.toEqual({ email: 'unavailable', whatsapp: 'not_requested' });
     const { result, response } = responseDouble();
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
     expect(result.statusCode).toBe(503);
@@ -349,7 +351,9 @@ describe('worker de comprovantes do orçamento', () => {
     });
     vi.stubGlobal('fetch', fetchMock);
 
-    await expect(deliverQuoteConfirmationsNow(emailJob.requestId, true)).resolves.toEqual({ email: 'pending', whatsapp: 'pending' });
+    // Só o WhatsApp tem provedor neste cenário; sem Resend, o e-mail não pode
+    // ser reportado como "registrado para envio" (PF-14).
+    await expect(deliverQuoteConfirmationsNow(emailJob.requestId, true)).resolves.toEqual({ email: 'unavailable', whatsapp: 'pending' });
     const finalizeCall = fetchMock.mock.calls.find(([url]) => String(url).includes('/finalize_site_notification_delivery'));
     expect(JSON.parse(String(finalizeCall?.[1]?.body))).toMatchObject({
       p_status: 'failed', p_error_code: 'whatsapp_provider_503', p_retry_after_seconds: 86_400,

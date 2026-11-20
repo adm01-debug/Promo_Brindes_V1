@@ -82,7 +82,7 @@ export default function QuotePage() {
   const [draftNotice, setDraftNotice] = useState('');
   const [quantityDrafts, setQuantityDrafts] = useState<Record<string, string>>({});
   const [briefingAssetIds, setBriefingAssetIds] = useState<string[]>([]);
-  const [success, setSuccess] = useState<{ mode: 'endpoint' | 'email'; href?: string; requestId?: string; contactName?: string; itemCount?: number; confirmations?: { email: 'sent' | 'pending'; whatsapp: ConfirmationDeliveryStatus }; assets?: { status: 'attached' | 'pending'; count: number } } | null>(null);
+  const [success, setSuccess] = useState<{ mode: 'endpoint' | 'email'; href?: string; requestId?: string; contactName?: string; itemCount?: number; confirmations?: { email: 'sent' | 'pending' | 'unavailable'; whatsapp: ConfirmationDeliveryStatus }; assets?: { status: 'attached' | 'pending'; count: number } } | null>(null);
   const [website, setWebsite] = useState('');
   const formRef = useRef<HTMLFormElement>(null);
   const availabilityNoticeRef = useRef<HTMLDivElement>(null);
@@ -179,7 +179,8 @@ export default function QuotePage() {
       clearQuoteDraft();
       return;
     }
-    saveQuoteDraft({ contact, briefing });
+    const saved = saveQuoteDraft({ contact, briefing });
+    if (!saved) setDraftNotice('Não foi possível salvar o rascunho nesta aba. Os campos continuam visíveis até você sair da página.');
   }, [briefing, contact, success]);
 
   function updateField<Key extends keyof QuoteContact>(key: Key, value: QuoteContact[Key]) {
@@ -235,7 +236,7 @@ export default function QuotePage() {
     setBriefing(EMPTY_QUOTE_BRIEFING);
     setErrors({});
     setBriefingErrors({});
-    setDraftNotice('Rascunho apagado deste navegador. A sua seleção de produtos foi mantida.');
+    setDraftNotice('O rascunho foi apagado deste navegador. A sua seleção de produtos foi mantida.');
   }
 
   useEffect(() => {

@@ -12,6 +12,7 @@ describe('confirmação honesta do orçamento', () => {
   it('não apresenta uma confirmação pendente ou não solicitada como enviada', () => {
     expect(confirmationDeliveryLabel('sent')).toBe('Enviada');
     expect(confirmationDeliveryLabel('pending')).toBe('Registrado para envio');
+    expect(confirmationDeliveryLabel('unavailable')).toBe('Indisponível no momento');
     expect(confirmationDeliveryLabel('not_requested')).toBe('Não solicitado');
   });
 
