@@ -2988,11 +2988,6 @@ p {
 .quote-campaign-context p { max-width: 610px; margin: 0; color: #3c5844; font-size: 0.69rem; line-height: 1.55; }
 .quote-campaign-context ul { max-width: 280px; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .quote-campaign-context li { padding: 6px 9px; background: #fff; border: 1px solid #b8d7c0; border-radius: 999px; font-size: 0.63rem; font-weight: 700; }
-.quote-campaign-context__actions { display: grid; gap: 10px; justify-items: end; }
-.quote-campaign-context__editor { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 12px; }
-.quote-campaign-context__editor .form-field--wide { grid-column: 1 / -1; }
-.quote-campaign-context__editor .form-field select { min-height: 42px; background: #fff; }
-.quote-campaign-context__editor .button--green { justify-self: start; }
 
 .honeypot {
   position: absolute;
@@ -3900,8 +3895,6 @@ p {
   .form-field--wide { grid-column: auto; }
   .quote-campaign-context { grid-template-columns: 1fr; }
   .quote-campaign-context ul { max-width: none; justify-content: flex-start; }
-  .quote-campaign-context__actions { justify-items: start; }
-  .quote-campaign-context__editor { grid-template-columns: 1fr; }
   .quote-submit { align-items: stretch; flex-direction: column; }
   .about-intro__grid { grid-template-columns: 1fr; }
   .about-steps { grid-template-columns: 1fr; }
