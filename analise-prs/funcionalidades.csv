@@ -8,7 +8,7 @@ F-06,Fale conosco com destino,contact_requests gravado sem consumidor,PARCIAL,50
 F-07,Confirmacao por e-mail Resend,RESEND_API_KEY + SITE_EMAIL_FROM em producao,BLOQUEADA,70,#82,PF-07,P1
 F-08,Confirmacao por WhatsApp Cloud API,4 variaveis WHATSAPP_* + template Meta aprovado,BLOQUEADA,70,#82,PF-08,P1
 F-09,Webhooks de entrega Resend/WhatsApp,Secrets + URLs; bug 500 em payload invalido,PARCIAL,60,,PF-09,P2
-F-10,Saude da fila sem provedor,Cron */15 retorna 503 antes de reportQueueHealth,COMPLETA,100,#190,PF-10,P2
+F-10,Saude da fila sem provedor,ReportQueueHealth agora antecede o 503 (corrigido nov/2026),COMPLETA,100,#190,PF-10,P2
 F-11,Corte de backlog antes de ligar provedores,claim_site_notification_deliveries sem filtro de idade/spam/apagado,PENDENTE,0,,PF-11,P2
 F-12,Supressao e reprocessamento,Lista bounce/complaint + reprocessar exhausted→pending,PENDENTE,0,,PF-12,P3
 F-13,Conteudo das confirmacoes,Decisao resumo x copia integral; texto diverge do e-mail real,BLOQUEADA,50,,PF-13,P3
@@ -17,7 +17,7 @@ F-15,Checkbox copia pelo WhatsApp,Sempre visivel sem WhatsApp ligado; nao e copi
 F-16,Texto time de especialistas vai entrar em contato,Sem handoff PF-01 nem escritor na timeline PF-03,PARCIAL,50,,PF-16,P3
 F-17,Promessas da Politica de Privacidade,Sem provedor sem autoexclusao sem RPC acesso/correcao,PARCIAL,40,,PF-17,P1
 F-18,Curadoria iniciada pelo briefing,Ordenacao por intencao so na pagina carregada; sem curadoria humana,PARCIAL,60,,PF-18,P3
-F-19,Descricao padrao personalize,Aparece mesmo com allowsPersonalization=false,COMPLETA,100,#215,PF-19,P3
+F-19,Descricao padrao personalize,Descricao personalizada condicionada a allowsPersonalization (corrigido nov/2026),COMPLETA,100,#215,PF-19,P3
 F-20,Faixa de publico como unidades,Escala 51-200 un. exibe pessoas como quantidade,COMPLETA,100,#215,PF-20,P3
 F-21,Aviso rascunho fica salvo,Aparece mesmo com falha no sessionStorage,COMPLETA,100,#215,PF-21,P3
 F-22,Abrir PDF/revista na biblioteca,10 colecoes format online; PDF/revista so estrutura,PARCIAL,50,,PF-22,P3
