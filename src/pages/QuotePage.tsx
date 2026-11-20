@@ -498,13 +498,13 @@ export default function QuotePage() {
                     <div className="form-field form-field--wide"><label htmlFor="campaignAudience">Público</label><select id="campaignAudience" value={activeCampaign?.audience ?? ''} onChange={(event) => updateActiveCampaign('audience', event.target.value as CampaignBrief['audience'])}><option value="">Sem público definido</option>{CAMPAIGN_AUDIENCES.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></div>
                     <div className="form-field form-field--wide"><label htmlFor="campaignScale">Escala</label><select id="campaignScale" value={activeCampaign?.scale ?? ''} onChange={(event) => updateActiveCampaign('scale', event.target.value as CampaignBrief['scale'])}><option value="">Sem escala definida</option>{CAMPAIGN_SCALES.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></div>
                     <div className="form-field form-field--wide"><label htmlFor="campaignMood">Clima</label><select id="campaignMood" value={activeCampaign?.mood ?? ''} onChange={(event) => updateActiveCampaign('mood', event.target.value as CampaignBrief['mood'])}><option value="">Sem clima definido</option>{CAMPAIGN_MOODS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></div>
-                    <button type="button" className="quote-campaign-context__done" onClick={() => setCampaignContextOpen(false)}>Concluir</button>
+                    <button type="button" className="button button--compact button--green" onClick={() => setCampaignContextOpen(false)}>Concluir</button>
                   </div>
                 )}
               </div>
               {campaignContextOpen ? (
                 <div className="quote-campaign-context__actions">
-                  <button type="button" className="text-button quote-campaign-context__remove" onClick={() => setActiveCampaign(undefined)}>Remover contexto</button>
+                  <button type="button" className="text-button text-button--danger" onClick={() => setActiveCampaign(undefined)}>Remover contexto</button>
                 </div>
               ) : (
                 <div className="quote-campaign-context__actions">

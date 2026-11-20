@@ -2992,8 +2992,7 @@ p {
 .quote-campaign-context__editor { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 12px; }
 .quote-campaign-context__editor .form-field--wide { grid-column: 1 / -1; }
 .quote-campaign-context__editor .form-field select { min-height: 42px; background: #fff; }
-.quote-campaign-context__done { justify-self: start; padding: 8px 16px; color: #fff; background: var(--green-dark); border: 0; border-radius: 8px; font-size: 0.7rem; font-weight: 700; cursor: pointer; }
-.quote-campaign-context__remove { color: #b3261e; }
+.quote-campaign-context__editor .button--green { justify-self: start; }
 
 .honeypot {
   position: absolute;
