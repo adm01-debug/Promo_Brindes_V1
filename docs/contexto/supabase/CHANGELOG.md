@@ -2,6 +2,18 @@
 
 Diff semântico gerado a cada coleta em que algo mudou.
 
+## 2026-11-21 21:12 UTC
+
+- **colunas** adicionado (4): `site_private.subject_right_requests.id`, `site_private.subject_right_requests.requested_at`, `site_private.subject_right_requests.right_type`, `site_private.subject_right_requests.subject_user_id`
+- **constraints** adicionado (3): `site_private.subject_right_requests.subject_right_requests_pkey`, `site_private.subject_right_requests.subject_right_requests_right_type_check`, `site_private.subject_right_requests.subject_right_requests_subject_user_id_fkey`
+- **functions** adicionado (6): `public.correct_my_data(p_display_name text, p_company text)`, `public.delete_my_data()`, `public.erase_customer_data(p_email text, p_user_id uuid)`, `public.export_my_data()`, `public.get_my_data_access()`, `site_private.current_titular_verified_email()`
+- **functions** removido (1): `public.erase_customer_data(p_email text)`
+- **functions** alterado (3): `public.claim_my_quote_requests()`, `site_private.erase_titular_request_metadata(p_metadata jsonb)`, `site_private.normalize_email(p_email text)`
+- **grants** adicionado (1): `site_private.subject_right_requests:service_role`
+- **indexes** adicionado (2): `site_private.subject_right_requests_pkey`, `site_private.subject_right_requests_subject_idx`
+- **migrations** adicionado (1): `20261121110000_add_titular_lgpd_rights_rpcs`
+- **tabelas** adicionado (1): `site_private.subject_right_requests`
+
 ## 2026-11-17 11:22 UTC
 
 - **functions** adicionado (3): `site_private.commercial_team_contact_alert_payload(p_delivery_id uuid)`, `site_private.enqueue_contact_commercial_alert()`, `site_private.erase_titular_request_metadata(p_metadata jsonb)`

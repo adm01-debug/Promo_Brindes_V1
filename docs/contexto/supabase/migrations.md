@@ -73,3 +73,4 @@ SQL em `migrations/<versao>_<nome>.sql`. Mudanças feitas pelo Dashboard/SQL Edi
 | 20261117010000 | [add_commercial_team_contact_alert](migrations/20261117010000_add_commercial_team_contact_alert.sql) | 18 |
 | 20261117030000 | [complete_customer_data_erasure](migrations/20261117030000_complete_customer_data_erasure.sql) | 6 |
 | 20261117030100 | [repair_incomplete_customer_data_erasure](migrations/20261117030100_repair_incomplete_customer_data_erasure.sql) | 3 |
+| 20261121110000 | [add_titular_lgpd_rights_rpcs](migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql) | 34 |

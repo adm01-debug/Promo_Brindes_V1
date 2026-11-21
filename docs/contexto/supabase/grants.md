@@ -38,6 +38,7 @@ Roles da API: `anon` (sem login), `authenticated` (logado), `service_role` (bypa
 | site_private.shared_selections | site_api | DELETE, INSERT, SELECT, UPDATE |
 | site_private.status_transitions | service_role | DELETE, INSERT, SELECT, UPDATE |
 | site_private.status_transitions | site_api | SELECT |
+| site_private.subject_right_requests | service_role | DELETE, INSERT, SELECT, UPDATE |
 | storage.bucket_lifecycle_states | service_role | DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE |
 | storage.buckets | anon | DELETE, INSERT, SELECT, UPDATE |
 | storage.buckets | authenticated | DELETE, INSERT, SELECT, UPDATE |

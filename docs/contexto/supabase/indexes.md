@@ -71,3 +71,5 @@ Uso e tamanho em `stats.md`.
 | site_private.shared_selections | shared_selections_pkey | btree | token | sim | sim |  |
 | site_private.status_transitions | status_transitions_pkey | btree | entity, from_status, to_status | sim | sim |  |
 | site_private.storage_deletion_queue | storage_deletion_queue_pkey | btree | bucket, object_path | sim | sim |  |
+| site_private.subject_right_requests | subject_right_requests_pkey | btree | id | sim | sim |  |
+| site_private.subject_right_requests | subject_right_requests_subject_idx | btree | subject_user_id, requested_at | não | sim |  |

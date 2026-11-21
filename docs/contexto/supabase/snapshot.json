@@ -2474,6 +2474,58 @@
         "schema": "site_private",
         "table": "storage_deletion_queue",
         "type": "timestamp with time zone"
+      },
+      {
+        "comment": null,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "id",
+        "nullable": false,
+        "position": 1,
+        "schema": "site_private",
+        "table": "subject_right_requests",
+        "type": "uuid"
+      },
+      {
+        "comment": null,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "subject_user_id",
+        "nullable": false,
+        "position": 2,
+        "schema": "site_private",
+        "table": "subject_right_requests",
+        "type": "uuid"
+      },
+      {
+        "comment": "Direito exercido: access (confirmacao de tratamento), export (portabilidade), correct (correcao de perfil) ou delete (autoexclusao).",
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "right_type",
+        "nullable": false,
+        "position": 3,
+        "schema": "site_private",
+        "table": "subject_right_requests",
+        "type": "text"
+      },
+      {
+        "comment": null,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "requested_at",
+        "nullable": false,
+        "position": 4,
+        "schema": "site_private",
+        "table": "subject_right_requests",
+        "type": "timestamp with time zone"
       }
     ],
     "constraints": [
@@ -5013,6 +5065,59 @@
         "table": "storage_deletion_queue",
         "type": "PRIMARY KEY",
         "validated": true
+      },
+      {
+        "columns": [
+          "id"
+        ],
+        "deferrable": false,
+        "definition": "PRIMARY KEY (id)",
+        "name": "subject_right_requests_pkey",
+        "on_delete": null,
+        "on_update": null,
+        "ref_columns": [],
+        "ref_schema": null,
+        "ref_table": null,
+        "schema": "site_private",
+        "table": "subject_right_requests",
+        "type": "PRIMARY KEY",
+        "validated": true
+      },
+      {
+        "columns": [
+          "right_type"
+        ],
+        "deferrable": false,
+        "definition": "CHECK (right_type = ANY (ARRAY['access'::text, 'export'::text, 'correct'::text, 'delete'::text]))",
+        "name": "subject_right_requests_right_type_check",
+        "on_delete": null,
+        "on_update": null,
+        "ref_columns": [],
+        "ref_schema": null,
+        "ref_table": null,
+        "schema": "site_private",
+        "table": "subject_right_requests",
+        "type": "CHECK",
+        "validated": true
+      },
+      {
+        "columns": [
+          "subject_user_id"
+        ],
+        "deferrable": false,
+        "definition": "FOREIGN KEY (subject_user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+        "name": "subject_right_requests_subject_user_id_fkey",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "ref_columns": [
+          "id"
+        ],
+        "ref_schema": "auth",
+        "ref_table": "users",
+        "schema": "site_private",
+        "table": "subject_right_requests",
+        "type": "FOREIGN KEY",
+        "validated": true
       }
     ],
     "cron": {
@@ -5163,11 +5268,15 @@
         "callers": {
           "code": [
             {
+              "file": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
+              "hits": 1
+            },
+            {
               "file": "src/lib/customerAccount.ts",
               "hits": 1
             }
           ],
-          "code_total_files": 1,
+          "code_total_files": 2,
           "cron": [],
           "db": [],
           "triggers": [],
@@ -5178,7 +5287,7 @@
           "search_path=\"\""
         ],
         "definition": null,
-        "definition_sha": "29a8fa7337fa8e3c",
+        "definition_sha": "c34b7567a568d2f6",
         "execute_api_roles": "authenticated, service_role",
         "execute_public": false,
         "is_trigger_fn": false,
@@ -5343,6 +5452,41 @@
         "name": "confirm_site_briefing_asset_verification",
         "owner": "postgres",
         "returns": "timestamp with time zone",
+        "schema": "public",
+        "security_definer": true,
+        "strict": false,
+        "volatility": "volatile"
+      },
+      {
+        "args": "p_display_name text, p_company text",
+        "callers": {
+          "code": [
+            {
+              "file": "src/lib/customerAccount.ts",
+              "hits": 1
+            }
+          ],
+          "code_total_files": 1,
+          "cron": [],
+          "db": [],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "F-30: correcao — atualiza display_name (2 a 100) e/ou company (2 a 150) do perfil do titular autenticado; campos em branco preservam o valor anterior. Pelo menos um campo deve ser fornecido; entradas invalidas levantam invalid_profile_fields. Registra o exercicio do direito na trilha.",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "095ba5d97f9b8d95",
+        "execute_api_roles": "authenticated, service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "plpgsql",
+        "leakproof": false,
+        "name": "correct_my_data",
+        "owner": "postgres",
+        "returns": "jsonb",
         "schema": "public",
         "security_definer": true,
         "strict": false,
@@ -5514,6 +5658,45 @@
         "volatility": "volatile"
       },
       {
+        "args": "",
+        "callers": {
+          "code": [
+            {
+              "file": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
+              "hits": 1
+            },
+            {
+              "file": "src/lib/customerAccount.ts",
+              "hits": 1
+            }
+          ],
+          "code_total_files": 2,
+          "cron": [],
+          "db": [],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "F-30: autoexclusao — entrega o e-mail verificado do titular a erase_customer_data restrita ao auth.uid() (segundo argumento), que anonimiza registros do proprio titular, remove a conta Auth por cascade e grava o tombstone SHA-256 irreversivel. O JSON devolvido e o mesmo de erase_customer_data (contagens e storagePathsToRemove).",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "ea3416b02ce1360f",
+        "execute_api_roles": "authenticated, service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "plpgsql",
+        "leakproof": false,
+        "name": "delete_my_data",
+        "owner": "postgres",
+        "returns": "jsonb",
+        "schema": "public",
+        "security_definer": true,
+        "strict": false,
+        "volatility": "volatile"
+      },
+      {
         "args": "p_id uuid, p_expected_version integer",
         "callers": {
           "code": [
@@ -5549,12 +5732,53 @@
         "volatility": "volatile"
       },
       {
-        "args": "p_email text",
+        "args": "p_email text, p_user_id uuid",
         "callers": {
           "code": [
             {
               "file": "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql",
               "hits": 2
+            },
+            {
+              "file": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
+              "hits": 3
+            }
+          ],
+          "code_total_files": 2,
+          "cron": [],
+          "db": [
+            "public.delete_my_data"
+          ],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "Apagamento idempotente (F-31): anonimiza registros e texto livre do titular, cancela entregas reivindicaveis, enfileira blobs, registra tombstone SHA-256 e remove Auth por cascade. Com p_user_id restringe ao auth.uid() do chamador (autoexclusao F-30); sem ele (service_role administrativo) reune todas as contas do e-mail.",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "854bb924ac31f2b4",
+        "execute_api_roles": "service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "plpgsql",
+        "leakproof": false,
+        "name": "erase_customer_data",
+        "owner": "postgres",
+        "returns": "jsonb",
+        "schema": "public",
+        "security_definer": true,
+        "strict": false,
+        "volatility": "volatile"
+      },
+      {
+        "args": "",
+        "callers": {
+          "code": [
+            {
+              "file": "src/lib/customerAccount.ts",
+              "hits": 1
             }
           ],
           "code_total_files": 1,
@@ -5563,19 +5787,19 @@
           "triggers": [],
           "views": []
         },
-        "comment": "Apagamento administrativo idempotente (F-31): anonimiza registros e texto livre — inclusive briefing.actionName, campaign.occasion.name/id em request_metadata e kit_name_snapshot dos itens —, cancela as entregas ainda reivindicaveis da fila (pending/failed/processing), enfileira blobs, registra tombstone SHA-256, remove Auth/sessoes por cascade e impede novo claim do mesmo e-mail.",
+        "comment": "F-30: portabilidade — devolve ao titular autenticado um JSON completo dos registros que o site guarda sobre ele (perfil, orcamentos com itens/eventos/propostas, selecoes, favoritos, contatos, pedidos de ajuste e trilha de direitos). O email retornado e o do proprio titular confirmado.",
         "config": [
           "search_path=\"\""
         ],
         "definition": null,
-        "definition_sha": "6f38c1a69c661751",
-        "execute_api_roles": "service_role",
+        "definition_sha": "1f68bc544e16291c",
+        "execute_api_roles": "authenticated, service_role",
         "execute_public": false,
         "is_trigger_fn": false,
         "kind": "function",
         "language": "plpgsql",
         "leakproof": false,
-        "name": "erase_customer_data",
+        "name": "export_my_data",
         "owner": "postgres",
         "returns": "jsonb",
         "schema": "public",
@@ -5766,6 +5990,41 @@
         "language": "plpgsql",
         "leakproof": false,
         "name": "get_my_briefing_asset_verification",
+        "owner": "postgres",
+        "returns": "jsonb",
+        "schema": "public",
+        "security_definer": true,
+        "strict": false,
+        "volatility": "volatile"
+      },
+      {
+        "args": "",
+        "callers": {
+          "code": [
+            {
+              "file": "src/lib/customerAccount.ts",
+              "hits": 1
+            }
+          ],
+          "code_total_files": 1,
+          "cron": [],
+          "db": [],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "F-30: confirmacao de tratamento — devolve ao titular autenticado um resumo do que o site guarda sobre ele (perfil e contagens), sem expor registros. Nenhum dado pessoal alem do do proprio titular.",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "44d19a1f64df6362",
+        "execute_api_roles": "authenticated, service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "plpgsql",
+        "leakproof": false,
+        "name": "get_my_data_access",
         "owner": "postgres",
         "returns": "jsonb",
         "schema": "public",
@@ -6817,6 +7076,46 @@
         "callers": {
           "code": [
             {
+              "file": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
+              "hits": 4
+            }
+          ],
+          "code_total_files": 1,
+          "cron": [],
+          "db": [
+            "public.correct_my_data",
+            "public.delete_my_data",
+            "public.export_my_data",
+            "public.get_my_data_access"
+          ],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "F-30: e-mail confirmado da identidade autenticada, em lowercase, ou erro explicito quando nao autenticado (authentication_required) ou sem e-mail confirmado (verified_email_required). Mesma regra de claim_my_quote_requests.",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "a5a8bb82f8b39a56",
+        "execute_api_roles": null,
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "plpgsql",
+        "leakproof": false,
+        "name": "current_titular_verified_email",
+        "owner": "postgres",
+        "returns": "text",
+        "schema": "site_private",
+        "security_definer": true,
+        "strict": false,
+        "volatility": "volatile"
+      },
+      {
+        "args": "",
+        "callers": {
+          "code": [
+            {
               "file": "site-supabase/supabase/migrations/20260916220000_add_notification_delivery_status_machine.sql",
               "hits": 1
             }
@@ -7136,9 +7435,13 @@
             {
               "file": "site-supabase/supabase/migrations/20261117030100_repair_incomplete_customer_data_erasure.sql",
               "hits": 2
+            },
+            {
+              "file": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
+              "hits": 1
             }
           ],
-          "code_total_files": 2,
+          "code_total_files": 3,
           "cron": [],
           "db": [
             "public.erase_customer_data"
@@ -7471,9 +7774,13 @@
             {
               "file": "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql",
               "hits": 1
+            },
+            {
+              "file": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
+              "hits": 1
             }
           ],
-          "code_total_files": 4,
+          "code_total_files": 5,
           "cron": [],
           "db": [
             "public.erase_customer_data"
@@ -8270,6 +8577,12 @@
           "privileges": "SELECT",
           "schema": "site_private",
           "table": "status_transitions"
+        },
+        {
+          "grantee": "service_role",
+          "privileges": "DELETE, INSERT, SELECT, UPDATE",
+          "schema": "site_private",
+          "table": "subject_right_requests"
         },
         {
           "grantee": "service_role",
@@ -9381,6 +9694,35 @@
         "predicate": null,
         "schema": "site_private",
         "table": "storage_deletion_queue"
+      },
+      {
+        "columns": [
+          "id"
+        ],
+        "definition": "CREATE UNIQUE INDEX subject_right_requests_pkey ON site_private.subject_right_requests USING btree (id)",
+        "is_primary": true,
+        "is_unique": true,
+        "is_valid": true,
+        "method": "btree",
+        "name": "subject_right_requests_pkey",
+        "predicate": null,
+        "schema": "site_private",
+        "table": "subject_right_requests"
+      },
+      {
+        "columns": [
+          "subject_user_id",
+          "requested_at"
+        ],
+        "definition": "CREATE INDEX subject_right_requests_subject_idx ON site_private.subject_right_requests USING btree (subject_user_id, requested_at DESC)",
+        "is_primary": false,
+        "is_unique": false,
+        "is_valid": true,
+        "method": "btree",
+        "name": "subject_right_requests_subject_idx",
+        "predicate": null,
+        "schema": "site_private",
+        "table": "subject_right_requests"
       }
     ],
     "lints": [
@@ -9810,6 +10152,12 @@
         "statements": 3,
         "statements_sha": "1996e1936105ae27",
         "version": "20261117030100"
+      },
+      {
+        "name": "add_titular_lgpd_rights_rpcs",
+        "statements": 34,
+        "statements_sha": "fd08d2eff22e4b4b",
+        "version": "20261121110000"
       }
     ],
     "policies": [
@@ -10533,6 +10881,21 @@
         "is_partition": false,
         "kind": "table",
         "name": "storage_deletion_queue",
+        "owner": "postgres",
+        "parent": null,
+        "partition_bound": null,
+        "partition_key": null,
+        "replica_identity": "default",
+        "rls_enabled": true,
+        "rls_forced": true,
+        "schema": "site_private"
+      },
+      {
+        "comment": "Trilha do exercicio dos direitos do titular (LGPD art. 18) na Area do Cliente: access, export, correct e delete. Vinculada a conta e removida pelo cascade de auth.users; o registo persistente do apagamento e o tombstone irreversivel em erased_customer_identities.",
+        "from_extension": false,
+        "is_partition": false,
+        "kind": "table",
+        "name": "subject_right_requests",
         "owner": "postgres",
         "parent": null,
         "partition_bound": null,

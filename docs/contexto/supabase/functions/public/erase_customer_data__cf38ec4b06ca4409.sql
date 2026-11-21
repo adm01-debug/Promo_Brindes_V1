@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION public.erase_customer_data(p_email text)
+CREATE OR REPLACE FUNCTION public.erase_customer_data(p_email text, p_user_id uuid DEFAULT NULL::uuid)
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
@@ -28,10 +28,12 @@ begin
     select profile.user_id from site_private.customer_profiles profile where profile.verified_email = v_email
     union
     select user_record.id from auth.users user_record where lower(user_record.email) = v_email
-  ) candidate;
+  ) candidate
+  where p_user_id is null or candidate.user_id = p_user_id;
   select coalesce(array_agg(id), '{}'::uuid[]) into v_quote_ids
   from site_private.quote_requests
-  where email = v_email or customer_user_id = any(v_user_ids);
+  where customer_user_id = any(v_user_ids)
+     or (email = v_email and (p_user_id is null or customer_user_id is null));
 
   select coalesce(jsonb_agg(jsonb_build_object('bucket', document.storage_bucket, 'path', document.storage_path)), '[]'::jsonb)
   into v_storage_paths from site_private.proposal_documents document
@@ -50,21 +52,6 @@ begin
     set message = '[apagado a pedido do titular]', updated_at = now()
     where requested_by = any(v_user_ids);
 
-  -- Lacuna (c): tira da fila TUDO o que ainda pode ser reivindicado — os tres estados
-  -- dos CTEs de claim, 'processing' incluido. 'processing' com lease vencido volta a ser
-  -- reivindicado (20260922120000:55), e 'processing' com lease vivo cai no mesmo caso
-  -- assim que o lease vence ou a tentativa termina em 'failed' (20260916110000:264) —
-  -- em qualquer um dos dois o envelope e remontado AO VIVO da linha ja anonimizada
-  -- (20260923200000:25-28). Cancelar com lease vivo nao arranca nada de quem esta
-  -- despachando: finalize_site_notification_delivery devolve false em vez de levantar
-  -- (20260916110000:272-274) e o chamador ja trata false como 'inconclusive', sem
-  -- reenvio automatico (api/notifications.ts:84-90 e :397-402). Vem antes das
-  -- anonimizacoes para que nenhuma entrega reivindicavel sobreviva a transacao.
-  -- attempts NAO e tocado (enforce_notification_delivery_lease_and_attempts
-  -- 20260916220000:99-101 so permite mudanca de attempts entrando em processing ou
-  -- reabrindo de exhausted) e lease_token/lease_expires_at vao a null para satisfazer
-  -- 20260916220000:84-87 e o CHECK notification_deliveries_lease_matches_status
-  -- (20260916110000:119-124).
   update site_private.notification_deliveries delivery set
     status = 'cancelled', lease_token = null, lease_expires_at = null, updated_at = now()
   where delivery.request_kind = 'quote'
@@ -72,8 +59,6 @@ begin
     and delivery.status in ('pending', 'failed', 'processing');
   get diagnostics v_notifications = row_count;
 
-  -- Lacuna (a) no mesmo update que ja anonimiza a linha: a guarda de idempotencia
-  -- por contact_name continua valendo para o conjunto inteiro.
   update site_private.quote_requests request set
     contact_name = '[apagado a pedido do titular]', company = '[apagado a pedido do titular]',
     email = 'titular-' || left(md5(request.id::text), 16) || '@erased.invalid',
@@ -83,13 +68,6 @@ begin
   where request.id = any(v_quote_ids) and request.contact_name <> '[apagado a pedido do titular]';
   get diagnostics v_quotes = row_count;
 
-  -- Lacuna (b): placeholder de texto, nunca null. Anular so kit_name_snapshot violaria
-  -- quote_items_kit_composition_check (20260922160000:11-17), que exige as quatro
-  -- colunas de kit em conjunto. O literal e o mesmo para todas as linhas, o que mantem
-  -- a invariante de "um nome por kit_group" imposta na criacao (20260922160000:127-136).
-  -- quote_items nao tem updated_at; o unico trigger e o de auditoria administrativa
-  -- (20260916210000:65-82, quote_items_log_admin_write), que nao valida nada e nunca
-  -- levanta excecao.
   update site_private.quote_items item set
     kit_name_snapshot = '[apagado a pedido do titular]'
   where item.quote_request_id = any(v_quote_ids)

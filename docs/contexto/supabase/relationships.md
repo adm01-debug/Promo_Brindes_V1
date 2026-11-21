@@ -18,6 +18,7 @@
 | site_private.quote_items | quote_request_id | site_private.quote_requests | id | CASCADE | NO ACTION |
 | site_private.quote_request_events | quote_request_id | site_private.quote_requests | id | CASCADE | NO ACTION |
 | site_private.quote_requests | customer_user_id | auth.users | id | SET NULL | NO ACTION |
+| site_private.subject_right_requests | subject_user_id | auth.users | id | CASCADE | NO ACTION |
 
 
 ## Diagrama ER (Mermaid)
@@ -256,6 +257,12 @@ erDiagram
         text object_path PK
         timestamp_with_time_zone queued_at
     }
+    site_private_subject_right_requests {
+        uuid id PK
+        uuid subject_user_id FK
+        text right_type
+        timestamp_with_time_zone requested_at
+    }
     site_private_contact_requests ||--o{ site_private_consent_receipts : "consent_receipts_contact_request_id_fkey"
     site_private_quote_requests ||--o{ site_private_consent_receipts : "consent_receipts_quote_request_id_fkey"
     auth_users ||--o{ site_private_customer_briefing_assets : "customer_briefing_assets_customer_user_id_fkey"
@@ -271,4 +278,5 @@ erDiagram
     site_private_quote_requests ||--o{ site_private_quote_items : "quote_items_quote_request_id_fkey"
     site_private_quote_requests ||--o{ site_private_quote_request_events : "quote_request_events_quote_request_id_fkey"
     auth_users ||--o{ site_private_quote_requests : "quote_requests_customer_user_id_fkey"
+    auth_users ||--o{ site_private_subject_right_requests : "subject_right_requests_subject_user_id_fkey"
 ```
