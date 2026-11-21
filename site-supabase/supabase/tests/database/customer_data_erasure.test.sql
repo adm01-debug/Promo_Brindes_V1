@@ -308,18 +308,18 @@ select is(
 );
 
 -- Pedido novo enviado DEPOIS do apagamento pode ser associado à conta recriada.
--- O claim compara created_at (server-side) com o erased_at; created_at default
--- seria now() (mesmo instante da transação do tombstone), então setamos
--- explicitamente um instante posterior para o vínculo ocorrer.
+-- O claim compara created_at (server-side) com o erased_at. Para provar que um
+-- relógio atrasado no navegador não oculta o pedido, client_submitted_at fica
+-- ANTES do erased_at (now() da transação do tombstone) enquanto created_at fica
+-- comprovadamente DEPOIS. Se o claim usasse client_submitted_at, não associaria;
+-- usando created_at, associa (BUG 0002/Dev).
 insert into site_private.quote_requests (
   client_request_id, request_hash, source, contact_name, company, email, phone, city, notes, client_submitted_at,
   created_at, request_metadata
 ) values (
   'erasure-test-quote-after', repeat('7', 64), 'site-promo-brindes',
   'Novo Titular', 'Empresa Nova', 'fulano@example.test', '11999998888', 'São Paulo', 'Pedido pós-exclusão',
-  -- now() é o timestamp da transação (constante): usar um instante comprovadamente
-  -- posterior ao erased_at (também now() da mesma transação) para o claim associar.
-  now() + interval '1 minute',
+  now(),
   now() + interval '1 minute',
   jsonb_build_object('campaign', jsonb_build_object('source', 'commemorative_date'), 'briefing', jsonb_build_object('actionName', 'Kit pós-exclusão', 'budgetRange', 'ate-25'))
 );
