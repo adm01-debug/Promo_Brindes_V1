@@ -1,10 +1,14 @@
+import { useLocation } from 'react-router-dom';
 import { Seo } from '../components/Seo';
 
 export default function PrivacyPage() {
+  const location = useLocation();
+  const accountClosed = (location.state as { lgpdAccountClosed?: boolean } | null)?.lgpdAccountClosed === true;
   return (
     <>
       <Seo title="Aviso de privacidade" path="/privacidade" />
       <header className="legal-hero"><div className="container"><span className="section-kicker">Transparência</span><h1>Aviso de privacidade</h1><p>Última atualização: setembro de 2026</p></div></header>
+      {accountClosed && <div className="container"><div className="customer-data-note" role="status"><strong>Conta encerrada.</strong> Seus dados foram apagados e esta conta foi encerrada. Obrigado por usar a Promo Brindes.</div></div>}
       <article className="container legal-content">
         <section><h2>1. Dados usados na solicitação</h2><p>Quando você pede um orçamento, podemos receber nome, empresa, e-mail, telefone, cidade, prazo desejado, observações e a lista de produtos selecionados. Solicitamos apenas os dados necessários para entender o pedido e retornar o contato.</p></section>
         <section><h2>2. Finalidade</h2><p>Usamos essas informações para analisar a solicitação, preparar uma proposta, esclarecer detalhes e manter a comunicação comercial relacionada ao seu pedido.</p></section>
@@ -14,7 +18,7 @@ export default function PrivacyPage() {
         <section><h2>6. Armazenamento e segurança</h2><p>As solicitações são mantidas em ambiente separado do sistema interno e protegidas por autenticação e controles de acesso no servidor e no banco de dados. Conservamos os dados somente pelo período necessário ao atendimento, ao relacionamento decorrente da solicitação e ao cumprimento de obrigações aplicáveis; depois, eles devem ser eliminados ou anonimizados.</p></section>
         <section><h2>7. Compartilhamento</h2><p>Os dados não são comercializados. Eles podem ser processados por fornecedores de infraestrutura estritamente necessários à operação, autenticação, mensuração e atendimento, observadas as medidas de segurança aplicáveis.</p></section>
         <section><h2>8. Confirmações por e-mail e WhatsApp</h2><p>Mensagens de autenticação da Área do Cliente são enviadas pelo provedor de identidade configurado. Ao registrar um orçamento, geramos uma confirmação transacional por e-mail; o protocolo exibido na tela continua sendo o comprovante imediato de persistência. A cópia pelo WhatsApp somente entra na fila quando você marca a autorização específica no formulário. Essa escolha vale para o atendimento da solicitação e não autoriza campanhas promocionais.</p></section>
-        <section><h2>9. Seus direitos</h2><p>Você pode solicitar confirmação de tratamento, acesso, correção ou eliminação dos dados, quando aplicável, além de retirar consentimentos relacionados ao contato. A exclusão da conta de acesso não elimina automaticamente registros que precisem ser mantidos por obrigação legal ou para conclusão do atendimento.</p></section>
+        <section><h2>9. Seus direitos</h2><p>Você pode solicitar confirmação de tratamento, acesso, correção ou eliminação dos dados, quando aplicável, além de retirar consentimentos relacionados ao contato. Na <a href="/minha-conta">Área do Cliente</a>, você pode hoje, sem esperar atendimento humano: consultar o resumo do que guardamos sobre a sua conta, baixar seus dados em formato aberto (JSON), corrigir nome e empresa do seu perfil e encerrar a conta com a exclusão dos registros e arquivos vinculados. A exclusão da conta de acesso não elimina automaticamente registros que precisem ser mantidos por obrigação legal ou para conclusão do atendimento.</p></section>
         <section><h2>10. Contato</h2><p>Para dúvidas sobre privacidade, escreva para <a href="mailto:adm01@promobrindes.com.br">adm01@promobrindes.com.br</a> ou ligue para <a href="tel:+551146375517">(11) 4637-5517</a>.</p></section>
       </article>
     </>

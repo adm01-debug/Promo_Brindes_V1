@@ -7,7 +7,7 @@ select plan(69);
 
 select is(
   (select count(*) from pg_catalog.pg_tables where schemaname = 'site_private'),
-  21::bigint,
+  22::bigint,
   'schema privado contém as vinte e uma tabelas planejadas, incluindo favoritos de datas sem PII'
 );
 

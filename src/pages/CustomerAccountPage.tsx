@@ -1,11 +1,11 @@
-import { ArrowRight, CalendarDays, LogOut, PackageOpen, Search, Sparkles } from 'lucide-react';
+import { ArrowRight, CalendarDays, FileDown, LogOut, PackageOpen, Search, ShieldCheck, Sparkles, UserPen, UserX } from 'lucide-react';
 import { type FormEvent, useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { CustomerRoute } from '../components/CustomerRoute';
 import { SavedSelections } from '../components/SavedSelections';
 import { Seo } from '../components/Seo';
 import { useCustomerAuth } from '../context/customerAuth';
-import { customerStatusLabel, customerStatusOptions, customerStatusTone, fetchMyQuoteRequests, normalizeCustomerHistoryPage, type CustomerQuotePage, type CustomerQuoteStatus } from '../lib/customerAccount';
+import { correctMyData, customerStatusLabel, customerStatusOptions, customerStatusTone, deleteMyData, downloadMyData, fetchMyDataAccess, fetchMyQuoteRequests, normalizeCustomerHistoryPage, type CustomerAccessReport, type CustomerQuotePage, type CustomerQuoteStatus } from '../lib/customerAccount';
 import { trackFunnelEvent } from '../lib/analytics';
 import { replaceBrokenProductImage } from '../lib/images';
 
@@ -81,6 +81,7 @@ function AccountContent() {
         <div className="container customer-dashboard-hero__inner"><div><span className="section-kicker">Área do Cliente</span><h1>Suas campanhas<br /><em>continuam daqui.</em></h1><p>Consulte briefings enviados, acompanhe o que já está disponível e reutilize boas escolhas.</p></div><div className="customer-dashboard-hero__account"><span>ACESSO VERIFICADO</span><strong>{auth.user?.email}</strong><button type="button" onClick={() => void auth.signOut()}><LogOut size={16} /> Sair</button></div></div>
       </header>
       <SavedSelections key={`${auth.user?.id || ''}:${auth.identityEpoch}`} />
+      <CustomerDataSection key={`${auth.user?.id || ''}:${auth.identityEpoch}`} />
       <section className="customer-dashboard section" aria-labelledby="my-quotes-title">
         <div className="container">
           <div className="customer-dashboard__heading"><div><span className="section-kicker">Histórico</span><h2 id="my-quotes-title">Meus orçamentos</h2></div><Link className="button button--green" to="/catalogo">Criar novo briefing <ArrowRight size={17} /></Link></div>
@@ -96,6 +97,131 @@ function AccountContent() {
         </div>
       </section>
     </>
+  );
+}
+
+function CustomerDataSection() {
+  const auth = useCustomerAuth();
+  const navigate = useNavigate();
+  const [access, setAccess] = useState<CustomerAccessReport | null>(null);
+  const [displayName, setDisplayName] = useState('');
+  const [company, setCompany] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState('');
+  const [error, setError] = useState('');
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleteEmail, setDeleteEmail] = useState('');
+  const [deleted, setDeleted] = useState(false);
+  const [loadKey, setLoadKey] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+    setError('');
+    void fetchMyDataAccess()
+      .then((report) => {
+        if (!active) return;
+        setAccess(report);
+        setDisplayName(report.profile.displayName || '');
+        setCompany(report.profile.company || '');
+      })
+      .catch(() => { if (active) setError('Não conseguimos carregar seus dados agora.'); });
+    return () => { active = false; };
+  }, [loadKey, auth.user?.id]);
+
+  function run(action: () => Promise<void>, success: string) {
+    setBusy(true);
+    setError('');
+    setNotice('');
+    void action()
+      .then(() => { setNotice(success); setLoadKey((key) => key + 1); })
+      .catch((failure: unknown) => {
+        const message = failure instanceof Error ? failure.message : '';
+        if (message === 'invalid_profile_fields') setError('Confira os campos: nome de 2 a 100 caracteres e empresa de 2 a 150.');
+        else if (message === 'invalid_email_confirmation') setError('Digite o e-mail da conta exatamente como exibido para confirmar a exclusão.');
+        else setError('Não conseguimos concluir esta ação agora.');
+      })
+      .finally(() => setBusy(false));
+  }
+
+  function confirmDelete() {
+    setBusy(true);
+    setError('');
+    setNotice('');
+    void deleteMyData(deleteEmail)
+      .then(() => {
+        setDeleted(true);
+        // A conta ja foi excluida no banco; encerrar a sessao local e navegar para
+        // uma rota publica. O signOut pode falhar por rede e, ainda assim, a
+        // confirmacao precisa aparecer (BUG 0004).
+        void auth.signOut().catch(() => { /* sessao local encerrada abaixo */ });
+        void navigate('/privacidade', { replace: true, state: { lgpdAccountClosed: true } });
+      })
+      .catch((failure: unknown) => {
+        const message = failure instanceof Error ? failure.message : '';
+        if (message === 'invalid_email_confirmation') setError('Digite o e-mail da conta exatamente como exibido para confirmar a exclusão.');
+        else setError('Não conseguimos concluir esta ação agora.');
+      })
+      .finally(() => setBusy(false));
+  }
+
+  if (deleted) {
+    return (
+      <section className="customer-dashboard section" aria-labelledby="customer-data-title">
+        <div className="container">
+          <div className="customer-data-card">
+            <ShieldCheck size={34} aria-hidden="true" />
+            <h2 id="customer-data-title">Conta encerrada</h2>
+            <p>Seus dados foram apagados e esta conta foi encerrada. Obrigado por usar a Promo Brindes.</p>
+            <Link to="/privacidade">Saiba mais sobre seus direitos na Área do Cliente</Link>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="customer-dashboard section" aria-labelledby="customer-data-title">
+      <div className="container">
+        <div className="customer-dashboard__heading"><div><span className="section-kicker">LGPD · Art. 18</span><h2 id="customer-data-title">Meus dados e direitos</h2><p>Veja o que guardamos, exporte, corrija ou encerre sua conta a qualquer momento.</p></div></div>
+
+        {error && <div className="customer-data-error" role="alert">{error}</div>}
+        {notice && <p className="customer-data-note" role="status">{notice}</p>}
+
+        <div className="customer-data-grid">
+          <article className="customer-data-card">
+            <h3><ShieldCheck size={20} aria-hidden="true" /> Acesso aos dados</h3>
+            <p>Resumo do que sua conta registra para atendimento do seu pedido.</p>
+            {access ? <dl className="customer-data-counts"><div><dt>Orçamentos</dt><dd>{access.counts.quotes}</dd></div><div><dt>Seleções salvas</dt><dd>{access.counts.selections}</dd></div><div><dt>Favoritos</dt><dd>{access.counts.favorites}</dd></div><div><dt>Contatos</dt><dd>{access.counts.contacts}</dd></div></dl> : <p role="status">Carregando…</p>}
+          </article>
+
+          <article className="customer-data-card">
+            <h3><FileDown size={20} aria-hidden="true" /> Exportar meus dados</h3>
+            <p>Baixe um arquivo em formato aberto (JSON) com os registros vinculados a esta conta.</p>
+            <button className="button button--green" type="button" disabled={busy} onClick={() => run(downloadMyData, 'Exportação iniciada. Confira o arquivo baixado.')}><FileDown size={17} /> Baixar meus dados</button>
+          </article>
+
+          <article className="customer-data-card">
+            <h3><UserPen size={20} aria-hidden="true" /> Corrigir perfil</h3>
+            <form onSubmit={(event) => { event.preventDefault(); void run(async () => { await correctMyData(displayName, company); }, 'Perfil atualizado.'); }}>
+              <div className="form-field"><label htmlFor="customer-data-name">Nome (2–100 caracteres)</label><input id="customer-data-name" value={displayName} onChange={(event) => setDisplayName(event.target.value)} maxLength={100} disabled={busy} /></div>
+              <div className="form-field"><label htmlFor="customer-data-company">Empresa (2–150 caracteres)</label><input id="customer-data-company" value={company} onChange={(event) => setCompany(event.target.value)} maxLength={150} disabled={busy} /></div>
+              <button className="button button--dark" type="submit" disabled={busy}>Salvar correção</button>
+            </form>
+          </article>
+
+          <article className="customer-data-card customer-data-card--danger">
+            <h3><UserX size={20} aria-hidden="true" /> Encerrar conta e apagar dados</h3>
+            <p>Ao confirmar, seus orçamentos são anonimizados, arquivos e seleções são removidos e esta conta é encerrada. Não há como desfazer.</p>
+            {confirmingDelete
+              ? <form onSubmit={(event) => { event.preventDefault(); confirmDelete(); }}>
+                  <div className="form-field"><label htmlFor="customer-data-delete-email">Digite <strong>{auth.user?.email}</strong> para confirmar</label><input id="customer-data-delete-email" value={deleteEmail} onChange={(event) => setDeleteEmail(event.target.value)} autoComplete="off" disabled={busy} /></div>
+                  <div className="customer-data-actions"><button className="button button--dark" type="submit" disabled={busy || deleteEmail.trim() !== (auth.user?.email || '')}>Confirmar exclusão</button><button className="button" type="button" disabled={busy} onClick={() => { setConfirmingDelete(false); setDeleteEmail(''); }}>Cancelar</button></div>
+                </form>
+              : <button className="button button--dark" type="button" disabled={busy} onClick={() => setConfirmingDelete(true)}>Excluir minha conta</button>}
+          </article>
+        </div>
+      </div>
+    </section>
   );
 }
 
