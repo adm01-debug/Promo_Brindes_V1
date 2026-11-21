@@ -22,7 +22,12 @@ export const ideaLandings: IdeaLanding[] = [
     // genérica. Continua sem `profile: 'kits'`: onboarding descreve a ocasião e
     // não obriga uma composição em kit — quem decide isso é a proposta.
     catalogQuery: { search: 'onboarding', pageSize: 8, sort: 'curated' },
-    catalogUrl: '/catalogo?momento=onboarding&publico=colaboradores',
+    // `q` porque este par de sinais não aplica filtro nenhum no catálogo
+    // (campaignPresets.ts:117-128 devolve profile/materials/colors vazios para
+    // onboarding + colaboradores, de propósito). Sem o termo, os dois CTAs
+    // prometem "curadoria" e levam ao catálogo cru. Vai como busca, que o
+    // visitante remove, em vez de um filtro de formato de produto.
+    catalogUrl: '/catalogo?momento=onboarding&publico=colaboradores&q=onboarding',
     checkpoints: [{ title: 'Cultura antes do logo', text: 'Escolha algo que ajude a pessoa a se reconhecer na experiência.' }, { title: 'Uso real', text: 'Priorize rotina, mobilidade e momentos de trabalho que continuam depois da entrega.' }, { title: 'Curadoria ajustável', text: 'Quantidade, personalização e apresentação entram na proposta — não são promessa automática.' }],
   },
   {
