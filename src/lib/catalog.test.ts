@@ -204,6 +204,15 @@ describe('catálogo público', () => {
     expect(and).not.toContain('sku.ilike.*P 02040*');
   });
 
+  it('busca por SKU exato via igualdade, sem reinterpretar como termo textual', () => {
+    const params = buildCatalogParams({ exactSku: 'PB-100' });
+    const and = params.get('and') || '';
+    expect(and).toContain('sku.eq.PB-100');
+    expect(and).not.toContain('ilike');
+    // O termo de busca textual não é combinado quando o SKU exato assume.
+    expect(buildCatalogParams({ search: 'caneca', exactSku: 'PB-100' }).get('and')).toBe('(sku.eq.PB-100)');
+  });
+
   it('recusa identificadores de produto abusivos antes de consultar a API', async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);

@@ -66,6 +66,21 @@ export function normalizeSearchText(value: string): string {
     .trim();
 }
 
+const SKU_CODE_PATTERN = /^[a-z]{0,5}-?\d{1,8}$/;
+
+/**
+ * Reconhece uma consulta que parece um código de produto (SKU), como "PB-100",
+ * "MO42" ou "02040". Quando a busca por texto não encontra correspondência,
+ * estes códigos merecem um fallback por igualdade exata — o `ilike.*term*` não
+ * cobre códigos com prefixo que o tokenizador da busca textual quebra, nem um
+ * SKU que só existe na forma exata.
+ */
+export function isSkuQuery(input: string): boolean {
+  const normalized = normalizeSearchText(input);
+  if (!normalized) return false;
+  return SKU_CODE_PATTERN.test(normalized);
+}
+
 function synonymsFor(term: string): string[] {
   const normalizedTerm = normalizeSearchText(term);
   const group = SYNONYM_GROUPS.find((values) => values.some((value) => normalizeSearchText(value) === normalizedTerm));

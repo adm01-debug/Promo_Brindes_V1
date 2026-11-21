@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildCatalogSearchGroups, buildSearchSuggestions, normalizeSearchText } from './search';
+import { buildCatalogSearchGroups, buildSearchSuggestions, isSkuQuery, normalizeSearchText } from './search';
 
 describe('busca assistida', () => {
   it('normaliza acentos, caixa e espaços sem transportar operadores', () => {
@@ -50,5 +50,19 @@ describe('busca assistida', () => {
     expect(suggestSearchCorrection('squese')).toBe('squeeze');
     expect(suggestSearchCorrection('02040')).toBeNull();
     expect(suggestSearchCorrection('kit squese')).toBeNull();
+  });
+
+  it('reconhece códigos de produto para o fallback de SKU exato', () => {
+    expect(isSkuQuery('PB-100')).toBe(true);
+    expect(isSkuQuery('MO42')).toBe(true);
+    expect(isSkuQuery('02040')).toBe(true);
+    expect(isSkuQuery('cn-1234')).toBe(true);
+  });
+
+  it('não trata termos de busca comuns como código de produto', () => {
+    expect(isSkuQuery('caneca')).toBe(false);
+    expect(isSkuQuery('mochila para evento')).toBe(false);
+    expect(isSkuQuery('power bank')).toBe(false);
+    expect(isSkuQuery('')).toBe(false);
   });
 });

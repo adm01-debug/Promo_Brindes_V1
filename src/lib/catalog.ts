@@ -131,6 +131,7 @@ export interface CatalogQuery {
   page?: number;
   pageSize?: number;
   search?: string;
+  exactSku?: string;
   categoryId?: string;
   categoryIds?: string[];
   colors?: string[];
@@ -371,15 +372,24 @@ export function buildCatalogParams(query: CatalogQuery = {}): URLSearchParams {
   }
 
   const search = sanitizeSearch(query.search ?? '');
-  buildCatalogSearchGroups(search).forEach((alternatives) => {
-    const fields = alternatives.flatMap((term) => [
-      `name.ilike.*${term}*`,
-      `sku.ilike.*${term}*`,
-      `short_description.ilike.*${term}*`,
-      `ai_title.ilike.*${term}*`,
-    ]);
-    andGroups.push(`or(${fields.join(',')})`);
-  });
+  const exactSku = sanitizeSearch(query.exactSku ?? '');
+  if (exactSku) {
+    // Busca por igualdade exata do código de produto. O `ilike.*term*` da busca
+    // textual pode não casar um SKU com prefixo (ex.: "PB-100") ou quando a
+    // busca é por código completo; aqui o produto aparece mesmo sem o texto
+    // corresponder a nome/descrição. Só um grupo é emitido, sem sinonímias.
+    andGroups.push(`sku.eq.${exactSku}`);
+  } else {
+    buildCatalogSearchGroups(search).forEach((alternatives) => {
+      const fields = alternatives.flatMap((term) => [
+        `name.ilike.*${term}*`,
+        `sku.ilike.*${term}*`,
+        `short_description.ilike.*${term}*`,
+        `ai_title.ilike.*${term}*`,
+      ]);
+      andGroups.push(`or(${fields.join(',')})`);
+    });
+  }
 
   const colorValues = resolveColorValues(query.colors ?? []);
   if (colorValues.length) {
