@@ -6,7 +6,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(67);
+select plan(68);
 
 -- === Estrutura da trilha =========================================================
 select has_table('site_private', 'subject_right_requests', 'trilha de exercicio de direito existe');
@@ -96,6 +96,10 @@ insert into site_private.contact_requests (
 
 insert into site_private.customer_selections (customer_user_id, title, product_references, campaign, version)
 values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Minha selecao', '[{"id":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","q":20}]'::jsonb, '{"source":"commemorative_date"}'::jsonb, 1);
+-- Selecao arquivada: permanece armazenada e e incluida na exportacao; o resumo
+-- de acesso deve conta-la tambem (Ygum/analysis Devin).
+insert into site_private.customer_selections (customer_user_id, title, product_references, campaign, version, archived_at)
+values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Selecao antiga', '[{"id":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","q":5}]'::jsonb, '{"source":"commemorative_date"}'::jsonb, 1, now());
 
 insert into site_private.customer_occasion_favorites (customer_user_id, occasion_id)
 values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'natal-2026');
@@ -124,7 +128,7 @@ set local request.jwt.claims = '{"sub":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","r
 select is(public.get_my_data_access() #>> '{profile,displayName}', 'Fulano de Tal', 'acesso devolve display_name do titular');
 select is(public.get_my_data_access() #>> '{profile,company}', 'Empresa Fulano', 'acesso devolve a empresa do titular');
 select is((public.get_my_data_access() #>> '{counts,quotes}')::integer, 1, 'acesso conta os 1 orcamento do titular');
-select is((public.get_my_data_access() #>> '{counts,selections}')::integer, 1, 'acesso conta as 1 selecao do titular');
+select is((public.get_my_data_access() #>> '{counts,selections}')::integer, 2, 'acesso conta as 2 selecoes do titular (ativa + arquivada)');
 select is((public.get_my_data_access() #>> '{counts,favorites}')::integer, 1, 'acesso conta o 1 favorito do titular');
 select is((public.get_my_data_access() #>> '{counts,contacts}')::integer, 1, 'acesso conta o 1 contato do titular pelo e-mail');
 
@@ -137,8 +141,9 @@ select is((public.export_my_data() #>> '{quotes,0,items,0,kitName}'), 'Kit da Fu
 select is((public.export_my_data() #>> '{quotes,0,items,0,variantId}'), 'azul-1', 'export inclui a variante exata do item');
 select is(jsonb_array_length(public.export_my_data() -> 'quotes' -> 0 -> 'events'), 1, 'export inclui evento da linha do tempo');
 select is(jsonb_array_length(public.export_my_data() -> 'quotes' -> 0 -> 'proposals'), 1, 'export inclui proposta publicada');
-select is(jsonb_array_length(public.export_my_data() -> 'selections'), 1, 'export inclui a selecao salva');
-select is((public.export_my_data() #>> '{selections,0,references,0,id}'), 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'export inclui reference da selecao');
+select is(jsonb_array_length(public.export_my_data() -> 'selections'), 2, 'export inclui as 2 selecoes (ativa + arquivada)');
+select is((select count(*) from jsonb_array_elements(public.export_my_data() -> 'selections') sel where sel #>> '{references,0,id}' = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')::text, '1', 'export inclui a reference da selecao ativa');
+select is((select count(*) from jsonb_array_elements(public.export_my_data() -> 'selections') sel where sel #>> '{references,0,id}' = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb')::text, '1', 'export inclui a reference da selecao arquivada');
 select is(jsonb_array_length(public.export_my_data() -> 'favorites'), 1, 'export inclui os favoritos');
 select is((public.export_my_data() -> 'favorites' -> 0)::text, '"natal-2026"', 'favorito exportado e o id estavel');
 select is(jsonb_array_length(public.export_my_data() -> 'contacts'), 1, 'export inclui o contato pelo e-mail');

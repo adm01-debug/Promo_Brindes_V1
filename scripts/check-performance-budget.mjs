@@ -109,7 +109,9 @@ try {
   // Teto raw de JS recalibrado em 21/11/2026 de 950 para 960 KiB quando a F-30
   // (LGPD art. 18 na Area do Cliente) levou o build de producao a 953,7 KiB
   // (945 KiB base, +9 KiB da feature, arvore tree-shaken sem dependencia nova).
-  // Pior caso com as flags ligadas: 957,7 KiB. Margem de 2,3 KiB nos dois perfis.
+  // Pior caso com as flags ligadas: 957,7 KiB. Margens no raw: producao
+  // 6,3 KiB (960 - 953,7) e pior caso 2,3 KiB (960 - 957,7); no Brotli a folga
+  // e de 2,0 KiB (271 - 269,0 producao) e 2,0 KiB (272 - 270,0 pior caso).
   assertBudget('JavaScript total', javascript, rawBytes(960));
   assertBudget('Bundle de entrada', entry, rawBytes(300));
   assertBudget('CSS total (Brotli)', cssBrotli, rawBytes(32));

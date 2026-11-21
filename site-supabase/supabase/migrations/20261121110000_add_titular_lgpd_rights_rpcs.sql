@@ -108,9 +108,11 @@ begin
   select count(*) into v_quotes
   from site_private.quote_requests request
   where request.customer_user_id = v_user_id and request.status <> 'spam';
+  -- Todas as selecoes, inclusive as arquivadas: a exportacao (abaixo) as inclui,
+  -- e o relatorio de acesso deve refletir o que esta armazenado para o titular.
   select count(*) into v_selections
   from site_private.customer_selections selection
-  where selection.customer_user_id = v_user_id and selection.archived_at is null;
+  where selection.customer_user_id = v_user_id;
   select count(*) into v_favorites
   from site_private.customer_occasion_favorites favorite
   where favorite.customer_user_id = v_user_id;
