@@ -93,12 +93,12 @@
           "total_ms": 6740
         },
         {
-          "calls": 938,
+          "calls": 945,
           "mean_ms": 6.22,
           "query": "WITH pgrst_source AS (SELECT pgrst_call.pgrst_scalar FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT \"p_channels\", \"p_batch_size\" FROM json_to_record(pgrst_payload.json_data) AS _(\"p_channels\" text[], \"p_bat",
           "role": "service_role",
-          "rows": 938,
-          "total_ms": 5835
+          "rows": 945,
+          "total_ms": 5875
         },
         {
           "calls": 118,
@@ -109,68 +109,68 @@
           "total_ms": 3998
         },
         {
-          "calls": 544,
+          "calls": 546,
           "mean_ms": 7.2,
           "query": "SELECT t.oid, t.typname, t.typsend, t.typreceive, t.typoutput, t.typinput, coalesce(d.typelem, t.typelem), coalesce(r.rngsubtype, $1), ARRAY ( SELECT a.atttypid FROM pg_attribute AS a WHERE a.attrelid = t.typrelid AND a.",
           "role": "pgbouncer",
-          "rows": 119130,
-          "total_ms": 3917
+          "rows": 119568,
+          "total_ms": 3930
         },
         {
-          "calls": 300,
+          "calls": 302,
           "mean_ms": 10.52,
           "query": "SELECT n.nspname AS schema, p.proname AS name, pg_get_function_identity_arguments(p.oid) AS args, pg_get_function_result(p.oid) AS returns, l.lanname AS language, CASE p.prokind WHEN $1 THEN $2 WHEN $3 THEN $4 WHEN $5 TH",
           "role": "postgres",
-          "rows": 21906,
-          "total_ms": 3157
+          "rows": 22056,
+          "total_ms": 3177
         },
         {
-          "calls": 300,
-          "mean_ms": 10.15,
+          "calls": 302,
+          "mean_ms": 10.14,
           "query": "SELECT n.nspname AS schema, c.relname AS \"table\", con.conname AS name, CASE con.contype WHEN $1 THEN $2 WHEN $3 THEN $4 WHEN $5 THEN $6 WHEN $7 THEN $8 WHEN $9 THEN $10 ELSE con.contype::text END AS type, pg_get_constrai",
           "role": "postgres",
-          "rows": 43800,
-          "total_ms": 3044
+          "rows": 44092,
+          "total_ms": 3062
         },
         {
-          "calls": 300,
+          "calls": 302,
           "mean_ms": 7.65,
           "query": "SELECT n.nspname AS schema, c.relname AS name, GREATEST(c.reltuples::bigint, $1) AS est_rows, pg_total_relation_size(c.oid) AS total_bytes, pg_relation_size(c.oid) AS heap_bytes, pg_indexes_size(c.oid) AS index_bytes, s.",
           "role": "postgres",
-          "rows": 6300,
-          "total_ms": 2295
+          "rows": 6342,
+          "total_ms": 2309
         },
         {
-          "calls": 300,
+          "calls": 302,
           "mean_ms": 7.49,
           "query": "SELECT n.nspname AS schema, t.relname AS \"table\", ic.relname AS name, pg_get_indexdef(ix.indexrelid) AS definition, ix.indisunique AS is_unique, ix.indisprimary AS is_primary, ix.indisvalid AS is_valid, am.amname AS meth",
           "role": "postgres",
-          "rows": 20100,
-          "total_ms": 2247
+          "rows": 20234,
+          "total_ms": 2261
         },
         {
-          "calls": 300,
-          "mean_ms": 7.03,
+          "calls": 302,
+          "mean_ms": 7.02,
           "query": "SELECT n.nspname AS schema, c.relname AS \"table\", a.attnum AS position, a.attname AS name, format_type(a.atttypid, a.atttypmod) AS type, NOT a.attnotnull AS nullable, pg_get_expr(d.adbin, d.adrelid) AS \"default\", NULLIF(",
           "role": "postgres",
-          "rows": 57000,
-          "total_ms": 2109
+          "rows": 57380,
+          "total_ms": 2121
         },
         {
-          "calls": 300,
+          "calls": 302,
           "mean_ms": 6.63,
           "query": "SELECT version, name, statements FROM supabase_migrations.schema_migrations ORDER BY version",
           "role": "postgres",
-          "rows": 20106,
-          "total_ms": 1990
+          "rows": 20244,
+          "total_ms": 2004
         },
         {
-          "calls": 300,
+          "calls": 302,
           "mean_ms": 5.27,
           "query": "SELECT e.extname AS name, e.extversion AS version, n.nspname AS schema, (SELECT default_version FROM pg_available_extensions a WHERE a.name = e.extname) AS available_version FROM pg_extension e JOIN pg_namespace n ON n.o",
           "role": "postgres",
-          "rows": 1500,
-          "total_ms": 1580
+          "rows": 1510,
+          "total_ms": 1590
         }
       ]
     },
@@ -432,7 +432,7 @@
         "is_primary": true,
         "is_unique": true,
         "name": "notification_deliveries_pkey",
-        "scans": 9594,
+        "scans": 9622,
         "schema": "site_private",
         "table": "notification_deliveries"
       },
@@ -784,13 +784,13 @@
         "dead_rows": 32,
         "est_rows": 4,
         "heap_bytes": 16384,
-        "idx_scan": 9841,
+        "idx_scan": 9869,
         "index_bytes": 106496,
         "last_autoanalyze": "2026-11-11T23:21:01.151989+00:00",
         "last_autovacuum": "2026-11-11T23:41:01.591129+00:00",
         "name": "notification_deliveries",
         "schema": "site_private",
-        "seq_scan": 6759,
+        "seq_scan": 6787,
         "total_bytes": 163840
       },
       {
