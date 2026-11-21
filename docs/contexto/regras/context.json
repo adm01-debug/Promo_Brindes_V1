@@ -1,9 +1,9 @@
 {
  "meta": {
-  "sha": "fc333d471f2de34db1f621dcdfa4135374926633",
+  "sha": "e40d98f76ccb77e3631711e76c70f8e3556e3c4d",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-20 21:12 UTC",
+  "generated_at": "2026-11-21 14:12 UTC",
   "files_total": 614,
   "code_files": 394,
   "code_lines": 69082,
@@ -33140,10 +33140,19 @@
   }
  },
  "git": {
-  "sha": "fc333d471f2de34db1f621dcdfa4135374926633",
+  "sha": "e40d98f76ccb77e3631711e76c70f8e3556e3c4d",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "e40d98f",
+    "date": "2026-11-21",
+    "author": "adm01-debug",
+    "subject": "chore(docs): reconcilia ground-truth de F-01/F-31/F-110 (#219)",
+    "files": [
+     "analise-prs/funcionalidades.csv"
+    ]
+   },
    {
     "sha": "fc333d4",
     "date": "2026-11-20",
@@ -33459,19 +33468,6 @@
     "files": [
      "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md"
     ]
-   },
-   {
-    "sha": "092d5c6",
-    "date": "2026-11-17",
-    "author": "adm01-debug",
-    "subject": "chore(config): variável de produção não documentada, com guard para não repetir (#186)",
-    "files": [
-     ".env.example",
-     "package.json",
-     "scripts/automation.config.json",
-     "scripts/validate-env-example.mjs",
-     "tests/validate-env-example.node.mjs"
-    ]
    }
   ],
   "hot_files": [
@@ -33484,19 +33480,15 @@
     3
    ],
    [
+    "analise-prs/funcionalidades.csv",
+    2
+   ],
+   [
     "src/pages/QuotePage.tsx",
     2
    ],
    [
     "tests/api/notifications.test.ts",
-    2
-   ],
-   [
-    "package.json",
-    2
-   ],
-   [
-    "scripts/automation.config.json",
     2
    ],
    [
@@ -33514,10 +33506,6 @@
    [
     "api/retention.ts",
     2
-   ],
-   [
-    "analise-prs/funcionalidades.csv",
-    1
    ],
    [
     "docs/pendencias/_achados.md",
@@ -33553,6 +33541,14 @@
    ],
    [
     "src/lib/quoteDraft.test.ts",
+    1
+   ],
+   [
+    "src/lib/quoteDraft.ts",
+    1
+   ],
+   [
+    "src/lib/quoteRequest.test.ts",
     1
    ]
   ]

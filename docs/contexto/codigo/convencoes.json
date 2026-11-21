@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "chore(docs): reconcilia ground-truth de F-01/F-31/F-110 (#219)",
    "chore(docs): reconcilia funcionalidades.csv com a main (nov/2026) (#217)",
    "chore(docs): linha de base, regras de negocio e mapa do sistema (GOAL fase 0) (#216)",
    "fix: promessas honestas em orcamento e catalogo (PF-14, PF-19, PF-20, PF-21) (#215)",
-   "feat: permite ajustar o contexto da campanha no orçamento (#213)",
-   "fix: limpa contexto da campanha quando o recorte sai do catálogo (#212)"
+   "feat: permite ajustar o contexto da campanha no orçamento (#213)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

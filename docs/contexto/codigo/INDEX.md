@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `fc333d471f2de34db1f621dcdfa4135374926633` (2026-11-20T20:27:52Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `e40d98f76ccb77e3631711e76c70f8e3556e3c4d` (2026-11-21T13:42:26Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -386,6 +386,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-21 `e40d98f` chore(docs): reconcilia ground-truth de F-01/F-31/F-110 (#219)
 - 2026-11-20 `fc333d4` chore(docs): reconcilia funcionalidades.csv com a main (nov/2026) (#217)
 - 2026-11-20 `0afb33e` chore(docs): linha de base, regras de negocio e mapa do sistema (GOAL fase 0) (#216)
 - 2026-11-20 `804efbc` fix: promessas honestas em orcamento e catalogo (PF-14, PF-19, PF-20, PF-21) (#215)
@@ -400,7 +401,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-18 `a1aeeed` feat(e2e): cobre o envio de anexo do briefing em navegador (#206)
 - 2026-11-18 `13c5acb` feat(e2e): cobre dois dispositivos escolhendo na mesma seleção de orçamento (#201)
 - 2026-11-18 `4a23155` feat(guarda): aponta trabalho estacionado em refs fora de heads e pull (#203)
-- 2026-11-18 `6d13174` fix(graphify): .graphifyignore passa a excluir da indexação, não só da impressão digital (#198)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

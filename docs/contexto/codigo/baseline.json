@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "fc333d471f2de34db1f621dcdfa4135374926633",
+  "commit": "e40d98f76ccb77e3631711e76c70f8e3556e3c4d",
   "branch": "main",
-  "data_commit": "2026-11-20T20:27:52Z",
+  "data_commit": "2026-11-21T13:42:26Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "e40d98f",
+    "data": "2026-11-21",
+    "assunto": "chore(docs): reconcilia ground-truth de F-01/F-31/F-110 (#219)"
+   },
    {
     "sha": "fc333d4",
     "data": "2026-11-20",
@@ -126,14 +131,9 @@
     "sha": "b1c5c6a",
     "data": "2026-11-17",
     "assunto": "test(e2e): favoritos ganham cobertura de reload e de sincronia entre abas (#193)"
-   },
-   {
-    "sha": "aef900d",
-    "data": "2026-11-17",
-    "assunto": "feat(api): nome e argumentos de RPC passam a ser checados contra o catálogo do banco (#192)"
    }
   ],
-  "arquivos_mudados_7d": 144,
+  "arquivos_mudados_7d": 143,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -168,6 +168,10 @@
     "mudancas": 7
    },
    {
+    "pasta": "analise-prs/funcionalidades.csv",
+    "mudancas": 6
+   },
+   {
     "pasta": "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
     "mudancas": 6
    },
@@ -185,10 +189,6 @@
    },
    {
     "pasta": ".graphify.project.json",
-    "mudancas": 5
-   },
-   {
-    "pasta": "analise-prs/funcionalidades.csv",
     "mudancas": 5
    },
    {
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 99
+    "commits": 100
    },
    {
     "autor": "dependabot[bot]",
