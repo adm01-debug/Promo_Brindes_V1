@@ -428,7 +428,7 @@
     "CustomerAccountPage"
    ],
    "export_default": "CustomerAccountPage",
-   "linhas": 103,
+   "linhas": 229,
    "dominio": "pages",
    "hooks_locais": [
     "useCustomerAuth"
@@ -542,7 +542,7 @@
     "PrivacyPage"
    ],
    "export_default": "PrivacyPage",
-   "linhas": 23,
+   "linhas": 27,
    "dominio": "pages",
    "hooks_locais": [],
    "tabelas": [],

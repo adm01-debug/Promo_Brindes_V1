@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `e40d98f76c` · branch `main` · 2026-11-21 14:12 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `66ed450835` · branch `main` · 2026-11-21 20:36 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -214,6 +214,10 @@ _Nenhum arquivo em `manual/`. Copie `manual/TEMPLATE-regras-de-negocio.md` para 
 | `site_private.customer_occasion_favorites` | `created_at` | default now() |
 | `site_private.customer_occasion_favorites` | `updated_at` | default now() |
 | `site_private.customer_occasion_favorites` | `(tabela)` | primary key (customer_user_id, occasion_id) |
+| `site_private.subject_right_requests` | `id` | PK; default gen_random_uuid() |
+| `site_private.subject_right_requests` | `subject_user_id` | obrigatório; FK → users.id on delete cascade |
+| `site_private.subject_right_requests` | `right_type` | obrigatório; CHECK right_type in ('access', 'export', 'correct', 'delete') |
+| `site_private.subject_right_requests` | `requested_at` | default now() |
 
 ## D. Automações no banco (triggers e funções — regras que rodam sozinhas)
 
@@ -311,9 +315,6 @@ Erros lançados por funções SQL (`RAISE EXCEPTION` = regra de negócio no banc
 | `request_my_quote_adjustment` | adjustment_message_required | `site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql` |
 | `request_my_quote_adjustment` | invalid_client_request_id | `site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql` |
 | `request_my_quote_adjustment` | too_many_pending_adjustments | `site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql` |
-| `claim_my_quote_requests` | authentication_required | `site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql` |
-| `claim_my_quote_requests` | verified_email_required | `site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql` |
-| `claim_my_quote_requests` | identity_erased | `site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql` |
 | `get_briefing_asset_retention_candidates` | invalid_batch_size | `site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql` |
 | `finalize_site_storage_retention` | invalid_site_storage_retention_input | `site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql` |
 | `list_my_occasion_favorites` | authentication_required | `site-supabase/supabase/migrations/20260923130000_add_customer_occasion_favorites.sql` |
@@ -335,7 +336,12 @@ Erros lançados por funções SQL (`RAISE EXCEPTION` = regra de negócio no banc
 | `attach_my_briefing_assets_to_quote` | invalid_briefing_asset_attachment | `site-supabase/supabase/migrations/20261006134751_make_briefing_asset_attachment_idempotent.sql` |
 | `attach_my_briefing_assets_to_quote` | briefing_asset_attachment_conflict | `site-supabase/supabase/migrations/20261006134751_make_briefing_asset_attachment_idempotent.sql` |
 | `claim_site_commercial_team_alerts` | invalid_notification_claim_input | `site-supabase/supabase/migrations/20261117010000_add_commercial_team_contact_alert.sql` |
-| `erase_customer_data` | invalid_erasure_email | `site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql` |
+| `current_titular_verified_email` | authentication_required | `site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql` |
+| `current_titular_verified_email` | verified_email_required | `site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql` |
+| `correct_my_data` | invalid_profile_fields | `site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql` |
+| `erase_customer_data` | invalid_erasure_email | `site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql` |
+| `claim_my_quote_requests` | authentication_required | `site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql` |
+| `claim_my_quote_requests` | verified_email_required | `site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql` |
 
 ## E. Estados, máquinas de estado e transições
 
@@ -1017,6 +1023,8 @@ _nenhum item encontrado_
 | adjustment_message_required | `src/lib/customerAccount.ts` |
 | customer_area_not_configured | `src/lib/customerAccount.ts` |
 | customer_area_unavailable | `src/lib/customerAccount.ts` |
+| invalid_email_confirmation | `src/lib/customerAccount.ts` |
+| invalid_profile_fields | `src/lib/customerAccount.ts` |
 | quote_not_found | `src/lib/customerAccount.ts` |
 | customer_area_not_configured | `src/lib/customerOccasionFavorites.ts` |
 | invalid_occasion_id | `src/lib/customerOccasionFavorites.ts` |
@@ -1048,16 +1056,17 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1635 testes em 135 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1706 testes em 136 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
 | `site-supabase/supabase/tests/database/lead_storage.test.sql` | 69 | schema privado contém as vinte e uma tabelas planejadas, incluindo favoritos de datas sem PII · seleções persistentes ficam no schema privado · criação de links recebe rate limit próprio · máquina de estados administrativa vive em tabela dedicada (Etapa 8) … |
+| `site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql` | 68 | trilha de exercicio de direito existe · trilha vincula a conta · trilha registra o tipo de direito · coluna right_type tem constraint check … |
 | `tests/inventario-estado.node.mjs` | 63 | extrairInventario aceita objeto direto, envelope do PostgREST e envelope do MCP · extrairInventario recusa entrada sem as chaves obrigatórias, sem tabelas ou de outra versão · conferirOrigem aprova a resposta que cobre as tabelas das migrations e o ledger · conferirOrigem recusa um banco irmão: as tabelas das migrations não estão lá … |
 | `e2e/smoke.spec.ts` | 58 | headline principal usa Fold Text sem perder acessibilidade · categorias usam fotografia de produto publicado como ponto de descoberta · rotas públicas essenciais não introduzem violações automáticas de acessibilidade · montador de kits preserva componentes e calcula a quantidade completa … |
 | `site-supabase/supabase/tests/database/briefing_assets.test.sql` | 57 | metadados privados de arquivos existem · assinatura binária possui recibo de verificação · fila de exclusão de Storage existe · bucket é privado e limitado a 10 MB … |
 | `site-supabase/supabase/tests/database/notification_outbox.test.sql` | 47 | fila possui agenda de nova tentativa · fila identifica a reivindicação ativa (R04) · novo orçamento alimenta a fila na mesma transação · anon não reivindica notificações … |
-| `site-supabase/supabase/tests/database/customer_data_erasure.test.sql` | 43 | anon não apaga dados de titular · authenticated não apaga dados de titular (operação administrativa) · service_role executa o apagamento · anonimiza 1 quote_request (e-mail com espaço/maiúsculas normalizado na entrada) … |
+| `site-supabase/supabase/tests/database/customer_data_erasure.test.sql` | 46 | anon não apaga dados de titular · authenticated não apaga dados de titular (operação administrativa) · service_role executa o apagamento · anonimiza 1 quote_request (e-mail com espaço/maiúsculas normalizado na entrada) … |
 | `site-supabase/supabase/tests/database/customer_portal.test.sql` | 41 | orçamento possui titular autenticado opcional · perfil do cliente existe no schema privado · linha do tempo existe no schema privado · metadados de propostas existem no schema privado … |
 | `site-supabase/supabase/tests/database/notification_delivery_status_machine.test.sql` | 40 | pending -> pending (no-op) · pending -> processing · pending -> sent (rejeitado: pula processing) · pending -> failed (rejeitado: pula processing) … |
 | `tests/api/lead-requests.test.ts` | 37 | APIs de leads isoladas · registra contato normalizado pelo RPC server-side · rejeita resposta malformada do banco: %s · repetição idempotente promete envio quando o provedor de WhatsApp existe … |

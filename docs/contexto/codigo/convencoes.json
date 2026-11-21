@@ -42,7 +42,7 @@
   "hooks": "use + PascalCase",
   "servicos": "camelCase (86%)",
   "edge_functions": null,
-  "tabelas": "snake_case (95%)"
+  "tabelas": "snake_case (96%)"
  },
  "barrels_index": 0,
  "extensao_componentes": [
@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "feat(lgpd): direitos do titular — acesso, exportacao, correcao e autoexclusao (F-30) (#220)",
    "chore(docs): reconcilia ground-truth de F-01/F-31/F-110 (#219)",
    "chore(docs): reconcilia funcionalidades.csv com a main (nov/2026) (#217)",
    "chore(docs): linha de base, regras de negocio e mapa do sistema (GOAL fase 0) (#216)",
-   "fix: promessas honestas em orcamento e catalogo (PF-14, PF-19, PF-20, PF-21) (#215)",
-   "feat: permite ajustar o contexto da campanha no orçamento (#213)"
+   "fix: promessas honestas em orcamento e catalogo (PF-14, PF-19, PF-20, PF-21) (#215)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

@@ -5,7 +5,7 @@
   "vitest",
   "playwright"
  ],
- "total": 144,
+ "total": 145,
  "por_tipo": {
   "contrato": 2,
   "e2e": 6,
@@ -1102,7 +1102,8 @@
   "site-supabase/supabase/tests/database/site_api_privileges.test.sql",
   "site-supabase/supabase/tests/database/site_api_timeouts.test.sql",
   "site-supabase/supabase/tests/database/status_state_machine.test.sql",
-  "site-supabase/supabase/tests/database/storage_tuning.test.sql"
+  "site-supabase/supabase/tests/database/storage_tuning.test.sql",
+  "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql"
  ],
  "cobertura_por_arquivo": {
   "api/_lib/catalogValidation.ts": 2,

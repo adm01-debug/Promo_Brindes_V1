@@ -517,6 +517,10 @@
    "tabelas": [],
    "rpcs": [
     "claim_my_quote_requests",
+    "correct_my_data",
+    "delete_my_data",
+    "export_my_data",
+    "get_my_data_access",
     "get_my_quote_request",
     "get_my_quote_requests",
     "request_my_quote_adjustment"
@@ -737,6 +741,10 @@
    "tabelas": [],
    "rpcs": [
     "claim_my_quote_requests",
+    "correct_my_data",
+    "delete_my_data",
+    "export_my_data",
+    "get_my_data_access",
     "get_my_quote_request",
     "get_my_quote_requests",
     "request_my_quote_adjustment"
@@ -806,6 +814,7 @@
     "useCustomerAuth",
     "useEffect",
     "useLocation",
+    "useNavigate",
     "useQuoteCart",
     "useSearchParams",
     "useState"
@@ -817,7 +826,11 @@
    "tabelas": [],
    "rpcs": [
     "claim_my_quote_requests",
+    "correct_my_data",
+    "delete_my_data",
     "delete_my_selection",
+    "export_my_data",
+    "get_my_data_access",
     "get_my_quote_request",
     "get_my_quote_requests",
     "list_my_selections",
@@ -863,6 +876,10 @@
    "tabelas": [],
    "rpcs": [
     "claim_my_quote_requests",
+    "correct_my_data",
+    "delete_my_data",
+    "export_my_data",
+    "get_my_data_access",
     "get_my_quote_request",
     "get_my_quote_requests",
     "request_my_quote_adjustment"
@@ -979,7 +996,8 @@
    "definida_em": "src/App.tsx",
    "redireciona": null,
    "hooks": [
-    "useEffect"
+    "useEffect",
+    "useLocation"
    ],
    "hooks_locais": [],
    "tabelas": [],

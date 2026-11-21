@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "e40d98f76ccb77e3631711e76c70f8e3556e3c4d",
+  "commit": "66ed450835b6abf281897d967b4267d231105d89",
   "branch": "main",
-  "data_commit": "2026-11-21T13:42:26Z",
+  "data_commit": "2026-11-21T20:35:38Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "66ed450",
+    "data": "2026-11-21",
+    "assunto": "feat(lgpd): direitos do titular — acesso, exportacao, correcao e autoexclusao (F-30) (#220)"
+   },
    {
     "sha": "e40d98f",
     "data": "2026-11-21",
@@ -126,18 +131,17 @@
     "sha": "b06b1e5",
     "data": "2026-11-17",
     "assunto": "fix(graphify): scanner de segredos passa a cobrir os formatos que este projeto usa (#194)"
-   },
-   {
-    "sha": "b1c5c6a",
-    "data": "2026-11-17",
-    "assunto": "test(e2e): favoritos ganham cobertura de reload e de sincronia entre abas (#193)"
    }
   ],
-  "arquivos_mudados_7d": 143,
+  "arquivos_mudados_7d": 148,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
     "mudancas": 16
+   },
+   {
+    "pasta": "site-supabase/supabase/tests",
+    "mudancas": 12
    },
    {
     "pasta": "docs/audits/pending-features-20261011",
@@ -153,10 +157,6 @@
    },
    {
     "pasta": "docs/audits/planejado-x-implementado-20261120",
-    "mudancas": 9
-   },
-   {
-    "pasta": "site-supabase/supabase/tests",
     "mudancas": 9
    },
    {
@@ -211,7 +211,7 @@
    },
    {
     "arquivo": "src/styles.css",
-    "mudancas": 35
+    "mudancas": 36
    },
    {
     "arquivo": ".github/workflows/quality.yml",
@@ -227,11 +227,11 @@
    },
    {
     "arquivo": "docs/DATABASE_DICTIONARY.md",
-    "mudancas": 23
+    "mudancas": 24
    },
    {
     "arquivo": "site-supabase/supabase/tests/database/lead_storage.test.sql",
-    "mudancas": 23
+    "mudancas": 24
    },
    {
     "arquivo": "src/components/Layout.tsx",
@@ -255,7 +255,7 @@
    },
    {
     "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
-    "mudancas": 18
+    "mudancas": 19
    },
    {
     "arquivo": ".github/workflows/database.yml",
@@ -263,6 +263,10 @@
    },
    {
     "arquivo": "api/_lib/leadHandler.ts",
+    "mudancas": 17
+   },
+   {
+    "arquivo": "docs/DATABASE_SCHEMA.md",
     "mudancas": 17
    },
    {
@@ -278,7 +282,7 @@
     "mudancas": 16
    },
    {
-    "arquivo": "docs/DATABASE_SCHEMA.md",
+    "arquivo": "src/types/site-database.types.ts",
     "mudancas": 16
    },
    {
@@ -292,16 +296,12 @@
    {
     "arquivo": "src/lib/analytics.ts",
     "mudancas": 15
-   },
-   {
-    "arquivo": "src/types/site-database.types.ts",
-    "mudancas": 15
    }
   ],
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 100
+    "commits": 101
    },
    {
     "autor": "dependabot[bot]",
@@ -310,9 +310,9 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 720,
+  "arquivos_total": 722,
   "arquivos_codigo": 287,
-  "linhas_codigo": 55908,
+  "linhas_codigo": 56187,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -321,10 +321,10 @@
   "componentes": 40,
   "hooks": 6,
   "edge_functions": 0,
-  "tabelas": 22,
-  "migrations": 69,
+  "tabelas": 23,
+  "migrations": 70,
   "cron_jobs": 0,
-  "testes": 144,
+  "testes": 145,
   "workflows": 15,
   "scripts": 37,
   "docs_md": 134
@@ -456,7 +456,7 @@
   },
   "scripts/check-performance-budget.mjs": {
    "arquivos": 1,
-   "linhas": 142
+   "linhas": 154
   },
   "scripts/ci-health-metrics.mjs": {
    "arquivos": 1,
@@ -580,7 +580,7 @@
   },
   "src/lib": {
    "arquivos": 80,
-   "linhas": 7790
+   "linhas": 7895
   },
   "src/main.tsx": {
    "arquivos": 1,
@@ -588,7 +588,7 @@
   },
   "src/pages": {
    "arquivos": 24,
-   "linhas": 3388
+   "linhas": 3518
   },
   "src/test": {
    "arquivos": 1,
@@ -596,7 +596,7 @@
   },
   "src/types": {
    "arquivos": 1,
-   "linhas": 1278
+   "linhas": 1310
   },
   "src/types.ts": {
    "arquivos": 1,
@@ -722,7 +722,7 @@
   },
   {
    "arquivo": "src/types/site-database.types.ts",
-   "linhas": 1278
+   "linhas": 1310
   },
   {
    "arquivo": "scripts/graphify-local.mjs",

@@ -6,7 +6,7 @@
   "site-supabase/supabase/migrations",
   "src/types/site-database.types.ts"
  ],
- "migrations": 69,
+ "migrations": 70,
  "seeds": [],
  "avisos": [
   "4 bloco(s) com DDL dinâmico (EXECUTE format/...) não modelado — policies/colunas criadas dinamicamente podem faltar; confira no banco vivo"
@@ -24,19 +24,23 @@
   "claim_site_notification_deliveries",
   "claim_site_quote_notification",
   "confirm_site_briefing_asset_verification",
+  "correct_my_data",
   "create_my_briefing_asset",
   "create_site_contact_request",
   "create_site_quote_request",
   "create_site_shared_selection",
   "delete_my_briefing_asset",
+  "delete_my_data",
   "delete_my_selection",
   "erase_customer_data",
+  "export_my_data",
   "finalize_briefing_asset_retention",
   "finalize_site_data_retention",
   "finalize_site_notification_delivery",
   "finalize_site_storage_retention",
   "get_briefing_asset_retention_candidates",
   "get_my_briefing_asset_verification",
+  "get_my_data_access",
   "get_my_proposal_document",
   "get_my_quote_request",
   "get_my_quote_requests",
@@ -66,6 +70,7 @@
   "site_private.commercial_team_contact_alert_payload",
   "site_private.consume_rate_limit",
   "site_private.consume_shared_selection_action_limit",
+  "site_private.current_titular_verified_email",
   "site_private.enforce_notification_delivery_lease_and_attempts",
   "site_private.enforce_status_transition",
   "site_private.enforce_valid_kit_reference_set",
@@ -2472,6 +2477,66 @@
    "sem_rls": false,
    "nao_usada": true
   },
+  "site_private.subject_right_requests": {
+   "colunas": {
+    "id": {
+     "tipo": "uuid",
+     "nn": false,
+     "pk": true,
+     "default": "gen_random_uuid()",
+     "ref": null
+    },
+    "requested_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    },
+    "right_type": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "subject_user_id": {
+     "tipo": "uuid",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": "auth"
+    }
+   },
+   "rls": true,
+   "policies": [],
+   "indices": [
+    {
+     "nome": "subject_right_requests_subject_idx",
+     "colunas": "subject_user_id, requested_at desc",
+     "unico": false
+    }
+   ],
+   "fks": [
+    "subject_user_id->auth"
+   ],
+   "criada_em": "20261121110000_add_titular_lgpd_rights_rpcs.sql",
+   "colunas_types": {
+    "id": "string",
+    "requested_at": "string",
+    "right_type": "string",
+    "subject_user_id": "string"
+   },
+   "drift": {
+    "so_na_migration": [],
+    "so_no_types": []
+   },
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [],
+   "sem_rls": false,
+   "nao_usada": true
+  },
   "storage.objects": {
    "colunas": {},
    "rls": false,
@@ -2548,6 +2613,11 @@
    "usada_em": 1
   },
   {
+   "nome": "correct_my_data",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
    "nome": "create_my_briefing_asset",
    "definida": true,
    "usada_em": 1
@@ -2573,7 +2643,17 @@
    "usada_em": 1
   },
   {
+   "nome": "delete_my_data",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
    "nome": "delete_my_selection",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "export_my_data",
    "definida": true,
    "usada_em": 1
   },
@@ -2599,6 +2679,11 @@
   },
   {
    "nome": "get_my_briefing_asset_verification",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "get_my_data_access",
    "definida": true,
    "usada_em": 1
   },

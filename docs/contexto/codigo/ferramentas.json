@@ -5,7 +5,7 @@
   "linguagens": [
    "TypeScript (215)",
    "Markdown (134)",
-   "SQL (106)",
+   "SQL (108)",
    "JavaScript (65)",
    "JSON (29)",
    "YAML (19)",
@@ -725,12 +725,12 @@
   {
    "arquivo": "docs/DATABASE_DICTIONARY.md",
    "titulo": "Dicionário de dados — site_private (Etapa 35)",
-   "linhas": 393
+   "linhas": 408
   },
   {
    "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
    "titulo": "Contratos das funções do banco do site (Etapas 22 e 23)",
-   "linhas": 237
+   "linhas": 238
   },
   {
    "arquivo": "docs/DATABASE_INVENTORY_PRINCIPAL.md",
@@ -745,7 +745,7 @@
   {
    "arquivo": "docs/DATABASE_SCHEMA.md",
    "titulo": "Diagrama entidade-relacionamento — site_private (Etapa 48)",
-   "linhas": 48
+   "linhas": 50
   },
   {
    "arquivo": "docs/EXECUCAO_COMPLEMENTAR_20260922.md",

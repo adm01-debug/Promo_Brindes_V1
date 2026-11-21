@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "e40d98f76ccb77e3631711e76c70f8e3556e3c4d",
+  "sha": "66ed450835b6abf281897d967b4267d231105d89",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-21 14:12 UTC",
-  "files_total": 614,
-  "code_files": 394,
-  "code_lines": 69082,
+  "generated_at": "2026-11-21 20:36 UTC",
+  "files_total": 616,
+  "code_files": 396,
+  "code_lines": 70141,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "f7caafba8ba8a125",
+ "facts_hash": "a42bbd28a1fc7d84",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -282,7 +282,7 @@
   "package_manager": "npm",
   "languages": {
    ".ts": 152,
-   ".sql": 106,
+   ".sql": 108,
    ".mjs": 63,
    ".tsx": 63,
    ".py": 8,
@@ -1844,6 +1844,42 @@
     "src": "site-supabase/supabase/migrations/20260923130000_add_customer_occasion_favorites.sql",
     "comment": "IDs de datas comemorativas escolhidas pelo titular. A lista editorial fica no frontend; a conta guarda somente o ID e o vínculo é apagado com auth.users.",
     "origin": "migration"
+   },
+   "site_private.subject_right_requests": {
+    "columns": [
+     {
+      "name": "id",
+      "type": "uuid primary key default gen_random_uuid()",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+     },
+     {
+      "name": "subject_user_id",
+      "type": "uuid not null references auth.users(id) on delete cascade",
+      "fk": "users.id on delete cascade",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+     },
+     {
+      "name": "right_type",
+      "type": "text not null check (right_type in ('access', 'export', 'correct', 'delete'))",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+     },
+     {
+      "name": "requested_at",
+      "type": "timestamptz not null default now()",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+     }
+    ],
+    "constraints": [],
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
+    "comment": "Trilha do exercicio dos direitos do titular (LGPD art. 18) na Area do Cliente: access, export, correct e delete. Vinculada a conta e removida pelo cascade de auth.users; o registo persistente do apagamento e o tombstone irreversivel em erased_customer_identities.",
+    "origin": "migration"
    }
   },
   "policies": [
@@ -2189,20 +2225,20 @@
     "args": "",
     "returns": "jsonb",
     "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
     "security_definer": true,
     "search_path": true,
-    "body": "declare v_user_id uuid := auth.uid(); v_email text; v_name text; v_claimed integer := 0; v_email_hash text; begin if v_user_id is null then raise exception using errcode = '42501', message = 'authentication_required'; end if; select lower(user_record.email), nullif(trim(user_record.raw_user_meta_data ->> 'name'), '') into v_email, v_name from auth.users user_record where user_record.id = v_user_id and user_record.email_confirmed_at is not null; if v_email is null then raise exception using errcode = '42501', message = 'verified_email_required'; end if; v_email_hash := encode(sha256(convert_to(v_email, 'UTF8')), 'hex'); if exists (select 1 from site_private.erased_customer_identities erased w …",
+    "body": "declare v_user_id uuid := auth.uid(); v_email text; v_name text; v_claimed integer := 0; v_email_hash text; v_erased_at timestamptz; begin if v_user_id is null then raise exception using errcode = '42501', message = 'authentication_required'; end if; select lower(user_record.email), nullif(trim(user_record.raw_user_meta_data ->> 'name'), '') into v_email, v_name from auth.users user_record where user_record.id = v_user_id and user_record.email_confirmed_at is not null; if v_email is null then raise exception using errcode = '42501', message = 'verified_email_required'; end if; v_email_hash := encode(sha256(convert_to(v_email, 'UTF8')), 'hex'); select erased.erased_at into v_erased_at from si …",
     "raises": [
      "authentication_required",
-     "verified_email_required",
-     "identity_erased"
+     "verified_email_required"
     ],
     "tables": [
      "auth",
      "set",
      "site_private",
-     "v_email"
+     "v_email",
+     "v_erased_at"
     ]
    },
    "get_my_quote_requests": {
@@ -2582,26 +2618,6 @@
     "body": "select lower(btrim(p_email));",
     "raises": [],
     "tables": []
-   },
-   "erase_customer_data": {
-    "args": "p_email text",
-    "returns": "jsonb",
-    "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql",
-    "security_definer": true,
-    "search_path": true,
-    "body": "declare v_email text := site_private.normalize_email(p_email); v_email_hash text; v_quote_ids uuid[]; v_user_ids uuid[]; v_storage_paths jsonb; v_quotes integer := 0; v_contacts integer := 0; v_profiles integer := 0; v_documents integer := 0; v_users integer := 0; v_kit_names integer := 0; v_notifications integer := 0; begin if length(v_email) not between 5 and 160 or v_email !~ '^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$' then raise exception using errcode = '22023', message = 'invalid_erasure_email'; end if; v_email_hash := encode(sha256(convert_to(v_email, 'UTF8')), 'hex'); select coalesce(array_agg(distinct candidate.user_id), '{}'::uuid[]) into v_user_ids from ( select profile.user_id from site_private …",
-    "raises": [
-     "invalid_erasure_email"
-    ],
-    "tables": [
-     "auth",
-     "set",
-     "site_private",
-     "v_quote_ids",
-     "v_storage_paths",
-     "v_user_ids"
-    ]
    },
    "log_admin_write": {
     "args": "",
@@ -3263,6 +3279,110 @@
     "body": "declare v_result jsonb := p_metadata; v_briefing jsonb; v_campaign jsonb; v_occasion jsonb; begin if jsonb_typeof(v_result) <> 'object' then return v_result; end if; v_briefing := v_result -> 'briefing'; if jsonb_typeof(v_briefing) = 'object' then v_result := jsonb_set(v_result, '{briefing}', v_briefing - 'actionName'); end if; v_campaign := v_result -> 'campaign'; if jsonb_typeof(v_campaign) = 'object' then v_occasion := v_campaign -> 'occasion'; if jsonb_typeof(v_occasion) = 'object' then v_result := jsonb_set(v_result, '{campaign,occasion}', (v_occasion - 'name') - 'id'); end if; end if; return v_result; end;",
     "raises": [],
     "tables": []
+   },
+   "current_titular_verified_email": {
+    "args": "",
+    "returns": "text",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_user_id uuid := auth.uid(); v_email text; begin if v_user_id is null then raise exception using errcode = '42501', message = 'authentication_required'; end if; select lower(user_record.email) into v_email from auth.users user_record where user_record.id = v_user_id and user_record.email_confirmed_at is not null; if v_email is null then raise exception using errcode = '42501', message = 'verified_email_required'; end if; return v_email; end;",
+    "raises": [
+     "authentication_required",
+     "verified_email_required"
+    ],
+    "tables": [
+     "auth",
+     "v_email"
+    ]
+   },
+   "get_my_data_access": {
+    "args": "",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_user_id uuid := auth.uid(); v_email text := site_private.current_titular_verified_email(); v_display_name text; v_company text; v_quotes integer; v_selections integer; v_favorites integer; v_contacts integer; begin insert into site_private.subject_right_requests (subject_user_id, right_type) values (v_user_id, 'access'); select profile.display_name, profile.company into v_display_name, v_company from site_private.customer_profiles profile where profile.user_id = v_user_id; select count(*) into v_quotes from site_private.quote_requests request where request.customer_user_id = v_user_id and request.status <> 'spam'; select count(*) into v_selections from site_private.customer_selecti …",
+    "raises": [],
+    "tables": [
+     "site_private",
+     "v_contacts",
+     "v_display_name",
+     "v_favorites",
+     "v_quotes",
+     "v_selections"
+    ]
+   },
+   "export_my_data": {
+    "args": "",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_user_id uuid := auth.uid(); v_email text := site_private.current_titular_verified_email(); v_display_name text; v_company text; v_quotes jsonb; v_selections jsonb; v_favorites jsonb; v_contacts jsonb; v_adjustments jsonb; v_rights jsonb; begin insert into site_private.subject_right_requests (subject_user_id, right_type) values (v_user_id, 'export'); select profile.display_name, profile.company into v_display_name, v_company from site_private.customer_profiles profile where profile.user_id = v_user_id; select coalesce(jsonb_agg(payload order by created_at desc), '[]'::jsonb) into v_quotes from ( select request.created_at, jsonb_build_object( 'id', request.id, 'protocol', request.pro …",
+    "raises": [],
+    "tables": [
+     "site_private",
+     "v_adjustments",
+     "v_contacts",
+     "v_display_name",
+     "v_favorites",
+     "v_quotes",
+     "v_rights",
+     "v_selections"
+    ]
+   },
+   "correct_my_data": {
+    "args": "p_display_name text, p_company text",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_user_id uuid := auth.uid(); v_email text := site_private.current_titular_verified_email(); v_display_name text := nullif(trim(coalesce(p_display_name, '')), ''); v_company text := nullif(trim(coalesce(p_company, '')), ''); begin if v_display_name is null and v_company is null then raise exception using errcode = '22023', message = 'invalid_profile_fields'; end if; if v_display_name is not null and length(v_display_name) not between 2 and 100 then raise exception using errcode = '22023', message = 'invalid_profile_fields'; end if; if v_company is not null and length(v_company) not between 2 and 150 then raise exception using errcode = '22023', message = 'invalid_profile_fields'; end …",
+    "raises": [
+     "invalid_profile_fields"
+    ],
+    "tables": [
+     "set",
+     "site_private"
+    ]
+   },
+   "delete_my_data": {
+    "args": "",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_user_id uuid := auth.uid(); v_email text := site_private.current_titular_verified_email(); begin insert into site_private.subject_right_requests (subject_user_id, right_type) values (v_user_id, 'delete'); return public.erase_customer_data(v_email, v_user_id); end;",
+    "raises": [],
+    "tables": [
+     "site_private"
+    ]
+   },
+   "erase_customer_data": {
+    "args": "p_email text, p_user_id uuid default null",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_email text := site_private.normalize_email(p_email); v_email_hash text; v_quote_ids uuid[]; v_user_ids uuid[]; v_storage_paths jsonb; v_quotes integer := 0; v_contacts integer := 0; v_profiles integer := 0; v_documents integer := 0; v_users integer := 0; v_kit_names integer := 0; v_notifications integer := 0; begin if length(v_email) not between 5 and 160 or v_email !~ '^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$' then raise exception using errcode = '22023', message = 'invalid_erasure_email'; end if; v_email_hash := encode(sha256(convert_to(v_email, 'UTF8')), 'hex'); select coalesce(array_agg(distinct candidate.user_id), '{}'::uuid[]) into v_user_ids from ( select profile.user_id from site_private …",
+    "raises": [
+     "invalid_erasure_email"
+    ],
+    "tables": [
+     "auth",
+     "set",
+     "site_private",
+     "v_quote_ids",
+     "v_storage_paths",
+     "v_user_ids"
+    ]
    }
   },
   "enums": {},
@@ -3546,6 +3666,14 @@
     "unique": false,
     "where": "where customer_user_id is not null",
     "src": "site-supabase/supabase/migrations/20260927200000_add_quote_requests_owner_fk_index.sql"
+   },
+   {
+    "name": "subject_right_requests_subject_idx",
+    "table": "site_private.subject_right_requests",
+    "columns": "subject_user_id, requested_at desc",
+    "unique": false,
+    "where": "",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
    }
   ],
   "cron_jobs": [],
@@ -3619,7 +3747,8 @@
    "site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql",
    "site-supabase/supabase/migrations/20261117010000_add_commercial_team_contact_alert.sql",
    "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql",
-   "site-supabase/supabase/migrations/20261117030100_repair_incomplete_customer_data_erasure.sql"
+   "site-supabase/supabase/migrations/20261117030100_repair_incomplete_customer_data_erasure.sql",
+   "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
   ],
   "rls": {
    "site_private.quote_requests": "forced",
@@ -3642,7 +3771,8 @@
    "site_private.customer_briefing_assets": "forced",
    "site_private.storage_deletion_queue": "forced",
    "site_private.erased_customer_identities": "forced",
-   "site_private.customer_occasion_favorites": "forced"
+   "site_private.customer_occasion_favorites": "forced",
+   "site_private.subject_right_requests": "forced"
   },
   "grants": [
    {
@@ -5700,6 +5830,110 @@
     "objkind": "function",
     "roles": "public, anon, authenticated, service_role, site_api",
     "src": "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.subject_right_requests",
+    "objkind": "table",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "select, insert, update, delete",
+    "object": "site_private.subject_right_requests",
+    "objkind": "table",
+    "roles": "service_role",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.current_titular_verified_email",
+    "objkind": "function",
+    "roles": "public, anon, authenticated, service_role, site_api",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "get_my_data_access",
+    "objkind": "function",
+    "roles": "public, anon",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "export_my_data",
+    "objkind": "function",
+    "roles": "public, anon",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "correct_my_data",
+    "objkind": "function",
+    "roles": "public, anon",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "delete_my_data",
+    "objkind": "function",
+    "roles": "public, anon",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "get_my_data_access",
+    "objkind": "function",
+    "roles": "authenticated, service_role",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "export_my_data",
+    "objkind": "function",
+    "roles": "authenticated, service_role",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "correct_my_data",
+    "objkind": "function",
+    "roles": "authenticated, service_role",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "delete_my_data",
+    "objkind": "function",
+    "roles": "authenticated, service_role",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "erase_customer_data",
+    "objkind": "function",
+    "roles": "public, anon, authenticated, site_api",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "erase_customer_data",
+    "objkind": "function",
+    "roles": "service_role",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
    }
   ],
   "raises": [
@@ -6014,21 +6248,6 @@
     "src": "site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql"
    },
    {
-    "function": "claim_my_quote_requests",
-    "msg": "authentication_required",
-    "src": "site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql"
-   },
-   {
-    "function": "claim_my_quote_requests",
-    "msg": "verified_email_required",
-    "src": "site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql"
-   },
-   {
-    "function": "claim_my_quote_requests",
-    "msg": "identity_erased",
-    "src": "site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql"
-   },
-   {
     "function": "get_briefing_asset_retention_candidates",
     "msg": "invalid_batch_size",
     "src": "site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql"
@@ -6134,9 +6353,34 @@
     "src": "site-supabase/supabase/migrations/20261117010000_add_commercial_team_contact_alert.sql"
    },
    {
+    "function": "current_titular_verified_email",
+    "msg": "authentication_required",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "function": "current_titular_verified_email",
+    "msg": "verified_email_required",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "function": "correct_my_data",
+    "msg": "invalid_profile_fields",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
     "function": "erase_customer_data",
     "msg": "invalid_erasure_email",
-    "src": "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql"
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "function": "claim_my_quote_requests",
+    "msg": "authentication_required",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "function": "claim_my_quote_requests",
+    "msg": "verified_email_required",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
    }
   ],
   "seed": [],
@@ -6174,7 +6418,9 @@
    "table:site_private.erased_customer_identities": "Túmulos SHA-256 irreversíveis de identidades apagadas por solicitação LGPD; impedem a reapropriação posterior do histórico sem preservar o e-mail.",
    "column:site_private.erased_customer_identities.email_sha256": "SHA-256 hexadecimal do e-mail normalizado; nunca armazena o endereço original.",
    "column:site_private.erased_customer_identities.auth_users_deleted": "Maior quantidade de contas Auth removidas nas execuções idempotentes deste apagamento.",
-   "table:site_private.customer_occasion_favorites": "IDs de datas comemorativas escolhidas pelo titular. A lista editorial fica no frontend; a conta guarda somente o ID e o vínculo é apagado com auth.users."
+   "table:site_private.customer_occasion_favorites": "IDs de datas comemorativas escolhidas pelo titular. A lista editorial fica no frontend; a conta guarda somente o ID e o vínculo é apagado com auth.users.",
+   "table:site_private.subject_right_requests": "Trilha do exercicio dos direitos do titular (LGPD art. 18) na Area do Cliente: access, export, correct e delete. Vinculada a conta e removida pelo cascade de auth.users; o registo persistente do apagamento e o tombstone irreversivel em erased_customer_identities.",
+   "column:site_private.subject_right_requests.right_type": "Direito exercido: access (confirmacao de tratamento), export (portabilidade), correct (correcao de perfil) ou delete (autoexclusao)."
   },
   "types_file": "",
   "transitions": [
@@ -6422,6 +6668,10 @@
     "invokes_transitive": [],
     "rpc_transitive": [
      "claim_my_quote_requests",
+     "correct_my_data",
+     "delete_my_data",
+     "export_my_data",
+     "get_my_data_access",
      "get_my_quote_request",
      "get_my_quote_requests",
      "request_my_quote_adjustment"
@@ -6498,6 +6748,10 @@
     "invokes_transitive": [],
     "rpc_transitive": [
      "claim_my_quote_requests",
+     "correct_my_data",
+     "delete_my_data",
+     "export_my_data",
+     "get_my_data_access",
      "get_my_quote_request",
      "get_my_quote_requests",
      "request_my_quote_adjustment"
@@ -6560,6 +6814,10 @@
     "invokes_transitive": [],
     "rpc_transitive": [
      "claim_my_quote_requests",
+     "correct_my_data",
+     "delete_my_data",
+     "export_my_data",
+     "get_my_data_access",
      "get_my_quote_request",
      "get_my_quote_requests",
      "request_my_quote_adjustment"
@@ -6583,7 +6841,11 @@
     "invokes_transitive": [],
     "rpc_transitive": [
      "claim_my_quote_requests",
+     "correct_my_data",
+     "delete_my_data",
      "delete_my_selection",
+     "export_my_data",
+     "get_my_data_access",
      "get_my_quote_request",
      "get_my_quote_requests",
      "list_my_selections",
@@ -6601,6 +6863,10 @@
     "invokes_transitive": [],
     "rpc_transitive": [
      "claim_my_quote_requests",
+     "correct_my_data",
+     "delete_my_data",
+     "export_my_data",
+     "get_my_data_access",
      "get_my_quote_request",
      "get_my_quote_requests",
      "request_my_quote_adjustment"
@@ -7272,7 +7538,7 @@
   {
    "module": "scripts",
    "files": 43,
-   "lines": 21541,
+   "lines": 21553,
    "tables": [
     "a",
     "contacts",
@@ -7441,8 +7707,8 @@
   },
   {
    "module": "site-supabase",
-   "files": 98,
-   "lines": 12548,
+   "files": 100,
+   "lines": 13328,
    "tables": [],
    "exports": [],
    "docs": [],
@@ -7518,6 +7784,7 @@
     "site-supabase/supabase/migrations/20261117010000_add_commercial_team_contact_alert.sql",
     "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql",
     "site-supabase/supabase/migrations/20261117030100_repair_incomplete_customer_data_erasure.sql",
+    "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
     "site-supabase/supabase/tests/database/adjustment_limits.test.sql",
     "site-supabase/supabase/tests/database/admin_write_audit.test.sql",
     "site-supabase/supabase/tests/database/briefing_assets.test.sql",
@@ -7527,8 +7794,7 @@
     "site-supabase/supabase/tests/database/customer_portal.test.sql",
     "site-supabase/supabase/tests/database/customer_selections.test.sql",
     "site-supabase/supabase/tests/database/default_privileges.test.sql",
-    "site-supabase/supabase/tests/database/email_normalization.test.sql",
-    "site-supabase/supabase/tests/database/force_rls_hygiene.test.sql"
+    "site-supabase/supabase/tests/database/email_normalization.test.sql"
    ]
   },
   {
@@ -7673,7 +7939,7 @@
   {
    "module": "src/lib",
    "files": 80,
-   "lines": 7790,
+   "lines": 7895,
    "tables": [],
    "exports": [
     "analytics.ts: FunnelEventMap, redactAnalyticsPathname, redactTelemetryUrl, redactAnalyticsUrl, trackFunnelEvent",
@@ -7688,7 +7954,7 @@
     "clientObservability.ts: reportClientError",
     "commemorativeDates.ts: OccasionAudience, OccasionKind, OccasionRule, OccasionIdea, CommemorativeOccasion, DatedOccasion",
     "contactRequest.ts: buildContactPayload, buildContactEmailHref, ContactSubmitResult, submitContactRequest",
-    "customerAccount.ts: isProposalExpired, customerStatusOptions, customerStatusLabel, customerStatusTone, claimMyQuoteRequests, fetchMyQuoteRequests",
+    "customerAccount.ts: CustomerAccessReport, CustomerDataExport, CustomerProfileCorrection, isProposalExpired, customerStatusOptions, customerStatusLabel",
     "customerAuthRedirect.ts: customerAuthRedirect",
     "customerOccasionFavorites.ts: listMyOccasionFavorites, setMyOccasionFavorite",
     "customerQuoteContract.ts: CustomerQuoteStatus, CustomerQuoteSummary, CustomerQuoteEvent, CustomerProposal, CustomerQuoteDetail, CustomerQuotePage",
@@ -7821,7 +8087,7 @@
   {
    "module": "src/pages",
    "files": 24,
-   "lines": 3388,
+   "lines": 3518,
    "tables": [],
    "exports": [
     "AboutPage.tsx: AboutPage",
@@ -7903,7 +8169,7 @@
   {
    "module": "src/types",
    "files": 1,
-   "lines": 1278,
+   "lines": 1310,
    "tables": [],
    "exports": [
     "site-database.types.ts: Json, Database, Tables, TablesInsert, TablesUpdate, Enums"
@@ -8565,6 +8831,9 @@
    "constructor": [
     "tests/inventario-estado.node.mjs"
    ],
+   "correct_my_data": [
+    "src/lib/customerAccount.ts"
+   ],
    "create_my_briefing_asset": [
     "src/lib/briefingAssets.ts"
    ],
@@ -8574,11 +8843,17 @@
    "delete_my_briefing_asset": [
     "src/lib/briefingAssets.ts"
    ],
+   "delete_my_data": [
+    "src/lib/customerAccount.ts"
+   ],
    "delete_my_selection": [
     "src/lib/customerSelections.ts"
    ],
    "demo": [
     "scripts/supabase_snapshot/test_snapshot.py"
+   ],
+   "export_my_data": [
+    "src/lib/customerAccount.ts"
    ],
    "f4": [
     "scripts/ai-context/cenarios.mjs"
@@ -8591,6 +8866,9 @@
    ],
    "get_mine": [
     "scripts/ai-context/gerar.unit.mjs"
+   ],
+   "get_my_data_access": [
+    "src/lib/customerAccount.ts"
    ],
    "get_my_quote_request": [
     "src/lib/customerAccount.ts"
@@ -8726,7 +9004,8 @@
     "site_private.quote_adjustment_requests",
     "site_private.customer_selections",
     "site_private.customer_briefing_assets",
-    "site_private.customer_occasion_favorites"
+    "site_private.customer_occasion_favorites",
+    "site_private.subject_right_requests"
    ],
    "notification_deliveries": [
     "site_private.notification_provider_events"
@@ -8754,7 +9033,8 @@
    "shared_selection_rate_limits",
    "shared_selections",
    "status_transitions",
-   "storage_deletion_queue"
+   "storage_deletion_queue",
+   "subject_right_requests"
   ],
   "columns_unknown": []
  },
@@ -10095,6 +10375,14 @@
    {
     "file": "src/lib/customerAccount.ts",
     "msg": "customer_area_unavailable"
+   },
+   {
+    "file": "src/lib/customerAccount.ts",
+    "msg": "invalid_email_confirmation"
+   },
+   {
+    "file": "src/lib/customerAccount.ts",
+    "msg": "invalid_profile_fields"
    },
    {
     "file": "src/lib/customerAccount.ts",
@@ -11548,6 +11836,26 @@
     "table": "site_private.customer_occasion_favorites",
     "column": "(tabela)",
     "rule": "primary key (customer_user_id, occasion_id)"
+   },
+   {
+    "table": "site_private.subject_right_requests",
+    "column": "id",
+    "rule": "PK; default gen_random_uuid()"
+   },
+   {
+    "table": "site_private.subject_right_requests",
+    "column": "subject_user_id",
+    "rule": "obrigatório; FK → users.id on delete cascade"
+   },
+   {
+    "table": "site_private.subject_right_requests",
+    "column": "right_type",
+    "rule": "obrigatório; CHECK right_type in ('access', 'export', 'correct', 'delete')"
+   },
+   {
+    "table": "site_private.subject_right_requests",
+    "column": "requested_at",
+    "rule": "default now()"
    }
   ],
   "params": [
@@ -13776,7 +14084,19 @@
    },
    {
     "file": "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
-    "name": "nova conta com o mesmo e-mail não consegue reverter o apagamento reivindicando histórico"
+    "name": "conta recriada com o mesmo e-mail não é bloqueada por identity_erased e reivindica 0 pedidos (histórico anterior inacessível)"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
+    "name": "pedido posterior ao erased_at é associado à conta recriada"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
+    "name": "autoexclusao anonimiza o orçamento reivindicado (customer_user_id do titular) e o ainda nao vinculado (customer_user_id null) com o e-mail do titular"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
+    "name": "orçamento órfão é anonimizado na autoexclusão"
    },
    {
     "file": "site-supabase/supabase/tests/database/customer_occasion_favorites.test.sql",
@@ -15645,6 +15965,278 @@
    {
     "file": "site-supabase/supabase/tests/database/storage_tuning.test.sql",
     "name": "shared_selection_rate_limits tem fillfactor 80 (mesmo padrão de upsert de rate_limit_buckets)"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "trilha de exercicio de direito existe"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "trilha vincula a conta"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "trilha registra o tipo de direito"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "coluna right_type tem constraint check"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "right_type so permite access, export, correct e delete"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "authenticated nao acessa schema privado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "authenticated nao le trilha diretamente"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "service_role le a trilha"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "authenticated confere tratamento"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "authenticated exporta seus dados"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "authenticated corrige perfil"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "authenticated autoexclui"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "anon nao confere tratamento"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "anon nao exporta"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "anon nao corrige"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "anon nao autoexclui"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "as 4 RPCs sao security definer com search_path vazio"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "sem sessao nao confere tratamento"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "sem sessao nao exporta"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "sem sessao nao corrige"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "sem sessao nao autoexclui"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "e-mail nao confirmado nao confere tratamento"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "e-mail nao confirmado nao exporta"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "e-mail nao confirmado nao corrige"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "e-mail nao confirmado nao autoexclui"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "acesso devolve display_name do titular"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "acesso devolve a empresa do titular"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "acesso conta os 1 orcamento do titular"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "acesso conta as 2 selecoes do titular (ativa + arquivada)"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "acesso conta o 1 favorito do titular"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "acesso conta o 1 contato do titular pelo e-mail"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "export devolve o e-mail do proprio titular"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "export tem bloco de perfil"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "export inclui display_name"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "export inclui 1 orcamento"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "export inclui kit_name_snapshot do item"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "export inclui a variante exata do item"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "export inclui evento da linha do tempo"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "export inclui proposta publicada"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "export inclui as 2 selecoes (ativa + arquivada)"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "export inclui a reference da selecao ativa"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "export inclui a reference da selecao arquivada"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "export inclui os favoritos"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "favorito exportado e o id estavel"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "export inclui o contato pelo e-mail"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "export inclui o texto do contato"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "export inclui o pedido de ajuste"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "export nao expoe request_metadata bruto"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "export inclui o nome da acao do briefing digitado pelo titular"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "export inclui a faixa de orcamento do briefing"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "export inclui a campanha do orcamento"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "trilha registra o exercicio de acesso"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "trilha registra o exercicio de exportacao"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "corrige somente display_name"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "display_name persistido"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "company preservada quando nao informada"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "corrige somente company"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "company persistida"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "campo em branco ('), como no formulario, nao apaga o valor salvo"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "display_name preservado com campo em branco"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "company atualizada quando o outro campo vem em branco"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "ambos os campos em branco sao rejeitados"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "display_name abaixo de 2 caracteres e rejeitado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "company abaixo de 2 caracteres e rejeitado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "trilha registra os 3 exercicios de correcao"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "autoexclusao remove a conta Auth por cascade"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "autoexclusao grava tombstone SHA-256 do e-mail"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+    "name": "apos a autoexclusao a conta Auth nao existe mais"
    },
    {
     "file": "src/components/AppErrorBoundary.test.tsx",
@@ -19830,20 +20422,20 @@
     "args": "",
     "returns": "jsonb",
     "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
     "security_definer": true,
     "search_path": true,
-    "body": "declare v_user_id uuid := auth.uid(); v_email text; v_name text; v_claimed integer := 0; v_email_hash text; begin if v_user_id is null then raise exception using errcode = '42501', message = 'authentication_required'; end if; select lower(user_record.email), nullif(trim(user_record.raw_user_meta_data ->> 'name'), '') into v_email, v_name from auth.users user_record where user_record.id = v_user_id and user_record.email_confirmed_at is not null; if v_email is null then raise exception using errcode = '42501', message = 'verified_email_required'; end if; v_email_hash := encode(sha256(convert_to(v_email, 'UTF8')), 'hex'); if exists (select 1 from site_private.erased_customer_identities erased w …",
+    "body": "declare v_user_id uuid := auth.uid(); v_email text; v_name text; v_claimed integer := 0; v_email_hash text; v_erased_at timestamptz; begin if v_user_id is null then raise exception using errcode = '42501', message = 'authentication_required'; end if; select lower(user_record.email), nullif(trim(user_record.raw_user_meta_data ->> 'name'), '') into v_email, v_name from auth.users user_record where user_record.id = v_user_id and user_record.email_confirmed_at is not null; if v_email is null then raise exception using errcode = '42501', message = 'verified_email_required'; end if; v_email_hash := encode(sha256(convert_to(v_email, 'UTF8')), 'hex'); select erased.erased_at into v_erased_at from si …",
     "raises": [
      "authentication_required",
-     "verified_email_required",
-     "identity_erased"
+     "verified_email_required"
     ],
     "tables": [
      "auth",
      "set",
      "site_private",
-     "v_email"
+     "v_email",
+     "v_erased_at"
     ]
    },
    "get_my_quote_requests": {
@@ -20223,26 +20815,6 @@
     "body": "select lower(btrim(p_email));",
     "raises": [],
     "tables": []
-   },
-   "erase_customer_data": {
-    "args": "p_email text",
-    "returns": "jsonb",
-    "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql",
-    "security_definer": true,
-    "search_path": true,
-    "body": "declare v_email text := site_private.normalize_email(p_email); v_email_hash text; v_quote_ids uuid[]; v_user_ids uuid[]; v_storage_paths jsonb; v_quotes integer := 0; v_contacts integer := 0; v_profiles integer := 0; v_documents integer := 0; v_users integer := 0; v_kit_names integer := 0; v_notifications integer := 0; begin if length(v_email) not between 5 and 160 or v_email !~ '^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$' then raise exception using errcode = '22023', message = 'invalid_erasure_email'; end if; v_email_hash := encode(sha256(convert_to(v_email, 'UTF8')), 'hex'); select coalesce(array_agg(distinct candidate.user_id), '{}'::uuid[]) into v_user_ids from ( select profile.user_id from site_private …",
-    "raises": [
-     "invalid_erasure_email"
-    ],
-    "tables": [
-     "auth",
-     "set",
-     "site_private",
-     "v_quote_ids",
-     "v_storage_paths",
-     "v_user_ids"
-    ]
    },
    "log_admin_write": {
     "args": "",
@@ -20904,6 +21476,110 @@
     "body": "declare v_result jsonb := p_metadata; v_briefing jsonb; v_campaign jsonb; v_occasion jsonb; begin if jsonb_typeof(v_result) <> 'object' then return v_result; end if; v_briefing := v_result -> 'briefing'; if jsonb_typeof(v_briefing) = 'object' then v_result := jsonb_set(v_result, '{briefing}', v_briefing - 'actionName'); end if; v_campaign := v_result -> 'campaign'; if jsonb_typeof(v_campaign) = 'object' then v_occasion := v_campaign -> 'occasion'; if jsonb_typeof(v_occasion) = 'object' then v_result := jsonb_set(v_result, '{campaign,occasion}', (v_occasion - 'name') - 'id'); end if; end if; return v_result; end;",
     "raises": [],
     "tables": []
+   },
+   "current_titular_verified_email": {
+    "args": "",
+    "returns": "text",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_user_id uuid := auth.uid(); v_email text; begin if v_user_id is null then raise exception using errcode = '42501', message = 'authentication_required'; end if; select lower(user_record.email) into v_email from auth.users user_record where user_record.id = v_user_id and user_record.email_confirmed_at is not null; if v_email is null then raise exception using errcode = '42501', message = 'verified_email_required'; end if; return v_email; end;",
+    "raises": [
+     "authentication_required",
+     "verified_email_required"
+    ],
+    "tables": [
+     "auth",
+     "v_email"
+    ]
+   },
+   "get_my_data_access": {
+    "args": "",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_user_id uuid := auth.uid(); v_email text := site_private.current_titular_verified_email(); v_display_name text; v_company text; v_quotes integer; v_selections integer; v_favorites integer; v_contacts integer; begin insert into site_private.subject_right_requests (subject_user_id, right_type) values (v_user_id, 'access'); select profile.display_name, profile.company into v_display_name, v_company from site_private.customer_profiles profile where profile.user_id = v_user_id; select count(*) into v_quotes from site_private.quote_requests request where request.customer_user_id = v_user_id and request.status <> 'spam'; select count(*) into v_selections from site_private.customer_selecti …",
+    "raises": [],
+    "tables": [
+     "site_private",
+     "v_contacts",
+     "v_display_name",
+     "v_favorites",
+     "v_quotes",
+     "v_selections"
+    ]
+   },
+   "export_my_data": {
+    "args": "",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_user_id uuid := auth.uid(); v_email text := site_private.current_titular_verified_email(); v_display_name text; v_company text; v_quotes jsonb; v_selections jsonb; v_favorites jsonb; v_contacts jsonb; v_adjustments jsonb; v_rights jsonb; begin insert into site_private.subject_right_requests (subject_user_id, right_type) values (v_user_id, 'export'); select profile.display_name, profile.company into v_display_name, v_company from site_private.customer_profiles profile where profile.user_id = v_user_id; select coalesce(jsonb_agg(payload order by created_at desc), '[]'::jsonb) into v_quotes from ( select request.created_at, jsonb_build_object( 'id', request.id, 'protocol', request.pro …",
+    "raises": [],
+    "tables": [
+     "site_private",
+     "v_adjustments",
+     "v_contacts",
+     "v_display_name",
+     "v_favorites",
+     "v_quotes",
+     "v_rights",
+     "v_selections"
+    ]
+   },
+   "correct_my_data": {
+    "args": "p_display_name text, p_company text",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_user_id uuid := auth.uid(); v_email text := site_private.current_titular_verified_email(); v_display_name text := nullif(trim(coalesce(p_display_name, '')), ''); v_company text := nullif(trim(coalesce(p_company, '')), ''); begin if v_display_name is null and v_company is null then raise exception using errcode = '22023', message = 'invalid_profile_fields'; end if; if v_display_name is not null and length(v_display_name) not between 2 and 100 then raise exception using errcode = '22023', message = 'invalid_profile_fields'; end if; if v_company is not null and length(v_company) not between 2 and 150 then raise exception using errcode = '22023', message = 'invalid_profile_fields'; end …",
+    "raises": [
+     "invalid_profile_fields"
+    ],
+    "tables": [
+     "set",
+     "site_private"
+    ]
+   },
+   "delete_my_data": {
+    "args": "",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_user_id uuid := auth.uid(); v_email text := site_private.current_titular_verified_email(); begin insert into site_private.subject_right_requests (subject_user_id, right_type) values (v_user_id, 'delete'); return public.erase_customer_data(v_email, v_user_id); end;",
+    "raises": [],
+    "tables": [
+     "site_private"
+    ]
+   },
+   "erase_customer_data": {
+    "args": "p_email text, p_user_id uuid default null",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_email text := site_private.normalize_email(p_email); v_email_hash text; v_quote_ids uuid[]; v_user_ids uuid[]; v_storage_paths jsonb; v_quotes integer := 0; v_contacts integer := 0; v_profiles integer := 0; v_documents integer := 0; v_users integer := 0; v_kit_names integer := 0; v_notifications integer := 0; begin if length(v_email) not between 5 and 160 or v_email !~ '^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$' then raise exception using errcode = '22023', message = 'invalid_erasure_email'; end if; v_email_hash := encode(sha256(convert_to(v_email, 'UTF8')), 'hex'); select coalesce(array_agg(distinct candidate.user_id), '{}'::uuid[]) into v_user_ids from ( select profile.user_id from site_private …",
+    "raises": [
+     "invalid_erasure_email"
+    ],
+    "tables": [
+     "auth",
+     "set",
+     "site_private",
+     "v_quote_ids",
+     "v_storage_paths",
+     "v_user_ids"
+    ]
    }
   },
   "db_enums": {},
@@ -21219,21 +21895,6 @@
     "src": "site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql"
    },
    {
-    "function": "claim_my_quote_requests",
-    "msg": "authentication_required",
-    "src": "site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql"
-   },
-   {
-    "function": "claim_my_quote_requests",
-    "msg": "verified_email_required",
-    "src": "site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql"
-   },
-   {
-    "function": "claim_my_quote_requests",
-    "msg": "identity_erased",
-    "src": "site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql"
-   },
-   {
     "function": "get_briefing_asset_retention_candidates",
     "msg": "invalid_batch_size",
     "src": "site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql"
@@ -21339,9 +22000,34 @@
     "src": "site-supabase/supabase/migrations/20261117010000_add_commercial_team_contact_alert.sql"
    },
    {
+    "function": "current_titular_verified_email",
+    "msg": "authentication_required",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "function": "current_titular_verified_email",
+    "msg": "verified_email_required",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "function": "correct_my_data",
+    "msg": "invalid_profile_fields",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
     "function": "erase_customer_data",
     "msg": "invalid_erasure_email",
-    "src": "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql"
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "function": "claim_my_quote_requests",
+    "msg": "authentication_required",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "function": "claim_my_quote_requests",
+    "msg": "verified_email_required",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
    }
   ],
   "db_generated": [],
@@ -21996,6 +22682,13 @@
     "UPDATE": [],
     "DELETE": []
    },
+   "site_private.subject_right_requests": {
+    "rls": "forced",
+    "SELECT": [],
+    "INSERT": [],
+    "UPDATE": [],
+    "DELETE": []
+   },
    "storage.objects": {
     "rls": "tabela de fora do repo",
     "SELECT": [
@@ -22144,18 +22837,23 @@
    "can_delete_my_unverified_briefing_asset_path",
    "claim_my_quote_requests",
    "confirm_site_briefing_asset_verification",
+   "correct_my_data",
    "create_my_briefing_asset",
+   "current_titular_verified_email",
    "delete_my_briefing_asset",
+   "delete_my_data",
    "delete_my_selection",
    "enforce_valid_kit_reference_set",
    "erase_customer_assets_on_profile_change",
    "erase_customer_data",
    "erase_customer_occasion_favorites_on_profile_change",
    "erase_customer_selections_on_profile_change",
+   "export_my_data",
    "finalize_briefing_asset_retention",
    "finalize_site_storage_retention",
    "get_briefing_asset_retention_candidates",
    "get_my_briefing_asset_verification",
+   "get_my_data_access",
    "get_my_proposal_document",
    "get_my_quote_request",
    "get_my_quote_requests",
@@ -24237,6 +24935,110 @@
     "objkind": "function",
     "roles": "public, anon, authenticated, service_role, site_api",
     "src": "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.subject_right_requests",
+    "objkind": "table",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "select, insert, update, delete",
+    "object": "site_private.subject_right_requests",
+    "objkind": "table",
+    "roles": "service_role",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.current_titular_verified_email",
+    "objkind": "function",
+    "roles": "public, anon, authenticated, service_role, site_api",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "get_my_data_access",
+    "objkind": "function",
+    "roles": "public, anon",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "export_my_data",
+    "objkind": "function",
+    "roles": "public, anon",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "correct_my_data",
+    "objkind": "function",
+    "roles": "public, anon",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "delete_my_data",
+    "objkind": "function",
+    "roles": "public, anon",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "get_my_data_access",
+    "objkind": "function",
+    "roles": "authenticated, service_role",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "export_my_data",
+    "objkind": "function",
+    "roles": "authenticated, service_role",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "correct_my_data",
+    "objkind": "function",
+    "roles": "authenticated, service_role",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "delete_my_data",
+    "objkind": "function",
+    "roles": "authenticated, service_role",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "erase_customer_data",
+    "objkind": "function",
+    "roles": "public, anon, authenticated, site_api",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "erase_customer_data",
+    "objkind": "function",
+    "roles": "service_role",
+    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
    }
   ],
   "guards": [],
@@ -24309,7 +25111,8 @@
    "site_private.customer_occasion_favorites": [
     "created_at",
     "updated_at"
-   ]
+   ],
+   "site_private.subject_right_requests": []
   },
   "pii": [
    [
@@ -24349,7 +25152,7 @@
    "`site_private.quote_adjustment_requests.status` tem valores ['closed', 'new', 'resolved', 'triaged'] mas nenhum mapa de transições foi encontrado no código nem em tabela de transições do banco — a ordem permitida (ex.: pago → cancelado?) não está declarada.",
    "`site_private.status_transitions.from_status` é uma coluna de status sem enum/CHECK — os valores válidos e as transições permitidas não estão no banco.",
    "`site_private.status_transitions.to_status` é uma coluna de status sem enum/CHECK — os valores válidos e as transições permitidas não estão no banco.",
-   "8/21 tabelas sem `COMMENT ON TABLE` — o significado de negócio não está no schema: `site_private.quote_requests`, `site_private.contact_requests`, `site_private.consent_receipts`, `site_private.customer_profiles`, `site_private.quote_request_events`, `site_private.proposal_documents`, `site_private.quote_adjustment_requests`, `site_private.shared_selections`"
+   "8/22 tabelas sem `COMMENT ON TABLE` — o significado de negócio não está no schema: `site_private.quote_requests`, `site_private.contact_requests`, `site_private.consent_receipts`, `site_private.customer_profiles`, `site_private.quote_request_events`, `site_private.proposal_documents`, `site_private.quote_adjustment_requests`, `site_private.shared_selections`"
   ]
  },
  "manual": [],
@@ -25733,7 +26536,7 @@
   },
   "scripts/check-performance-budget.mjs": {
    "path": "scripts/check-performance-budget.mjs",
-   "lines": 142,
+   "lines": 154,
    "env": [
     "PERFORMANCE_BUDGET_PROFILE"
    ],
@@ -28058,6 +28861,11 @@
    "path": "site-supabase/supabase/migrations/20261117030100_repair_incomplete_customer_data_erasure.sql",
    "lines": 46
   },
+  "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql": {
+   "path": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
+   "lines": 517,
+   "uses_service_role": true
+  },
   "site-supabase/supabase/tests/database/adjustment_limits.test.sql": {
    "path": "site-supabase/supabase/tests/database/adjustment_limits.test.sql",
    "lines": 87,
@@ -28194,10 +29002,12 @@
   },
   "site-supabase/supabase/tests/database/customer_data_erasure.test.sql": {
    "path": "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
-   "lines": 308,
+   "lines": 358,
    "is_test": true,
    "temporal": [
-    "lease_token = gen_random_uuid(), lease_expires_at = now() + interval '5 minutes',"
+    "lease_token = gen_random_uuid(), lease_expires_at = now() + interval '5 minutes',",
+    "now() + interval '1 minute',",
+    "now() - interval '1 minute',"
    ],
    "tests": [
     "anon não apaga dados de titular",
@@ -28242,7 +29052,10 @@
     "segunda execução é idempotente: 0 profiles reprocessados (cobre o fix de precedência do operador nesta sessão)",
     "segunda execucao: 0 entregas canceladas porque o conjunto de orcamentos alcancaveis pelo e-mail ja esta vazio (a primeira trocou email por titular-...@erased.invalid e zerou customer_user_id)",
     "e-mail fora do formato mínimo é rejeitado",
-    "nova conta com o mesmo e-mail não consegue reverter o apagamento reivindicando histórico"
+    "conta recriada com o mesmo e-mail não é bloqueada por identity_erased e reivindica 0 pedidos (histórico anterior inacessível)",
+    "pedido posterior ao erased_at é associado à conta recriada",
+    "autoexclusao anonimiza o orçamento reivindicado (customer_user_id do titular) e o ainda nao vinculado (customer_user_id null) com o e-mail do titular",
+    "orçamento órfão é anonimizado na autoexclusão"
    ],
    "uses_service_role": true
   },
@@ -28939,6 +29752,82 @@
     "rate_limit_buckets tem fillfactor 80 (Etapa 40: consume_rate_limit faz upsert repetido na mesma linha, achado em auditoria de 16/09)",
     "shared_selection_rate_limits tem fillfactor 80 (mesmo padrão de upsert de rate_limit_buckets)"
    ]
+  },
+  "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql": {
+   "path": "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+   "lines": 213,
+   "is_test": true,
+   "tests": [
+    "trilha de exercicio de direito existe",
+    "trilha vincula a conta",
+    "trilha registra o tipo de direito",
+    "coluna right_type tem constraint check",
+    "right_type so permite access, export, correct e delete",
+    "authenticated nao acessa schema privado",
+    "authenticated nao le trilha diretamente",
+    "service_role le a trilha",
+    "authenticated confere tratamento",
+    "authenticated exporta seus dados",
+    "authenticated corrige perfil",
+    "authenticated autoexclui",
+    "anon nao confere tratamento",
+    "anon nao exporta",
+    "anon nao corrige",
+    "anon nao autoexclui",
+    "as 4 RPCs sao security definer com search_path vazio",
+    "sem sessao nao confere tratamento",
+    "sem sessao nao exporta",
+    "sem sessao nao corrige",
+    "sem sessao nao autoexclui",
+    "e-mail nao confirmado nao confere tratamento",
+    "e-mail nao confirmado nao exporta",
+    "e-mail nao confirmado nao corrige",
+    "e-mail nao confirmado nao autoexclui",
+    "acesso devolve display_name do titular",
+    "acesso devolve a empresa do titular",
+    "acesso conta os 1 orcamento do titular",
+    "acesso conta as 2 selecoes do titular (ativa + arquivada)",
+    "acesso conta o 1 favorito do titular",
+    "acesso conta o 1 contato do titular pelo e-mail",
+    "export devolve o e-mail do proprio titular",
+    "export tem bloco de perfil",
+    "export inclui display_name",
+    "export inclui 1 orcamento",
+    "export inclui kit_name_snapshot do item",
+    "export inclui a variante exata do item",
+    "export inclui evento da linha do tempo",
+    "export inclui proposta publicada",
+    "export inclui as 2 selecoes (ativa + arquivada)",
+    "export inclui a reference da selecao ativa",
+    "export inclui a reference da selecao arquivada",
+    "export inclui os favoritos",
+    "favorito exportado e o id estavel",
+    "export inclui o contato pelo e-mail",
+    "export inclui o texto do contato",
+    "export inclui o pedido de ajuste",
+    "export nao expoe request_metadata bruto",
+    "export inclui o nome da acao do briefing digitado pelo titular",
+    "export inclui a faixa de orcamento do briefing",
+    "export inclui a campanha do orcamento",
+    "trilha registra o exercicio de acesso",
+    "trilha registra o exercicio de exportacao",
+    "corrige somente display_name",
+    "display_name persistido",
+    "company preservada quando nao informada",
+    "corrige somente company",
+    "company persistida",
+    "campo em branco ('), como no formulario, nao apaga o valor salvo",
+    "display_name preservado com campo em branco",
+    "company atualizada quando o outro campo vem em branco",
+    "ambos os campos em branco sao rejeitados",
+    "display_name abaixo de 2 caracteres e rejeitado",
+    "company abaixo de 2 caracteres e rejeitado",
+    "trilha registra os 3 exercicios de correcao",
+    "autoexclusao remove a conta Auth por cascade",
+    "autoexclusao grava tombstone SHA-256 do e-mail",
+    "apos a autoexclusao a conta Auth nao existe mais"
+   ],
+   "uses_service_role": true
   },
   "src/App.tsx": {
    "path": "src/App.tsx",
@@ -30477,8 +31366,11 @@
   },
   "src/lib/customerAccount.ts": {
    "path": "src/lib/customerAccount.ts",
-   "lines": 122,
+   "lines": 227,
    "exports": [
+    "interface CustomerAccessReport",
+    "interface CustomerDataExport",
+    "interface CustomerProfileCorrection",
     "function isProposalExpired",
     "const customerStatusOptions",
     "function customerStatusLabel",
@@ -30487,11 +31379,20 @@
     "function fetchMyQuoteRequests",
     "function fetchMyQuoteRequest",
     "function requestMyQuoteAdjustment",
+    "function fetchMyDataAccess",
+    "function exportMyData",
+    "function downloadMyData",
+    "function correctMyData",
+    "function deleteMyData",
     "function sanitizeCustomerNextPath",
     "function normalizeCustomerHistoryPage"
    ],
    "rpc": [
     "claim_my_quote_requests",
+    "correct_my_data",
+    "delete_my_data",
+    "export_my_data",
+    "get_my_data_access",
     "get_my_quote_request",
     "get_my_quote_requests",
     "request_my_quote_adjustment"
@@ -30500,6 +31401,8 @@
     "adjustment_message_required",
     "customer_area_not_configured",
     "customer_area_unavailable",
+    "invalid_email_confirmation",
+    "invalid_profile_fields",
     "quote_not_found"
    ],
    "status_values": [
@@ -31555,9 +32458,12 @@
   },
   "src/pages/CustomerAccountPage.tsx": {
    "path": "src/pages/CustomerAccountPage.tsx",
-   "lines": 103,
+   "lines": 229,
    "exports": [
     "function CustomerAccountPage"
+   ],
+   "navigates": [
+    "/privacidade"
    ],
    "params": [
     {
@@ -31692,9 +32598,12 @@
   },
   "src/pages/PrivacyPage.tsx": {
    "path": "src/pages/PrivacyPage.tsx",
-   "lines": 23,
+   "lines": 27,
    "exports": [
     "function PrivacyPage"
+   ],
+   "navigates": [
+    "/minha-conta"
    ]
   },
   "src/pages/ProductPage.tsx": {
@@ -31909,7 +32818,7 @@
   },
   "src/types/site-database.types.ts": {
    "path": "src/types/site-database.types.ts",
-   "lines": 1278,
+   "lines": 1310,
    "exports": [
     "type Json",
     "type Database",
@@ -33140,10 +34049,33 @@
   }
  },
  "git": {
-  "sha": "e40d98f76ccb77e3631711e76c70f8e3556e3c4d",
+  "sha": "66ed450835b6abf281897d967b4267d231105d89",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "66ed450",
+    "date": "2026-11-21",
+    "author": "adm01-debug",
+    "subject": "feat(lgpd): direitos do titular — acesso, exportacao, correcao e autoexclusao (F-30) (#220)",
+    "files": [
+     "docs/DATABASE_DICTIONARY.md",
+     "docs/DATABASE_FUNCTION_CONTRACTS.md",
+     "docs/DATABASE_SCHEMA.md",
+     "docs/pendencias/_linha-de-base.md",
+     "scripts/check-performance-budget.mjs",
+     "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
+     "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
+     "site-supabase/supabase/tests/database/lead_storage.test.sql",
+     "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
+     "src/lib/customerAccount.ts",
+     "src/pages/CustomerAccountPage.tsx",
+     "src/pages/PrivacyPage.tsx",
+     "src/styles.css",
+     "src/types/site-database.types.ts",
+     "tests/check-performance-budget.node.mjs"
+    ]
+   },
    {
     "sha": "e40d98f",
     "date": "2026-11-21",
@@ -33459,25 +34391,24 @@
      "docs/DATABASE_FUNCTION_CONTRACTS.md",
      "tests/api/retention.test.ts"
     ]
-   },
-   {
-    "sha": "8e5ce1d",
-    "date": "2026-11-17",
-    "author": "adm01-debug",
-    "subject": "chore(docs): registra a verificação dos 58 itens de engenharia da auditoria (#187)",
-    "files": [
-     "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md"
-    ]
    }
   ],
   "hot_files": [
    [
     "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
-    6
+    5
    ],
    [
     "api/notifications.ts",
     3
+   ],
+   [
+    "docs/DATABASE_FUNCTION_CONTRACTS.md",
+    2
+   ],
+   [
+    "docs/pendencias/_linha-de-base.md",
+    2
    ],
    [
     "analise-prs/funcionalidades.csv",
@@ -33508,47 +34439,39 @@
     2
    ],
    [
-    "docs/pendencias/_achados.md",
+    "docs/DATABASE_DICTIONARY.md",
     1
    ],
    [
-    "docs/pendencias/_linha-de-base.md",
+    "docs/DATABASE_SCHEMA.md",
     1
    ],
    [
-    "docs/pendencias/_mapa-sistema.md",
+    "scripts/check-performance-budget.mjs",
     1
    ],
    [
-    "docs/pendencias/_regras-de-negocio.md",
+    "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
     1
    ],
    [
-    "src/components/ProductCard.tsx",
+    "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
     1
    ],
    [
-    "src/lib/campaignPresets.test.ts",
+    "site-supabase/supabase/tests/database/lead_storage.test.sql",
     1
    ],
    [
-    "src/lib/campaignPresets.ts",
+    "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
     1
    ],
    [
-    "src/lib/quoteConfirmation.test.ts",
+    "src/lib/customerAccount.ts",
     1
    ],
    [
-    "src/lib/quoteDraft.test.ts",
-    1
-   ],
-   [
-    "src/lib/quoteDraft.ts",
-    1
-   ],
-   [
-    "src/lib/quoteRequest.test.ts",
+    "src/pages/CustomerAccountPage.tsx",
     1
    ]
   ]

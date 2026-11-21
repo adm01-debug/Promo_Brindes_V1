@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `e40d98f76ccb77e3631711e76c70f8e3556e3c4d` (2026-11-21T13:42:26Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `66ed450835b6abf281897d967b4267d231105d89` (2026-11-21T20:35:38Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -14,7 +14,7 @@ Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR
 Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua tarefa; não carregue tudo.
 
 ## Stack
-- linguagens: TypeScript (215), Markdown (134), SQL (106), JavaScript (65), JSON (29), YAML (19), Python (8), CSS (4)
+- linguagens: TypeScript (215), Markdown (134), SQL (108), JavaScript (65), JSON (29), YAML (19), Python (8), CSS (4)
 - linguagem_principal: TypeScript
 - framework: React
 - backend_http: vercel-functions
@@ -34,9 +34,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Números
 | item | qtd |
 |---|---|
-| arquivos_total | 720 |
+| arquivos_total | 722 |
 | arquivos_codigo | 287 |
-| linhas_codigo | 55908 |
+| linhas_codigo | 56187 |
 | rotas | 32 |
 | rotas_http_backend | 14 |
 | vistas_por_id | 0 |
@@ -45,10 +45,10 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 | componentes | 40 |
 | hooks | 6 |
 | edge_functions | 0 |
-| tabelas | 22 |
-| migrations | 69 |
+| tabelas | 23 |
+| migrations | 70 |
 | cron_jobs | 0 |
-| testes | 144 |
+| testes | 145 |
 | workflows | 15 |
 | scripts | 37 |
 | docs_md | 134 |
@@ -63,7 +63,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - migrations: site-supabase/supabase/migrations
 - scripts: scripts/maintenance (4), scripts/inventario (3), scripts/regras_negocio (3)
 - docs: docs (75), (raiz) (9), .github (1)
-- nomenclatura: {"componentes":"PascalCase (100%)","hooks":"use + PascalCase","servicos":"camelCase (86%)","edge_functions":null,"tabelas":"snake_case (95%)"}
+- nomenclatura: {"componentes":"PascalCase (100%)","hooks":"use + PascalCase","servicos":"camelCase (86%)","edge_functions":null,"tabelas":"snake_case (96%)"}
 - instruções para agentes no repo: AGENTS.md, CLAUDE.md
 
 ## Módulos (menu → domínio)
@@ -173,18 +173,18 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - package.json (65)
 - e2e/smoke.spec.ts (58)
 - package-lock.json (36)
-- src/styles.css (35)
+- src/styles.css (36)
 - .github/workflows/quality.yml (28)
 - src/pages/QuotePage.tsx (27)
 - vercel.json (26)
-- docs/DATABASE_DICTIONARY.md (23)
-- site-supabase/supabase/tests/database/lead_storage.test.sql (23)
+- docs/DATABASE_DICTIONARY.md (24)
+- site-supabase/supabase/tests/database/lead_storage.test.sql (24)
 - src/components/Layout.tsx (23)
 - .github/workflows/release.yml (21)
 - tests/api/lead-requests.test.ts (21)
 - api/_lib/siteDatabase.ts (19)
 - api/notifications.ts (19)
-- docs/DATABASE_FUNCTION_CONTRACTS.md (18)
+- docs/DATABASE_FUNCTION_CONTRACTS.md (19)
 
 ## Workflows
 - `automation-local.yml` — Automação local (pull_request, push, workflow_dispatch)
@@ -315,11 +315,11 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `docs/AUDIT_REPORT_20260908.md` — Auditoria técnica consolidada — 08–09/09/2026 (75 linhas)
 - `docs/AUTOMACAO_LOCAL.md` — Automação local — Promo_Brindes_V1 (104 linhas)
 - `docs/CUSTOMER_PORTAL_IMPLEMENTATION_20260909.md` — Área do Cliente — implementação e critérios de aceite (92 linhas)
-- `docs/DATABASE_DICTIONARY.md` — Dicionário de dados — site_private (Etapa 35) (393 linhas)
-- `docs/DATABASE_FUNCTION_CONTRACTS.md` — Contratos das funções do banco do site (Etapas 22 e 23) (237 linhas)
+- `docs/DATABASE_DICTIONARY.md` — Dicionário de dados — site_private (Etapa 35) (408 linhas)
+- `docs/DATABASE_FUNCTION_CONTRACTS.md` — Contratos das funções do banco do site (Etapas 22 e 23) (238 linhas)
 - `docs/DATABASE_INVENTORY_PRINCIPAL.md` — Inventário de tabelas — banco principal (`doufsxqlfjyuvxuezpln`) (415 linhas)
 - `docs/DATABASE_PUBLIC_CONTRACT.md` — Contrato público de dados do Site Promo Brindes (82 linhas)
-- `docs/DATABASE_SCHEMA.md` — Diagrama entidade-relacionamento — site_private (Etapa 48) (48 linhas)
+- `docs/DATABASE_SCHEMA.md` — Diagrama entidade-relacionamento — site_private (Etapa 48) (50 linhas)
 - `docs/EXECUCAO_COMPLEMENTAR_20260922.md` — Execução complementar e correção das evidências — 22/09/2026 (50 linhas)
 - `docs/EXECUCAO_CORRECOES_20260912.md` — Execução das correções prioritárias — 12/09/2026 (68 linhas)
 - `docs/EXECUCAO_FECHAMENTO_TECNICO_20260922.md` — Fechamento das lacunas técnicas priorizadas — 22/09/2026 (54 linhas)
@@ -386,6 +386,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-21 `66ed450` feat(lgpd): direitos do titular — acesso, exportacao, correcao e autoexclusao (F-30) (#220)
 - 2026-11-21 `e40d98f` chore(docs): reconcilia ground-truth de F-01/F-31/F-110 (#219)
 - 2026-11-20 `fc333d4` chore(docs): reconcilia funcionalidades.csv com a main (nov/2026) (#217)
 - 2026-11-20 `0afb33e` chore(docs): linha de base, regras de negocio e mapa do sistema (GOAL fase 0) (#216)
@@ -400,7 +401,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-18 `fd18af6` docs: corrige a ressalva de confianca que subestimava o que foi conferido (#207)
 - 2026-11-18 `a1aeeed` feat(e2e): cobre o envio de anexo do briefing em navegador (#206)
 - 2026-11-18 `13c5acb` feat(e2e): cobre dois dispositivos escolhendo na mesma seleção de orçamento (#201)
-- 2026-11-18 `4a23155` feat(guarda): aponta trabalho estacionado em refs fora de heads e pull (#203)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

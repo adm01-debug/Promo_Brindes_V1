@@ -1,6 +1,6 @@
 # 11 · GLOSSÁRIO, DADOS DE REFERÊNCIA E LACUNAS
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `e40d98f76c` · branch `main` · 2026-11-21 14:12 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `66ed450835` · branch `main` · 2026-11-21 20:36 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## Glossário do domínio (entidades do sistema)
@@ -28,6 +28,7 @@
 | `site_private.shared_selections` | _(sem COMMENT ON TABLE — significado não documentado)_ | 7 colunas | migration |
 | `site_private.status_transitions` | Transições administrativas válidas por entidade (Etapa 8). Fonte única de verdade para os triggers enforce_status_transition; qualquer update de status fora desta tabela é rejeitado com 22023. | 3 colunas | migration |
 | `site_private.storage_deletion_queue` | Fila mínima de objetos privados para remoção pela Storage API; não contém conteúdo do arquivo. | 3 colunas | migration |
+| `site_private.subject_right_requests` | Trilha do exercicio dos direitos do titular (LGPD art. 18) na Area do Cliente: access, export, correct e delete. Vinculada a conta e removida pelo cascade de auth.users; o registo persistente do apagamento e o tombstone irreversivel em erased_customer_identities. | 4 colunas | migration |
 | `CommercialAlertResult` (TS) | sent \| pending |  | `api/_lib/commercialTeamAlerts.ts` |
 | `LeadKind` (TS) | quote \| contact |  | `api/_lib/contracts.ts` |
 | `OperationalAlertEvent` (TS) | notification_queue_alert \| notification_cron_failed \| retention_cron_failed \| commercial_alerts_cron_failed \| public_catalog_unavailable \| retention_backlog_saturated |  | `api/_lib/operationalAlerts.ts` |
@@ -73,7 +74,7 @@ _nenhum item encontrado_
 - `site_private.quote_adjustment_requests.status` tem valores ['closed', 'new', 'resolved', 'triaged'] mas nenhum mapa de transições foi encontrado no código nem em tabela de transições do banco — a ordem permitida (ex.: pago → cancelado?) não está declarada.
 - `site_private.status_transitions.from_status` é uma coluna de status sem enum/CHECK — os valores válidos e as transições permitidas não estão no banco.
 - `site_private.status_transitions.to_status` é uma coluna de status sem enum/CHECK — os valores válidos e as transições permitidas não estão no banco.
-- 8/21 tabelas sem `COMMENT ON TABLE` — o significado de negócio não está no schema: `site_private.quote_requests`, `site_private.contact_requests`, `site_private.consent_receipts`, `site_private.customer_profiles`, `site_private.quote_request_events`, `site_private.proposal_documents`, `site_private.quote_adjustment_requests`, `site_private.shared_selections`
+- 8/22 tabelas sem `COMMENT ON TABLE` — o significado de negócio não está no schema: `site_private.quote_requests`, `site_private.contact_requests`, `site_private.consent_receipts`, `site_private.customer_profiles`, `site_private.quote_request_events`, `site_private.proposal_documents`, `site_private.quote_adjustment_requests`, `site_private.shared_selections`
 
 ## Regras manuais presentes
 
