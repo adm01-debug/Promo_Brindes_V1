@@ -5,7 +5,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(44);
+select plan(46);
 
 select ok(not pg_catalog.has_function_privilege('anon', 'public.erase_customer_data(text, uuid)', 'execute'), 'anon não apaga dados de titular');
 select ok(not pg_catalog.has_function_privilege('authenticated', 'public.erase_customer_data(text, uuid)', 'execute'), 'authenticated não apaga dados de titular (operação administrativa)');
@@ -308,14 +308,18 @@ select is(
 );
 
 -- Pedido novo enviado DEPOIS do apagamento pode ser associado à conta recriada.
+-- O claim compara created_at (server-side) com o erased_at; created_at default
+-- seria now() (mesmo instante da transação do tombstone), então setamos
+-- explicitamente um instante posterior para o vínculo ocorrer.
 insert into site_private.quote_requests (
   client_request_id, request_hash, source, contact_name, company, email, phone, city, notes, client_submitted_at,
-  request_metadata
+  created_at, request_metadata
 ) values (
   'erasure-test-quote-after', repeat('7', 64), 'site-promo-brindes',
   'Novo Titular', 'Empresa Nova', 'fulano@example.test', '11999998888', 'São Paulo', 'Pedido pós-exclusão',
   -- now() é o timestamp da transação (constante): usar um instante comprovadamente
   -- posterior ao erased_at (também now() da mesma transação) para o claim associar.
+  now() + interval '1 minute',
   now() + interval '1 minute',
   jsonb_build_object('campaign', jsonb_build_object('source', 'commemorative_date'), 'briefing', jsonb_build_object('actionName', 'Kit pós-exclusão', 'budgetRange', 'ate-25'))
 );
@@ -323,6 +327,29 @@ select is(
   (select (public.claim_my_quote_requests() ->> 'claimed')::integer),
   1,
   'pedido posterior ao erased_at é associado à conta recriada'
+);
+
+-- BUG 0002/Dev (bPS1): a autoexclusao (p_user_id fornecido) tambem alcança um
+-- orçamento ainda nao vinculado (customer_user_id null) com o e-mail do titular.
+insert into site_private.quote_requests (
+  client_request_id, request_hash, source, contact_name, company, email, phone, city, notes, client_submitted_at,
+  request_metadata
+) values (
+  'erasure-test-quote-unbound', repeat('5', 64), 'site-promo-brindes',
+  'Sem Conta', 'Empresa Orfã', 'fulano@example.test', '11955554444', 'São Paulo', 'Pedido sem vínculo', now(),
+  jsonb_build_object('briefing', jsonb_build_object('actionName', 'Kit sem conta', 'budgetRange', 'ate-25'))
+);
+create temporary table erasure_result_unbound as
+  select public.erase_customer_data('fulano@example.test', 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee') as result;
+select is(
+  (select (result ->> 'quotesAnonymized')::integer from erasure_result_unbound),
+  2,
+  'autoexclusao anonimiza o orçamento reivindicado (customer_user_id do titular) e o ainda nao vinculado (customer_user_id null) com o e-mail do titular'
+);
+select is(
+  (select contact_name from site_private.quote_requests where client_request_id = 'erasure-test-quote-unbound'),
+  '[apagado a pedido do titular]',
+  'orçamento órfão é anonimizado na autoexclusão'
 );
 
 select * from finish();

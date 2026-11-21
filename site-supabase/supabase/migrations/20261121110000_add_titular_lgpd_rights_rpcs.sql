@@ -369,7 +369,7 @@ begin
   select coalesce(array_agg(id), '{}'::uuid[]) into v_quote_ids
   from site_private.quote_requests
   where customer_user_id = any(v_user_ids)
-     or (p_user_id is null and (email = v_email or customer_user_id = any(v_user_ids)));
+     or (email = v_email and (p_user_id is null or customer_user_id is null));
 
   select coalesce(jsonb_agg(jsonb_build_object('bucket', document.storage_bucket, 'path', document.storage_path)), '[]'::jsonb)
   into v_storage_paths from site_private.proposal_documents document
@@ -449,10 +449,11 @@ comment on function public.erase_customer_data(text, uuid) is
 -- claim_my_quote_requests (20260923120000:341-352) rejeitava TODO e-mail com
 -- tombstone em erased_customer_identities, ignorando a data do pedido. Uma conta
 -- recriada com o mesmo e-mail ficava bloqueada mesmo com pedidos NOVOS
--- (client_submitted_at > erased_at). A barreira juridica contra recuperar o
--- historico ANTERIOR ao apagamento permanece: pedidos enviados antes do
--- erased_at continuam inalcancaveis (o claim atual os deixa sem dono, e a
--- assinatura abaixo so alcança os posteriores ao tombstone).
+-- (created_at > erased_at). A barreira juridica contra recuperar o historico
+-- ANTERIOR ao apagamento permanece: pedidos criados antes do erased_at continuam
+-- inalcancaveis (o claim atual os deixa sem dono, e a assinatura abaixo so alcança
+-- os posteriores ao tombstone). Usa created_at (server-side) em vez de
+-- client_submitted_at (navegador) para nao ocultar pedidos por relogio atrasado.
 create or replace function public.claim_my_quote_requests()
 returns jsonb
 language plpgsql
@@ -479,14 +480,17 @@ begin
   -- Conta recriada apos autoexclusao (BUG 0002): pedidos enviados DEPOIS do
   -- erased_at sao legitimamente do novo titular e podem ser associados. A barreira
   -- juridica contra recuperar o historico anterior ao apagamento permanece: os
-  -- pedidos com client_submitted_at <= v_erased_at nao sao tocados (ficam sem dono).
+  -- pedidos com created_at <= v_erased_at nao sao tocados (ficam sem dono).
+  -- created_at e preenchido pelo banco (server-side, imutavel); client_submitted_at
+  -- vem do navegador e a API aceita ate 7 dias no passado, entao um relogio atrasado
+  -- ocultaria pedidos legitimamente posteriores ao apagamento (BUG 0002/Dev).
   insert into site_private.customer_profiles (user_id, verified_email, display_name)
   values (v_user_id, v_email, v_name)
   on conflict (user_id) do update set verified_email = excluded.verified_email,
     display_name = coalesce(excluded.display_name, site_private.customer_profiles.display_name), updated_at = now();
   update site_private.quote_requests request set customer_user_id = v_user_id, updated_at = now()
   where request.customer_user_id is null and request.status <> 'spam' and lower(request.email) = v_email
-    and (v_erased_at is null or request.client_submitted_at > v_erased_at);
+    and (v_erased_at is null or request.created_at > v_erased_at);
   get diagnostics v_claimed = row_count;
   return jsonb_build_object('claimed', v_claimed, 'email', v_email);
 end;
