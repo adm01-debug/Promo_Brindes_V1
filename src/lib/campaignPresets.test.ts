@@ -3,6 +3,7 @@ import {
   buildCampaignCatalogUrl,
   campaignLabels,
   campaignSelectionCount,
+  campaignSignalExplanations,
   parseCampaignSelection,
   resolveCampaignFilters,
 } from './campaignPresets';
@@ -79,5 +80,31 @@ describe('ache pelo briefing', () => {
     expect(resolveCampaignFilters({ moment: 'relacionamento', audience: 'clientes' }, categories)).toMatchObject({
       profile: 'featured',
     });
+  });
+
+  it('liga cada resposta do briefing ao filtro efetivo que ela gerou', () => {
+    const categories = [{ id: 'tech', name: 'Tecnologia', parentId: null }];
+    expect(campaignSignalExplanations({ mood: 'sustentavel' }, categories)).toEqual([
+      { source: 'Clima: Sustentável', target: 'Material reciclado' },
+    ]);
+    expect(campaignSignalExplanations({ mood: 'tech' }, categories)).toEqual([
+      { source: 'Clima: Tech', target: 'Categoria Tecnologia' },
+    ]);
+    expect(campaignSignalExplanations({ mood: 'divertido' }, categories)).toEqual([
+      { source: 'Clima: Divertido', target: 'Cor colorido' },
+    ]);
+    expect(campaignSignalExplanations({ audience: 'publico-evento' }, categories)).toEqual([
+      { source: 'Público: Público de evento', target: 'Personalizável' },
+    ]);
+  });
+
+  it('não inventa sinais para uma escolha sem filtro estrutural', () => {
+    const categories: { id: string; name: string; parentId: null }[] = [];
+    expect(campaignSignalExplanations({ moment: 'onboarding', audience: 'colaboradores' }, categories)).toEqual([
+      { source: 'Momento: Onboarding', target: 'Curadoria de boas-vindas' },
+    ]);
+    expect(campaignSignalExplanations({ moment: 'evento' }, categories)).toEqual([
+      { source: 'Momento: Evento', target: 'Coleção Em alta' },
+    ]);
   });
 });

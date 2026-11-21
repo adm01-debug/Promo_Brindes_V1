@@ -6,6 +6,7 @@ import {
   campaignBriefFromSelection,
   campaignLabels,
   campaignSelectionCount,
+  campaignSignalExplanations,
   parseCampaignSelection,
   resolveCampaignFilters,
   type CampaignSelection,
@@ -83,6 +84,12 @@ export function useCatalogPageState() {
   const campaignFilters = useMemo(
     () => resolveCampaignFilters(campaignSelection, categories.data),
     // A chave estabiliza o objeto lido da URL e evita recalcular por identidade.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [campaignKey, categories.data],
+  );
+  const campaignSignals = useMemo(
+    () => campaignSignalExplanations(campaignSelection, categories.data),
+    // A chave estabiliza a seleção lida da URL (mesma razão de campaignFilters).
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [campaignKey, categories.data],
   );
@@ -298,7 +305,7 @@ export function useCatalogPageState() {
   };
 
   return {
-    activeFilterCount, campaignCount, catalog: rankedCatalog, catalogError, catalogLoading, categoryNameById, clearAll, clearComparison, comparison,
+    activeFilterCount, campaignCount, campaignSignals, catalog: rankedCatalog, catalogError, catalogLoading, categoryNameById, clearAll, clearComparison, comparison,
     comparisonControlRefs, comparisonExpanded, comparisonNotice, effectiveColors, effectiveMaterials, filterPanelProfile, filterPanelProps,
     giftPackaging, isSkuQueryActive: Boolean(query) && isSkuQuery(query) && catalog.data.products.length === 0, mobileCloseRef, mobileDialogRef, mobileFiltersOpen,
     mobileTriggerRef, page, personalizable, profile, profileWasExplicitlySet, query, removeCampaignFilter, removeComparison, searchCorrection, searchInput,

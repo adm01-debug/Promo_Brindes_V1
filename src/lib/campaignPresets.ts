@@ -157,3 +157,36 @@ export function resolveCampaignFilters(selection: CampaignSelection, categories:
     categoryIds,
   };
 }
+
+export interface CampaignSignalExplanation {
+  /** A resposta do briefing que gerou o sinal, ex.: "Clima: Sustentável". */
+  source: string;
+  /** O filtro efetivo aplicado, ex.: "Material reciclado". */
+  target: string;
+}
+
+/**
+ * Liga cada resposta do briefing ao filtro efetivo que ela gerou, para a UI
+ * mostrar a separação entre intenção e filtros (PF-40). Deriva do mesmo
+ * resolveCampaignFilters para nunca divergir da regra aplicada na consulta.
+ */
+export function campaignSignalExplanations(selection: CampaignSelection, categories: Category[]): CampaignSignalExplanation[] {
+  const filters = resolveCampaignFilters(selection, categories);
+  const result: CampaignSignalExplanation[] = [];
+  const moodLabel = optionLabel(CAMPAIGN_MOODS, selection.mood);
+  const audienceLabel = optionLabel(CAMPAIGN_AUDIENCES, selection.audience);
+  const momentLabel = optionLabel(CAMPAIGN_MOMENTS, selection.moment);
+  const scaleLabel = optionLabel(CAMPAIGN_SCALES, selection.scale);
+  if (filters.materials.length) result.push({ source: `Clima: ${moodLabel}`, target: `Material ${filters.materials.join(', ')}` });
+  if (filters.colors.length) result.push({ source: `Clima: ${moodLabel}`, target: `Cor ${filters.colors.join(', ')}` });
+  if (filters.categoryIds.length) {
+    const names = filters.categoryIds.map((id) => categories.find((category) => category.id === id)?.name).filter(Boolean);
+    result.push({ source: `Clima: ${moodLabel}`, target: `Categoria ${names.join(', ') || 'Tecnologia'}` });
+  }
+  if (filters.personalizable) result.push({ source: `Público: ${audienceLabel}`, target: 'Personalizável' });
+  if (filters.profile === 'kits') result.push({ source: `Clima: ${moodLabel}`, target: 'Coleção Kits & combos' });
+  if (filters.profile === 'featured') result.push({ source: `${moodLabel ? `Clima: ${moodLabel}` : `Momento: ${momentLabel}`}`, target: 'Coleção Em alta' });
+  if (filters.search) result.push({ source: `Momento: ${momentLabel}`, target: 'Curadoria de boas-vindas' });
+  if (filters.maxMinQuantity) result.push({ source: `Escala: ${scaleLabel}`, target: `Mínimo até ${filters.maxMinQuantity} un.` });
+  return result;
+}
