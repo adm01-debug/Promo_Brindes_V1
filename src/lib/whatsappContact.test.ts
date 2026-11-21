@@ -20,6 +20,7 @@ describe('contato via WhatsApp (F-47)', () => {
 
   it('expoe um numero padrao em formato internacional', () => {
     expect(DEFAULT_WHATSAPP_NUMBER).toBe('551146375517');
-    expect(DEFAULT_WHATSAPP_NUMBER).toMatch(/^55\d{10}$/);
+    // Aceita fixo (DDD + 8 digitos) e celular (DDD + 9 digitos) brasileiros.
+    expect(DEFAULT_WHATSAPP_NUMBER).toMatch(/^55\d{10,11}$/);
   });
 });
