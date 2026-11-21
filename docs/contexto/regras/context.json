@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "66ed450835b6abf281897d967b4267d231105d89",
+  "sha": "a3e9e210241490c2098aad18e53655fb0a20415a",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-21 20:36 UTC",
+  "generated_at": "2026-11-21 23:05 UTC",
   "files_total": 616,
   "code_files": 396,
-  "code_lines": 70141,
+  "code_lines": 70247,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "a42bbd28a1fc7d84",
+ "facts_hash": "636d86fdc962918e",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -7538,7 +7538,7 @@
   {
    "module": "scripts",
    "files": 43,
-   "lines": 21553,
+   "lines": 21559,
    "tables": [
     "a",
     "contacts",
@@ -7833,7 +7833,7 @@
   {
    "module": "src/components",
    "files": 29,
-   "lines": 3061,
+   "lines": 3062,
    "tables": [],
    "exports": [
     "AppErrorBoundary.tsx: AppErrorBoundary",
@@ -7939,7 +7939,7 @@
   {
    "module": "src/lib",
    "files": 80,
-   "lines": 7895,
+   "lines": 7994,
    "tables": [],
    "exports": [
     "analytics.ts: FunnelEventMap, redactAnalyticsPathname, redactTelemetryUrl, redactAnalyticsUrl, trackFunnelEvent",
@@ -7975,7 +7975,7 @@
     "quoteRequest.ts: sanitizeLeadPageUrl, buildQuotePayload, buildEmailHref, SubmitResult, submitQuoteRequest",
     "quoteSubmission.ts: QuoteSelectionSnapshot, sameQuoteSelectionContext, sameQuoteSelection, remainingItemsAfterSubmission",
     "scrollRestoration.ts: ScrollRestorationAdapter, restoreScrollPosition, browserScrollRestorationAdapter",
-    "search.ts: SearchSuggestion, normalizeSearchText, buildCatalogSearchGroups, suggestSearchCorrection, buildSearchSuggestions",
+    "search.ts: SearchSuggestion, normalizeSearchText, normalizeSku, isSkuQuery, buildCatalogSearchGroups, suggestSearchCorrection",
     "searchRelevance.ts: SearchRelevanceJudgment, searchRelevanceJudgments, evaluateSearchRelevance",
     "sharedSelection.ts: MAX_SHARED_SELECTION_ITEMS, SharedSelectionItem, PersistentSharedSelection, SharedSelectionHydration, encodeSharedSelection, decodeSharedSelection",
     "siteFeatureFlags.ts: quoteDecisionGroupsEnabled, customerAdjustmentsEnabled, persistentSharedSelectionsEnabled",
@@ -10705,6 +10705,10 @@
     "text": "A reserva expira automaticamente; esta limpeza é apenas compensatória."
    },
    {
+    "file": "src/lib/catalog.ts",
+    "text": "descartados — o SKU exato deve ser encontrado fora do recorte que"
+   },
+   {
     "file": "src/lib/catalogComparison.ts",
     "text": "Browsing in a restricted storage context must not block comparison."
    },
@@ -10774,6 +10778,10 @@
    },
    {
     "file": "src/lib/search.ts",
+    "text": "então a caixa original do SKU deve chegar intacta. Só remove acentos e"
+   },
+   {
+    "file": "src/lib/search.ts",
     "text": "* Sugere somente correções inequívocas de termos editoriais. Códigos e consultas"
    },
    {
@@ -10791,6 +10799,10 @@
    {
     "file": "src/lib/siteRpc.ts",
     "text": "* Executa uma consulta PostgREST com deadline real. O AbortSignal chega até o"
+   },
+   {
+    "file": "src/lib/useCatalogPageState.ts",
+    "text": "`exactSku` assume — um código de produto não deve ser reinterpretado como"
    },
    {
     "file": "src/lib/useCatalogPageState.ts",
@@ -16672,6 +16684,14 @@
    },
    {
     "file": "src/lib/catalog.test.ts",
+    "name": "busca por SKU exato via igualdade, sem reinterpretar como termo textual"
+   },
+   {
+    "file": "src/lib/catalog.test.ts",
+    "name": "preserva SKU pontuado do fornecedor no eq e limpa filtros visíveis no fallback"
+   },
+   {
+    "file": "src/lib/catalog.test.ts",
     "name": "recusa identificadores de produto abusivos antes de consultar a API"
    },
    {
@@ -17273,6 +17293,14 @@
    {
     "file": "src/lib/search.test.ts",
     "name": "sugere correção apenas para termos inequívocos, sem mexer em códigos"
+   },
+   {
+    "file": "src/lib/search.test.ts",
+    "name": "reconhece códigos de produto para o fallback de SKU exato"
+   },
+   {
+    "file": "src/lib/search.test.ts",
+    "name": "não trata termos de busca comuns como código de produto"
    },
    {
     "file": "src/lib/searchRelevance.test.ts",
@@ -26536,7 +26564,7 @@
   },
   "scripts/check-performance-budget.mjs": {
    "path": "scripts/check-performance-budget.mjs",
-   "lines": 154,
+   "lines": 160,
    "env": [
     "PERFORMANCE_BUDGET_PROFILE"
    ],
@@ -30137,7 +30165,7 @@
   },
   "src/components/CatalogFeedback.tsx": {
    "path": "src/components/CatalogFeedback.tsx",
-   "lines": 43,
+   "lines": 44,
    "exports": [
     "function ProductGridSkeleton",
     "function CatalogError",
@@ -30911,10 +30939,13 @@
   },
   "src/lib/catalog.test.ts": {
    "path": "src/lib/catalog.test.ts",
-   "lines": 256,
+   "lines": 278,
    "is_test": true,
    "errors": [
     "A consulta esperada ao catálogo não ocorreu."
+   ],
+   "rule_comments": [
+    "`P@02040` não pode virar `P 02040`: o `eq` é case-sensitive e o banco"
    ],
    "tests": [
     "catálogo público",
@@ -30935,6 +30966,8 @@
     "recusa registros sem identidade pública completa",
     "higieniza operadores do PostgREST antes da busca",
     "mantém códigos pesquisáveis mesmo quando possuem pontuação do fornecedor",
+    "busca por SKU exato via igualdade, sem reinterpretar como termo textual",
+    "preserva SKU pontuado do fornecedor no eq e limpa filtros visíveis no fallback",
     "recusa identificadores de produto abusivos antes de consultar a API",
     "reidrata até cinquenta referências compartilhadas sem truncar a consulta",
     "aceita apenas a origem canônica ou o Supabase local",
@@ -30946,7 +30979,7 @@
   },
   "src/lib/catalog.ts": {
    "path": "src/lib/catalog.ts",
-   "lines": 500,
+   "lines": 512,
    "exports": [
     "function resolveSupabaseUrl",
     "function resolvePublicApiKey",
@@ -30999,6 +31032,9 @@
    ],
    "role_checks": [
     "anon"
+   ],
+   "rule_comments": [
+    "descartados — o SKU exato deve ser encontrado fora do recorte que"
    ]
   },
   "src/lib/catalogComparison.test.ts": {
@@ -32041,7 +32077,7 @@
   },
   "src/lib/search.test.ts": {
    "path": "src/lib/search.test.ts",
-   "lines": 55,
+   "lines": 72,
    "is_test": true,
    "tests": [
     "busca assistida",
@@ -32053,20 +32089,25 @@
     "mantém pesquisa puramente numérica para códigos de produto",
     "ainda encontra uma intenção quando ela é o único termo informado",
     "combina ideias editoriais e categorias reais sem sugerir com uma letra",
-    "sugere correção apenas para termos inequívocos, sem mexer em códigos"
+    "sugere correção apenas para termos inequívocos, sem mexer em códigos",
+    "reconhece códigos de produto para o fallback de SKU exato",
+    "não trata termos de busca comuns como código de produto"
    ]
   },
   "src/lib/search.ts": {
    "path": "src/lib/search.ts",
-   "lines": 183,
+   "lines": 217,
    "exports": [
     "interface SearchSuggestion",
     "function normalizeSearchText",
+    "function normalizeSku",
+    "function isSkuQuery",
     "function buildCatalogSearchGroups",
     "function suggestSearchCorrection",
     "function buildSearchSuggestions"
    ],
    "rule_comments": [
+    "então a caixa original do SKU deve chegar intacta. Só remove acentos e",
     "* Sugere somente correções inequívocas de termos editoriais. Códigos e consultas"
    ]
   },
@@ -32268,11 +32309,12 @@
   },
   "src/lib/useCatalogPageState.ts": {
    "path": "src/lib/useCatalogPageState.ts",
-   "lines": 296,
+   "lines": 310,
    "exports": [
     "function useCatalogPageState"
    ],
    "rule_comments": [
+    "`exactSku` assume — um código de produto não deve ser reinterpretado como",
     "apenas quando essa é a ordem selecionada.",
     "Sem recorte de campanha ativo, o contexto do carrinho não deve reter uma",
     "não pode fazer o briefing herdar um contexto errado rumo ao comercial."
@@ -34049,10 +34091,27 @@
   }
  },
  "git": {
-  "sha": "66ed450835b6abf281897d967b4267d231105d89",
+  "sha": "a3e9e210241490c2098aad18e53655fb0a20415a",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "a3e9e21",
+    "date": "2026-11-21",
+    "author": "adm01-debug",
+    "subject": "feat: fallback de SKU exato quando a busca nao encontra correspondencia (NOVO-CA-22) (#221)",
+    "files": [
+     "scripts/check-performance-budget.mjs",
+     "src/components/CatalogFeedback.tsx",
+     "src/lib/catalog.test.ts",
+     "src/lib/catalog.ts",
+     "src/lib/search.test.ts",
+     "src/lib/search.ts",
+     "src/lib/useCatalogPageState.ts",
+     "src/pages/CatalogPage.tsx",
+     "tests/check-performance-budget.node.mjs"
+    ]
+   },
    {
     "sha": "66ed450",
     "date": "2026-11-21",
@@ -34380,17 +34439,6 @@
      "api/notifications.ts",
      "tests/api/notifications.test.ts"
     ]
-   },
-   {
-    "sha": "387263f",
-    "date": "2026-11-17",
-    "author": "adm01-debug",
-    "subject": "feat(retenção): cron drena o lote na mesma execução e ganha orçamento de tempo (#189)",
-    "files": [
-     "api/retention.ts",
-     "docs/DATABASE_FUNCTION_CONTRACTS.md",
-     "tests/api/retention.test.ts"
-    ]
    }
   ],
   "hot_files": [
@@ -34403,7 +34451,19 @@
     3
    ],
    [
-    "docs/DATABASE_FUNCTION_CONTRACTS.md",
+    "scripts/check-performance-budget.mjs",
+    2
+   ],
+   [
+    "src/lib/catalog.ts",
+    2
+   ],
+   [
+    "src/lib/useCatalogPageState.ts",
+    2
+   ],
+   [
+    "tests/check-performance-budget.node.mjs",
     2
    ],
    [
@@ -34435,43 +34495,31 @@
     2
    ],
    [
-    "api/retention.ts",
-    2
+    "src/components/CatalogFeedback.tsx",
+    1
+   ],
+   [
+    "src/lib/catalog.test.ts",
+    1
+   ],
+   [
+    "src/lib/search.test.ts",
+    1
+   ],
+   [
+    "src/lib/search.ts",
+    1
+   ],
+   [
+    "src/pages/CatalogPage.tsx",
+    1
    ],
    [
     "docs/DATABASE_DICTIONARY.md",
     1
    ],
    [
-    "docs/DATABASE_SCHEMA.md",
-    1
-   ],
-   [
-    "scripts/check-performance-budget.mjs",
-    1
-   ],
-   [
-    "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
-    1
-   ],
-   [
-    "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
-    1
-   ],
-   [
-    "site-supabase/supabase/tests/database/lead_storage.test.sql",
-    1
-   ],
-   [
-    "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
-    1
-   ],
-   [
-    "src/lib/customerAccount.ts",
-    1
-   ],
-   [
-    "src/pages/CustomerAccountPage.tsx",
+    "docs/DATABASE_FUNCTION_CONTRACTS.md",
     1
    ]
   ]

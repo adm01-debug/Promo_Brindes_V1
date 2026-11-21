@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "66ed450835b6abf281897d967b4267d231105d89",
+  "commit": "a3e9e210241490c2098aad18e53655fb0a20415a",
   "branch": "main",
-  "data_commit": "2026-11-21T20:35:38Z",
+  "data_commit": "2026-11-21T23:04:11Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "a3e9e21",
+    "data": "2026-11-21",
+    "assunto": "feat: fallback de SKU exato quando a busca nao encontra correspondencia (NOVO-CA-22) (#221)"
+   },
    {
     "sha": "66ed450",
     "data": "2026-11-21",
@@ -126,14 +131,9 @@
     "sha": "2a09509",
     "data": "2026-11-17",
     "assunto": "fix(config): comentário de cobertura para de citar contagem de teste que envelhece (#195)"
-   },
-   {
-    "sha": "b06b1e5",
-    "data": "2026-11-17",
-    "assunto": "fix(graphify): scanner de segredos passa a cobrir os formatos que este projeto usa (#194)"
    }
   ],
-  "arquivos_mudados_7d": 148,
+  "arquivos_mudados_7d": 153,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 101
+    "commits": 102
    },
    {
     "autor": "dependabot[bot]",
@@ -312,7 +312,7 @@
  "contagens": {
   "arquivos_total": 722,
   "arquivos_codigo": 287,
-  "linhas_codigo": 56187,
+  "linhas_codigo": 56293,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -456,7 +456,7 @@
   },
   "scripts/check-performance-budget.mjs": {
    "arquivos": 1,
-   "linhas": 154
+   "linhas": 160
   },
   "scripts/ci-health-metrics.mjs": {
    "arquivos": 1,
@@ -572,7 +572,7 @@
   },
   "src/components": {
    "arquivos": 29,
-   "linhas": 3061
+   "linhas": 3062
   },
   "src/context": {
    "arquivos": 7,
@@ -580,7 +580,7 @@
   },
   "src/lib": {
    "arquivos": 80,
-   "linhas": 7895
+   "linhas": 7994
   },
   "src/main.tsx": {
    "arquivos": 1,
@@ -762,7 +762,7 @@
   },
   {
    "arquivo": "src/lib/catalog.ts",
-   "linhas": 500
+   "linhas": 512
   },
   {
    "arquivo": "api/_lib/contracts.ts",
@@ -797,12 +797,12 @@
    "linhas": 327
   },
   {
-   "arquivo": "src/pages/CatalogsPage.tsx",
-   "linhas": 304
+   "arquivo": "src/lib/useCatalogPageState.ts",
+   "linhas": 310
   },
   {
-   "arquivo": "src/lib/useCatalogPageState.ts",
-   "linhas": 296
+   "arquivo": "src/pages/CatalogsPage.tsx",
+   "linhas": 304
   },
   {
    "arquivo": "api/retention.ts",
@@ -819,7 +819,7 @@
   "ts_ignore": 0,
   "eslint_disable": 1,
   "todos": 3,
-  "arquivos_acima_500_linhas": 12
+  "arquivos_acima_500_linhas": 13
  },
  "todos": [
   {

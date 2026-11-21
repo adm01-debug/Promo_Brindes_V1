@@ -1342,7 +1342,7 @@
     "sanitizeSearch"
    ],
    "export_default": null,
-   "linhas": 500,
+   "linhas": 512,
    "tabelas": [],
    "rpcs": [],
    "edges": [],
@@ -2202,11 +2202,13 @@
     "SearchSuggestion",
     "buildCatalogSearchGroups",
     "buildSearchSuggestions",
+    "isSkuQuery",
     "normalizeSearchText",
+    "normalizeSku",
     "suggestSearchCorrection"
    ],
    "export_default": null,
-   "linhas": 183,
+   "linhas": 217,
    "tabelas": [],
    "rpcs": [],
    "edges": [],
@@ -2417,7 +2419,7 @@
     "useCatalogPageState"
    ],
    "export_default": null,
-   "linhas": 296,
+   "linhas": 310,
    "tabelas": [],
    "rpcs": [],
    "edges": [],

@@ -280,11 +280,11 @@
   {
    "arquivo": "src/lib/catalog.test.ts",
    "tipo": "unit",
-   "linhas": 256,
+   "linhas": 278,
    "testa": [
     "src/lib/catalog.ts"
    ],
-   "casos": 23
+   "casos": 25
   },
   {
    "arquivo": "src/lib/catalogComparison.test.ts",
@@ -518,11 +518,11 @@
   {
    "arquivo": "src/lib/search.test.ts",
    "tipo": "unit",
-   "linhas": 55,
+   "linhas": 72,
    "testa": [
     "src/lib/search.ts"
    ],
-   "casos": 9
+   "casos": 11
   },
   {
    "arquivo": "src/lib/searchRelevance.test.ts",

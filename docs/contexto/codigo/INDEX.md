@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `66ed450835b6abf281897d967b4267d231105d89` (2026-11-21T20:35:38Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `a3e9e210241490c2098aad18e53655fb0a20415a` (2026-11-21T23:04:11Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -36,7 +36,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 |---|---|
 | arquivos_total | 722 |
 | arquivos_codigo | 287 |
-| linhas_codigo | 56187 |
+| linhas_codigo | 56293 |
 | rotas | 32 |
 | rotas_http_backend | 14 |
 | vistas_por_id | 0 |
@@ -386,6 +386,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-21 `a3e9e21` feat: fallback de SKU exato quando a busca nao encontra correspondencia (NOVO-CA-22) (#221)
 - 2026-11-21 `66ed450` feat(lgpd): direitos do titular — acesso, exportacao, correcao e autoexclusao (F-30) (#220)
 - 2026-11-21 `e40d98f` chore(docs): reconcilia ground-truth de F-01/F-31/F-110 (#219)
 - 2026-11-20 `fc333d4` chore(docs): reconcilia funcionalidades.csv com a main (nov/2026) (#217)
@@ -400,7 +401,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-19 `3038a45` feat(e2e): cobre a jornada completa do visitante com rede lenta e armazenamento bloqueado (#199)
 - 2026-11-18 `fd18af6` docs: corrige a ressalva de confianca que subestimava o que foi conferido (#207)
 - 2026-11-18 `a1aeeed` feat(e2e): cobre o envio de anexo do briefing em navegador (#206)
-- 2026-11-18 `13c5acb` feat(e2e): cobre dois dispositivos escolhendo na mesma seleção de orçamento (#201)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

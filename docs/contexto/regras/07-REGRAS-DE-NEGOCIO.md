@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `66ed450835` · branch `main` · 2026-11-21 20:36 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `a3e9e21024` · branch `main` · 2026-11-21 23:05 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -1056,7 +1056,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1706 testes em 136 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1710 testes em 136 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1076,8 +1076,8 @@ _nenhum item encontrado_
 | `tests/validate-agent-instructions.node.mjs` | 28 | aceita AGENTS.md com todas as seções obrigatórias · acusa seção obrigatória apagada por outra sessão · ${CLAUDE_FILE} precisa ser exatamente o import do ${AGENTS_FILE} · acusa referência quebrada e referência órfã em docs/agentes … |
 | `tests/catalog-public-contract.node.mjs` | 27 | aceita somente o contrato público exato de 36 colunas · falha se uma coluna esperada sumir ou uma coluna nova aparecer · falha explicitamente se preço, estoque ou fornecedor forem expostos · recusa identificador, arrays e swatches incompatíveis … |
 | `site-supabase/supabase/tests/database/customer_selections.test.sql` | 26 | seleções privadas por titular existem · RLS é forçada na tabela · cliente não acessa o schema privado · cliente não consulta tabela diretamente … |
+| `src/lib/catalog.test.ts` | 26 | catálogo público · normaliza apenas os dados necessários para a experiência do cliente · marca como novidade um produto dentro da janela canônica mesmo sem flag explícita · não confirma personalização quando o dado público ainda é desconhecido … |
 | `src/lib/useOccasionFavorites.test.tsx` | 25 | useOccasionFavorites · preserva uma adição confirmada quando uma leitura iniciada antes dela retorna vazia · preserva uma remoção enquanto uma leitura antiga ainda contém o favorito · não deixa uma leitura antiga apagar a escrita anterior quando a intenção seguinte falha … |
-| `src/lib/catalog.test.ts` | 24 | catálogo público · normaliza apenas os dados necessários para a experiência do cliente · marca como novidade um produto dentro da janela canônica mesmo sem flag explícita · não confirma personalização quando o dado público ainda é desconhecido … |
 | `site-supabase/supabase/tests/database/customer_occasion_favorites.test.sql` | 22 | favoritos de datas existem no schema privado · RLS é forçada nos favoritos de datas · cliente não recebe uso do schema privado · cliente não lê a tabela diretamente … |
 | `site-supabase/supabase/tests/database/lead_preflight_rate_limit.test.sql` | 20 | preflight distribuído existe · anon não executa preflight · authenticated não executa preflight · service_role executa preflight … |
 | `site-supabase/supabase/tests/database/notification_queue_policy.test.sql` | 20 | política: 5 tentativas máximas · política: lote máximo de 25 · política: lease de 10 minutos · anon não lê a política … |
@@ -1105,13 +1105,13 @@ _nenhum item encontrado_
 | `site-supabase/supabase/tests/database/admin_write_audit.test.sql` | 12 | anon não lê a trilha de auditoria · authenticated não lê a trilha de auditoria · site_api não lê a própria trilha de auditoria (não precisa para operar) · service_role lê a trilha de auditoria … |
 | `site-supabase/supabase/tests/database/kit_persistence_guards.test.sql` | 12 | guarda estrutural de kits existe no schema privado · rascunho valida kits no insert · rascunho valida kits no update · link compartilhado valida kits no insert … |
 | `src/components/CampaignFinder.test.tsx` | 12 | resumo editável do briefing · resume as quatro respostas antes de abrir a curadoria · remove só a escolha solicitada e volta à etapa correspondente · permite revisar todas as respostas sem apagar o que já foi escolhido … |
+| `src/lib/search.test.ts` | 12 | busca assistida · normaliza acentos, caixa e espaços sem transportar operadores · expande sinônimos como alternativas da mesma dimensão · descarta linguagem de preço e contexto quando há um objeto pesquisável … |
 | `site-supabase/supabase/tests/database/adjustment_limits.test.sql` | 11 | limite de pendências serializa transações concorrentes no mesmo orçamento · primeiro pedido é criado · replay idempotente devolve o mesmo pedido · replay não duplica a linha … |
 | `site-supabase/supabase/tests/database/query_plans.test.sql` | 11 | consulta de reivindicação da fila não usa Seq Scan em notification_deliveries com distribuição de regime permanente (Etapa 17) · recuperação de leases expiradas usa acesso indexado · reconciliação de webhook pelo identificador do provedor usa acesso indexado · histórico do cliente usa acesso indexado por titular e data … |
 | `tests/ci-health-metrics.node.mjs` | 11 | não contabiliza cancelamento, timeout ou execução pendente como sucesso · separa conclusões neutras e ignoradas do denominador terminal · amostra sem conclusão terminal permanece inconclusiva · taxas arredondadas continuam somando exatamente 100 … |
 | `tests/validate-error-catalog.node.mjs` | 11 | extrai mensagens literais (message = \ · extrai o prefixo de mensagens via format() (message = format(\ · ignora texto solto que não segue nenhum dos dois padrões (acentos/espaços quebram o casamento) · acusa mensagem de migration que não está no catálogo … |
 | `site-supabase/supabase/tests/database/notification_dispatch_uncertainty.test.sql` | 10 | anon não marca intenção de disparo · worker limitado pode marcar a intenção antes de chamar a Meta · orçamento com opt-in WhatsApp é criado · worker reivindica o WhatsApp … |
 | `src/components/ProductDescription.test.tsx` | 10 | descrição compacta e segura do produto · preserva texto curto sem exigir expansão · usa o resumo editorial no estado compacto e revela a descrição integral · limita um resumo longo antes de revelar a descrição integral … |
-| `src/lib/search.test.ts` | 10 | busca assistida · normaliza acentos, caixa e espaços sem transportar operadores · expande sinônimos como alternativas da mesma dimensão · descarta linguagem de preço e contexto quando há um objeto pesquisável … |
 | `tests/generate-site-api-jwt.node.mjs` | 10 | falha com mensagem clara quando SITE_SUPABASE_JWT_SECRET não está definido · gera um JWT HS256 válido com role:site_api, verificável com o mesmo segredo (nunca um segredo real: fixture de teste) · permite TTL explícito apenas dentro do teto operacional de 90 dias · segredos diferentes produzem assinaturas diferentes para o mesmo payload (não é uma constante disfarçada) … |
 | `tests/validate-env-example.node.mjs` | 10 | extrai só nomes em maiúsculas de process.env · acusa variável lida por api/ e ausente do exemplo · variável citada apenas em comentário conta como documentada · prefixo igual não cobre nome mais longo … |
 | `tests/api/shared-selections.test.ts` | 10 | links persistentes de seleção · cria link opaco, sem dados de produto ou contato no banco público · preserva a composição do kit e rejeita aritmética adulterada · preserva alternativas no envio e na leitura, sem incluir campos privados … |
@@ -1270,6 +1270,7 @@ _nenhum item encontrado_
 | Private browsing or a full storage quota must not block the quote journey. | `src/context/QuoteCartContext.tsx` |
 | compensatória não deve esconder o erro original do upload. | `src/lib/briefingAssets.ts` |
 | A reserva expira automaticamente; esta limpeza é apenas compensatória. | `src/lib/briefingAssets.ts` |
+| descartados — o SKU exato deve ser encontrado fora do recorte que | `src/lib/catalog.ts` |
 | Browsing in a restricted storage context must not block comparison. | `src/lib/catalogComparison.ts` |
 | * Consulta pública usada para uma prévia real, carregada somente quando a capa aparece. */ | `src/lib/catalogLibrary.ts` |
 | apenas na busca, sem reaparecer no conteúdo apresentado ao cliente. | `src/lib/catalogLibrary.ts` |
@@ -1287,11 +1288,13 @@ _nenhum item encontrado_
 | recuperar referências avulsas de dados antigos, mas uma transmissão nunca deve | `src/lib/quoteItems.ts` |
 | Nothing else is required when browser storage is unavailable. | `src/lib/quoteRepeat.ts` |
 | altura do documento. O primeiro scroll usa o máximo disponível e os frames | `src/lib/scrollRestoration.ts` |
+| então a caixa original do SKU deve chegar intacta. Só remove acentos e | `src/lib/search.ts` |
 | * Sugere somente correções inequívocas de termos editoriais. Códigos e consultas | `src/lib/search.ts` |
 | O moodboard aceita até 50 referências; o link persistente deve representar a | `src/lib/sharedSelection.ts` |
 | opaco e não pode herdar essa limitação de transporte. | `src/lib/sharedSelection.ts` |
 | * Nome da cor legado, usado somente quando o fornecedor não publica variantId. */ | `src/lib/sharedSelection.ts` |
 | * Executa uma consulta PostgREST com deadline real. O AbortSignal chega até o | `src/lib/siteRpc.ts` |
+| `exactSku` assume — um código de produto não deve ser reinterpretado como | `src/lib/useCatalogPageState.ts` |
 | apenas quando essa é a ordem selecionada. | `src/lib/useCatalogPageState.ts` |
 | Sem recorte de campanha ativo, o contexto do carrinho não deve reter uma | `src/lib/useCatalogPageState.ts` |
 | não pode fazer o briefing herdar um contexto errado rumo ao comercial. | `src/lib/useCatalogPageState.ts` |
