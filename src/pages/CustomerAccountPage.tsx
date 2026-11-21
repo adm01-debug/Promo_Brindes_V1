@@ -162,7 +162,7 @@ function CustomerDataSection() {
       <div className="container">
         <div className="customer-dashboard__heading"><div><span className="section-kicker">LGPD · Art. 18</span><h2 id="customer-data-title">Meus dados e direitos</h2><p>Veja o que guardamos, exporte, corrija ou encerre sua conta a qualquer momento.</p></div></div>
 
-        {error && <div className="customer-results-state customer-results-state--error" role="alert">{error}</div>}
+        {error && <div className="customer-data-error" role="alert">{error}</div>}
         {notice && <p className="customer-data-note" role="status">{notice}</p>}
 
         <div className="customer-data-grid">
