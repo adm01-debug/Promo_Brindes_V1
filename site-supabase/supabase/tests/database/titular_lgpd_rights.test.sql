@@ -6,7 +6,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(61);
+select plan(64);
 
 -- === Estrutura da trilha =========================================================
 select has_table('site_private', 'subject_right_requests', 'trilha de exercicio de direito existe');
@@ -146,12 +146,31 @@ select is((public.export_my_data() #>> '{contacts,0,message}'), 'Quero conhecer 
 select is(jsonb_array_length(public.export_my_data() -> 'adjustments'), 1, 'export inclui o pedido de ajuste');
 select ok(not (public.export_my_data() ? 'requestMetadata'), 'export nao expoe request_metadata bruto');
 select ok(
-  (public.export_my_data() #>> '{quotes,0,briefing}') is null,
-  'export nao repete briefing dentro do orcamento (ja exposto no retorno proprio)'
+  (public.export_my_data() #>> '{quotes,0,briefing,actionName}') = 'Kit de boas-vindas',
+  'export inclui o nome da acao do briefing digitado pelo titular'
+);
+select ok(
+  (public.export_my_data() #>> '{quotes,0,briefing,budgetRange}') = 'ate-25',
+  'export inclui a faixa de orcamento do briefing'
+);
+select ok(
+  (public.export_my_data() #>> '{quotes,0,campaign,moment}') = 'onboarding',
+  'export inclui a campanha do orcamento'
 );
 
--- Sem autenticacao nao ha trilha ainda: export de rights deve ser array vazio
-select is(jsonb_array_length(public.export_my_data() -> 'rights'), 0, 'antes de corrigir/excluir, a trilha de direitos esta vazia');
+-- Acesso e exportacao registram na trilha (BUG 0001): cada chamada bem-sucedida
+-- grava o tipo correspondente. O teste acima executa as RPCs varias vezes, entao
+-- basta confirmar que AMBOS os tipos existem para o titular.
+select ok(
+  exists (select 1 from site_private.subject_right_requests
+    where subject_user_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and right_type = 'access'),
+  'trilha registra o exercicio de acesso'
+);
+select ok(
+  exists (select 1 from site_private.subject_right_requests
+    where subject_user_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and right_type = 'export'),
+  'trilha registra o exercicio de exportacao'
+);
 
 -- === Correcao ===================================================================
 select is((public.correct_my_data('Nome Atualizado', null) ->> 'updated')::boolean, true, 'corrige somente display_name');

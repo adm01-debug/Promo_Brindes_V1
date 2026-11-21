@@ -6782,6 +6782,7 @@ form.catalog-search > .search-suggestions.is-open { display: grid; pointer-event
 .customer-data-actions { display: flex; align-items: center; gap: 12px; }
 .customer-data-card .button { align-self: flex-start; }
 .customer-data-card .form-field { margin-bottom: 10px; }
+.customer-data-card .form-field label { overflow-wrap: anywhere; }
 @media (max-width: 760px) {
   .customer-data-grid { grid-template-columns: 1fr; }
 }

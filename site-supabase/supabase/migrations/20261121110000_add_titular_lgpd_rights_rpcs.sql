@@ -97,6 +97,9 @@ declare
   v_favorites integer;
   v_contacts integer;
 begin
+  insert into site_private.subject_right_requests (subject_user_id, right_type)
+  values (v_user_id, 'access');
+
   select profile.display_name, profile.company
     into v_display_name, v_company
   from site_private.customer_profiles profile
@@ -146,6 +149,9 @@ declare
   v_adjustments jsonb;
   v_rights jsonb;
 begin
+  insert into site_private.subject_right_requests (subject_user_id, right_type)
+  values (v_user_id, 'export');
+
   select profile.display_name, profile.company
     into v_display_name, v_company
   from site_private.customer_profiles profile
@@ -160,6 +166,8 @@ begin
       'contactName', request.contact_name, 'email', request.email, 'phone', request.phone,
       'city', request.city, 'desiredDeadline', request.desired_deadline, 'notes', request.notes,
       'retentionUntil', request.retention_until,
+      'campaign', request.request_metadata -> 'campaign',
+      'briefing', request.request_metadata -> 'briefing',
       'items', coalesce((
         select jsonb_agg(jsonb_build_object(
           'key', item.item_key, 'productId', item.source_product_id, 'slug', item.product_slug,
@@ -306,12 +314,183 @@ begin
   insert into site_private.subject_right_requests (subject_user_id, right_type)
   values (v_user_id, 'delete');
 
-  return public.erase_customer_data(v_email);
+  return public.erase_customer_data(v_email, v_user_id);
 end;
 $$;
 
 comment on function public.delete_my_data() is
-  'F-30: autoexclusao — entrega o e-mail verificado do titular a erase_customer_data (mesma funcao do atendimento administrativo da Etapa 32), que anonimiza registros, remove a conta Auth por cascade e grava o tombstone SHA-256 irreversivel. O JSON devolvido e o mesmo de erase_customer_data (contagens e storagePathsToRemove).';
+  'F-30: autoexclusao — entrega o e-mail verificado do titular a erase_customer_data restrita ao auth.uid() (segundo argumento), que anonimiza registros do proprio titular, remove a conta Auth por cascade e grava o tombstone SHA-256 irreversivel. O JSON devolvido e o mesmo de erase_customer_data (contagens e storagePathsToRemove).';
+
+-- === Hardening: autoexclusao restrita ao titular atual ============================
+--
+-- SEC 0001 (review Devin): a forma original de erase_customer_data(p_email)
+-- reunia TODAS as contas com o mesmo e-mail (customer_profiles.verified_email
+-- UNION auth.users.email). Se o e-mail fosse reutilizado por outro titular, uma
+-- autoexclusao apagaria a conta alheia. O parametro opcional p_user_id restringe
+-- o alvo ao auth.uid() do chamador; sem ele (uso administrativo via service_role)
+-- o comportamento historico e preservado.
+--
+-- A assinatura original (text) e substituida pela variante (text, uuid default
+-- null): manter as duas simultaneamente violaria a convencao de versionamento
+-- (Etapa 23, function_catalog_hygiene). O default preserva a chamada de 1 arg.
+drop function if exists public.erase_customer_data(text);
+create or replace function public.erase_customer_data(p_email text, p_user_id uuid default null)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_email text := site_private.normalize_email(p_email);
+  v_email_hash text;
+  v_quote_ids uuid[];
+  v_user_ids uuid[];
+  v_storage_paths jsonb;
+  v_quotes integer := 0;
+  v_contacts integer := 0;
+  v_profiles integer := 0;
+  v_documents integer := 0;
+  v_users integer := 0;
+  v_kit_names integer := 0;
+  v_notifications integer := 0;
+begin
+  if length(v_email) not between 5 and 160 or v_email !~ '^[^\s@]+@[^\s@]+\.[^\s@]+$' then
+    raise exception using errcode = '22023', message = 'invalid_erasure_email';
+  end if;
+  v_email_hash := encode(sha256(convert_to(v_email, 'UTF8')), 'hex');
+
+  select coalesce(array_agg(distinct candidate.user_id), '{}'::uuid[]) into v_user_ids
+  from (
+    select profile.user_id from site_private.customer_profiles profile where profile.verified_email = v_email
+    union
+    select user_record.id from auth.users user_record where lower(user_record.email) = v_email
+  ) candidate
+  where p_user_id is null or candidate.user_id = p_user_id;
+  select coalesce(array_agg(id), '{}'::uuid[]) into v_quote_ids
+  from site_private.quote_requests
+  where customer_user_id = any(v_user_ids)
+     or (p_user_id is null and (email = v_email or customer_user_id = any(v_user_ids)));
+
+  select coalesce(jsonb_agg(jsonb_build_object('bucket', document.storage_bucket, 'path', document.storage_path)), '[]'::jsonb)
+  into v_storage_paths from site_private.proposal_documents document
+  where document.quote_request_id = any(v_quote_ids);
+
+  insert into site_private.storage_deletion_queue (bucket, object_path)
+  select document.storage_bucket, document.storage_path
+  from site_private.proposal_documents document
+  where document.quote_request_id = any(v_quote_ids)
+  on conflict (bucket, object_path) do update
+    set queued_at = least(site_private.storage_deletion_queue.queued_at, excluded.queued_at);
+
+  delete from site_private.proposal_documents where quote_request_id = any(v_quote_ids);
+  get diagnostics v_documents = row_count;
+  update site_private.quote_adjustment_requests
+    set message = '[apagado a pedido do titular]', updated_at = now()
+    where requested_by = any(v_user_ids);
+
+  update site_private.notification_deliveries delivery set
+    status = 'cancelled', lease_token = null, lease_expires_at = null, updated_at = now()
+  where delivery.request_kind = 'quote'
+    and delivery.request_id = any(v_quote_ids)
+    and delivery.status in ('pending', 'failed', 'processing');
+  get diagnostics v_notifications = row_count;
+
+  update site_private.quote_requests request set
+    contact_name = '[apagado a pedido do titular]', company = '[apagado a pedido do titular]',
+    email = 'titular-' || left(md5(request.id::text), 16) || '@erased.invalid',
+    phone = '00000000000', city = null, notes = null, customer_user_id = null,
+    request_metadata = site_private.erase_titular_request_metadata(request.request_metadata),
+    updated_at = now()
+  where request.id = any(v_quote_ids) and request.contact_name <> '[apagado a pedido do titular]';
+  get diagnostics v_quotes = row_count;
+
+  update site_private.quote_items item set
+    kit_name_snapshot = '[apagado a pedido do titular]'
+  where item.quote_request_id = any(v_quote_ids)
+    and item.kit_name_snapshot is not null
+    and item.kit_name_snapshot <> '[apagado a pedido do titular]';
+  get diagnostics v_kit_names = row_count;
+
+  update site_private.contact_requests request set
+    contact_name = '[apagado a pedido do titular]',
+    email = 'titular-' || left(md5(request.id::text), 16) || '@erased.invalid',
+    phone = null, message = '[apagado a pedido do titular]', updated_at = now()
+  where request.email = v_email and request.contact_name <> '[apagado a pedido do titular]';
+  get diagnostics v_contacts = row_count;
+  update site_private.customer_profiles profile set
+    display_name = null, company = null,
+    verified_email = 'titular-' || left(md5(profile.user_id::text), 16) || '@erased.invalid', updated_at = now()
+  where profile.user_id = any(v_user_ids)
+    and profile.verified_email !~ '^titular-[0-9a-f]{16}@erased\.invalid$';
+  get diagnostics v_profiles = row_count;
+
+  insert into site_private.erased_customer_identities (email_sha256, auth_users_deleted)
+  values (v_email_hash, cardinality(v_user_ids))
+  on conflict (email_sha256) do update set erased_at = now(),
+    auth_users_deleted = greatest(site_private.erased_customer_identities.auth_users_deleted, excluded.auth_users_deleted);
+  delete from auth.users where id = any(v_user_ids);
+  get diagnostics v_users = row_count;
+
+  return jsonb_build_object(
+    'quotesAnonymized', v_quotes, 'contactsAnonymized', v_contacts,
+    'profilesAnonymized', v_profiles, 'proposalDocumentsDeleted', v_documents,
+    'authUsersDeleted', v_users, 'storagePathsQueued', jsonb_array_length(v_storage_paths),
+    'kitNamesAnonymized', v_kit_names, 'notificationsCancelled', v_notifications,
+    'storagePathsToRemove', v_storage_paths
+  );
+end;
+$$;
+
+comment on function public.erase_customer_data(text, uuid) is
+  'Apagamento idempotente (F-31): anonimiza registros e texto livre do titular, cancela entregas reivindicaveis, enfileira blobs, registra tombstone SHA-256 e remove Auth por cascade. Com p_user_id restringe ao auth.uid() do chamador (autoexclusao F-30); sem ele (service_role administrativo) reune todas as contas do e-mail.';
+
+-- === Fix BUG 0002 (review Devin): contas recriadas apos autoexclusao ==============
+--
+-- claim_my_quote_requests (20260923120000:341-352) rejeitava TODO e-mail com
+-- tombstone em erased_customer_identities, ignorando a data do pedido. Uma conta
+-- recriada com o mesmo e-mail ficava bloqueada mesmo com pedidos NOVOS
+-- (client_submitted_at > erased_at). A barreira juridica contra recuperar o
+-- historico ANTERIOR ao apagamento permanece: pedidos enviados antes do
+-- erased_at continuam inalcancaveis (o claim atual os deixa sem dono, e a
+-- assinatura abaixo so alcança os posteriores ao tombstone).
+create or replace function public.claim_my_quote_requests()
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_user_id uuid := auth.uid();
+  v_email text;
+  v_name text;
+  v_claimed integer := 0;
+  v_email_hash text;
+  v_erased_at timestamptz;
+begin
+  if v_user_id is null then raise exception using errcode = '42501', message = 'authentication_required'; end if;
+  select lower(user_record.email), nullif(trim(user_record.raw_user_meta_data ->> 'name'), '')
+    into v_email, v_name from auth.users user_record
+    where user_record.id = v_user_id and user_record.email_confirmed_at is not null;
+  if v_email is null then raise exception using errcode = '42501', message = 'verified_email_required'; end if;
+  v_email_hash := encode(sha256(convert_to(v_email, 'UTF8')), 'hex');
+  select erased.erased_at into v_erased_at
+  from site_private.erased_customer_identities erased
+  where erased.email_sha256 = v_email_hash;
+  -- Conta recriada apos autoexclusao (BUG 0002): pedidos enviados DEPOIS do
+  -- erased_at sao legitimamente do novo titular e podem ser associados. A barreira
+  -- juridica contra recuperar o historico anterior ao apagamento permanece: os
+  -- pedidos com client_submitted_at <= v_erased_at nao sao tocados (ficam sem dono).
+  insert into site_private.customer_profiles (user_id, verified_email, display_name)
+  values (v_user_id, v_email, v_name)
+  on conflict (user_id) do update set verified_email = excluded.verified_email,
+    display_name = coalesce(excluded.display_name, site_private.customer_profiles.display_name), updated_at = now();
+  update site_private.quote_requests request set customer_user_id = v_user_id, updated_at = now()
+  where request.customer_user_id is null and request.status <> 'spam' and lower(request.email) = v_email
+    and (v_erased_at is null or request.client_submitted_at > v_erased_at);
+  get diagnostics v_claimed = row_count;
+  return jsonb_build_object('claimed', v_claimed, 'email', v_email);
+end;
+$$;
 
 -- === Grants ======================================================================
 revoke all on function public.get_my_data_access() from public, anon;
@@ -322,5 +501,11 @@ grant execute on function public.get_my_data_access() to authenticated, service_
 grant execute on function public.export_my_data() to authenticated, service_role;
 grant execute on function public.correct_my_data(text, text) to authenticated, service_role;
 grant execute on function public.delete_my_data() to authenticated, service_role;
+
+-- A variante restrita ao titular continua sendo operacao administrativa: so o
+-- service_role a executa diretamente; authenticated a alcanca apenas via
+-- delete_my_data (security definer).
+revoke all on function public.erase_customer_data(text, uuid) from public, anon, authenticated, site_api;
+grant execute on function public.erase_customer_data(text, uuid) to service_role;
 
 alter default privileges in schema site_private revoke all on tables from public, anon, authenticated;

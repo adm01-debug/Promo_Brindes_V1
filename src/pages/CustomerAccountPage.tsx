@@ -1,6 +1,6 @@
 import { ArrowRight, CalendarDays, FileDown, LogOut, PackageOpen, Search, ShieldCheck, Sparkles, UserPen, UserX } from 'lucide-react';
 import { type FormEvent, useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { CustomerRoute } from '../components/CustomerRoute';
 import { SavedSelections } from '../components/SavedSelections';
 import { Seo } from '../components/Seo';
@@ -102,6 +102,7 @@ function AccountContent() {
 
 function CustomerDataSection() {
   const auth = useCustomerAuth();
+  const navigate = useNavigate();
   const [access, setAccess] = useState<CustomerAccessReport | null>(null);
   const [displayName, setDisplayName] = useState('');
   const [company, setCompany] = useState('');
@@ -137,6 +138,27 @@ function CustomerDataSection() {
         const message = failure instanceof Error ? failure.message : '';
         if (message === 'invalid_profile_fields') setError('Confira os campos: nome de 2 a 100 caracteres e empresa de 2 a 150.');
         else if (message === 'invalid_email_confirmation') setError('Digite o e-mail da conta exatamente como exibido para confirmar a exclusão.');
+        else setError('Não conseguimos concluir esta ação agora.');
+      })
+      .finally(() => setBusy(false));
+  }
+
+  function confirmDelete() {
+    setBusy(true);
+    setError('');
+    setNotice('');
+    void deleteMyData(deleteEmail)
+      .then(() => {
+        setDeleted(true);
+        // A conta ja foi excluida no banco; encerrar a sessao local e navegar para
+        // uma rota publica. O signOut pode falhar por rede e, ainda assim, a
+        // confirmacao precisa aparecer (BUG 0004).
+        void auth.signOut().catch(() => { /* sessao local encerrada abaixo */ });
+        void navigate('/privacidade', { replace: true, state: { lgpdAccountClosed: true } });
+      })
+      .catch((failure: unknown) => {
+        const message = failure instanceof Error ? failure.message : '';
+        if (message === 'invalid_email_confirmation') setError('Digite o e-mail da conta exatamente como exibido para confirmar a exclusão.');
         else setError('Não conseguimos concluir esta ação agora.');
       })
       .finally(() => setBusy(false));
@@ -191,7 +213,7 @@ function CustomerDataSection() {
             <h3><UserX size={20} aria-hidden="true" /> Encerrar conta e apagar dados</h3>
             <p>Ao confirmar, seus orçamentos são anonimizados, arquivos e seleções são removidos e esta conta é encerrada. Não há como desfazer.</p>
             {confirmingDelete
-              ? <form onSubmit={(event) => { event.preventDefault(); void run(async () => { await deleteMyData(deleteEmail); setDeleted(true); }, ''); }}>
+              ? <form onSubmit={(event) => { event.preventDefault(); confirmDelete(); }}>
                   <div className="form-field"><label htmlFor="customer-data-delete-email">Digite <strong>{auth.user?.email}</strong> para confirmar</label><input id="customer-data-delete-email" value={deleteEmail} onChange={(event) => setDeleteEmail(event.target.value)} autoComplete="off" disabled={busy} /></div>
                   <div className="customer-data-actions"><button className="button button--dark" type="submit" disabled={busy || deleteEmail.trim() !== (auth.user?.email || '')}>Confirmar exclusão</button><button className="button" type="button" disabled={busy} onClick={() => { setConfirmingDelete(false); setDeleteEmail(''); }}>Cancelar</button></div>
                 </form>

@@ -31,7 +31,7 @@ Todas usam `errcode = '22023'` (invalid_text_representation, reaproveitado como
 | `adjustment_message_required` | `request_my_quote_adjustment` | **Não mapeada** | genérico |
 | `too_many_pending_adjustments` (`errcode P0001`) | `request_my_quote_adjustment` | Limite transacional de solicitações pendentes por pedido; a Área do Cliente apresenta o erro do pedido sem criar uma solicitação duplicada | erro no pedido |
 | `verified_email_required` (`errcode 42501`) | `claim_my_quote_requests` e RPCs F-30 (`get_my_data_access`, `export_my_data`, `correct_my_data`, `delete_my_data`) | **Não mapeada** — fluxo interno, não acionável pelo usuário diretamente | genérico |
-| `identity_erased` (`errcode 42501`) | `claim_my_quote_requests` | Impede que uma conta recriada reivindique pedidos vinculados a uma identidade já apagada por solicitação LGPD; não expõe o hash-túmulo ao cliente | genérico |
+| `identity_erased` (`errcode 42501`) | ~~`claim_my_quote_requests`~~ | **Removido (F-30 fix BUG 0002).** Uma conta recriada após autoexclusão LGPD não é mais bloqueada por completo: pedidos com `client_submitted_at > erased_at` (posteriores ao apagamento) podem ser associados; o histórico anterior permanece inacessível porque o e-mail já foi anonimizado (`titular-…@erased.invalid`). Não expõe o hash-túmulo ao cliente | n/a |
 | `quote_not_found` | `request_my_quote_adjustment` | **Não mapeada** | genérico |
 | `invalid_rate_limit_input` | `site_private.consume_rate_limit` | Interno — nunca deveria propagar a um chamador HTTP | n/a |
 | `invalid_lead_preflight_input` | `preflight_site_lead_request` | Interno — entrada é montada pelo backend após validação | n/a |

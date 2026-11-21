@@ -1,10 +1,14 @@
+import { useLocation } from 'react-router-dom';
 import { Seo } from '../components/Seo';
 
 export default function PrivacyPage() {
+  const location = useLocation();
+  const accountClosed = (location.state as { lgpdAccountClosed?: boolean } | null)?.lgpdAccountClosed === true;
   return (
     <>
       <Seo title="Aviso de privacidade" path="/privacidade" />
       <header className="legal-hero"><div className="container"><span className="section-kicker">Transparência</span><h1>Aviso de privacidade</h1><p>Última atualização: setembro de 2026</p></div></header>
+      {accountClosed && <div className="container"><div className="customer-data-note" role="status"><strong>Conta encerrada.</strong> Seus dados foram apagados e esta conta foi encerrada. Obrigado por usar a Promo Brindes.</div></div>}
       <article className="container legal-content">
         <section><h2>1. Dados usados na solicitação</h2><p>Quando você pede um orçamento, podemos receber nome, empresa, e-mail, telefone, cidade, prazo desejado, observações e a lista de produtos selecionados. Solicitamos apenas os dados necessários para entender o pedido e retornar o contato.</p></section>
         <section><h2>2. Finalidade</h2><p>Usamos essas informações para analisar a solicitação, preparar uma proposta, esclarecer detalhes e manter a comunicação comercial relacionada ao seu pedido.</p></section>

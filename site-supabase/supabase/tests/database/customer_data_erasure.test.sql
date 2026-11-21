@@ -5,11 +5,11 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(43);
+select plan(44);
 
-select ok(not pg_catalog.has_function_privilege('anon', 'public.erase_customer_data(text)', 'execute'), 'anon não apaga dados de titular');
-select ok(not pg_catalog.has_function_privilege('authenticated', 'public.erase_customer_data(text)', 'execute'), 'authenticated não apaga dados de titular (operação administrativa)');
-select ok(pg_catalog.has_function_privilege('service_role', 'public.erase_customer_data(text)', 'execute'), 'service_role executa o apagamento');
+select ok(not pg_catalog.has_function_privilege('anon', 'public.erase_customer_data(text, uuid)', 'execute'), 'anon não apaga dados de titular');
+select ok(not pg_catalog.has_function_privilege('authenticated', 'public.erase_customer_data(text, uuid)', 'execute'), 'authenticated não apaga dados de titular (operação administrativa)');
+select ok(pg_catalog.has_function_privilege('service_role', 'public.erase_customer_data(text, uuid)', 'execute'), 'service_role executa o apagamento');
 
 -- O e-mail já entra normalizado (Etapa 24 exige isso via constraint na própria
 -- tabela); quem recebe o valor em maiúsculas/com espaço e precisa normalizar é o
@@ -296,11 +296,33 @@ insert into auth.users (
   'authenticated', 'authenticated', 'fulano@example.test', '', now(), '{}'::jsonb, '{}'::jsonb, now(), now()
 );
 set local request.jwt.claims = '{"sub":"eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee","role":"authenticated"}';
-select throws_ok(
-  $$ select public.claim_my_quote_requests() $$,
-  '42501',
-  'identity_erased',
-  'nova conta com o mesmo e-mail não consegue reverter o apagamento reivindicando histórico'
+
+-- BUG 0002: a nova conta não é mais bloqueada por completo. O tombstone preserva
+-- a barreira contra o histórico ANTERIOR ao apagamento (os pedidos anonimizados
+-- não são alcançáveis), mas um pedido comprovadamente posterior ao erased_at
+-- pode ser associado. Sem pedido novo, o claim retorna 0 em vez de levantar.
+select is(
+  (select (public.claim_my_quote_requests() ->> 'claimed')::integer),
+  0,
+  'conta recriada com o mesmo e-mail não é bloqueada por identity_erased e reivindica 0 pedidos (histórico anterior inacessível)'
+);
+
+-- Pedido novo enviado DEPOIS do apagamento pode ser associado à conta recriada.
+insert into site_private.quote_requests (
+  client_request_id, request_hash, source, contact_name, company, email, phone, city, notes, client_submitted_at,
+  request_metadata
+) values (
+  'erasure-test-quote-after', repeat('7', 64), 'site-promo-brindes',
+  'Novo Titular', 'Empresa Nova', 'fulano@example.test', '11999998888', 'São Paulo', 'Pedido pós-exclusão',
+  -- now() é o timestamp da transação (constante): usar um instante comprovadamente
+  -- posterior ao erased_at (também now() da mesma transação) para o claim associar.
+  now() + interval '1 minute',
+  jsonb_build_object('campaign', jsonb_build_object('source', 'commemorative_date'), 'briefing', jsonb_build_object('actionName', 'Kit pós-exclusão', 'budgetRange', 'ate-25'))
+);
+select is(
+  (select (public.claim_my_quote_requests() ->> 'claimed')::integer),
+  1,
+  'pedido posterior ao erased_at é associado à conta recriada'
 );
 
 select * from finish();
