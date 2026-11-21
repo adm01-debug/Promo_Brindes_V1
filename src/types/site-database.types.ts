@@ -95,7 +95,10 @@ export type Database = {
         Args: { p_expected_version: number; p_id: string }
         Returns: boolean
       }
-      erase_customer_data: { Args: { p_email: string; p_user_id?: string }; Returns: Json }
+      erase_customer_data: {
+        Args: { p_email: string; p_user_id?: string }
+        Returns: Json
+      }
       export_my_data: { Args: never; Returns: Json }
       finalize_briefing_asset_retention: {
         Args: { p_batch_size?: number; p_storage_paths: string[] }
