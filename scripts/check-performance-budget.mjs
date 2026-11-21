@@ -102,8 +102,15 @@ try {
 
   // Bytes brutos guardam custo de parse/memória; Brotli representa transferência.
   // Os dois limites evitam que uma regressão fique invisível por compressibilidade.
-  assertBudget('CSS total', css, rawBytes(180));
-  assertBudget('JavaScript total', javascript, rawBytes(950));
+  // Teto CSS recalibrado em 21/11/2026 de 180 para 183 KiB quando a F-30
+  // adicionou os estilos da secao de dados do titular (+1,5 KiB raw; Brotli
+  // 27,8 KiB, abaixo do teto de 32 KiB). Margem real de ~1,5 KiB na base.
+  assertBudget('CSS total', css, rawBytes(183));
+  // Teto raw de JS recalibrado em 21/11/2026 de 950 para 960 KiB quando a F-30
+  // (LGPD art. 18 na Area do Cliente) levou o build de producao a 953,7 KiB
+  // (945 KiB base, +9 KiB da feature, arvore tree-shaken sem dependencia nova).
+  // Pior caso com as flags ligadas: 957,7 KiB. Margem de 2,3 KiB nos dois perfis.
+  assertBudget('JavaScript total', javascript, rawBytes(960));
   assertBudget('Bundle de entrada', entry, rawBytes(300));
   assertBudget('CSS total (Brotli)', cssBrotli, rawBytes(32));
   // O total é um teto de manutenção para todo o corpus lazy. O download real
@@ -116,14 +123,17 @@ try {
   // O resumo editável do briefing e a confirmação aprovada acrescentam 1,3 KiB
   // nas rotas lazy (medição conjunta em 27/10/2026). Os tetos de entrada,
   // carga inicial, maior chunk e bytes brutos permanecem independentes.
-  // Producao: 267 KiB, inalterado. Pior caso: 270 KiB, que e o teto de producao
-  // mais os 1,2 KiB das flags mais 1,8 KiB de folga — a folga existe porque a
-  // mesma arvore mede 266,9 KiB aqui e 267,1 KiB no runner da CI, e um gate que
-  // reprova por essa diferenca nao esta medindo o codigo, esta medindo a maquina.
+  // Producao agora (F-30 LGPD): 269,0 KiB; pior caso: 270,0 KiB. Teto de
+  // producao: 271 KiB (folga de 1,8 KiB apos a variacao de runner de ~0,2 KiB,
+  // mesmo criterio do perfil de pior caso). Pior caso: 272 KiB, que e o teto de
+  // producao mais os 1,2 KiB das flags mais 1,8 KiB de folga — a folga existe
+  // porque a mesma arvore mede 266,9 KiB aqui e 267,1 KiB no runner da CI, e um
+  // gate que reprova por essa diferenca nao esta medindo o codigo, esta medindo
+  // a maquina.
   assertBudget(
     WORST_CASE ? 'JavaScript total (Brotli, pior caso com as flags ligadas)' : 'JavaScript total (Brotli)',
     javascriptBrotli,
-    rawBytes(WORST_CASE ? 270 : 267),
+    rawBytes(WORST_CASE ? 272 : 271),
   );
   assertBudget('Bundle de entrada (Brotli)', entryBrotli, rawBytes(90));
   assertBudget('JavaScript inicial (Brotli)', initialJavascriptBrotli, rawBytes(150));

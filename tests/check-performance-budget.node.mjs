@@ -119,13 +119,13 @@ test('cada teto reprova com exit 1 e nomeia a métrica estourada', () => {
   const entry = { 'index-0a1b2c3d.js': compressible(1) };
   const manifest = entryOnly('index-0a1b2c3d.js');
   for (const [scenario, pattern] of [
-    [{ files: { ...entry, 'a.css': compressible(181) }, manifest }, /^CSS total: 181\.0 KiB excede o limite de 180 KiB\.\n$/],
-    [{ files: { ...entry, 'a.js': compressible(500), 'b.js': compressible(451) }, manifest }, /^JavaScript total: 952\.0 KiB excede o limite de 950 KiB\.\n$/],
+    [{ files: { ...entry, 'a.css': compressible(184) }, manifest }, /^CSS total: 184\.0 KiB excede o limite de 183 KiB\.\n$/],
+    [{ files: { ...entry, 'a.js': compressible(510), 'b.js': compressible(452) }, manifest }, /^JavaScript total: 963\.0 KiB excede o limite de 960 KiB\.\n$/],
     [{ files: { 'index-0a1b2c3d.js': compressible(301) }, manifest }, /^Bundle de entrada: 301\.0 KiB excede o limite de 300 KiB\.\n$/],
     [{ files: { ...entry, 'a.css': incompressible(33) }, manifest }, /^CSS total \(Brotli\): 33\.0 KiB excede o limite de 32 KiB\.\n$/],
     [
       { files: { ...entry, ...Object.fromEntries(Array.from({ length: 6 }, (_, index) => [`lazy-${index}.js`, incompressible(49)])) }, manifest },
-      /^JavaScript total \(Brotli\): 294\.\d KiB excede o limite de 267 KiB\.\n$/,
+      /^JavaScript total \(Brotli\): 294\.\d KiB excede o limite de 271 KiB\.\n$/,
     ],
     [{ files: { 'index-0a1b2c3d.js': incompressible(91) }, manifest }, /^Bundle de entrada \(Brotli\): 91\.0 KiB excede o limite de 90 KiB\.\n$/],
     [
