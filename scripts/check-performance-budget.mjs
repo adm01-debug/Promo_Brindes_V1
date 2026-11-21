@@ -112,7 +112,13 @@ try {
   // Pior caso com as flags ligadas: 957,7 KiB. Margens no raw: producao
   // 6,3 KiB (960 - 953,7) e pior caso 2,3 KiB (960 - 957,7); no Brotli a folga
   // e de 2,0 KiB (271 - 269,0 producao) e 2,0 KiB (272 - 270,0 pior caso).
-  assertBudget('JavaScript total', javascript, rawBytes(960));
+  // Teto recalibrado em 26/11/2026 de 960 para 962 KiB quando o NOVO-CA-22
+  // (busca por SKU exato no estado vazio do catalogo) adicionou ~0,7 KiB ao
+  // pior caso (959,3 KiB base -> 960,0 KiB com a feature). A margem do pior
+  // caso caiu de 2,3 KiB para 0,7 KiB; recalibrou-se para 962 KiB, mantendo
+  // ~2,0 KiB de folga no pior caso e ~8 KiB na producao, sem mascarar
+  // regressoes acima de 2 KiB.
+  assertBudget('JavaScript total', javascript, rawBytes(962));
   assertBudget('Bundle de entrada', entry, rawBytes(300));
   assertBudget('CSS total (Brotli)', cssBrotli, rawBytes(32));
   // O total é um teto de manutenção para todo o corpus lazy. O download real

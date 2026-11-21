@@ -204,6 +204,28 @@ describe('catálogo público', () => {
     expect(and).not.toContain('sku.ilike.*P 02040*');
   });
 
+  it('busca por SKU exato via igualdade, sem reinterpretar como termo textual', () => {
+    const params = buildCatalogParams({ exactSku: 'PB-100' });
+    const and = params.get('and') || '';
+    expect(and).toContain('sku.eq.PB-100');
+    expect(and).not.toContain('ilike');
+    // O termo de busca textual não é combinado quando o SKU exato assume.
+    expect(buildCatalogParams({ search: 'caneca', exactSku: 'PB-100' }).get('and')).toBe('(sku.eq.PB-100)');
+  });
+
+  it('preserva SKU pontuado do fornecedor no eq e limpa filtros visíveis no fallback', () => {
+    // `P@02040` não pode virar `P 02040`: o `eq` é case-sensitive e o banco
+    // armazena a caixa/pontuação originais. Categoria/cor/material não podem
+    // restringir o fallback, senão ele nunca acha o SKU fora do recorte vazio.
+    const params = buildCatalogParams({ exactSku: 'P@02040', categoryIds: ['cat-1'], colors: ['preto'], materials: ['plastico'] });
+    const and = params.get('and') || '';
+    expect(and).toContain('sku.eq.P@02040');
+    expect(and).not.toContain('ilike');
+    expect(and).not.toContain('category_id');
+    expect(and).not.toContain('colors');
+    expect(and).not.toContain('materials');
+  });
+
   it('recusa identificadores de produto abusivos antes de consultar a API', async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);

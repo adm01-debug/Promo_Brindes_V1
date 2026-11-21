@@ -24,7 +24,7 @@ import {
 import { loadCatalogComparison, saveCatalogComparison } from './catalogComparison';
 import { rankCatalogProducts } from './catalogRanking';
 import { useAllCategories, useCatalog } from './hooks';
-import { suggestSearchCorrection } from './search';
+import { isSkuQuery, normalizeSku, suggestSearchCorrection } from './search';
 import { useQuoteCart } from '../context/quoteCart';
 import type { CatalogProduct } from '../types';
 
@@ -43,6 +43,9 @@ export function useCatalogPageState() {
   const [params, setParams] = useSearchParams();
   const rawQuery = params.get('q') || '';
   const query = sanitizeSearch(rawQuery);
+  const rawExactSku = params.get('sku') || '';
+  const exactSku = normalizeSku(rawExactSku);
+  const skuQueryActive = Boolean(exactSku);
   const legacyCategoryId = params.get('categoria') || '';
   const categoryNameParam = params.get('nome') || '';
   const selectedCategoryIds = parseCategoryIds(params.get('categorias') || legacyCategoryId);
@@ -97,8 +100,12 @@ export function useCatalogPageState() {
   const filterPanelProfile: ProfileParam = effectiveProfile === 'featured' ? 'destaques' : effectiveProfile === 'new' ? 'novos' : effectiveProfile === 'kits' ? 'kits' : 'todos';
   const catalog = useCatalog({
     // A busca digitada vence o termo da campanha: quem escreve na barra está
-    // redefinindo o recorte, não acumulando sobre ele.
-    page, pageSize: 24, search: query || campaignFilters.search, categoryIds: catalogCategoryIds, colors: effectiveColors, materials: effectiveMaterials,
+    // redefinindo o recorte, não acumulando sobre ele. Quando a busca textual
+    // não encontrou correspondência e a pessoa optou pelo SKU exato, o
+    // `exactSku` assume — um código de produto não deve ser reinterpretado como
+    // termo de busca textual.
+    page, pageSize: 24, search: skuQueryActive ? undefined : (query || campaignFilters.search), exactSku: skuQueryActive ? exactSku : undefined,
+    categoryIds: catalogCategoryIds, colors: effectiveColors, materials: effectiveMaterials,
     personalizable: effectivePersonalizable, giftPackaging, maxMinQuantity: campaignFilters.maxMinQuantity, profile: effectiveProfile,
     sort: sort === 'recentes' ? 'newest' : sort === 'nome' ? 'name' : 'curated',
   }, retryKey, catalogEnabled);
@@ -243,7 +250,13 @@ export function useCatalogPageState() {
   }
   function submitSearch(value: string, suggestion = false) {
     trackFunnelEvent('search_started', { source: 'catalog', query_length: value.length, suggestion });
-    updateParams({ q: value || null }, true);
+    updateParams({ q: value || null, sku: null }, true);
+  }
+  // Fallback do NOVO-CA-22: quando a busca textual não encontrou correspondência
+  // e o termo parece um código de produto, oferece a busca por SKU exato.
+  function submitSkuExact(value: string) {
+    trackFunnelEvent('search_started', { source: 'catalog', query_length: value.length, suggestion: false });
+    updateParams({ q: null, sku: value || null }, true);
   }
   function clearAll() { setSearchInput(''); setParams({}); }
   function toggleParamValue(key: 'cores' | 'materiais', current: string[], value: string) {
@@ -287,9 +300,10 @@ export function useCatalogPageState() {
   return {
     activeFilterCount, campaignCount, catalog: rankedCatalog, catalogError, catalogLoading, categoryNameById, clearAll, clearComparison, comparison,
     comparisonControlRefs, comparisonExpanded, comparisonNotice, effectiveColors, effectiveMaterials, filterPanelProfile, filterPanelProps,
-    giftPackaging, mobileCloseRef, mobileDialogRef, mobileFiltersOpen, mobileTriggerRef, page, personalizable, profile,
-    profileWasExplicitlySet, query, removeCampaignFilter, removeComparison, searchCorrection, searchInput, selectedCampaignLabels,
-    selectedCategoryIds, selectedCategoryName, selectedColors, selectedMaterials, setComparisonExpanded, setMobileFiltersOpen,
-    setSearchInput, setRetryKey, sort, submitSearch, toggleCategory, toggleComparison, toggleParamValue, totalPages, updateParams,
+    giftPackaging, isSkuQueryActive: Boolean(query) && isSkuQuery(query) && catalog.data.products.length === 0, mobileCloseRef, mobileDialogRef, mobileFiltersOpen,
+    mobileTriggerRef, page, personalizable, profile, profileWasExplicitlySet, query, removeCampaignFilter, removeComparison, searchCorrection, searchInput,
+    selectedCampaignLabels, selectedCategoryIds, selectedCategoryName, selectedColors, selectedMaterials, setComparisonExpanded, setMobileFiltersOpen,
+    setSearchInput, setRetryKey, skuQueryActive, sort, submitSearch, submitSkuExact, toggleCategory, toggleComparison, toggleParamValue, totalPages, updateParams,
+    exactSku,
   };
 }
