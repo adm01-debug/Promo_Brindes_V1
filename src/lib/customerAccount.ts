@@ -196,8 +196,8 @@ export async function correctMyData(displayName: string, company: string): Promi
   if (normalizedName.length > 0 && normalizedName.length < 2) throw new Error('invalid_profile_fields');
   if (normalizedCompany.length > 0 && normalizedCompany.length < 2) throw new Error('invalid_profile_fields');
   const { data, error } = await runSiteRpc(requireClient().rpc('correct_my_data', {
-    p_display_name: normalizedName || null,
-    p_company: normalizedCompany || null,
+    p_display_name: normalizedName,
+    p_company: normalizedCompany,
   }));
   if (error) rpcError(error);
   const payload = parseCustomerPayload<CustomerProfileCorrection>(data);
