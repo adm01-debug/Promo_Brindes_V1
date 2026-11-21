@@ -1,6 +1,6 @@
 # Dicionário de dados — site_private (Etapa 35)
 
-Gerado por `npm run db:site:dictionary` a partir de `pg_description` no banco local, na versão do schema da migration mais recente (2026-11-17). Não editar à mão — a fonte de verdade é o comentário na migration (`comment on table`/`comment on column`); rode o script de novo depois de qualquer mudança de schema.
+Gerado por `npm run db:site:dictionary` a partir de `pg_description` no banco local, na versão do schema da migration mais recente (2026-11-21). Não editar à mão — a fonte de verdade é o comentário na migration (`comment on table`/`comment on column`); rode o script de novo depois de qualquer mudança de schema.
 
 ## Tabelas
 
@@ -341,6 +341,17 @@ Fila mínima de objetos privados para remoção pela Storage API; não contém c
 | `object_path` | `text` | — |
 | `queued_at` | `timestamp with time zone` | — |
 
+### `site_private.subject_right_requests`
+
+Trilha do exercicio dos direitos do titular (LGPD art. 18) na Area do Cliente: access, export, correct e delete. Vinculada a conta e removida pelo cascade de auth.users; o registo persistente do apagamento e o tombstone irreversivel em erased_customer_identities.
+
+| Coluna | Tipo | Comentário |
+|---|---|---|
+| `id` | `uuid` | — |
+| `subject_user_id` | `uuid` | — |
+| `right_type` | `text` | Direito exercido: access (confirmacao de tratamento), export (portabilidade), correct (correcao de perfil) ou delete (autoexclusao). |
+| `requested_at` | `timestamp with time zone` | — |
+
 ## Funções públicas (`public`)
 
 | Função | Argumentos | Comentário |
@@ -354,19 +365,23 @@ Fila mínima de objetos privados para remoção pela Storage API; não contém c
 | `claim_site_notification_deliveries` | `p_channels text[], p_batch_size integer` | Reivindica notificações com lease e devolve o contrato estruturado da confirmação, sem notas livres ou dados privados desnecessários ao e-mail. |
 | `claim_site_quote_notification` | `p_request_id uuid, p_channel text` | Reivindicação imediata com o mesmo contrato estruturado da fila; não recupera jobs processing presos. |
 | `confirm_site_briefing_asset_verification` | `p_id uuid, p_storage_path text, p_mime_type text, p_size_bytes integer` | — |
+| `correct_my_data` | `p_display_name text, p_company text` | F-30: correcao — atualiza display_name (2 a 100) e/ou company (2 a 150) do perfil do titular autenticado; campos em branco preservam o valor anterior. Pelo menos um campo deve ser fornecido; entradas invalidas levantam invalid_profile_fields. Registra o exercicio do direito na trilha. |
 | `create_my_briefing_asset` | `p_original_name text, p_mime_type text, p_size_bytes integer, p_kind text` | — |
 | `create_site_contact_request` | `p_payload jsonb, p_request_meta jsonb` | — |
 | `create_site_quote_request` | `p_payload jsonb, p_request_meta jsonb` | — |
 | `create_site_shared_selection` | `p_items jsonb, p_management_token_hash text, p_identifier_hash text` | — |
 | `delete_my_briefing_asset` | `p_id uuid` | — |
+| `delete_my_data` | `` | F-30: autoexclusao — entrega o e-mail verificado do titular a erase_customer_data (mesma funcao do atendimento administrativo da Etapa 32), que anonimiza registros, remove a conta Auth por cascade e grava o tombstone SHA-256 irreversivel. O JSON devolvido e o mesmo de erase_customer_data (contagens e storagePathsToRemove). |
 | `delete_my_selection` | `p_id uuid, p_expected_version integer` | — |
 | `erase_customer_data` | `p_email text` | Apagamento administrativo idempotente (F-31): anonimiza registros e texto livre — inclusive briefing.actionName, campaign.occasion.name/id em request_metadata e kit_name_snapshot dos itens —, cancela as entregas ainda reivindicaveis da fila (pending/failed/processing), enfileira blobs, registra tombstone SHA-256, remove Auth/sessoes por cascade e impede novo claim do mesmo e-mail. |
+| `export_my_data` | `` | F-30: portabilidade — devolve ao titular autenticado um JSON completo dos registros que o site guarda sobre ele (perfil, orcamentos com itens/eventos/propostas, selecoes, favoritos, contatos, pedidos de ajuste e trilha de direitos). O email retornado e o do proprio titular confirmado. |
 | `finalize_briefing_asset_retention` | `p_storage_paths text[], p_batch_size integer` | — |
 | `finalize_site_data_retention` | `p_quote_ids uuid[], p_storage_paths text[], p_batch_size integer` | — |
 | `finalize_site_notification_delivery` | `p_delivery_id uuid, p_lease_token uuid, p_status text, p_provider text, p_provider_message_id text, p_error_code text, p_retry_after_seconds integer` | Finaliza uma tentativa previamente reivindicada; exige o lease_token da reivindicação ativa (R04). Backoff exponencial com jitter via site_private.next_retry_at (Etapa 11); p_retry_after_seconds é só um piso opcional do provedor. |
 | `finalize_site_storage_retention` | `p_objects jsonb, p_batch_size integer` | Finaliza metadados somente depois que a API removeu, por bucket, todos os objetos privados informados. |
 | `get_briefing_asset_retention_candidates` | `p_batch_size integer` | — |
 | `get_my_briefing_asset_verification` | `p_id uuid` | — |
+| `get_my_data_access` | `` | F-30: confirmacao de tratamento — devolve ao titular autenticado um resumo do que o site guarda sobre ele (perfil e contagens), sem expor registros. Nenhum dado pessoal alem do do proprio titular. |
 | `get_my_proposal_document` | `p_proposal_id uuid` | Entrega o local de um documento somente ao cliente proprietário para assinatura server-side. |
 | `get_my_quote_request` | `p_request_id uuid` | Retorna detalhe e contexto de curadoria somente ao auth.uid() proprietário, sem metadados operacionais. |
 | `get_my_quote_requests` | `p_limit integer, p_offset integer, p_status text, p_search text` | Lista solicitações do auth.uid() com título de ação, miniaturas e última movimentação visível ao cliente. |

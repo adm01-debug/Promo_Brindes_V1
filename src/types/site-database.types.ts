@@ -60,7 +60,10 @@ export type Database = {
         }
         Returns: string
       }
-      correct_my_data: { Args: { p_company?: string | null; p_display_name?: string | null }; Returns: Json }
+      correct_my_data: {
+        Args: { p_company: string; p_display_name: string }
+        Returns: Json
+      }
       create_my_briefing_asset: {
         Args: {
           p_kind?: string
@@ -87,14 +90,13 @@ export type Database = {
         Returns: Json
       }
       delete_my_briefing_asset: { Args: { p_id: string }; Returns: boolean }
+      delete_my_data: { Args: never; Returns: Json }
       delete_my_selection: {
         Args: { p_expected_version: number; p_id: string }
         Returns: boolean
       }
-      delete_my_data: { Args: never; Returns: Json }
-      export_my_data: { Args: never; Returns: Json }
-      get_my_data_access: { Args: never; Returns: Json }
       erase_customer_data: { Args: { p_email: string }; Returns: Json }
+      export_my_data: { Args: never; Returns: Json }
       finalize_briefing_asset_retention: {
         Args: { p_batch_size?: number; p_storage_paths: string[] }
         Returns: number
@@ -131,6 +133,7 @@ export type Database = {
         Args: { p_id: string }
         Returns: Json
       }
+      get_my_data_access: { Args: never; Returns: Json }
       get_my_proposal_document: {
         Args: { p_proposal_id: string }
         Returns: Json
@@ -1075,6 +1078,27 @@ export type Database = {
         }
         Relationships: []
       }
+      subject_right_requests: {
+        Row: {
+          id: string
+          requested_at: string
+          right_type: string
+          subject_user_id: string
+        }
+        Insert: {
+          id?: string
+          requested_at?: string
+          right_type: string
+          subject_user_id: string
+        }
+        Update: {
+          id?: string
+          requested_at?: string
+          right_type?: string
+          subject_user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -1102,6 +1126,7 @@ export type Database = {
         Args: { p_identifier_hash: string; p_limit: number }
         Returns: undefined
       }
+      current_titular_verified_email: { Args: never; Returns: string }
       erase_titular_request_metadata: {
         Args: { p_metadata: Json }
         Returns: Json
