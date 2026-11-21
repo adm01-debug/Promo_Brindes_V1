@@ -78,11 +78,6 @@ insert into site_private.quote_items (
   'primary', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'Kit da Fulana de Tal', 100, 2
 );
 
-insert into site_private.quote_request_events (
-  quote_request_id, event_type, status, title, audience, created_at
-) values (
-  '11111111-1111-4111-8111-111111111111', 'received', 'new', 'Solicitacao recebida', 'customer', now()
-);
 
 insert into site_private.proposal_documents (
   id, quote_request_id, version, title, storage_bucket, storage_path, published_at
