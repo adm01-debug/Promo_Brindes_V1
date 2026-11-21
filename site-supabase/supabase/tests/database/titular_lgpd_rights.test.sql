@@ -6,7 +6,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(64);
+select plan(67);
 
 -- === Estrutura da trilha =========================================================
 select has_table('site_private', 'subject_right_requests', 'trilha de exercicio de direito existe');
@@ -178,13 +178,18 @@ select is((select display_name from site_private.customer_profiles where user_id
 select is((select company from site_private.customer_profiles where user_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'), 'Empresa Fulano', 'company preservada quando nao informada');
 select is((public.correct_my_data(null, 'Empresa Renomeada') ->> 'updated')::boolean, true, 'corrige somente company');
 select is((select company from site_private.customer_profiles where user_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'), 'Empresa Renomeada', 'company persistida');
+-- O formulario envia '' (string vazia), nao NULL; a RPC normaliza vazio para NULL
+-- e preserva o valor anterior (ANALYSIS 0002/Dev).
+select is((public.correct_my_data('', 'Empresa Dois') ->> 'updated')::boolean, true, 'campo em branco (''), como no formulario, nao apaga o valor salvo');
+select is((select display_name from site_private.customer_profiles where user_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'), 'Nome Atualizado', 'display_name preservado com campo em branco');
+select is((select company from site_private.customer_profiles where user_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'), 'Empresa Dois', 'company atualizada quando o outro campo vem em branco');
 select throws_ok('select public.correct_my_data(null, null)', '22023', 'invalid_profile_fields', 'ambos os campos em branco sao rejeitados');
 select throws_ok('select public.correct_my_data(''A'', null)', '22023', 'invalid_profile_fields', 'display_name abaixo de 2 caracteres e rejeitado');
 select throws_ok('select public.correct_my_data(null, ''x'')', '22023', 'invalid_profile_fields', 'company abaixo de 2 caracteres e rejeitado');
 select is(
   (select count(*) from site_private.subject_right_requests where subject_user_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and right_type = 'correct'),
-  2::bigint,
-  'trilha registra os 2 exercicios de correcao'
+  3::bigint,
+  'trilha registra os 3 exercicios de correcao'
 );
 
 -- === Autoexclusao ===============================================================
