@@ -8,6 +8,7 @@ import { hasSiteAuthConfiguration } from '../lib/siteSupabaseConfig';
 import { GiftLoversSignature } from './GiftLoversSignature';
 import { QuoteDrawer } from './QuoteDrawer';
 import { SearchAutocomplete } from './SearchAutocomplete';
+import { buildDefaultWhatsAppHref } from '../lib/whatsappContact';
 
 const navItems = [
   { to: '/catalogo', label: 'Radar de produtos' },
@@ -143,7 +144,7 @@ export function Layout({ children }: { children: ReactNode }) {
       <aside className="utility-bar" aria-label="Atendimento rápido">
         <div className="container utility-bar__inner">
           <span><i aria-hidden="true" /> Estratégia de marca em forma de presente</span>
-          <div className="utility-bar__actions">{customerAreaEnabled && <Link to="/minha-conta"><UserRound size={14} /> Meus orçamentos</Link>}<a href="tel:+551146375517">Briefing urgente? (11) 4637-5517</a></div>
+          <div className="utility-bar__actions">{customerAreaEnabled && <Link to="/minha-conta"><UserRound size={14} /> Meus orçamentos</Link>}<a href="tel:+551146375517">Briefing urgente? (11) 4637-5517</a><a href={buildDefaultWhatsAppHref()} target="_blank" rel="noopener noreferrer" onClick={() => trackFunnelEvent('whatsapp_opened', { placement: 'utility' })}>WhatsApp</a></div>
         </div>
       </aside>
       <header className="site-header">
@@ -237,6 +238,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <h2>Vamos conversar?</h2>
             <a href="tel:+551146375517">(11) 4637-5517</a>
             <a href="mailto:adm01@promobrindes.com.br">adm01@promobrindes.com.br</a>
+            <a href={buildDefaultWhatsAppHref()} target="_blank" rel="noopener noreferrer" onClick={() => trackFunnelEvent('whatsapp_opened', { placement: 'footer' })}>WhatsApp</a>
             <span>São Paulo · SP</span>
           </div>
         </div>

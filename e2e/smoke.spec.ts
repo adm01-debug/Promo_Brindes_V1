@@ -1039,6 +1039,14 @@ test('convite editorial de contato valida o essencial sem esconder labels', asyn
   await expect(page.getByLabel('O que você quer fazer acontecer? opcional')).toBeVisible();
 });
 
+test('contato oferece CTA de WhatsApp iniciado pelo visitante', async ({ page }) => {
+  await page.goto('/contato');
+  const link = page.getByRole('link', { name: 'Chamar no WhatsApp' });
+  await expect(link).toBeVisible();
+  await expect(link).toHaveAttribute('href', /^https:\/\/wa\.me\/55\d{10}\?text=/);
+  await expect(link).toHaveAttribute('target', '_blank');
+});
+
 test('limpeza da seleção oferece uma recuperação reversível', async ({ page }) => {
   await page.goto('/catalogo');
   await page.getByRole('button', { name: /Adicionar Mochila Executiva Sustentável à seleção/ }).click();
