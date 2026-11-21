@@ -69,13 +69,13 @@ insert into site_private.quote_requests (
 insert into site_private.quote_items (
   quote_request_id, position, source_product_id, item_key, product_slug, product_name_snapshot,
   sku_snapshot, image_url_snapshot, quantity, minimum_quantity_snapshot, variant_id_snapshot,
-  color_name_snapshot, color_hex_snapshot, decision_group_snapshot,
+  color_name_snapshot, color_hex_snapshot, decision_group_snapshot, kit_group_id,
   kit_name_snapshot, kit_quantity_snapshot, units_per_kit_snapshot
 ) values (
   '11111111-1111-4111-8111-111111111111', 1, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
   'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa::sem-cor', 'produto-a', 'Produto A',
   'KIT-A', 'https://img.test/produto-a.png', 200, 100, 'azul-1', 'Azul', '#0000ff',
-  'primary', 'Kit da Fulana de Tal', 100, 2
+  'primary', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'Kit da Fulana de Tal', 100, 2
 );
 
 insert into site_private.quote_request_events (
@@ -100,7 +100,7 @@ insert into site_private.contact_requests (
 );
 
 insert into site_private.customer_selections (customer_user_id, title, product_references, campaign, version)
-values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Minha selecao', '[{"productId":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","quantity":20}]'::jsonb, '{"source":"commemorative_date"}'::jsonb, 1);
+values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Minha selecao', '[{"id":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","q":20}]'::jsonb, '{"source":"commemorative_date"}'::jsonb, 1);
 
 insert into site_private.customer_occasion_favorites (customer_user_id, occasion_id)
 values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'natal-2026');
@@ -143,7 +143,7 @@ select is((public.export_my_data() #>> '{quotes,0,items,0,variantId}'), 'azul-1'
 select is(jsonb_array_length(public.export_my_data() -> 'quotes' -> 0 -> 'events'), 1, 'export inclui evento da linha do tempo');
 select is(jsonb_array_length(public.export_my_data() -> 'quotes' -> 0 -> 'proposals'), 1, 'export inclui proposta publicada');
 select is(jsonb_array_length(public.export_my_data() -> 'selections'), 1, 'export inclui a selecao salva');
-select is((public.export_my_data() #>> '{selections,0,references,0,productId}'), 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'export inclui reference da selecao');
+select is((public.export_my_data() #>> '{selections,0,references,0,id}'), 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'export inclui reference da selecao');
 select is(jsonb_array_length(public.export_my_data() -> 'favorites'), 1, 'export inclui os favoritos');
 select is((public.export_my_data() -> 'favorites' -> 0)::text, '"natal-2026"', 'favorito exportado e o id estavel');
 select is(jsonb_array_length(public.export_my_data() -> 'contacts'), 1, 'export inclui o contato pelo e-mail');
