@@ -102,7 +102,10 @@ try {
 
   // Bytes brutos guardam custo de parse/memória; Brotli representa transferência.
   // Os dois limites evitam que uma regressão fique invisível por compressibilidade.
-  assertBudget('CSS total', css, rawBytes(180));
+  // Teto CSS recalibrado em 21/11/2026 de 180 para 183 KiB quando a F-30
+  // adicionou os estilos da secao de dados do titular (+1,5 KiB raw; Brotli
+  // 27,8 KiB, abaixo do teto de 32 KiB). Margem real de ~1,5 KiB na base.
+  assertBudget('CSS total', css, rawBytes(183));
   // Teto raw de JS recalibrado em 21/11/2026 de 950 para 960 KiB quando a F-30
   // (LGPD art. 18 na Area do Cliente) levou o build de producao a 953,7 KiB
   // (945 KiB base, +9 KiB da feature, arvore tree-shaken sem dependencia nova).

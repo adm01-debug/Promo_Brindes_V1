@@ -16,7 +16,7 @@
 | `npm run lint` (eslint .) | OK, 0 erros | saída `eslint .` sem ocorrências |
 | `npm run typecheck` (`tsc -b`) | OK | sem erros |
 | `npm run test` (vitest run) | **538/538 passed** (7.02s) | saída vitest |
-| Build worst-case (deps + budget) | na PR #220 (F-30 LGPD) o JS raw subiu para 953,7 KiB (producao) / 957,7 KiB (pior caso) e o Brotli para 269,0 / 270,0 KiB, superando os tetos herdados (950 raw / 267 Brotli). Tetos recalibrados para 960 raw / 271 producao / 272 pior caso Brotli, com margem real de ~2 KiB nos dois perfis | `check-performance-budget.mjs` |
+| Build worst-case (deps + budget) | na PR #220 (F-30 LGPD) o JS raw subiu para 953,7 KiB (producao) / 957,7 KiB (pior caso) e o Brotli para 269,0 / 270,0 KiB, superando os tetos herdados (950 raw / 267 Brotli / 180 CSS). Tetos recalibrados para 960 raw / 271 producao / 272 pior caso Brotli / 183 CSS (nova secao do titular), com margem real de ~1,5-2 KiB nos dois perfis | `check-performance-budget.mjs` |
 | pgTAP / db:site:test | não reexecutado nesta sessão (toca Supabase) | NÃO VERIFICADO na linha de base |
 
 ## Consistência documental verificada

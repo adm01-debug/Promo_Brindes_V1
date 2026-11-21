@@ -119,7 +119,7 @@ test('cada teto reprova com exit 1 e nomeia a métrica estourada', () => {
   const entry = { 'index-0a1b2c3d.js': compressible(1) };
   const manifest = entryOnly('index-0a1b2c3d.js');
   for (const [scenario, pattern] of [
-    [{ files: { ...entry, 'a.css': compressible(181) }, manifest }, /^CSS total: 181\.0 KiB excede o limite de 180 KiB\.\n$/],
+    [{ files: { ...entry, 'a.css': compressible(184) }, manifest }, /^CSS total: 184\.0 KiB excede o limite de 183 KiB\.\n$/],
     [{ files: { ...entry, 'a.js': compressible(510), 'b.js': compressible(452) }, manifest }, /^JavaScript total: 963\.0 KiB excede o limite de 960 KiB\.\n$/],
     [{ files: { 'index-0a1b2c3d.js': compressible(301) }, manifest }, /^Bundle de entrada: 301\.0 KiB excede o limite de 300 KiB\.\n$/],
     [{ files: { ...entry, 'a.css': incompressible(33) }, manifest }, /^CSS total \(Brotli\): 33\.0 KiB excede o limite de 32 KiB\.\n$/],
