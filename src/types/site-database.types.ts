@@ -60,6 +60,7 @@ export type Database = {
         }
         Returns: string
       }
+      correct_my_data: { Args: { p_company?: string | null; p_display_name?: string | null }; Returns: Json }
       create_my_briefing_asset: {
         Args: {
           p_kind?: string
@@ -90,6 +91,9 @@ export type Database = {
         Args: { p_expected_version: number; p_id: string }
         Returns: boolean
       }
+      delete_my_data: { Args: never; Returns: Json }
+      export_my_data: { Args: never; Returns: Json }
+      get_my_data_access: { Args: never; Returns: Json }
       erase_customer_data: { Args: { p_email: string }; Returns: Json }
       finalize_briefing_asset_retention: {
         Args: { p_batch_size?: number; p_storage_paths: string[] }

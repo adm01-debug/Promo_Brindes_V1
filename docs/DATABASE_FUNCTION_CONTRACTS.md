@@ -23,14 +23,14 @@ Todas usam `errcode = '22023'` (invalid_text_representation, reaproveitado como
 | `rate_limit_exceeded` | `site_private.consume_rate_limit` (via `create_site_quote_request`/`create_site_contact_request`) | `api/_lib/siteDatabase.ts` — `.includes('rate_limit_exceeded')` | 429 |
 | `client_request_id_conflict` | `create_site_quote_request`, `create_site_contact_request` | `api/_lib/siteDatabase.ts` — `.includes('client_request_id_conflict')` | 409 |
 | `shared_selection_rate_limit_exceeded` | `create_site_shared_selection` | `api/_lib/sharedSelections.ts` — `.includes(...)` | ver `sharedSelections.ts` |
-| `authentication_required` (`errcode 42501`) | `get_my_quote_request(s)`, `get_my_proposal_document`, `claim_my_quote_requests`, `request_my_quote_adjustment` | **Não mapeada explicitamente** — cai no catch genérico | genérico (503 via caminho padrão) |
+| `authentication_required` (`errcode 42501`) | `get_my_quote_request(s)`, `get_my_proposal_document`, `claim_my_quote_requests`, `request_my_quote_adjustment` e RPCs F-30 (`get_my_data_access`, `export_my_data`, `correct_my_data`, `delete_my_data`) | **Não mapeada explicitamente** — cai no catch genérico | genérico (503 via caminho padrão) |
 | `invalid_quote_payload`, `invalid_contact_payload` | `create_site_quote_request`, `create_site_contact_request` | **Não mapeada** — a validação de `api/_lib/contracts.ts` já deveria ter barrado isso antes da RPC; chegar aqui é defesa em profundidade, não caminho esperado do usuário | genérico |
 | `invalid_client_request_id` | `create_site_quote_request`, `create_site_contact_request` | **Não mapeada** — mesma razão acima | genérico |
 | `invalid_item_decision_group` | `create_site_quote_request` | **Não mapeada** | genérico |
 | `invalid_status_filter` | `get_my_quote_requests` | **Não mapeada** — filtro vem de UI própria, não de input livre do usuário | genérico |
 | `adjustment_message_required` | `request_my_quote_adjustment` | **Não mapeada** | genérico |
 | `too_many_pending_adjustments` (`errcode P0001`) | `request_my_quote_adjustment` | Limite transacional de solicitações pendentes por pedido; a Área do Cliente apresenta o erro do pedido sem criar uma solicitação duplicada | erro no pedido |
-| `verified_email_required` (`errcode 42501`) | `claim_my_quote_requests` | **Não mapeada** — fluxo interno, não acionável pelo usuário diretamente | genérico |
+| `verified_email_required` (`errcode 42501`) | `claim_my_quote_requests` e RPCs F-30 (`get_my_data_access`, `export_my_data`, `correct_my_data`, `delete_my_data`) | **Não mapeada** — fluxo interno, não acionável pelo usuário diretamente | genérico |
 | `identity_erased` (`errcode 42501`) | `claim_my_quote_requests` | Impede que uma conta recriada reivindique pedidos vinculados a uma identidade já apagada por solicitação LGPD; não expõe o hash-túmulo ao cliente | genérico |
 | `quote_not_found` | `request_my_quote_adjustment` | **Não mapeada** | genérico |
 | `invalid_rate_limit_input` | `site_private.consume_rate_limit` | Interno — nunca deveria propagar a um chamador HTTP | n/a |
@@ -49,6 +49,7 @@ Todas usam `errcode = '22023'` (invalid_text_representation, reaproveitado como
 | `invalid_retention_batch_size`, `invalid_retention_finalize_input` | `get_site_data_retention_candidates`, `finalize_site_data_retention` | Só chamado por `api/retention.ts` (cron), nunca por input de usuário | 503 (`retention_unavailable`, `api/retention.ts:286`) |
 | `invalid_audit_retention_input` | `purge_site_admin_audit_logs` | Somente operação de retenção administrativa; valida lote e período mínimo antes de remover auditoria antiga | n/a |
 | `invalid_site_storage_retention_input` | `finalize_site_storage_retention` | Somente `api/retention.ts:182`; valida bucket, lote, UUID e resultado do expurgo assíncrono de Storage | 503 (`retention_unavailable`, `api/retention.ts:286`; nova tentativa no cron seguinte) |
+| `invalid_profile_fields` (`errcode 22023`) | correct_my_data — os dois campos em branco, ou display_name fora de 2–100 / company fora de 2–150 | Área do Cliente valida antes do envio; a RPC rejeita payload forjado (src/lib/customerAccount.ts + CustomerAccountPage) | erro no perfil |
 | `invalid_erasure_email` | `erase_customer_data` (Etapa 32) | Só `service_role`, executado manualmente via Studio (`docs/RUNBOOK_PEDIDO_TITULAR.md`) — nunca alcançável pela API pública | n/a |
 | `invalid_selection_payload`, `invalid_selection_reference`, `duplicate_selection_reference`, `invalid_selection_version` | `save_my_selection` | Área do Cliente valida antes do envio; a RPC rejeita payload forjado | erro no rascunho |
 | `selection_version_conflict`, `selection_limit_reached` (`errcode P0001`) | `save_my_selection`, `set_my_selection_archived`, `delete_my_selection` | Conflito visível com ação para recarregar; limite de 30 seleções, com arquivamento e exclusão | erro no rascunho |

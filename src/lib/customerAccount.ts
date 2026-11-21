@@ -13,6 +13,44 @@ import { runSiteRpc } from './siteRpc';
 
 export type { CustomerProposal, CustomerQuoteDetail, CustomerQuotePage, CustomerQuoteStatus } from './customerQuoteContract';
 
+export interface CustomerAccessReport {
+  profile: { displayName: string | null; company: string | null };
+  counts: { quotes: number; selections: number; favorites: number; contacts: number };
+}
+
+export interface CustomerDataExport {
+  exportedAt: string;
+  email: string;
+  profile: { displayName: string | null; company: string | null };
+  quotes: CustomerQuoteDetail[];
+  selections: unknown[];
+  favorites: string[];
+  contacts: unknown[];
+  adjustments: unknown[];
+  rights: Array<{ rightType: string; requestedAt: string }>;
+}
+
+export interface CustomerProfileCorrection {
+  updated: boolean;
+  displayName: string | null;
+  company: string | null;
+}
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function customerPayloadIsObject(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function readCount(value: unknown): number {
+  return Number.isInteger(value) && Number(value) >= 0 && Number(value) <= 1_000_000 ? Number(value) : Number.NaN;
+}
+
+function parseCustomerPayload<T>(data: unknown): T {
+  if (!customerPayloadIsObject(data)) throw new Error('customer_area_unavailable');
+  return data as unknown as T;
+}
+
 function localCalendarDate(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -108,6 +146,73 @@ export async function requestMyQuoteAdjustment(requestId: string, message: strin
   } catch {
     throw new Error('customer_area_unavailable');
   }
+}
+
+export async function fetchMyDataAccess(): Promise<CustomerAccessReport> {
+  const { data, error } = await runSiteRpc(requireClient().rpc('get_my_data_access'));
+  if (error) rpcError(error);
+  const payload = parseCustomerPayload<CustomerAccessReport>(data);
+  const counts = customerPayloadIsObject(payload.counts)
+    ? { quotes: readCount(payload.counts.quotes), selections: readCount(payload.counts.selections), favorites: readCount(payload.counts.favorites), contacts: readCount(payload.counts.contacts) }
+    : { quotes: Number.NaN, selections: Number.NaN, favorites: Number.NaN, contacts: Number.NaN };
+  if (Number.isNaN(counts.quotes)) throw new Error('customer_area_unavailable');
+  return {
+    profile: customerPayloadIsObject(payload.profile)
+      ? { displayName: typeof payload.profile.displayName === 'string' || payload.profile.displayName === null ? payload.profile.displayName : null, company: typeof payload.profile.company === 'string' || payload.profile.company === null ? payload.profile.company : null }
+      : { displayName: null, company: null },
+    counts,
+  };
+}
+
+export async function exportMyData(): Promise<CustomerDataExport> {
+  const { data, error } = await runSiteRpc(requireClient().rpc('export_my_data'));
+  if (error) rpcError(error);
+  const payload = parseCustomerPayload<CustomerDataExport>(data);
+  if (typeof payload.exportedAt !== 'string' || !Array.isArray(payload.quotes) || !Array.isArray(payload.rights)) throw new Error('customer_area_unavailable');
+  return payload;
+}
+
+export async function downloadMyData(): Promise<void> {
+  const payload = await exportMyData();
+  const filename = 'meus-dados-promo-brindes-' + new Date(payload.exportedAt).toISOString().slice(0, 10) + '.json';
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  try {
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+export async function correctMyData(displayName: string, company: string): Promise<CustomerProfileCorrection> {
+  const normalizedName = displayName.trim().slice(0, 100);
+  const normalizedCompany = company.trim().slice(0, 150);
+  if (!normalizedName && !normalizedCompany) throw new Error('invalid_profile_fields');
+  if (normalizedName.length > 0 && normalizedName.length < 2) throw new Error('invalid_profile_fields');
+  if (normalizedCompany.length > 0 && normalizedCompany.length < 2) throw new Error('invalid_profile_fields');
+  const { data, error } = await runSiteRpc(requireClient().rpc('correct_my_data', {
+    p_display_name: normalizedName || null,
+    p_company: normalizedCompany || null,
+  }));
+  if (error) rpcError(error);
+  const payload = parseCustomerPayload<CustomerProfileCorrection>(data);
+  if (payload.updated !== true) throw new Error('customer_area_unavailable');
+  return payload;
+}
+
+export async function deleteMyData(confirmationEmail: string): Promise<string> {
+  if (!EMAIL_PATTERN.test(confirmationEmail.trim())) throw new Error('invalid_email_confirmation');
+  const { data, error } = await runSiteRpc(requireClient().rpc('delete_my_data'));
+  if (error) rpcError(error);
+  const payload = parseCustomerPayload<Record<string, unknown>>(data);
+  const deleted = readCount(payload.authUsersDeleted);
+  if (Number.isNaN(deleted)) throw new Error('customer_area_unavailable');
+  return 'Seus dados foram apagados e esta conta foi encerrada. Obrigado por usar a Promo Brindes.';
 }
 
 export function sanitizeCustomerNextPath(value: string | null): string {
