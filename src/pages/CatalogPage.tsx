@@ -33,11 +33,11 @@ export default function CatalogPage() {
         <SearchAutocomplete
           variant="catalog" inputId="catalog-search" label="Buscar no catálogo" value={searchInput} placeholder="Camiseta, kit, squeeze, tech ou código…"
           categories={filterPanelProps.categories} onChange={setSearchInput} onSubmit={(value) => submitSearch(value)}
-          onClear={() => { setSearchInput(''); updateParams({ q: null }); }}
+          onClear={() => { setSearchInput(''); updateParams({ q: null, sku: null }); }}
           onSelect={(suggestion) => {
             trackFunnelEvent('search_started', { source: 'catalog', query_length: suggestion.value.length, suggestion: true });
-            if (suggestion.kind === 'category' && suggestion.categoryId) { setSearchInput(''); updateParams({ q: null, categorias: suggestion.categoryId, categoria: null, nome: suggestion.label }, true); }
-            else { setSearchInput(suggestion.value); updateParams({ q: suggestion.value }, true); }
+            if (suggestion.kind === 'category' && suggestion.categoryId) { setSearchInput(''); updateParams({ q: null, sku: null, categorias: suggestion.categoryId, categoria: null, nome: suggestion.label }, true); }
+            else { setSearchInput(suggestion.value); updateParams({ q: suggestion.value, sku: null }, true); }
           }}
         />
         <div className="catalog-quick-searches" aria-label="Sugestões rápidas"><span>Sugestões rápidas:</span>{quickSearches.map((term) => <button key={term} type="button" onClick={() => { setSearchInput(term); submitSearch(term); }}>{term}</button>)}</div>

@@ -67,18 +67,37 @@ export function normalizeSearchText(value: string): string {
 }
 
 const SKU_CODE_PATTERN = /^[a-z]{0,5}-?\d{1,8}$/;
+const SKU_CODE_PATTERN_PUNCT = /^[a-z0-9]{1,14}[-@$][a-z0-9]{1,14}$/i;
+
+/**
+ * Normaliza um código de produto preservando a pontuação (`@`, `$`, `-`) e a
+ * caixa, ao contrário de `normalizeSearchText`, que troca pontuação por espaço
+ * (ex.: `P@02040` viraria `P 02040`). O `sku.eq` do PostgREST é case-sensitive,
+ * então a caixa original do SKU deve chegar intacta. Só remove acentos e
+ * compacta espaços em volta.
+ */
+export function normalizeSku(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 40);
+}
 
 /**
  * Reconhece uma consulta que parece um código de produto (SKU), como "PB-100",
- * "MO42" ou "02040". Quando a busca por texto não encontra correspondência,
- * estes códigos merecem um fallback por igualdade exata — o `ilike.*term*` não
- * cobre códigos com prefixo que o tokenizador da busca textual quebra, nem um
- * SKU que só existe na forma exata.
+ * "MO42", "02040" ou o SKU pontuado "P@02040". Quando a busca por texto não
+ * encontra correspondência, estes códigos merecem um fallback por igualdade
+ * exata — o `ilike.*term*` não cobre códigos com prefixo que o tokenizador da
+ * busca textual quebra, nem um SKU que só existe na forma exata.
  */
 export function isSkuQuery(input: string): boolean {
   const normalized = normalizeSearchText(input);
   if (!normalized) return false;
-  return SKU_CODE_PATTERN.test(normalized);
+  if (SKU_CODE_PATTERN.test(normalized)) return true;
+  const literal = normalizeSku(input);
+  return Boolean(literal) && SKU_CODE_PATTERN_PUNCT.test(literal);
 }
 
 function synonymsFor(term: string): string[] {

@@ -1,5 +1,5 @@
 import type { CatalogProduct, Category, ProductColor } from '../types';
-import { buildCatalogSearchGroups } from './search';
+import { buildCatalogSearchGroups, normalizeSku } from './search';
 import { isCatalogCategoryId, parseCatalogPage, resolveColorValues, resolveMaterialValues } from './catalogFilters';
 import { isWithinNoveltyWindow, productBadgeConfig } from './productBadges';
 
@@ -361,25 +361,27 @@ export function buildCatalogParams(query: CatalogQuery = {}): URLSearchParams {
     offset: String((page - 1) * pageSize),
   });
   const andGroups: string[] = [];
+  const search = sanitizeSearch(query.search ?? '');
+  const exactSku = normalizeSku(query.exactSku ?? '');
   const categoryIds = [...new Set([...(query.categoryIds ?? []), ...(query.categoryId ? [query.categoryId] : [])]
     .map(safeCatalogId)
     .filter(Boolean))]
     .slice(0, 500);
-  if (categoryIds.length) {
-    const list = categoryIds.join(',');
-    // `category_id` é completo no contrato público; `main_category_id` da origem não é.
-    andGroups.push(`category_id.in.(${list})`);
-  }
-
-  const search = sanitizeSearch(query.search ?? '');
-  const exactSku = sanitizeSearch(query.exactSku ?? '');
   if (exactSku) {
-    // Busca por igualdade exata do código de produto. O `ilike.*term*` da busca
-    // textual pode não casar um SKU com prefixo (ex.: "PB-100") ou quando a
-    // busca é por código completo; aqui o produto aparece mesmo sem o texto
-    // corresponder a nome/descrição. Só um grupo é emitido, sem sinonímias.
+    // Fallback do NOVO-CA-22: busca por igualdade exata do código de produto.
+    // O `ilike.*term*` da busca textual não casa um SKU com prefixo (ex.:
+    // "PB-100") ou pontuado ("P@02040"). Aqui o produto aparece mesmo sem o
+    // texto corresponder a nome/descrição. Para que o fallback agregue valor
+    // sobre o `ilike`, os filtros visíveis (categoria/cor/material) são
+    // descartados — o SKU exato deve ser encontrado fora do recorte que
+    // causou o estado vazio. Só um grupo é emitido, sem sinonímias.
     andGroups.push(`sku.eq.${exactSku}`);
   } else {
+    if (categoryIds.length) {
+      const list = categoryIds.join(',');
+      // `category_id` é completo no contrato público; `main_category_id` da origem não é.
+      andGroups.push(`category_id.in.(${list})`);
+    }
     buildCatalogSearchGroups(search).forEach((alternatives) => {
       const fields = alternatives.flatMap((term) => [
         `name.ilike.*${term}*`,
@@ -391,12 +393,12 @@ export function buildCatalogParams(query: CatalogQuery = {}): URLSearchParams {
     });
   }
 
-  const colorValues = resolveColorValues(query.colors ?? []);
+  const colorValues = resolveColorValues(exactSku ? [] : query.colors ?? []);
   if (colorValues.length) {
     andGroups.push(`or(${colorValues.map((value) => jsonContains('colors', value)).join(',')})`);
   }
 
-  const materialValues = resolveMaterialValues(query.materials ?? []);
+  const materialValues = resolveMaterialValues(exactSku ? [] : query.materials ?? []);
   if (materialValues.length) {
     andGroups.push(`or(${materialValues.map((value) => jsonContains('materials', value)).join(',')})`);
   }

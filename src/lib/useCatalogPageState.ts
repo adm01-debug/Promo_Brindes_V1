@@ -24,7 +24,7 @@ import {
 import { loadCatalogComparison, saveCatalogComparison } from './catalogComparison';
 import { rankCatalogProducts } from './catalogRanking';
 import { useAllCategories, useCatalog } from './hooks';
-import { isSkuQuery, suggestSearchCorrection } from './search';
+import { isSkuQuery, normalizeSku, suggestSearchCorrection } from './search';
 import { useQuoteCart } from '../context/quoteCart';
 import type { CatalogProduct } from '../types';
 
@@ -44,7 +44,7 @@ export function useCatalogPageState() {
   const rawQuery = params.get('q') || '';
   const query = sanitizeSearch(rawQuery);
   const rawExactSku = params.get('sku') || '';
-  const exactSku = sanitizeSearch(rawExactSku);
+  const exactSku = normalizeSku(rawExactSku);
   const skuQueryActive = Boolean(exactSku);
   const legacyCategoryId = params.get('categoria') || '';
   const categoryNameParam = params.get('nome') || '';

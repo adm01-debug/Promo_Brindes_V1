@@ -57,6 +57,9 @@ describe('busca assistida', () => {
     expect(isSkuQuery('MO42')).toBe(true);
     expect(isSkuQuery('02040')).toBe(true);
     expect(isSkuQuery('cn-1234')).toBe(true);
+    // SKU pontuado do fornecedor, preservado pelo `eq` no fallback.
+    expect(isSkuQuery('P@02040')).toBe(true);
+    expect(isSkuQuery('P$BRINQ230')).toBe(true);
   });
 
   it('não trata termos de busca comuns como código de produto', () => {
