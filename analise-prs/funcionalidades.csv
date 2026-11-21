@@ -1,5 +1,5 @@
 id,funcionalidade,descricao,estado,completude_pct,prs_relacionadas,achado_auditoria,prioridade
-F-01,Encaminhar lead ao time comercial,Outbox audience=commercial_team + adaptador de destino (CRM/e-mail/WhatsApp interno),PARCIAL,50,#158,PF-01,P1
+F-01,Encaminhar lead ao time comercial,Outbox audience=commercial_team + adaptador de destino (CRM/e-mail/WhatsApp interno),BLOQUEADA,90,#158,Fila integra (commercialTeamAlerts+vercel.json cron */5); falta somente COMMERCIAL_TEAM_WEBHOOK_URL/_TOKEN em producao,P1
 F-02,Responsavel estados e SLA por pedido,Colunas responsavel/prazo em quote_requests + tela de sucesso com prazo,BLOQUEADA,0,,PF-02,P2
 F-03,Back-office minimo,Publicar proposta mudar status triar ajustes via UI,NÃO INICIADO,0,,PF-03,P1
 F-04,Bloqueio apos 3 ajustes pendentes,Regra too_many_pending_adjustments sem saida para o cliente,PARCIAL,30,,PF-04,P2
@@ -29,7 +29,7 @@ F-27,Rate limit 429 em propostas/anexos,Estouro vira 404 nao encontrado,COMPLETA
 F-28,Conta como beneficio opcional,Falta explicar beneficio e opcionalidade,PARCIAL,70,,PF-28,P3
 F-29,Linha do tempo com proximo passo,Status desconhecido vira Em acompanhamento; sem proximo passo,PARCIAL,60,,PF-29,P3
 F-30,Direitos do titular LGPD,RPCs acesso/exportacao/correcao/autoexclusao; ensaio sintetico,PENDENTE,10,,PF-30,P1
-F-31,Apagamento completo,erase_customer_data nao limpa metadata kit_name_snapshot pendentes,PARCIAL,60,,PF-31,P1
+F-31,Apagamento completo,erase_customer_data nao limpa metadata kit_name_snapshot pendentes,COMPLETA,100,,"erase_customer_data fecha 3 lacunas (request_metadata text livre, kit_name_snapshot, fila reivindicaavel) + repair 20261117030100 + teste 43 asserts",P1
 F-32,Retencao por tabela completa,Orfaos nunca purgados; inativos sem prazo; spam = legitimo,PARCIAL,50,,PF-32,P2
 F-33,Evento erased na timeline,Sem decisao nem implementacao,BLOQUEADA,0,,PF-33,P3
 F-34,Auditoria de leitura SELECT em PII,So ha auditoria de escrita e DDL,PENDENTE,0,,PF-34,P3
@@ -108,7 +108,7 @@ F-106,Idempotencia do vinculo de anexos,Migration 20261006134751,COMPLETA,100,,P
 F-107,Galeria e ficha de produto compactas,PR #91 cards alinhados,COMPLETA,100,#91,,P3
 F-108,Retencao diaria executando,Logs 09 10 e 11/10,COMPLETA,100,,PF-85,P2
 F-109,PDF recusado em anexos,Falha fechada com validacao,COMPLETA,100,,PF-35,P2
-F-110,Briefing resumo editavel Carnegie,PR #94 aberta mergeada 27/10,COMPLETA,100,#94,PF-37,P1
+F-110,Briefing resumo editavel Carnegie,PR #94 aberta mergeada 27/10,COMPLETA,100,#94,useOccasionFavorites integrado em CommemorativeDatesPage + 24 testes; merge #94,P1
 F-111,Card produto fundo limpo,PR #88 mergeada 27/10,COMPLETA,100,#88,,P3
 F-112,Terminologia Tendencias,PR #50 Drops→Tendencias,COMPLETA,100,#50,,P3
 F-113,Rotulo catalogo Tendencias,PR #76 renomeia Novas tendencias,COMPLETA,100,#76,,P3
