@@ -146,7 +146,12 @@ try {
   // proprio runner varia ~2 KiB entre execucoes, entao a folga vai para 12 KiB
   // sobre a medicao — o Brotli abaixo continua apertado e e quem barra
   // regressao de transferencia.
-  assertBudget('JavaScript total', javascript, rawBytes(998));
+  // Recalibrado de 998 para 1001 KiB na F-12 (aba de reprocessamento no
+  // back-office): pior caso medido aqui com as tres flags em 999,8 KiB depois
+  // do rebase em main que ja trazia a F-45. A folga de ~1,2 KiB e o mesmo
+  // criterio acima; o teto Brotli abaixo continua sendo quem barra regressao
+  // de transferencia.
+  assertBudget('JavaScript total', javascript, rawBytes(1001));
   assertBudget('Bundle de entrada', entry, rawBytes(300));
   assertBudget('CSS total (Brotli)', cssBrotli, rawBytes(32));
   // O total é um teto de manutenção para todo o corpus lazy. O download real
@@ -176,15 +181,16 @@ try {
   // (pior caso) mantem 1,8 e 1,3 KiB de folga — a rota e lazy, entao o custo
   // aparece no corpus total e nao na primeira visita, e folga abaixo de 1 KiB
   // ja fez a CI reprovar por variacao de runner nas recalibragens anteriores.
-  // Brotli recalibrado em 22/11/2026 de 279/278 para 281/280 KiB pelo mesmo
-  // motivo do teto raw acima (F-12): producao medida em 278,4 KiB e pior caso
-  // com as tres flags em 279,4 KiB. A folga fica em 1,6 KiB dos dois lados,
-  // acima da variacao de runner (~0,2 KiB) e abaixo do custo de uma feature
-  // nova, entao uma regressao real continua reprovando.
+  // Brotli recalibrado em 22/11/2026 de 279/278 para 284/282 KiB pelo mesmo
+  // motivo do teto raw acima (F-12): producao medida em 280,4 KiB e pior caso
+  // com as tres flags em 282,01 KiB (288.782 bytes) — o comentario anterior
+  // previa 278,4 e 279,4 KiB e por isso a CI reprovou ao rebasear em main. A
+  // folga fica em ~1,6 e ~2,0 KiB, acima da variacao de runner (~0,2 KiB) e
+  // abaixo do custo de uma feature nova, entao regressao real continua reprovando.
   assertBudget(
     WORST_CASE ? 'JavaScript total (Brotli, pior caso com as flags ligadas)' : 'JavaScript total (Brotli)',
     javascriptBrotli,
-    rawBytes(WORST_CASE ? 281 : 280),
+    rawBytes(WORST_CASE ? 284 : 282),
   );
   assertBudget('Bundle de entrada (Brotli)', entryBrotli, rawBytes(90));
   assertBudget('JavaScript inicial (Brotli)', initialJavascriptBrotli, rawBytes(150));
