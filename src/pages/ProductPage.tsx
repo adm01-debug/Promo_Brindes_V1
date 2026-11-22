@@ -212,7 +212,7 @@ export default function ProductPage() {
           </section>
         </div>
 
-        <ProductApplications product={product} />
+        <ProductApplications product={product} campaign={cart.campaign} />
 
         <ContextualFaq scope="product" />
 

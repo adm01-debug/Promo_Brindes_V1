@@ -623,10 +623,13 @@ test('mostra produto sem estoque confiável e leva o cliente ao briefing sem che
   await expect(page.getByRole('heading', { name: product.name })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Azul' })).toBeVisible();
   await expect(page.getByText(/não paga nada pelo site/i)).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Por que este produto' })).toBeVisible();
-  await expect(page.getByText(/Poliéster reciclado/).first()).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Ideias de uso' })).toBeVisible();
-  await expect(page.getByText(/Sugestões editoriais do nosso time de curadoria/i)).toBeVisible();
+  // Escopo no painel novo: "Poliéster reciclado" já aparece em Especificações,
+  // então buscar na página inteira passava mesmo sem o painel renderizar nada.
+  const applications = page.locator('section.product-applications');
+  await expect(applications.getByRole('heading', { name: 'Por que este produto' })).toBeVisible();
+  await expect(applications.getByText(/Materiais declarados: poliéster reciclado/i)).toBeVisible();
+  await expect(applications.getByRole('heading', { name: 'Ideias de uso' })).toBeVisible();
+  await expect(applications.getByText(/Sugestões editoriais do nosso time de curadoria/i)).toBeVisible();
   const productAxe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
   expect(productAxe.violations, 'Violações na ficha com por que este produto').toEqual([]);
   const quantity = page.locator('#product-quantity');

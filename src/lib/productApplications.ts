@@ -1,4 +1,4 @@
-import type { CatalogProduct } from '../types';
+import type { CampaignBrief, CatalogProduct } from '../types';
 
 export interface ProductReason {
   title: string;
@@ -29,6 +29,10 @@ const MATERIAL_LABELS: Record<string, string> = {
   papel: 'papel',
   poliester: 'poliéster',
   'poliéster': 'poliéster',
+  // O catalogo descreve tecido reciclado por extenso; sem esta entrada o item
+  // ficava sem motivo de material mesmo declarando um.
+  'poliester reciclado': 'poliéster reciclado',
+  'poliéster reciclado': 'poliéster reciclado',
   algodao: 'algodão',
   'algodão': 'algodão',
   metal: 'metal',
@@ -103,7 +107,9 @@ export function productReasons(product: CatalogProduct): ProductReason[] {
   if (product.dimensions.capacityMl && product.dimensions.capacityMl >= 300) {
     reasons.push({
       title: `Capacidade de ${formatQuantity(product.dimensions.capacityMl)} ml`,
-      detail: 'Volume grande o bastante para hidratação durante um dia inteiro fora do escritório.',
+      // O cadastro informa capacidade, nao autonomia de hidratacao: prometer
+      // 'dia inteiro' seria inventar um dado que a ficha do fornecedor nao traz.
+      detail: 'A capacidade informada na ficha ajuda a comparar o volume com o de outros itens.',
     });
   }
 
@@ -143,8 +149,33 @@ export function productReasons(product: CatalogProduct): ProductReason[] {
   return reasons.slice(0, 5);
 }
 
-export function productApplicationIdeas(product: CatalogProduct): string[] {
+/** Ideias ancoradas no momento/público que a pessoa declarou no briefing. Cada
+ * frase só repete o campo escolhido — não afirma adequação, desempenho nem
+ * resultado da campanha. */
+const CAMPAIGN_MOMENT_IDEAS: Record<string, string> = {
+  onboarding: 'Onboarding declarado: entrega no primeiro dia de casa, junto do material de boas-vindas.',
+  evento: 'Evento declarado: distribuição no credenciamento ou no estande, conforme a logística da ação.',
+  relacionamento: 'Relacionamento declarado: envio direto ao contato como ponto de contato da conversa.',
+  reconhecimento: 'Reconhecimento declarado: entrega nominal em fechamento de ciclo ou premiação.',
+  sazonal: 'Data especial declarada: composição com o calendário da campanha, na data informada no briefing.',
+};
+
+const CAMPAIGN_AUDIENCE_IDEAS: Record<string, string> = {
+  clientes: 'Público declarado: clientes — o item acompanha a comunicação comercial já em andamento.',
+  colaboradores: 'Público declarado: colaboradores — entrega interna, alinhada à comunicação de cultura.',
+  lideranca: 'Público declarado: liderança — tiragem menor, com conferência de acabamento antes da entrega.',
+  parceiros: 'Público declarado: parceiros — entrega em encontro ou visita institucional.',
+  'publico-evento': 'Público declarado: público de evento — volume concentrado em uma única ativação.',
+};
+
+export function productApplicationIdeas(product: CatalogProduct, campaign?: CampaignBrief): string[] {
   const ideas: string[] = [];
+  // O contexto declarado vem primeiro: sem ele, duas campanhas diferentes na
+  // mesma ficha recebiam exatamente as mesmas sugestões.
+  const momentIdea = campaign?.moment ? CAMPAIGN_MOMENT_IDEAS[campaign.moment] : undefined;
+  const audienceIdea = campaign?.audience ? CAMPAIGN_AUDIENCE_IDEAS[campaign.audience] : undefined;
+  if (momentIdea) ideas.push(momentIdea);
+  if (audienceIdea && audienceIdea !== momentIdea) ideas.push(audienceIdea);
   const materials = productMaterialLabels(product);
   const portable = Boolean(
     product.dimensions.capacityMl || product.dimensions.weightG || product.dimensions.heightCm,
@@ -161,7 +192,9 @@ export function productApplicationIdeas(product: CatalogProduct): string[] {
 
   if (product.allowsPersonalization) {
     ideas.push('Ação de relacionamento com cliente-chave: o item personalizado vira lembrança de um encontro específico.');
-    ideas.push('Ativação em feira ou evento: personalização no mesmo dia da visita aumenta a retenção do contato.');
+    // allowsPersonalization diz que o item aceita personalizacao, nao que existe
+    // producao no mesmo dia: o prazo continua dependendo do orcamento.
+    ideas.push('Ativação em feira ou evento: item personalizado distribuído no estande, com prazo de produção a confirmar no orçamento.');
   }
 
   if (product.hasCommercialPackaging) {
@@ -181,6 +214,8 @@ export function productApplicationIdeas(product: CatalogProduct): string[] {
   }
 
   const unique = [...new Set(ideas)];
+  // O limite de 4 mantém a ficha enxuta; como o eco do briefing entra antes,
+  // ele nunca é o que sobra fora do corte.
   return unique.slice(0, 4);
 }
 

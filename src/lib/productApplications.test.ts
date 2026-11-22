@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { productApplicationIdeas, productHasApplications, productMaterialLabels, productReasons } from './productApplications';
-import type { CatalogProduct } from '../types';
+import type { CampaignBrief, CatalogProduct } from '../types';
 
 function product(overrides: Partial<CatalogProduct> = {}): CatalogProduct {
   return {
@@ -61,5 +61,35 @@ describe('product applications', () => {
 
   it('sinaliza produto sem nenhum atributo aproveitável', () => {
     expect(productHasApplications(product({ minQuantity: 1 }))).toBe(false);
+  });
+
+  it('ecoa o momento e o público declarados antes das ideias genéricas', () => {
+    const brief: CampaignBrief = { source: 'finder', moment: 'onboarding', audience: 'colaboradores' };
+    const ideas = productApplicationIdeas(product({ dimensions: { capacityMl: 350 } }), brief);
+    expect(ideas[0]).toContain('Onboarding declarado');
+    expect(ideas[1]).toContain('Público declarado: colaboradores');
+    // Os dois primeiros lugares sobrevivem ao limite de 4.
+    expect(ideas.length).toBeLessThanOrEqual(4);
+  });
+
+  it('dá sugestões diferentes para briefings diferentes e volta ao genérico sem briefing', () => {
+    const item = product({ dimensions: { capacityMl: 350 } });
+    const boasVindas = productApplicationIdeas(item, { source: 'finder', moment: 'onboarding' });
+    const premio = productApplicationIdeas(item, { source: 'finder', moment: 'reconhecimento' });
+    const semBriefing = productApplicationIdeas(item);
+    expect(boasVindas[0]).not.toBe(premio[0]);
+    expect(semBriefing.join(' ')).not.toMatch(/declarado/i);
+  });
+
+  it('não promete autonomia de hidratação a partir da capacidade', () => {
+    const capacity = productReasons(product({ dimensions: { capacityMl: 300 } })).find((reason) => reason.title.includes('ml'));
+    expect(capacity?.detail).toContain('comparar o volume');
+    expect(capacity?.detail).not.toMatch(/dia inteiro/i);
+  });
+
+  it('não promete personalização pronta no dia do evento', () => {
+    const ideas = productApplicationIdeas(product({ allowsPersonalization: true })).join(' ');
+    expect(ideas).not.toMatch(/personalização no mesmo dia/i);
+    expect(ideas).toMatch(/prazo de produção a confirmar/i);
   });
 });
