@@ -383,7 +383,7 @@ function BackofficeDetail({
                         id={`reply-${adjustment.id}`}
                         value={replyDrafts[adjustment.id] ?? ''}
                         onChange={(event) => setReplyDrafts((draft) => ({ ...draft, [adjustment.id]: event.target.value }))}
-                        maxLength={800}
+                        maxLength={500}
                         required
                       />
                       <button type="submit" className="btn btn-outline" disabled={busy}>Registrar resposta</button>
