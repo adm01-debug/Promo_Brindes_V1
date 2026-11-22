@@ -2,6 +2,10 @@
 
 Diff semântico gerado a cada coleta em que algo mudou.
 
+## 2026-11-22 09:14 UTC
+
+- **migrations** adicionado (1): `20261122030000_add_commercial_backoffice_rpcs`
+
 ## 2026-11-22 08:17 UTC
 
 - **colunas** adicionado (12): `site_private.commercial_audit_log.action`, `site_private.commercial_audit_log.actor_label`, `site_private.commercial_audit_log.actor_user_id`, `site_private.commercial_audit_log.created_at`, `site_private.commercial_audit_log.detail`, `site_private.commercial_audit_log.id`, `site_private.commercial_audit_log.quote_request_id`, `site_private.commercial_operators.created_at`, `site_private.commercial_operators.display_name`, `site_private.commercial_operators.is_active`, `site_private.commercial_operators.updated_at`, `site_private.commercial_operators.user_id`

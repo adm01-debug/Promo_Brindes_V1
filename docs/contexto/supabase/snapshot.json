@@ -10830,6 +10830,12 @@
         "statements": 34,
         "statements_sha": "fd08d2eff22e4b4b",
         "version": "20261121110000"
+      },
+      {
+        "name": "add_commercial_backoffice_rpcs",
+        "statements": 43,
+        "statements_sha": "858f0120dd38dbee",
+        "version": "20261122030000"
       }
     ],
     "policies": [
