@@ -1318,92 +1318,95 @@ Os filtros vivem na URL, o que é correto, mas cada toque empilha uma entrada no
 
 # Bloco 9 — Celular, tablet, gestos e multi-dispositivo (N-179 a N-190)
 
-## O que foi conferido no código
+## O que eu confirmei no código, com os comandos
 
-O arquivo de estilo tem 38 blocos de consulta de mídia, todos em pixels. A área segura do iOS é respeitada em um ponto (`src/styles.css:2573`), não nos demais elementos fixos. A pasta pública tem marca, ícone, imagens e o arquivo de robôs, mas **não tem manifesto de aplicativo nem ícone de toque**, então "adicionar à tela inicial" não funciona como atalho nomeado. As sobreposições abrem como painel lateral também no celular, em vez de folha inferior.
+| Fato | Como conferi |
+|---|---|
+| Nenhuma regra de estado pressionado, nenhuma guarda de ponteiro, 63 regras de passagem do mouse | `grep -c ":active" src/styles.css` → 0 · `grep -c "@media (hover" src/styles.css` → 0 · `grep -c ":hover" src/styles.css` → 63 |
+| A janela declara cobrir a área segura, mas só três pontos do estilo a respeitam | `index.html:5` tem `viewport-fit=cover`; `grep -n "env(safe-area" src/styles.css` → 3 ocorrências (2573, 2660, 5451) |
+| Sem manifesto e sem ícone de toque | `ls public/` → marca, ícone, imagens e robôs; `index.html` não referencia manifesto |
+| Cor de tema única e clara, sem variante escura | `index.html:6` |
+| Testes de celular em um único aparelho, retrato | `playwright.config.ts:27-32` → quatro perfis, um deles celular (Pixel 7), nenhum tablet e nenhum modo horizontal |
+| 38 blocos de consulta de mídia, todos em pixels, e nenhuma regra de orientação | `grep -c "@media" src/styles.css` → 38; nenhuma consulta de orientação ou de altura máxima |
 
-### N-179 · [alto · M] · Painel de seleção como folha inferior no celular
-- **O que é:** o painel de seleção abre como painel lateral de altura cheia no celular, onde o alcance do polegar é o inverso disso.
-- **Como fazer:** no ponto de quebra de celular, transformar em folha inferior com alça, altura máxima relativa à janela e cantos arredondados, em `src/styles.css:2343-2364, 3945-3948` e `src/components/QuoteDrawer.tsx:172-186`.
-- **Benefício:** as ações principais ficam ao alcance do polegar, no padrão que o visitante já conhece de aplicativo.
-- **Referência:** Material Design 3, folha inferior; Apple HIG, folhas.
+### N-179 · [alto · M] · Feedback de toque em toda a camada de ação
+- **O que é:** o realce nativo de toque está desligado no estilo global, não existe nenhuma regra de estado pressionado, e as 63 regras de passagem do mouse não têm guarda de ponteiro, então no celular elas disparam e ficam presas depois do toque.
+- **Como fazer:** reverter ou substituir o desligamento em `src/styles.css:285-288` por um estado próprio; criar o bloco de estado pressionado para as classes de ação; e envolver as regras de passagem em uma guarda de ponteiro fino.
+- **Benefício:** cada toque passa a confirmar que foi registrado, e nenhum efeito fica preso depois do toque.
+- **Referência:** Material Design 3, estados de interação; Apple HIG, feedback de toque.
 - **[mockup]**
 
-### N-180 · [alto · M] · Fechar a folha por gesto
-- **O que é:** nenhuma sobreposição fecha por arrastar para baixo, gesto esperado em folha inferior.
-- **Como fazer:** tratar o arraste vertical na alça da folha em `src/components/QuoteDrawer.tsx` e no painel de filtros de `src/pages/CatalogPage.tsx:54-61`, com limite de distância e alternativa por botão sempre presente.
-- **Benefício:** fechar deixa de exigir mira no botão pequeno do canto.
-- **Referência:** Material Design 3, folha inferior arrastável.
-- Depende de: N-179.
+### N-180 · [alto · S] · Campos que fazem o iOS dar zoom ao focar
+- **O que é:** seis campos têm fonte abaixo de 16 pixels, e o Safari amplia a página ao focar, quebrando o layout do catálogo e do painel de seleção.
+- **Como fazer:** forçar 16 pixels nesses campos (`src/styles.css:893, 1681, 2248, 2456, 2551, 5175`) dentro do bloco de tela pequena.
+- **Benefício:** focar um campo deixa de deslocar a página inteira no aparelho mais usado.
+- **Referência:** Apple HIG, campos de texto.
+- **[190]** mesma etapa do plano técnico.
 
-### N-181 · [alto · S] · Painel de filtros também como folha inferior
-- **O que é:** o painel de filtros do celular segue o mesmo formato lateral.
-- **Como fazer:** aplicar o padrão de folha inferior ao painel de filtros, reaproveitando a estrutura do componente único de sobreposição.
-- **Benefício:** consistência entre as duas sobreposições mais usadas no celular.
-- **Referência:** Material Design 3, folha inferior.
-- Depende de: N-032, N-179.
-- **[mockup]**
+### N-181 · [alto · S] · Menu de celular com rolagem própria
+- **O que é:** com a rolagem do corpo travada, o menu não rola e corta os últimos itens em telas baixas e no modo horizontal.
+- **Como fazer:** altura máxima relativa à janela e rolagem interna com contenção em `src/styles.css:734-751`, junto do travamento de `src/components/Layout.tsx:103`.
+- **Benefício:** todos os destinos voltam a ser alcançáveis.
+- **Referência:** WCAG 1.4.10 (refluxo).
+- Equivalente a N-036 e N-124; executar uma só.
 
-### N-182 · [alto · S] · Deslizar entre fotos do produto
-- **O que é:** a ampliação de foto não responde a deslizar, embora seja a interação esperada em galeria no celular.
-- **Como fazer:** tratar o deslize horizontal na ampliação em `src/components/ProductGallery.tsx:86-96`, chamando a mesma função que as setas já usam, e manter os controles visíveis.
-- **Benefício:** examinar o produto no celular passa a custar um gesto em vez de uma mira.
-- **Referência:** Material Design 3, carrossel; Apple HIG, gestos.
+### N-182 · [alto · M] · Teclado virtual cobre a ação principal do painel
+- **O que é:** o painel de seleção é dimensionado por posicionamento absoluto e altura total, sem unidade de janela dinâmica nem consulta da janela visível, então o teclado cobre o botão que transforma a seleção em briefing.
+- **Como fazer:** usar unidade de janela dinâmica no painel (`src/styles.css:2343-2361`) e, quando o teclado aparecer, reduzir a altura pela janela visível, mantendo o rodapé do painel acima dele (`src/components/QuoteDrawer.tsx:173-186, 261-270`).
+- **Benefício:** o visitante que digita a quantidade consegue concluir sem fechar o teclado às cegas.
+- **Referência:** Apple HIG, teclado; Material Design 3, folhas e teclado.
 
-### N-183 · [médio · S] · Não bloquear o gesto de voltar do sistema
-- **O que é:** o travamento de rolagem e a contenção de rolagem nas sobreposições podem interferir no gesto de voltar na borda da tela.
-- **Como fazer:** ao aplicar a contenção de rolagem no componente único de sobreposição, restringi-la ao painel e não ao documento, e conferir em aparelho real que o gesto de borda continua chegando ao navegador, agora fechando a sobreposição.
-- **Benefício:** o gesto nativo passa a fechar a camada em vez de sair da página.
-- **Referência:** Material Design 3, retorno preditivo.
-- Depende de: N-029, N-033.
+### N-183 · [alto · M] · Manifesto de aplicativo, ícone de toque e cor de tema
+- **O que é:** sem manifesto nem ícone de toque, adicionar à tela inicial gera atalho sem nome nem ícone adequados; e a cor de tema é única e clara, sem variante escura nem esquema de cor declarado.
+- **Como fazer:** acrescentar o manifesto com nome, cor de tema e ícones, o ícone de toque e a variante escura da cor de tema, referenciados em `index.html:6`; incluí-los no mapeamento de rotas estáticas para não caírem no tratamento de página não encontrada; e repetir as duas metas no shell servido pelo backend (`api/_lib/pageShell.ts:65`), que hoje não as replica.
+- **Benefício:** cliente recorrente passa a ter o site como atalho reconhecível, e a barra do navegador deixa de brigar com o tema do aparelho.
+- **Referência:** especificação de manifesto de aplicativo web.
 
 ### N-184 · [médio · S] · Área segura em todos os elementos fixos
-- **O que é:** a área segura do iOS é respeitada em um ponto do estilo, mas não no botão flutuante, no aviso de desfazer e no rodapé das sobreposições.
-- **Como fazer:** aplicar o mesmo tratamento já usado em `src/styles.css:2573` ao botão flutuante (`:2656-2660`), ao aviso (`:3201-3205`) e ao rodapé das folhas.
-- **Benefício:** no iPhone com barra inferior, esses controles deixam de ficar parcialmente cobertos.
+- **O que é:** a janela declara cobrir a área segura, mas apenas três pontos do estilo a respeitam; os insets lateral e superior não são tratados em nenhum.
+- **Como fazer:** estender o tratamento já usado em `src/styles.css:2573, 2660, 5451` ao aviso de desfazer, à bandeja de comparação e ao rodapé das sobreposições, incluindo os insets lateral e superior onde há elemento fixo.
+- **Benefício:** no aparelho com recorte e barra inferior, nenhum controle fixo fica parcialmente coberto.
 - **Referência:** Apple HIG, áreas seguras.
 
-### N-185 · [médio · M] · Teclado virtual não deve cobrir a ação principal
-- **O que é:** com o teclado aberto, o botão de envio do briefing e o campo de código do login podem ficar sob o teclado.
-- **Como fazer:** usar unidades de janela dinâmica nos contêineres de formulário e rolar o campo focado para a área visível ao receber foco, em `src/pages/QuotePage.tsx` e `src/pages/CustomerLoginPage.tsx`.
-- **Benefício:** quem preenche no celular vê o que está digitando e alcança o envio.
-- **Referência:** Apple HIG, teclado; Material Design 3, campos de texto.
+### N-185 · [médio · M] · Deslizar entre as fotos do produto
+- **O que é:** a galeria troca de foto só por botões, e na ampliação também não há gesto.
+- **Como fazer:** tratar o deslize horizontal em `src/components/ProductGallery.tsx:70-85` e na ampliação (`:86-96`), chamando a mesma função das setas e mantendo os botões visíveis.
+- **Benefício:** examinar o produto no celular passa a custar um gesto em vez de uma mira.
+- **Referência:** Material Design 3, carrossel.
 
-### N-186 · [médio · S] · Manifesto de aplicativo e ícone de toque
-- **O que é:** não há manifesto nem ícone de toque na pasta pública, então adicionar à tela inicial gera um atalho sem nome nem ícone adequados.
-- **Como fazer:** acrescentar o manifesto com nome, cor de tema e ícones, e o ícone de toque, referenciados em `index.html`; incluir os dois no mapeamento de rotas estáticas para não caírem no tratamento de página não encontrada.
-- **Benefício:** cliente recorrente passa a ter o site como atalho reconhecível no celular.
-- **Referência:** especificação de manifesto de aplicativo web.
-- **[190]** mesma lacuna registrada no plano técnico.
+### N-186 · [médio · M] · Bandeja de comparação e botão flutuante deixam de brigar
+- **O que é:** a bandeja fixa não respeita a área segura, e o botão flutuante de seleção fica sobre os botões dela; o aviso de desfazer também sobrepõe o botão flutuante na faixa de 561 a 760 pixels.
+- **Como fazer:** reservar espaço na bandeja ou elevar o botão flutuante quando ela existe (`src/styles.css:1194-1203, 1259-1266, 2656-2673`), e mover a regra de posição do aviso para o mesmo ponto de quebra que exibe o botão (`:3201-3205, 3954`).
+- **Benefício:** as três camadas fixas do celular param de se cobrir no momento da decisão.
+- **Referência:** Material Design 3, ordem de empilhamento.
+- Equivalente a N-037 e N-146; executar uma só.
 
-### N-187 · [médio · S] · Layout de tablet entre os dois extremos
-- **O que é:** os pontos de quebra tratam celular e desktop; na faixa de tablet a grade fica larga demais para três colunas e estreita para quatro.
-- **Como fazer:** revisar a grade do catálogo e o cabeçalho na faixa intermediária, usando os pontos de quebra consolidados.
-- **Benefício:** o tablet deixa de receber um layout de celular esticado.
-- **Referência:** Material Design 3, grades adaptativas.
-- Depende de: N-134.
+### N-187 · [médio · S] · Fechar sobreposição tocando fora, de forma confiável no iOS
+- **O que é:** o fechamento por toque fora depende do evento de pressionar o botão em um elemento sem indicação de clique, padrão que não dispara de forma confiável no iOS.
+- **Como fazer:** usar eventos de ponteiro e exigir pressionar e soltar no próprio fundo, em `src/components/QuoteDrawer.tsx:173-179` e `src/pages/CatalogPage.tsx:54`.
+- **Benefício:** o gesto mais natural para fechar passa a funcionar no aparelho em que hoje falha.
+- **Referência:** especificação de eventos de ponteiro.
+- Equivalente a N-042; executar uma das duas.
+
+### N-188 · [médio · M] · Rolagem aninhada no painel de filtros
+- **O que é:** a árvore de categorias tem rolagem própria dentro do painel, então o dedo fica preso no meio da folha.
+- **Como fazer:** deixar uma única superfície de rolagem no painel, com a árvore crescendo dentro dela (`src/styles.css:5205-5209, 5439-5445`), e usar contenção de rolagem apenas na borda externa.
+- **Benefício:** rolar os filtros no celular deixa de depender de acertar a região certa.
+- **Referência:** Material Design 3, folhas com conteúdo rolável.
+
+### N-189 · [médio · M] · Modo horizontal e faixa de tablet
+- **O que é:** não existe nenhuma regra de orientação nem de altura máxima, então no celular na horizontal o bloco de abertura ocupa quase duas telas; e na faixa de 761 a 980 pixels o visitante fica sem atalho para a seleção, porque o menu compacto já está ativo, a barra de filtros está escondida e o botão flutuante ainda não aparece.
+- **Como fazer:** acrescentar regras de altura máxima para o bloco de abertura e exibir o botão flutuante também na faixa de tablet (`src/styles.css:3818-3819, 3830, 3850, 3892`).
+- **Benefício:** tablet e celular na horizontal deixam de ser estados sem saída para a seleção.
+- **Referência:** WCAG 1.3.4 (orientação); Material Design 3, grades adaptativas.
 - **[mockup]**
 
-### N-188 · [médio · S] · Interações que dependem de passar o mouse
-- **O que é:** efeitos e informações que aparecem ao passar o mouse não têm equivalente no toque.
-- **Como fazer:** condicionar essas regras ao suporte real a ponteiro e garantir que a informação exibida no estado de passagem também apareça no estado padrão ou ao tocar.
-- **Benefício:** no celular nada fica escondido atrás de um gesto que não existe.
-- **Referência:** WCAG 1.4.13 (conteúdo sob ponteiro ou foco).
-- Equivalente a N-098; executar uma das duas.
-
-### N-189 · [baixo · S] · Orientação horizontal no celular
-- **O que é:** em celular na horizontal, a altura útil cai e as sobreposições de altura cheia ficam sem espaço para a ação principal.
-- **Como fazer:** usar altura máxima relativa à janela nas folhas e permitir rolagem interna, o que também resolve o menu.
-- **Benefício:** quem usa o aparelho na horizontal continua conseguindo concluir.
-- **Referência:** WCAG 1.3.4 (orientação).
-- Depende de: N-124, N-179.
-
-### N-190 · [médio · M] · Teste de largura estreita nas rotas de conversão
-- **O que é:** nenhum teste verifica estouro horizontal nas rotas que levam ao orçamento.
-- **Como fazer:** casos em 360 pixels de largura para catálogo com bandeja de comparação, orçamento com itens, painel aberto e detalhe do orçamento, exigindo largura do documento igual à da janela.
-- **Benefício:** impede a volta do estouro horizontal, que hoje só seria notado por um visitante.
-- **Referência:** WCAG 1.4.10 (refluxo).
-- **[190]** mesma etapa do plano técnico.
+### N-190 · [médio · M] · Testes em tablet, modo horizontal e largura estreita
+- **O que é:** a suíte tem quatro perfis e apenas um de celular, em retrato; não há tablet nem modo horizontal, e nenhum teste verifica estouro horizontal nas rotas de conversão.
+- **Como fazer:** acrescentar perfis de tablet e de celular na horizontal em `playwright.config.ts:27-32`, e casos em 360 pixels de largura para catálogo com bandeja, orçamento com itens, painel aberto e detalhe do orçamento, exigindo largura do documento igual à da janela.
+- **Benefício:** os estados que mais quebram passam a ter cobertura; hoje só um visitante os descobriria.
+- **Referência:** WCAG 1.4.10.
+- **[190]** complementa a etapa de estouro horizontal do plano técnico.
 
 ---
 
@@ -1500,5 +1503,8 @@ Cabem em uma etapa cada, se o dono quiser ampliar o plano.
 | `src/components/SearchAutocomplete.tsx:51-56` | A tecla de escape no campo de busca poderia restaurar o termo digitado antes da navegação por setas. |
 | `src/styles.css` (38 blocos de consulta de mídia) | Pontos de quebra consolidados em quatro valores, pré-requisito prático do layout de tablet (N-187). |
 | `src/pages/BackofficePage.tsx:179, 257` | Abrir um pedido por link em vez de botão, para permitir abrir em nova aba (complementa N-017). |
+| `src/components/Layout.tsx:187-192` | A busca do menu de celular é um campo cru e perde o autocomplete que o cabeçalho de desktop tem. |
+| `src/components/Layout.tsx:103`, `QuoteDrawer.tsx:46`, `ProductGallery.tsx:54`, `useCatalogPageState.ts:244` | O travamento de rolagem por ocultar o excesso vaza no iOS e não protege do gesto de atualizar a página; o contador de camadas de N-033 é o pré-requisito para trocar a técnica. |
+| `src/styles.css:1219, 1258, 1262, 2544, 3951` | Alvos de toque abaixo do mínimo e com um pixel de espaçamento nas superfícies de decisão. |
 
-> A dimensão de celular e gestos e a verificação achado por achado das dimensões de navegação ainda estavam em execução quando este documento foi fechado. O bloco 9 foi escrito a partir de fatos que eu mesmo confirmei no código (38 blocos de consulta de mídia em pixels, área segura aplicada em um único ponto, ausência de manifesto na pasta pública) e do material das dimensões de sobreposições e de consistência. Se a verificação pendente derrubar algum ponto, a correção entra como novo commit nesta mesma branch, com o motivo no texto da etapa, como foi feito no plano técnico.
+> A verificação achado por achado das dimensões de navegação ainda estava em execução quando este documento foi fechado. Os fatos do bloco 9 foram conferidos por mim, com os comandos registrados na tabela do próprio bloco. Se a verificação pendente derrubar algum ponto, a correção entra como novo commit nesta mesma branch, com o motivo no texto da etapa, como foi feito no plano técnico.
