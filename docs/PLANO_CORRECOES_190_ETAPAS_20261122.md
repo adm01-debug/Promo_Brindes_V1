@@ -5,7 +5,13 @@ Estado: **planejado. Nenhuma etapa deste documento foi executada.** Criar e comm
 
 ## O que esta auditoria realmente fez
 
-Dez dimensões foram auditadas por agentes independentes que leram o código-fonte (não a documentação): acessibilidade, performance web, SEO e renderização no servidor, bugs de front-end, segurança das funções serverless, cobertura de testes e contratos, UX e responsividade, arquitetura e manutenibilidade, CI/CD e build, conteúdo e LGPD na interface. Cada achado exigiu arquivo, linha e trecho literal do código como prova; depois, um segundo agente tentou refutar cada achado lendo o mesmo código. O que não se sustentou foi descartado e não entrou neste plano.
+Dez dimensões foram auditadas por agentes independentes que leram o código-fonte (não a documentação): acessibilidade, performance web, SEO e renderização no servidor, bugs de front-end, segurança das funções serverless, cobertura de testes e contratos, UX e responsividade, arquitetura e manutenibilidade, CI/CD e build, conteúdo e LGPD na interface. Cada achado exigiu arquivo, linha e trecho literal do código como prova.
+
+**O que a verificação fez, exatamente.** 162 achados de oito dimensões passaram por um segundo agente que tentou refutar cada um lendo o mesmo código: **2 foram refutados e saíram**, nenhum outro caiu, e 32 tiveram a severidade corrigida (quase todos para baixo). As duas dimensões restantes, CI/CD e conteúdo, tiveram os 14 achados que viraram etapas verificados um a um: **1 foi refutado e substituído** (a etapa que afirmava que o bloqueio de licença de dependência nunca roda; ele roda, e as execuções recentes concluíram com sucesso), 3 tiveram a premissa corrigida no texto da etapa e 2 a severidade rebaixada. Cinco achados foram verificados por leitura direta nesta sessão, e um deles corrigiu a descrição da etapa E-162: o ciclo de importação é apenas de tipo, então não existe ciclo em tempo de execução.
+
+As etapas que passaram por correção de premissa dizem isso no próprio texto, em negrito. O que sobrou do que foi refutado está registrado no Anexo A. Distribuição final: 1 etapa P1, 114 P2 e 75 P3.
+
+**O que esta auditoria não fez:** não executou o site em produção, não mediu métricas de campo com usuários reais, não rodou a suíte completa de ponta a ponta, não abriu o banco de produção e não validou nenhuma correção em execução. Toda etapa é planejamento verificado contra o código, não comportamento comprovado.
 
 Números da auditoria: 739 arquivos no repositório, 298 de código, 58.944 linhas, 34 rotas, 15 funções serverless, 26 tabelas no banco isolado, 154 arquivos de teste. A suíte `npx vitest run tests/api` passou: 21 arquivos, 232 testes, 0 falhas em 4,07 s. Esse é o ponto de partida, não um atestado de cobertura.
 
@@ -74,13 +80,13 @@ Ação: classe `ApiError { status, code, message, fields?: Array<{ field: string
 Verificação: teste novo `tests/api/contracts/api-error.test.ts` cobrindo com e sem `fields`, e a presença do header.
 Diff: ~70 linhas · 2 arquivos. Depende de: —.
 
-### E-003 · [P1] · contratos — Dar campo e código ao erro de validação do fluxo de lead
+### E-003 · [P2] · contratos — Dar campo e código ao erro de validação do fluxo de lead
 Onde: `api/_lib/contracts.ts:72-76` e `api/_lib/leadHandler.ts:156-169`.
 Ação: acrescentar `field?: string` e `fieldCode?: string` a `RequestValidationError` e passar o nome do campo em cada chamada de `object()`, `text()`, `boolean()`, `email()`, `phone()`, `isoInstant()`. No handler, serializar via `sendApiError` com `fields: [{ field, code, message }]`. Mensagem em português permanece idêntica para não quebrar a UI.
 Verificação: `tests/api/lead-requests.test.ts` passa sem alteração de expectativa; um teste novo exige `fields[0].field === 'e-mail'` para e-mail inválido.
 Diff: ~90 linhas · 2 arquivos. Depende de: E-002.
 
-### E-004 · [P1] · contratos — Separar 400 (forma) de 422 (regra de campo)
+### E-004 · [P2] · contratos — Separar 400 (forma) de 422 (regra de campo)
 Onde: `api/_lib/contracts.ts:85-94, 282, 383`.
 Ação: 400 apenas para corpo ausente, JSON inválido, tipo raiz errado e `content-type` incompatível. 422 com `code: 'validation_failed'` para todo erro de campo. Atualizar as expectativas de status nos testes que hoje cobram 400 para campo inválido, uma a uma, com o motivo no diff.
 Verificação: a matriz de E-014 exige 422 para campo inválido e 400 para JSON inválido em todos os endpoints POST.
@@ -122,13 +128,13 @@ Ação: schema de `quoteId` (uuid), ação e campos opcionais; erros passam pelo
 Verificação: `tests/api/customer-proposals.test.ts` troca a asserção `status >= 400` por status e código exatos.
 Diff: ~90 linhas · 3 arquivos. Depende de: E-002.
 
-### E-011 · [P1] · contratos — Schema Zod do webhook do Resend
+### E-011 · [P2] · contratos — Schema Zod do webhook do Resend
 Onde: novo `api/_lib/schemas/resendEvent.ts`; consumido por `api/notification-events-resend.ts:36-50`.
 Ação: `z.object({ type: z.string(), created_at: z.string().datetime().optional(), data: z.object({ email_id: z.string().optional(), bounce: z.object({ type: z.string().optional() }).optional() }).optional() })`. O `parsePayload` manual sai. Tipo desconhecido continua respondendo 200 com `applied: false` (o provedor não deve reentregar).
 Verificação: casos de tipo incorreto em cada campo esperam 400 `invalid_payload`; tipo desconhecido espera 200.
 Diff: ~90 linhas · 3 arquivos. Depende de: E-002.
 
-### E-012 · [P1] · contratos — Schema Zod do webhook do WhatsApp
+### E-012 · [P2] · contratos — Schema Zod do webhook do WhatsApp
 Onde: novo `api/_lib/schemas/whatsappEvent.ts`; consumido por `api/notification-events-whatsapp.ts:51, 95, 115`.
 Ação: validar cada status da lista: `id` string obrigatória, `status` e `timestamp` strings opcionais, `errors` como array de objetos com `title`/`code` opcionais. Hoje um `errors[0].title` não-string gera `TypeError`, 500 e reentrega infinita da Meta.
 Verificação: teste com `errors: [{ title: 42 }]` espera 400 `invalid_payload` e nenhuma RPC chamada; teste com lista mista espera que o status válido seja aplicado.
@@ -140,25 +146,25 @@ Ação: validar `page`, `topic`, `data`, `ano`, `colecao` e `identifier` por enu
 Verificação: `page=constructor`, `topic=__proto__`, `ano=99999` e identificador de 5.000 caracteres esperam 404 e `noindex`.
 Diff: ~120 linhas · 4 arquivos. Depende de: E-002.
 
-### E-014 · [P1] · testes-de-contrato — Matriz table-driven de validação por endpoint
+### E-014 · [P2] · testes-de-contrato — Matriz table-driven de validação por endpoint
 Onde: novo `tests/api/contracts/validation-matrix.contract.test.ts` e `tests/fixtures/api/*.json`.
 Ação: um payload canônico por endpoint em fixture e um `it.each` que aplica as mutações **campo ausente**, **tipo incorreto**, **valor vazio**, **valor fora do limite** e **campo extra desconhecido** a cada campo do contrato, exigindo status, `error` e `fields[].field` exatos. Cobre os 8 endpoints POST e os 2 webhooks.
 Verificação: a matriz falha se qualquer endpoint responder status ou código diferente do declarado; cobertura de `contracts.ts` sobe das 30 linhas hoje não executadas.
 Diff: ~420 linhas · 12 arquivos. Depende de: E-006, E-007, E-008, E-009, E-010, E-011, E-012.
 
-### E-015 · [P1] · testes-de-contrato — Casos de campo ausente em todos os blocos obrigatórios
+### E-015 · [P2] · testes-de-contrato — Casos de campo ausente em todos os blocos obrigatórios
 Onde: `tests/api/contracts/validation-matrix.contract.test.ts`.
 Ação: remover, um por vez, `contact`, `items`, `consent`, `submittedAt`, `clientRequestId`, `notificationPreferences` e cada campo interno obrigatório, exigindo 422 e o campo correto em `fields`.
 Verificação: 25 casos, todos com `fetchMock` não chamado (nada chega ao banco).
 Diff: ~140 linhas · 1 arquivo. Depende de: E-014.
 
-### E-016 · [P1] · testes-de-contrato — Casos de tipo incorreto por campo
+### E-016 · [P2] · testes-de-contrato — Casos de tipo incorreto por campo
 Onde: `tests/api/contracts/validation-matrix.contract.test.ts`.
 Ação: para cada campo, trocar o tipo (string→número, número→string, objeto→array, booleano→string) e exigir 422 com `code: 'invalid_type'` em `fields`.
 Verificação: 30 casos; nenhum devolve 500.
 Diff: ~150 linhas · 1 arquivo. Depende de: E-015.
 
-### E-017 · [P1] · testes-de-contrato — Casos de valor vazio e só espaços
+### E-017 · [P2] · testes-de-contrato — Casos de valor vazio e só espaços
 Onde: `tests/api/contracts/validation-matrix.contract.test.ts`.
 Ação: `''`, `'   '`, `[]` para `items`, `{}` para `contact` e `null` em campos obrigatórios, exigindo 422 e `code: 'required'`. Fixa a regra de que `text()` normaliza espaços antes de medir o tamanho.
 Verificação: 20 casos; a mensagem em português continua a mesma de hoje.
@@ -206,7 +212,7 @@ Ação: corpo acima de `MAX_WEBHOOK_BODY_BYTES` e acima do limite de lead, exigi
 Verificação: 10 casos; o `rawBody` não é lido quando `content-length` já excede.
 Diff: ~80 linhas · 4 arquivos. Depende de: E-049.
 
-### E-025 · [P1] · testes-de-contrato — Caso de assinatura inválida nos dois webhooks
+### E-025 · [P2] · testes-de-contrato — Caso de assinatura inválida nos dois webhooks
 Onde: `tests/api/notification-events-resend.test.ts`, `tests/api/notification-events-whatsapp.test.ts`.
 Ação: assinatura ausente, assinatura de outro segredo, timestamp fora da janela, assinatura com tamanho diferente (caminho de comparação em tempo constante) e corpo alterado após assinar. Exigir 401 e nenhuma RPC.
 Verificação: 10 casos; `tests/timing-safe-secret-comparisons.node.mjs` continua passando.
@@ -218,7 +224,7 @@ Ação: passar `now` fixo em vez de usar o relógio real, e `vi.setSystemTime` n
 Verificação: a suíte passa com `TZ=UTC` e com `TZ=America/Sao_Paulo`.
 Diff: ~25 linhas · 3 arquivos. Depende de: E-025.
 
-### E-027 · [P1] · testes-de-contrato — Testes do handler sem cobertura nenhuma (`commercial-alerts`)
+### E-027 · [P2] · testes-de-contrato — Testes do handler sem cobertura nenhuma (`commercial-alerts`)
 Onde: novo `tests/api/commercial-alerts.test.ts`; handler em `api/commercial-alerts.ts:52-128`.
 Ação: espelhar `tests/api/cron-watchdog.test.ts:67-118` com cinco cenários: GET sem `Authorization` → 401; POST → 405 com `Allow: GET`; sem webhook configurado → 503; lote vazio → 200 sem chamada externa; falha do provedor → o alerta operacional dispara.
 Verificação: cobertura do arquivo sai de 3,07%; a suíte continua verde.
@@ -296,13 +302,13 @@ Ação: `v2` devolve `{ error: 'validation_failed', message, fields: [...] }` co
 Verificação: a matriz de E-014 roda duas vezes, uma por versão, exigindo o shape de cada uma.
 Diff: ~80 linhas · 4 arquivos. Depende de: E-038.
 
-### E-040 · [P1] · versionamento — Versão no envelope do webhook comercial de saída
+### E-040 · [P2] · versionamento — Versão no envelope do webhook comercial de saída
 Onde: `api/_lib/commercialTeamAlerts.ts:181-197`.
 Ação: acrescentar `version: 'v1'` ao corpo enviado, sem alterar os campos existentes, e registrar o contrato em `docs/CONTRATOS_API.md`. Consumidor que ignora campo novo continua funcionando.
 Verificação: `tests/api/commercial-team-alerts.test.ts` exige `version` e mantém as asserções atuais dos demais campos.
 Diff: ~30 linhas · 3 arquivos. Depende de: E-036.
 
-### E-041 · [P1] · versionamento — Versão no envelope dos alertas operacionais
+### E-041 · [P2] · versionamento — Versão no envelope dos alertas operacionais
 Onde: `api/_lib/operationalAlerts.ts:32-60`.
 Ação: mesmo acréscimo de `version: 'v1'`, com o contrato documentado.
 Verificação: `tests/api/operationalAlerts.test.ts` exige `version`.
@@ -372,7 +378,7 @@ Ação: o pior caso real soma lote, heartbeat, verificação de saúde da fila e
 Verificação: `tests/api/maxDuration.test.ts` passa a cobrar `TOTAL_TIME_BUDGET_MS < maxDuration`, e falha se alguém aumentar um dos timeouts.
 Diff: ~40 linhas · 2 arquivos. Depende de: —.
 
-### E-052 · [P2] · robustez-timeout — Cron de retenção sem folga
+### E-052 · [P3] · robustez-timeout — Cron de retenção sem folga
 Onde: `api/retention.ts:18, 283-290`.
 Ação: 12 s de orçamento + 2 s de heartbeat + 1 s de alerta dão exatamente os 15 s do `maxDuration`, sem margem para latência de rede. Reduzir o orçamento do lote e exportar o total.
 Verificação: o mesmo gate de E-053.
@@ -502,7 +508,7 @@ Ação: separar o erro de ação do erro de carregamento e mostrá-lo como aviso
 Verificação: teste com falha de mudança de estágio espera o pedido ainda visível e o aviso presente.
 Diff: ~40 linhas · 2 arquivos. Depende de: —.
 
-### E-073 · [P3] · efeitos — Rascunho de proposta é zerado a cada recarga do detalhe
+### E-073 · [P2] · efeitos — Rascunho de proposta é zerado a cada recarga do detalhe
 Onde: `src/pages/BackofficePage.tsx:233-239`.
 Ação: depender do identificador do pedido em vez do objeto inteiro, para que uma revalidação não apague o texto que o operador está escrevendo.
 Verificação: teste revalida o detalhe e espera o rascunho preservado.
@@ -732,7 +738,7 @@ Diff: ~120 linhas · 2 arquivos. Depende de: E-108.
 
 # Bloco 5 — Performance web (E-110 a E-127)
 
-### E-110 · [P1] · rede — Home dispara até oito consultas ao catálogo para usar só a imagem
+### E-110 · [P2] · rede — Home dispara até oito consultas ao catálogo para usar só a imagem
 Onde: `src/pages/HomePage.tsx:42-51, 75-79, 321-323`.
 Ação: montar cada prévia de categoria somente quando o cartão entra na área visível, reaproveitando o observador já usado em `src/pages/CatalogsPage.tsx:38-48`, e reduzir as colunas pedidas. Hoje são oito requisições com contagem exata e 34 colunas, concorrendo com a imagem principal da home.
 Verificação: teste de rede no navegador espera no máximo duas consultas antes da primeira rolagem.
@@ -744,7 +750,7 @@ Ação: trocar o script síncrono por uma marcação de pré-carregamento da ima
 Verificação: o documento das rotas internas deixa de conter o script; a métrica de maior conteúdo da home não piora.
 Diff: ~35 linhas · 3 arquivos. Depende de: —.
 
-### E-112 · [P2] · fontes — Fontes dos títulos sem pré-carregamento
+### E-112 · [P3] · fontes — Fontes dos títulos sem pré-carregamento
 Onde: `src/styles.css:2-7, 217-233`, `index.html`.
 Ação: servir os arquivos de fonte com nome estável a partir da pasta pública e pré-carregar os dois pesos usados nos títulos. Hoje a primeira visita quase sempre renderiza com a fonte de reserva.
 Verificação: o documento passa a ter as duas marcações; o orçamento de performance continua dentro do teto.
@@ -844,7 +850,7 @@ Diff: ~120 linhas · 3 arquivos. Depende de: E-110, E-111, E-116.
 
 # Bloco 6 — SEO e renderização no servidor (E-128 a E-143)
 
-### E-128 · [P1] · metadados — Título e descrição do servidor divergem do que o cliente grava
+### E-128 · [P2] · metadados — Título e descrição do servidor divergem do que o cliente grava
 Onde: `api/site-page.ts:30-36`; páginas em `src/pages/CatalogPage.tsx:28`, `AboutPage.tsx:8`, `ContactPage.tsx:11`, `PrivacyPage.tsx:9`, `KitBuilderPage.tsx:87`.
 Ação: criar uma fonte única de metadados por rota em `shared/`, como já existe para as landings de ideias, e consumi-la nos dois lados. Hoje cinco rotas indexáveis mudam de título e descrição depois da hidratação, o que o rastreador pode ler como conteúdo instável.
 Verificação: teste de paridade compara o título e a descrição do shell com os da página para cada rota.
@@ -1016,11 +1022,11 @@ Ação: declarar o tipo de busca, a dica de tecla de ação e desligar correçã
 Verificação: teste espera os atributos nos três campos.
 Diff: ~10 linhas · 3 arquivos. Depende de: —.
 
-### E-156 · [P3] · recuperação — Login desabilita o envio sem explicar e não permite reenviar
-Onde: `src/pages/CustomerLoginPage.tsx:19, 65, 123, 126`.
-Ação: deixar o envio habilitado e mostrar o erro ao submeter; após o envio do código, oferecer reenvio com intervalo mínimo entre tentativas.
-Verificação: teste submete vazio e espera a mensagem; teste espera o botão de reenvio com contagem.
-Diff: ~60 linhas · 2 arquivos. Depende de: E-101.
+### E-156 · [P3] · recuperação — Reenvio do acesso existe, mas é invisível e sem intervalo mínimo
+Onde: `src/pages/CustomerLoginPage.tsx:50, 58-66, 126`.
+Ação: nomear o reenvio e controlar a cadência. **Corrigido na verificação:** o reenvio já funciona, porque submeter com o campo de código vazio cai de novo no envio por e-mail; o que falta é o visitante saber disso. Acrescentar um bloco "Não recebeu? Reenviar" com contagem mínima entre tentativas, mover o foco para o campo de código após o primeiro envio e mostrar o e-mail de destino. Manter o botão desabilitado quando o e-mail está vazio, que é comportamento correto.
+Verificação: teste espera o bloco de reenvio com contagem após o primeiro envio e o foco no campo de código.
+Diff: ~55 linhas · 2 arquivos. Depende de: E-101.
 
 ### E-157 · [P3] · recuperação — Definir senha mistura três causas de erro e manda pedir novo link sem link
 Onde: `src/pages/SetPasswordPage.tsx:266, 273, 276`.
@@ -1034,11 +1040,11 @@ Ação: exigir telefone quando o canal escolhido for telefone ou mensagem, com m
 Verificação: teste escolhe o canal sem telefone e espera o erro no campo.
 Diff: ~15 linhas · 2 arquivos. Depende de: E-035.
 
-### E-159 · [P3] · recuperação — Erro de envio mostra texto cru e não oferece outro canal
-Onde: `src/components/ConversationForm.tsx:87, 140`, `src/pages/QuotePage.tsx:373, 548`.
-Ação: mapear os erros por classe (limite de tentativas, falha de rede, falha do servidor) e oferecer o contato por mensagem como alternativa no bloco de erro.
-Verificação: teste com limite de tentativas espera a frase específica e o link alternativo.
-Diff: ~50 linhas · 4 arquivos. Depende de: E-033.
+### E-159 · [P3] · recuperação — Bloco de erro de envio não oferece canal alternativo
+Onde: `src/components/ConversationForm.tsx:140`, `src/pages/QuotePage.tsx:548`.
+Ação: oferecer o contato por mensagem como alternativa dentro do bloco de erro de envio. **Corrigido na verificação:** o mapeamento por classe de erro já existe no cliente HTTP (limite de tentativas e conflito têm frase própria, e a falha de rede cai em texto tratado em português), então não há texto cru vindo do transporte; o que falta é a saída alternativa. A frase técnica que ainda chega ao visitante vem da validação do servidor e é tratada em E-184.
+Verificação: teste com falha de envio espera o link de contato alternativo no bloco de erro.
+Diff: ~30 linhas · 3 arquivos. Depende de: E-184.
 
 ### E-160 · [P3] · estados — 404 sem busca e com uma única saída
 Onde: `src/pages/NotFoundPage.tsx`, `src/styles.css` (bloco de página não encontrada).
@@ -1056,9 +1062,9 @@ Diff: ~80 linhas · 1 arquivo. Depende de: E-147.
 
 # Bloco 8 — Arquitetura e manutenibilidade (E-162 a E-176)
 
-### E-162 · [P1] · arquitetura — Dependência circular entre o tratador de lead e o cron de notificações
+### E-162 · [P2] · arquitetura — Dependência circular entre o tratador de lead e o cron de notificações
 Onde: `api/_lib/leadHandler.ts:4`, `api/notifications.ts:3`.
-Ação: mover os tipos de requisição e resposta para um módulo próprio e importá-los nos nove handlers, e mover a entrega imediata de confirmação para um módulo de notificações sem voltar a importar o tratador. Ciclo de importação em código serverless produz módulo parcialmente inicializado em borda, com falha difícil de reproduzir.
+Ação: mover os tipos de requisição e resposta para um módulo próprio e importá-los nos nove handlers, e mover a entrega imediata de confirmação para um módulo de notificações sem voltar a importar o tratador. **Verificado por leitura direta:** `api/notifications.ts:3` usa importação apenas de tipo, que o compilador apaga, então **não há ciclo em tempo de execução**; o ciclo existe no grafo de módulos e no compilador. O custo real é de manutenção e de ferramenta (o grafo acusa o ciclo, e qualquer troca da importação de tipo por importação de valor cria um ciclo real).
 Verificação: `npm run graph:query` deixa de reportar o ciclo; a suíte de `tests/api` passa sem alteração.
 Diff: ~120 linhas · 11 arquivos. Depende de: —.
 
@@ -1080,7 +1086,7 @@ Ação: mover um único padrão para um módulo de validação e importar nos ci
 Verificação: teste do padrão com identificadores válidos e inválidos; a suíte passa.
 Diff: ~25 linhas · 6 arquivos. Depende de: —.
 
-### E-166 · [P2] · duplicação — Validação de contato duplicada entre front e funções
+### E-166 · [P3] · duplicação — Validação de contato duplicada entre front e funções
 Onde: `src/pages/QuotePage.tsx:32-45`, `src/components/ConversationForm.tsx:18-30`, `src/lib/customerAccount.ts:39`, `api/_lib/contracts.ts:110`.
 Ação: criar em `shared/` o padrão de e-mail e as funções de telefone, e importar nos quatro pontos, mantendo a regra idêntica dos dois lados. Hoje o front pode aceitar o que a função rejeita.
 Verificação: teste de paridade roda os mesmos 20 casos nas duas camadas.
@@ -1092,7 +1098,7 @@ Ação: uma constante de reserva em `shared/` e um único acessor no front que l
 Verificação: teste com a variável definida espera a origem derivada nos oito pontos.
 Diff: ~70 linhas · 10 arquivos. Depende de: —.
 
-### E-168 · [P2] · configuração — Variáveis de ambiente lidas em dez módulos do front
+### E-168 · [P3] · configuração — Variáveis de ambiente lidas em dez módulos do front
 Onde: `src/lib/siteSupabase.ts:5-7` e mais nove módulos.
 Ação: concentrar a leitura em um módulo que exporte os valores já resolvidos, e reutilizar a derivação do identificador do projeto em vez de refazê-la.
 Verificação: `npm run typecheck` e a suíte passam; teste espera erro claro quando a variável obrigatória falta.
@@ -1122,7 +1128,7 @@ Ação: mover a barreira de erro para dentro do layout, envolvendo apenas o cont
 Verificação: teste força erro em uma rota e espera o cabeçalho ainda presente.
 Diff: ~30 linhas · 2 arquivos. Depende de: —.
 
-### E-173 · [P2] · gate — Gate de qualidade enumera 25 testes à mão e esquece cinco suítes
+### E-173 · [P3] · gate — Gate de qualidade enumera 25 testes à mão e esquece cinco suítes
 Onde: `package.json` (script `check`), `tests/session-start-hook.node.mjs`.
 Ação: trocar a enumeração por um único alvo que rode todos os testes do diretório, e incluir as cinco suítes hoje fora do gate. Uma delas não tem script nenhum, então nunca roda.
 Verificação: `npm run check` executa as 30 suítes; o número aparece no resumo do job.
@@ -1152,51 +1158,53 @@ Diff: ~700 linhas movidas · 4 PRs. Depende de: E-162, E-163.
 
 Etapas marcadas **[regra 8]** tocam CI, workflows ou segredos: a PR fica aberta aguardando o dono, conforme `AGENTS.md`.
 
-### E-177 · [P1] · ci — Navegadores de teste baixados do zero em toda execução **[regra 8]**
-Onde: `.github/workflows/quality.yml:68-83, 169-172`.
-Ação: guardar o diretório de navegadores do Playwright em cache por chave do arquivo de dependências, e instalar sem as bibliotecas do sistema quando o cache existir. Esta é uma causa já comprovada de PR reprovada sem relação com o diff: o download acontece duas vezes por execução e falha por rede.
-Verificação: a execução seguinte registra acerto de cache; o tempo do job de navegador cai.
+### E-177 · [P2] · ci — Navegadores de teste baixados do zero em toda execução **[regra 8]**
+Onde: `.github/workflows/quality.yml:74` (Chromium, job de validação) e `:172` (Firefox e WebKit, job de navegadores).
+Ação: guardar o diretório de navegadores do Playwright em cache por chave do arquivo de dependências e instalar sem as bibliotecas do sistema quando o cache existir. **Corrigido na verificação:** não existe download duplicado; são navegadores diferentes em jobs diferentes, e não há nenhuma entrada de cache em todo o diretório de workflows. O cancelamento por teto de tempo registrado no comentário de `quality.yml:146-152` ocorreu durante a instalação de pacotes do sistema, que o cache de navegadores não cobre: esta etapa corta minutos e banda, não aquela falha.
+Verificação: a execução seguinte registra acerto de cache; o tempo dos dois jobs cai.
 Diff: ~30 linhas · 1 arquivo. Depende de: —.
 
 ### E-178 · [P2] · deploy — Verificação pós-deploy não cobre a rota de produto **[regra 8]**
 Onde: `scripts/smoke-deployment.mjs:72`.
-Ação: incluir uma ficha de produto com identificador conhecido e a rota de montar kit na lista verificada, exigindo status 200 na ficha e não apenas a presença dos cabeçalhos. A ficha é a única rota de HTML que depende do catálogo externo e do shell empacotado, ou seja, a mais provável de quebrar sem aviso.
+Ação: incluir uma ficha de produto com identificador conhecido, a rota de montar kit e a rota de orçamento na lista verificada, exigindo status 200 na ficha e não apenas a presença dos cabeçalhos. **Conferido na verificação:** a lista atual tem quatro rotas e o smoke roda três vezes por release, sem tocar nenhuma das três rotas de conversão. A ficha é a única rota de HTML que depende do catálogo externo e do shell empacotado, ou seja, a mais provável de quebrar sem aviso.
 Verificação: `npm run test:smoke-deployment` cobre o caso; o smoke falha quando a ficha responde 404.
 Diff: ~40 linhas · 2 arquivos. Depende de: —.
 
-### E-179 · [P2] · segredos — Segredos usados no release não aparecem no arquivo de exemplo **[regra 8]**
+### E-179 · [P3] · segredos — Nenhum inventário dos segredos usados só pelo CI **[regra 8]**
 Onde: `.env.example`, `scripts/validate-env-example.mjs:16`.
-Ação: documentar os segredos consumidos apenas pelo release em uma seção própria, com valor marcado como "colar somente no GitHub Actions", e estender o verificador para varrer também os workflows. Hoje ele só varre a pasta das funções, então a divergência passa. Nenhum valor real entra no repositório.
+Ação: documentar em uma seção própria os segredos que existem apenas no cofre do GitHub Actions, com o valor marcado como "colar somente no GitHub Actions", e estender o verificador para varrer os workflows além da pasta das funções. **Corrigido na verificação:** três desses segredos são usados por mais de um workflow, não só pelo release, e o verificador declara no próprio cabeçalho que seu escopo é a variável lida por uma função em `api/`. Portanto isto é ampliação de escopo, não omissão do que o arquivo promete. Nenhum valor real entra no repositório.
 Verificação: `npm run env:example:check` falha se um segredo novo aparecer em workflow sem estar documentado.
 Diff: ~60 linhas · 3 arquivos. Depende de: —.
 
-### E-180 · [P2] · cadeia-de-suprimentos — Binário de lint de workflow instalado sem conferir integridade **[regra 8]**
+### E-180 · [P3] · cadeia-de-suprimentos — Binário de lint de workflow instalado sem conferir integridade **[regra 8]**
 Onde: `.github/workflows/workflows-lint.yml:31-35`.
-Ação: baixar para arquivo, conferir contra uma soma fixada no próprio workflow e só então extrair. Hoje o binário vem por tubo direto para execução, sem verificação.
+Ação: baixar para arquivo, conferir contra uma soma fixada no próprio workflow e só então extrair. Hoje o binário vem por tubo direto para execução, sem verificação. **Dimensionado na verificação:** a versão está fixada e o job tem permissão apenas de leitura e nenhum segredo, então um pacote trocado executaria código no runner sem token de escrita para exfiltrar. É endurecimento, não risco com custo hoje.
 Verificação: alterar um byte da soma esperada faz o job falhar.
 Diff: ~20 linhas · 1 arquivo. Depende de: —.
 
-### E-181 · [P2] · ci-segurança — Um job persiste o token do Actions no repositório clonado **[regra 8]**
+### E-181 · [P2] · ci-segurança — Um job herda a credencial do Actions no repositório clonado **[regra 8]**
 Onde: `.github/workflows/release.yml:47`.
-Ação: desligar a persistência de credencial nesse checkout. É o único do repositório que a mantém, e o job autentica por variável de ambiente própria, então nada deixa de funcionar.
+Ação: declarar explicitamente que esse checkout não persiste credencial. **Preciso, conforme a verificação:** é o único dos 17 checkouts do repositório que omite a diretiva e herda o padrão, que é persistir; `stale-branches.yml:24` persiste de propósito. O risco concreto é que o mesmo job instala uma ferramenta de terceiros por gerenciador de pacotes logo depois (`release.yml:78`), com o token ainda na configuração do clone. Atenua: o job tem apenas permissão de leitura e autentica por variável própria, então nada deixa de funcionar.
 Verificação: o job continua verde; o arquivo de configuração do git clonado não contém token.
 Diff: ~2 linhas · 1 arquivo. Depende de: —.
 
-### E-182 · [P2] · cadeia-de-suprimentos — Bloqueio de licença nunca é aplicado **[regra 8]**
-Onde: `.github/workflows/dependency-review.yml:19`.
-Ação: habilitar o workflow pelo mesmo padrão já usado na análise de código (condição por visibilidade do repositório ou variável explícita) e documentar a variável no mesmo lugar. Hoje a regra existe no arquivo mas não há como ela rodar neste repositório, então a verificação de licença e de vulnerabilidade de dependência não acontece em PR.
-Verificação: a execução aparece na PR seguinte; uma dependência com licença bloqueada reprova o job.
-Diff: ~10 linhas · 2 arquivos. Depende de: —.
+### E-182 · [P2] · ci-cobertura — Contrato do artefato de deploy só é verificado depois do merge **[regra 8]**
+Onde: `.github/workflows/release.yml:197`, `scripts/verify-vercel-artifact.mjs:6-7`.
+Ação: levar ao gate de PR a parte do contrato que não depende do artefato de build (que cada caminho declarado em `vercel.json` corresponde a um arquivo existente em `api/` e que cada função citada tem duração máxima declarada). Hoje a divergência só aparece no release, quando o código já está em `main`.
+Verificação: renomear um arquivo de função sem atualizar `vercel.json` reprova a PR em vez do release.
+Diff: ~70 linhas · 3 arquivos. Depende de: —.
+
+> Substituiu um achado descartado na verificação. O original afirmava que o bloqueio de licença de dependência nunca roda neste repositório. **Falso:** o repositório é público, a condição do workflow é satisfeita, e as cinco execuções mais recentes concluíram com sucesso, inclusive na branch deste plano. O bloqueio de licença está ativo hoje. O que resta é opcional e vai no anexo.
 
 ### E-183 · [P2] · ci-custo — Build do empacotador roda três vezes e a suíte roda duas **[regra 8]**
 Onde: `package.json:28`, `.github/workflows/quality.yml:84-89`.
-Ação: reaproveitar o resultado de build que o servidor de teste de ponta a ponta já produz com as mesmas variáveis, em vez de um terceiro build só para medir o pior caso; e rodar a suíte uma única vez, com cobertura. O gate obrigatório fica mais rápido e mais barato sem perder verificação.
+Ação: reaproveitar o resultado de build que o servidor de teste de ponta a ponta já produz com as mesmas variáveis, em vez de um build separado só para medir o pior caso; e rodar a suíte uma única vez, com cobertura. **Mapeado na verificação:** os três builds do job de validação são o do gate, o do servidor de teste de ponta a ponta (`playwright.config.ts:21`, que não reaproveita servidor) e o de `quality.yml:105`; o job de navegadores adiciona um quarto. As duas execuções da suíte são `quality.yml:86` (dentro do gate) e `:89` (com cobertura).
 Verificação: o job continua cobrindo os mesmos passos; o tempo total cai e o resumo registra uma execução de cada.
 Diff: ~30 linhas · 2 arquivos. Depende de: E-045.
 
 ### E-184 · [P2] · erro-exposto — Mensagem do servidor com nome técnico de campo chega ao visitante
-Onde: `src/lib/http.ts:95`, `api/_lib/leadHandler.ts:158`, `api/_lib/contracts.ts:131-135`, `src/pages/QuotePage.tsx:548`.
-Ação: usar a mensagem do servidor apenas quando o código de erro estiver em uma lista curta de códigos com texto aprovado, e manter o texto genérico nos demais casos. Com o envelope de E-039, o campo correto passa a ser marcado no formulário em vez de aparecer como frase técnica. Hoje 13 lançamentos interpolam o nome interno do campo na mensagem.
+Onde: `src/lib/http.ts:95`, `api/_lib/leadHandler.ts:158`, `api/_lib/contracts.ts:131, 134`, `src/pages/QuotePage.tsx:373, 548`.
+Ação: usar a mensagem do servidor apenas quando o código de erro estiver em uma lista curta de códigos com texto aprovado, e manter o texto genérico nos demais casos. Com o envelope de E-039, o campo correto passa a ser marcado no formulário em vez de aparecer como frase técnica. **Contado na verificação:** 13 lançamentos interpolam o nome interno do campo (linhas 80, 87, 91, 97, 131, 134, 178, 181, 189, 251, 258, 266 e 297), e o caminho até a tela é fechado: validação, tratador, cliente HTTP e bloco de erro do formulário.
 Verificação: teste com código desconhecido espera o texto genérico; teste com `consent_required` espera o texto aprovado.
 Diff: ~45 linhas · 3 arquivos. Depende de: E-033, E-034.
 
@@ -1213,26 +1221,26 @@ Verificação: teste espera os quatro elementos presentes na página; revisão d
 Diff: ~70 linhas · 2 arquivos. Depende de: —.
 
 ### E-187 · [P2] · lgpd — Transferência internacional de dados não é informada
-Onde: `src/pages/PrivacyPage.tsx:19`.
-Ação: nomear as categorias de operadores e declarar a transferência internacional com a salvaguarda adotada, alinhando com a seção que já cita a plataforma de hospedagem pelo nome. Texto sujeito à aprovação do dono.
+Onde: `src/pages/PrivacyPage.tsx:19` (seção 7).
+Ação: nomear as categorias de operadores e declarar a transferência internacional com a salvaguarda adotada. **Corrigido na verificação:** a única plataforma citada pelo nome aparece na seção 5 (`:17`) e como ferramenta de mensuração; hospedagem e banco, ambos fora do Brasil, não são nomeados em nenhuma seção, e a palavra "internacional" não aparece na página. Texto sujeito à aprovação do dono.
 Verificação: teste espera a declaração presente; revisão do dono.
 Diff: ~30 linhas · 2 arquivos. Depende de: E-186.
 
 ### E-188 · [P2] · lgpd — Recibo de consentimento datado pelo relógio do visitante
 Onde: `api/_lib/contracts.ts:132-135, 287-291`.
-Ação: gravar o instante do aceite com a hora do servidor, mantendo o valor enviado pelo cliente apenas como campo informativo. Hoje a janela aceita retroação de até sete dias, o que fragiliza o recibo como prova.
+Ação: gravar o instante do aceite com a hora do servidor, mantendo o valor enviado pelo cliente apenas como campo informativo. **Conferido na verificação:** a janela aceita dez minutos no futuro e sete dias no passado, e a checagem de coerência com o instante de envio não fecha a brecha, porque esse instante passa pela mesma janela: basta enviar os dois valores antigos e coerentes entre si.
 Verificação: teste com `acceptedAt` de três dias atrás espera o registro com a hora do servidor; o recibo continua sendo criado.
 Diff: ~35 linhas · 3 arquivos. Depende de: E-006.
 
-### E-189 · [P2] · lgpd — Ponto de coleta sem link do aviso e sem informar a vinculação de histórico
-Onde: `src/pages/CustomerLoginPage.tsx:117-122`, `src/pages/SetPasswordPage.tsx`, `src/components/BriefingAssetUploader.tsx`.
-Ação: incluir o link para o aviso de privacidade sob os três formulários que coletam dado pessoal e uma linha curta explicando que solicitações enviadas com o mesmo e-mail passam a aparecer no histórico da conta. Acrescentar um teste que exija o link em todo ponto de coleta, para a regra não se perder em telas futuras.
+### E-189 · [P3] · lgpd — Aviso de privacidade distante do ponto de coleta no acesso à conta
+Onde: `src/pages/CustomerLoginPage.tsx:121-122`, `src/pages/SetPasswordPage.tsx:40`, `src/components/BriefingAssetUploader.tsx:125`.
+Ação: incluir o link para o aviso de privacidade sob o formulário de criação de acesso e uma linha curta explicando que solicitações enviadas com o mesmo e-mail passam a aparecer no histórico da conta. Acrescentar um teste que exija o link nos pontos que coletam contato novo. **Rebaixado na verificação:** o rodapé tem link para o aviso em todas as páginas (`src/components/Layout.tsx:235`), e definir senha e envio de arquivo não coletam contato novo; o briefing e o contato já têm link local e consentimento explícito. Resta proximidade do aviso no modo de criação de acesso, que é melhoria.
 Verificação: teste percorre os pontos de coleta e exige o link; `npm run test` passa.
 Diff: ~50 linhas · 5 arquivos. Depende de: E-170.
 
-### E-190 · [P2] · formatação-local — Data em formato técnico no e-mail, agenda no fuso do navegador e arquivo de calendário incompleto
+### E-190 · [P3] · formatação-local — Data em formato técnico no e-mail, agenda no fuso do navegador e arquivo de calendário incompleto
 Onde: `src/lib/quoteRequest.ts:65`, `src/lib/commemorativeDates.ts:290, 300, 330-334`, `src/pages/CommemorativeDatesPage.tsx:32`.
-Ação: usar o formatador de data em português já existente no corpo do e-mail, derivar o dia de referência da agenda do fuso de São Paulo em vez do fuso do dispositivo, e incluir no arquivo de calendário o campo de instante de geração exigido pelo formato. Acrescentar teste do corpo do e-mail e do arquivo gerado.
+Ação: usar o formatador de data em português já existente no corpo do e-mail, derivar o dia de referência da agenda do fuso de São Paulo em vez do fuso do dispositivo, e incluir no arquivo de calendário o campo de instante de geração exigido pelo formato. Acrescentar teste do corpo do e-mail e do arquivo gerado. **Dimensionado na verificação:** a data em formato técnico fica no caminho de reserva por e-mail, que só é usado quando o endpoint não está configurado; o desvio de fuso muda o dia de referência apenas nas horas de borda ou fora do Brasil; e o arquivo de calendário sem aquele campo é aceito pelos principais aplicativos. O fuso correto já existe em quatro outros módulos do projeto, então a divergência é real.
 Verificação: teste com dois fusos diferentes espera a mesma data na agenda; validação do arquivo de calendário.
 Diff: ~60 linhas · 6 arquivos. Depende de: E-077.
 
@@ -1246,7 +1254,7 @@ Cabem em uma etapa cada, caso o dono queira ampliar o plano. Ficam registrados p
 
 | Onde | Achado |
 |---|---|
-| `.github/workflows/release.yml:197` | O verificador do artefato de deploy só roda depois do merge; a parte estática do contrato poderia ser verificada na PR. |
+| `.github/workflows/dependency-review.yml:19` | Opcional: acrescentar a mesma saída de emergência do CodeQL (variável explícita) para o caso de o repositório virar privado. Hoje o workflow roda e o bloqueio de licença está ativo. |
 | `.github/workflows/quality.yml:3-6`, `database.yml`, `graphify.yml` | PR que só toca documentação dispara o gate completo, incluindo banco local e grafo. |
 | `scripts/check-performance-budget.mjs:140-173` | Comentários que justificam o orçamento citam tetos que o código já não usa. |
 | `.github/workflows/graphify.yml:23` | Teto de 10 minutos para duas instalações completas e dois builds de grafo, em um check obrigatório. |
