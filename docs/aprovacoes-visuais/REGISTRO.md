@@ -17,7 +17,9 @@ reprova a mudança quando:
 - uma imagem marcada como `proposta` não aponta para uma aprovação `aprovado`;
 - uma aprovação não tem `approvedBy`, `approvedAt`, número de PR, `mergeCommit` de 40 caractéres ou evidência;
 - duas aprovações usam o mesmo `id`, ou o mesmo arquivo é registrado duas vezes;
-- existe pasta `docs/mockups-*` fora de `roots` no registro (mockup novo entra versionado sem dono nem data).
+- existe pasta `docs/mockups-*` fora de `roots` no registro (mockup novo entra versionado sem dono nem data);
+- um PNG dentro de uma pasta de `roots` está em subpasta e fora do registro (a varredura desce todos os níveis);
+- um asset tem `kind` diferente de `base` ou `proposta` (um typo em `kind` esconderia a exigência de aprovação).
 
 Para trocar um mockup de propósito: substituir o PNG e atualizar o `sha256`, as dimensões e o `bytes` (o tamanho
 do arquivo é conferido junto com o hash — só ele explica no erro que a imagem foi reexportada), e, se a decisão mudou,

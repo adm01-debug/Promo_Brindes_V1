@@ -71,6 +71,11 @@ export function validateRegistry(registry, files) {
     if (asset.width !== file.width || asset.height !== file.height) {
       errors.push(`dimensoes divergentes em ${asset.path}: registro ${asset.width}x${asset.height}, disco ${file.width}x${file.height}`);
     }
+    if (asset.kind !== 'base' && asset.kind !== 'proposta') {
+      // Sem o kind um PNG de proposta cai no ramo 'base' e escapa da exigencia
+      // de aprovacao: um typo em `kind` bastaria para publicar tela sem aval.
+      errors.push(`tipo de asset invalido em ${asset.path}: ${asset.kind ?? '(ausente)'}`);
+    }
     if (asset.kind === 'proposta') {
       if (!asset.approvalId) errors.push(`proposta sem aprovacao vinculada: ${asset.path}`);
       else if (!approvals.has(asset.approvalId)) errors.push(`${asset.path} aponta aprovacao inexistente ${asset.approvalId}`);
@@ -91,8 +96,8 @@ export function validateRegistry(registry, files) {
   return errors;
 }
 
-function readAsset(filePath) {
-  const buffer = readFileSync(path.resolve(ROOT, filePath));
+function readAsset(filePath, baseDir = ROOT) {
+  const buffer = readFileSync(path.resolve(baseDir, filePath));
   const dimensions = pngDimensions(buffer);
   if (!dimensions) return null;
   return { path: filePath, sha256: sha256OfBuffer(buffer), bytes: buffer.length, ...dimensions };
@@ -115,17 +120,26 @@ export function findUnregisteredRoots(roots, entries = readdirSync(path.resolve(
     .filter((root) => !known.has(root));
 }
 
-export function listAssetsFromDisk(roots) {
+/**
+ * PNGs sob cada raiz, em qualquer profundidade. Antes so o primeiro nivel era
+ * lido: um mockup em `docs/mockups-x/ficha/` nao era visto, entao um PNG sem
+ * registro passava e um PNG registrado era declarado inexistente.
+ */
+export function listAssetsFromDisk(roots, baseDir = ROOT) {
   const files = [];
-  for (const root of roots) {
-    const absolute = path.resolve(ROOT, root);
-    if (!existsSync(absolute)) continue;
-    for (const name of readdirSync(absolute).sort()) {
-      if (!name.endsWith('.png')) continue;
-      const asset = readAsset(`${root}/${name}`);
-      if (asset) files.push(asset);
+  const walk = (relative) => {
+    const absolute = path.resolve(baseDir, relative);
+    if (!existsSync(absolute)) return;
+    for (const entry of readdirSync(absolute, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+      const child = `${relative}/${entry.name}`;
+      if (entry.isDirectory()) walk(child);
+      else if (entry.name.endsWith('.png')) {
+        const asset = readAsset(child, baseDir);
+        if (asset) files.push(asset);
+      }
     }
-  }
+  };
+  for (const root of roots) walk(root);
   return files;
 }
 

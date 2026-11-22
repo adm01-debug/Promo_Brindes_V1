@@ -149,6 +149,34 @@ test('pasta de mockup fora de roots é reprovada', () => {
   assert.deepEqual(findUnregisteredRoots(['docs/mockups-carnegie-20261005'], entries), ['docs/mockups-nova-tela-20270101']);
 });
 
+test('PNG em subpasta da raiz de mockups também é coletado', () => {
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'aprovacao-roots-'));
+  const raiz = path.join(base, 'docs', '__fixture-roots');
+  fs.mkdirSync(path.join(raiz, 'sub', 'mais-fundo'), { recursive: true });
+  fs.writeFileSync(path.join(raiz, 'a.png'), fakePng(10, 20, 'a'));
+  fs.writeFileSync(path.join(raiz, 'sub', 'b.png'), fakePng(10, 20, 'b'));
+  fs.writeFileSync(path.join(raiz, 'sub', 'mais-fundo', 'c.png'), fakePng(10, 20, 'c'));
+  try {
+    const paths = listAssetsFromDisk(['docs/__fixture-roots'], base).map((f) => f.path).sort();
+    assert.deepEqual(paths, [
+      'docs/__fixture-roots/a.png',
+      'docs/__fixture-roots/sub/b.png',
+      'docs/__fixture-roots/sub/mais-fundo/c.png',
+    ]);
+  } finally {
+    fs.rmSync(base, { recursive: true, force: true });
+  }
+});
+
+test('kind fora de base/proposta é reprovado', () => {
+  const png = { path: 'docs/m/ok.png', sha256: 'f'.repeat(64), width: 10, height: 20, bytes: 100 };
+  const errors = validateRegistry(
+    { approvals: [approval], assets: [{ ...png, kind: 'Proposta', approvalId: 'AV-test' }] },
+    [png],
+  );
+  assert.ok(errors.some((e) => /tipo de asset invalido/.test(e)), errors.join('; '));
+});
+
 test('registro real do repositorio está íntegro', () => {
   const registry = JSON.parse(fs.readFileSync(REGISTRY, 'utf8'));
   assert.ok(registry.approvals.length >= 4);
