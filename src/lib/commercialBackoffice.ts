@@ -36,8 +36,8 @@ export interface SiteQuoteListQuery {
 export async function listSiteQuoteRequests(query: SiteQuoteListQuery = {}): Promise<SiteQuoteListPage> {
   const { data, error } = await runSiteRpc(
     siteClient().rpc('list_site_quote_requests', {
-      p_status: query.status ?? null,
-      p_search: query.search?.trim() ? query.search.trim() : null,
+      p_status: query.status ?? undefined,
+      p_search: query.search?.trim() ? query.search.trim() : undefined,
       p_limit: query.limit ?? 25,
       p_offset: query.offset ?? 0,
     }),
@@ -89,7 +89,7 @@ export async function publishSiteQuoteProposal(input: {
       p_request_id: input.requestId,
       p_title: input.title,
       p_storage_path: input.storagePath,
-      p_valid_until: input.validUntil ?? null,
+      p_valid_until: input.validUntil ?? undefined,
     }),
   );
   if (error) throw error;

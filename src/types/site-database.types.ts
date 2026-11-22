@@ -35,31 +35,6 @@ export type Database = {
         Returns: boolean
       }
       claim_my_quote_requests: { Args: never; Returns: Json }
-      get_site_quote_request: {
-        Args: { p_request_id: string }
-        Returns: Json
-      }
-      list_site_quote_requests: {
-        Args: { p_limit?: number | null; p_offset?: number | null; p_search?: string | null; p_status?: string | null }
-        Returns: Json
-      }
-      publish_site_quote_proposal: {
-        Args: {
-          p_valid_until?: string | null
-          p_storage_path: string
-          p_title: string
-          p_request_id: string
-        }
-        Returns: Json
-      }
-      reply_site_quote_adjustment: {
-        Args: { p_adjustment_id: string; p_note?: string | null; p_response: string; p_status?: string | null }
-        Returns: Json
-      }
-      update_site_quote_status: {
-        Args: { p_note?: string | null; p_request_id: string; p_status: string }
-        Returns: Json
-      }
       claim_site_commercial_team_alert: {
         Args: { p_request_id: string }
         Returns: Json
@@ -180,6 +155,7 @@ export type Database = {
         Args: { p_batch_size?: number }
         Returns: Json
       }
+      get_site_quote_request: { Args: { p_request_id: string }; Returns: Json }
       get_site_shared_selection: {
         Args: { p_identifier_hash: string; p_token: string }
         Returns: Json
@@ -188,6 +164,15 @@ export type Database = {
       list_my_occasion_favorites: { Args: never; Returns: Json }
       list_my_selections: {
         Args: { p_include_archived?: boolean }
+        Returns: Json
+      }
+      list_site_quote_requests: {
+        Args: {
+          p_limit?: number
+          p_offset?: number
+          p_search?: string
+          p_status?: string
+        }
         Returns: Json
       }
       matches_my_briefing_asset_upload: {
@@ -205,6 +190,15 @@ export type Database = {
           p_request_kind: string
         }
         Returns: boolean
+      }
+      publish_site_quote_proposal: {
+        Args: {
+          p_request_id: string
+          p_storage_path: string
+          p_title: string
+          p_valid_until?: string
+        }
+        Returns: Json
       }
       purge_archived_customer_selections: {
         Args: { p_batch_size?: number }
@@ -230,6 +224,10 @@ export type Database = {
       reject_site_briefing_asset_verification: {
         Args: { p_id: string; p_storage_path: string }
         Returns: boolean
+      }
+      reply_site_quote_adjustment: {
+        Args: { p_adjustment_id: string; p_response: string; p_status?: string }
+        Returns: Json
       }
       request_my_quote_adjustment: {
         Args: {
@@ -266,6 +264,10 @@ export type Database = {
         Returns: Json
       }
       site_notification_queue_health: { Args: never; Returns: Json }
+      update_site_quote_status: {
+        Args: { p_request_id: string; p_status: string }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
@@ -330,6 +332,68 @@ export type Database = {
           occurred_at?: string
           performed_by?: string
           schema_name?: string | null
+        }
+        Relationships: []
+      }
+      commercial_audit_log: {
+        Row: {
+          action: string
+          actor_label: string
+          actor_user_id: string | null
+          created_at: string
+          detail: Json
+          id: number
+          quote_request_id: string
+        }
+        Insert: {
+          action: string
+          actor_label: string
+          actor_user_id?: string | null
+          created_at?: string
+          detail?: Json
+          id?: never
+          quote_request_id: string
+        }
+        Update: {
+          action?: string
+          actor_label?: string
+          actor_user_id?: string | null
+          created_at?: string
+          detail?: Json
+          id?: never
+          quote_request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commercial_audit_log_quote_request_id_fkey"
+            columns: ["quote_request_id"]
+            isOneToOne: false
+            referencedRelation: "quote_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commercial_operators: {
+        Row: {
+          created_at: string
+          display_name: string
+          is_active: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name: string
+          is_active?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1132,6 +1196,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assert_site_operator: {
+        Args: never
+        Returns: {
+          created_at: string
+          display_name: string
+          is_active: boolean
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "commercial_operators"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       audit_actor: { Args: never; Returns: string }
       commercial_team_alert_payload: {
         Args: { p_delivery_id: string }
