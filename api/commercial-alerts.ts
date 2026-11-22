@@ -8,6 +8,7 @@ import {
   deliverCommercialAlertJob,
   parseCommercialAlertJob,
 } from './_lib/commercialTeamAlerts.js';
+import { recordCronHeartbeat } from './_lib/cronHeartbeats.js';
 import { sendOperationalAlert } from './_lib/operationalAlerts.js';
 
 /** Orçamento do cron abaixo do maxDuration de 15 s da Vercel. Exportado para
@@ -110,9 +111,11 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       failed,
       pending: pendingTotal,
     });
+    await recordCronHeartbeat('commercial-alerts', true, failed ? `failed:${failed}` : undefined);
     response.status(200).json({ ok: true, claimed: claimedJobs.length, delivered, failed, pending: pendingTotal });
   } catch (error) {
     logServerError('commercial_alerts_cron_failed', { errorClass: errorClass(error) });
+    await recordCronHeartbeat('commercial-alerts', false, errorClass(error));
     const alerted = await sendOperationalAlert('commercial_alerts_cron_failed', { errorClass: errorClass(error) });
     if (process.env.OPERATIONS_ALERT_WEBHOOK_URL?.trim() && !alerted) {
       logServerWarning('commercial_alerts_failure_alert_delivery_failed', {});

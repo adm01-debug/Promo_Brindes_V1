@@ -10,6 +10,7 @@ erDiagram
   commercial_operators
   consent_receipts
   contact_requests
+  cron_heartbeats
   customer_briefing_assets
   customer_occasion_favorites
   customer_profiles

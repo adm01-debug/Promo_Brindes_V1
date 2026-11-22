@@ -2,6 +2,7 @@ import { timingSafeEqual } from 'node:crypto';
 import { getSiteDatabaseConfig } from './_lib/siteDatabase.js';
 import type { ApiRequest, ApiResponse } from './_lib/leadHandler.js';
 import { errorClass, logServerError, logServerWarning } from './_lib/observability.js';
+import { recordCronHeartbeat } from './_lib/cronHeartbeats.js';
 import { OPERATIONAL_ALERT_TIMEOUT_MS, sendOperationalAlert } from './_lib/operationalAlerts.js';
 import type { SiteRpcArgs, SiteRpcName } from './_lib/siteRpcContract.js';
 
@@ -713,10 +714,12 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       if (jobs.length < batchSize) break;
     }
     console.info('site_notifications_completed', { claimed, delivered, failed, inconclusive, channels });
+    await recordCronHeartbeat('notifications', true, failed ? `failed:${failed}` : undefined);
     await reportQueueHealth();
     response.status(200).json({ ok: true, claimed, delivered, failed, inconclusive });
   } catch (error) {
     logServerError('site_notifications_failed', { errorClass: errorClass(error), claimed, delivered, failed, inconclusive, channels });
+    await recordCronHeartbeat('notifications', false, errorClass(error));
     const alerted = await sendOperationalAlert('notification_cron_failed', { errorClass: errorClass(error), claimed, delivered, failed, inconclusive, channels });
     if (process.env.OPERATIONS_ALERT_WEBHOOK_URL?.trim() && !alerted) logServerWarning('site_notifications_failure_alert_delivery_failed', {});
     response.status(503).json({ error: 'notification_delivery_unavailable' });
