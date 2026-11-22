@@ -669,10 +669,12 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     // cresce e que mais precisa de medicao. A chamada e best-effort (o proprio
     // reportQueueHealth engole a falha) e nao reivindica nada: so le e alerta.
     await reportQueueHealth();
-    // F-87: sem provedor o cron continua rodando no horario. Registrar o desfecho
-    // evita que o vigia leia a ausencia de heartbeat como "a plataforma parou de
-    // disparar" e alerte por um estado que ja e conhecido e reportado aqui.
-    await recordCronHeartbeat('notifications', false, 'provider_not_configured');
+    // F-87: sem provedor o cron continua rodando no horario. O heartbeat e de
+    // SUCESSO — o que falta e canal, nao agendamento — e o `reportQueueHealth()`
+    // acima ja e quem cobra a fila. Gravar falha aqui faria o vigia disparar um
+    // alerta sem motivo a cada 30 min, e ainda mascararia uma falha real de
+    // agendamento, que e o que o vigia existe para detectar.
+    await recordCronHeartbeat('notifications', true, 'skipped:provider_not_configured');
     response.status(503).json({ error: 'notification_provider_not_configured' });
     return;
   }

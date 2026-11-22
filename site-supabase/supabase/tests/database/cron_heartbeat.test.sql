@@ -11,7 +11,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(26);
+select plan(28);
 
 -- === Estrutura ===================================================================
 
@@ -115,6 +115,31 @@ select is(
   (select seconds_since_activity <= (select expected_interval_seconds + 20 * 60 from public.check_cron_heartbeats() where name = 'commercial-alerts') from public.check_cron_heartbeats() where name = 'commercial-alerts'),
   true,
   'tempo sem atividade de cron recem instalado cabe na janela com tolerancia'
+);
+
+-- === Fim da tolerancia da primeira execucao ====================================
+-- Sem execucao registrada, o limite e `installed_at` + intervalo + tolerancia.
+-- 10 min instalado e nunca executado ainda cabe na janela de 5+20 min;
+-- 26 min instalado ja passou dela e o cron vira "atrasado".
+
+update site_private.cron_heartbeats
+   set installed_at = now() - interval '10 minutes'
+ where name = 'commercial-alerts';
+
+select is(
+  (select status from public.check_cron_heartbeats() where name = 'commercial-alerts'),
+  'never_ran'::text,
+  'recem instalado e sem execucao continua never_ran dentro da tolerancia'
+);
+
+update site_private.cron_heartbeats
+   set installed_at = now() - interval '26 minutes'
+ where name = 'commercial-alerts';
+
+select is(
+  (select status from public.check_cron_heartbeats() where name = 'commercial-alerts'),
+  'late'::text,
+  'sem execucao e instalado alem de intervalo mais tolerancia aparece como atrasado'
 );
 
 -- === Atraso por janela ==========================================================
