@@ -78,6 +78,12 @@ medição anterior e a atual (ou seja, o Postgres zerou os contadores no meio do
 o delta não representa o mês: a observação reinicia no reset e a janela recomeça a contar
 dali. Registrar o `stats_reset` junto de cada medição é o que torna a comparação válida.
 
+Atenção ao reset **parcial**: `pg_stat_reset_single_table_counters` zera o contador de
+uma tabela sem mexer no `stats_reset` do banco. Nesse caso o marcador não muda e o índice
+pode reaparecer com zero leituras sem ter ficado ocioso. Se houver registro (ou suspeita)
+de reset isolado, descartar a janela inteira — o índice volta para a fila e a contagem
+recomeça na próxima revisão.
+
 Só é candidato a remoção o índice que (a) apareceu como aplicado no `admin_ddl_log`
 há pelo menos 30 dias, (b) teve a tabela com tráfego medido entre duas revisões
 consecutivas sem `stats_reset` no meio e (c) continua com `idx_scan = 0`. Antes de remover:
