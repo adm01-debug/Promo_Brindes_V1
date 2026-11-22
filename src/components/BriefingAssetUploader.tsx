@@ -2,6 +2,7 @@ import { FileImage, LoaderCircle, LockKeyhole, Paperclip, Trash2, Upload } from 
 import { type ChangeEvent, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCustomerAuth } from '../context/customerAuth';
+import { briefingAssetSizeBand, trackFunnelEvent } from '../lib/analytics';
 import {
   briefingAssetValidationError,
   deleteMyBriefingAsset,
@@ -83,6 +84,7 @@ export function BriefingAssetUploader({ value, onChange, contactEmail }: {
     setError('');
     try {
       const asset = await uploadMyBriefingAsset(file, kind);
+      trackFunnelEvent('briefing_asset_uploaded', { kind, mime: file.type, size_band: briefingAssetSizeBand(file.size) });
       if (generation !== sessionGeneration.current) return;
       setAssets((current) => [asset, ...current]);
       onChange([...new Set([...selectedAssetIdsRef.current, asset.id])]);

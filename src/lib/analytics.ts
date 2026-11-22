@@ -5,7 +5,7 @@ export interface FunnelEventMap {
   search_started: { source: 'home' | 'catalog' | 'header'; query_length: number; suggestion: boolean };
   campaign_finder_completed: { moment: string; audience: string; scale: string; mood: string; choices: number };
   campaign_finder_skipped: { choices: number };
-  catalog_result_viewed: { result_count: number; page: number; active_filters: number; campaign: boolean };
+  catalog_result_viewed: { result_count: number; page: number; active_filters: number; campaign: boolean; has_query: boolean };
   product_viewed: { product_id: string; category_id: string };
   product_saved: { product_id: string; category_id: string; has_color: boolean };
   selection_limit_reached: { item_count: number };
@@ -37,6 +37,10 @@ export interface FunnelEventMap {
   occasion_catalog_opened: { occasion_id: string; idea: string };
   idea_landing_viewed: { topic: string; result_count: number };
   idea_catalog_opened: { topic: string; placement: 'hero' | 'referencias' };
+  contact_submitted: { channel: 'form' | 'email'; has_message: boolean };
+  briefing_asset_uploaded: { kind: string; mime: string; size_band: 'ate-1mb' | 'ate-5mb' | 'acima-5mb' };
+  selection_item_removed: { item_count: number; via: 'item' | 'clear' };
+  shared_selection_opened: { item_count: number; persistent: boolean };
 }
 
 type FunnelEventName = keyof FunnelEventMap;
@@ -45,7 +49,7 @@ const ALLOWED_PROPERTIES: { [Name in FunnelEventName]: ReadonlyArray<keyof Funne
   search_started: ['source', 'query_length', 'suggestion'],
   campaign_finder_completed: ['moment', 'audience', 'scale', 'mood', 'choices'],
   campaign_finder_skipped: ['choices'],
-  catalog_result_viewed: ['result_count', 'page', 'active_filters', 'campaign'],
+  catalog_result_viewed: ['result_count', 'page', 'active_filters', 'campaign', 'has_query'],
   product_viewed: ['product_id', 'category_id'],
   product_saved: ['product_id', 'category_id', 'has_color'],
   selection_limit_reached: ['item_count'],
@@ -77,6 +81,10 @@ const ALLOWED_PROPERTIES: { [Name in FunnelEventName]: ReadonlyArray<keyof Funne
   occasion_catalog_opened: ['occasion_id', 'idea'],
   idea_landing_viewed: ['topic', 'result_count'],
   idea_catalog_opened: ['topic', 'placement'],
+  contact_submitted: ['channel', 'has_message'],
+  briefing_asset_uploaded: ['kind', 'mime', 'size_band'],
+  selection_item_removed: ['item_count', 'via'],
+  shared_selection_opened: ['item_count', 'persistent'],
 };
 
 function safeProperties<Name extends FunnelEventName>(name: Name, properties: FunnelEventMap[Name]) {
@@ -117,6 +125,14 @@ export function redactTelemetryUrl<Event extends { url: string }>(event: Event):
 
 export function redactAnalyticsUrl(event: BeforeSendEvent): BeforeSendEvent | null {
   return redactTelemetryUrl(event);
+}
+
+// Faixa de tamanho, nunca o byte exato: o evento nao deve virar identificador
+// de arquivo nem inflar o payload enviado ao provedor.
+export function briefingAssetSizeBand(bytes: number): 'ate-1mb' | 'ate-5mb' | 'acima-5mb' {
+  if (bytes <= 1024 * 1024) return 'ate-1mb';
+  if (bytes <= 5 * 1024 * 1024) return 'ate-5mb';
+  return 'acima-5mb';
 }
 
 export function trackFunnelEvent<Name extends FunnelEventName>(name: Name, properties: FunnelEventMap[Name]): void {

@@ -128,6 +128,7 @@ export function QuoteCartProvider({ children }: { children: ReactNode }) {
       addProduct,
       removeItem: (key) => {
         if (!state.items.some((item) => item.key === key)) return;
+        trackFunnelEvent('selection_item_removed', { item_count: state.items.length - 1, via: 'item' });
         setLastRemoved(state);
         dispatch({ type: 'remove', key });
       },
@@ -140,7 +141,10 @@ export function QuoteCartProvider({ children }: { children: ReactNode }) {
       setCampaign: (campaign) => dispatch({ type: 'campaign', campaign: normalizeCampaignBrief(campaign) }),
       setSelectionTitle: (title) => dispatch({ type: 'selection-title', title }),
       clear: () => {
-        if (state.items.length) setLastCleared(state);
+        if (state.items.length) {
+          trackFunnelEvent('selection_item_removed', { item_count: 0, via: 'clear' });
+          setLastCleared(state);
+        }
         setLastRemoved(null);
         dispatch({ type: 'clear' });
       },

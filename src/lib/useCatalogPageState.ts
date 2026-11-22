@@ -230,8 +230,8 @@ export function useCatalogPageState() {
     const viewKey = `${paramsKey}|${catalog.data.total}`;
     if (trackedCatalogViewsRef.current.has(viewKey)) return;
     trackedCatalogViewsRef.current.add(viewKey);
-    trackFunnelEvent('catalog_result_viewed', { result_count: catalog.data.total, page: catalog.data.page, active_filters: activeFilterCount, campaign: campaignCount > 0 });
-  }, [activeFilterCount, campaignCount, catalog.data.page, catalog.data.total, catalogError, catalogLoading, paramsKey]);
+    trackFunnelEvent('catalog_result_viewed', { result_count: catalog.data.total, page: catalog.data.page, active_filters: activeFilterCount, campaign: campaignCount > 0, has_query: Boolean(query) });
+  }, [activeFilterCount, campaignCount, catalog.data.page, catalog.data.total, catalogError, catalogLoading, paramsKey, query]);
   useEffect(() => {
     if (!mobileFiltersOpen) return;
     const triggerButton = mobileTriggerRef.current;
