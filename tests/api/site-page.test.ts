@@ -58,6 +58,18 @@ describe('HTML inicial das páginas estáticas', () => {
     expect(privatePage.result.body).toContain('noindex,nofollow');
   });
 
+  it('serve o back-office comercial como rota privada e nao indexavel', async () => {
+    vi.stubEnv('VITE_PUBLIC_URL', 'https://promo-brindes-v1.vercel.app');
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(appShell, { status: 200 })));
+    const { result, response } = responseDouble();
+    await handler({ method: 'GET', query: { page: 'backoffice' } }, response);
+    expect(result.statusCode).toBe(200);
+    expect(result.headers.get('X-Robots-Tag')).toContain('noindex');
+    expect(result.headers.get('Cache-Control')).toBe('no-store');
+    expect(result.body).toContain('noindex,nofollow');
+    expect(result.body).toContain('https://promo-brindes-v1.vercel.app/admin/orcamentos');
+  });
+
   it('preserva 404 real para uma landing editorial desconhecida', async () => {
     vi.stubEnv('VITE_PUBLIC_URL', 'https://promo-brindes-v1.vercel.app');
     vi.stubGlobal('fetch', vi.fn(async () => new Response(appShell, { status: 200 })));

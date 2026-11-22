@@ -146,6 +146,21 @@ describe('download autenticado de propostas', () => {
     expect(unsafeUrl.result.statusCode).toBe(503);
   });
 
+  // O nome do arquivo pode conter '..' desde que nao seja um segmento inteiro.
+  // A publicacao no banco (site_private.is_valid_proposal_storage_path) usa a
+  // mesma regra: se o comercial consegue publicar, o cliente consegue baixar.
+  it('aceita nome de arquivo com dois pontos no meio do nome', async () => {
+    configure();
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ bucket: 'customer-proposals', path: 'cliente/proposta..v2.pdf' }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ signedURL: '/object/sign/customer-proposals/cliente/proposta..v2.pdf?token=ok' }), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const current = responseDouble();
+    await proposalHandler(request(), current.response);
+    expect(current.result.statusCode).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it('recusa caminho de proposta forjado antes de solicitar URL assinada', async () => {
     configure();
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({

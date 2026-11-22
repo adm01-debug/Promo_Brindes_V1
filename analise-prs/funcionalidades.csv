@@ -1,7 +1,7 @@
 id,funcionalidade,descricao,estado,completude_pct,prs_relacionadas,achado_auditoria,prioridade
 F-01,Encaminhar lead ao time comercial,Outbox audience=commercial_team + adaptador de destino (CRM/e-mail/WhatsApp interno),BLOQUEADA,90,#158,Fila integra (commercialTeamAlerts+vercel.json cron */5); falta somente COMMERCIAL_TEAM_WEBHOOK_URL/_TOKEN em producao,P1
 F-02,Responsavel estados e SLA por pedido,Colunas responsavel/prazo em quote_requests + tela de sucesso com prazo,BLOQUEADA,0,,PF-02,P2
-F-03,Back-office minimo,Publicar proposta mudar status triar ajustes via UI,NÃO INICIADO,0,,PF-03,P1
+F-03,Back-office minimo,Publicar proposta mudar status triar ajustes via UI,COMPLETA,100,#225,"Back-office entregue: migration 20261122030000_add_commercial_backoffice_rpcs.sql com allowlist site_private.commercial_operators, trilha append-only site_private.commercial_audit_log, helper assert_site_operator() e 5 RPCs (list_site_quote_requests, get_site_quote_request, update_site_quote_status, reply_site_quote_adjustment, publish_site_quote_proposal); UI /admin/orcamentos integrada (BackofficePage + commercialBackoffice.ts + contrato camelCase); 52 assertions pgTAP (28 estruturais + 30 funcionais, 737/737 PASS) e 11 testes vitest de contrato.",P1
 F-04,Bloqueio apos 3 ajustes pendentes,Quarto pedido recebe mensagem explicando o limite de 3 em analise e link para falar com a equipe; ADJUSTMENT_PENDING_LIMIT_MESSAGE traduz o P0001 e a pagina mantem as demais recusas cruas,COMPLETA,100,,PF-04,P2
 F-05,Mensagens da equipe ao cliente,Eventos message e proposal_published na linha do tempo,PENDENTE,0,,PF-05,P2
 F-06,Fale conosco com destino,contact_requests gravado sem consumidor,PARCIAL,50,,PF-06,P2
@@ -21,7 +21,7 @@ F-19,Descricao padrao personalize,Descricao personalizada condicionada a allowsP
 F-20,Faixa de publico como unidades,Escala 51-200 un. exibe pessoas como quantidade,COMPLETA,100,#215,PF-20,P3
 F-21,Aviso rascunho fica salvo,Aparece mesmo com falha no sessionStorage,COMPLETA,100,#215,PF-21,P3
 F-22,Abrir PDF/revista na biblioteca,10 colecoes format online; PDF/revista so estrutura,PARCIAL,50,,PF-22,P3
-F-23,Propostas versionadas no portal,Leitura + URL 60s prontas; sem produtor PF-03,PARCIAL,60,,PF-23,P1
+F-23,Propostas versionadas no portal,Leitura + URL 60s prontas; sem produtor PF-03,COMPLETA,100,#225,"Produtor agora existe: publish_site_quote_proposal versiona em site_private.proposal_documents e supersede a anterior, alimentando a leitura ja pronta do portal (CustomerQuotePage + api/customer-proposals com URL 60s).",P1
 F-24,Perfil do cliente editavel,customer_profiles.company nunca escrito; sem RPC leitura/edicao,PARCIAL,30,,PF-24,P2
 F-25,Pedidos de ajuste,Atras de flag; sem roteamento PF-01; bloqueio PF-04; sem e2e,PARCIAL,50,,PF-25,P2
 F-26,Ciclo real de autenticacao,Ensaio com contas controladas e e-mail real,PARCIAL,70,,PF-26,P2

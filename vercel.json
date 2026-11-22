@@ -43,6 +43,7 @@
     { "source": "/definir-senha", "destination": "/api/site-page?page=senha" },
     { "source": "/minha-conta", "destination": "/api/site-page?page=conta" },
     { "source": "/minha-conta/orcamentos/:id", "destination": "/api/site-page?page=detalheOrcamento" },
+    { "source": "/admin/orcamentos", "destination": "/api/site-page?page=backoffice" },
     { "source": "/:path((?!api/|_vercel/|assets/|images/|brand/|sitemap\\.xml$|robots\\.txt$|favicon\\.svg$).*)", "destination": "/api/not-found" }
   ],
   "headers": [
@@ -52,6 +53,10 @@
     },
     {
       "source": "/minha-conta/(.*)",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }]
+    },
+    {
+      "source": "/admin/orcamentos",
       "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }]
     },
     {

@@ -1,6 +1,6 @@
 # Dicionário de dados — site_private (Etapa 35)
 
-Gerado por `npm run db:site:dictionary` a partir de `pg_description` no banco local, na versão do schema da migration mais recente (2026-11-21). Não editar à mão — a fonte de verdade é o comentário na migration (`comment on table`/`comment on column`); rode o script de novo depois de qualquer mudança de schema.
+Gerado por `npm run db:site:dictionary` a partir de `pg_description` no banco local, na versão do schema da migration mais recente (2026-11-22). Não editar à mão — a fonte de verdade é o comentário na migration (`comment on table`/`comment on column`); rode o script de novo depois de qualquer mudança de schema.
 
 ## Tabelas
 
@@ -30,6 +30,32 @@ Etapa 36: DDL (create/alter/drop) fora do fluxo de migrations do CLI. Toda migra
 | `schema_name` | `text` | — |
 | `performed_by` | `text` | — |
 | `occurred_at` | `timestamp with time zone` | — |
+
+### `site_private.commercial_audit_log`
+
+Trilha append-only das escritas feitas pelo back-office (F-03): quem mudou o quê e quando. Sem policy para anon/authenticated; leitura só por service_role.
+
+| Coluna | Tipo | Comentário |
+|---|---|---|
+| `id` | `bigint` | — |
+| `actor_user_id` | `uuid` | — |
+| `actor_label` | `text` | — |
+| `action` | `text` | — |
+| `quote_request_id` | `uuid` | — |
+| `detail` | `jsonb` | — |
+| `created_at` | `timestamp with time zone` | — |
+
+### `site_private.commercial_operators`
+
+Allowlist do back-office comercial (F-03). Só service_role escreve; as RPCs de escrita comercial recusam chamador fora daqui, mesmo com JWT válido.
+
+| Coluna | Tipo | Comentário |
+|---|---|---|
+| `user_id` | `uuid` | — |
+| `display_name` | `text` | — |
+| `is_active` | `boolean` | — |
+| `created_at` | `timestamp with time zone` | — |
+| `updated_at` | `timestamp with time zone` | — |
 
 ### `site_private.consent_receipts`
 
@@ -386,18 +412,22 @@ Trilha do exercicio dos direitos do titular (LGPD art. 18) na Area do Cliente: a
 | `get_my_quote_request` | `p_request_id uuid` | Retorna detalhe e contexto de curadoria somente ao auth.uid() proprietário, sem metadados operacionais. |
 | `get_my_quote_requests` | `p_limit integer, p_offset integer, p_status text, p_search text` | Lista solicitações do auth.uid() com título de ação, miniaturas e última movimentação visível ao cliente. |
 | `get_site_data_retention_candidates` | `p_batch_size integer` | — |
+| `get_site_quote_request` | `p_request_id uuid` | Detalhe interno do orçamento para o back-office (F-03), com itens, eventos de ambas as audiências, propostas, ajustes, status permitidos pela state machine e trilha de auditoria. |
 | `get_site_shared_selection` | `p_token uuid, p_identifier_hash text` | — |
 | `list_my_briefing_assets` | `` | — |
 | `list_my_occasion_favorites` | `` | Lista IDs editoriais do titular autenticado. EXECUTE somente para authenticated. |
 | `list_my_selections` | `p_include_archived boolean` | — |
+| `list_site_quote_requests` | `p_status text, p_search text, p_limit integer, p_offset integer` | Fila paginada do back-office (F-03): filtro por status e busca por protocolo, empresa, contato, e-mail ou telefone. Só operador ativo. |
 | `matches_my_briefing_asset_upload` | `p_path text, p_metadata jsonb` | Autoriza apenas o primeiro upload de uma reserva ainda não verificada; conteúdo validado não pode ser substituído pelo titular. |
 | `owns_my_briefing_asset_path` | `p_path text` | — |
 | `preflight_site_lead_request` | `p_request_kind text, p_identifier_hash text, p_client_request_id text` | Primeira camada distribuída de rate limit para leads, executada antes da consulta ao catálogo. Repetições idempotentes também consomem o bucket para impedir bypass por client_request_id conhecido. |
+| `publish_site_quote_proposal` | `p_request_id uuid, p_title text, p_storage_path text, p_valid_until date` | Publica uma proposta versionada e move o pedido para quoted (F-03, produtor que faltava para F-23). Exige status in_progress; a versão anterior vira histórica por superseded_at. |
 | `purge_archived_customer_selections` | `p_batch_size integer` | — |
 | `purge_site_admin_audit_logs` | `p_retention_days integer, p_batch_size integer` | Remove em lotes trilhas administrativas além da janela configurada; padrão 400 dias. |
 | `record_site_notification_dispatch_started` | `p_delivery_id uuid, p_lease_token uuid` | Persiste intenção WhatsApp antes da chamada externa; sem confirmação do marcador, a Meta não é chamada. Um envio incerto exige reconciliação humana e nunca é reenviado cegamente. |
 | `record_site_notification_provider_acceptance` | `p_delivery_id uuid, p_lease_token uuid, p_provider text, p_provider_message_id text` | Registra o aceite do provedor antes da finalização, para reconciliação em caso de falha na etapa seguinte (R01, R02). |
 | `reject_site_briefing_asset_verification` | `p_id uuid, p_storage_path text` | Caminho server-side idempotente para remover uma reserva não vinculada cuja verificação de conteúdo falhou; o trigger enfileira a exclusão do blob privado. |
+| `reply_site_quote_adjustment` | `p_adjustment_id uuid, p_response text, p_status text` | Responde a um ajuste pedido pelo cliente (F-03): move o estado e grava o texto da resposta na trilha. Trava a linha com FOR UPDATE para não sobrescrever uma resposta concorrente. |
 | `request_my_quote_adjustment` | `p_request_id uuid, p_message text, p_client_request_id text` | Registra um pedido de ajuste somente para o titular autenticado da solicitação, mantendo o texto no schema privado. |
 | `revoke_site_shared_selection` | `p_token uuid, p_management_token_hash text, p_identifier_hash text` | — |
 | `rls_auto_enable` | `` | Guarda DDL do banco isolado: novas tabelas no schema public nascem com RLS habilitada. Sem EXECUTE para roles da API. |
@@ -405,3 +435,4 @@ Trilha do exercicio dos direitos do titular (LGPD art. 18) na Area do Cliente: a
 | `set_my_occasion_favorite` | `p_occasion_id text, p_saved boolean` | Adiciona ou remove data favorita da conta autenticada; rejeita estado ausente. |
 | `set_my_selection_archived` | `p_id uuid, p_expected_version integer, p_archived boolean` | — |
 | `site_notification_queue_health` | `` | Idade do job elegível mais antigo e contagem de exhausted por canal (Etapa 29); devolve só contagens e canais, sem conteúdo pessoal. |
+| `update_site_quote_status` | `p_request_id uuid, p_status text` | Muda o status de um orçamento respeitando site_private.status_transitions e registra a trilha (F-03). O update é condicionado ao status lido, então duas abas abertas não sobrescrevem uma à outra. |

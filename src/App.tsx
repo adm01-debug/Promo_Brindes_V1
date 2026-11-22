@@ -31,6 +31,7 @@ const SetPasswordPage = lazy(() => import('./pages/SetPasswordPage'));
 const SharedSelectionPage = lazy(() => import('./pages/SharedSelectionPage'));
 const IdeaLandingPage = lazy(() => import('./pages/IdeaLandingPage'));
 const KitBuilderPage = lazy(() => import('./pages/KitBuilderPage'));
+const BackofficePage = lazy(() => import('./pages/BackofficePage'));
 
 function ScrollManager() {
   const { key, pathname } = useLocation();
@@ -124,6 +125,7 @@ export default function App() {
                   <Route path="/definir-senha" element={<SetPasswordPage />} />
                   <Route path="/minha-conta" element={<CustomerAccountPage />} />
                   <Route path="/minha-conta/orcamentos/:id" element={<CustomerQuotePage />} />
+                  <Route path="/admin/orcamentos" element={<BackofficePage />} />
                   <Route path="*" element={<NotFoundPage />} />
                   </Routes>
                 </Suspense>

@@ -15,6 +15,15 @@ describe('contrato da Área do Cliente', () => {
     expect(sanitizeCustomerNextPath('/catalogo')).toBe('/minha-conta');
   });
 
+  it('devolve o operador ao back-office depois do login', () => {
+    expect(sanitizeCustomerNextPath('/admin/orcamentos')).toBe('/admin/orcamentos');
+    expect(sanitizeCustomerNextPath('/admin/orcamentos?pedido=abc')).toBe('/admin/orcamentos?pedido=abc');
+    expect(sanitizeCustomerNextPath('/admin')).toBe('/minha-conta');
+    expect(sanitizeCustomerNextPath('/admin/orcamentos/../catalogo')).toBe('/minha-conta');
+    expect(sanitizeCustomerNextPath('/admin/orcamentosX')).toBe('/minha-conta');
+    expect(sanitizeCustomerNextPath('//admin/orcamentos')).toBe('/minha-conta');
+  });
+
   it('distingue a versão mais recente de uma proposta ainda válida', () => {
     expect(isProposalExpired({ validUntil: '2026-09-11' }, '2026-09-12')).toBe(true);
     expect(isProposalExpired({ validUntil: '2026-09-12' }, '2026-09-12')).toBe(false);
