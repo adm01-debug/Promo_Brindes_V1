@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Seo } from '../components/Seo';
 import { useQuoteCart } from '../context/quoteCart';
+import { trackFunnelEvent } from '../lib/analytics';
 import { fetchProductsByIds } from '../lib/catalog';
 import { decodeSharedSelection, fetchPersistentSharedSelection, hydrateSharedSelectionDetails, isPersistentSharedSelectionToken, type SharedSelectionItem } from '../lib/sharedSelection';
 import { persistentSharedSelectionsEnabled } from '../lib/siteFeatureFlags';
@@ -22,6 +23,7 @@ export default function SharedSelectionPage() {
   const [payload, setPayload] = useState(legacyPayload);
   const [contentKey, setContentKey] = useState(selectionKey);
   const [itemsKey, setItemsKey] = useState(legacyPayload.length ? '' : selectionKey);
+  const trackedSelectionRef = useRef('');
   const [items, setItems] = useState<QuoteItem[]>([]);
   const [unavailableProducts, setUnavailableProducts] = useState<SharedSelectionItem[]>([]);
   const [unavailableVariants, setUnavailableVariants] = useState<SharedSelectionItem[]>([]);
@@ -107,6 +109,13 @@ export default function SharedSelectionPage() {
           setUnavailableVariants(hydration.unavailableVariantReferences);
           setInvalidKitReferences(hydration.invalidKitReferences);
           setItemsKey(selectionKey);
+          if (trackedSelectionRef.current !== selectionKey) {
+            trackedSelectionRef.current = selectionKey;
+            trackFunnelEvent('shared_selection_opened', {
+              item_count: hydration.items.length,
+              persistent: Boolean(persistentToken),
+            });
+          }
         }
       })
       .catch(() => { if (!controller.signal.aborted) setError('Não foi possível consultar esta seleção agora.'); })

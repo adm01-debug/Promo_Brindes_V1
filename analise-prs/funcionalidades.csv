@@ -98,7 +98,7 @@ F-96,Graphify reproduzivel,Automacao nao le .graphifyignore; mapa banco sem RPCs
 F-97,Matriz de fechamento reconciliada,118/100/1/11 congelada desde 22/09 104 commits atras,PENDENTE,0,,PF-109,P3
 F-98,Codigo morto removido,Graphify aponta nos de baixa conectividade sem verificacao,COMPLETA,100,#191,PF-112,P3
 F-99,Produto inexistente com mensagem adequada,Mensagem de falha temporaria em vez de 404 distinto,PARCIAL,70,,PF-114,P3
-F-100,Eventos de funil faltantes,Sem eventos contato upload selecao landing login,PENDENTE,0,,PF-120,P3
+F-100,Eventos de funil faltantes,Sem eventos contato upload selecao landing login,COMPLETA,100,#228,PF-120,P3
 F-101,Conta e anexos no portal,Seccoes incompletas no CustomerAccountPage,PARCIAL,50,,PF-123;PF-124,P2
 F-102,Favoritos por conta com 24 testes,Hook useOccasionFavorites + RPCs titular + ACL,COMPLETA,100,#33;#35;#36;#44;#45;#47,A-003;A-004;A-007;A-010,P1
 F-103,Ranking por intencao e diversidade,catalogRanking.ts + catalogo ordenado,COMPLETA,100,,PF-50,P2

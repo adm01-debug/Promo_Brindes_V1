@@ -5,6 +5,11 @@ import { BriefingAssetUploader } from './BriefingAssetUploader';
 import { deleteMyBriefingAsset, listMyBriefingAssets, uploadMyBriefingAsset, type BriefingAsset } from '../lib/briefingAssets';
 
 const auth = vi.hoisted(() => ({ user: { id: 'customer-a', email: 'a@example.test' } as { id: string; email: string } | null, identityEpoch: 0 }));
+const trackMock = vi.hoisted(() => vi.fn());
+vi.mock('../lib/analytics', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../lib/analytics')>()),
+  trackFunnelEvent: trackMock,
+}));
 vi.mock('../context/customerAuth', () => ({ useCustomerAuth: () => auth }));
 vi.mock('../lib/briefingAssets', () => ({
   listMyBriefingAssets: vi.fn(), uploadMyBriefingAsset: vi.fn(), deleteMyBriefingAsset: vi.fn(),
@@ -18,6 +23,7 @@ describe('privacidade de anexos durante troca de sessão', () => {
     auth.user = { id: 'customer-a', email: 'a@example.test' };
     auth.identityEpoch = 0;
     vi.mocked(listMyBriefingAssets).mockResolvedValue([]);
+    trackMock.mockClear();
   });
   afterEach(() => { cleanup(); vi.resetAllMocks(); });
 
@@ -36,6 +42,27 @@ describe('privacidade de anexos durante troca de sessão', () => {
     await act(async () => { finishUpload(asset); });
     expect(screen.queryByText(asset.name)).not.toBeInTheDocument();
     expect(onChange.mock.calls.some(([ids]) => (ids as string[]).includes(asset.id))).toBe(false);
+  });
+
+  it('registra briefing_asset_uploaded com faixa de tamanho, nunca o byte exato', async () => {
+    vi.mocked(uploadMyBriefingAsset).mockResolvedValue(asset);
+    render(<MemoryRouter><BriefingAssetUploader value={[]} onChange={vi.fn()} contactEmail="" /></MemoryRouter>);
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Escolher arquivo' })).toBeEnabled());
+
+    fireEvent.change(screen.getByLabelText('Enviar logo ou referência'), { target: { files: [new File([new Uint8Array(2048)], 'logo.png', { type: 'image/png' })] } });
+
+    await waitFor(() => expect(trackMock).toHaveBeenCalledWith('briefing_asset_uploaded', { kind: 'logo', mime: 'image/png', size_band: 'ate-1mb' }));
+  });
+
+  it('não registra briefing_asset_uploaded quando o envio é barrado pela sessão', async () => {
+    vi.mocked(uploadMyBriefingAsset).mockRejectedValue(new Error('sessão expirada'));
+    render(<MemoryRouter><BriefingAssetUploader value={[]} onChange={vi.fn()} contactEmail="" /></MemoryRouter>);
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Escolher arquivo' })).toBeEnabled());
+
+    fireEvent.change(screen.getByLabelText('Enviar logo ou referência'), { target: { files: [new File(['x'], 'logo.png', { type: 'image/png' })] } });
+
+    await waitFor(() => expect(screen.getByText('sessão expirada')).toBeInTheDocument());
+    expect(trackMock).not.toHaveBeenCalled();
   });
 
   it('mantém o upload da sessão atual disponível para selecionar', async () => {

@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const { trackMock } = vi.hoisted(() => ({ trackMock: vi.fn() }));
 vi.mock('@vercel/analytics', () => ({ track: trackMock }));
 
-import { redactAnalyticsUrl, redactTelemetryUrl, trackFunnelEvent } from './analytics';
+import { briefingAssetSizeBand, redactAnalyticsUrl, redactTelemetryUrl, trackFunnelEvent } from './analytics';
 
 describe('instrumentação segura', () => {
   beforeEach(() => trackMock.mockClear());
@@ -68,5 +68,24 @@ describe('instrumentação segura', () => {
   it('mede a área do cliente sem enviar identidade ou protocolo', () => {
     trackFunnelEvent('customer_history_viewed', { result_count: 3, has_filter: true, email: 'cliente@empresa.com' } as never);
     expect(trackMock).toHaveBeenCalledWith('customer_history_viewed', { result_count: 3, has_filter: true });
+  });
+});
+
+describe('eventos de selecao e link compartilhado', () => {
+  it('nao deixa passar propriedade fora da allowlist nos eventos novos', () => {
+    trackFunnelEvent('selection_item_removed', { item_count: 2, via: 'clear', product_id: 'segredo' } as never);
+    expect(trackMock).toHaveBeenCalledWith('selection_item_removed', { item_count: 2, via: 'clear' });
+    trackMock.mockClear();
+    trackFunnelEvent('shared_selection_opened', { item_count: 3, persistent: true, token: 'abc' } as never);
+    expect(trackMock).toHaveBeenCalledWith('shared_selection_opened', { item_count: 3, persistent: true });
+  });
+});
+
+describe('faixa de tamanho do anexo', () => {
+  it('agrupa o byte em faixas para nao virar identificador do arquivo', () => {
+    expect(briefingAssetSizeBand(1024 * 1024)).toBe('ate-1mb');
+    expect(briefingAssetSizeBand(1024 * 1024 + 1)).toBe('ate-5mb');
+    expect(briefingAssetSizeBand(5 * 1024 * 1024)).toBe('ate-5mb');
+    expect(briefingAssetSizeBand(5 * 1024 * 1024 + 1)).toBe('acima-5mb');
   });
 });

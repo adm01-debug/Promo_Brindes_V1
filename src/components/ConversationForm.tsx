@@ -1,6 +1,7 @@
 import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import { type FormEvent, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { trackFunnelEvent } from '../lib/analytics';
 import { buildContactPayload, submitContactRequest } from '../lib/contactRequest';
 import { clearSubmissionAttempt, getOrCreateSubmissionAttempt } from '../lib/http';
 import type { ContactLead, QuoteResponseChannel } from '../types';
@@ -69,9 +70,14 @@ export function ConversationForm() {
       requestAttemptRef.current = attempt;
       const result = await submitContactRequest(buildContactPayload(lead, undefined, attempt.submittedAt, attempt.id));
       if (result.mode === 'email') {
+        // Sem endpoint o envio vira um rascunho no cliente de e-mail do visitante:
+        // fechar o rascunho não gera mensagem nenhuma, então contar como contato
+        // enviado inflaria o funil. O evento próprio separa "abriu o rascunho".
+        trackFunnelEvent('contact_draft_opened', { has_message: lead.message.trim().length > 0 });
         setSuccess('Seu e-mail foi preparado. Revise a mensagem e envie para concluir.');
         window.location.href = result.href;
       } else {
+        trackFunnelEvent('contact_submitted', { channel: 'form', has_message: lead.message.trim().length > 0 });
         requestAttemptRef.current = null;
         clearSubmissionAttempt('promo-brindes:contact-attempt');
         setSuccess(result.requestId ? `Mensagem recebida. Protocolo ${result.requestId}.` : 'Mensagem recebida. Nosso time de especialistas vai falar com você.');
