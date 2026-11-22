@@ -112,9 +112,10 @@ Três perguntas do pedido, respondidas com base no código:
 ### N-007 · [alto · S] · "Voltar ao kit" quando a seleção nasceu no montar kit
 - **O que é:** o orçamento oferece retorno para a composição de origem, não para o catálogo.
 - **Como fazer:** `src/pages/KitBuilderPage.tsx:82` navega para o orçamento informando a origem; `src/pages/QuotePage.tsx:461` usa essa origem no retorno quando ela existe.
-- **Benefício:** quem monta um kit e vai ao orçamento consegue voltar e ajustar a composição.
+- **Benefício:** o visitante volta à tela da composição em vez de cair no catálogo.
+- **Atenção, apontado em revisão e confirmado por leitura:** esta etapa devolve o **endereço**, não a composição. `src/pages/KitBuilderPage.tsx:17-25` guarda estrutura, espaços escolhidos, nome e quantidade em estado local, que morre ao trocar de rota. Sem N-142, voltar ao kit mostra a tela vazia. Executar as duas na ordem, ou executar N-142 primeiro.
 - **Referência:** Material Design 3, navegação e retorno contextual.
-- Depende de: N-006.
+- Depende de: N-006, N-142.
 
 ### N-008 · [médio · S] · Preservar os filtros da lista ao abrir e voltar do detalhe do orçamento
 - **O que é:** a lista de orçamentos do cliente mantém filtro, busca e página quando o visitante abre um orçamento e volta.
@@ -157,7 +158,8 @@ Três perguntas do pedido, respondidas com base no código:
 ### N-014 · [médio · M] · Rota própria para a confirmação do orçamento
 - **O que é:** a tela de "pedido enviado" passa a ter URL própria, de forma que recarregar a página ou usar voltar e avançar não desfaça a confirmação.
 - **Como fazer:** nova rota e página de confirmação em `src/App.tsx` e `src/pages/QuoteSentPage.tsx`, substituindo o estado interno de `src/pages/QuotePage.tsx:398-440`; registrar a rota na lista pública de `src/lib/analytics.ts:105` e no mapeamento de rotas servidas.
-- **Benefício:** a confirmação deixa de ser um estado volátil; o visitante pode compartilhar ou revisitar.
+- **Benefício:** a confirmação deixa de ser um estado volátil: recarregar a página não apaga o número de protocolo.
+- **Escopo corrigido em revisão:** esta etapa entrega **sobreviver a recarregar**, não compartilhar. A implementação de N-141 lê o recibo do armazenamento da sessão, que não acompanha o link em outro navegador nem em outro aparelho. Uma confirmação que outra pessoa possa abrir exige o servidor devolver o recibo pelo protocolo, com a devida autorização, e é decisão separada, com implicação de privacidade: não está neste plano.
 - **Referência:** Material Design 3, navegação por URL como fonte de verdade.
 
 ### N-015 · [médio · S] · Retorno do briefing para a seleção sem perder itens
@@ -638,6 +640,7 @@ A navegação parece travar porque não há feedback nenhum entre a intenção e
 - **Como fazer:** indicador circular dentro do próprio botão mantendo largura e texto em `src/pages/QuotePage.tsx:549`, com estado desabilitado declarado e uma região de status anunciando o envio; ajustar `src/styles.css:6164`.
 - **Benefício:** reduz envio duplicado e a dúvida "clicou ou não?" no momento mais importante do funil.
 - **Referência:** NN/g, feedback de envio de formulário; WCAG 4.1.3.
+- **[mockup]** acrescentado em revisão: o indicador é elemento visual novo no botão principal.
 
 ### N-082 · [alto · S] · Mesmo indicador no formulário de contato
 - **O que é:** o formulário de contato recebe o mesmo tratamento de envio do briefing.
@@ -645,6 +648,7 @@ A navegação parece travar porque não há feedback nenhum entre a intenção e
 - **Benefício:** consistência entre os dois formulários de conversão.
 - **Referência:** NN/g, consistência de feedback.
 - Depende de: N-081.
+- **[mockup]** mesma razão de N-081.
 
 ### N-083 · [alto · M] · Pré-carregar a rota pela intenção
 - **O que é:** nenhuma rota é pré-carregada: todo primeiro clique paga o download do pedaço de código da página.
@@ -856,6 +860,7 @@ Não existe um sistema: existem duas camadas de design no mesmo arquivo de estil
 - **Como fazer:** altura mínima e espaçamento em `src/styles.css:3702-3712`, e marcação de página corrente nos links de `src/components/Layout.tsx:214-243`.
 - **Benefício:** o rodapé passa a ser navegável no celular e orienta como o menu.
 - **Referência:** WCAG 2.5.8 e 3.2.3.
+- **[mockup]** acrescentado em revisão: muda altura e espaçamento de 17 links visíveis.
 
 ### N-113 · [médio · S] · Contato acessível no celular
 - **O que é:** telefone e contato por mensagem desaparecem por completo no celular.
@@ -1379,7 +1384,8 @@ Os filtros vivem na URL, o que é correto, mas cada toque empilha uma entrada no
 - **Como fazer:** reservar espaço na bandeja ou elevar o botão flutuante quando ela existe (`src/styles.css:1194-1203, 1259-1266, 2656-2673`), e mover a regra de posição do aviso para o mesmo ponto de quebra que exibe o botão (`:3201-3205, 3954`).
 - **Benefício:** as três camadas fixas do celular param de se cobrir no momento da decisão.
 - **Referência:** Material Design 3, ordem de empilhamento.
-- Equivalente a N-037 e N-146; executar uma só.
+- **[mockup]** acrescentado em revisão: reposiciona controles fixos visíveis.
+- Equivalente a N-037; executar uma das duas. Corrigido em revisão: a referência anterior apontava para a etapa errada.
 
 ### N-187 · [médio · S] · Fechar sobreposição tocando fora, de forma confiável no iOS
 - **O que é:** o fechamento por toque fora depende do evento de pressionar o botão em um elemento sem indicação de clique, padrão que não dispara de forma confiável no iOS.
@@ -1416,10 +1422,11 @@ Os filtros vivem na URL, o que é correto, mas cada toque empilha uma entrada no
 
 Há um mapa de eventos de funil tipado em `src/lib/analytics.ts` com lista branca de propriedades, e um gancho de teste pronto para asserção de evento. O que falta é grave: **nenhum evento de navegação existe**, abrir o painel de seleção (a micro-conversão central, com seis pontos de entrada) não emite nada, e o envio de briefing pelo caminho de reserva por e-mail **não dispara o evento de envio**, então envios reais ficam fora do funil. Também não há evento de abandono de etapa, de retomada de rascunho, de erro de navegação nem de falha de carregamento. Há 62 testes de ponta a ponta e zero asserção de evento.
 
-### N-191 · [alto · S] · Envio por caminho de reserva fora do funil
-- **O que é:** o evento de briefing enviado dispara no caminho normal, mas não no caminho de reserva por e-mail, então parte dos pedidos reais não aparece no funil.
-- **Como fazer:** disparar o mesmo evento no ramo de reserva de `src/pages/QuotePage.tsx:311-312, 360-363`, com a propriedade que distingue o caminho usado.
-- **Benefício:** o número de pedidos medido passa a ser o número de pedidos recebidos. Sem isso, toda decisão de conversão parte de um total errado.
+### N-191 · [alto · S] · Caminho de reserva por e-mail invisível no funil
+- **O que é:** o evento de briefing enviado dispara apenas no caminho normal (`src/pages/QuotePage.tsx:311-312`). O caminho de reserva (`:360-363`) não emite nada, então não se sabe quantas pessoas caem nele.
+- **Como fazer:** emitir um evento **próprio** no ramo de reserva, do tipo "rascunho de e-mail aberto", nunca o evento de pedido enviado.
+- **Atenção, apontado em revisão e confirmado por leitura:** aquele ramo só faz `window.location.href = result.href` com um endereço de e-mail. Abrir o cliente de e-mail **não é** um pedido recebido: o visitante pode fechar o rascunho sem enviar. Contar como enviado inflaria a conversão, que é o erro oposto ao de hoje. O funil de N-192 deve tratar esse evento como etapa intermediária, não como conclusão, e o número de pedidos recebidos continua vindo do banco.
+- **Benefício:** mostra quantas pessoas são jogadas no caminho de reserva, hoje invisível, sem contaminar a taxa de conversão.
 - **Referência:** prática de integridade de funil.
 
 ### N-192 · [alto · M] · Abrir a seleção passa a ser um evento
@@ -1501,7 +1508,7 @@ Cabem em uma etapa cada, se o dono quiser ampliar o plano.
 | `src/App.tsx:36-82`, `src/lib/customerAuthRedirect.ts` | Detecção de laço de redirecionamento na área do cliente, onde o risco existe de fato. |
 | `scripts/smoke-deployment.mjs:90-101` | O smoke confirma a presença do script de análise, mas não prova que um evento é aceito, nem cobre o serviço de desempenho. |
 | `src/components/SearchAutocomplete.tsx:51-56` | A tecla de escape no campo de busca poderia restaurar o termo digitado antes da navegação por setas. |
-| `src/styles.css` (38 blocos de consulta de mídia) | Pontos de quebra consolidados em quatro valores, pré-requisito prático do layout de tablet (N-187). |
+| `src/styles.css` (38 blocos de consulta de mídia) | Pontos de quebra consolidados em quatro valores, pré-requisito prático da faixa de tablet (N-189). |
 | `src/pages/BackofficePage.tsx:179, 257` | Abrir um pedido por link em vez de botão, para permitir abrir em nova aba (complementa N-017). |
 | `src/components/Layout.tsx:187-192` | A busca do menu de celular é um campo cru e perde o autocomplete que o cabeçalho de desktop tem. |
 | `src/components/Layout.tsx:103`, `QuoteDrawer.tsx:46`, `ProductGallery.tsx:54`, `useCatalogPageState.ts:244` | O travamento de rolagem por ocultar o excesso vaza no iOS e não protege do gesto de atualizar a página; o contador de camadas de N-033 é o pré-requisito para trocar a técnica. |
