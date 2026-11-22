@@ -64,14 +64,14 @@ grant select on rls_probe to authenticated;
 -- criada como postgres (dono da tabela) para não consumir o balde de criação de
 -- link; o que este teste exercita é a leitura, e para ela o papel site_api tem
 -- apenas SELECT em site_private.shared_selections.
-create temporary table shared_probe_token (token uuid not null);
+create temporary table shared_probe_token (token uuid not null, expires_at timestamptz not null);
 grant select on shared_probe_token to site_api;
 with created as (
   insert into site_private.shared_selections (management_token_hash, items)
   values (repeat('d', 64), '[{"id":"11111111-1111-4111-8111-111111111111","q":100}]'::jsonb)
-  returning token
+  returning token, expires_at
 )
-insert into shared_probe_token (token) select created.token from created;
+insert into shared_probe_token (token, expires_at) select created.token, created.expires_at from created;
 
 -- Titular A cria duas reservas (uma delas vai expirar) e materializa os objetos.
 set local request.jwt.claims = '{"sub":"a1111111-1111-4111-8111-111111111111","role":"authenticated"}';
@@ -370,6 +370,7 @@ grant insert on shared_probe to site_api;
 do $$
 declare
   v_token uuid := (select token from shared_probe_token);
+  v_expires_at timestamptz := (select expires_at from shared_probe_token);
   v_allowed integer := 0;
   v_items integer := 0;
   v_blocked boolean := false;
@@ -389,7 +390,10 @@ begin
         or v_result -> 'items' -> 0 ->> 'id' is distinct from '11111111-1111-4111-8111-111111111111'
         or (v_result -> 'items' -> 0 ->> 'q')::integer is distinct from 100
         or v_result ->> 'expiresAt' is null
-        or pg_catalog.jsonb_typeof(v_result -> 'expiresAt') <> 'string' then
+        or pg_catalog.jsonb_typeof(v_result -> 'expiresAt') <> 'string'
+        -- Compara com a expiracao realmente gravada: string vazia ou data
+        -- divergente tambem e recusada por readSharedSelection.
+        or (v_result ->> 'expiresAt')::timestamptz is distinct from v_expires_at then
         raise exception 'valid_selection_not_returned';
       end if;
       v_items := v_items + jsonb_array_length(v_result -> 'items');
