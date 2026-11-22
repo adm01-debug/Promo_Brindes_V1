@@ -3,11 +3,11 @@
  "format_version": 2,
  "onde_ficam": {
   "telas": [
-   "src/pages (18)"
+   "src/pages (19)"
   ],
   "componentes": [
    "src/components (19)",
-   "src/pages (18)",
+   "src/pages (19)",
    "src/context (2)"
   ],
   "hooks": [
@@ -15,12 +15,12 @@
    "src/context (2)"
   ],
   "servicos_logica": [
-   "src/lib (44)",
+   "src/lib (46)",
    "api/_lib (15)",
    "src/context (3)"
   ],
   "testes": [
-   "co-localizado (*.test) (56)",
+   "co-localizado (*.test) (57)",
    "tests/ (46)",
    "outro (9)"
   ],
@@ -46,17 +46,17 @@
  },
  "barrels_index": 0,
  "extensao_componentes": [
-  ".tsx (40)"
+  ".tsx (41)"
  ],
  "alias_imports": {},
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "feat: back-office minimo de orcamentos (F-03) e produtor de propostas versionadas (F-23) (#225)",
+   "docs: executa a revisao mensal do banco e corrige a coluna duplicada (F-90) (#229)",
    "fix: mensagem acionavel no limite de 3 ajustes pendentes (F-04) (#230)",
    "docs: reconcilia a matriz de 230 requisitos contra a main (F-97/PF-109) (#231)",
-   "test: exercita policies de Storage como authenticated, DDL real e rate limit (F-82) (#227)",
-   "feat: eventos de funil de contato, upload, remoção e link compartilhado (F-100/PF-120) (#228)",
-   "feat: resumo do briefing abre antes das 4 respostas e permite cancelar a edicao (F-37) (#226)"
+   "test: exercita policies de Storage como authenticated, DDL real e rate limit (F-82) (#227)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

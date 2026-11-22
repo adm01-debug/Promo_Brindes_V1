@@ -3,9 +3,9 @@
  "format_version": 2,
  "stack": {
   "linguagens": [
-   "TypeScript (218)",
+   "TypeScript (222)",
    "Markdown (134)",
-   "SQL (109)",
+   "SQL (112)",
    "JavaScript (65)",
    "JSON (29)",
    "YAML (19)",
@@ -725,12 +725,12 @@
   {
    "arquivo": "docs/DATABASE_DICTIONARY.md",
    "titulo": "Dicionário de dados — site_private (Etapa 35)",
-   "linhas": 408
+   "linhas": 439
   },
   {
    "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
    "titulo": "Contratos das funções do banco do site (Etapas 22 e 23)",
-   "linhas": 238
+   "linhas": 246
   },
   {
    "arquivo": "docs/DATABASE_INVENTORY_PRINCIPAL.md",
@@ -745,7 +745,7 @@
   {
    "arquivo": "docs/DATABASE_SCHEMA.md",
    "titulo": "Diagrama entidade-relacionamento — site_private (Etapa 48)",
-   "linhas": 50
+   "linhas": 55
   },
   {
    "arquivo": "docs/EXECUCAO_COMPLEMENTAR_20260922.md",
@@ -855,7 +855,7 @@
   {
    "arquivo": "docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260916.md",
    "titulo": "Plano de correções e melhorias — 50 etapas (banco de dados, integração e governança)",
-   "linhas": 1518
+   "linhas": 1522
   },
   {
    "arquivo": "docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260917.md",
@@ -1020,7 +1020,7 @@
   {
    "arquivo": "docs/RUNBOOK_REVISAO_MENSAL_BANCO.md",
    "titulo": "Runbook — revisão mensal do banco do site (Etapa 18)",
-   "linhas": 73
+   "linhas": 162
   },
   {
    "arquivo": "docs/RUNBOOK_ROTACAO_SEGREDOS.md",
@@ -1199,9 +1199,9 @@
   "vercel": {
    "framework": null,
    "build": null,
-   "rewrites": 19,
+   "rewrites": 20,
    "redirects": 0,
-   "headers": 12,
+   "headers": 13,
    "ignore_command": null,
    "crons": [
     "0 3 * * * /api/retention",
@@ -1320,6 +1320,7 @@
   "rotas_publicas": [
    "/",
    "/*",
+   "/admin/orcamentos",
    "/auth/confirm",
    "/catalogo",
    "/catalogos",

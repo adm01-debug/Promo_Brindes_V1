@@ -2,11 +2,11 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "resumo": {
-  "urls": 32,
+  "urls": 33,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
   "itens_menu": 11,
-  "lazy": 18
+  "lazy": 19
  },
  "urls": [
   {
@@ -75,6 +75,47 @@
    "flags": [],
    "papeis": [],
    "arquivos_puxados": 2
+  },
+  {
+   "protegida": false,
+   "wrappers": [],
+   "pai": null,
+   "indice": false,
+   "lazy": true,
+   "tipo": "tela",
+   "caminho": "/admin/orcamentos",
+   "componente": "BackofficePage",
+   "arquivo": "src/pages/BackofficePage.tsx",
+   "definida_em": "src/App.tsx",
+   "redireciona": null,
+   "hooks": [
+    "useCallback",
+    "useContext",
+    "useCustomerAuth",
+    "useEffect",
+    "useLocation",
+    "useMemo",
+    "useSearchParams",
+    "useState"
+   ],
+   "hooks_locais": [
+    "useCustomerAuth"
+   ],
+   "tabelas": [],
+   "rpcs": [
+    "get_site_quote_request",
+    "list_site_quote_requests",
+    "publish_site_quote_proposal",
+    "reply_site_quote_adjustment",
+    "update_site_quote_status"
+   ],
+   "edges": [],
+   "canais_realtime": [],
+   "flags": [],
+   "papeis": [
+    "anon"
+   ],
+   "arquivos_puxados": 10
   },
   {
    "protegida": false,
@@ -1757,7 +1798,8 @@
     "/auth/confirm",
     "/definir-senha",
     "/minha-conta",
-    "/minha-conta/orcamentos/:id"
+    "/minha-conta/orcamentos/:id",
+    "/admin/orcamentos"
    ],
    "cron": null,
    "max_duration": 15,
@@ -1897,6 +1939,7 @@
  "lazy": {
   "AboutPage": "src/pages/AboutPage.tsx",
   "AuthConfirmPage": "src/pages/AuthConfirmPage.tsx",
+  "BackofficePage": "src/pages/BackofficePage.tsx",
   "CatalogPage": "src/pages/CatalogPage.tsx",
   "CatalogsPage": "src/pages/CatalogsPage.tsx",
   "CommemorativeDatesPage": "src/pages/CommemorativeDatesPage.tsx",

@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `e249b52fe4` · branch `main` · 2026-11-22 07:31 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `fc29771d0e` · branch `main` · 2026-11-22 08:08 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -218,6 +218,18 @@ _Nenhum arquivo em `manual/`. Copie `manual/TEMPLATE-regras-de-negocio.md` para 
 | `site_private.subject_right_requests` | `subject_user_id` | obrigatório; FK → users.id on delete cascade |
 | `site_private.subject_right_requests` | `right_type` | obrigatório; CHECK right_type in ('access', 'export', 'correct', 'delete') |
 | `site_private.subject_right_requests` | `requested_at` | default now() |
+| `site_private.commercial_operators` | `user_id` | PK; FK → users.id on delete cascade |
+| `site_private.commercial_operators` | `display_name` | obrigatório; CHECK length(display_name) between 2 and 120 |
+| `site_private.commercial_operators` | `is_active` | default true |
+| `site_private.commercial_operators` | `created_at` | default now() |
+| `site_private.commercial_operators` | `updated_at` | default now() |
+| `site_private.commercial_audit_log` | `id` | PK |
+| `site_private.commercial_audit_log` | `actor_user_id` | FK → users.id on delete set null |
+| `site_private.commercial_audit_log` | `actor_label` | obrigatório; CHECK length(actor_label) between 2 and 160 |
+| `site_private.commercial_audit_log` | `action` | obrigatório; CHECK action in ('status_changed', 'adjustment_replied', 'proposal_published') |
+| `site_private.commercial_audit_log` | `quote_request_id` | obrigatório; FK → quote_requests.id on delete cascade |
+| `site_private.commercial_audit_log` | `detail` | default '{}'::jsonb; CHECK jsonb_typeof(detail) = 'object' |
+| `site_private.commercial_audit_log` | `created_at` | default now() |
 
 ## D. Automações no banco (triggers e funções — regras que rodam sozinhas)
 
@@ -248,6 +260,7 @@ _Nenhum arquivo em `manual/`. Copie `manual/TEMPLATE-regras-de-negocio.md` para 
 | customer_briefing_assets_require_verification_on_insert | BEFORE INSERT | `site_private.customer_briefing_assets` | `require_verified_briefing_asset_attachment` |  |
 | customer_profile_occasion_favorite_erasure | AFTER UPDATE OF VERIFIED_EMAIL | `site_private.customer_profiles` | `erase_customer_occasion_favorites_on_profile_change` |  |
 | contact_requests_enqueue_commercial_alert | AFTER INSERT | `site_private.contact_requests` | `enqueue_contact_commercial_alert` |  |
+| commercial_operators_set_updated_at | BEFORE UPDATE | `site_private.commercial_operators` | `set_updated_at` |  |
 
 Erros lançados por funções SQL (`RAISE EXCEPTION` = regra de negócio no banco):
 
@@ -342,6 +355,28 @@ Erros lançados por funções SQL (`RAISE EXCEPTION` = regra de negócio no banc
 | `erase_customer_data` | invalid_erasure_email | `site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql` |
 | `claim_my_quote_requests` | authentication_required | `site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql` |
 | `claim_my_quote_requests` | verified_email_required | `site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql` |
+| `assert_site_operator` | authentication_required | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
+| `assert_site_operator` | not_a_site_operator | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
+| `list_site_quote_requests` | invalid_status_filter | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
+| `get_site_quote_request` | request_id_required | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
+| `get_site_quote_request` | quote_request_not_found | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
+| `update_site_quote_status` | request_id_required | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
+| `update_site_quote_status` | status_required | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
+| `update_site_quote_status` | quote_request_not_found | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
+| `update_site_quote_status` | (dinâmica) format('invalid_status_transition: %s -> %s', v_previous, v_target) | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
+| `update_site_quote_status` | quoted_requires_proposal_publication | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
+| `update_site_quote_status` | quote_request_changed_concurrently | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
+| `reply_site_quote_adjustment` | adjustment_id_required | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
+| `reply_site_quote_adjustment` | response_required | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
+| `reply_site_quote_adjustment` | invalid_adjustment_status | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
+| `reply_site_quote_adjustment` | adjustment_not_found | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
+| `publish_site_quote_proposal` | request_id_required | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
+| `publish_site_quote_proposal` | title_required | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
+| `publish_site_quote_proposal` | storage_path_required | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
+| `publish_site_quote_proposal` | invalid_storage_path | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
+| `publish_site_quote_proposal` | quote_request_not_found | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
+| `publish_site_quote_proposal` | (dinâmica) format('proposal_requires_in_progress: status atual %s', v_request.status) | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
+| `publish_site_quote_proposal` | quote_request_changed_concurrently | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
 
 ## E. Estados, máquinas de estado e transições
 
@@ -386,12 +421,13 @@ _nenhum mapa explícito encontrado no código — fora da tabela acima (se houve
 | `status` | `closed` | compara | `src/lib/customerAccount.ts` |
 | `status` | `delivered` | compara | `api/notification-events-whatsapp.ts` |
 | `status` | `failed` | compara | `api/notification-events-whatsapp.ts` |
-| `status` | `in_progress` | compara | `src/lib/customerAccount.ts` |
+| `status` | `in_progress` | compara | `src/lib/customerAccount.ts`<br>`src/pages/BackofficePage.tsx` |
+| `status` | `new` | compara | `src/pages/BackofficePage.tsx` |
 | `status` | `pending` | compara, escreve | `src/lib/quoteConfirmation.ts`<br>`src/pages/QuotePage.tsx` |
 | `status` | `published` | compara, escreve | `shared/catalogEditorial.ts` |
-| `status` | `quoted` | compara | `src/lib/customerAccount.ts` |
+| `status` | `quoted` | compara | `src/lib/customerAccount.ts`<br>`src/pages/BackofficePage.tsx` |
 | `status` | `sent` | compara, escreve | `api/_lib/commercialTeamAlerts.ts`<br>`api/notifications.ts`<br>`src/lib/quoteConfirmation.ts`<br>`src/pages/QuotePage.tsx` |
-| `status` | `triaged` | compara | `src/lib/customerAccount.ts` |
+| `status` | `triaged` | compara, escreve | `src/lib/commercialBackoffice.ts`<br>`src/lib/customerAccount.ts`<br>`src/pages/BackofficePage.tsx` |
 | `status` | `unavailable` | compara | `src/lib/quoteConfirmation.ts` |
 | `type` | `add` | compara, escreve | `src/context/QuoteCartContext.tsx`<br>`src/context/quoteCartReducer.ts` |
 | `type` | `body` | escreve | `api/notifications.ts` |
@@ -446,6 +482,7 @@ _nenhum mapa explícito encontrado no código — fora da tabela acima (se houve
 | CatalogCollectionTheme | people \| events \| impact \| products | `src/lib/catalogLibrary.ts` |
 | OccasionAudience | clientes \| colaboradores \| eventos \| comunidade | `src/lib/commemorativeDates.ts` |
 | OccasionKind | relacionamento \| cultura \| impacto \| sazonal | `src/lib/commemorativeDates.ts` |
+| SITE_QUOTE_STATUSES | 'new', 'triaged', 'in_progress', 'quoted', 'closed', 'spam' | `src/lib/commercialBackofficeContract.ts` |
 | CustomerQuoteStatus | new \| triaged \| in_progress \| quoted \| closed | `src/lib/customerQuoteContract.ts` |
 | ProductBadgeKind | new \| kit \| personalizable | `src/lib/productBadges.ts` |
 | ConfirmationDeliveryStatus | sent \| pending \| not_requested \| unavailable | `src/lib/quoteConfirmation.ts` |
@@ -468,6 +505,7 @@ _nenhum item encontrado_
 | `conversation-email` | type=email, max | `src/components/ConversationForm.tsx` |
 | `conversation-phone` | type=tel, max | `src/components/ConversationForm.tsx` |
 | `conversation-message` | max | `src/components/ConversationForm.tsx` |
+| `proposal-valid` | type=date | `src/pages/BackofficePage.tsx` |
 | `dates-search` | max | `src/pages/CommemorativeDatesPage.tsx` |
 | `customer-email` | type=email, required | `src/pages/CustomerLoginPage.tsx` |
 | `customer-password` | type=passwordVisible ? , min, required | `src/pages/CustomerLoginPage.tsx` |
@@ -569,6 +607,10 @@ _nenhum item encontrado_
 - **applyIntents(confirmed: Set<string>, intents: Map<string, FavoriteIntent>)** — `src/lib/useOccasionFavorites.ts`
   ```
   const next = new Set(confirmed); for (const [occasionId, { saved }] of intents) { saved ? next.add(occasionId) : next.delete(occasionId); } return next;
+  ```
+- **validStatus(value: string | null)** — `src/pages/BackofficePage.tsx`
+  ```
+  return value && (SITE_QUOTE_STATUSES as readonly string[]).includes(value) ? (value as SiteQuoteStatus) : null;
   ```
 - **validTheme(value: string | null)** — `src/pages/CatalogsPage.tsx`
   ```
@@ -683,6 +725,7 @@ _nenhum item encontrado_
 | `MAX_LEGACY_SHARED_SELECTION_PAYLOAD_LENGTH` | `8_000` | `src/lib/sharedSelection.ts` |
 | `SITE_RPC_TIMEOUT_MS` | `12_000` | `src/lib/siteRpc.ts` |
 | `DEFAULT_WHATSAPP_NUMBER` | `'551146375517'` | `src/lib/whatsappContact.ts` |
+| `PAGE_SIZE` | `25` | `src/pages/BackofficePage.tsx` |
 | `PAGE_SIZE` | `12` | `src/pages/CustomerAccountPage.tsx` |
 
 ### H.2 Prazos, expirações e janelas de tempo
@@ -1021,6 +1064,16 @@ _nenhum item encontrado_
 | Não foi possível consultar o catálogo. | `src/lib/catalog.ts` |
 | O catálogo demorou além do esperado. Tente novamente. | `src/lib/catalog.ts` |
 | Agenda de datas comemorativas indisponível. | `src/lib/commemorativeDates.ts` |
+| commercial_backoffice_unavailable | `src/lib/commercialBackoffice.ts` |
+| commercial_backoffice_invalid_adjustment | `src/lib/commercialBackofficeContract.ts` |
+| commercial_backoffice_invalid_audit | `src/lib/commercialBackofficeContract.ts` |
+| commercial_backoffice_invalid_event | `src/lib/commercialBackofficeContract.ts` |
+| commercial_backoffice_invalid_item | `src/lib/commercialBackofficeContract.ts` |
+| commercial_backoffice_invalid_item_line | `src/lib/commercialBackofficeContract.ts` |
+| commercial_backoffice_invalid_proposal | `src/lib/commercialBackofficeContract.ts` |
+| commercial_backoffice_invalid_proposal_publication | `src/lib/commercialBackofficeContract.ts` |
+| commercial_backoffice_invalid_status_change | `src/lib/commercialBackofficeContract.ts` |
+| commercial_backoffice_unavailable | `src/lib/commercialBackofficeContract.ts` |
 | adjustment_message_required | `src/lib/customerAccount.ts` |
 | customer_area_not_configured | `src/lib/customerAccount.ts` |
 | customer_area_unavailable | `src/lib/customerAccount.ts` |
@@ -1039,14 +1092,7 @@ _nenhum item encontrado_
 | Não conseguimos conectar ao serviço de envio. Verifique sua conexão e tente novamente. | `src/lib/http.ts` |
 | O endpoint de ${label} precisa ser uma URL HTTPS válida. | `src/lib/http.ts` |
 | O envio demorou além do esperado. Tente novamente. | `src/lib/http.ts` |
-| O envio foi cancelado. | `src/lib/http.ts` |
-| O serviço não confirmou um protocolo válido. Sua seleção foi preservada. | `src/lib/http.ts` |
-| A seleção contém itens inválidos, repetidos ou uma composição inválida. Revise antes de continuar. | `src/lib/quoteItems.ts` |
-| A seleção contém uma referência de produto inválida. | `src/lib/sharedSelection.ts` |
-| Este dispositivo não possui a chave para revogar o link. | `src/lib/sharedSelection.ts` |
-| Não há referências válidas para compartilhar. | `src/lib/sharedSelection.ts` |
-| O serviço não confirmou um link válido. | `src/lib/sharedSelection.ts` |
-| stale_favorite_session | `src/lib/useOccasionFavorites.ts` |
+| … +8 linhas — lista completa em `context.json` | |
 
 ## J. Controle de acesso no código (checagens de perfil/permissão)
 
@@ -1057,15 +1103,16 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1800 testes em 139 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1897 testes em 142 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
-| `site-supabase/supabase/tests/database/lead_storage.test.sql` | 69 | schema privado contém as vinte e uma tabelas planejadas, incluindo favoritos de datas sem PII · seleções persistentes ficam no schema privado · criação de links recebe rate limit próprio · máquina de estados administrativa vive em tabela dedicada (Etapa 8) … |
+| `site-supabase/supabase/tests/database/lead_storage.test.sql` | 69 | schema privado contém as tabelas planejadas, incluindo favoritos de datas sem PII e as duas do back-office (F-03) · seleções persistentes ficam no schema privado · criação de links recebe rate limit próprio · máquina de estados administrativa vive em tabela dedicada (Etapa 8) … |
 | `site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql` | 68 | trilha de exercicio de direito existe · trilha vincula a conta · trilha registra o tipo de direito · coluna right_type tem constraint check … |
 | `tests/inventario-estado.node.mjs` | 63 | extrairInventario aceita objeto direto, envelope do PostgREST e envelope do MCP · extrairInventario recusa entrada sem as chaves obrigatórias, sem tabelas ou de outra versão · conferirOrigem aprova a resposta que cobre as tabelas das migrations e o ledger · conferirOrigem recusa um banco irmão: as tabelas das migrations não estão lá … |
 | `e2e/smoke.spec.ts` | 62 | headline principal usa Fold Text sem perder acessibilidade · categorias usam fotografia de produto publicado como ponto de descoberta · rotas públicas essenciais não introduzem violações automáticas de acessibilidade · montador de kits preserva componentes e calcula a quantidade completa … |
 | `site-supabase/supabase/tests/database/briefing_assets.test.sql` | 57 | metadados privados de arquivos existem · assinatura binária possui recibo de verificação · fila de exclusão de Storage existe · bucket é privado e limitado a 10 MB … |
+| `site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql` | 52 | pedido de teste recebeu protocolo persistido no insert · operador ativo lista a fila · fila identifica o operador que esta consultando · fila informa a quantidade de itens do pedido … |
 | `site-supabase/supabase/tests/database/notification_outbox.test.sql` | 47 | fila possui agenda de nova tentativa · fila identifica a reivindicação ativa (R04) · novo orçamento alimenta a fila na mesma transação · anon não reivindica notificações … |
 | `site-supabase/supabase/tests/database/customer_data_erasure.test.sql` | 46 | anon não apaga dados de titular · authenticated não apaga dados de titular (operação administrativa) · service_role executa o apagamento · anonimiza 1 quote_request (e-mail com espaço/maiúsculas normalizado na entrada) … |
 | `site-supabase/supabase/tests/database/storage_authenticated_rls.test.sql` | 43 | bucket privado tem exatamente 3 policies próprias (leitura, upload, exclusão) · as 3 policies valem só para authenticated (nem anon, nem service_role) · RLS está habilitada em storage.objects · authenticated não tem BYPASSRLS — o papel testado aqui é o que roda em produção … |
@@ -1075,6 +1122,7 @@ _nenhum item encontrado_
 | `tests/graphify-tools.node.mjs` | 36 | path encontra menor caminho, identidade e nós desconectados sem inventar relações · explain preserva fonte e confiança e identifica conexões de entrada · nomes ambíguos e símbolos ausentes não escolhem um resultado arbitrário · fingerprint muda ao mudar conteúdo e preserva ordem determinística … |
 | `site-supabase/supabase/tests/database/notification_provider_events.test.sql` | 30 | entrega ganha estado terminal pós-aceite (Etapa 30) · devolução guarda a categoria curta do provedor · reclamação é rastreada independentemente da entrega · deduplicação de eventos de webhook fica em tabela própria … |
 | `tests/api/notifications.test.ts` | 29 | worker de comprovantes do orçamento · recusa chamada sem o segredo agendado · não reivindica a fila enquanto nenhum provedor estiver configurado, mas mede o tamanho dela · fila velha sem provedor configurado alerta o canal operacional … |
+| `site-supabase/supabase/tests/database/commercial_backoffice.test.sql` | 28 | allowlist de operadores existe no schema privado · trilha de auditoria comercial existe · RPC de fila existe · RPC de detalhe existe … |
 | `tests/validate-agent-instructions.node.mjs` | 28 | aceita AGENTS.md com todas as seções obrigatórias · acusa seção obrigatória apagada por outra sessão · ${CLAUDE_FILE} precisa ser exatamente o import do ${AGENTS_FILE} · acusa referência quebrada e referência órfã em docs/agentes … |
 | `tests/catalog-public-contract.node.mjs` | 27 | aceita somente o contrato público exato de 36 colunas · falha se uma coluna esperada sumir ou uma coluna nova aparecer · falha explicitamente se preço, estoque ou fornecedor forem expostos · recusa identificador, arrays e swatches incompatíveis … |
 | `site-supabase/supabase/tests/database/customer_selections.test.sql` | 26 | seleções privadas por titular existem · RLS é forçada na tabela · cliente não acessa o schema privado · cliente não consulta tabela diretamente … |
@@ -1097,6 +1145,7 @@ _nenhum item encontrado_
 | `tests/smoke-deployment.node.mjs` | 17 | aprova um deployment saudável consultando cada rota uma única vez · reprova status inesperado sem repetir a rota · reprova header de segurança ausente ou divergente em qualquer rota HTML · reprova corpo errado no sitemap e content-type errado no Analytics … |
 | `site-supabase/supabase/tests/database/contact_commercial_alert.test.sql` | 16 | novo contato alimenta a fila do alerta comercial na mesma transação · contato enfileira exatamente uma entrega · a entrega é o alerta comercial pendente do contato · o envelope identifica o tipo do lead (a API não renderiza texto de orçamento) … |
 | `tests/api/maxDuration.test.ts` | 16 | Etapa 24: maxDuration em vercel.json cobre o pior caso real de cada rota · api/quote-requests.ts: catalogValidation + siteDatabase + confirmação (canais em paralelo) · api/contact-requests.ts: preflight + siteDatabase + alerta comercial (sem catalogValidation nem confirmação) · api/notification-events-resend.ts (Etapa 30): apenas uma chamada de RPC (callSiteRpc) … |
+| `src/lib/commercialBackofficeContract.test.ts` | 14 | contrato do back-office comercial · lê a fila paginada com totais e itens · trata payload que não é objeto como indisponibilidade, não como fila vazia · rejeita item de fila que não é objeto … |
 | `src/lib/sharedSelection.test.ts` | 14 | sharedSelection · preserva prioridade alternativa no link e na seleção reconstruída · preserva cor sem variantId e bloqueia fallback ambíguo ou removido · aceita nomes Unicode e mantém links Latin-1 antigos legíveis … |
 | `tests/api/briefing-assets.test.ts` | 14 | inspeção server-side de anexos privados · estouro do limite devolve 429, não  · sessão que expira entre o upload e a verificação devolve 401, não  · confirma um PNG somente depois de ler a assinatura no Storage privado … |
 | `tests/api/notification-events-resend.test.ts` | 14 | api/notification-events-resend (Etapa 30) · rejeita método diferente de POST · responde 503 quando o segredo do webhook não está configurado · rejeita assinatura ausente ou inválida sem chamar o banco … |
@@ -1119,6 +1168,7 @@ _nenhum item encontrado_
 | `src/lib/useCatalogPageState.test.tsx` | 10 | useCatalogPageState · preserva a resposta da API quando a ordem explícita é %s · aplica curadoria somente quando ela é a ordem escolhida · sincroniza o contexto da campanha a partir da URL … |
 | `tests/generate-site-api-jwt.node.mjs` | 10 | falha com mensagem clara quando SITE_SUPABASE_JWT_SECRET não está definido · gera um JWT HS256 válido com role:site_api, verificável com o mesmo segredo (nunca um segredo real: fixture de teste) · permite TTL explícito apenas dentro do teto operacional de 90 dias · segredos diferentes produzem assinaturas diferentes para o mesmo payload (não é uma constante disfarçada) … |
 | `tests/validate-env-example.node.mjs` | 10 | extrai só nomes em maiúsculas de process.env · acusa variável lida por api/ e ausente do exemplo · variável citada apenas em comentário conta como documentada · prefixo igual não cobre nome mais longo … |
+| `tests/api/customer-proposals.test.ts` | 10 | download autenticado de propostas · assina por 60 segundos somente o documento autorizado pelo RPC · usa o JWT limitado no RPC e a credencial de Storage somente para a assinatura · rejeita origem, sessão e identificador inválidos antes do banco … |
 | `tests/api/shared-selections.test.ts` | 10 | links persistentes de seleção · cria link opaco, sem dados de produto ou contato no banco público · preserva a composição do kit e rejeita aritmética adulterada · preserva alternativas no envio e na leitura, sem incluir campos privados … |
 | `site-supabase/supabase/tests/database/email_normalization.test.sql` | 9 | normalize_email tira espaços e baixa a caixa · valor já normalizado permanece idêntico (idempotente) · quote_requests rejeita e-mail com maiúsculas não normalizado · quote_requests rejeita e-mail com espaço não normalizado … |
 | `src/lib/catalogLibrary.test.ts` | 9 | biblioteca de catálogos · combina tema e busca sem depender de acentos · não inventa resultados quando os termos não aparecem juntos · usa o nome atual em links novos e mantém links antigos da coleção … |
@@ -1129,11 +1179,10 @@ _nenhum item encontrado_
 | `tests/generate-database-docs.node.mjs` | 9 | ida e volta: com as mesmas linhas do banco, o dicionário gerado é idêntico ao versionado · ida e volta: com as mesmas linhas do banco, o ERD gerado é idêntico ao versionado · gerar duas vezes produz o mesmo arquivo e a data vem da migration mais recente, não do relógio · comentário com quebra de linha ou barra vertical não parte a tabela Markdown … |
 | `tests/normalize-vercel-deployment-url.node.mjs` | 9 | adiciona https somente quando a CLI devolve hostname · preserva URL https já completa sem duplicar o protocolo · recusa protocolo, credencial, porta, caminho e domínio inesperados · CLI imprime exatamente uma origem normalizada … |
 | `tests/stage-app-shell.node.mjs` | 9 | copia o HTML do build byte a byte e não deixa arquivo temporário · aceita as variações de marcação que a função serverless aceita · reprova build sem root ou sem script de /assets e não grava o destino · reprova página de proteção da Vercel, que a função recusaria com 503 … |
-| `tests/api/customer-proposals.test.ts` | 9 | download autenticado de propostas · assina por 60 segundos somente o documento autorizado pelo RPC · usa o JWT limitado no RPC e a credencial de Storage somente para a assinatura · rejeita origem, sessão e identificador inválidos antes do banco … |
+| `tests/api/site-page.test.ts` | 9 | HTML inicial das páginas estáticas · entrega metadados específicos para catálogo e não indexa o detalhe privado · serve o back-office comercial como rota privada e nao indexavel · preserva 404 real para uma landing editorial desconhecida … |
 | `e2e/product-detail.spec.ts` | 8 | ficha compacta reúne seleção e especificações ao lado da galeria no desktop · galeria permite todas as fotos, volta ao início e amplia com foco contido · descrição completa formata marcadores sem perder conteúdo nem esconder especificações · cor e quantidade seguem para o orçamento, sem preço ou bloqueio por estoque … |
 | `tests/inventario-banco-sql.node.mjs` | 8 | banco.sql roda inteiro em transação somente leitura e passa na prova de origem · banco.sql: a transação somente leitura barra escrita, e a consulta não muda nada no banco · banco.sql: fila travada conta só o que ainda vai ser tentado; erro sai como código, nunca como texto · banco.sql: pg_cron sai com nome estável, só o nome das funções chamadas e as contas certas … |
 | `tests/validate-site-supabase-target.node.mjs` | 8 | aprova somente o projeto isolado do site, com código 0 e o ref em stdout · independe do diretório de onde é chamado · bloqueia o catálogo canônico e diz como refazer o vínculo · bloqueia qualquer conteúdo que não seja exatamente o ref do site … |
-| `tests/api/site-page.test.ts` | 8 | HTML inicial das páginas estáticas · entrega metadados específicos para catálogo e não indexa o detalhe privado · preserva 404 real para uma landing editorial desconhecida · serve para cada landing o mesmo título que o React grava depois da hidratação … |
 | `tests/api/sitemap.test.ts` | 8 | sitemap público · nunca ultrapassa 50 mil URLs incluindo páginas estáticas · mantém o ano das datas no fuso editorial durante a virada UTC · prioriza o host público configurado e remove a barra final … |
 | `site-supabase/supabase/tests/database/default_privileges.test.sql` | 7 | anon não recebe nenhum privilégio implícito em futura tabela pública · authenticated não recebe nenhum privilégio implícito em futura tabela pública · anon não recebe privilégio implícito em futura sequência pública · authenticated não recebe privilégio implícito em futura sequência pública … |
 | `site-supabase/supabase/tests/database/storage_tuning.test.sql` | 7 | rate_limit_buckets é UNLOGGED (Etapa 30) · shared_selection_rate_limits é UNLOGGED (Etapa 30) · notification_deliveries continua persistente (não é efêmera como as tabelas de rate limit) · notification_deliveries tem fillfactor 80 (Etapa 40, espaço para HOT updates) … |
@@ -1149,13 +1198,13 @@ _nenhum item encontrado_
 | `src/context/CustomerAuthContext.test.tsx` | 6 | inicialização da autenticação do cliente · sai do carregamento infinito, informa a falha e permite tentar novamente · trata o erro retornado pelo SDK mesmo quando a Promise é resolvida · não apaga a falha quando INITIAL_SESSION chega vazio após getSession falhar … |
 | `src/lib/catalogFilters.test.ts` | 6 | estado do superfiltro público · apresenta o perfil de novidades como Tendências · aceita apenas IDs conhecidos e remove repetições da URL · traduz IDs amigáveis para as grafias existentes no catálogo … |
 | `src/lib/catalogRanking.test.ts` | 6 | catalog ranking · prioriza intenção pesquisada sem usar preço ou estoque · intercala famílias equivalentes nos primeiros resultados · considera somente atributos publicados ao responder a um briefing … |
+| `src/lib/customerAccount.test.ts` | 6 | contrato da Área do Cliente · traduz somente estados operacionais reais · aceita retorno apenas para dentro da Área do Cliente · devolve o operador ao back-office depois do login … |
 | `src/lib/customerOccasionFavorites.test.ts` | 6 | favoritos de datas na conta · lê apenas IDs editoriais e elimina duplicidades · normaliza a escrita e exige confirmação idempotente do servidor · rejeita payloads e identificadores que não podem representar uma data editorial … |
 | `src/lib/customerSelections.test.ts` | 6 | seleções privadas da conta · envia somente referências públicas e preserva o grupo alternativo · preserva o nome da cor quando o catálogo não fornece variantId · lista, cria e atualiza usando a versão recebida do servidor … |
 | `src/lib/quoteBriefing.test.ts` | 6 | contexto opcional do briefing · preserva apenas escolhas reconhecidas e texto limitado · descarta briefing vazio ou valores manipulados · gera um resumo humano para e-mail e área do cliente … |
 | `site-supabase/supabase/tests/database/shared_selection_priorities.test.sql` | 5 | criar e ler preserva prioridade alternativa · referência sem prioridade continua compatível como principal · recusa prioridade desconhecida · recusa null explícito … |
 | `src/components/ConversationForm.test.tsx` | 5 | formulário de conversa · congela os dados enquanto o envio está em andamento para não apagar edições tardias · registra contact_submitted no canal do formulário quando a API aceita · registra rascunho de e-mail, e não contato enviado, quando o envio cai no fallback … |
 | `src/components/SavedSelections.test.tsx` | 5 | seleções salvas na Área do Cliente · mostra as seleções sem copiar automaticamente o carrinho para a conta · exige confirmação antes de substituir o carrinho e preserva a seleção ao cancelar · compara conflito entre dispositivos e permite preservar as duas versões … |
-| `src/lib/customerAccount.test.ts` | 5 | contrato da Área do Cliente · traduz somente estados operacionais reais · aceita retorno apenas para dentro da Área do Cliente · distingue a versão mais recente de uma proposta ainda válida … |
 | `src/lib/quoteConfirmation.test.ts` | 5 | confirmação honesta do orçamento · usa apenas o primeiro nome informado e flexiona produto no singular · mantém uma mensagem neutra quando não há nome e flexiona no plural · não apresenta uma confirmação pendente ou não solicitada como enviada … |
 | `src/lib/whatsappContact.test.ts` | 5 | contato via WhatsApp (F-47) · monta link wa.me com mensagem codificada · usa o numero padrao quando nao ha mensagem personalizada · codifica espacos e caracteres especiais … |
 | `src/pages/AuthConfirmPage.test.tsx` | 5 | confirmação de acesso do cliente · não anuncia identidade verificada enquanto a sessão ainda está carregando · expõe uma recuperação real quando a inicialização falha · só anuncia a identidade depois de receber um usuário autenticado … |
@@ -1284,6 +1333,9 @@ _nenhum item encontrado_
 | * Camada determinística de curadoria do cliente. Ela somente reorganiza | `src/lib/catalogRanking.ts` |
 | produtos já publicados pela API: não infere preço, estoque, prazo, técnica | `src/lib/catalogRanking.ts` |
 | * Envia somente metadados não pessoais para o painel de Analytics da Vercel. */ | `src/lib/clientObservability.ts` |
+| * Todas as chamadas passam por `runSiteRpc`, que já impõe deadline real (12 s) — | `src/lib/commercialBackoffice.ts` |
+| o back-office não pode ficar com spinner pendurado se o PostgREST travar. | `src/lib/commercialBackoffice.ts` |
+| máquina de estados não pode virar 'new' aqui: isso ofereceria ao operador um | `src/lib/commercialBackofficeContract.ts` |
 | Uma leitura remota inválida não deve ser confundida com erro de digitação | `src/lib/customerOccasionFavorites.ts` |
 | * Lista somente IDs editoriais; título e descrição continuam no catálogo estático do site. */ | `src/lib/customerOccasionFavorites.ts` |
 | consumidor deve normalizá-los antes de usar. Itens, status e identificadores | `src/lib/customerQuoteContract.ts` |
@@ -1311,6 +1363,8 @@ _nenhum item encontrado_
 | ainda não estava confirmada. Esse snapshot não pode substituir a | `src/lib/useOccasionFavorites.ts` |
 | Somente uma escrita já concluída pode ser liberada por uma observação | `src/lib/useOccasionFavorites.ts` |
 | `storage` é emitido somente nas outras abas do mesmo navegador. A ação | `src/lib/useOccasionFavorites.ts` |
+| um caminho recusado nao pode derrubar o pedido da tela e obrigar o operador | `src/pages/BackofficePage.tsx` |
+| nao pode herdar a recusa do anterior no formulario novo. | `src/pages/BackofficePage.tsx` |
 | O estouro do limite de downloads tem conserto proprio: tentar de novo | `src/pages/CustomerQuotePage.tsx` |
 | "em alguns instantes" renova o limite em vez de abrir a proposta. | `src/pages/CustomerQuotePage.tsx` |
 | Uma âncora só desloca a mesma página; ela não pode invalidar uma | `src/pages/QuotePage.tsx` |

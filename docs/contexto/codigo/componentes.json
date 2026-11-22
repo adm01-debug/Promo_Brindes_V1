@@ -1,7 +1,7 @@
 {
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
- "total": 40,
+ "total": 41,
  "orfaos": 0,
  "nomes_duplicados": {},
  "componentes": [
@@ -11,7 +11,7 @@
     "App"
    ],
    "export_default": "App",
-   "linhas": 138,
+   "linhas": 140,
    "dominio": null,
    "hooks_locais": [],
    "tabelas": [],
@@ -148,7 +148,7 @@
    ],
    "tabelas": [],
    "edges": [],
-   "usado_por": 2,
+   "usado_por": 3,
    "orfao": false
   },
   {
@@ -354,6 +354,20 @@
    "hooks_locais": [
     "useCustomerAuth"
    ],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/pages/BackofficePage.tsx",
+   "exports": [
+    "BackofficePage"
+   ],
+   "export_default": "BackofficePage",
+   "linhas": 618,
+   "dominio": "pages",
+   "hooks_locais": [],
    "tabelas": [],
    "edges": [],
    "usado_por": 1,

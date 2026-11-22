@@ -7,7 +7,7 @@
    "modulo": "api",
    "arquivos": 14,
    "testes": 0,
-   "linhas": 2356,
+   "linhas": 2357,
    "itens_menu": [],
    "telas": [],
    "rotas_http": [
@@ -358,9 +358,9 @@
   },
   {
    "modulo": "lib",
-   "arquivos": 44,
-   "testes": 38,
-   "linhas": 5477,
+   "arquivos": 46,
+   "testes": 39,
+   "linhas": 5948,
    "itens_menu": [],
    "telas": [],
    "rotas_http": [],
@@ -398,13 +398,18 @@
     "get_my_data_access",
     "get_my_quote_request",
     "get_my_quote_requests",
+    "get_site_quote_request",
     "list_my_briefing_assets",
     "list_my_occasion_favorites",
     "list_my_selections",
+    "list_site_quote_requests",
+    "publish_site_quote_proposal",
+    "reply_site_quote_adjustment",
     "request_my_quote_adjustment",
     "save_my_selection",
     "set_my_occasion_favorite",
-    "set_my_selection_archived"
+    "set_my_selection_archived",
+    "update_site_quote_status"
    ],
    "buckets": [],
    "canais_realtime": [],
@@ -447,13 +452,18 @@
      "get_my_data_access",
      "get_my_quote_request",
      "get_my_quote_requests",
+     "get_site_quote_request",
      "list_my_briefing_assets",
      "list_my_occasion_favorites",
      "list_my_selections",
+     "list_site_quote_requests",
+     "publish_site_quote_proposal",
+     "reply_site_quote_adjustment",
      "request_my_quote_adjustment",
      "save_my_selection",
      "set_my_occasion_favorite",
-     "set_my_selection_archived"
+     "set_my_selection_archived",
+     "update_site_quote_status"
     ]
    },
    "importado_por_outros_modulos": [
@@ -474,9 +484,9 @@
   },
   {
    "modulo": "pages",
-   "arquivos": 18,
+   "arquivos": 19,
    "testes": 7,
-   "linhas": 3105,
+   "linhas": 3723,
    "itens_menu": [
     "Catálogos",
     "Como funciona",
@@ -489,6 +499,7 @@
    "telas": [
     "/",
     "/*",
+    "/admin/orcamentos",
     "/auth/confirm",
     "/catalogo",
     "/catalogos",
@@ -507,7 +518,7 @@
     "/sobre"
    ],
    "rotas_http": [],
-   "componentes": 18,
+   "componentes": 19,
    "hooks_locais": [
     "useAllCategories",
     "useCatalog",
@@ -534,13 +545,18 @@
     "get_my_data_access",
     "get_my_quote_request",
     "get_my_quote_requests",
+    "get_site_quote_request",
     "list_my_briefing_assets",
     "list_my_occasion_favorites",
     "list_my_selections",
+    "list_site_quote_requests",
+    "publish_site_quote_proposal",
+    "reply_site_quote_adjustment",
     "request_my_quote_adjustment",
     "save_my_selection",
     "set_my_occasion_favorite",
-    "set_my_selection_archived"
+    "set_my_selection_archived",
+    "update_site_quote_status"
    ],
    "buckets": [],
    "canais_realtime": [],
@@ -652,7 +668,7 @@
    "modulo": "types",
    "arquivos": 1,
    "testes": 0,
-   "linhas": 1310,
+   "linhas": 1419,
    "itens_menu": [],
    "telas": [],
    "rotas_http": [],

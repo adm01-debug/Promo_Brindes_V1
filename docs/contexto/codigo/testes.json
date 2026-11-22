@@ -5,17 +5,17 @@
   "vitest",
   "playwright"
  ],
- "total": 148,
+ "total": 151,
  "por_tipo": {
   "contrato": 2,
   "e2e": 6,
   "pytest": 4,
-  "unit": 105
+  "unit": 106
  },
  "onde_ficam": [
   {
    "padrao": "co-localizado (*.test)",
-   "arquivos": 56
+   "arquivos": 57
   },
   {
    "padrao": "tests/",
@@ -347,6 +347,15 @@
    "casos": 6
   },
   {
+   "arquivo": "src/lib/commercialBackofficeContract.test.ts",
+   "tipo": "unit",
+   "linhas": 172,
+   "testa": [
+    "src/lib/commercialBackofficeContract.ts"
+   ],
+   "casos": 13
+  },
+  {
    "arquivo": "src/lib/contactRequest.test.ts",
    "tipo": "unit",
    "linhas": 60,
@@ -367,11 +376,11 @@
   {
    "arquivo": "src/lib/customerAccount.test.ts",
    "tipo": "unit",
-   "linhas": 32,
+   "linhas": 41,
    "testa": [
     "src/lib/customerAccount.ts"
    ],
-   "casos": 4
+   "casos": 5
   },
   {
    "arquivo": "src/lib/customerOccasionFavorites.test.ts",
@@ -728,12 +737,12 @@
   {
    "arquivo": "tests/api/customer-proposals.test.ts",
    "tipo": "unit",
-   "linhas": 161,
+   "linhas": 176,
    "testa": [
     "api/_lib/leadHandler.ts",
     "api/customer-proposals.ts"
    ],
-   "casos": 8
+   "casos": 9
   },
   {
    "arquivo": "tests/api/lead-requests.test.ts",
@@ -855,13 +864,13 @@
   {
    "arquivo": "tests/api/site-page.test.ts",
    "tipo": "unit",
-   "linhas": 155,
+   "linhas": 167,
    "testa": [
     "api/site-page.ts",
     "shared/ideaLandingPages.ts",
     "shared/siteName.ts"
    ],
-   "casos": 7
+   "casos": 8
   },
   {
    "arquivo": "tests/api/sitemap.test.ts",
@@ -1100,6 +1109,8 @@
   "site-supabase/supabase/tests/database/adjustment_limits.test.sql",
   "site-supabase/supabase/tests/database/admin_write_audit.test.sql",
   "site-supabase/supabase/tests/database/briefing_assets.test.sql",
+  "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+  "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
   "site-supabase/supabase/tests/database/contact_commercial_alert.test.sql",
   "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
   "site-supabase/supabase/tests/database/customer_occasion_favorites.test.sql",
@@ -1204,6 +1215,7 @@
   "src/lib/catalogRanking.ts": 1,
   "src/lib/clientObservability.ts": 1,
   "src/lib/commemorativeDates.ts": 1,
+  "src/lib/commercialBackofficeContract.ts": 1,
   "src/lib/contactRequest.ts": 1,
   "src/lib/customerAccount.ts": 2,
   "src/lib/customerAuthRedirect.ts": 1,
@@ -1243,6 +1255,7 @@
  "sem_teste": {
   "telas": [
    "src/pages/AboutPage.tsx",
+   "src/pages/BackofficePage.tsx",
    "src/pages/CatalogPage.tsx",
    "src/pages/CatalogsPage.tsx",
    "src/pages/ContactPage.tsx",

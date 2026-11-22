@@ -1,11 +1,11 @@
 {
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
- "total": 79,
+ "total": 81,
  "por_camada": {
   "api": 29,
   "context": 3,
-  "lib": 44,
+  "lib": 46,
   "python": 3
  },
  "arquivos": [
@@ -811,7 +811,7 @@
     "handler"
    ],
    "export_default": "handler",
-   "linhas": 132,
+   "linhas": 133,
    "tabelas": [],
    "rpcs": [],
    "edges": [],
@@ -1563,6 +1563,84 @@
    "orfao": false
   },
   {
+   "arquivo": "src/lib/commercialBackoffice.ts",
+   "camada": "lib",
+   "exports": [
+    "SiteQuoteListQuery",
+    "fetchSiteQuoteDetail",
+    "listSiteQuoteRequests",
+    "publishSiteQuoteProposal",
+    "replySiteQuoteAdjustment",
+    "updateSiteQuoteStatus"
+   ],
+   "export_default": null,
+   "linhas": 97,
+   "tabelas": [],
+   "rpcs": [
+    "get_site_quote_request",
+    "list_site_quote_requests",
+    "publish_site_quote_proposal",
+    "reply_site_quote_adjustment",
+    "update_site_quote_status"
+   ],
+   "edges": [],
+   "env": [],
+   "externos": [],
+   "zod_schemas": 0,
+   "flags": [],
+   "papeis": [],
+   "usado_por": 1,
+   "usado_por_modulos": [
+    "pages"
+   ],
+   "coberto_por_testes": 0,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/lib/commercialBackofficeContract.ts",
+   "camada": "lib",
+   "exports": [
+    "SITE_QUOTE_STATUSES",
+    "SITE_QUOTE_STATUS_LABELS",
+    "SiteQuoteAdjustment",
+    "SiteQuoteAuditEntry",
+    "SiteQuoteDetail",
+    "SiteQuoteEvent",
+    "SiteQuoteItem",
+    "SiteQuoteListItem",
+    "SiteQuoteListPage",
+    "SiteQuoteProposal",
+    "SiteQuoteProposalPublication",
+    "SiteQuoteStatus",
+    "SiteQuoteStatusChange",
+    "isSiteOperatorError",
+    "isSiteProposalRejected",
+    "isSiteQuoteConflict",
+    "parseSiteQuoteDetail",
+    "parseSiteQuoteListPage",
+    "parseSiteQuoteProposalPublication",
+    "parseSiteQuoteStatusChange",
+    "siteOperatorErrorMessage"
+   ],
+   "export_default": null,
+   "linhas": 370,
+   "tabelas": [],
+   "rpcs": [],
+   "edges": [],
+   "env": [],
+   "externos": [],
+   "zod_schemas": 0,
+   "flags": [],
+   "papeis": [],
+   "usado_por": 2,
+   "usado_por_modulos": [
+    "lib",
+    "pages"
+   ],
+   "coberto_por_testes": 1,
+   "orfao": false
+  },
+  {
    "arquivo": "src/lib/contactRequest.ts",
    "camada": "lib",
    "exports": [
@@ -1616,7 +1694,7 @@
     "sanitizeCustomerNextPath"
    ],
    "export_default": null,
-   "linhas": 234,
+   "linhas": 238,
    "tabelas": [],
    "rpcs": [
     "claim_my_quote_requests",
@@ -2342,7 +2420,7 @@
    "zod_schemas": 0,
    "flags": [],
    "papeis": [],
-   "usado_por": 4,
+   "usado_por": 5,
    "usado_por_modulos": [
     "lib"
    ],
@@ -2373,7 +2451,7 @@
    "zod_schemas": 0,
    "flags": [],
    "papeis": [],
-   "usado_por": 8,
+   "usado_por": 9,
    "usado_por_modulos": [
     "context",
     "lib",

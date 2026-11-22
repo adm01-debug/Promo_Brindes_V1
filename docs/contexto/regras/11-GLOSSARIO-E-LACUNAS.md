@@ -1,6 +1,6 @@
 # 11 · GLOSSÁRIO, DADOS DE REFERÊNCIA E LACUNAS
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `e249b52fe4` · branch `main` · 2026-11-22 07:31 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `fc29771d0e` · branch `main` · 2026-11-22 08:08 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## Glossário do domínio (entidades do sistema)
@@ -9,6 +9,8 @@
 |---|---|---|---|
 | `site_private.admin_audit_log` | Etapa 36: audita escritas em tabelas de negócio feitas por qualquer role além de site_api/service_role — ou seja, fora do caminho normal da API (Studio, SQL manual). Não registra o conteúdo da linha, só que uma escrita aconteceu, quem e quando. | 7 colunas | migration |
 | `site_private.admin_ddl_log` | Etapa 36: DDL (create/alter/drop) fora do fluxo de migrations do CLI. Toda migration legítima também aparece aqui — não é um sinal de problema por si só, é o registro bruto para cruzar com o histórico de migrations quando precisar auditar. | 6 colunas | migration |
+| `site_private.commercial_audit_log` | Trilha append-only das escritas feitas pelo back-office (F-03): quem mudou o quê e quando. Sem policy para anon/authenticated; leitura só por service_role. | 7 colunas | migration |
+| `site_private.commercial_operators` | Allowlist do back-office comercial (F-03). Só service_role escreve; as RPCs de escrita comercial recusam chamador fora daqui, mesmo com JWT válido. | 5 colunas | migration |
 | `site_private.consent_receipts` | _(sem COMMENT ON TABLE — significado não documentado)_ | 9 colunas | migration |
 | `site_private.contact_requests` | _(sem COMMENT ON TABLE — significado não documentado)_ | 16 colunas | migration |
 | `site_private.customer_briefing_assets` | Logos e referências privadas em PNG, JPEG ou WebP. PDFs ficam bloqueados até existir análise estrutural/CDR isolada e antimalware. | 12 colunas | migration |
@@ -51,6 +53,7 @@
 | `CatalogCollectionTheme` (TS) | people \| events \| impact \| products |  | `src/lib/catalogLibrary.ts` |
 | `OccasionAudience` (TS) | clientes \| colaboradores \| eventos \| comunidade |  | `src/lib/commemorativeDates.ts` |
 | `OccasionKind` (TS) | relacionamento \| cultura \| impacto \| sazonal |  | `src/lib/commemorativeDates.ts` |
+| `SITE_QUOTE_STATUSES` (TS) | 'new', 'triaged', 'in_progress', 'quoted', 'closed', 'spam' |  | `src/lib/commercialBackofficeContract.ts` |
 | `CustomerQuoteStatus` (TS) | new \| triaged \| in_progress \| quoted \| closed |  | `src/lib/customerQuoteContract.ts` |
 | `ProductBadgeKind` (TS) | new \| kit \| personalizable |  | `src/lib/productBadges.ts` |
 | `ConfirmationDeliveryStatus` (TS) | sent \| pending \| not_requested \| unavailable |  | `src/lib/quoteConfirmation.ts` |
@@ -74,7 +77,7 @@ _nenhum item encontrado_
 - `site_private.quote_adjustment_requests.status` tem valores ['closed', 'new', 'resolved', 'triaged'] mas nenhum mapa de transições foi encontrado no código nem em tabela de transições do banco — a ordem permitida (ex.: pago → cancelado?) não está declarada.
 - `site_private.status_transitions.from_status` é uma coluna de status sem enum/CHECK — os valores válidos e as transições permitidas não estão no banco.
 - `site_private.status_transitions.to_status` é uma coluna de status sem enum/CHECK — os valores válidos e as transições permitidas não estão no banco.
-- 8/22 tabelas sem `COMMENT ON TABLE` — o significado de negócio não está no schema: `site_private.quote_requests`, `site_private.contact_requests`, `site_private.consent_receipts`, `site_private.customer_profiles`, `site_private.quote_request_events`, `site_private.proposal_documents`, `site_private.quote_adjustment_requests`, `site_private.shared_selections`
+- 8/24 tabelas sem `COMMENT ON TABLE` — o significado de negócio não está no schema: `site_private.quote_requests`, `site_private.contact_requests`, `site_private.consent_receipts`, `site_private.customer_profiles`, `site_private.quote_request_events`, `site_private.proposal_documents`, `site_private.quote_adjustment_requests`, `site_private.shared_selections`
 
 ## Regras manuais presentes
 

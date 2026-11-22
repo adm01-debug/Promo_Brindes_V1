@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `e249b52fe4e0ad346e0aca97e56180f3c65bef01` (2026-11-22T07:31:33Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `fc29771d0ebe0720134147e400de98fb8756a8a2` (2026-11-22T08:07:46Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -14,7 +14,7 @@ Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR
 Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua tarefa; não carregue tudo.
 
 ## Stack
-- linguagens: TypeScript (218), Markdown (134), SQL (109), JavaScript (65), JSON (29), YAML (19), Python (8), CSS (4)
+- linguagens: TypeScript (222), Markdown (134), SQL (112), JavaScript (65), JSON (29), YAML (19), Python (8), CSS (4)
 - linguagem_principal: TypeScript
 - framework: React
 - backend_http: vercel-functions
@@ -34,31 +34,31 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Números
 | item | qtd |
 |---|---|
-| arquivos_total | 726 |
-| arquivos_codigo | 290 |
-| linhas_codigo | 57107 |
-| rotas | 32 |
+| arquivos_total | 733 |
+| arquivos_codigo | 294 |
+| linhas_codigo | 58520 |
+| rotas | 33 |
 | rotas_http_backend | 14 |
 | vistas_por_id | 0 |
 | itens_menu | 11 |
 | modulos | 9 |
-| componentes | 40 |
+| componentes | 41 |
 | hooks | 6 |
 | edge_functions | 0 |
-| tabelas | 23 |
-| migrations | 70 |
+| tabelas | 25 |
+| migrations | 71 |
 | cron_jobs | 0 |
-| testes | 148 |
+| testes | 151 |
 | workflows | 15 |
 | scripts | 37 |
 | docs_md | 134 |
 
 ## Onde ficam as coisas
-- telas: src/pages (18)
-- componentes: src/components (19), src/pages (18), src/context (2)
+- telas: src/pages (19)
+- componentes: src/components (19), src/pages (19), src/context (2)
 - hooks: src/lib (4), src/context (2)
-- servicos_logica: src/lib (44), api/_lib (15), src/context (3)
-- testes: co-localizado (*.test) (56), tests/ (46), outro (9)
+- servicos_logica: src/lib (46), api/_lib (15), src/context (3)
+- testes: co-localizado (*.test) (57), tests/ (46), outro (9)
 - edge_functions: n/d
 - migrations: site-supabase/supabase/migrations
 - scripts: scripts/maintenance (4), scripts/inventario (3), scripts/regras_negocio (3)
@@ -73,12 +73,13 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 | api/_lib | 0 | 0 | 15 | 0 | 0 | 0 |
 | components | 0 | 0 | 20 | 6 | 0 | 0 |
 | context | 0 | 0 | 5 | 2 | 0 | 0 |
-| lib | 0 | 0 | 44 | 8 | 0 | 0 |
-| pages | 7 | 18 | 18 | 9 | 0 | 0 |
+| lib | 0 | 0 | 46 | 8 | 0 | 0 |
+| pages | 7 | 19 | 19 | 9 | 0 | 0 |
 
 ## Rotas (url → arquivo)
 - `/` [tela] → src/pages/HomePage.tsx
 - `/*` [tela] → src/pages/NotFoundPage.tsx
+- `/admin/orcamentos` [tela] → src/pages/BackofficePage.tsx
 - `/api/briefing-assets` [api] → api/briefing-assets.ts
 - `/api/commercial-alerts` [api] → api/commercial-alerts.ts
 - `/api/contact-requests` [api] → api/contact-requests.ts
@@ -123,7 +124,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `POST /api/quote-requests` → api/quote-requests.ts
 - `GET /api/retention` → api/retention.ts (cron 0 3 * * *)
 - `POST /api/shared-selections` → api/shared-selections.ts
-- `GET,HEAD /api/site-page` → api/site-page.ts (rewrites: /catalogo, /catalogos, /montar-kit, /datas-comemorativas, /orcamento +10)
+- `GET,HEAD /api/site-page` → api/site-page.ts (rewrites: /catalogo, /catalogos, /montar-kit, /datas-comemorativas, /orcamento +11)
 - `GET,HEAD /api/sitemap` → api/sitemap.ts (rewrites: /sitemap.xml)
 
 ## Vistas por id (menu/ViewRouter → arquivo)
@@ -146,7 +147,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Permissões / papéis
 - papéis no código: anon (4)
 - enums de papel: nenhum
-- guards: nenhum · rotas protegidas: 0 · públicas: /, /*, /auth/confirm, /catalogo, /catalogos, /contato, /datas-comemorativas, /definir-senha, /entrar, /ideias/:topic, /minha-conta, /minha-conta/orcamentos/:id, /montar-kit, /orcamento, /privacidade, /produto/:identifier, /selecoes/compartilhada, /sobre
+- guards: nenhum · rotas protegidas: 0 · públicas: /, /*, /admin/orcamentos, /auth/confirm, /catalogo, /catalogos, /contato, /datas-comemorativas, /definir-senha, /entrar, /ideias/:topic, /minha-conta, /minha-conta/orcamentos/:id, /montar-kit, /orcamento, /privacidade, /produto/:identifier, /selecoes/compartilhada, /sobre
 - feature flags: CUSTOMER_ADJUSTMENTS_ENABLED, PERSISTENT_SHARED_SELECTIONS_ENABLED, QUOTE_DECISION_GROUPS_ENABLED
 
 ## Alertas (baseline.json → alertas)
@@ -176,15 +177,15 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - package-lock.json (36)
 - .github/workflows/quality.yml (28)
 - src/pages/QuotePage.tsx (27)
-- vercel.json (26)
-- docs/DATABASE_DICTIONARY.md (24)
-- site-supabase/supabase/tests/database/lead_storage.test.sql (24)
+- vercel.json (27)
+- docs/DATABASE_DICTIONARY.md (25)
+- site-supabase/supabase/tests/database/lead_storage.test.sql (25)
 - src/components/Layout.tsx (24)
 - .github/workflows/release.yml (21)
 - tests/api/lead-requests.test.ts (21)
+- docs/DATABASE_FUNCTION_CONTRACTS.md (20)
 - api/_lib/siteDatabase.ts (19)
 - api/notifications.ts (19)
-- docs/DATABASE_FUNCTION_CONTRACTS.md (19)
 
 ## Workflows
 - `automation-local.yml` — Automação local (pull_request, push, workflow_dispatch)
@@ -315,11 +316,11 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `docs/AUDIT_REPORT_20260908.md` — Auditoria técnica consolidada — 08–09/09/2026 (75 linhas)
 - `docs/AUTOMACAO_LOCAL.md` — Automação local — Promo_Brindes_V1 (104 linhas)
 - `docs/CUSTOMER_PORTAL_IMPLEMENTATION_20260909.md` — Área do Cliente — implementação e critérios de aceite (92 linhas)
-- `docs/DATABASE_DICTIONARY.md` — Dicionário de dados — site_private (Etapa 35) (408 linhas)
-- `docs/DATABASE_FUNCTION_CONTRACTS.md` — Contratos das funções do banco do site (Etapas 22 e 23) (238 linhas)
+- `docs/DATABASE_DICTIONARY.md` — Dicionário de dados — site_private (Etapa 35) (439 linhas)
+- `docs/DATABASE_FUNCTION_CONTRACTS.md` — Contratos das funções do banco do site (Etapas 22 e 23) (246 linhas)
 - `docs/DATABASE_INVENTORY_PRINCIPAL.md` — Inventário de tabelas — banco principal (`doufsxqlfjyuvxuezpln`) (415 linhas)
 - `docs/DATABASE_PUBLIC_CONTRACT.md` — Contrato público de dados do Site Promo Brindes (82 linhas)
-- `docs/DATABASE_SCHEMA.md` — Diagrama entidade-relacionamento — site_private (Etapa 48) (50 linhas)
+- `docs/DATABASE_SCHEMA.md` — Diagrama entidade-relacionamento — site_private (Etapa 48) (55 linhas)
 - `docs/EXECUCAO_COMPLEMENTAR_20260922.md` — Execução complementar e correção das evidências — 22/09/2026 (50 linhas)
 - `docs/EXECUCAO_CORRECOES_20260912.md` — Execução das correções prioritárias — 12/09/2026 (68 linhas)
 - `docs/EXECUCAO_FECHAMENTO_TECNICO_20260922.md` — Fechamento das lacunas técnicas priorizadas — 22/09/2026 (54 linhas)
@@ -341,7 +342,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `docs/MATRIZ_RISCO_CAMADA_TESTE.md` — Matriz risco → camada de teste — 18/11/2026 (59 linhas)
 - `docs/PLANO_CARNEGIE_UX_100_ETAPAS_20261005.md` — Plano em 100 etapas para aplicar os princípios de Carnegie à experiência da Promo Brindes (832 linhas)
 - `docs/PLANO_CORRECOES_50_ETAPAS_20260913.md` — Plano de melhorias e correções — 50 etapas — 13/09/2026 (770 linhas)
-- `docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260916.md` — Plano de correções e melhorias — 50 etapas (banco de dados, integração e governança) (1518 linhas)
+- `docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260916.md` — Plano de correções e melhorias — 50 etapas (banco de dados, integração e governança) (1522 linhas)
 - `docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260917.md` — Plano de correções e melhorias — 50 etapas (fase seguinte) (1291 linhas)
 - `docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260924.md` — Plano de melhorias e correções — 50 etapas — 24/09/2026 (505 linhas)
 - `docs/PLANO_FECHAMENTO_100_ETAPAS_20261001.md` — Plano de fechamento da implantação em 100 etapas (981 linhas)
@@ -374,7 +375,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `docs/RUNBOOK_RECONCILIACAO_LEDGER.md` — Runbook — reconciliação do ledger de migrations (Etapa 1 / Etapa 49) (70 linhas)
 - `docs/RUNBOOK_RELEASE.md` — Runbook — release banco isolado → aplicação → smoke (39 linhas)
 - `docs/RUNBOOK_RESTORE_SITE.md` — Ensaio de recuperação — banco isolado do Site Promo Brindes (20 linhas)
-- `docs/RUNBOOK_REVISAO_MENSAL_BANCO.md` — Runbook — revisão mensal do banco do site (Etapa 18) (73 linhas)
+- `docs/RUNBOOK_REVISAO_MENSAL_BANCO.md` — Runbook — revisão mensal do banco do site (Etapa 18) (162 linhas)
 - `docs/RUNBOOK_ROTACAO_SEGREDOS.md` — Runbook — rotação de segredos (Etapa 29) (49 linhas)
 - `docs/RUNBOOK_SITE_API_CUTOVER.md` — Runbook — cutover para a role `site_api` (Etapa 25) (101 linhas)
 - `docs/RUNBOOK_VERIFICACAO_DB.md` — Runbook — verificação em 5 comandos do banco isolado do site (Etapa 6) (124 linhas)
@@ -386,6 +387,8 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-22 `fc29771` feat: back-office minimo de orcamentos (F-03) e produtor de propostas versionadas (F-23) (#225)
+- 2026-11-22 `180c09a` docs: executa a revisao mensal do banco e corrige a coluna duplicada (F-90) (#229)
 - 2026-11-22 `e249b52` fix: mensagem acionavel no limite de 3 ajustes pendentes (F-04) (#230)
 - 2026-11-22 `caf7e42` docs: reconcilia a matriz de 230 requisitos contra a main (F-97/PF-109) (#231)
 - 2026-11-22 `abcd725` test: exercita policies de Storage como authenticated, DDL real e rate limit (F-82) (#227)
@@ -399,8 +402,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-21 `e40d98f` chore(docs): reconcilia ground-truth de F-01/F-31/F-110 (#219)
 - 2026-11-20 `fc333d4` chore(docs): reconcilia funcionalidades.csv com a main (nov/2026) (#217)
 - 2026-11-20 `0afb33e` chore(docs): linha de base, regras de negocio e mapa do sistema (GOAL fase 0) (#216)
-- 2026-11-20 `804efbc` fix: promessas honestas em orcamento e catalogo (PF-14, PF-19, PF-20, PF-21) (#215)
-- 2026-11-20 `5ad589f` feat: permite ajustar o contexto da campanha no orçamento (#213)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

@@ -161,6 +161,7 @@
    "src/lib/scrollRestoration.ts",
    "src/pages/AboutPage.tsx",
    "src/pages/AuthConfirmPage.tsx",
+   "src/pages/BackofficePage.tsx",
    "src/pages/CatalogPage.tsx",
    "src/pages/CatalogsPage.tsx",
    "src/pages/CommemorativeDatesPage.tsx",
@@ -321,6 +322,11 @@
   "src/lib/commemorativeDates.ts": [
    "src/lib/search.ts"
   ],
+  "src/lib/commercialBackoffice.ts": [
+   "src/lib/commercialBackofficeContract.ts",
+   "src/lib/siteRpc.ts",
+   "src/lib/siteSupabase.ts"
+  ],
   "src/lib/contactRequest.ts": [
    "src/lib/http.ts",
    "src/lib/quoteRequest.ts",
@@ -433,6 +439,12 @@
    "src/components/Seo.tsx",
    "src/context/customerAuth.ts",
    "src/lib/customerAccount.ts"
+  ],
+  "src/pages/BackofficePage.tsx": [
+   "src/components/CustomerRoute.tsx",
+   "src/components/Seo.tsx",
+   "src/lib/commercialBackoffice.ts",
+   "src/lib/commercialBackofficeContract.ts"
   ],
   "src/pages/CatalogPage.tsx": [
    "src/components/CatalogComparisonTray.tsx",

@@ -2,11 +2,21 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "e249b52fe4e0ad346e0aca97e56180f3c65bef01",
+  "commit": "fc29771d0ebe0720134147e400de98fb8756a8a2",
   "branch": "main",
-  "data_commit": "2026-11-22T07:31:33Z",
+  "data_commit": "2026-11-22T08:07:46Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "fc29771",
+    "data": "2026-11-22",
+    "assunto": "feat: back-office minimo de orcamentos (F-03) e produtor de propostas versionadas (F-23) (#225)"
+   },
+   {
+    "sha": "180c09a",
+    "data": "2026-11-22",
+    "assunto": "docs: executa a revisao mensal do banco e corrige a coluna duplicada (F-90) (#229)"
+   },
    {
     "sha": "e249b52",
     "data": "2026-11-22",
@@ -121,19 +131,9 @@
     "sha": "a1aeeed",
     "data": "2026-11-18",
     "assunto": "feat(e2e): cobre o envio de anexo do briefing em navegador (#206)"
-   },
-   {
-    "sha": "13c5acb",
-    "data": "2026-11-18",
-    "assunto": "feat(e2e): cobre dois dispositivos escolhendo na mesma seleção de orçamento (#201)"
-   },
-   {
-    "sha": "4a23155",
-    "data": "2026-11-18",
-    "assunto": "feat(guarda): aponta trabalho estacionado em refs fora de heads e pull (#203)"
    }
   ],
-  "arquivos_mudados_7d": 167,
+  "arquivos_mudados_7d": 178,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -141,11 +141,11 @@
    },
    {
     "pasta": "site-supabase/supabase/tests",
-    "mudancas": 13
+    "mudancas": 16
    },
    {
     "pasta": "analise-prs/funcionalidades.csv",
-    "mudancas": 12
+    "mudancas": 14
    },
    {
     "pasta": "docs/audits/pending-features-20261011",
@@ -168,12 +168,20 @@
     "mudancas": 9
    },
    {
+    "pasta": "scripts/check-performance-budget.mjs",
+    "mudancas": 9
+   },
+   {
     "pasta": "AGENTS.md",
     "mudancas": 8
    },
    {
-    "pasta": "scripts/check-performance-budget.mjs",
-    "mudancas": 8
+    "pasta": "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
+    "mudancas": 7
+   },
+   {
+    "pasta": "tests/check-performance-budget.node.mjs",
+    "mudancas": 7
    },
    {
     "pasta": ".gitignore",
@@ -184,15 +192,7 @@
     "mudancas": 6
    },
    {
-    "pasta": "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
-    "mudancas": 6
-   },
-   {
     "pasta": "scripts/graphify.mjs",
-    "mudancas": 6
-   },
-   {
-    "pasta": "src/pages/QuotePage.tsx",
     "mudancas": 6
    }
   ],
@@ -223,15 +223,15 @@
    },
    {
     "arquivo": "vercel.json",
-    "mudancas": 26
+    "mudancas": 27
    },
    {
     "arquivo": "docs/DATABASE_DICTIONARY.md",
-    "mudancas": 24
+    "mudancas": 25
    },
    {
     "arquivo": "site-supabase/supabase/tests/database/lead_storage.test.sql",
-    "mudancas": 24
+    "mudancas": 25
    },
    {
     "arquivo": "src/components/Layout.tsx",
@@ -246,6 +246,10 @@
     "mudancas": 21
    },
    {
+    "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
+    "mudancas": 20
+   },
+   {
     "arquivo": "api/_lib/siteDatabase.ts",
     "mudancas": 19
    },
@@ -254,8 +258,12 @@
     "mudancas": 19
    },
    {
-    "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
-    "mudancas": 19
+    "arquivo": "docs/DATABASE_SCHEMA.md",
+    "mudancas": 18
+   },
+   {
+    "arquivo": "src/App.tsx",
+    "mudancas": 18
    },
    {
     "arquivo": ".env.example",
@@ -270,15 +278,11 @@
     "mudancas": 17
    },
    {
-    "arquivo": "docs/DATABASE_SCHEMA.md",
-    "mudancas": 17
-   },
-   {
-    "arquivo": "src/App.tsx",
-    "mudancas": 17
-   },
-   {
     "arquivo": "src/lib/analytics.ts",
+    "mudancas": 17
+   },
+   {
+    "arquivo": "src/types/site-database.types.ts",
     "mudancas": 17
    },
    {
@@ -286,22 +290,18 @@
     "mudancas": 16
    },
    {
-    "arquivo": "src/types/site-database.types.ts",
-    "mudancas": 16
-   },
-   {
     "arquivo": "tests/api/notifications.test.ts",
     "mudancas": 16
    },
    {
-    "arquivo": "scripts/graphify.mjs",
+    "arquivo": "scripts/check-performance-budget.mjs",
     "mudancas": 15
    }
   ],
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 110
+    "commits": 112
    },
    {
     "autor": "dependabot[bot]",
@@ -310,21 +310,21 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 726,
-  "arquivos_codigo": 290,
-  "linhas_codigo": 57107,
-  "rotas": 32,
+  "arquivos_total": 733,
+  "arquivos_codigo": 294,
+  "linhas_codigo": 58520,
+  "rotas": 33,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
   "itens_menu": 11,
   "modulos": 9,
-  "componentes": 40,
+  "componentes": 41,
   "hooks": 6,
   "edge_functions": 0,
-  "tabelas": 23,
-  "migrations": 70,
+  "tabelas": 25,
+  "migrations": 71,
   "cron_jobs": 0,
-  "testes": 148,
+  "testes": 151,
   "workflows": 15,
   "scripts": 37,
   "docs_md": 134
@@ -384,7 +384,7 @@
   },
   "api/site-page.ts": {
    "arquivos": 1,
-   "linhas": 132
+   "linhas": 133
   },
   "api/sitemap.ts": {
    "arquivos": 1,
@@ -456,7 +456,7 @@
   },
   "scripts/check-performance-budget.mjs": {
    "arquivos": 1,
-   "linhas": 185
+   "linhas": 189
   },
   "scripts/ci-health-metrics.mjs": {
    "arquivos": 1,
@@ -568,7 +568,7 @@
   },
   "src/App.tsx": {
    "arquivos": 1,
-   "linhas": 138
+   "linhas": 140
   },
   "src/components": {
    "arquivos": 29,
@@ -579,16 +579,16 @@
    "linhas": 753
   },
   "src/lib": {
-   "arquivos": 82,
-   "linhas": 8338
+   "arquivos": 85,
+   "linhas": 8990
   },
   "src/main.tsx": {
    "arquivos": 1,
    "linhas": 10
   },
   "src/pages": {
-   "arquivos": 25,
-   "linhas": 3583
+   "arquivos": 26,
+   "linhas": 4201
   },
   "src/test": {
    "arquivos": 1,
@@ -596,7 +596,7 @@
   },
   "src/types": {
    "arquivos": 1,
-   "linhas": 1310
+   "linhas": 1419
   },
   "src/types.ts": {
    "arquivos": 1,
@@ -604,7 +604,7 @@
   },
   "tests/api": {
    "arquivos": 20,
-   "linhas": 3999
+   "linhas": 4026
   },
   "tests/catalog-public-contract.node.mjs": {
    "arquivos": 1,
@@ -722,7 +722,7 @@
   },
   {
    "arquivo": "src/types/site-database.types.ts",
-   "linhas": 1310
+   "linhas": 1419
   },
   {
    "arquivo": "scripts/graphify-local.mjs",
@@ -751,6 +751,10 @@
   {
    "arquivo": "api/notifications.ts",
    "linhas": 725
+  },
+  {
+   "arquivo": "src/pages/BackofficePage.tsx",
+   "linhas": 618
   },
   {
    "arquivo": "scripts/inventario/gerar-banco.mjs",
@@ -785,6 +789,10 @@
    "linhas": 380
   },
   {
+   "arquivo": "src/lib/commercialBackofficeContract.ts",
+   "linhas": 370
+  },
+  {
    "arquivo": "src/pages/CommemorativeDatesPage.tsx",
    "linhas": 351
   },
@@ -803,14 +811,6 @@
   {
    "arquivo": "src/pages/CatalogsPage.tsx",
    "linhas": 304
-  },
-  {
-   "arquivo": "api/retention.ts",
-   "linhas": 290
-  },
-  {
-   "arquivo": "src/components/QuoteDrawer.tsx",
-   "linhas": 287
   }
  ],
  "qualidade": {
@@ -819,7 +819,7 @@
   "ts_ignore": 0,
   "eslint_disable": 1,
   "todos": 3,
-  "arquivos_acima_500_linhas": 13
+  "arquivos_acima_500_linhas": 14
  },
  "todos": [
   {

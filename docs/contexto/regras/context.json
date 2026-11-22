@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "e249b52fe4e0ad346e0aca97e56180f3c65bef01",
+  "sha": "fc29771d0ebe0720134147e400de98fb8756a8a2",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-22 07:31 UTC",
-  "files_total": 620,
-  "code_files": 400,
-  "code_lines": 71494,
+  "generated_at": "2026-11-22 08:08 UTC",
+  "files_total": 627,
+  "code_files": 407,
+  "code_lines": 74062,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "0fea98046c0177df",
+ "facts_hash": "b6b66cf0e5f3f145",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -281,9 +281,9 @@
   ],
   "package_manager": "npm",
   "languages": {
-   ".ts": 154,
-   ".sql": 109,
-   ".tsx": 64,
+   ".ts": 157,
+   ".sql": 112,
+   ".tsx": 65,
    ".mjs": 63,
    ".py": 8,
    ".js": 2
@@ -1880,6 +1880,106 @@
     "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
     "comment": "Trilha do exercicio dos direitos do titular (LGPD art. 18) na Area do Cliente: access, export, correct e delete. Vinculada a conta e removida pelo cascade de auth.users; o registo persistente do apagamento e o tombstone irreversivel em erased_customer_identities.",
     "origin": "migration"
+   },
+   "site_private.commercial_operators": {
+    "columns": [
+     {
+      "name": "user_id",
+      "type": "uuid primary key references auth.users(id) on delete cascade",
+      "fk": "users.id on delete cascade",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+     },
+     {
+      "name": "display_name",
+      "type": "text not null check (length(display_name) between 2 and 120)",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+     },
+     {
+      "name": "is_active",
+      "type": "boolean not null default true",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+     },
+     {
+      "name": "created_at",
+      "type": "timestamptz not null default now()",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+     },
+     {
+      "name": "updated_at",
+      "type": "timestamptz not null default now()",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+     }
+    ],
+    "constraints": [],
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+    "comment": "Allowlist do back-office comercial (F-03). Só service_role escreve; as RPCs de escrita comercial recusam chamador fora daqui, mesmo com JWT válido.",
+    "origin": "migration"
+   },
+   "site_private.commercial_audit_log": {
+    "columns": [
+     {
+      "name": "id",
+      "type": "bigint generated always as identity primary key",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+     },
+     {
+      "name": "actor_user_id",
+      "type": "uuid references auth.users(id) on delete set null",
+      "fk": "users.id on delete set null",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+     },
+     {
+      "name": "actor_label",
+      "type": "text not null check (length(actor_label) between 2 and 160)",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+     },
+     {
+      "name": "action",
+      "type": "text not null check (action in ('status_changed', 'adjustment_replied', 'proposal_published'))",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+     },
+     {
+      "name": "quote_request_id",
+      "type": "uuid not null references site_private.quote_requests(id) on delete cascade",
+      "fk": "quote_requests.id on delete cascade",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+     },
+     {
+      "name": "detail",
+      "type": "jsonb not null default '{}'::jsonb check (jsonb_typeof(detail) = 'object')",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+     },
+     {
+      "name": "created_at",
+      "type": "timestamptz not null default now()",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+     }
+    ],
+    "constraints": [],
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+    "comment": "Trilha append-only das escritas feitas pelo back-office (F-03): quem mudou o quê e quando. Sem policy para anon/authenticated; leitura só por service_role.",
+    "origin": "migration"
    }
   },
   "policies": [
@@ -2139,6 +2239,15 @@
     "condition": "",
     "each": "row",
     "src": "site-supabase/supabase/migrations/20261117010000_add_commercial_team_contact_alert.sql"
+   },
+   {
+    "name": "commercial_operators_set_updated_at",
+    "when": "BEFORE UPDATE",
+    "table": "site_private.commercial_operators",
+    "function": "set_updated_at",
+    "condition": "",
+    "each": "row",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
    }
   ],
   "functions": {
@@ -3383,6 +3492,140 @@
      "v_storage_paths",
      "v_user_ids"
     ]
+   },
+   "assert_site_operator": {
+    "args": "",
+    "returns": "site_private.commercial_operators",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_operator site_private.commercial_operators; v_user_id uuid := auth.uid(); begin if v_user_id is null then raise exception using errcode = '42501', message = 'authentication_required'; end if; select * into v_operator from site_private.commercial_operators operator where operator.user_id = v_user_id and operator.is_active; if not found then raise exception using errcode = '42501', message = 'not_a_site_operator'; end if; return v_operator; end;",
+    "raises": [
+     "authentication_required",
+     "not_a_site_operator"
+    ],
+    "tables": [
+     "site_private",
+     "v_operator"
+    ]
+   },
+   "list_site_quote_requests": {
+    "args": "p_status text default null, p_search text default null, p_limit integer default 25, p_offset integer default 0",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_operator site_private.commercial_operators := site_private.assert_site_operator(); v_limit integer := least(greatest(coalesce(p_limit, 25), 1), 100); v_offset integer := greatest(coalesce(p_offset, 0), 0); v_search text := nullif(btrim(coalesce(p_search, '')), ''); v_protocol text := nullif(btrim(ltrim(btrim(coalesce(p_search, '')), '#')), ''); v_status text := nullif(btrim(coalesce(p_status, '')), ''); v_rows jsonb; v_total integer; begin if v_status is not null and v_status not in ('new', 'triaged', 'in_progress', 'quoted', 'closed', 'spam') then raise exception using errcode = '22023', message = 'invalid_status_filter'; end if; select count(*) into v_total from site_private.quot …",
+    "raises": [
+     "invalid_status_filter"
+    ],
+    "tables": [
+     "site_private",
+     "v_rows",
+     "v_total"
+    ]
+   },
+   "get_site_quote_request": {
+    "args": "p_request_id uuid",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_operator site_private.commercial_operators := site_private.assert_site_operator(); v_request site_private.quote_requests%rowtype; v_items jsonb; v_events jsonb; v_proposals jsonb; v_adjustments jsonb; v_allowed_statuses text[]; v_audit jsonb; begin if p_request_id is null then raise exception using errcode = '22023', message = 'request_id_required'; end if; select * into v_request from site_private.quote_requests request where request.id = p_request_id; if not found then raise exception using errcode = 'P0002', message = 'quote_request_not_found'; end if; select coalesce(jsonb_agg(jsonb_build_object( 'key', item.item_key, 'productId', item.source_product_id, 'slug', item.product_sl …",
+    "raises": [
+     "request_id_required",
+     "quote_request_not_found"
+    ],
+    "tables": [
+     "site_private",
+     "v_adjustments",
+     "v_allowed_statuses",
+     "v_audit",
+     "v_events",
+     "v_items",
+     "v_proposals",
+     "v_request"
+    ]
+   },
+   "update_site_quote_status": {
+    "args": "p_request_id uuid, p_status text",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_operator site_private.commercial_operators := site_private.assert_site_operator(); v_target text := nullif(btrim(coalesce(p_status, '')), ''); v_previous text; begin if p_request_id is null then raise exception using errcode = '22023', message = 'request_id_required'; end if; if v_target is null then raise exception using errcode = '22023', message = 'status_required'; end if; select request.status into v_previous from site_private.quote_requests request where request.id = p_request_id; if not found then raise exception using errcode = 'P0002', message = 'quote_request_not_found'; end if; if v_target <> v_previous and not exists ( select 1 from site_private.status_transitions trans …",
+    "raises": [
+     "request_id_required",
+     "status_required",
+     "quote_request_not_found",
+     "(dinâmica) format('invalid_status_transition: %s -> %s', v_previous, v_target)",
+     "quoted_requires_proposal_publication",
+     "quote_request_changed_concurrently"
+    ],
+    "tables": [
+     "site_private",
+     "v_previous"
+    ]
+   },
+   "reply_site_quote_adjustment": {
+    "args": "p_adjustment_id uuid, p_response text, p_status text default 'resolved'",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_operator site_private.commercial_operators := site_private.assert_site_operator(); v_response text := nullif(btrim(coalesce(p_response, '')), ''); v_status text := nullif(btrim(coalesce(p_status, 'resolved')), ''); v_adjustment site_private.quote_adjustment_requests%rowtype; begin if p_adjustment_id is null then raise exception using errcode = '22023', message = 'adjustment_id_required'; end if; if v_response is null then raise exception using errcode = '22023', message = 'response_required'; end if; if v_status not in ('triaged', 'resolved', 'closed') then raise exception using errcode = '22023', message = 'invalid_adjustment_status'; end if; select * into v_adjustment from site_p …",
+    "raises": [
+     "adjustment_id_required",
+     "response_required",
+     "invalid_adjustment_status",
+     "adjustment_not_found"
+    ],
+    "tables": [
+     "site_private",
+     "v_adjustment"
+    ]
+   },
+   "is_valid_proposal_storage_path": {
+    "args": "p_path text",
+    "returns": "boolean",
+    "lang": "sql",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+    "security_definer": false,
+    "search_path": true,
+    "body": "select case when p_path is null or btrim(p_path) = '' then false when length(p_path) > 500 then false when p_path like '/%' then false when position(chr(92) in p_path) > 0 then false when p_path ~ '[\\x01-\\x1f\\x7f]' then false when p_path !~* '\\.pdf$' then false else not exists ( select 1 from unnest(string_to_array(p_path, '/')) as segment where segment = '' or segment = '.' or segment = '..' ) end;",
+    "raises": [],
+    "tables": [
+     "unnest"
+    ]
+   },
+   "publish_site_quote_proposal": {
+    "args": "p_request_id uuid, p_title text, p_storage_path text, p_valid_until date default null",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_operator site_private.commercial_operators := site_private.assert_site_operator(); v_title text := nullif(btrim(coalesce(p_title, '')), ''); v_path text := nullif(btrim(coalesce(p_storage_path, '')), ''); v_request site_private.quote_requests%rowtype; v_next_version integer; v_proposal_id uuid; begin if p_request_id is null then raise exception using errcode = '22023', message = 'request_id_required'; end if; if v_title is null then raise exception using errcode = '22023', message = 'title_required'; end if; if v_path is null then raise exception using errcode = '22023', message = 'storage_path_required'; end if; if not site_private.is_valid_proposal_storage_path(v_path) then raise …",
+    "raises": [
+     "request_id_required",
+     "title_required",
+     "storage_path_required",
+     "invalid_storage_path",
+     "quote_request_not_found",
+     "(dinâmica) format('proposal_requires_in_progress: status atual %s', v_request.status)",
+     "quote_request_changed_concurrently"
+    ],
+    "tables": [
+     "site_private",
+     "v_next_version",
+     "v_proposal_id",
+     "v_request"
+    ]
    }
   },
   "enums": {},
@@ -3674,6 +3917,22 @@
     "unique": false,
     "where": "",
     "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "name": "commercial_operators_active_idx",
+    "table": "site_private.commercial_operators",
+    "columns": "user_id",
+    "unique": false,
+    "where": "where is_active",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "name": "commercial_audit_log_request_created_idx",
+    "table": "site_private.commercial_audit_log",
+    "columns": "quote_request_id, created_at desc",
+    "unique": false,
+    "where": "",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
    }
   ],
   "cron_jobs": [],
@@ -3748,7 +4007,8 @@
    "site-supabase/supabase/migrations/20261117010000_add_commercial_team_contact_alert.sql",
    "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql",
    "site-supabase/supabase/migrations/20261117030100_repair_incomplete_customer_data_erasure.sql",
-   "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
+   "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
   ],
   "rls": {
    "site_private.quote_requests": "forced",
@@ -3772,7 +4032,9 @@
    "site_private.storage_deletion_queue": "forced",
    "site_private.erased_customer_identities": "forced",
    "site_private.customer_occasion_favorites": "forced",
-   "site_private.subject_right_requests": "forced"
+   "site_private.subject_right_requests": "forced",
+   "site_private.commercial_operators": "forced",
+   "site_private.commercial_audit_log": "forced"
   },
   "grants": [
    {
@@ -5934,6 +6196,150 @@
     "objkind": "function",
     "roles": "service_role",
     "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.commercial_operators",
+    "objkind": "table",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "select, insert, update, delete",
+    "object": "site_private.commercial_operators",
+    "objkind": "table",
+    "roles": "service_role",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.commercial_audit_log",
+    "objkind": "table",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "update, delete, truncate",
+    "object": "site_private.commercial_audit_log",
+    "objkind": "table",
+    "roles": "service_role",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "select, insert",
+    "object": "site_private.commercial_audit_log",
+    "objkind": "table",
+    "roles": "service_role",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.assert_site_operator",
+    "objkind": "function",
+    "roles": "public, anon",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.is_valid_proposal_storage_path",
+    "objkind": "function",
+    "roles": "public",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "site_private.is_valid_proposal_storage_path",
+    "objkind": "function",
+    "roles": "authenticated, anon, service_role",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "list_site_quote_requests",
+    "objkind": "function",
+    "roles": "public, anon",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "get_site_quote_request",
+    "objkind": "function",
+    "roles": "public, anon",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "update_site_quote_status",
+    "objkind": "function",
+    "roles": "public, anon",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "reply_site_quote_adjustment",
+    "objkind": "function",
+    "roles": "public, anon",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "publish_site_quote_proposal",
+    "objkind": "function",
+    "roles": "public, anon",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "list_site_quote_requests",
+    "objkind": "function",
+    "roles": "authenticated, service_role",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "get_site_quote_request",
+    "objkind": "function",
+    "roles": "authenticated, service_role",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "update_site_quote_status",
+    "objkind": "function",
+    "roles": "authenticated, service_role",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "reply_site_quote_adjustment",
+    "objkind": "function",
+    "roles": "authenticated, service_role",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "publish_site_quote_proposal",
+    "objkind": "function",
+    "roles": "authenticated, service_role",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
    }
   ],
   "raises": [
@@ -6381,6 +6787,116 @@
     "function": "claim_my_quote_requests",
     "msg": "verified_email_required",
     "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "function": "assert_site_operator",
+    "msg": "authentication_required",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "assert_site_operator",
+    "msg": "not_a_site_operator",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "list_site_quote_requests",
+    "msg": "invalid_status_filter",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "get_site_quote_request",
+    "msg": "request_id_required",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "get_site_quote_request",
+    "msg": "quote_request_not_found",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "update_site_quote_status",
+    "msg": "request_id_required",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "update_site_quote_status",
+    "msg": "status_required",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "update_site_quote_status",
+    "msg": "quote_request_not_found",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "update_site_quote_status",
+    "msg": "(dinâmica) format('invalid_status_transition: %s -> %s', v_previous, v_target)",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "update_site_quote_status",
+    "msg": "quoted_requires_proposal_publication",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "update_site_quote_status",
+    "msg": "quote_request_changed_concurrently",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "reply_site_quote_adjustment",
+    "msg": "adjustment_id_required",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "reply_site_quote_adjustment",
+    "msg": "response_required",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "reply_site_quote_adjustment",
+    "msg": "invalid_adjustment_status",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "reply_site_quote_adjustment",
+    "msg": "adjustment_not_found",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "publish_site_quote_proposal",
+    "msg": "request_id_required",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "publish_site_quote_proposal",
+    "msg": "title_required",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "publish_site_quote_proposal",
+    "msg": "storage_path_required",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "publish_site_quote_proposal",
+    "msg": "invalid_storage_path",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "publish_site_quote_proposal",
+    "msg": "quote_request_not_found",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "publish_site_quote_proposal",
+    "msg": "(dinâmica) format('proposal_requires_in_progress: status atual %s', v_request.status)",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "publish_site_quote_proposal",
+    "msg": "quote_request_changed_concurrently",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
    }
   ],
   "seed": [],
@@ -6420,7 +6936,9 @@
    "column:site_private.erased_customer_identities.auth_users_deleted": "Maior quantidade de contas Auth removidas nas execuções idempotentes deste apagamento.",
    "table:site_private.customer_occasion_favorites": "IDs de datas comemorativas escolhidas pelo titular. A lista editorial fica no frontend; a conta guarda somente o ID e o vínculo é apagado com auth.users.",
    "table:site_private.subject_right_requests": "Trilha do exercicio dos direitos do titular (LGPD art. 18) na Area do Cliente: access, export, correct e delete. Vinculada a conta e removida pelo cascade de auth.users; o registo persistente do apagamento e o tombstone irreversivel em erased_customer_identities.",
-   "column:site_private.subject_right_requests.right_type": "Direito exercido: access (confirmacao de tratamento), export (portabilidade), correct (correcao de perfil) ou delete (autoexclusao)."
+   "column:site_private.subject_right_requests.right_type": "Direito exercido: access (confirmacao de tratamento), export (portabilidade), correct (correcao de perfil) ou delete (autoexclusao).",
+   "table:site_private.commercial_operators": "Allowlist do back-office comercial (F-03). Só service_role escreve; as RPCs de escrita comercial recusam chamador fora daqui, mesmo com JWT válido.",
+   "table:site_private.commercial_audit_log": "Trilha append-only das escritas feitas pelo back-office (F-03): quem mudou o quê e quando. Sem policy para anon/authenticated; leitura só por service_role."
   },
   "types_file": "",
   "transitions": [
@@ -6750,6 +7268,21 @@
     "deps_count": 27
    },
    {
+    "path": "/admin/orcamentos",
+    "file": "src/pages/BackofficePage.tsx",
+    "component": "BackofficePage",
+    "tables_transitive": [],
+    "invokes_transitive": [],
+    "rpc_transitive": [
+     "get_site_quote_request",
+     "list_site_quote_requests",
+     "publish_site_quote_proposal",
+     "reply_site_quote_adjustment",
+     "update_site_quote_status"
+    ],
+    "deps_count": 10
+   },
+   {
     "path": "/auth/confirm",
     "file": "src/pages/AuthConfirmPage.tsx",
     "component": "AuthConfirmPage",
@@ -6955,6 +7488,13 @@
    {
     "path": "/",
     "component": "HomePage",
+    "guard": "",
+    "roles": [],
+    "file": "src/App.tsx"
+   },
+   {
+    "path": "/admin/orcamentos",
+    "component": "BackofficePage",
     "guard": "",
     "roles": [],
     "file": "src/App.tsx"
@@ -7368,7 +7908,7 @@
   {
    "module": "api",
    "files": 29,
-   "lines": 4329,
+   "lines": 4330,
    "tables": [],
    "exports": [
     "briefing-assets.ts: REQUEST_TIMEOUT_MS, handler, async",
@@ -7547,7 +8087,7 @@
   {
    "module": "scripts",
    "files": 43,
-   "lines": 21584,
+   "lines": 21588,
    "tables": [
     "a",
     "contacts",
@@ -7716,8 +8256,8 @@
   },
   {
    "module": "site-supabase",
-   "files": 101,
-   "lines": 13761,
+   "files": 104,
+   "lines": 14916,
    "tables": [],
    "exports": [],
    "docs": [],
@@ -7794,22 +8334,22 @@
     "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql",
     "site-supabase/supabase/migrations/20261117030100_repair_incomplete_customer_data_erasure.sql",
     "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
+    "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
     "site-supabase/supabase/tests/database/adjustment_limits.test.sql",
     "site-supabase/supabase/tests/database/admin_write_audit.test.sql",
     "site-supabase/supabase/tests/database/briefing_assets.test.sql",
+    "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
     "site-supabase/supabase/tests/database/contact_commercial_alert.test.sql",
     "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
     "site-supabase/supabase/tests/database/customer_occasion_favorites.test.sql",
-    "site-supabase/supabase/tests/database/customer_portal.test.sql",
-    "site-supabase/supabase/tests/database/customer_selections.test.sql",
-    "site-supabase/supabase/tests/database/default_privileges.test.sql",
-    "site-supabase/supabase/tests/database/email_normalization.test.sql"
+    "site-supabase/supabase/tests/database/customer_portal.test.sql"
    ]
   },
   {
    "module": "src",
    "files": 4,
-   "lines": 339,
+   "lines": 341,
    "tables": [],
    "exports": [
     "App.tsx: App",
@@ -7947,8 +8487,8 @@
   },
   {
    "module": "src/lib",
-   "files": 82,
-   "lines": 8338,
+   "files": 85,
+   "lines": 8990,
    "tables": [],
    "exports": [
     "analytics.ts: FunnelEventMap, redactAnalyticsPathname, redactTelemetryUrl, redactAnalyticsUrl, briefingAssetSizeBand, trackFunnelEvent",
@@ -7962,6 +8502,8 @@
     "catalogRanking.ts: CatalogRankingContext, rankCatalogProducts, rankRelatedProducts",
     "clientObservability.ts: reportClientError",
     "commemorativeDates.ts: OccasionAudience, OccasionKind, OccasionRule, OccasionIdea, CommemorativeOccasion, DatedOccasion",
+    "commercialBackoffice.ts: SiteQuoteListQuery, listSiteQuoteRequests, fetchSiteQuoteDetail, updateSiteQuoteStatus, replySiteQuoteAdjustment, publishSiteQuoteProposal",
+    "commercialBackofficeContract.ts: SITE_QUOTE_STATUSES, SiteQuoteStatus, SITE_QUOTE_STATUS_LABELS, SiteQuoteListItem, SiteQuoteListPage, SiteQuoteItem",
     "contactRequest.ts: buildContactPayload, buildContactEmailHref, ContactSubmitResult, submitContactRequest",
     "customerAccount.ts: CustomerAccessReport, CustomerDataExport, CustomerProfileCorrection, isProposalExpired, customerStatusOptions, customerStatusLabel",
     "customerAuthRedirect.ts: customerAuthRedirect",
@@ -7988,11 +8530,10 @@
     "searchRelevance.ts: SearchRelevanceJudgment, searchRelevanceJudgments, evaluateSearchRelevance",
     "sharedSelection.ts: MAX_SHARED_SELECTION_ITEMS, SharedSelectionItem, PersistentSharedSelection, SharedSelectionHydration, encodeSharedSelection, decodeSharedSelection",
     "siteFeatureFlags.ts: quoteDecisionGroupsEnabled, customerAdjustmentsEnabled, persistentSharedSelectionsEnabled",
-    "siteRpc.ts: SITE_RPC_TIMEOUT_MS, runSiteRpc",
-    "siteSupabase.ts: siteSupabase",
-    "siteSupabaseConfig.ts: SITE_SUPABASE_URL, resolveSiteSupabaseUrl, resolveSitePublishableKey, hasSiteAuthConfiguration"
+    "siteRpc.ts: SITE_RPC_TIMEOUT_MS, runSiteRpc"
    ],
    "docs": [
+    "commercialBackoffice.ts: Camada de dados do back-office comercial (F-03). Todas as chamadas passam por `runSiteRpc`, que já impõe deadline real (12 s) — o back-office não pode ficar com spinner pendurado se o PostgREST travar. Nada aqui decide autorização: quem é operador é decidido por `site_private.assert_site_operator()` …",
     "http.ts: O servidor encerra o fluxo de orçamento em 24 s; o navegador guarda uma margem para receber o protocolo e não abandonar uma persistência concluída.",
     "quoteCalendar.ts: Data comercial em São Paulo, independente do fuso do servidor.",
     "siteFeatureFlags.ts: Recursos que dependem de migrations do banco isolado permanecem invisíveis até o ambiente remoto confirmar a aplicação e a auditoria correspondentes.",
@@ -8034,6 +8575,9 @@
     "src/lib/clientObservability.ts",
     "src/lib/commemorativeDates.test.ts",
     "src/lib/commemorativeDates.ts",
+    "src/lib/commercialBackoffice.ts",
+    "src/lib/commercialBackofficeContract.test.ts",
+    "src/lib/commercialBackofficeContract.ts",
     "src/lib/contactRequest.test.ts",
     "src/lib/contactRequest.ts",
     "src/lib/customerAccount.rpc.test.ts",
@@ -8088,20 +8632,18 @@
     "src/lib/siteSupabaseConfig.ts",
     "src/lib/useCatalogPageState.test.tsx",
     "src/lib/useCatalogPageState.ts",
-    "src/lib/useInitialSuccessScroll.test.tsx",
-    "src/lib/useInitialSuccessScroll.ts",
-    "src/lib/useOccasionFavorites.test.tsx",
-    "src/lib/useOccasionFavorites.ts"
+    "src/lib/useInitialSuccessScroll.test.tsx"
    ]
   },
   {
    "module": "src/pages",
-   "files": 25,
-   "lines": 3583,
+   "files": 26,
+   "lines": 4201,
    "tables": [],
    "exports": [
     "AboutPage.tsx: AboutPage",
     "AuthConfirmPage.tsx: AuthConfirmPage",
+    "BackofficePage.tsx: BackofficePage",
     "CatalogPage.tsx: CatalogPage",
     "CatalogsPage.tsx: CatalogsPage",
     "CommemorativeDatesPage.tsx: CommemorativeDatesPage",
@@ -8138,6 +8680,7 @@
     "src/pages/AboutPage.tsx",
     "src/pages/AuthConfirmPage.test.tsx",
     "src/pages/AuthConfirmPage.tsx",
+    "src/pages/BackofficePage.tsx",
     "src/pages/CatalogPage.tsx",
     "src/pages/CatalogsPage.tsx",
     "src/pages/CommemorativeDatesPage.test.tsx",
@@ -8180,7 +8723,7 @@
   {
    "module": "src/types",
    "files": 1,
-   "lines": 1310,
+   "lines": 1419,
    "tables": [],
    "exports": [
     "site-database.types.ts: Json, Database, Tables, TablesInsert, TablesUpdate, Enums"
@@ -8195,7 +8738,7 @@
   {
    "module": "tests",
    "files": 46,
-   "lines": 10203,
+   "lines": 10230,
    "tables": [
     "constructor",
     "quote_requests",
@@ -8890,6 +9433,9 @@
    "get_my_quote_requests": [
     "src/lib/customerAccount.ts"
    ],
+   "get_site_quote_request": [
+    "src/lib/commercialBackoffice.ts"
+   ],
    "ghost_rpc": [
     "scripts/ai-context/gerar.unit.mjs",
     "scripts/regras_negocio/test_generate.py"
@@ -8907,6 +9453,9 @@
     "src/lib/customerSelections.ts",
     "tests/inventario-estado.node.mjs"
    ],
+   "list_site_quote_requests": [
+    "src/lib/commercialBackoffice.ts"
+   ],
    "nome": [
     "scripts/inventario/gerar-banco.mjs",
     "scripts/supabase_snapshot/snapshot.py"
@@ -8914,8 +9463,14 @@
    "nunca_contada": [
     "tests/inventario-estado.node.mjs"
    ],
+   "publish_site_quote_proposal": [
+    "src/lib/commercialBackoffice.ts"
+   ],
    "r1": [
     "scripts/ai-context/cenarios.mjs"
+   ],
+   "reply_site_quote_adjustment": [
+    "src/lib/commercialBackoffice.ts"
    ],
    "request_my_quote_adjustment": [
     "src/lib/customerAccount.ts"
@@ -8938,6 +9493,9 @@
    ],
    "tools_rpc": [
     "scripts/ai-context/gerar.unit.mjs"
+   ],
+   "update_site_quote_status": [
+    "src/lib/commercialBackoffice.ts"
    ]
   },
   "invokes": {
@@ -9008,7 +9566,8 @@
     "site_private.quote_request_events",
     "site_private.proposal_documents",
     "site_private.quote_adjustment_requests",
-    "site_private.customer_briefing_assets"
+    "site_private.customer_briefing_assets",
+    "site_private.commercial_audit_log"
    ],
    "contact_requests": [
     "site_private.consent_receipts"
@@ -9019,7 +9578,8 @@
     "site_private.customer_selections",
     "site_private.customer_briefing_assets",
     "site_private.customer_occasion_favorites",
-    "site_private.subject_right_requests"
+    "site_private.subject_right_requests",
+    "site_private.commercial_operators"
    ],
    "notification_deliveries": [
     "site_private.notification_provider_events"
@@ -9029,6 +9589,8 @@
   "tables_only_in_schema": [
    "admin_audit_log",
    "admin_ddl_log",
+   "commercial_audit_log",
+   "commercial_operators",
    "consent_receipts",
    "contact_requests",
    "customer_briefing_assets",
@@ -9075,6 +9637,11 @@
     "file": "src/components/ConversationForm.tsx",
     "field": "conversation-message",
     "rules": "max"
+   },
+   {
+    "file": "src/pages/BackofficePage.tsx",
+    "field": "proposal-valid",
+    "rules": "type=date"
    },
    {
     "file": "src/pages/CommemorativeDatesPage.tsx",
@@ -9272,6 +9839,11 @@
     "file": "src/lib/commemorativeDates.ts",
     "name": "OccasionKind",
     "values": "relacionamento | cultura | impacto | sazonal"
+   },
+   {
+    "file": "src/lib/commercialBackofficeContract.ts",
+    "name": "SITE_QUOTE_STATUSES",
+    "values": "'new', 'triaged', 'in_progress', 'quoted', 'closed', 'spam'"
    },
    {
     "file": "src/lib/customerQuoteContract.ts",
@@ -10379,6 +10951,46 @@
     "msg": "Agenda de datas comemorativas indisponível."
    },
    {
+    "file": "src/lib/commercialBackoffice.ts",
+    "msg": "commercial_backoffice_unavailable"
+   },
+   {
+    "file": "src/lib/commercialBackofficeContract.ts",
+    "msg": "commercial_backoffice_invalid_adjustment"
+   },
+   {
+    "file": "src/lib/commercialBackofficeContract.ts",
+    "msg": "commercial_backoffice_invalid_audit"
+   },
+   {
+    "file": "src/lib/commercialBackofficeContract.ts",
+    "msg": "commercial_backoffice_invalid_event"
+   },
+   {
+    "file": "src/lib/commercialBackofficeContract.ts",
+    "msg": "commercial_backoffice_invalid_item"
+   },
+   {
+    "file": "src/lib/commercialBackofficeContract.ts",
+    "msg": "commercial_backoffice_invalid_item_line"
+   },
+   {
+    "file": "src/lib/commercialBackofficeContract.ts",
+    "msg": "commercial_backoffice_invalid_proposal"
+   },
+   {
+    "file": "src/lib/commercialBackofficeContract.ts",
+    "msg": "commercial_backoffice_invalid_proposal_publication"
+   },
+   {
+    "file": "src/lib/commercialBackofficeContract.ts",
+    "msg": "commercial_backoffice_invalid_status_change"
+   },
+   {
+    "file": "src/lib/commercialBackofficeContract.ts",
+    "msg": "commercial_backoffice_unavailable"
+   },
+   {
     "file": "src/lib/customerAccount.ts",
     "msg": "adjustment_message_required"
    },
@@ -10759,6 +11371,18 @@
     "text": "* Envia somente metadados não pessoais para o painel de Analytics da Vercel. */"
    },
    {
+    "file": "src/lib/commercialBackoffice.ts",
+    "text": "* Todas as chamadas passam por `runSiteRpc`, que já impõe deadline real (12 s) —"
+   },
+   {
+    "file": "src/lib/commercialBackoffice.ts",
+    "text": "o back-office não pode ficar com spinner pendurado se o PostgREST travar."
+   },
+   {
+    "file": "src/lib/commercialBackofficeContract.ts",
+    "text": "máquina de estados não pode virar 'new' aqui: isso ofereceria ao operador um"
+   },
+   {
     "file": "src/lib/customerOccasionFavorites.ts",
     "text": "Uma leitura remota inválida não deve ser confundida com erro de digitação"
    },
@@ -10865,6 +11489,14 @@
    {
     "file": "src/lib/useOccasionFavorites.ts",
     "text": "`storage` é emitido somente nas outras abas do mesmo navegador. A ação"
+   },
+   {
+    "file": "src/pages/BackofficePage.tsx",
+    "text": "um caminho recusado nao pode derrubar o pedido da tela e obrigar o operador"
+   },
+   {
+    "file": "src/pages/BackofficePage.tsx",
+    "text": "nao pode herdar a recusa do anterior no formulario novo."
    },
    {
     "file": "src/pages/CustomerQuotePage.tsx",
@@ -11894,6 +12526,66 @@
     "table": "site_private.subject_right_requests",
     "column": "requested_at",
     "rule": "default now()"
+   },
+   {
+    "table": "site_private.commercial_operators",
+    "column": "user_id",
+    "rule": "PK; FK → users.id on delete cascade"
+   },
+   {
+    "table": "site_private.commercial_operators",
+    "column": "display_name",
+    "rule": "obrigatório; CHECK length(display_name) between 2 and 120"
+   },
+   {
+    "table": "site_private.commercial_operators",
+    "column": "is_active",
+    "rule": "default true"
+   },
+   {
+    "table": "site_private.commercial_operators",
+    "column": "created_at",
+    "rule": "default now()"
+   },
+   {
+    "table": "site_private.commercial_operators",
+    "column": "updated_at",
+    "rule": "default now()"
+   },
+   {
+    "table": "site_private.commercial_audit_log",
+    "column": "id",
+    "rule": "PK"
+   },
+   {
+    "table": "site_private.commercial_audit_log",
+    "column": "actor_user_id",
+    "rule": "FK → users.id on delete set null"
+   },
+   {
+    "table": "site_private.commercial_audit_log",
+    "column": "actor_label",
+    "rule": "obrigatório; CHECK length(actor_label) between 2 and 160"
+   },
+   {
+    "table": "site_private.commercial_audit_log",
+    "column": "action",
+    "rule": "obrigatório; CHECK action in ('status_changed', 'adjustment_replied', 'proposal_published')"
+   },
+   {
+    "table": "site_private.commercial_audit_log",
+    "column": "quote_request_id",
+    "rule": "obrigatório; FK → quote_requests.id on delete cascade"
+   },
+   {
+    "table": "site_private.commercial_audit_log",
+    "column": "detail",
+    "rule": "default '{}'::jsonb; CHECK jsonb_typeof(detail) = 'object'"
+   },
+   {
+    "table": "site_private.commercial_audit_log",
+    "column": "created_at",
+    "rule": "default now()"
    }
   ],
   "params": [
@@ -12266,6 +12958,11 @@
     "file": "src/lib/whatsappContact.ts",
     "name": "DEFAULT_WHATSAPP_NUMBER",
     "value": "'551146375517'"
+   },
+   {
+    "file": "src/pages/BackofficePage.tsx",
+    "name": "PAGE_SIZE",
+    "value": "25"
    },
    {
     "file": "src/pages/CustomerAccountPage.tsx",
@@ -12780,6 +13477,12 @@
     "kind": "compara"
    },
    {
+    "file": "src/lib/commercialBackoffice.ts",
+    "field": "status",
+    "value": "triaged",
+    "kind": "escreve"
+   },
+   {
     "file": "src/lib/customerAccount.ts",
     "field": "status",
     "value": "quoted",
@@ -12825,6 +13528,48 @@
     "file": "src/lib/siteSupabaseConfig.ts",
     "field": "role",
     "value": "anon",
+    "kind": "compara"
+   },
+   {
+    "file": "src/pages/BackofficePage.tsx",
+    "field": "status",
+    "value": "new",
+    "kind": "compara"
+   },
+   {
+    "file": "src/pages/BackofficePage.tsx",
+    "field": "status",
+    "value": "triaged",
+    "kind": "compara"
+   },
+   {
+    "file": "src/pages/BackofficePage.tsx",
+    "field": "status",
+    "value": "in_progress",
+    "kind": "compara"
+   },
+   {
+    "file": "src/pages/BackofficePage.tsx",
+    "field": "status",
+    "value": "quoted",
+    "kind": "compara"
+   },
+   {
+    "file": "src/pages/BackofficePage.tsx",
+    "field": "status",
+    "value": "in_progress",
+    "kind": "compara"
+   },
+   {
+    "file": "src/pages/BackofficePage.tsx",
+    "field": "status",
+    "value": "new",
+    "kind": "compara"
+   },
+   {
+    "file": "src/pages/BackofficePage.tsx",
+    "field": "status",
+    "value": "triaged",
     "kind": "compara"
    },
    {
@@ -13014,6 +13759,12 @@
     "name": "applyIntents",
     "params": "confirmed: Set<string>, intents: Map<string, FavoriteIntent>",
     "body": "const next = new Set(confirmed); for (const [occasionId, { saved }] of intents) { saved ? next.add(occasionId) : next.delete(occasionId); } return next;"
+   },
+   {
+    "file": "src/pages/BackofficePage.tsx",
+    "name": "validStatus",
+    "params": "value: string | null",
+    "body": "return value && (SITE_QUOTE_STATUSES as readonly string[]).includes(value) ? (value as SiteQuoteStatus) : null;"
    },
    {
     "file": "src/pages/CatalogsPage.tsx",
@@ -13910,6 +14661,326 @@
     "name": "apagamento enfileira o blob para exclusão"
    },
    {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "name": "allowlist de operadores existe no schema privado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "name": "trilha de auditoria comercial existe"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "name": "RPC de fila existe"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "name": "RPC de detalhe existe"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "name": "RPC de status existe"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "name": "RPC de triagem de ajuste existe"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "name": "RPC de publicacao de proposta existe"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "name": "helper de autorizacao existe"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "name": "authenticated nao le a allowlist"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "name": "authenticated nao le a trilha"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "name": "authenticated nao se adiciona na allowlist"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "name": "anon nao le a allowlist"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "name": "allowlist tem RLS habilitada e forcada"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "name": "trilha tem RLS habilitada e forcada"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "name": "allowlist tem indice parcial para a checagem de operador ativo"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "name": "authenticated pode chamar a fila (a checagem de operador acontece dentro)"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "name": "anon nao chama a fila"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "name": "anon nao muda status"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "name": "anon nao publica proposta"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "name": "service_role pode mudar status"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "name": "fila recusa chamador sem autenticacao"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "name": "detalhe recusa chamador sem autenticacao"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "name": "mudanca de status recusa chamador sem autenticacao"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "name": "publicacao de proposta recusa chamador sem autenticacao"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "name": "helper recusa chamador sem autenticacao"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "name": "a allowlist nasce vazia: nenhuma conta ganha back-office por acidente na migration"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "name": "a transicao usada pela publicacao de proposta continua valida na state machine"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+    "name": "closed segue terminal: publicar proposta em pedido encerrado e barrado pela state machine"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "pedido de teste recebeu protocolo persistido no insert"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "operador ativo lista a fila"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "fila identifica o operador que esta consultando"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "fila informa a quantidade de itens do pedido"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "busca por empresa encontra o pedido"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "busca sem correspondencia devolve fila vazia"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "busca pelo protocolo encontra o pedido"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "busca pelo protocolo em minusculas tambem encontra"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "busca pelo protocolo com # encontra o pedido"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "busca textual trata # como literal em vez de remover o prefixo"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "# sozinho filtra em vez de devolver a fila inteira"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "busca por empresa com # conta so o pedido que tem # no nome"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "busca por empresa com # devolve o pedido na pagina"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "busca tolera # e espacos ao redor do protocolo"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "detalhe expoe o protocolo persistido"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "detalhe lista os itens"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "operador muda new para triaged"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "status persistido no banco"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "transicao inversa triaged -> new e recusada"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "mudanca de status deixa exatamente uma linha de auditoria"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "auditoria registra o status anterior"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "publicar proposta exige o pedido em curadoria"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "operador move triaged para in_progress"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "quoted nao aparece como mudanca avulsa de estagio"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "mudanca avulsa para quoted e recusada mesmo sendo transicao valida"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "caminho com dois pontos dentro do nome do arquivo e aceito"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "caminho com segmento de navegacao .. e recusado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "caminho com barra inicial e recusado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "caminho com segmento vazio e recusado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "caminho com caractere de controle e recusado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "publicar recusa caminho que nao termina em .pdf"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "publicar recusa caminho com .."
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "publicar proposta em in_progress funciona"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "cliente recebe exatamente um anuncio de proposta disponivel"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "evento interno nao copia o titulo livre da proposta"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "publicar proposta move o pedido para quoted"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "primeira proposta recebe versao 1"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "operador reabre quoted para in_progress para revisar"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "segunda proposta e publicada"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "apenas a versao nova fica vigente"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "a versao anterior e preservada no historico (F-23)"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "a versao vigente e a 2"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "operador reabre quoted para in_progress pela terceira vez"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "publicar omitindo a validade usa o default da assinatura"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "validade omitida fica nula, sem prazo inventado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "operador responde o ajuste"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "ajuste fica com o estado informado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "texto da resposta e registrado na trilha"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "trilha acumula as escritas feitas pelo back-office (5 mudancas de status, 3 propostas e 1 ajuste)"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "cliente autenticado sem allowlist nao lista a fila"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "cliente autenticado sem allowlist nao muda status"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+    "name": "operador desativado perde o acesso imediatamente"
+   },
+   {
     "file": "site-supabase/supabase/tests/database/contact_commercial_alert.test.sql",
     "name": "novo contato alimenta a fila do alerta comercial na mesma transação"
    },
@@ -14779,7 +15850,7 @@
    },
    {
     "file": "site-supabase/supabase/tests/database/lead_storage.test.sql",
-    "name": "schema privado contém as vinte e uma tabelas planejadas, incluindo favoritos de datas sem PII"
+    "name": "schema privado contém as tabelas planejadas, incluindo favoritos de datas sem PII e as duas do back-office (F-03)"
    },
    {
     "file": "site-supabase/supabase/tests/database/lead_storage.test.sql",
@@ -17186,6 +18257,62 @@
     "name": "gera evento de dia inteiro e lembrete de planejamento sem deslocar datas"
    },
    {
+    "file": "src/lib/commercialBackofficeContract.test.ts",
+    "name": "contrato do back-office comercial"
+   },
+   {
+    "file": "src/lib/commercialBackofficeContract.test.ts",
+    "name": "lê a fila paginada com totais e itens"
+   },
+   {
+    "file": "src/lib/commercialBackofficeContract.test.ts",
+    "name": "trata payload que não é objeto como indisponibilidade, não como fila vazia"
+   },
+   {
+    "file": "src/lib/commercialBackofficeContract.test.ts",
+    "name": "rejeita item de fila que não é objeto"
+   },
+   {
+    "file": "src/lib/commercialBackofficeContract.test.ts",
+    "name": "normaliza status desconhecido para new em vez de propagar string crua para a UI"
+   },
+   {
+    "file": "src/lib/commercialBackofficeContract.test.ts",
+    "name": "lê o detalhe completo, incluindo audiência interna e auditoria"
+   },
+   {
+    "file": "src/lib/commercialBackofficeContract.test.ts",
+    "name": "filtra status inválido em allowedStatuses, preservando os válidos"
+   },
+   {
+    "file": "src/lib/commercialBackofficeContract.test.ts",
+    "name": "trata listas ausentes como vazias para não quebrar a renderização"
+   },
+   {
+    "file": "src/lib/commercialBackofficeContract.test.ts",
+    "name": "lê a publicação de proposta com a nova versão e o status quoted"
+   },
+   {
+    "file": "src/lib/commercialBackofficeContract.test.ts",
+    "name": "lê a mudança de status com o estágio anterior"
+   },
+   {
+    "file": "src/lib/commercialBackofficeContract.test.ts",
+    "name": "reconhece o 42501 de operador não cadastrado"
+   },
+   {
+    "file": "src/lib/commercialBackofficeContract.test.ts",
+    "name": "traduz cada erro conhecido do banco para uma mensagem acionável"
+   },
+   {
+    "file": "src/lib/commercialBackofficeContract.test.ts",
+    "name": "separa recusa de formulario de falha de carregamento"
+   },
+   {
+    "file": "src/lib/commercialBackofficeContract.test.ts",
+    "name": "separa o conflito de concorrência para a tela recarregar o pedido"
+   },
+   {
     "file": "src/lib/contactRequest.test.ts",
     "name": "contato rápido"
    },
@@ -17252,6 +18379,10 @@
    {
     "file": "src/lib/customerAccount.test.ts",
     "name": "aceita retorno apenas para dentro da Área do Cliente"
+   },
+   {
+    "file": "src/lib/customerAccount.test.ts",
+    "name": "devolve o operador ao back-office depois do login"
    },
    {
     "file": "src/lib/customerAccount.test.ts",
@@ -19639,6 +20770,10 @@
    },
    {
     "file": "tests/api/customer-proposals.test.ts",
+    "name": "aceita nome de arquivo com dois pontos no meio do nome"
+   },
+   {
+    "file": "tests/api/customer-proposals.test.ts",
     "name": "recusa caminho de proposta forjado antes de solicitar URL assinada"
    },
    {
@@ -20291,6 +21426,10 @@
    },
    {
     "file": "tests/api/site-page.test.ts",
+    "name": "serve o back-office comercial como rota privada e nao indexavel"
+   },
+   {
+    "file": "tests/api/site-page.test.ts",
     "name": "preserva 404 real para uma landing editorial desconhecida"
    },
    {
@@ -20755,6 +21894,15 @@
     "condition": "",
     "each": "row",
     "src": "site-supabase/supabase/migrations/20261117010000_add_commercial_team_contact_alert.sql"
+   },
+   {
+    "name": "commercial_operators_set_updated_at",
+    "when": "BEFORE UPDATE",
+    "table": "site_private.commercial_operators",
+    "function": "set_updated_at",
+    "condition": "",
+    "each": "row",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
    }
   ],
   "db_functions": {
@@ -21999,6 +23147,140 @@
      "v_storage_paths",
      "v_user_ids"
     ]
+   },
+   "assert_site_operator": {
+    "args": "",
+    "returns": "site_private.commercial_operators",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_operator site_private.commercial_operators; v_user_id uuid := auth.uid(); begin if v_user_id is null then raise exception using errcode = '42501', message = 'authentication_required'; end if; select * into v_operator from site_private.commercial_operators operator where operator.user_id = v_user_id and operator.is_active; if not found then raise exception using errcode = '42501', message = 'not_a_site_operator'; end if; return v_operator; end;",
+    "raises": [
+     "authentication_required",
+     "not_a_site_operator"
+    ],
+    "tables": [
+     "site_private",
+     "v_operator"
+    ]
+   },
+   "list_site_quote_requests": {
+    "args": "p_status text default null, p_search text default null, p_limit integer default 25, p_offset integer default 0",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_operator site_private.commercial_operators := site_private.assert_site_operator(); v_limit integer := least(greatest(coalesce(p_limit, 25), 1), 100); v_offset integer := greatest(coalesce(p_offset, 0), 0); v_search text := nullif(btrim(coalesce(p_search, '')), ''); v_protocol text := nullif(btrim(ltrim(btrim(coalesce(p_search, '')), '#')), ''); v_status text := nullif(btrim(coalesce(p_status, '')), ''); v_rows jsonb; v_total integer; begin if v_status is not null and v_status not in ('new', 'triaged', 'in_progress', 'quoted', 'closed', 'spam') then raise exception using errcode = '22023', message = 'invalid_status_filter'; end if; select count(*) into v_total from site_private.quot …",
+    "raises": [
+     "invalid_status_filter"
+    ],
+    "tables": [
+     "site_private",
+     "v_rows",
+     "v_total"
+    ]
+   },
+   "get_site_quote_request": {
+    "args": "p_request_id uuid",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_operator site_private.commercial_operators := site_private.assert_site_operator(); v_request site_private.quote_requests%rowtype; v_items jsonb; v_events jsonb; v_proposals jsonb; v_adjustments jsonb; v_allowed_statuses text[]; v_audit jsonb; begin if p_request_id is null then raise exception using errcode = '22023', message = 'request_id_required'; end if; select * into v_request from site_private.quote_requests request where request.id = p_request_id; if not found then raise exception using errcode = 'P0002', message = 'quote_request_not_found'; end if; select coalesce(jsonb_agg(jsonb_build_object( 'key', item.item_key, 'productId', item.source_product_id, 'slug', item.product_sl …",
+    "raises": [
+     "request_id_required",
+     "quote_request_not_found"
+    ],
+    "tables": [
+     "site_private",
+     "v_adjustments",
+     "v_allowed_statuses",
+     "v_audit",
+     "v_events",
+     "v_items",
+     "v_proposals",
+     "v_request"
+    ]
+   },
+   "update_site_quote_status": {
+    "args": "p_request_id uuid, p_status text",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_operator site_private.commercial_operators := site_private.assert_site_operator(); v_target text := nullif(btrim(coalesce(p_status, '')), ''); v_previous text; begin if p_request_id is null then raise exception using errcode = '22023', message = 'request_id_required'; end if; if v_target is null then raise exception using errcode = '22023', message = 'status_required'; end if; select request.status into v_previous from site_private.quote_requests request where request.id = p_request_id; if not found then raise exception using errcode = 'P0002', message = 'quote_request_not_found'; end if; if v_target <> v_previous and not exists ( select 1 from site_private.status_transitions trans …",
+    "raises": [
+     "request_id_required",
+     "status_required",
+     "quote_request_not_found",
+     "(dinâmica) format('invalid_status_transition: %s -> %s', v_previous, v_target)",
+     "quoted_requires_proposal_publication",
+     "quote_request_changed_concurrently"
+    ],
+    "tables": [
+     "site_private",
+     "v_previous"
+    ]
+   },
+   "reply_site_quote_adjustment": {
+    "args": "p_adjustment_id uuid, p_response text, p_status text default 'resolved'",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_operator site_private.commercial_operators := site_private.assert_site_operator(); v_response text := nullif(btrim(coalesce(p_response, '')), ''); v_status text := nullif(btrim(coalesce(p_status, 'resolved')), ''); v_adjustment site_private.quote_adjustment_requests%rowtype; begin if p_adjustment_id is null then raise exception using errcode = '22023', message = 'adjustment_id_required'; end if; if v_response is null then raise exception using errcode = '22023', message = 'response_required'; end if; if v_status not in ('triaged', 'resolved', 'closed') then raise exception using errcode = '22023', message = 'invalid_adjustment_status'; end if; select * into v_adjustment from site_p …",
+    "raises": [
+     "adjustment_id_required",
+     "response_required",
+     "invalid_adjustment_status",
+     "adjustment_not_found"
+    ],
+    "tables": [
+     "site_private",
+     "v_adjustment"
+    ]
+   },
+   "is_valid_proposal_storage_path": {
+    "args": "p_path text",
+    "returns": "boolean",
+    "lang": "sql",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+    "security_definer": false,
+    "search_path": true,
+    "body": "select case when p_path is null or btrim(p_path) = '' then false when length(p_path) > 500 then false when p_path like '/%' then false when position(chr(92) in p_path) > 0 then false when p_path ~ '[\\x01-\\x1f\\x7f]' then false when p_path !~* '\\.pdf$' then false else not exists ( select 1 from unnest(string_to_array(p_path, '/')) as segment where segment = '' or segment = '.' or segment = '..' ) end;",
+    "raises": [],
+    "tables": [
+     "unnest"
+    ]
+   },
+   "publish_site_quote_proposal": {
+    "args": "p_request_id uuid, p_title text, p_storage_path text, p_valid_until date default null",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_operator site_private.commercial_operators := site_private.assert_site_operator(); v_title text := nullif(btrim(coalesce(p_title, '')), ''); v_path text := nullif(btrim(coalesce(p_storage_path, '')), ''); v_request site_private.quote_requests%rowtype; v_next_version integer; v_proposal_id uuid; begin if p_request_id is null then raise exception using errcode = '22023', message = 'request_id_required'; end if; if v_title is null then raise exception using errcode = '22023', message = 'title_required'; end if; if v_path is null then raise exception using errcode = '22023', message = 'storage_path_required'; end if; if not site_private.is_valid_proposal_storage_path(v_path) then raise …",
+    "raises": [
+     "request_id_required",
+     "title_required",
+     "storage_path_required",
+     "invalid_storage_path",
+     "quote_request_not_found",
+     "(dinâmica) format('proposal_requires_in_progress: status atual %s', v_request.status)",
+     "quote_request_changed_concurrently"
+    ],
+    "tables": [
+     "site_private",
+     "v_next_version",
+     "v_proposal_id",
+     "v_request"
+    ]
    }
   },
   "db_enums": {},
@@ -22447,6 +23729,116 @@
     "function": "claim_my_quote_requests",
     "msg": "verified_email_required",
     "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "function": "assert_site_operator",
+    "msg": "authentication_required",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "assert_site_operator",
+    "msg": "not_a_site_operator",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "list_site_quote_requests",
+    "msg": "invalid_status_filter",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "get_site_quote_request",
+    "msg": "request_id_required",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "get_site_quote_request",
+    "msg": "quote_request_not_found",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "update_site_quote_status",
+    "msg": "request_id_required",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "update_site_quote_status",
+    "msg": "status_required",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "update_site_quote_status",
+    "msg": "quote_request_not_found",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "update_site_quote_status",
+    "msg": "(dinâmica) format('invalid_status_transition: %s -> %s', v_previous, v_target)",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "update_site_quote_status",
+    "msg": "quoted_requires_proposal_publication",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "update_site_quote_status",
+    "msg": "quote_request_changed_concurrently",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "reply_site_quote_adjustment",
+    "msg": "adjustment_id_required",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "reply_site_quote_adjustment",
+    "msg": "response_required",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "reply_site_quote_adjustment",
+    "msg": "invalid_adjustment_status",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "reply_site_quote_adjustment",
+    "msg": "adjustment_not_found",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "publish_site_quote_proposal",
+    "msg": "request_id_required",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "publish_site_quote_proposal",
+    "msg": "title_required",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "publish_site_quote_proposal",
+    "msg": "storage_path_required",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "publish_site_quote_proposal",
+    "msg": "invalid_storage_path",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "publish_site_quote_proposal",
+    "msg": "quote_request_not_found",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "publish_site_quote_proposal",
+    "msg": "(dinâmica) format('proposal_requires_in_progress: status atual %s', v_request.status)",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "publish_site_quote_proposal",
+    "msg": "quote_request_changed_concurrently",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
    }
   ],
   "db_generated": [],
@@ -22798,17 +24190,21 @@
       "compara:shared/catalogEditorial.ts",
       "escreve:shared/catalogEditorial.ts"
      ],
+     "triaged": [
+      "compara:src/lib/customerAccount.ts",
+      "compara:src/pages/BackofficePage.tsx",
+      "escreve:src/lib/commercialBackoffice.ts"
+     ],
      "quoted": [
-      "compara:src/lib/customerAccount.ts"
+      "compara:src/lib/customerAccount.ts",
+      "compara:src/pages/BackofficePage.tsx"
      ],
      "closed": [
       "compara:src/lib/customerAccount.ts"
      ],
-     "triaged": [
-      "compara:src/lib/customerAccount.ts"
-     ],
      "in_progress": [
-      "compara:src/lib/customerAccount.ts"
+      "compara:src/lib/customerAccount.ts",
+      "compara:src/pages/BackofficePage.tsx"
      ],
      "pending": [
       "compara:src/lib/quoteConfirmation.ts",
@@ -22817,6 +24213,9 @@
      ],
      "unavailable": [
       "compara:src/lib/quoteConfirmation.ts"
+     ],
+     "new": [
+      "compara:src/pages/BackofficePage.tsx"
      ],
      "attached": [
       "compara:src/pages/QuotePage.tsx",
@@ -22962,6 +24361,20 @@
     "DELETE": []
    },
    "site_private.admin_ddl_log": {
+    "rls": "forced",
+    "SELECT": [],
+    "INSERT": [],
+    "UPDATE": [],
+    "DELETE": []
+   },
+   "site_private.commercial_audit_log": {
+    "rls": "forced",
+    "SELECT": [],
+    "INSERT": [],
+    "UPDATE": [],
+    "DELETE": []
+   },
+   "site_private.commercial_operators": {
     "rls": "forced",
     "SELECT": [],
     "INSERT": [],
@@ -23252,6 +24665,7 @@
    "api/_lib/siteDatabase.ts"
   ],
   "security_definer_fns": [
+   "assert_site_operator",
    "attach_my_briefing_assets_to_quote",
    "can_delete_my_unverified_briefing_asset_path",
    "claim_my_quote_requests",
@@ -23276,23 +24690,28 @@
    "get_my_proposal_document",
    "get_my_quote_request",
    "get_my_quote_requests",
+   "get_site_quote_request",
    "list_my_briefing_assets",
    "list_my_occasion_favorites",
    "list_my_selections",
+   "list_site_quote_requests",
    "log_admin_ddl",
    "log_admin_write",
    "matches_my_briefing_asset_upload",
    "owns_my_briefing_asset_path",
+   "publish_site_quote_proposal",
    "purge_archived_customer_selections",
    "purge_site_admin_audit_logs",
    "queue_briefing_asset_deletion",
    "reject_site_briefing_asset_verification",
+   "reply_site_quote_adjustment",
    "request_my_quote_adjustment",
    "require_verified_briefing_asset_attachment",
    "rls_auto_enable",
    "save_my_selection",
    "set_my_occasion_favorite",
-   "set_my_selection_archived"
+   "set_my_selection_archived",
+   "update_site_quote_status"
   ],
   "public_functions": [],
   "auth_config": {
@@ -25458,6 +26877,150 @@
     "objkind": "function",
     "roles": "service_role",
     "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.commercial_operators",
+    "objkind": "table",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "select, insert, update, delete",
+    "object": "site_private.commercial_operators",
+    "objkind": "table",
+    "roles": "service_role",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.commercial_audit_log",
+    "objkind": "table",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "update, delete, truncate",
+    "object": "site_private.commercial_audit_log",
+    "objkind": "table",
+    "roles": "service_role",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "select, insert",
+    "object": "site_private.commercial_audit_log",
+    "objkind": "table",
+    "roles": "service_role",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.assert_site_operator",
+    "objkind": "function",
+    "roles": "public, anon",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.is_valid_proposal_storage_path",
+    "objkind": "function",
+    "roles": "public",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "site_private.is_valid_proposal_storage_path",
+    "objkind": "function",
+    "roles": "authenticated, anon, service_role",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "list_site_quote_requests",
+    "objkind": "function",
+    "roles": "public, anon",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "get_site_quote_request",
+    "objkind": "function",
+    "roles": "public, anon",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "update_site_quote_status",
+    "objkind": "function",
+    "roles": "public, anon",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "reply_site_quote_adjustment",
+    "objkind": "function",
+    "roles": "public, anon",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "publish_site_quote_proposal",
+    "objkind": "function",
+    "roles": "public, anon",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "list_site_quote_requests",
+    "objkind": "function",
+    "roles": "authenticated, service_role",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "get_site_quote_request",
+    "objkind": "function",
+    "roles": "authenticated, service_role",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "update_site_quote_status",
+    "objkind": "function",
+    "roles": "authenticated, service_role",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "reply_site_quote_adjustment",
+    "objkind": "function",
+    "roles": "authenticated, service_role",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "publish_site_quote_proposal",
+    "objkind": "function",
+    "roles": "authenticated, service_role",
+    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
    }
   ],
   "guards": [],
@@ -25471,6 +27034,10 @@
    [
     "site_private.customer_selections",
     "archived_at"
+   ],
+   [
+    "site_private.commercial_operators",
+    "is_active"
    ]
   ],
   "audit": {
@@ -25531,7 +27098,14 @@
     "created_at",
     "updated_at"
    ],
-   "site_private.subject_right_requests": []
+   "site_private.subject_right_requests": [],
+   "site_private.commercial_operators": [
+    "created_at",
+    "updated_at"
+   ],
+   "site_private.commercial_audit_log": [
+    "created_at"
+   ]
   },
   "pii": [
    [
@@ -25571,7 +27145,7 @@
    "`site_private.quote_adjustment_requests.status` tem valores ['closed', 'new', 'resolved', 'triaged'] mas nenhum mapa de transições foi encontrado no código nem em tabela de transições do banco — a ordem permitida (ex.: pago → cancelado?) não está declarada.",
    "`site_private.status_transitions.from_status` é uma coluna de status sem enum/CHECK — os valores válidos e as transições permitidas não estão no banco.",
    "`site_private.status_transitions.to_status` é uma coluna de status sem enum/CHECK — os valores válidos e as transições permitidas não estão no banco.",
-   "8/22 tabelas sem `COMMENT ON TABLE` — o significado de negócio não está no schema: `site_private.quote_requests`, `site_private.contact_requests`, `site_private.consent_receipts`, `site_private.customer_profiles`, `site_private.quote_request_events`, `site_private.proposal_documents`, `site_private.quote_adjustment_requests`, `site_private.shared_selections`"
+   "8/24 tabelas sem `COMMENT ON TABLE` — o significado de negócio não está no schema: `site_private.quote_requests`, `site_private.contact_requests`, `site_private.consent_receipts`, `site_private.customer_profiles`, `site_private.quote_request_events`, `site_private.proposal_documents`, `site_private.quote_adjustment_requests`, `site_private.shared_selections`"
   ]
  },
  "manual": [],
@@ -26053,7 +27627,7 @@
   },
   "api/site-page.ts": {
    "path": "api/site-page.ts",
-   "lines": 132,
+   "lines": 133,
    "exports": [
     "function handler",
     "default async"
@@ -26959,7 +28533,7 @@
   },
   "scripts/check-performance-budget.mjs": {
    "path": "scripts/check-performance-budget.mjs",
-   "lines": 185,
+   "lines": 189,
    "env": [
     "PERFORMANCE_BUDGET_PROFILE"
    ],
@@ -26973,7 +28547,7 @@
     "dist/assets não existe: rode "
    ],
    "rule_comments": [
-    "antes de o codigo dela ser avaliado. A F-04 (mensagem acionavel no limite de"
+    "(back-office minimo em /admin/orcamentos) adicionou uma rota lazy inteira"
    ]
   },
   "scripts/ci-health-metrics.mjs": {
@@ -29292,6 +30866,11 @@
    "lines": 517,
    "uses_service_role": true
   },
+  "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql": {
+   "path": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+   "lines": 615,
+   "uses_service_role": true
+  },
   "site-supabase/supabase/tests/database/adjustment_limits.test.sql": {
    "path": "site-supabase/supabase/tests/database/adjustment_limits.test.sql",
    "lines": 87,
@@ -29401,6 +30980,104 @@
     "apagamento enfileira o blob para exclusão"
    ],
    "uses_service_role": true
+  },
+  "site-supabase/supabase/tests/database/commercial_backoffice.test.sql": {
+   "path": "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+   "lines": 111,
+   "is_test": true,
+   "tests": [
+    "allowlist de operadores existe no schema privado",
+    "trilha de auditoria comercial existe",
+    "RPC de fila existe",
+    "RPC de detalhe existe",
+    "RPC de status existe",
+    "RPC de triagem de ajuste existe",
+    "RPC de publicacao de proposta existe",
+    "helper de autorizacao existe",
+    "authenticated nao le a allowlist",
+    "authenticated nao le a trilha",
+    "authenticated nao se adiciona na allowlist",
+    "anon nao le a allowlist",
+    "allowlist tem RLS habilitada e forcada",
+    "trilha tem RLS habilitada e forcada",
+    "allowlist tem indice parcial para a checagem de operador ativo",
+    "authenticated pode chamar a fila (a checagem de operador acontece dentro)",
+    "anon nao chama a fila",
+    "anon nao muda status",
+    "anon nao publica proposta",
+    "service_role pode mudar status",
+    "fila recusa chamador sem autenticacao",
+    "detalhe recusa chamador sem autenticacao",
+    "mudanca de status recusa chamador sem autenticacao",
+    "publicacao de proposta recusa chamador sem autenticacao",
+    "helper recusa chamador sem autenticacao",
+    "a allowlist nasce vazia: nenhuma conta ganha back-office por acidente na migration",
+    "a transicao usada pela publicacao de proposta continua valida na state machine",
+    "closed segue terminal: publicar proposta em pedido encerrado e barrado pela state machine"
+   ],
+   "uses_service_role": true
+  },
+  "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql": {
+   "path": "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+   "lines": 429,
+   "is_test": true,
+   "rule_comments": [
+    "Metalurgica' nao pode casar com 'Metalurgica', e um '#'"
+   ],
+   "tests": [
+    "pedido de teste recebeu protocolo persistido no insert",
+    "operador ativo lista a fila",
+    "fila identifica o operador que esta consultando",
+    "fila informa a quantidade de itens do pedido",
+    "busca por empresa encontra o pedido",
+    "busca sem correspondencia devolve fila vazia",
+    "busca pelo protocolo encontra o pedido",
+    "busca pelo protocolo em minusculas tambem encontra",
+    "busca pelo protocolo com # encontra o pedido",
+    "busca textual trata # como literal em vez de remover o prefixo",
+    "# sozinho filtra em vez de devolver a fila inteira",
+    "busca por empresa com # conta so o pedido que tem # no nome",
+    "busca por empresa com # devolve o pedido na pagina",
+    "busca tolera # e espacos ao redor do protocolo",
+    "detalhe expoe o protocolo persistido",
+    "detalhe lista os itens",
+    "operador muda new para triaged",
+    "status persistido no banco",
+    "transicao inversa triaged -> new e recusada",
+    "mudanca de status deixa exatamente uma linha de auditoria",
+    "auditoria registra o status anterior",
+    "publicar proposta exige o pedido em curadoria",
+    "operador move triaged para in_progress",
+    "quoted nao aparece como mudanca avulsa de estagio",
+    "mudanca avulsa para quoted e recusada mesmo sendo transicao valida",
+    "caminho com dois pontos dentro do nome do arquivo e aceito",
+    "caminho com segmento de navegacao .. e recusado",
+    "caminho com barra inicial e recusado",
+    "caminho com segmento vazio e recusado",
+    "caminho com caractere de controle e recusado",
+    "publicar recusa caminho que nao termina em .pdf",
+    "publicar recusa caminho com ..",
+    "publicar proposta em in_progress funciona",
+    "cliente recebe exatamente um anuncio de proposta disponivel",
+    "evento interno nao copia o titulo livre da proposta",
+    "publicar proposta move o pedido para quoted",
+    "primeira proposta recebe versao 1",
+    "operador reabre quoted para in_progress para revisar",
+    "segunda proposta e publicada",
+    "apenas a versao nova fica vigente",
+    "a versao anterior e preservada no historico (F-23)",
+    "a versao vigente e a 2",
+    "operador reabre quoted para in_progress pela terceira vez",
+    "publicar omitindo a validade usa o default da assinatura",
+    "validade omitida fica nula, sem prazo inventado",
+    "operador responde o ajuste",
+    "ajuste fica com o estado informado",
+    "texto da resposta e registrado na trilha",
+    "trilha acumula as escritas feitas pelo back-office (5 mudancas de status, 3 propostas e 1 ajuste)",
+    "cliente autenticado sem allowlist nao lista a fila",
+    "cliente autenticado sem allowlist nao muda status",
+    "operador desativado perde o acesso imediatamente"
+   ]
   },
   "site-supabase/supabase/tests/database/contact_commercial_alert.test.sql": {
    "path": "site-supabase/supabase/tests/database/contact_commercial_alert.test.sql",
@@ -29735,7 +31412,7 @@
     "values (repeat('8', 64), now() - interval '31 days', 1, now() - interval '31 days');"
    ],
    "tests": [
-    "schema privado contém as vinte e uma tabelas planejadas, incluindo favoritos de datas sem PII",
+    "schema privado contém as tabelas planejadas, incluindo favoritos de datas sem PII e as duas do back-office (F-03)",
     "seleções persistentes ficam no schema privado",
     "criação de links recebe rate limit próprio",
     "máquina de estados administrativa vive em tabela dedicada (Etapa 8)",
@@ -30315,7 +31992,7 @@
   },
   "src/App.tsx": {
    "path": "src/App.tsx",
-   "lines": 138,
+   "lines": 140,
    "exports": [
     "function App"
    ],
@@ -30419,6 +32096,12 @@
     {
      "path": "/minha-conta/orcamentos/:id",
      "component": "CustomerQuotePage",
+     "guard": "",
+     "roles": []
+    },
+    {
+     "path": "/admin/orcamentos",
+     "component": "BackofficePage",
      "guard": "",
      "roles": []
     },
@@ -31841,6 +33524,108 @@
     }
    ]
   },
+  "src/lib/commercialBackoffice.ts": {
+   "path": "src/lib/commercialBackoffice.ts",
+   "lines": 97,
+   "exports": [
+    "interface SiteQuoteListQuery",
+    "function listSiteQuoteRequests",
+    "function fetchSiteQuoteDetail",
+    "function updateSiteQuoteStatus",
+    "function replySiteQuoteAdjustment",
+    "function publishSiteQuoteProposal"
+   ],
+   "rpc": [
+    "get_site_quote_request",
+    "list_site_quote_requests",
+    "publish_site_quote_proposal",
+    "reply_site_quote_adjustment",
+    "update_site_quote_status"
+   ],
+   "errors": [
+    "commercial_backoffice_unavailable"
+   ],
+   "status_values": [
+    {
+     "field": "status",
+     "value": "triaged",
+     "kind": "escreve"
+    }
+   ],
+   "rule_comments": [
+    "* Todas as chamadas passam por `runSiteRpc`, que já impõe deadline real (12 s) —",
+    "o back-office não pode ficar com spinner pendurado se o PostgREST travar."
+   ],
+   "doc": "Camada de dados do back-office comercial (F-03). Todas as chamadas passam por `runSiteRpc`, que já impõe deadline real (12 s) — o back-office não pode ficar com spinner pendurado se o PostgREST travar. Nada aqui decide autorização: quem é operador é decidido por `site_private.assert_site_operator()` …"
+  },
+  "src/lib/commercialBackofficeContract.test.ts": {
+   "path": "src/lib/commercialBackofficeContract.test.ts",
+   "lines": 172,
+   "is_test": true,
+   "tests": [
+    "contrato do back-office comercial",
+    "lê a fila paginada com totais e itens",
+    "trata payload que não é objeto como indisponibilidade, não como fila vazia",
+    "rejeita item de fila que não é objeto",
+    "normaliza status desconhecido para new em vez de propagar string crua para a UI",
+    "lê o detalhe completo, incluindo audiência interna e auditoria",
+    "filtra status inválido em allowedStatuses, preservando os válidos",
+    "trata listas ausentes como vazias para não quebrar a renderização",
+    "lê a publicação de proposta com a nova versão e o status quoted",
+    "lê a mudança de status com o estágio anterior",
+    "reconhece o 42501 de operador não cadastrado",
+    "traduz cada erro conhecido do banco para uma mensagem acionável",
+    "separa recusa de formulario de falha de carregamento",
+    "separa o conflito de concorrência para a tela recarregar o pedido"
+   ]
+  },
+  "src/lib/commercialBackofficeContract.ts": {
+   "path": "src/lib/commercialBackofficeContract.ts",
+   "lines": 370,
+   "exports": [
+    "const SITE_QUOTE_STATUSES",
+    "type SiteQuoteStatus",
+    "const SITE_QUOTE_STATUS_LABELS",
+    "interface SiteQuoteListItem",
+    "interface SiteQuoteListPage",
+    "interface SiteQuoteItem",
+    "interface SiteQuoteEvent",
+    "interface SiteQuoteProposal",
+    "interface SiteQuoteAdjustment",
+    "interface SiteQuoteAuditEntry",
+    "interface SiteQuoteDetail",
+    "interface SiteQuoteStatusChange",
+    "interface SiteQuoteProposalPublication",
+    "function parseSiteQuoteListPage",
+    "function parseSiteQuoteDetail",
+    "function parseSiteQuoteStatusChange",
+    "function parseSiteQuoteProposalPublication",
+    "function isSiteOperatorError",
+    "function isSiteProposalRejected",
+    "function isSiteQuoteConflict",
+    "function siteOperatorErrorMessage"
+   ],
+   "errors": [
+    "commercial_backoffice_invalid_adjustment",
+    "commercial_backoffice_invalid_audit",
+    "commercial_backoffice_invalid_event",
+    "commercial_backoffice_invalid_item",
+    "commercial_backoffice_invalid_item_line",
+    "commercial_backoffice_invalid_proposal",
+    "commercial_backoffice_invalid_proposal_publication",
+    "commercial_backoffice_invalid_status_change",
+    "commercial_backoffice_unavailable"
+   ],
+   "enums": [
+    {
+     "name": "SITE_QUOTE_STATUSES",
+     "values": "'new', 'triaged', 'in_progress', 'quoted', 'closed', 'spam'"
+    }
+   ],
+   "rule_comments": [
+    "máquina de estados não pode virar 'new' aqui: isso ofereceria ao operador um"
+   ]
+  },
   "src/lib/contactRequest.test.ts": {
    "path": "src/lib/contactRequest.test.ts",
    "lines": 60,
@@ -31891,19 +33676,20 @@
   },
   "src/lib/customerAccount.test.ts": {
    "path": "src/lib/customerAccount.test.ts",
-   "lines": 32,
+   "lines": 41,
    "is_test": true,
    "tests": [
     "contrato da Área do Cliente",
     "traduz somente estados operacionais reais",
     "aceita retorno apenas para dentro da Área do Cliente",
+    "devolve o operador ao back-office depois do login",
     "distingue a versão mais recente de uma proposta ainda válida",
     "aceita somente páginas inteiras dentro do limite do histórico"
    ]
   },
   "src/lib/customerAccount.ts": {
    "path": "src/lib/customerAccount.ts",
-   "lines": 234,
+   "lines": 238,
    "exports": [
     "interface CustomerAccessReport",
     "interface CustomerDataExport",
@@ -32983,6 +34769,73 @@
     "function AuthConfirmPage"
    ]
   },
+  "src/pages/BackofficePage.tsx": {
+   "path": "src/pages/BackofficePage.tsx",
+   "lines": 618,
+   "exports": [
+    "function BackofficePage"
+   ],
+   "html_constraints": [
+    {
+     "field": "proposal-valid",
+     "rules": "type=date"
+    }
+   ],
+   "params": [
+    {
+     "name": "PAGE_SIZE",
+     "value": "25"
+    }
+   ],
+   "status_values": [
+    {
+     "field": "status",
+     "value": "new",
+     "kind": "compara"
+    },
+    {
+     "field": "status",
+     "value": "triaged",
+     "kind": "compara"
+    },
+    {
+     "field": "status",
+     "value": "in_progress",
+     "kind": "compara"
+    },
+    {
+     "field": "status",
+     "value": "quoted",
+     "kind": "compara"
+    },
+    {
+     "field": "status",
+     "value": "in_progress",
+     "kind": "compara"
+    },
+    {
+     "field": "status",
+     "value": "new",
+     "kind": "compara"
+    },
+    {
+     "field": "status",
+     "value": "triaged",
+     "kind": "compara"
+    }
+   ],
+   "rule_comments": [
+    "um caminho recusado nao pode derrubar o pedido da tela e obrigar o operador",
+    "nao pode herdar a recusa do anterior no formulario novo."
+   ],
+   "calc_fns": [
+    {
+     "name": "validStatus",
+     "params": "value: string | null",
+     "body": "return value && (SITE_QUOTE_STATUSES as readonly string[]).includes(value) ? (value as SiteQuoteStatus) : null;"
+    }
+   ]
+  },
   "src/pages/CatalogPage.tsx": {
    "path": "src/pages/CatalogPage.tsx",
    "lines": 88,
@@ -33411,7 +35264,7 @@
   },
   "src/types/site-database.types.ts": {
    "path": "src/types/site-database.types.ts",
-   "lines": 1310,
+   "lines": 1419,
    "exports": [
     "type Json",
     "type Database",
@@ -34244,13 +36097,14 @@
   },
   "tests/api/customer-proposals.test.ts": {
    "path": "tests/api/customer-proposals.test.ts",
-   "lines": 161,
+   "lines": 176,
    "is_test": true,
    "errors": [
     "A assinatura de URL esperada não ocorreu."
    ],
    "rule_comments": [
-    "Nenhuma assinatura de URL: o limite barra antes do Storage."
+    "Nenhuma assinatura de URL: o limite barra antes do Storage.",
+    "mesma regra: se o comercial consegue publicar, o cliente consegue baixar."
    ],
    "temporal": [
     "expect(JSON.parse(String((signedUrlCall[1] as RequestInit).body))).toEqual({ expiresIn: 60 });"
@@ -34264,6 +36118,7 @@
     "estouro do limite devolve 429, não ",
     "não revela se proposta alheia existe",
     "recusa bucket e URL assinada fora do armazenamento isolado",
+    "aceita nome de arquivo com dois pontos no meio do nome",
     "recusa caminho de proposta forjado antes de solicitar URL assinada"
    ]
   },
@@ -34557,11 +36412,12 @@
   },
   "tests/api/site-page.test.ts": {
    "path": "tests/api/site-page.test.ts",
-   "lines": 155,
+   "lines": 167,
    "is_test": true,
    "tests": [
     "HTML inicial das páginas estáticas",
     "entrega metadados específicos para catálogo e não indexa o detalhe privado",
+    "serve o back-office comercial como rota privada e nao indexavel",
     "preserva 404 real para uma landing editorial desconhecida",
     "serve para cada landing o mesmo título que o React grava depois da hidratação",
     "publica o montador de kits com rewrite e metadados indexáveis próprios",
@@ -34642,10 +36498,52 @@
   }
  },
  "git": {
-  "sha": "e249b52fe4e0ad346e0aca97e56180f3c65bef01",
+  "sha": "fc29771d0ebe0720134147e400de98fb8756a8a2",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "fc29771",
+    "date": "2026-11-22",
+    "author": "adm01-debug",
+    "subject": "feat: back-office minimo de orcamentos (F-03) e produtor de propostas versionadas (F-23) (#225)",
+    "files": [
+     "analise-prs/funcionalidades.csv",
+     "api/site-page.ts",
+     "docs/DATABASE_DICTIONARY.md",
+     "docs/DATABASE_FUNCTION_CONTRACTS.md",
+     "docs/DATABASE_SCHEMA.md",
+     "scripts/check-performance-budget.mjs",
+     "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+     "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
+     "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
+     "site-supabase/supabase/tests/database/lead_storage.test.sql",
+     "src/App.tsx",
+     "src/lib/commercialBackoffice.ts",
+     "src/lib/commercialBackofficeContract.test.ts",
+     "src/lib/commercialBackofficeContract.ts",
+     "src/lib/customerAccount.test.ts",
+     "src/lib/customerAccount.ts",
+     "src/pages/BackofficePage.tsx",
+     "src/types/site-database.types.ts",
+     "tests/api/customer-proposals.test.ts",
+     "tests/api/site-page.test.ts",
+     "tests/check-performance-budget.node.mjs",
+     "vercel.json"
+    ]
+   },
+   {
+    "sha": "180c09a",
+    "date": "2026-11-22",
+    "author": "adm01-debug",
+    "subject": "docs: executa a revisao mensal do banco e corrige a coluna duplicada (F-90) (#229)",
+    "files": [
+     "analise-prs/funcionalidades.csv",
+     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
+     "docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260916.md",
+     "docs/RUNBOOK_REVISAO_MENSAL_BANCO.md"
+    ]
+   },
    {
     "sha": "e249b52",
     "date": "2026-11-22",
@@ -34997,44 +36895,24 @@
      "requirements-graphify.in",
      "requirements-graphify.txt"
     ]
-   },
-   {
-    "sha": "e82b4d9",
-    "date": "2026-11-18",
-    "author": "adm01-debug",
-    "subject": "fix(contrato): 401 transitório da camada Auth deixa de reprovar o contrato do catálogo (#202)",
-    "files": [
-     "docs/AUDITORIA_REFS_AUTOSAVE_20261118.md",
-     "scripts/check-catalog-public-contract.mjs",
-     "tests/catalog-public-contract.node.mjs"
-    ]
-   },
-   {
-    "sha": "0a138dd",
-    "date": "2026-11-18",
-    "author": "adm01-debug",
-    "subject": "feat(testes): cobre sessão expirada entre o upload e a verificação do anexo (#200)",
-    "files": [
-     "tests/api/briefing-assets.test.ts"
-    ]
    }
   ],
   "hot_files": [
    [
     "analise-prs/funcionalidades.csv",
-    8
+    10
    ],
    [
     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
-    6
+    7
    ],
    [
     "scripts/check-performance-budget.mjs",
-    5
+    6
    ],
    [
     "tests/check-performance-budget.node.mjs",
-    5
+    6
    ],
    [
     "src/lib/useCatalogPageState.ts",
@@ -35045,11 +36923,31 @@
     4
    ],
    [
+    "src/lib/customerAccount.ts",
+    3
+   ],
+   [
     "src/lib/analytics.ts",
     3
    ],
    [
-    "src/lib/customerAccount.ts",
+    "docs/DATABASE_DICTIONARY.md",
+    2
+   ],
+   [
+    "docs/DATABASE_FUNCTION_CONTRACTS.md",
+    2
+   ],
+   [
+    "docs/DATABASE_SCHEMA.md",
+    2
+   ],
+   [
+    "site-supabase/supabase/tests/database/lead_storage.test.sql",
+    2
+   ],
+   [
+    "src/types/site-database.types.ts",
     2
    ],
    [
@@ -35079,26 +36977,6 @@
    [
     "src/lib/campaignPresets.ts",
     2
-   ],
-   [
-    "src/pages/CatalogPage.tsx",
-    2
-   ],
-   [
-    "src/styles.css",
-    2
-   ],
-   [
-    "docs/pendencias/_linha-de-base.md",
-    2
-   ],
-   [
-    "src/pages/QuotePage.tsx",
-    2
-   ],
-   [
-    "src/lib/customerAccount.rpc.test.ts",
-    1
    ]
   ]
  }
