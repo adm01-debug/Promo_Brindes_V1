@@ -217,9 +217,13 @@ comment on function public.cancel_site_notification_backlog(text) is
 -- `attempts` não é tocado: só entra em processing (+1) ou reabre de exhausted (=0),
 -- pela regra do trigger enforce_notification_delivery_lease_and_attempts.
 
-create or replace function public.claim_site_notification_deliveries(p_channels text[], p_batch_size integer default 10)
+create or replace function public.claim_site_notification_deliveries(
+  p_channels text[],
+  p_batch_size integer default 10
+)
 returns jsonb
 language plpgsql
+security invoker
 set search_path = ''
 as $fn$
 declare
@@ -234,6 +238,22 @@ begin
     raise exception using errcode = '22023', message = 'invalid_notification_claim_input';
   end if;
 
+  -- F-12: destinatário suprimido (bounce/complaint) ou pedido apagado pela
+  -- autoexclusão sai como cancelled antes de qualquer candidatura.
+  perform site_private.suppress_notification_delivery(blocked.id)
+  from (
+    select delivery.id
+    from site_private.notification_deliveries delivery
+    where delivery.request_kind = 'quote'
+      and delivery.audience = 'customer'
+      and delivery.channel = any(p_channels)
+      and delivery.status in ('pending', 'failed', 'processing')
+      and not site_private.notification_delivery_is_claimable(delivery.id)
+    order by delivery.created_at, delivery.id
+    limit p_batch_size
+    for update of delivery skip locked
+  ) blocked;
+
   with retired_candidates as (
     select delivery.id
     from site_private.notification_deliveries delivery
@@ -244,6 +264,7 @@ begin
       and (delivery.last_error_code is distinct from 'whatsapp_dispatch_started' or delivery.provider_message_id is not null)
       and not site_private.notification_delivery_is_eligible(
         delivery.request_kind, delivery.request_id, delivery.created_at, v_policy.max_age)
+      and site_private.notification_delivery_is_claimable(delivery.id)
     for update of delivery skip locked
   )
   update site_private.notification_deliveries delivery
@@ -260,6 +281,7 @@ begin
       and delivery.attempts >= v_policy.max_attempts
       and (delivery.last_error_code is distinct from 'whatsapp_dispatch_started' or delivery.provider_message_id is not null)
       and (delivery.status in ('pending', 'failed') or (delivery.status = 'processing' and delivery.lease_expires_at <= now()))
+      and site_private.notification_delivery_is_claimable(delivery.id)
     for update of delivery skip locked
   )
   update site_private.notification_deliveries delivery
@@ -275,11 +297,12 @@ begin
       and delivery.channel = any(p_channels)
       and delivery.attempts < v_policy.max_attempts
       and (delivery.last_error_code is distinct from 'whatsapp_dispatch_started' or delivery.provider_message_id is not null)
-      -- Revalidar aqui e obrigatorio: o comando acima rodou com outro snapshot, e
-      -- uma autoexclusao (F-30) que commitou no intervalo tornaria esta entrega
-      -- inelegivel. Sem a checagem, o webhook sai com contato anonimizado.
+      -- F-11: revalidar aqui é obrigatório: o comando acima rodou com outro snapshot
+      -- e um job que passou de max_age (ou entrou em spam) no intervalo não pode sair.
       and site_private.notification_delivery_is_eligible(
         delivery.request_kind, delivery.request_id, delivery.created_at, v_policy.max_age)
+      -- F-12: e muito menos um endereço suprimido/apagado.
+      and site_private.notification_delivery_is_claimable(delivery.id)
       and ((delivery.status in ('pending', 'failed') and delivery.next_attempt_at <= now())
         or (delivery.status = 'processing' and delivery.lease_expires_at <= now()))
     order by delivery.next_attempt_at, delivery.created_at, delivery.id
@@ -301,11 +324,12 @@ end;
 $fn$;
 
 comment on function public.claim_site_notification_deliveries(text[], integer) is
-  'F-11: claim em lote das confirmações ao cliente. Antes de reivindicar, cancela as entregas inelegíveis (pedido em spam, e-mail anonimizado, idade acima de max_age) e aposenta as que estouraram as tentativas.';
+  'F-11/F-12: claim em lote das confirmações ao cliente. Antes de reivindicar, cancela as entregas de destinatário suprimido ou pedido apagado (F-12), as inelegíveis por spam/anonimização/idade acima de max_age (F-11) e aposenta as que estouraram as tentativas.';
 
 create or replace function public.claim_site_quote_notification(p_request_id uuid, p_channel text)
 returns jsonb
 language plpgsql
+security invoker
 set search_path = ''
 as $fn$
 declare
@@ -317,6 +341,7 @@ begin
   end if;
   select * into v_policy from site_private.notification_policy();
 
+  -- Leitura sem lock do candidato, para poder cancelar (predicado F-12) antes de travar.
   select * into v_delivery
   from site_private.notification_deliveries delivery
   where delivery.request_kind = 'quote'
@@ -328,8 +353,24 @@ begin
     and delivery.attempts < v_policy.max_attempts
     and site_private.notification_delivery_is_eligible(
       delivery.request_kind, delivery.request_id, delivery.created_at, v_policy.max_age)
+  order by delivery.created_at, delivery.id
+  limit 1;
+
+  if not found then return null; end if;
+  if site_private.suppress_notification_delivery(v_delivery.id) then return null; end if;
+
+  select * into v_delivery
+  from site_private.notification_deliveries delivery
+  where delivery.id = v_delivery.id
   for update skip locked;
   if not found then return null; end if;
+  if v_delivery.status not in ('pending', 'failed')
+    or v_delivery.next_attempt_at > now()
+    or v_delivery.attempts >= v_policy.max_attempts
+    or not site_private.notification_delivery_is_eligible(
+      v_delivery.request_kind, v_delivery.request_id, v_delivery.created_at, v_policy.max_age) then
+    return null;
+  end if;
 
   update site_private.notification_deliveries delivery
   set status = 'processing', attempts = delivery.attempts + 1, updated_at = now(),
@@ -342,10 +383,12 @@ end;
 $fn$;
 
 comment on function public.claim_site_quote_notification(uuid, text) is
-  'F-11: claim pontual de uma confirmação ao cliente. Não reivindica entrega inelegível (pedido em spam, e-mail anonimizado, idade acima de max_age) — devolve null.';
+  'F-11/F-12: claim pontual de uma confirmação ao cliente. Devolve null (cancelando a entrega) para destinatário suprimido, pedido apagado e job inelegível por spam, anonimização ou idade acima de max_age.';
+
 create or replace function public.claim_site_commercial_team_alert(p_request_id uuid)
 returns jsonb
 language plpgsql
+security invoker
 set search_path = ''
 as $fn$
 declare
@@ -363,8 +406,24 @@ begin
     and delivery.attempts < v_policy.max_attempts
     and site_private.notification_delivery_is_eligible(
       delivery.request_kind, delivery.request_id, delivery.created_at, v_policy.max_age)
+  order by delivery.created_at, delivery.id
+  limit 1;
+
+  if not found then return null; end if;
+  if site_private.suppress_notification_delivery(v_delivery.id) then return null; end if;
+
+  select * into v_delivery
+  from site_private.notification_deliveries delivery
+  where delivery.id = v_delivery.id
   for update skip locked;
   if not found then return null; end if;
+  if v_delivery.status not in ('pending', 'failed')
+    or v_delivery.next_attempt_at > now()
+    or v_delivery.attempts >= v_policy.max_attempts
+    or not site_private.notification_delivery_is_eligible(
+      v_delivery.request_kind, v_delivery.request_id, v_delivery.created_at, v_policy.max_age) then
+    return null;
+  end if;
 
   update site_private.notification_deliveries delivery
   set status = 'processing', attempts = delivery.attempts + 1, updated_at = now(),
@@ -380,11 +439,12 @@ end;
 $fn$;
 
 comment on function public.claim_site_commercial_team_alert(uuid) is
-  'F-11: claim pontual do alerta ao comercial. Não reivindica entrega inelegível (pedido em spam, e-mail anonimizado, idade acima de max_age) — devolve null.';
+  'F-11/F-12: claim pontual do alerta ao comercial. Devolve null (cancelando a entrega) para destinatário suprimido, pedido apagado e job inelegível por spam, anonimização ou idade acima de max_age.';
 
 create or replace function public.claim_site_commercial_team_alerts(p_batch_size integer default 10)
 returns jsonb
 language plpgsql
+security invoker
 set search_path = ''
 as $fn$
 declare
@@ -396,6 +456,19 @@ begin
     raise exception using errcode = '22023', message = 'invalid_notification_claim_input';
   end if;
 
+  perform site_private.suppress_notification_delivery(blocked.id)
+  from (
+    select delivery.id
+    from site_private.notification_deliveries delivery
+    where delivery.request_kind in ('quote', 'contact')
+      and delivery.audience = 'commercial_team'
+      and delivery.status in ('pending', 'failed', 'processing')
+      and not site_private.notification_delivery_is_claimable(delivery.id)
+    order by delivery.created_at, delivery.id
+    limit p_batch_size
+    for update of delivery skip locked
+  ) blocked;
+
   with retired_candidates as (
     select delivery.id
     from site_private.notification_deliveries delivery
@@ -405,6 +478,7 @@ begin
       and (delivery.last_error_code is distinct from 'whatsapp_dispatch_started' or delivery.provider_message_id is not null)
       and not site_private.notification_delivery_is_eligible(
         delivery.request_kind, delivery.request_id, delivery.created_at, v_policy.max_age)
+      and site_private.notification_delivery_is_claimable(delivery.id)
     for update of delivery skip locked
   )
   update site_private.notification_deliveries delivery
@@ -419,6 +493,7 @@ begin
       and delivery.audience = 'commercial_team'
       and delivery.attempts >= v_policy.max_attempts
       and (delivery.status in ('pending', 'failed') or (delivery.status = 'processing' and delivery.lease_expires_at <= now()))
+      and site_private.notification_delivery_is_claimable(delivery.id)
     for update of delivery skip locked
   )
   update site_private.notification_deliveries delivery
@@ -432,10 +507,11 @@ begin
     where delivery.request_kind in ('quote', 'contact')
       and delivery.audience = 'commercial_team'
       and delivery.attempts < v_policy.max_attempts
-      -- Mesma revalidacao do claim de confirmacoes: o SPAM/anonymize pode ter
-      -- commitado depois do comando de cancelamento e antes desta selecao.
+      -- F-11: revalidacao obrigatoria — o cancelamento acima roda com outro snapshot.
       and site_private.notification_delivery_is_eligible(
         delivery.request_kind, delivery.request_id, delivery.created_at, v_policy.max_age)
+      -- F-12: endereco suprimido ou pedido apagado nunca e reivindicado.
+      and site_private.notification_delivery_is_claimable(delivery.id)
       and ((delivery.status in ('pending', 'failed') and delivery.next_attempt_at <= now())
         or (delivery.status = 'processing' and delivery.lease_expires_at <= now()))
     order by delivery.next_attempt_at, delivery.created_at, delivery.id
@@ -462,7 +538,7 @@ end;
 $fn$;
 
 comment on function public.claim_site_commercial_team_alerts(integer) is
-  'F-11: claim em lote dos alertas ao comercial. Antes de reivindicar, cancela as entregas inelegíveis (pedido em spam, e-mail anonimizado, idade acima de max_age) e aposenta as que estouraram as tentativas.';
+  'F-11/F-12: claim em lote dos alertas ao comercial. Antes de reivindicar, cancela as entregas de pedido apagado (F-12), as inelegíveis por spam/anonimização/idade acima de max_age (F-11) e aposenta as que estouraram as tentativas.';
 -- === 6. Promoção a spam cancela as entregas do pedido ===========================
 --
 -- site_private.quote_requests_enqueue_confirmations é AFTER INSERT apenas, então
