@@ -15,7 +15,10 @@ Gifts não participa deste pipeline.
 4. Deploy automático Git da Vercel está desabilitado em `vercel.json`. O workflow
    constrói exatamente o SHA validado e o promove somente após o ledger confirmado.
 5. O smoke exige páginas públicas `200`, rota desconhecida `404`, crons sem segredo
-   `401`, CSP, `nosniff` e proteção contra framing. Evidências ficam 90 dias.
+   `401`, CSP, `nosniff`, proteção contra framing e `/api/health` respondendo
+   `{"ok":true}` (configuração do banco do site conferida antes da promoção; o
+   endpoint devolve só o código do problema, nunca URL, projeto ou credencial).
+   Evidências ficam 90 dias.
 
 ## Segredos do GitHub Actions
 

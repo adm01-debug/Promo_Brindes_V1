@@ -73,7 +73,7 @@ F-71,Conta de servico Supabase no lugar do PAT,Release executa SQL via PAT pesso
 F-72,Rotacao de segredos executada,Issue #80 aberta 01/10 sem acao,PENDENTE,0,,PF-72,P2
 F-73,Cutover SITE_SUPABASE_SERVICE_JWT,Storage exige service_role; JWT 30 dias sem renovacao,BLOQUEADA,40,,PF-73,P2
 F-74,Endurecimento de workflows,harden-runner zizmor persist-credentials permissions SBOM,PARCIAL,40,,PF-74,P2
-F-75,Verificacao de config do banco no boot,assertSafeSiteDatabaseConfiguration nunca chamada,PENDENTE,0,,PF-75,P3
+F-75,Verificacao de config do banco no boot,api/health.ts chama getSiteDatabaseConfig e o smoke de release exige ok,COMPLETA,100,,PF-75,P3
 F-76,Revogar mcp_kv_get no banco principal,SECURITY DEFINER executavel por authenticated,BLOQUEADA,0,,PF-76,P1
 F-77,Fluxo versionado de migrations com recibo,Nenhum workflow aplica; ledger sem registro quem/quando,COMPLETA,100,#165,PF-77,P1
 F-78,Diff integral schema/ACL + Security Advisor,So ACL favoritos tratada; db lint so local,PARCIAL,30,,PF-78,P2

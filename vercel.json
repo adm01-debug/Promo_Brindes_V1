@@ -23,6 +23,7 @@
     "api/sitemap.ts": { "maxDuration": 15 },
     "api/product-page.ts": { "maxDuration": 15, "includeFiles": "api/_lib/app-shell.generated.html" },
     "api/site-page.ts": { "maxDuration": 15, "includeFiles": "api/_lib/app-shell.generated.html" },
+    "api/health.ts": { "maxDuration": 10 },
     "api/shared-selections.ts": { "maxDuration": 15 },
     "api/not-found.ts": { "maxDuration": 15, "includeFiles": "api/_lib/app-shell.generated.html" }
   },
