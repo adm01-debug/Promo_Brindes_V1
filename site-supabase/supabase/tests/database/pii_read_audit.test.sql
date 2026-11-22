@@ -6,7 +6,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
-set local request.jwt.claim.sub = '11111111-1111-1111-1111-111111111111';
+set local request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
 
 select plan(13);
 
@@ -24,8 +24,11 @@ select ok(pg_catalog.has_function_privilege('authenticated', 'public.get_my_quot
 select ok(not pg_catalog.has_function_privilege('anon', 'public.get_my_quote_request(uuid)', 'execute'), 'anon não executa get_my_quote_request');
 
 -- Setup: um titular autenticado e um pedido com PII associado a ele.
-insert into auth.users (id, email) values
-  ('11111111-1111-1111-1111-111111111111', 'titular@example.test');
+insert into auth.users (
+  instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at
+) values
+  ('00000000-0000-0000-0000-000000000000', '11111111-1111-4111-8111-111111111111', 'authenticated', 'authenticated', 'titular@example.test', '', now(), '{}'::jsonb, '{}'::jsonb, now(), now());
 
 with inserted as (
   insert into site_private.quote_requests (
@@ -34,7 +37,7 @@ with inserted as (
   ) values (
     'pii-read-test-1', repeat('b', 64), 'site-promo-brindes',
     'Cliente PII', 'Empresa PII', 'titular@example.test', '11999998888', now(),
-    '11111111-1111-1111-1111-111111111111'
+    '11111111-1111-4111-8111-111111111111'
   ) returning id
 )
 select set_config('pgtap.test_request_id', (select id::text from inserted), false);
@@ -59,15 +62,18 @@ select lives_ok(
 select is(
   (select count(*) from site_private.pii_read_audit_log
    where table_name = 'quote_requests' and operation = 'SELECT'
-     and subject = '11111111-1111-1111-1111-111111111111'::uuid),
+     and subject = '11111111-1111-4111-8111-111111111111'::uuid),
   1::bigint,
   'RPC registra 1 leitura de PII do titular'
 );
 
 -- Leitura de outro titular: RLS devolve null e não audita.
-insert into auth.users (id, email) values
-  ('22222222-2222-2222-2222-222222222222', 'outro@example.test');
-set local request.jwt.claim.sub = '22222222-2222-2222-2222-222222222222';
+insert into auth.users (
+  instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at
+) values
+  ('00000000-0000-0000-0000-000000000000', '22222222-2222-4222-8222-222222222222', 'authenticated', 'authenticated', 'outro@example.test', '', now(), '{}'::jsonb, '{}'::jsonb, now(), now());
+set local request.jwt.claim.sub = '22222222-2222-4222-8222-222222222222';
 
 select is(
   (select public.get_my_quote_request(current_setting('pgtap.test_request_id')::uuid)),
@@ -78,7 +84,10 @@ select is(
 select is(
   (select count(*) from site_private.pii_read_audit_log
    where table_name = 'quote_requests' and operation = 'SELECT'
-     and subject = '11111111-1111-1111-1111-111111111111'::uuid),
+     and subject = '11111111-1111-4111-8111-111111111111'::uuid),
   1::bigint,
   'Leitura de outro titular não gera novo registro de auditoria'
 );
+
+select * from finish();
+rollback;
