@@ -15,10 +15,14 @@ reprova a mudança quando:
 - um PNG versionado nas pastas de mockup **não** está no registro;
 - o hash ou as dimensões do arquivo em disco divergem do registro (a imagem aprovada foi trocada);
 - uma imagem marcada como `proposta` não aponta para uma aprovação `aprovado`;
-- uma aprovação não tem `approvedBy`, `approvedAt`, número de PR, `mergeCommit` de 40 caractéres ou evidência.
+- uma aprovação não tem `approvedBy`, `approvedAt`, número de PR, `mergeCommit` de 40 caractéres ou evidência;
+- duas aprovações usam o mesmo `id`, ou o mesmo arquivo é registrado duas vezes;
+- existe pasta `docs/mockups-*` fora de `roots` no registro (mockup novo entra versionado sem dono nem data).
 
-Para trocar um mockup de propósito: substituir o PNG e atualizar o `sha256`, as dimensões e, se a decisão mudou,
-criar uma nova entrada em `approvals` com data nova. Atualizar só o hash é aceitável para correção de export
+Para trocar um mockup de propósito: substituir o PNG e atualizar o `sha256`, as dimensões e o `bytes` (o tamanho
+do arquivo é conferido junto com o hash — só ele explica no erro que a imagem foi reexportada), e, se a decisão mudou,
+criar uma nova entrada em `approvals` com **id novo** (id repetido é reprovado: os mockups antigos passariam a
+apontar para a aprovação nova). Atualizar só o hash é aceitável para correção de export
 sem mudança visual; mudança de design exige nova aprovação do dono.
 
 ## Aprovações registradas

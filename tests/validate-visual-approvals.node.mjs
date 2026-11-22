@@ -6,7 +6,10 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { pngDimensions, sha256OfBuffer, validateRegistry } from '../scripts/validate-visual-approvals.mjs';
+import { pngDimensions, sha256OfBuffer, validateRegistry,
+  findUnregisteredRoots,
+  listAssetsFromDisk,
+} from '../scripts/validate-visual-approvals.mjs';
 
 const SCRIPT = fileURLToPath(new URL('../scripts/validate-visual-approvals.mjs', import.meta.url));
 const REGISTRY = fileURLToPath(new URL('../docs/aprovacoes-visuais/registro.json', import.meta.url));
@@ -30,7 +33,7 @@ const approval = {
   evidence: 'corpo da PR', documentedIn: [],
 };
 
-test('sha256 local concorda com node:crypto para tamanhos que exercitam o padding', () => {
+test('sha256 do validador devolve hex de 64 caracteres igual ao node:crypto', () => {
   for (const size of [0, 1, 55, 56, 63, 64, 65, 200, 1024]) {
     const buffer = Buffer.alloc(size, 7);
     assert.equal(sha256OfBuffer(buffer), createHash('sha256').update(buffer).digest('hex'), `tamanho ${size}`);
@@ -119,9 +122,42 @@ test('CLI termina com exit 1 e nomeia o arquivo quando o hash muda', (t) => {
   assert.match(falha.stderr, /hash divergente em docs\/mockups\/a\.png/);
 });
 
+test('id de aprovacao repetido é reprovado', () => {
+  const png = { path: 'docs/m/ok.png', sha256: 'f'.repeat(64), width: 10, height: 20, bytes: 100 };
+  const errors = validateRegistry(
+    { approvals: [approval, { ...approval, screen: 'outra tela' }], assets: [{ ...png, kind: 'proposta', approvalId: 'AV-test' }] },
+    [png],
+  );
+  assert.ok(errors.some((e) => /repetida/.test(e)), errors.join('; '));
+});
+
+test('tamanho em bytes divergente do disco é reprovado', () => {
+  const png = { path: 'docs/m/ok.png', sha256: 'f'.repeat(64), width: 10, height: 20, bytes: 100 };
+  const errors = validateRegistry(
+    { approvals: [approval], assets: [{ ...png, kind: 'proposta', approvalId: 'AV-test', bytes: 101 }] },
+    [png],
+  );
+  assert.ok(errors.some((e) => /tamanho divergente/.test(e)), errors.join('; '));
+});
+
+test('pasta de mockup fora de roots é reprovada', () => {
+  const entries = [
+    { name: 'mockups-carnegie-20261005', isDirectory: () => true },
+    { name: 'mockups-nova-tela-20270101', isDirectory: () => true },
+    { name: 'audits', isDirectory: () => true },
+  ];
+  assert.deepEqual(findUnregisteredRoots(['docs/mockups-carnegie-20261005'], entries), ['docs/mockups-nova-tela-20270101']);
+});
+
 test('registro real do repositorio está íntegro', () => {
   const registry = JSON.parse(fs.readFileSync(REGISTRY, 'utf8'));
   assert.ok(registry.approvals.length >= 4);
   assert.ok(registry.assets.length >= 16);
   assert.ok(registry.assets.every((asset) => asset.sha256.length === 64));
+  // Valida contra os PNGs em disco: e este teste que roda no hook (pre-commit e
+  // pre-push via testSuites), entao ele precisa reprovar um mockup trocado ou
+  // fora do registro. Conferir so o formato do JSON deixava o hook passar verde
+  // enquanto `npm run approvals:visual:check` reprovava no check completo.
+  const errors = validateRegistry(registry, listAssetsFromDisk(registry.roots ?? []));
+  assert.deepEqual(errors, []);
 });
