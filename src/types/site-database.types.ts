@@ -1379,25 +1379,6 @@ export type Database = {
           retry_cap_seconds: number
         }[]
       }
-      cancel_ineligible_notification_backlog: {
-        Args: {
-          p_request_kind: string
-          p_request_id: string
-          p_actor_label: string
-          p_reason: string
-          p_max_age: string
-        }
-        Returns: Json
-      }
-      notification_delivery_is_eligible: {
-        Args: {
-          p_request_kind: string
-          p_request_id: string
-          p_created_at: string
-          p_max_age: string
-        }
-        Returns: boolean
-      }
       notification_request_erased: {
         Args: { p_request_id: string; p_request_kind: string }
         Returns: boolean

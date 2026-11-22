@@ -10,54 +10,15 @@ import {
   isSiteProposalRejected,
   isSiteQuoteConflict,
   siteOperatorErrorMessage,
-        <>
-          <BackofficeList
-            page={page}
-            loading={loadingList}
-            error={listError}
-            status={status}
-            search={search}
-            searchDraft={searchDraft}
-            onSearchDraft={setSearchDraft}
-            onSubmitSearch={(event) => {
-              event.preventDefault();
-              patchParams({ q: searchDraft.trim() || null, pagina: null });
-            }}
-            onStatus={(value) => patchParams({ status: value, pagina: null })}
-            onPage={(value) => patchParams({ pagina: value > 0 ? String(value) : null })}
-            onOpen={(id) => patchParams({ pedido: id })}
-            onRetry={() => setRetryKey((key) => key + 1)}
-            onCutBacklog={(event) => { void handleCutBacklog(event); }}
-            backlogCut={backlogCut}
-            cutting={cutting}
-            cutError={cutError}
-            cutReason={cutReason}
-            onCutReason={setCutReason}
-          />
-          <BackofficeQueuePanel
-            report={report}
-            loading={loadingReport}
-            error={reportError}
-            notice={reportNotice}
-            busy={reportBusy}
-            selected={selectedDeliveries}
-            reason={reprocessReason}
-            onToggle={toggleDelivery}
-            onReason={setReprocessReason}
-            onReprocess={() => { void handleReprocess(); }}
-            onRetry={() => setReportKey((key) => key + 1)}
-          />
-        </>
+  type SiteNotificationBacklogCut,
+  type SiteNotificationDeliveryReport,
   type SiteQuoteDetail,
   type SiteQuoteListPage,
   type SiteQuoteStatus,
 } from '../lib/commercialBackofficeContract';
 import {
-<<<<<<< HEAD
-  fetchSiteNotificationDeliveryReport,
-=======
   cancelNotificationBacklog,
->>>>>>> 869d389 (fix: revalida elegibilidade nos claims e instrumenta o corte de backlog no painel)
+  fetchSiteNotificationDeliveryReport,
   fetchSiteQuoteDetail,
   listSiteQuoteRequests,
   publishSiteQuoteProposal,
@@ -883,7 +844,6 @@ function BackofficeContent() {
           onRetry={reloadDetail}
         />
       ) : (
-<<<<<<< HEAD
         <>
           <BackofficeList
             page={page}
@@ -901,6 +861,12 @@ function BackofficeContent() {
             onPage={(value) => patchParams({ pagina: value > 0 ? String(value) : null })}
             onOpen={(id) => patchParams({ pedido: id })}
             onRetry={() => setRetryKey((key) => key + 1)}
+            onCutBacklog={(event) => { void handleCutBacklog(event); }}
+            backlogCut={backlogCut}
+            cutting={cutting}
+            cutError={cutError}
+            cutReason={cutReason}
+            onCutReason={setCutReason}
           />
           <BackofficeQueuePanel
             report={report}
@@ -916,31 +882,6 @@ function BackofficeContent() {
             onRetry={() => setReportKey((key) => key + 1)}
           />
         </>
-=======
-        <BackofficeList
-          page={page}
-          loading={loadingList}
-          error={listError}
-          status={status}
-          search={search}
-          searchDraft={searchDraft}
-          onSearchDraft={setSearchDraft}
-          onSubmitSearch={(event) => {
-            event.preventDefault();
-            patchParams({ q: searchDraft.trim() || null, pagina: null });
-          }}
-          onStatus={(value) => patchParams({ status: value, pagina: null })}
-          onPage={(value) => patchParams({ pagina: value > 0 ? String(value) : null })}
-          onOpen={(id) => patchParams({ pedido: id })}
-          onRetry={() => setRetryKey((key) => key + 1)}
-          onCutBacklog={(event) => { void handleCutBacklog(event); }}
-          backlogCut={backlogCut}
-          cutting={cutting}
-          cutError={cutError}
-          cutReason={cutReason}
-          onCutReason={setCutReason}
-        />
->>>>>>> 869d389 (fix: revalida elegibilidade nos claims e instrumenta o corte de backlog no painel)
       )}
     </section>
   );
