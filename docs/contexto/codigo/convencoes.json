@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "test: exercita policies de Storage como authenticated, DDL real e rate limit (F-82) (#227)",
    "feat: eventos de funil de contato, upload, remoção e link compartilhado (F-100/PF-120) (#228)",
    "feat: resumo do briefing abre antes das 4 respostas e permite cancelar a edicao (F-37) (#226)",
    "chore: atualiza o inventario de funcionalidades (F-40 e F-47 COMPLETA) (#224)",
-   "feat: separa intencao do briefing dos filtros efetivos (F-40/PF-40) (#223)",
-   "feat: contato via WhatsApp iniciado pelo visitante (F-47) (#222)"
+   "feat: separa intencao do briefing dos filtros efetivos (F-40/PF-40) (#223)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "ec7e478a8d86b5229fb6d8f0dd9006abccb116f9",
+  "commit": "abcd7258dd5e431ff2e8e75d81dd2930258a5b7b",
   "branch": "main",
-  "data_commit": "2026-11-22T05:54:33Z",
+  "data_commit": "2026-11-22T06:18:01Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "abcd725",
+    "data": "2026-11-22",
+    "assunto": "test: exercita policies de Storage como authenticated, DDL real e rate limit (F-82) (#227)"
+   },
    {
     "sha": "ec7e478",
     "data": "2026-11-22",
@@ -126,14 +131,9 @@
     "sha": "148318e",
     "data": "2026-11-18",
     "assunto": "docs: matriz dos 230 requisitos deixa de se declarar vigente (#208)"
-   },
-   {
-    "sha": "ab6ea69",
-    "data": "2026-11-18",
-    "assunto": "infra(graphify): cria o requirements-graphify.in que o comentario citava e nao existia (#197)"
    }
   ],
-  "arquivos_mudados_7d": 164,
+  "arquivos_mudados_7d": 165,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -141,11 +141,15 @@
    },
    {
     "pasta": "site-supabase/supabase/tests",
-    "mudancas": 12
+    "mudancas": 13
    },
    {
     "pasta": "docs/audits/pending-features-20261011",
     "mudancas": 11
+   },
+   {
+    "pasta": "analise-prs/funcionalidades.csv",
+    "mudancas": 10
    },
    {
     "pasta": "package-lock.json",
@@ -153,10 +157,6 @@
    },
    {
     "pasta": ".github/workflows/quality.yml",
-    "mudancas": 9
-   },
-   {
-    "pasta": "analise-prs/funcionalidades.csv",
     "mudancas": 9
    },
    {
@@ -176,6 +176,10 @@
     "mudancas": 7
    },
    {
+    "pasta": ".gitignore",
+    "mudancas": 6
+   },
+   {
     "pasta": "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
     "mudancas": 6
    },
@@ -190,10 +194,6 @@
    {
     "pasta": "src/styles.css",
     "mudancas": 6
-   },
-   {
-    "pasta": ".gitignore",
-    "mudancas": 5
    }
   ],
   "arquivos_mais_mudados_90d": [
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 107
+    "commits": 108
    },
    {
     "autor": "dependabot[bot]",
@@ -310,7 +310,7 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 725,
+  "arquivos_total": 726,
   "arquivos_codigo": 290,
   "linhas_codigo": 57079,
   "rotas": 32,
@@ -324,7 +324,7 @@
   "tabelas": 23,
   "migrations": 70,
   "cron_jobs": 0,
-  "testes": 147,
+  "testes": 148,
   "workflows": 15,
   "scripts": 37,
   "docs_md": 134

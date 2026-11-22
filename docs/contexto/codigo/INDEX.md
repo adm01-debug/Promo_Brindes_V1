@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `ec7e478a8d86b5229fb6d8f0dd9006abccb116f9` (2026-11-22T05:54:33Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `abcd7258dd5e431ff2e8e75d81dd2930258a5b7b` (2026-11-22T06:18:01Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -14,7 +14,7 @@ Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR
 Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua tarefa; não carregue tudo.
 
 ## Stack
-- linguagens: TypeScript (218), Markdown (134), SQL (108), JavaScript (65), JSON (29), YAML (19), Python (8), CSS (4)
+- linguagens: TypeScript (218), Markdown (134), SQL (109), JavaScript (65), JSON (29), YAML (19), Python (8), CSS (4)
 - linguagem_principal: TypeScript
 - framework: React
 - backend_http: vercel-functions
@@ -34,7 +34,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Números
 | item | qtd |
 |---|---|
-| arquivos_total | 725 |
+| arquivos_total | 726 |
 | arquivos_codigo | 290 |
 | linhas_codigo | 57079 |
 | rotas | 32 |
@@ -48,7 +48,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 | tabelas | 23 |
 | migrations | 70 |
 | cron_jobs | 0 |
-| testes | 147 |
+| testes | 148 |
 | workflows | 15 |
 | scripts | 37 |
 | docs_md | 134 |
@@ -386,6 +386,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-22 `abcd725` test: exercita policies de Storage como authenticated, DDL real e rate limit (F-82) (#227)
 - 2026-11-22 `ec7e478` feat: eventos de funil de contato, upload, remoção e link compartilhado (F-100/PF-120) (#228)
 - 2026-11-22 `d7f09b6` feat: resumo do briefing abre antes das 4 respostas e permite cancelar a edicao (F-37) (#226)
 - 2026-11-21 `5b24b40` chore: atualiza o inventario de funcionalidades (F-40 e F-47 COMPLETA) (#224)
@@ -400,7 +401,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-20 `5ad589f` feat: permite ajustar o contexto da campanha no orçamento (#213)
 - 2026-11-20 `1bb2a90` fix: limpa contexto da campanha quando o recorte sai do catálogo (#212)
 - 2026-11-20 `01b873c` feat: caminho 'ainda não sei o que escolher' desbloqueia quem chega sem briefing (#211)
-- 2026-11-20 `a9dab6d` chore(docs): auditoria planejado × implementado em 40f6420 — 128 itens reverificados, 108 novos (#214)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

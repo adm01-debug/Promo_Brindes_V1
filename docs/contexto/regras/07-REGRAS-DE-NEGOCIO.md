@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `ec7e478a8d` · branch `main` · 2026-11-22 05:54 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `abcd7258dd` · branch `main` · 2026-11-22 06:18 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -1057,7 +1057,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1755 testes em 138 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1798 testes em 139 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1068,6 +1068,7 @@ _nenhum item encontrado_
 | `site-supabase/supabase/tests/database/briefing_assets.test.sql` | 57 | metadados privados de arquivos existem · assinatura binária possui recibo de verificação · fila de exclusão de Storage existe · bucket é privado e limitado a 10 MB … |
 | `site-supabase/supabase/tests/database/notification_outbox.test.sql` | 47 | fila possui agenda de nova tentativa · fila identifica a reivindicação ativa (R04) · novo orçamento alimenta a fila na mesma transação · anon não reivindica notificações … |
 | `site-supabase/supabase/tests/database/customer_data_erasure.test.sql` | 46 | anon não apaga dados de titular · authenticated não apaga dados de titular (operação administrativa) · service_role executa o apagamento · anonimiza 1 quote_request (e-mail com espaço/maiúsculas normalizado na entrada) … |
+| `site-supabase/supabase/tests/database/storage_authenticated_rls.test.sql` | 43 | bucket privado tem exatamente 3 policies próprias (leitura, upload, exclusão) · as 3 policies valem só para authenticated (nem anon, nem service_role) · RLS está habilitada em storage.objects · authenticated não tem BYPASSRLS — o papel testado aqui é o que roda em produção … |
 | `site-supabase/supabase/tests/database/customer_portal.test.sql` | 41 | orçamento possui titular autenticado opcional · perfil do cliente existe no schema privado · linha do tempo existe no schema privado · metadados de propostas existem no schema privado … |
 | `site-supabase/supabase/tests/database/notification_delivery_status_machine.test.sql` | 40 | pending -> pending (no-op) · pending -> processing · pending -> sent (rejeitado: pula processing) · pending -> failed (rejeitado: pula processing) … |
 | `tests/api/lead-requests.test.ts` | 37 | APIs de leads isoladas · registra contato normalizado pelo RPC server-side · rejeita resposta malformada do banco: %s · repetição idempotente promete envio quando o provedor de WhatsApp existe … |
