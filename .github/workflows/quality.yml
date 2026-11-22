@@ -29,13 +29,10 @@ jobs:
         uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - uses: ./.github/actions/setup-node-project
         with:
           node-version: 24.15.0
-          cache: npm
-      - name: Use the declared npm version
-        run: npm install --global npm@11.17.0
-      - run: npm ci
+          npm-version: 11.17.0
       # O escopo que bloqueia e o que vai ao ar: vulnerabilidade em dependencia de
       # producao continua reprovando o build. Ferramenta de build (vite, vitest,
       # eslint) nao e publicada no bundle, e passou a ser informativa depois que
@@ -59,6 +56,13 @@ jobs:
         run: |
           git fetch --no-tags --depth=1 origin main
           AGENT_INSTRUCTIONS_BASE=FETCH_HEAD node scripts/validate-agent-instructions.mjs
+      - name: Cache Playwright browsers
+        uses: actions/cache@3edfce9056124e459a23f683a21433670d47daca # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
       # O Chromium do Playwright não depende do repositório do Google Chrome.
       # Removê-lo no runner efêmero evita falhas transitórias de hash nesse
       # espelho antes que os testes do projeto possam começar.
@@ -155,13 +159,17 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - uses: ./.github/actions/setup-node-project
         with:
           node-version: 24.15.0
-          cache: npm
-      - name: Use the declared npm version
-        run: npm install --global npm@11.17.0
-      - run: npm ci
+          npm-version: 11.17.0
+      - name: Cache Playwright browsers
+        uses: actions/cache@3edfce9056124e459a23f683a21433670d47daca # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
       # Separado em dois passos de proposito: `--with-deps` junta a instalacao de
       # ~130 pacotes de sistema com o download dos navegadores, e no log do job
       # as duas aparecem como um passo so. Separadas, o relatorio diz qual das
