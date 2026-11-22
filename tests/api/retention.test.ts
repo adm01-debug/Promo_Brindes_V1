@@ -195,7 +195,7 @@ describe('tarefa de retenção', () => {
     const { result, response } = responseDouble();
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
     expect(result.statusCode).toBe(200);
-    expect(businessCalls(fetchMock)).toHaveLength(8);
+    expect(businessCalls(fetchMock)).toHaveLength(9);
     const [candidatesUrl, candidatesInit] = businessCalls(fetchMock)[0] as [string, RequestInit];
     expect(candidatesUrl).toBe('https://xlzmclcjdncjfdrjxclt.supabase.co/rest/v1/rpc/get_site_data_retention_candidates');
     expect(candidatesInit.headers).toMatchObject({ apikey: expect.stringMatching(/^sb_secret_/) });
@@ -361,7 +361,7 @@ describe('tarefa de retenção', () => {
     const { result, response } = responseDouble();
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
     expect(result.statusCode).toBe(200);
-    expect(businessCalls(fetchMock)).toHaveLength(9);
+    expect(businessCalls(fetchMock)).toHaveLength(10);
     expect(String(businessCalls(fetchMock)[5]?.[0])).toContain('/storage/v1/object/customer-briefing-assets');
     expect((businessCalls(fetchMock)[5]?.[1] as RequestInit).body).toBe('{"prefixes":["cliente/referencia.webp"]}');
     expect(String(businessCalls(fetchMock)[6]?.[0])).toContain('/finalize_site_storage_retention');
