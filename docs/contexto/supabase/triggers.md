@@ -2,6 +2,7 @@
 
 | tabela | trigger | timing | eventos | nível | status | função | definição |
 |---|---|---|---|---|---|---|---|
+| site_private.commercial_operators | commercial_operators_set_updated_at | BEFORE | UPDATE | ROW | enabled | site_private.set_updated_at | `CREATE TRIGGER commercial_operators_set_updated_at BEFORE UPDATE ON site_private.commercial_operators FOR EACH ROW EXECUTE FUNCTION site_private.set_updated_at()` |
 | site_private.consent_receipts | consent_receipts_log_admin_write | AFTER | INSERT OR DELETE OR UPDATE | ROW | enabled | site_private.log_admin_write | `CREATE TRIGGER consent_receipts_log_admin_write AFTER INSERT OR DELETE OR UPDATE ON site_private.consent_receipts FOR EACH ROW EXECUTE FUNCTION site_private.log_admin_write()` |
 | site_private.contact_requests | contact_requests_enforce_status_transition | BEFORE | UPDATE | ROW | enabled | site_private.enforce_status_transition | `CREATE TRIGGER contact_requests_enforce_status_transition BEFORE UPDATE OF status ON site_private.contact_requests FOR EACH ROW EXECUTE FUNCTION site_private.enforce_status_transition()` |
 | site_private.contact_requests | contact_requests_enqueue_commercial_alert | AFTER | INSERT | ROW | enabled | site_private.enqueue_contact_commercial_alert | `CREATE TRIGGER contact_requests_enqueue_commercial_alert AFTER INSERT ON site_private.contact_requests FOR EACH ROW EXECUTE FUNCTION site_private.enqueue_contact_commercial_alert()` |

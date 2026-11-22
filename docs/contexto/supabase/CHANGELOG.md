@@ -2,6 +2,18 @@
 
 Diff semântico gerado a cada coleta em que algo mudou.
 
+## 2026-11-22 08:17 UTC
+
+- **colunas** adicionado (12): `site_private.commercial_audit_log.action`, `site_private.commercial_audit_log.actor_label`, `site_private.commercial_audit_log.actor_user_id`, `site_private.commercial_audit_log.created_at`, `site_private.commercial_audit_log.detail`, `site_private.commercial_audit_log.id`, `site_private.commercial_audit_log.quote_request_id`, `site_private.commercial_operators.created_at`, `site_private.commercial_operators.display_name`, `site_private.commercial_operators.is_active`, `site_private.commercial_operators.updated_at`, `site_private.commercial_operators.user_id`
+- **constraints** adicionado (9): `site_private.commercial_audit_log.commercial_audit_log_action_check`, `site_private.commercial_audit_log.commercial_audit_log_actor_label_check`, `site_private.commercial_audit_log.commercial_audit_log_actor_user_id_fkey`, `site_private.commercial_audit_log.commercial_audit_log_detail_check`, `site_private.commercial_audit_log.commercial_audit_log_pkey`, `site_private.commercial_audit_log.commercial_audit_log_quote_request_id_fkey`, `site_private.commercial_operators.commercial_operators_display_name_check`, `site_private.commercial_operators.commercial_operators_pkey`, `site_private.commercial_operators.commercial_operators_user_id_fkey`
+- **functions** adicionado (7): `public.get_site_quote_request(p_request_id uuid)`, `public.list_site_quote_requests(p_status text, p_search text, p_limit integer, p_offset integer)`, `public.publish_site_quote_proposal(p_request_id uuid, p_title text, p_storage_path text, p_valid_until date)`, `public.reply_site_quote_adjustment(p_adjustment_id uuid, p_response text, p_status text)`, `public.update_site_quote_status(p_request_id uuid, p_status text)`, `site_private.assert_site_operator()`, `site_private.is_valid_proposal_storage_path(p_path text)`
+- **functions** alterado (1): `site_private.set_updated_at()`
+- **grants** adicionado (2): `site_private.commercial_audit_log:service_role`, `site_private.commercial_operators:service_role`
+- **indexes** adicionado (4): `site_private.commercial_audit_log_pkey`, `site_private.commercial_audit_log_request_created_idx`, `site_private.commercial_operators_active_idx`, `site_private.commercial_operators_pkey`
+- **lints** adicionado (1): `fk_without_index:site_private.commercial_audit_log.commercial_audit_log_actor_user_id_fkey`
+- **tabelas** adicionado (2): `site_private.commercial_audit_log`, `site_private.commercial_operators`
+- **triggers** adicionado (1): `site_private.commercial_operators.commercial_operators_set_updated_at`
+
 ## 2026-11-21 21:12 UTC
 
 - **colunas** adicionado (4): `site_private.subject_right_requests.id`, `site_private.subject_right_requests.requested_at`, `site_private.subject_right_requests.right_type`, `site_private.subject_right_requests.subject_user_id`

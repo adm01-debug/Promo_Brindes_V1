@@ -65,6 +65,7 @@
 
 | tabela | constraint | colunas | on delete |
 |---|---|---|---|
+| site_private.commercial_audit_log | commercial_audit_log_quote_request_id_fkey | quote_request_id | CASCADE |
 | site_private.consent_receipts | consent_receipts_quote_request_id_fkey | quote_request_id | CASCADE |
 | site_private.customer_briefing_assets | customer_briefing_assets_quote_request_id_fkey | quote_request_id | CASCADE |
 | site_private.proposal_documents | proposal_documents_quote_request_id_fkey | quote_request_id | CASCADE |

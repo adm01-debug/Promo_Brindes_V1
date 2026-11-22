@@ -3,6 +3,9 @@
 
 | de | colunas | para | colunas | on delete | on update |
 |---|---|---|---|---|---|
+| site_private.commercial_audit_log | actor_user_id | auth.users | id | SET NULL | NO ACTION |
+| site_private.commercial_audit_log | quote_request_id | site_private.quote_requests | id | CASCADE | NO ACTION |
+| site_private.commercial_operators | user_id | auth.users | id | CASCADE | NO ACTION |
 | site_private.consent_receipts | contact_request_id | site_private.contact_requests | id | CASCADE | NO ACTION |
 | site_private.consent_receipts | quote_request_id | site_private.quote_requests | id | CASCADE | NO ACTION |
 | site_private.customer_briefing_assets | customer_user_id | auth.users | id | CASCADE | NO ACTION |
@@ -41,6 +44,22 @@ erDiagram
         text schema_name
         text performed_by
         timestamp_with_time_zone occurred_at
+    }
+    site_private_commercial_audit_log {
+        bigint id PK
+        uuid actor_user_id FK
+        text actor_label
+        text action
+        uuid quote_request_id FK
+        jsonb detail
+        timestamp_with_time_zone created_at
+    }
+    site_private_commercial_operators {
+        uuid user_id PK
+        text display_name
+        boolean is_active
+        timestamp_with_time_zone created_at
+        timestamp_with_time_zone updated_at
     }
     site_private_consent_receipts {
         uuid id PK
@@ -263,6 +282,9 @@ erDiagram
         text right_type
         timestamp_with_time_zone requested_at
     }
+    auth_users ||--o{ site_private_commercial_audit_log : "commercial_audit_log_actor_user_id_fkey"
+    site_private_quote_requests ||--o{ site_private_commercial_audit_log : "commercial_audit_log_quote_request_id_fkey"
+    auth_users ||--o{ site_private_commercial_operators : "commercial_operators_user_id_fkey"
     site_private_contact_requests ||--o{ site_private_consent_receipts : "consent_receipts_contact_request_id_fkey"
     site_private_quote_requests ||--o{ site_private_consent_receipts : "consent_receipts_quote_request_id_fkey"
     auth_users ||--o{ site_private_customer_briefing_assets : "customer_briefing_assets_customer_user_id_fkey"

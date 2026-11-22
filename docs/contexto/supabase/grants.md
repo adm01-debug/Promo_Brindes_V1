@@ -9,6 +9,8 @@ Roles da API: `anon` (sem login), `authenticated` (logado), `service_role` (bypa
 |---|---|---|
 | site_private.admin_audit_log | service_role | DELETE, INSERT, SELECT, UPDATE |
 | site_private.admin_ddl_log | service_role | DELETE, INSERT, SELECT, UPDATE |
+| site_private.commercial_audit_log | service_role | INSERT, SELECT |
+| site_private.commercial_operators | service_role | DELETE, INSERT, SELECT, UPDATE |
 | site_private.consent_receipts | service_role | DELETE, INSERT, SELECT, UPDATE |
 | site_private.consent_receipts | site_api | INSERT, SELECT |
 | site_private.contact_requests | service_role | DELETE, INSERT, SELECT, UPDATE |

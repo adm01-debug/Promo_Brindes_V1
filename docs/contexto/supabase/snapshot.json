@@ -176,6 +176,162 @@
       },
       {
         "comment": null,
+        "default": null,
+        "generated": null,
+        "identity": "a",
+        "is_enum": false,
+        "name": "id",
+        "nullable": false,
+        "position": 1,
+        "schema": "site_private",
+        "table": "commercial_audit_log",
+        "type": "bigint"
+      },
+      {
+        "comment": null,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "actor_user_id",
+        "nullable": true,
+        "position": 2,
+        "schema": "site_private",
+        "table": "commercial_audit_log",
+        "type": "uuid"
+      },
+      {
+        "comment": null,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "actor_label",
+        "nullable": false,
+        "position": 3,
+        "schema": "site_private",
+        "table": "commercial_audit_log",
+        "type": "text"
+      },
+      {
+        "comment": null,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "action",
+        "nullable": false,
+        "position": 4,
+        "schema": "site_private",
+        "table": "commercial_audit_log",
+        "type": "text"
+      },
+      {
+        "comment": null,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "quote_request_id",
+        "nullable": false,
+        "position": 5,
+        "schema": "site_private",
+        "table": "commercial_audit_log",
+        "type": "uuid"
+      },
+      {
+        "comment": null,
+        "default": "'{}'::jsonb",
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "detail",
+        "nullable": false,
+        "position": 6,
+        "schema": "site_private",
+        "table": "commercial_audit_log",
+        "type": "jsonb"
+      },
+      {
+        "comment": null,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "created_at",
+        "nullable": false,
+        "position": 7,
+        "schema": "site_private",
+        "table": "commercial_audit_log",
+        "type": "timestamp with time zone"
+      },
+      {
+        "comment": null,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "user_id",
+        "nullable": false,
+        "position": 1,
+        "schema": "site_private",
+        "table": "commercial_operators",
+        "type": "uuid"
+      },
+      {
+        "comment": null,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "display_name",
+        "nullable": false,
+        "position": 2,
+        "schema": "site_private",
+        "table": "commercial_operators",
+        "type": "text"
+      },
+      {
+        "comment": null,
+        "default": "true",
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "is_active",
+        "nullable": false,
+        "position": 3,
+        "schema": "site_private",
+        "table": "commercial_operators",
+        "type": "boolean"
+      },
+      {
+        "comment": null,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "created_at",
+        "nullable": false,
+        "position": 4,
+        "schema": "site_private",
+        "table": "commercial_operators",
+        "type": "timestamp with time zone"
+      },
+      {
+        "comment": null,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "updated_at",
+        "nullable": false,
+        "position": 5,
+        "schema": "site_private",
+        "table": "commercial_operators",
+        "type": "timestamp with time zone"
+      },
+      {
+        "comment": null,
         "default": "gen_random_uuid()",
         "generated": null,
         "identity": null,
@@ -2578,6 +2734,165 @@
         "schema": "site_private",
         "table": "admin_ddl_log",
         "type": "PRIMARY KEY",
+        "validated": true
+      },
+      {
+        "columns": [
+          "action"
+        ],
+        "deferrable": false,
+        "definition": "CHECK (action = ANY (ARRAY['status_changed'::text, 'adjustment_replied'::text, 'proposal_published'::text]))",
+        "name": "commercial_audit_log_action_check",
+        "on_delete": null,
+        "on_update": null,
+        "ref_columns": [],
+        "ref_schema": null,
+        "ref_table": null,
+        "schema": "site_private",
+        "table": "commercial_audit_log",
+        "type": "CHECK",
+        "validated": true
+      },
+      {
+        "columns": [
+          "actor_label"
+        ],
+        "deferrable": false,
+        "definition": "CHECK (length(actor_label) >= 2 AND length(actor_label) <= 160)",
+        "name": "commercial_audit_log_actor_label_check",
+        "on_delete": null,
+        "on_update": null,
+        "ref_columns": [],
+        "ref_schema": null,
+        "ref_table": null,
+        "schema": "site_private",
+        "table": "commercial_audit_log",
+        "type": "CHECK",
+        "validated": true
+      },
+      {
+        "columns": [
+          "actor_user_id"
+        ],
+        "deferrable": false,
+        "definition": "FOREIGN KEY (actor_user_id) REFERENCES auth.users(id) ON DELETE SET NULL",
+        "name": "commercial_audit_log_actor_user_id_fkey",
+        "on_delete": "SET NULL",
+        "on_update": "NO ACTION",
+        "ref_columns": [
+          "id"
+        ],
+        "ref_schema": "auth",
+        "ref_table": "users",
+        "schema": "site_private",
+        "table": "commercial_audit_log",
+        "type": "FOREIGN KEY",
+        "validated": true
+      },
+      {
+        "columns": [
+          "detail"
+        ],
+        "deferrable": false,
+        "definition": "CHECK (jsonb_typeof(detail) = 'object'::text)",
+        "name": "commercial_audit_log_detail_check",
+        "on_delete": null,
+        "on_update": null,
+        "ref_columns": [],
+        "ref_schema": null,
+        "ref_table": null,
+        "schema": "site_private",
+        "table": "commercial_audit_log",
+        "type": "CHECK",
+        "validated": true
+      },
+      {
+        "columns": [
+          "id"
+        ],
+        "deferrable": false,
+        "definition": "PRIMARY KEY (id)",
+        "name": "commercial_audit_log_pkey",
+        "on_delete": null,
+        "on_update": null,
+        "ref_columns": [],
+        "ref_schema": null,
+        "ref_table": null,
+        "schema": "site_private",
+        "table": "commercial_audit_log",
+        "type": "PRIMARY KEY",
+        "validated": true
+      },
+      {
+        "columns": [
+          "quote_request_id"
+        ],
+        "deferrable": false,
+        "definition": "FOREIGN KEY (quote_request_id) REFERENCES site_private.quote_requests(id) ON DELETE CASCADE",
+        "name": "commercial_audit_log_quote_request_id_fkey",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "ref_columns": [
+          "id"
+        ],
+        "ref_schema": "site_private",
+        "ref_table": "quote_requests",
+        "schema": "site_private",
+        "table": "commercial_audit_log",
+        "type": "FOREIGN KEY",
+        "validated": true
+      },
+      {
+        "columns": [
+          "display_name"
+        ],
+        "deferrable": false,
+        "definition": "CHECK (length(display_name) >= 2 AND length(display_name) <= 120)",
+        "name": "commercial_operators_display_name_check",
+        "on_delete": null,
+        "on_update": null,
+        "ref_columns": [],
+        "ref_schema": null,
+        "ref_table": null,
+        "schema": "site_private",
+        "table": "commercial_operators",
+        "type": "CHECK",
+        "validated": true
+      },
+      {
+        "columns": [
+          "user_id"
+        ],
+        "deferrable": false,
+        "definition": "PRIMARY KEY (user_id)",
+        "name": "commercial_operators_pkey",
+        "on_delete": null,
+        "on_update": null,
+        "ref_columns": [],
+        "ref_schema": null,
+        "ref_table": null,
+        "schema": "site_private",
+        "table": "commercial_operators",
+        "type": "PRIMARY KEY",
+        "validated": true
+      },
+      {
+        "columns": [
+          "user_id"
+        ],
+        "deferrable": false,
+        "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+        "name": "commercial_operators_user_id_fkey",
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION",
+        "ref_columns": [
+          "id"
+        ],
+        "ref_schema": "auth",
+        "ref_table": "users",
+        "schema": "site_private",
+        "table": "commercial_operators",
+        "type": "FOREIGN KEY",
         "validated": true
       },
       {
@@ -6175,6 +6490,45 @@
         "volatility": "volatile"
       },
       {
+        "args": "p_request_id uuid",
+        "callers": {
+          "code": [
+            {
+              "file": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+              "hits": 1
+            },
+            {
+              "file": "src/lib/commercialBackoffice.ts",
+              "hits": 1
+            }
+          ],
+          "code_total_files": 2,
+          "cron": [],
+          "db": [],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "Detalhe interno do orçamento para o back-office (F-03), com itens, eventos de ambas as audiências, propostas, ajustes, status permitidos pela state machine e trilha de auditoria.",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "6a28251e60b9d99c",
+        "execute_api_roles": "authenticated, service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "plpgsql",
+        "leakproof": false,
+        "name": "get_site_quote_request",
+        "owner": "postgres",
+        "returns": "jsonb",
+        "schema": "public",
+        "security_definer": true,
+        "strict": false,
+        "volatility": "stable"
+      },
+      {
         "args": "p_token uuid, p_identifier_hash text",
         "callers": {
           "code": [
@@ -6315,6 +6669,45 @@
         "volatility": "stable"
       },
       {
+        "args": "p_status text, p_search text, p_limit integer, p_offset integer",
+        "callers": {
+          "code": [
+            {
+              "file": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+              "hits": 1
+            },
+            {
+              "file": "src/lib/commercialBackoffice.ts",
+              "hits": 1
+            }
+          ],
+          "code_total_files": 2,
+          "cron": [],
+          "db": [],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "Fila paginada do back-office (F-03): filtro por status e busca por protocolo, empresa, contato, e-mail ou telefone. Só operador ativo.",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "ec64dc679ecd5fb9",
+        "execute_api_roles": "authenticated, service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "plpgsql",
+        "leakproof": false,
+        "name": "list_site_quote_requests",
+        "owner": "postgres",
+        "returns": "jsonb",
+        "schema": "public",
+        "security_definer": true,
+        "strict": false,
+        "volatility": "stable"
+      },
+      {
         "args": "p_path text, p_metadata jsonb",
         "callers": {
           "code": [
@@ -6411,6 +6804,45 @@
         "returns": "boolean",
         "schema": "public",
         "security_definer": false,
+        "strict": false,
+        "volatility": "volatile"
+      },
+      {
+        "args": "p_request_id uuid, p_title text, p_storage_path text, p_valid_until date",
+        "callers": {
+          "code": [
+            {
+              "file": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+              "hits": 1
+            },
+            {
+              "file": "src/lib/commercialBackoffice.ts",
+              "hits": 1
+            }
+          ],
+          "code_total_files": 2,
+          "cron": [],
+          "db": [],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "Publica uma proposta versionada e move o pedido para quoted (F-03, produtor que faltava para F-23). Exige status in_progress; a versão anterior vira histórica por superseded_at.",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "48f6eedfc8575419",
+        "execute_api_roles": "authenticated, service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "plpgsql",
+        "leakproof": false,
+        "name": "publish_site_quote_proposal",
+        "owner": "postgres",
+        "returns": "jsonb",
+        "schema": "public",
+        "security_definer": true,
         "strict": false,
         "volatility": "volatile"
       },
@@ -6559,6 +6991,45 @@
         "name": "reject_site_briefing_asset_verification",
         "owner": "postgres",
         "returns": "boolean",
+        "schema": "public",
+        "security_definer": true,
+        "strict": false,
+        "volatility": "volatile"
+      },
+      {
+        "args": "p_adjustment_id uuid, p_response text, p_status text",
+        "callers": {
+          "code": [
+            {
+              "file": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+              "hits": 1
+            },
+            {
+              "file": "src/lib/commercialBackoffice.ts",
+              "hits": 1
+            }
+          ],
+          "code_total_files": 2,
+          "cron": [],
+          "db": [],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "Responde a um ajuste pedido pelo cliente (F-03): move o estado e grava o texto da resposta na trilha. Trava a linha com FOR UPDATE para não sobrescrever uma resposta concorrente.",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "6ba5497cac0fe342",
+        "execute_api_roles": "authenticated, service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "plpgsql",
+        "leakproof": false,
+        "name": "reply_site_quote_adjustment",
+        "owner": "postgres",
+        "returns": "jsonb",
         "schema": "public",
         "security_definer": true,
         "strict": false,
@@ -6805,6 +7276,90 @@
         "returns": "jsonb",
         "schema": "public",
         "security_definer": false,
+        "strict": false,
+        "volatility": "stable"
+      },
+      {
+        "args": "p_request_id uuid, p_status text",
+        "callers": {
+          "code": [
+            {
+              "file": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+              "hits": 1
+            },
+            {
+              "file": "src/lib/commercialBackoffice.ts",
+              "hits": 1
+            }
+          ],
+          "code_total_files": 2,
+          "cron": [],
+          "db": [],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "Muda o status de um orçamento respeitando site_private.status_transitions e registra a trilha (F-03). O update é condicionado ao status lido, então duas abas abertas não sobrescrevem uma à outra.",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "39c489756c5dbc46",
+        "execute_api_roles": "authenticated, service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "plpgsql",
+        "leakproof": false,
+        "name": "update_site_quote_status",
+        "owner": "postgres",
+        "returns": "jsonb",
+        "schema": "public",
+        "security_definer": true,
+        "strict": false,
+        "volatility": "volatile"
+      },
+      {
+        "args": "",
+        "callers": {
+          "code": [
+            {
+              "file": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+              "hits": 6
+            },
+            {
+              "file": "src/lib/commercialBackoffice.ts",
+              "hits": 1
+            }
+          ],
+          "code_total_files": 2,
+          "cron": [],
+          "db": [
+            "public.get_site_quote_request",
+            "public.list_site_quote_requests",
+            "public.publish_site_quote_proposal",
+            "public.reply_site_quote_adjustment",
+            "public.update_site_quote_status"
+          ],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "Recusa com 42501 quando o chamador não está na allowlist ativa de operadores (F-03).",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "d1785c4b112e188f",
+        "execute_api_roles": null,
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "plpgsql",
+        "leakproof": false,
+        "name": "assert_site_operator",
+        "owner": "postgres",
+        "returns": "site_private.commercial_operators",
+        "schema": "site_private",
+        "security_definer": true,
         "strict": false,
         "volatility": "stable"
       },
@@ -7582,6 +8137,43 @@
         "volatility": "immutable"
       },
       {
+        "args": "p_path text",
+        "callers": {
+          "code": [
+            {
+              "file": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+              "hits": 1
+            }
+          ],
+          "code_total_files": 1,
+          "cron": [],
+          "db": [
+            "public.publish_site_quote_proposal"
+          ],
+          "triggers": [],
+          "views": []
+        },
+        "comment": null,
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "18aa1c73016c25cf",
+        "execute_api_roles": "anon, authenticated, service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "sql",
+        "leakproof": false,
+        "name": "is_valid_proposal_storage_path",
+        "owner": "postgres",
+        "returns": "boolean",
+        "schema": "site_private",
+        "security_definer": false,
+        "strict": false,
+        "volatility": "immutable"
+      },
+      {
         "args": "",
         "callers": {
           "code": [
@@ -8089,12 +8681,17 @@
             {
               "file": "site-supabase/supabase/migrations/20260911170000_add_revocable_shared_selections.sql",
               "hits": 2
+            },
+            {
+              "file": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+              "hits": 1
             }
           ],
-          "code_total_files": 4,
+          "code_total_files": 5,
           "cron": [],
           "db": [],
           "triggers": [
+            "site_private.commercial_operators.commercial_operators_set_updated_at",
             "site_private.contact_requests.contact_requests_set_updated_at",
             "site_private.customer_profiles.customer_profiles_set_updated_at",
             "site_private.notification_deliveries.notification_deliveries_set_updated_at",
@@ -8403,6 +9000,18 @@
           "privileges": "DELETE, INSERT, SELECT, UPDATE",
           "schema": "site_private",
           "table": "admin_ddl_log"
+        },
+        {
+          "grantee": "service_role",
+          "privileges": "INSERT, SELECT",
+          "schema": "site_private",
+          "table": "commercial_audit_log"
+        },
+        {
+          "grantee": "service_role",
+          "privileges": "DELETE, INSERT, SELECT, UPDATE",
+          "schema": "site_private",
+          "table": "commercial_operators"
         },
         {
           "grantee": "service_role",
@@ -8782,6 +9391,63 @@
         "predicate": null,
         "schema": "site_private",
         "table": "admin_ddl_log"
+      },
+      {
+        "columns": [
+          "id"
+        ],
+        "definition": "CREATE UNIQUE INDEX commercial_audit_log_pkey ON site_private.commercial_audit_log USING btree (id)",
+        "is_primary": true,
+        "is_unique": true,
+        "is_valid": true,
+        "method": "btree",
+        "name": "commercial_audit_log_pkey",
+        "predicate": null,
+        "schema": "site_private",
+        "table": "commercial_audit_log"
+      },
+      {
+        "columns": [
+          "quote_request_id",
+          "created_at"
+        ],
+        "definition": "CREATE INDEX commercial_audit_log_request_created_idx ON site_private.commercial_audit_log USING btree (quote_request_id, created_at DESC)",
+        "is_primary": false,
+        "is_unique": false,
+        "is_valid": true,
+        "method": "btree",
+        "name": "commercial_audit_log_request_created_idx",
+        "predicate": null,
+        "schema": "site_private",
+        "table": "commercial_audit_log"
+      },
+      {
+        "columns": [
+          "user_id"
+        ],
+        "definition": "CREATE INDEX commercial_operators_active_idx ON site_private.commercial_operators USING btree (user_id) WHERE is_active",
+        "is_primary": false,
+        "is_unique": false,
+        "is_valid": true,
+        "method": "btree",
+        "name": "commercial_operators_active_idx",
+        "predicate": "is_active",
+        "schema": "site_private",
+        "table": "commercial_operators"
+      },
+      {
+        "columns": [
+          "user_id"
+        ],
+        "definition": "CREATE UNIQUE INDEX commercial_operators_pkey ON site_private.commercial_operators USING btree (user_id)",
+        "is_primary": true,
+        "is_unique": true,
+        "is_valid": true,
+        "method": "btree",
+        "name": "commercial_operators_pkey",
+        "predicate": null,
+        "schema": "site_private",
+        "table": "commercial_operators"
       },
       {
         "columns": [
@@ -9727,6 +10393,12 @@
     ],
     "lints": [
       {
+        "code": "fk_without_index",
+        "detail": "FK sem índice nas colunas ['actor_user_id']: joins e DELETE/UPDATE na tabela pai ficam lentos.",
+        "object": "site_private.commercial_audit_log.commercial_audit_log_actor_user_id_fkey",
+        "severity": "BAIXA"
+      },
+      {
         "code": "policy_auth_fn_not_wrapped",
         "detail": "Policy chama auth.uid()/jwt() sem `(select ...)`: é reavaliada por linha; envolva em subselect.",
         "object": "storage.objects.customer_briefing_assets_delete_own",
@@ -10517,6 +11189,15 @@
         "cycle": false,
         "data_type": "bigint",
         "increment": 1,
+        "name": "commercial_audit_log_id_seq",
+        "owned_by": "site_private.commercial_audit_log.id",
+        "schema": "site_private",
+        "start_value": 1
+      },
+      {
+        "cycle": false,
+        "data_type": "bigint",
+        "increment": 1,
         "name": "quote_protocol_seq",
         "owned_by": null,
         "schema": "site_private",
@@ -10596,6 +11277,36 @@
         "is_partition": false,
         "kind": "table",
         "name": "admin_ddl_log",
+        "owner": "postgres",
+        "parent": null,
+        "partition_bound": null,
+        "partition_key": null,
+        "replica_identity": "default",
+        "rls_enabled": true,
+        "rls_forced": true,
+        "schema": "site_private"
+      },
+      {
+        "comment": "Trilha append-only das escritas feitas pelo back-office (F-03): quem mudou o quê e quando. Sem policy para anon/authenticated; leitura só por service_role.",
+        "from_extension": false,
+        "is_partition": false,
+        "kind": "table",
+        "name": "commercial_audit_log",
+        "owner": "postgres",
+        "parent": null,
+        "partition_bound": null,
+        "partition_key": null,
+        "replica_identity": "default",
+        "rls_enabled": true,
+        "rls_forced": true,
+        "schema": "site_private"
+      },
+      {
+        "comment": "Allowlist do back-office comercial (F-03). Só service_role escreve; as RPCs de escrita comercial recusam chamador fora daqui, mesmo com JWT válido.",
+        "from_extension": false,
+        "is_partition": false,
+        "kind": "table",
+        "name": "commercial_operators",
         "owner": "postgres",
         "parent": null,
         "partition_bound": null,
@@ -10907,6 +11618,17 @@
       }
     ],
     "triggers": [
+      {
+        "definition": "CREATE TRIGGER commercial_operators_set_updated_at BEFORE UPDATE ON site_private.commercial_operators FOR EACH ROW EXECUTE FUNCTION site_private.set_updated_at()",
+        "events": "UPDATE",
+        "function": "site_private.set_updated_at",
+        "level": "ROW",
+        "name": "commercial_operators_set_updated_at",
+        "schema": "site_private",
+        "status": "enabled",
+        "table": "commercial_operators",
+        "timing": "BEFORE"
+      },
       {
         "definition": "CREATE TRIGGER consent_receipts_log_admin_write AFTER INSERT OR DELETE OR UPDATE ON site_private.consent_receipts FOR EACH ROW EXECUTE FUNCTION site_private.log_admin_write()",
         "events": "INSERT OR DELETE OR UPDATE",

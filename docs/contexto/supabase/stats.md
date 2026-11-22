@@ -6,15 +6,15 @@ Valores aproximados de propósito, para não gerar commits a cada coleta. Fora d
 
 | métrica | valor |
 |---|---|
-| tamanho | 13.9 MB |
-| schema site_private | 1.4 MB |
+| tamanho | 14.0 MB |
+| schema site_private | 1.5 MB |
 
 
 ## Tabelas (ordenadas por tamanho)
 
 | tabela | linhas (~) | total | heap | índices | linhas mortas (~) | seq scans (~) | idx scans (~) | último autovacuum |
 |---|---|---|---|---|---|---|---|---|
-| site_private.notification_deliveries | 4 | 160.0 KB | 16.0 KB | 104.0 KB | ~30 | ~7k | ~10k | 2026-11-11 |
+| site_private.notification_deliveries | 4 | 160.0 KB | 16.0 KB | 104.0 KB | ~30 | ~7k | ~10.1k | 2026-11-11 |
 | site_private.quote_requests | 0 | 152.0 KB | 8.0 KB | 136.0 KB | ~20 | ~110 | ~210 |  |
 | site_private.admin_ddl_log | ~400 | 144.0 KB | 40.0 KB | 64.0 KB | ~40 | 8 | ~250 | 2026-09-27 |
 | site_private.contact_requests | 0 | 88.0 KB | 8.0 KB | 72.0 KB | 1 | ~20 | ~80 |  |
@@ -35,6 +35,8 @@ Valores aproximados de propósito, para não gerar commits a cada coleta. Fora d
 | site_private.notification_provider_events | 0 | 32.0 KB | 0 B | 24.0 KB | 0 | ~10 | ~10 |  |
 | site_private.status_transitions | 0 | 32.0 KB | 8.0 KB | 16.0 KB | 0 | 7 | ~70 |  |
 | site_private.storage_deletion_queue | 0 | 32.0 KB | 8.0 KB | 16.0 KB | 1 | ~130 | 2 |  |
+| site_private.commercial_audit_log | 0 | 24.0 KB | 0 B | 16.0 KB | 0 | 3 | 0 |  |
+| site_private.commercial_operators | 0 | 24.0 KB | 0 B | 16.0 KB | 0 | 3 | 0 |  |
 | site_private.customer_occasion_favorites | 0 | 24.0 KB | 0 B | 16.0 KB | 0 | 4 | 9 |  |
 
 
@@ -64,14 +66,14 @@ _nenhum_
 ## Consultas mais custosas (pg_stat_statements, desde o último reset)
 | role | chamadas (~) | total ms (~) | média ms | query |
 |---|---|---|---|---|
-| authenticator | ~120 | ~37.5k | 307.23 | `SELECT name FROM pg_timezone_names` |
-| postgres | ~80 | ~14.8k | 179.97 | `SELECT version, coalesce(name, $1) as name, statements FROM supabase_migrations.schema_migrations` |
+| authenticator | ~120 | ~38.3k | 311.71 | `SELECT name FROM pg_timezone_names` |
+| postgres | ~80 | ~15.3k | 179.83 | `SELECT version, coalesce(name, $1) as name, statements FROM supabase_migrations.schema_migrations` |
 | postgres | ~50 | ~11.5k | 250.12 | `SELECT e.name, n.nspname AS schema, e.default_version, x.extversion AS installed_version, e.comment, ev.schema AS default_version_schema FROM pg_available_extensions e LEFT JOIN pg_extension x ON e.name = x.extname LEFT ` |
 | postgres | ~80 | ~9.9k | 130.90 | `select m->>$1 as version, m->>$2 as name, case when pg_catalog.jsonb_typeof(m->$3) = $4 then array(select pg_catalog.jsonb_array_elements_text(m->$5)) else $6 end as statements from pg_catalog.jsonb_array_elements( coale` |
 | service_role | ~1.5k | ~6.7k | 4.58 | `WITH pgrst_source AS (SELECT pgrst_call.pgrst_scalar FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT "p_batch_size" FROM json_to_record(pgrst_payload.json_data) AS _("p_batch_size" integer) LIMIT $4) pgrst_b` |
-| service_role | ~990 | ~6.1k | 6.19 | `WITH pgrst_source AS (SELECT pgrst_call.pgrst_scalar FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT "p_channels", "p_batch_size" FROM json_to_record(pgrst_payload.json_data) AS _("p_channels" text[], "p_bat` |
+| service_role | ~990 | ~6.2k | 6.19 | `WITH pgrst_source AS (SELECT pgrst_call.pgrst_scalar FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT "p_channels", "p_batch_size" FROM json_to_record(pgrst_payload.json_data) AS _("p_channels" text[], "p_bat` |
 | pgbouncer | ~570 | ~4.1k | 7.18 | `SELECT t.oid, t.typname, t.typsend, t.typreceive, t.typoutput, t.typinput, coalesce(d.typelem, t.typelem), coalesce(r.rngsubtype, $1), ARRAY ( SELECT a.atttypid FROM pg_attribute AS a WHERE a.attrelid = t.typrelid AND a.` |
-| authenticator | ~120 | ~4k | 33.89 | `WITH -- Recursively get the base types of domains base_types AS ( WITH RECURSIVE recurse AS ( SELECT oid, typbasetype, typnamespace AS base_namespace, COALESCE(NULLIF(typbasetype, $3), oid) AS base_type FROM pg_type UNIO` |
+| authenticator | ~120 | ~4.1k | 33.88 | `WITH -- Recursively get the base types of domains base_types AS ( WITH RECURSIVE recurse AS ( SELECT oid, typbasetype, typnamespace AS base_namespace, COALESCE(NULLIF(typbasetype, $3), oid) AS base_type FROM pg_type UNIO` |
 | postgres | ~310 | ~3.3k | 10.51 | `SELECT n.nspname AS schema, p.proname AS name, pg_get_function_identity_arguments(p.oid) AS args, pg_get_function_result(p.oid) AS returns, l.lanname AS language, CASE p.prokind WHEN $1 THEN $2 WHEN $3 THEN $4 WHEN $5 TH` |
 | postgres | ~310 | ~3.2k | 10.11 | `SELECT n.nspname AS schema, c.relname AS "table", con.conname AS name, CASE con.contype WHEN $1 THEN $2 WHEN $3 THEN $4 WHEN $5 THEN $6 WHEN $7 THEN $8 WHEN $9 THEN $10 ELSE con.contype::text END AS type, pg_get_constrai` |
 | postgres | ~310 | ~2.4k | 7.63 | `SELECT n.nspname AS schema, c.relname AS name, GREATEST(c.reltuples::bigint, $1) AS est_rows, pg_total_relation_size(c.oid) AS total_bytes, pg_relation_size(c.oid) AS heap_bytes, pg_indexes_size(c.oid) AS index_bytes, s.` |
