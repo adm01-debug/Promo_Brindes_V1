@@ -565,13 +565,17 @@ conhecido no código do site; pode ser peso morto.
 
 **Ação.** Runbook mensal: `pg_stat_statements` top 20 por `total_exec_time`;
 `pg_stat_user_indexes` com `idx_scan = 0` há mais de 30 dias; decisão registrada em
-`docs/DB_REVIEW_YYYYMM.md`.
+`docs/DB_REVIEW_YYYYMM.md` — na prática a seção "Histórico" de
+`docs/RUNBOOK_REVISAO_MENSAL_BANCO.md`, que é o mesmo registro e fica ao lado das
+consultas que o produzem.
 
 **Checklist de conclusão.**
-- [ ] Primeira revisão executada e documentada.
-- [ ] Decisão sobre `quote_items_product_id_idx` tomada (manter com justificativa ou
-      remover).
-- [ ] Lembrete recorrente criado no sistema de tarefas do time.
+- [x] Primeira revisão executada e documentada (22/11/2026, `RUNBOOK_REVISAO_MENSAL_BANCO.md`, seção "Histórico").
+- [x] Decisão sobre `quote_items_product_id_idx` tomada: **manter**, porque o recorte de
+      tráfego real exigido pela própria etapa não está satisfeito.
+- [ ] Lembrete recorrente criado no sistema de tarefas do time — o projeto não tem
+      sistema de tarefas; enquanto isso a recorrência depende do runbook e de uma
+      issue mensal.
 
 **Depende de.** Etapa 6.
 
