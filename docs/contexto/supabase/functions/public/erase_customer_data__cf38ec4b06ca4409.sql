@@ -17,6 +17,7 @@ declare
   v_users integer := 0;
   v_kit_names integer := 0;
   v_notifications integer := 0;
+  v_events integer := 0;
 begin
   if length(v_email) not between 5 and 160 or v_email !~ '^[^\s@]+@[^\s@]+\.[^\s@]+$' then
     raise exception using errcode = '22023', message = 'invalid_erasure_email';
@@ -75,6 +76,18 @@ begin
     and item.kit_name_snapshot <> '[apagado a pedido do titular]';
   get diagnostics v_kit_names = row_count;
 
+  -- F-05: o texto que a equipe escreveu ao cliente pode citar nome, empresa ou
+  -- qualquer dado que o titular informou. Sem esta linha a mensagem sobreviveria
+  -- ao apagamento e continuaria sendo servida por get_my_quote_request.
+  update site_private.quote_request_events event set
+    description = '[apagado a pedido do titular]'
+  where event.quote_request_id = any(v_quote_ids)
+    and event.event_type = 'message'
+    and event.audience = 'customer'
+    and event.description is not null
+    and event.description <> '[apagado a pedido do titular]';
+  get diagnostics v_events = row_count;
+
   update site_private.contact_requests request set
     contact_name = '[apagado a pedido do titular]',
     email = 'titular-' || left(md5(request.id::text), 16) || '@erased.invalid',
@@ -100,6 +113,7 @@ begin
     'profilesAnonymized', v_profiles, 'proposalDocumentsDeleted', v_documents,
     'authUsersDeleted', v_users, 'storagePathsQueued', jsonb_array_length(v_storage_paths),
     'kitNamesAnonymized', v_kit_names, 'notificationsCancelled', v_notifications,
+    'messagesAnonymized', v_events,
     'storagePathsToRemove', v_storage_paths
   );
 end;

@@ -52,6 +52,11 @@ begin
       'events', coalesce((
         select jsonb_agg(jsonb_build_object(
           'type', event.event_type, 'status', event.status, 'title', event.title,
+          -- O texto da mensagem e dado pessoal vinculado ao titular (F-05): o
+          -- botao "Baixar meus dados" precisa entregar o que a linha do tempo
+          -- mostra, nao so o titulo generico. Eventos internos continuam fora
+          -- pelo filtro de audiencia abaixo.
+          'description', event.description,
           'createdAt', event.created_at
         ) order by event.created_at desc)
         from site_private.quote_request_events event

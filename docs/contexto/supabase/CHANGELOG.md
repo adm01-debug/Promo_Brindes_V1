@@ -2,6 +2,11 @@
 
 Diff semântico gerado a cada coleta em que algo mudou.
 
+## 2026-11-22 16:14 UTC
+
+- **functions** alterado (7): `public.erase_customer_data(p_email text, p_user_id uuid)`, `public.export_my_data()`, `public.reply_site_quote_adjustment(p_adjustment_id uuid, p_response text, p_status text)`, `site_private.assert_site_operator()`, `site_private.current_titular_verified_email()`, `site_private.erase_titular_request_metadata(p_metadata jsonb)`, `site_private.normalize_email(p_email text)`
+- **migrations** adicionado (2): `20261122070000_add_customer_message_events`, `20261122080000_include_message_text_in_export`
+
 ## 2026-11-22 13:13 UTC
 
 - **colunas** adicionado (7): `site_private.cron_heartbeats.consecutive_failures`, `site_private.cron_heartbeats.installed_at`, `site_private.cron_heartbeats.last_failed_at`, `site_private.cron_heartbeats.last_failure_detail`, `site_private.cron_heartbeats.last_ok_at`, `site_private.cron_heartbeats.name`, `site_private.cron_heartbeats.updated_at`

@@ -6255,9 +6255,13 @@
             {
               "file": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
               "hits": 3
+            },
+            {
+              "file": "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql",
+              "hits": 1
             }
           ],
-          "code_total_files": 2,
+          "code_total_files": 3,
           "cron": [],
           "db": [
             "public.delete_my_data"
@@ -6265,12 +6269,12 @@
           "triggers": [],
           "views": []
         },
-        "comment": "Apagamento idempotente (F-31): anonimiza registros e texto livre do titular, cancela entregas reivindicaveis, enfileira blobs, registra tombstone SHA-256 e remove Auth por cascade. Com p_user_id restringe ao auth.uid() do chamador (autoexclusao F-30); sem ele (service_role administrativo) reune todas as contas do e-mail.",
+        "comment": "Apagamento idempotente (F-31, F-30, F-05): anonimiza registros e texto livre do titular — inclusive as mensagens que a equipe escreveu na linha do tempo —, cancela entregas reivindicaveis, enfileira blobs, registra tombstone SHA-256 e remove Auth por cascade. Com p_user_id restringe ao auth.uid() do chamador (autoexclusao F-30); sem ele (service_role administrativo) reune todas as contas do e-mail.",
         "config": [
           "search_path=\"\""
         ],
         "definition": null,
-        "definition_sha": "854bb924ac31f2b4",
+        "definition_sha": "6aeb4a24b27c8bf3",
         "execute_api_roles": "service_role",
         "execute_public": false,
         "is_trigger_fn": false,
@@ -6300,12 +6304,12 @@
           "triggers": [],
           "views": []
         },
-        "comment": "F-30: portabilidade — devolve ao titular autenticado um JSON completo dos registros que o site guarda sobre ele (perfil, orcamentos com itens/eventos/propostas, selecoes, favoritos, contatos, pedidos de ajuste e trilha de direitos). O email retornado e o do proprio titular confirmado.",
+        "comment": "F-30: portabilidade — devolve ao titular autenticado um JSON completo dos registros que o site guarda sobre ele (perfil, orcamentos com itens/eventos/propostas, selecoes, favoritos, contatos, pedidos de ajuste e trilha de direitos). Desde a F-05 cada evento inclui description, o texto visivel na linha do tempo; eventos de audiencia internal continuam fora. O email retornado e o do proprio titular confirmado.",
         "config": [
           "search_path=\"\""
         ],
         "definition": null,
-        "definition_sha": "1f68bc544e16291c",
+        "definition_sha": "6a6dc5941aa4e323",
         "execute_api_roles": "authenticated, service_role",
         "execute_public": false,
         "is_trigger_fn": false,
@@ -7238,22 +7242,26 @@
               "hits": 1
             },
             {
+              "file": "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql",
+              "hits": 1
+            },
+            {
               "file": "src/lib/commercialBackoffice.ts",
               "hits": 1
             }
           ],
-          "code_total_files": 2,
+          "code_total_files": 3,
           "cron": [],
           "db": [],
           "triggers": [],
           "views": []
         },
-        "comment": "Responde a um ajuste pedido pelo cliente (F-03): move o estado e grava o texto da resposta na trilha. Trava a linha com FOR UPDATE para não sobrescrever uma resposta concorrente.",
+        "comment": "Responde a um ajuste pedido pelo cliente (F-03, F-05): move o estado, grava o texto integral na trilha interna e publica a mesma resposta integral como mensagem (event_type message, audience customer) na linha do tempo do cliente. Recusa resposta acima de 500 caracteres com response_too_long em vez de cortar o texto. Trava a linha com FOR UPDATE para não sobrescrever uma resposta concorrente.",
         "config": [
           "search_path=\"\""
         ],
         "definition": null,
-        "definition_sha": "6ba5497cac0fe342",
+        "definition_sha": "1280fdd3a8eaf9eb",
         "execute_api_roles": "authenticated, service_role",
         "execute_public": false,
         "is_trigger_fn": false,
@@ -7560,11 +7568,15 @@
               "hits": 6
             },
             {
+              "file": "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql",
+              "hits": 1
+            },
+            {
               "file": "src/lib/commercialBackoffice.ts",
               "hits": 1
             }
           ],
-          "code_total_files": 2,
+          "code_total_files": 3,
           "cron": [],
           "db": [
             "public.get_site_quote_request",
@@ -7866,9 +7878,13 @@
             {
               "file": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
               "hits": 4
+            },
+            {
+              "file": "site-supabase/supabase/migrations/20261122080000_include_message_text_in_export.sql",
+              "hits": 1
             }
           ],
-          "code_total_files": 1,
+          "code_total_files": 2,
           "cron": [],
           "db": [
             "public.correct_my_data",
@@ -8227,9 +8243,13 @@
             {
               "file": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
               "hits": 1
+            },
+            {
+              "file": "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql",
+              "hits": 1
             }
           ],
-          "code_total_files": 3,
+          "code_total_files": 4,
           "cron": [],
           "db": [
             "public.erase_customer_data"
@@ -8603,9 +8623,13 @@
             {
               "file": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
               "hits": 1
+            },
+            {
+              "file": "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql",
+              "hits": 1
             }
           ],
-          "code_total_files": 5,
+          "code_total_files": 6,
           "cron": [],
           "db": [
             "public.erase_customer_data"
@@ -11101,6 +11125,18 @@
         "statements": 15,
         "statements_sha": "6fa0950d25448ec7",
         "version": "20261122040000"
+      },
+      {
+        "name": "add_customer_message_events",
+        "statements": 4,
+        "statements_sha": "eb690f09998a7efb",
+        "version": "20261122070000"
+      },
+      {
+        "name": "include_message_text_in_export",
+        "statements": 2,
+        "statements_sha": "7781442c1d3a7e93",
+        "version": "20261122080000"
       }
     ],
     "policies": [
