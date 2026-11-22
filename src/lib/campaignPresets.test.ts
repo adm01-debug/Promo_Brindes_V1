@@ -128,9 +128,24 @@ describe('ache pelo briefing', () => {
     expect(campaignSignalExplanations({ moment: 'onboarding' }, categories, { query: 'camiseta' })).toEqual([]);
     // Categoria escolhida explicitamente substitui a categoria derivada do briefing.
     expect(campaignSignalExplanations({ mood: 'tech' }, categories, { selectedCategoryIds: ['presentes'] })).toEqual([]);
-    // SKU exato substitui categoria, cor e material derivados do briefing.
-    expect(campaignSignalExplanations({ mood: 'sustentavel' }, categories, { exactSku: 'BR-001' })).toEqual([]);
-    // Cor/material escolhidos explicitamente substituem os derivados do briefing.
-    expect(campaignSignalExplanations({ mood: 'divertido' }, categories, { selectedColors: ['vermelho'] })).toEqual([]);
+    // SKU exato substitui categoria, cor, material e a busca editorial do
+    // briefing: a consulta só emite `sku.eq.<codigo>` nesse modo.
+    expect(campaignSignalExplanations({ mood: 'sustentavel', moment: 'onboarding' }, categories, { exactSku: 'BR-001' })).toEqual([]);
+  });
+
+  it('mantem os sinais de cor e material do briefing porque a consulta soma as escolhas (PF-40)', () => {
+    const categories = [{ id: 'tech', name: 'Tecnologia', parentId: null }];
+    const signals = campaignSignalExplanations({ mood: 'divertido' }, categories);
+    // buildCatalogParams aceita qualquer valor do grupo (OR), então escolher
+    // uma cor ou material no painel não desativa os derivados do briefing.
+    expect(signals).toContainEqual({ source: 'Clima: Divertido', target: 'Cor colorido' });
+    expect(campaignSignalExplanations({ mood: 'divertido' }, categories, {})).toEqual(signals);
+  });
+
+  it('suprime a curadoria de boas-vindas quando a busca por SKU exato assume (PF-40)', () => {
+    const categories = [{ id: 'tech', name: 'Tecnologia', parentId: null }];
+    const withoutSku = campaignSignalExplanations({ moment: 'onboarding' }, categories);
+    expect(withoutSku).toContainEqual({ source: 'Momento: Onboarding', target: 'Curadoria de boas-vindas' });
+    expect(campaignSignalExplanations({ moment: 'onboarding' }, categories, { exactSku: 'PB-100' })).toEqual([]);
   });
 });

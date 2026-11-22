@@ -104,13 +104,11 @@ export function useCatalogPageState() {
       selectedCategoryIds,
       query,
       exactSku: skuQueryActive ? exactSku : undefined,
-      selectedColors,
-      selectedMaterials,
     }),
     // A chave estabiliza a seleção lida da URL; os demais termos refletem as
     // escolhas efetivas que podem substituir os sinais do briefing.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [campaignKey, categories.data, effectiveProfile, selectedCategoryIds, query, exactSku, skuQueryActive, selectedColors, selectedMaterials],
+    [campaignKey, categories.data, effectiveProfile, selectedCategoryIds, query, exactSku, skuQueryActive],
   );
   const filterPanelProfile: ProfileParam = effectiveProfile === 'featured' ? 'destaques' : effectiveProfile === 'new' ? 'novos' : effectiveProfile === 'kits' ? 'kits' : 'todos';
   const catalog = useCatalog({

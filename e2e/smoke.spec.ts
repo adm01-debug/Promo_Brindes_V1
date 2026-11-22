@@ -487,6 +487,27 @@ test('ache pelo briefing transforma intenção em filtros explicáveis e compart
   await expect(page.getByRole('button', { name: /Momento: Onboarding/ })).toBeVisible();
 });
 
+test('escolha manual de cor mantém os sinais do briefing e o seletor de ordem é acessível', async ({ page }) => {
+  await page.goto('/catalogo?momento=onboarding&clima=divertido');
+  const signals = page.locator('.campaign-signals');
+  await expect(signals).toContainText('Cor colorido');
+  const colorRequest = page.waitForRequest((request) => {
+    const url = new URL(request.url());
+    return url.pathname.includes('products_public') && (url.searchParams.get('and') ?? '').includes('colors');
+  });
+  await page.getByRole('button', { name: 'Cor vermelho' }).click();
+  // A consulta soma as opções (OR): a cor do painel não desativa a do briefing.
+  const and = new URL((await colorRequest).url()).searchParams.get('and') ?? '';
+  expect(and).toContain('Vermelho');
+  expect(and).toContain('Colorido');
+  await expect(signals).toContainText('Cor colorido');
+  const sort = page.locator('#catalog-sort');
+  await expect(sort).toHaveAccessibleName('Ordenar por');
+  await expect(sort).toHaveAccessibleDescription(/Curadoria equilibra relevância e variedade na página carregada/);
+  const a11y = await new AxeBuilder({ page }).include('.catalog-toolbar').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
+  expect(a11y.violations, 'Violações no seletor de ordem').toEqual([]);
+});
+
 test('briefing tech espera a taxonomia antes de consultar produtos', async ({ page }) => {
   await page.unroute('**/rest/v1/categories?**');
   let releaseCategories!: () => void;

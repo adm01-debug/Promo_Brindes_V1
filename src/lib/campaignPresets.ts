@@ -169,7 +169,10 @@ export interface CampaignSignalExplanation {
  * Estado efetivo do catálogo no momento em que a explicação é renderizada.
  * Quando a pessoa escolhe uma coleção, categoria, busca ou SKU exato, esses
  * sinais substituem os do briefing e não devem aparecer como se tivessem vindo
- * dele (PF-40).
+ * dele (PF-40). Cor e material são a exceção: a consulta soma as escolhas do
+ * painel às do briefing (união, OR), então escolher uma cor ou material não
+ * desativa as opções derivadas da intenção e o sinal correspondente continua
+ * visível. Só o SKU exato descarta cor e material por completo.
  */
 export interface CampaignSignalContext {
   /** Coleção escolhida explicitamente (substitui o perfil derivado do briefing). */
@@ -180,10 +183,6 @@ export interface CampaignSignalContext {
   query?: string;
   /** SKU exato (substitui categoria, cor e material do briefing). */
   exactSku?: string;
-  /** Cores selecionadas explicitamente (substituem as do briefing). */
-  selectedColors?: string[];
-  /** Materiais selecionados explicitamente (substituem os do briefing). */
-  selectedMaterials?: string[];
 }
 
 /**
@@ -232,10 +231,12 @@ export function campaignSignalExplanations(selection: CampaignSelection, categor
   // Categorias escolhidas explicitamente substituem as do briefing.
   const categoryOverridden = Boolean(context.selectedCategoryIds?.length);
 
-  if (filters.materials.length && !exactSkuOverrides && !(context.selectedMaterials?.length)) {
+  // Cor e material do briefing somam-se às escolhas do painel na consulta
+  // (união). Por isso só o SKU exato, que descarta ambos, suprime o sinal.
+  if (filters.materials.length && !exactSkuOverrides) {
     result.push({ source: `Clima: ${moodLabel}`, target: `Material ${filters.materials.join(', ')}` });
   }
-  if (filters.colors.length && !exactSkuOverrides && !(context.selectedColors?.length)) {
+  if (filters.colors.length && !exactSkuOverrides) {
     result.push({ source: `Clima: ${moodLabel}`, target: `Cor ${filters.colors.join(', ')}` });
   }
   if (filters.categoryIds.length && !exactSkuOverrides && !categoryOverridden) {
@@ -248,7 +249,9 @@ export function campaignSignalExplanations(selection: CampaignSelection, categor
     const source = featuredSource(selection);
     if (source) result.push({ source, target: 'Coleção Em alta' });
   }
-  if (filters.search && !queryOverrides) result.push({ source: `Momento: ${momentLabel}`, target: 'Curadoria de boas-vindas' });
+  // O SKU exato descarta o termo editorial na consulta (buildCatalogParams),
+  // então a curadoria de boas-vindas deixa de influenciar o resultado.
+  if (filters.search && !queryOverrides && !exactSkuOverrides) result.push({ source: `Momento: ${momentLabel}`, target: 'Curadoria de boas-vindas' });
   if (filters.maxMinQuantity) result.push({ source: `Escala: ${scaleLabel}`, target: `Mínimo até ${filters.maxMinQuantity} un.` });
   return result;
 }

@@ -119,11 +119,11 @@ try {
   // ~2,0 KiB de folga no pior caso e ~8 KiB na producao, sem mascarar
   // regressoes acima de 2 KiB.
   // Teto recalibrado em 22/11/2026 de 962 para 964 KiB quando o F-40
-  // (separacao entre intencao do briefing e filtros efetivos) adicionou ~2,6 KiB
-  // ao pior caso (960,0 KiB base -> 962,6 KiB com a feature; 963,3 KiB no
-  // runner da CI). Medido em 2b2db83 (feat F-40) e 8bae380 (fix PF-40). O
-  // recalibro mantem ~1,4 KiB de folga sobre o pior caso, sem mascarar
-  // regressoes acima de ~1,4 KiB.
+  // (separacao entre intencao do briefing e filtros efetivos) levou o pior caso
+  // medido no runner da CI a 963,3 KiB (960,0 KiB base -> 962,6 KiB local em
+  // 2b2db83, 963,3 KiB na CI). O recalibro deixa ~0,7 KiB de folga no pior caso
+  // do runner (964 - 963,3) e ~1,4 KiB sobre a medicao local (964 - 962,6), sem
+  // mascarar regressoes acima disso.
   assertBudget('JavaScript total', javascript, rawBytes(964));
   assertBudget('Bundle de entrada', entry, rawBytes(300));
   assertBudget('CSS total (Brotli)', cssBrotli, rawBytes(32));
