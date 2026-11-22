@@ -487,13 +487,20 @@ test('ache pelo briefing transforma intenção em filtros explicáveis e compart
   await expect(page.getByRole('button', { name: /Momento: Onboarding/ })).toBeVisible();
 });
 
-test('escolha manual de cor mantém os sinais do briefing e o seletor de ordem é acessível', async ({ page }) => {
+test('escolha manual de cor mantém o sinal de cor do briefing (PF-40)', async ({ page }, testInfo) => {
+  // No mobile os filtros vivem no drawer; o fluxo de clique na cor é coberto no desktop.
+  test.skip(testInfo.project.name.startsWith('mobile'), 'Filtros de cor ficam no drawer no mobile.');
   await page.goto('/catalogo?momento=onboarding&clima=divertido');
   const signals = page.locator('.campaign-signals');
   await expect(signals).toContainText('Cor colorido');
+  // O predicado exige o valor escolhido no painel: o request inicial do
+  // briefing (só com a cor derivada) pode chegar depois deste ponto e não
+  // representa a soma que o teste valida.
   const colorRequest = page.waitForRequest((request) => {
     const url = new URL(request.url());
-    return url.pathname.includes('products_public') && (url.searchParams.get('and') ?? '').includes('colors');
+    return url.pathname.includes('products_public')
+      && (url.searchParams.get('and') ?? '').includes('colors')
+      && (url.searchParams.get('and') ?? '').includes('Vermelho');
   });
   await page.getByRole('button', { name: 'Cor vermelho' }).click();
   // A consulta soma as opções (OR): a cor do painel não desativa a do briefing.
@@ -501,6 +508,10 @@ test('escolha manual de cor mantém os sinais do briefing e o seletor de ordem �
   expect(and).toContain('Vermelho');
   expect(and).toContain('Colorido');
   await expect(signals).toContainText('Cor colorido');
+});
+
+test('seletor de ordem anuncia a dica apenas como descrição', async ({ page }) => {
+  await page.goto('/catalogo');
   const sort = page.locator('#catalog-sort');
   await expect(sort).toHaveAccessibleName('Ordenar por');
   await expect(sort).toHaveAccessibleDescription(/Curadoria equilibra relevância e variedade na página carregada/);
