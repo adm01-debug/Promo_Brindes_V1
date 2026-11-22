@@ -301,10 +301,6 @@ export type Database = {
         Args: { p_archived: boolean; p_expected_version: number; p_id: string }
         Returns: Json
       }
-      cancel_site_notification_backlog: {
-        Args: { p_reason: string }
-        Returns: Json
-      }
       site_notification_queue_health: { Args: never; Returns: Json }
       update_site_quote_status: {
         Args: { p_request_id: string; p_status: string }
@@ -1355,7 +1351,6 @@ export type Database = {
           batch_max: number
           lease_timeout: string
           max_attempts: number
-          max_age: string
           retry_base_seconds: number
           retry_cap_seconds: number
         }[]
