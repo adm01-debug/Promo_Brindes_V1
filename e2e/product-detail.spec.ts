@@ -41,7 +41,9 @@ test('ficha compacta reúne seleção e especificações ao lado da galeria no d
   expect(specs!.y + specs!.height).toBeLessThan(1100);
   expect(await page.locator('.product-story').count()).toBe(0);
   await expect(page.getByRole('heading', { name: 'Especificações' })).toBeInViewport();
-  const panelStyles = await page.locator('.product-panel').evaluateAll((panels) => panels.map((panel) => {
+  // F-45 acrescentou uma seção com o mesmo estilo de painel quando há atributos
+  // aproveitáveis; a geometria comparada aqui é a da ficha (seleção + especificações).
+  const panelStyles = await page.locator('.product-detail .product-panel').evaluateAll((panels) => panels.map((panel) => {
     const style = getComputedStyle(panel);
     return { borderLeft: style.borderLeftWidth, borderRight: style.borderRightWidth, radius: style.borderRadius };
   }));

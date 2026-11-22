@@ -77,6 +77,9 @@ export function getSiteDatabaseConfig(): SiteDatabaseConfig {
     || !/^[a-z0-9]{20}$/.test(expectedProject)
     || (isPreview && [SITE_DATABASE_PROJECT, INTERNAL_DATABASE_PROJECT].includes(expectedProject))
     || projectHost[1] !== expectedProject
+    // porta explícita muda o host de destino: só o hostname batendo não prova que
+    // a API do banco responde nesse endereço. `:443` normaliza para '' e segue aceito.
+    || url.port !== ''
     || url.username || url.password || url.pathname !== '/' || url.search || url.hash) {
     throw new SiteDatabaseError('Destino isolado do banco do site inválido.', 'unsafe_database_target');
   }

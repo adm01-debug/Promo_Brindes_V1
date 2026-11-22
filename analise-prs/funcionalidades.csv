@@ -43,7 +43,7 @@ F-41,Contexto editavel no orcamento,Formulario comeca por dados pessoais; contex
 F-42,Telefone coerente orcamento/contato,Obrigatorio no orcamento opcional no contato,PARCIAL,70,,PF-42,P3
 F-43,Repetir orcamento sem esconder mudancas,Quantidade antiga ajustada ao minimo sem aviso,PARCIAL,70,,PF-43,P3
 F-44,Retorno ao adicionar e confirmacao ao limpar,Adicionar so abre drawer; limpar sem confirma,PARCIAL,70,,PF-44,P3
-F-45,Por que este produto + ideias de uso,Regra deterministica + conteudo aplicacoes,PENDENTE,0,,PF-45,P3
+F-45,Por que este produto + ideias de uso,Regra deterministica + conteudo aplicacoes,COMPLETA,100,#236,Regra deterministica + ideias ancoradas no briefing; aprovacao visual do painel pendente com o dono,P3
 F-46,Personalizacao por familia,Contrato so expoe allows_personalization e min_quantity,BLOQUEADA,20,,PF-46,P2
 F-47,WhatsApp iniciado pelo visitante,Link wa.me contextual com numero validado,PARCIAL,90,#222,"Link wa.me contextual entregue (#222): src/lib/whatsappContact.ts monta o href com numero normalizado (apenas digitos) e mensagem codificada, com DEFAULT_WHATSAPP_NUMBER de fallback. Porem a operacao/destinatario oficial continua pendente de validacao do negocio, conforme docs/MATRIZ_FECHAMENTO_PLANOS_20260912.csv LK44 (criterio validacao_operacao, estado P). O codigo nao valida o numero contra uma fonte oficial: sem VITE_CONTACT_WHATSAPP o site cai no numero padrao.",P2
 F-48,Menu visual de categorias,Cabecalho so com links de texto,PARCIAL,50,,PF-48,P3
@@ -73,7 +73,7 @@ F-71,Conta de servico Supabase no lugar do PAT,Release executa SQL via PAT pesso
 F-72,Rotacao de segredos executada,Issue #80 aberta 01/10 sem acao,PENDENTE,0,,PF-72,P2
 F-73,Cutover SITE_SUPABASE_SERVICE_JWT,Storage exige service_role; JWT 30 dias sem renovacao,BLOQUEADA,40,,PF-73,P2
 F-74,Endurecimento de workflows,harden-runner zizmor persist-credentials permissions SBOM,PARCIAL,40,,PF-74,P2
-F-75,Verificacao de config do banco no boot,assertSafeSiteDatabaseConfiguration nunca chamada,PENDENTE,0,,PF-75,P3
+F-75,Verificacao de config do banco no boot,api/health.ts chama getSiteDatabaseConfig e o smoke de release exige ok,COMPLETA,100,,PF-75,P3
 F-76,Revogar mcp_kv_get no banco principal,SECURITY DEFINER executavel por authenticated,BLOQUEADA,0,,PF-76,P1
 F-77,Fluxo versionado de migrations com recibo,Nenhum workflow aplica; ledger sem registro quem/quando,COMPLETA,100,#165,PF-77,P1
 F-78,Diff integral schema/ACL + Security Advisor,So ACL favoritos tratada; db lint so local,PARCIAL,30,,PF-78,P2

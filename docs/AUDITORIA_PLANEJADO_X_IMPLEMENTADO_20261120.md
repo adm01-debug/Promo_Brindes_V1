@@ -147,7 +147,7 @@ Tabela consolidada (uma linha por item). Evidência completa, comandos reproduz�
 | PF-42 | Telefone coerente orçamento × contato | PARCIAL | Decisão de regra | `QuotePage.tsx:39,477`; `ConversationForm.tsx:110` | não | DONO |
 | PF-43 | Repetir orçamento sem esconder mudanças | PARCIAL | Aviso ao ajustar quantidade ao mínimo | `quoteItems.ts:174` | não | ENG |
 | PF-44 | Retorno ao adicionar; confirmação ao limpar | PARCIAL | "Limpar seleção" na página sem confirmação; "Apagar rascunho" avisa depois | `QuotePage.tsx:449,466`; `QuoteDrawer.tsx:209,274-278` | não | ENG |
-| PF-45 | "Por que este produto"; ideias de uso | NÃO INICIADO / BLOQUEADO | Regra + conteúdo | grep = 0 | não | ENG + CONTEÚDO |
+| PF-45 | "Por que este produto"; ideias de uso | IMPLEMENTADO (aprovação visual do painel pendente com o DONO) | Regra determinística sobre atributos declarados + sugestões editoriais rotuladas; as duas primeiras ideias ecoam momento e público do briefing, quando declarados | `src/lib/productApplications.ts`; `src/components/ProductApplications.tsx`; `ProductPage.tsx` (seção após `product-overview`) | sim: #236 | ENG + CONTEÚDO |
 | PF-46 | Personalização por família; múltiplo de compra | BLOQUEADO | Contrato só `allows_personalization`/`min_quantity` | `catalog.ts:76,81,226` | não | CONTEÚDO |
 | PF-47 | WhatsApp iniciado pelo visitante (`wa.me`) | NÃO INICIADO | Número validado + link | `grep wa.me src api e2e` = 0 | não | DONO + ENG |
 | PF-48 | Menu fotográfico de categorias | PARCIAL | Cabeçalho só texto | `Layout.tsx:12,154-159,192-197` | não | ENG + mockup |
@@ -182,7 +182,7 @@ Tabela consolidada (uma linha por item). Evidência completa, comandos reproduz�
 | PF-72 | Rotação de segredos | PARCIAL | Lembrete e runbook com conjuntos disjuntos; `SITE_SUPABASE_DB_URL`, `RESEND_API_KEY`, webhooks em nenhum; issue #80 aberta | `secrets-rotation-reminder.yml:36-40`; `RUNBOOK_ROTACAO_SEGREDOS.md:19-40` | não | ENG + DONO |
 | PF-73 | Privilégio mínimo (cutover JWT, Storage) | PARCIAL | Storage exige `sb_secret_`; sem renovação do JWT | `siteDatabase.ts:59-60,84` | não | DONO + ENG |
 | PF-74 | Endurecimento de workflows | PARCIAL | harden-runner 0; zizmor só comentários; SBOM 0; `persist-credentials` em 2; `permissions` por job em 2 | `release.yml:47`; `stale-branches.yml:24` | sim (pins) | ENG (regra 8) |
-| PF-75 | Verificação de configuração no boot | DIVERGÊNCIA | Função morta removida (#191); preflight não existe | `grep assertSafeSiteDatabaseConfiguration` = 0 | sim (#191) | ENG (decidir) |
+| PF-75 | Verificação de configuração no boot | IMPLEMENTADO | `api/health.ts` valida o destino do banco e o smoke de release exige `{"ok":true}` | `tests/api/health.test.ts`; `scripts/smoke-deployment.mjs:104` | sim (#191) | ENG |
 | PF-76 | Revogar `mcp_kv_get` no canônico | BLOQUEADO | Sem recibo | `docs/sql/canonical-principal/URGENTE_*.sql` | não | DONO |
 | PF-77 | Migrations aplicadas com recibo | IMPLEMENTADO | — | `release.yml:77-143` | sim (#165) | — |
 | PF-78 | Diff integral schema/ACL + Advisor | PARCIAL | Sem `db diff` remoto, grants, Advisor | `database.yml:48`; `gerar-banco.mjs:318-324` | não | ENG |

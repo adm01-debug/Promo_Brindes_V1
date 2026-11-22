@@ -15,6 +15,7 @@ import {
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { CatalogError, ProductGridSkeleton } from '../components/CatalogFeedback';
+import { ProductApplications } from '../components/ProductApplications';
 import { ProductCard } from '../components/ProductCard';
 import { ProductDescription } from '../components/ProductDescription';
 import { ProductGallery } from '../components/ProductGallery';
@@ -210,6 +211,8 @@ export default function ProductPage() {
             </div>
           </section>
         </div>
+
+        <ProductApplications product={product} campaign={cart.campaign} />
 
         <ContextualFaq scope="product" />
 
