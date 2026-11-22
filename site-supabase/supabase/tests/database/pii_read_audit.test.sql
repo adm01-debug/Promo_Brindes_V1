@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 set local request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
 
-select plan(29);
+select plan(30);
 
 -- A trilha é privada: só service_role lê; ninguém além do site grava.
 select ok(not pg_catalog.has_table_privilege('anon', 'site_private.pii_read_audit_log', 'select'), 'anon não lê a trilha de leitura de PII');
@@ -148,6 +148,14 @@ select is(
    where filter ilike '%ana@example.test%' or filter ilike '%@example.test%'),
   0::bigint,
   'e-mail buscado pelo operador nao e copiado para a trilha'
+);
+
+-- A busca por contato precisa ser auditada: provar que a leitura existe, sem o termo.
+select is(
+  (select count(*) from site_private.pii_read_audit_log
+   where actor_kind = 'operador' and filter like '%search%'),
+  1::bigint,
+  'a busca por e-mail gerou registro de leitura com o marcador search, sem o valor'
 );
 
 select is(
