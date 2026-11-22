@@ -35,6 +35,31 @@ export type Database = {
         Returns: boolean
       }
       claim_my_quote_requests: { Args: never; Returns: Json }
+      get_site_quote_request: {
+        Args: { p_request_id: string }
+        Returns: Json
+      }
+      list_site_quote_requests: {
+        Args: { p_limit?: number; p_offset?: number; p_search?: string; p_status?: string }
+        Returns: Json
+      }
+      publish_site_quote_proposal: {
+        Args: {
+          p_valid_until?: string
+          p_storage_path: string
+          p_title: string
+          p_request_id: string
+        }
+        Returns: Json
+      }
+      reply_site_quote_adjustment: {
+        Args: { p_adjustment_id: string; p_note?: string; p_response: string; p_status?: string }
+        Returns: Json
+      }
+      update_site_quote_status: {
+        Args: { p_note?: string; p_request_id: string; p_status: string }
+        Returns: Json
+      }
       claim_site_commercial_team_alert: {
         Args: { p_request_id: string }
         Returns: Json
