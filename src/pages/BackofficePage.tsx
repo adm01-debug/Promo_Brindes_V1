@@ -7,6 +7,7 @@ import {
   SITE_QUOTE_STATUSES,
   SITE_QUOTE_STATUS_LABELS,
   isSiteOperatorError,
+  isSiteProposalRejected,
   isSiteQuoteConflict,
   siteOperatorErrorMessage,
   type SiteQuoteDetail,
@@ -205,6 +206,7 @@ function BackofficeDetail({
   error,
   busy,
   notice,
+  formError,
   onBack,
   onStatus,
   onReply,
@@ -216,6 +218,7 @@ function BackofficeDetail({
   error: string;
   busy: boolean;
   notice: string;
+  formError: string;
   onBack: () => void;
   onStatus: (value: SiteQuoteStatus) => void;
   onReply: (adjustmentId: string, response: string) => void;
@@ -337,6 +340,9 @@ function BackofficeDetail({
               });
             }}
           >
+            {formError ? (
+              <p className="customer-data-error" role="alert">{formError}</p>
+            ) : null}
             <h3>Publicar nova versão</h3>
             <p className="customer-data-note">
               O PDF precisa já estar no bucket privado <code>customer-proposals</code>. O caminho é relativo à raiz do bucket.
@@ -440,6 +446,10 @@ function BackofficeContent() {
   const [operatorError, setOperatorError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
+  // Erro do formulario de publicacao fica separado do erro de carga do detalhe:
+  // um caminho recusado nao pode derrubar o pedido da tela e obrigar o operador
+  // a redigitar titulo, caminho e validade.
+  const [formError, setFormError] = useState('');
   const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => setSearchDraft(search), [search]);
@@ -525,12 +535,14 @@ function BackofficeContent() {
     if (!requestId) return;
     setBusy(true);
     setNotice('');
+    setFormError('');
     try {
       const publication = await publishSiteQuoteProposal({ requestId, ...input });
       setNotice(`Proposta v${publication.version} publicada. O pedido passou para ${SITE_QUOTE_STATUS_LABELS[publication.status].toLowerCase()}.`);
       setRetryKey((key) => key + 1);
     } catch (cause) {
       if (isSiteOperatorError(cause)) setOperatorError(true);
+      else if (isSiteProposalRejected(cause)) setFormError(siteOperatorErrorMessage(cause));
       else setDetailError(siteOperatorErrorMessage(cause));
     } finally {
       setBusy(false);
@@ -563,6 +575,7 @@ function BackofficeContent() {
           error={detailError}
           busy={busy}
           notice={notice}
+          formError={formError}
           onBack={() => patchParams({ pedido: null })}
           onStatus={(value) => { void handleStatus(value); }}
           onReply={(adjustmentId, response) => { void handleReply(adjustmentId, response); }}

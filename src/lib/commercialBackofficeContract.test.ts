@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   isSiteOperatorError,
+  isSiteProposalRejected,
   isSiteQuoteConflict,
   parseSiteQuoteDetail,
   parseSiteQuoteListPage,
@@ -152,6 +153,15 @@ describe('contrato do back-office comercial', () => {
     expect(siteOperatorErrorMessage({ message: 'quoted_requires_proposal_publication' })).toContain('publique a proposta');
     expect(siteOperatorErrorMessage({ message: 'invalid_storage_path' })).toContain('arquivo.pdf');
     expect(siteOperatorErrorMessage({ message: 'algo novo' })).toBe('Não foi possível concluir a operação.');
+  });
+
+  it('separa recusa de formulario de falha de carregamento', () => {
+    expect(isSiteProposalRejected({ message: 'invalid_storage_path' })).toBe(true);
+    expect(isSiteProposalRejected({ message: 'storage_path_required' })).toBe(true);
+    expect(isSiteProposalRejected({ message: 'title_required' })).toBe(true);
+    expect(isSiteProposalRejected({ message: 'proposal_requires_in_progress' })).toBe(false);
+    expect(isSiteProposalRejected({ message: 'quote_request_not_found' })).toBe(false);
+    expect(isSiteProposalRejected(null)).toBe(false);
   });
 
   it('separa o conflito de concorrência para a tela recarregar o pedido', () => {

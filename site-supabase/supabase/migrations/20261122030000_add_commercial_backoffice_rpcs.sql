@@ -137,7 +137,10 @@ declare
   v_operator site_private.commercial_operators := site_private.assert_site_operator();
   v_limit integer := least(greatest(coalesce(p_limit, 25), 1), 100);
   v_offset integer := greatest(coalesce(p_offset, 0), 0);
-  v_search text := nullif(btrim(coalesce(p_search, '')), '');
+  -- A Area do Cliente exibe o protocolo com '#' (CustomerQuotePage). O operador
+  -- cola exatamente o que o cliente viu, entao o prefixo precisa sair antes da
+  -- comparacao, senao a busca exata nunca casa.
+  v_search text := nullif(btrim(ltrim(btrim(coalesce(p_search, '')), '#')), '');
   v_status text := nullif(btrim(coalesce(p_status, '')), '');
   v_rows jsonb;
   v_total integer;
@@ -461,6 +464,37 @@ $$;
 comment on function public.reply_site_quote_adjustment(uuid, text, text) is
   'Responde a um ajuste pedido pelo cliente (F-03): move o estado e grava o texto da resposta na trilha. Trava a linha com FOR UPDATE para não sobrescrever uma resposta concorrente.';
 
+-- === 7b. Validacao de caminho de proposta =====================================
+--
+-- Compartilhada entre a publicacao e o download. '..' so sobe de pasta quando
+-- ocupa o segmento inteiro: 'cliente/proposta..v2.pdf' e apenas um nome de
+-- arquivo com dois pontos e o download ja aceita. Recusar na publicacao o que o
+-- cliente consegue baixar obrigaria o comercial a renomear o PDF.
+--
+-- Immutable e sem side effects: da para testar sem tocar no pedido, sem criar
+-- versao de proposta e sem depender de contexto de operador.
+create or replace function site_private.is_valid_proposal_storage_path(p_path text)
+returns boolean
+language sql
+immutable
+set search_path = ''
+as $$
+  select case
+    when p_path is null or btrim(p_path) = '' then false
+    when length(p_path) > 500 then false
+    when p_path like '/%' then false
+    when position(chr(92) in p_path) > 0 then false
+    when p_path !~* '\.pdf$' then false
+    else not exists (
+      select 1 from unnest(string_to_array(p_path, '/')) as segment
+      where segment = '' or segment = '.' or segment = '..'
+    )
+  end;
+$$;
+
+revoke all on function site_private.is_valid_proposal_storage_path(text) from public;
+grant execute on function site_private.is_valid_proposal_storage_path(text) to authenticated, anon, service_role;
+
 -- === 8. Publicar proposta versionada (produtor de F-23) =========================
 
 create or replace function public.publish_site_quote_proposal(
@@ -491,11 +525,9 @@ begin
   if v_path is null then
     raise exception using errcode = '22023', message = 'storage_path_required';
   end if;
-  -- Mesmas regras do download (api/customer-proposals.ts): sem barra inicial, sem
-  -- '..', sem barra invertida, terminando em .pdf. Caminho inválido falharia só no
-  -- clique do cliente, depois do pedido já anunciar a proposta.
-  if v_path ~ '^/' or position('..' in v_path) > 0 or position(chr(92) in v_path) > 0
-     or v_path !~* '\.pdf$' then
+  -- A mesma regra vale no download (api/customer-proposals.ts): caminho invalido
+  -- so apareceria no clique do cliente, depois do pedido ja anunciar a proposta.
+  if not site_private.is_valid_proposal_storage_path(v_path) then
     raise exception using errcode = '22023', message = 'invalid_storage_path';
   end if;
 

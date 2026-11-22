@@ -336,6 +336,19 @@ export function isSiteOperatorError(error: unknown): boolean {
   return code === '42501' || message.includes('not_a_site_operator') || message.includes('authentication_required');
 }
 
+/**
+ * Falhas de entrada do formulario de publicacao. Sao recusas previstas pela RPC,
+ * nao indisponibilidade: o pedido continua na tela e o operador corrige o campo
+ * sem perder titulo, caminho e validade.
+ */
+export function isSiteProposalRejected(error: unknown): boolean {
+  if (!isRecord(error)) return false;
+  const message = readString(error.message);
+  return message.includes('invalid_storage_path')
+    || message.includes('storage_path_required')
+    || message.includes('title_required');
+}
+
 /** O pedido mudou em outra aba: a UI recarrega o detalhe em vez de só exibir erro. */
 export function isSiteQuoteConflict(error: unknown): boolean {
   return isRecord(error) && readString(error.message).includes('quote_request_changed_concurrently');

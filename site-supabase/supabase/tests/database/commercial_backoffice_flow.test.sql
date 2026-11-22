@@ -11,7 +11,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(41);
+select plan(47);
 
 -- === Fixtures ====================================================================
 
@@ -102,6 +102,24 @@ select is(
   'busca pelo protocolo em minusculas tambem encontra'
 );
 
+-- O cliente ve o protocolo com '#' na Area do Cliente e vai citar exatamente
+-- esse texto no telefone. Colar o codigo com o prefixo precisa funcionar.
+select is(
+  (public.list_site_quote_requests(null, '#'
+    || (select protocol from site_private.quote_requests where id = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'),
+    10, 0) ->> 'total'),
+  '1',
+  'busca pelo protocolo com # encontra o pedido'
+);
+
+select is(
+  (public.list_site_quote_requests(null, ' #'
+    || (select protocol from site_private.quote_requests where id = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc')
+    || ' ', 10, 0) ->> 'total'),
+  '1',
+  'busca tolera # e espacos ao redor do protocolo'
+);
+
 select is(
   public.get_site_quote_request('cccccccc-cccc-4ccc-8ccc-cccccccccccc') ->> 'protocol',
   (select protocol from site_private.quote_requests where id = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'),
@@ -174,6 +192,33 @@ select throws_ok(
 
 -- Caminho invalido faria o cliente falhar no clique, depois do pedido ja anunciar
 -- a proposta: a validacao acontece na publicacao.
+-- '..' so sobe de pasta quando ocupa o segmento inteiro: dentro do nome do
+-- arquivo e apenas parte do nome. O download aceita 'proposta..v2.pdf', entao a
+-- publicacao nao pode recusar (o comercial nao deveria renomear o PDF).
+select is(
+  site_private.is_valid_proposal_storage_path('cliente/proposta..v2.pdf'),
+  true,
+  'caminho com dois pontos dentro do nome do arquivo e aceito'
+);
+
+select is(
+  site_private.is_valid_proposal_storage_path('cliente/../outro.pdf'),
+  false,
+  'caminho com segmento de navegacao .. e recusado'
+);
+
+select is(
+  site_private.is_valid_proposal_storage_path('/cliente/proposta.pdf'),
+  false,
+  'caminho com barra inicial e recusado'
+);
+
+select is(
+  site_private.is_valid_proposal_storage_path('cliente//proposta.pdf'),
+  false,
+  'caminho com segmento vazio e recusado'
+);
+
 select throws_ok(
   $$select public.publish_site_quote_proposal('cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'Proposta', 'ccc/proposta-v1.txt', null)$$,
   '22023', 'invalid_storage_path',

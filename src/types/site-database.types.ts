@@ -1255,6 +1255,10 @@ export type Database = {
         Args: { p_value: string }
         Returns: boolean
       }
+      is_valid_proposal_storage_path: {
+        Args: { p_path: string }
+        Returns: boolean
+      }
       mod11_check_digit: { Args: { p_digits: string }; Returns: string }
       next_retry_at: {
         Args: { p_attempts: number; p_jitter?: number; p_now?: string }
