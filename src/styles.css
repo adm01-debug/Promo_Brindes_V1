@@ -1681,6 +1681,14 @@ p {
   font-size: 0.73rem;
   font-weight: 700;
 }
+.sort-control__hint {
+  max-width: 220px;
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 500;
+  line-height: 1.35;
+  white-space: normal;
+}
 
 .active-filters {
   display: flex;
@@ -5985,6 +5993,23 @@ form.catalog-search > .search-suggestions.is-open { display: grid; pointer-event
 
 .campaign-context svg { flex: 0 0 auto; }
 .campaign-context p { margin: 0; font-size: 0.74rem; line-height: 1.45; }
+.campaign-signals {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.campaign-signals li {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  font-size: 0.7rem;
+  font-weight: 650;
+  color: var(--ink);
+}
+.campaign-signals li span { color: var(--green-dark); font-weight: 800; }
 
 .product-card__decision-signals {
   min-height: 29px;

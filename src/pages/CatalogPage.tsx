@@ -15,7 +15,7 @@ const quickSearches = ['camiseta', 'kit', 'squeeze', 'carregador', 'reciclado'];
 export default function CatalogPage() {
   const state = useCatalogPageState();
   const {
-    activeFilterCount, campaignCount, catalog, catalogError, catalogLoading, categoryNameById, clearAll, clearComparison, comparison,
+    activeFilterCount, campaignCount, campaignSignals, catalog, catalogError, catalogLoading, categoryNameById, clearAll, clearComparison, comparison,
     comparisonControlRefs, comparisonExpanded, comparisonNotice, exactSku, filterPanelProfile, filterPanelProps,
     giftPackaging, isSkuQueryActive, mobileCloseRef, mobileDialogRef, mobileFiltersOpen, mobileTriggerRef, page, personalizable, profile,
     profileWasExplicitlySet, query, removeCampaignFilter, removeComparison, searchCorrection, searchInput, selectedCampaignLabels,
@@ -41,7 +41,7 @@ export default function CatalogPage() {
           }}
         />
         <div className="catalog-quick-searches" aria-label="Sugestões rápidas"><span>Sugestões rápidas:</span>{quickSearches.map((term) => <button key={term} type="button" onClick={() => { setSearchInput(term); submitSearch(term); }}>{term}</button>)}</div>
-        {campaignCount > 0 && <div className="campaign-context"><Sparkles aria-hidden="true" /><p><strong>Curadoria iniciada pelo seu briefing.</strong> O radar aplicou apenas sinais confiáveis. Você pode remover ou combinar qualquer filtro abaixo.</p></div>}
+        {campaignCount > 0 && <div className="campaign-context"><Sparkles aria-hidden="true" /><p><strong>Curadoria iniciada pelo seu briefing.</strong> O radar aplicou apenas sinais confiáveis. Você pode remover ou combinar qualquer filtro abaixo.</p>{campaignSignals.length > 0 && <ul className="campaign-signals">{campaignSignals.map((signal) => <li key={`${signal.source}-${signal.target}`}>{signal.source} <span aria-hidden="true">→</span> {signal.target}</li>)}</ul>}</div>}
       </div></header>
 
       <div className="container catalog-layout">
@@ -61,7 +61,7 @@ export default function CatalogPage() {
           <div className="catalog-toolbar"><div>
             <h2 id="catalog-results-title">{skuQueryActive ? `SKU “${exactSku}”` : query ? `Resultados para “${query}”` : campaignCount > 0 ? 'Curadoria para o seu briefing' : selectedCategoryIds.length > 1 ? 'Seu recorte de campanha' : selectedCategoryName || (filterPanelProfile === 'kits' ? 'Kits & combos' : filterPanelProfile === 'novos' ? 'Tendências' : filterPanelProfile === 'destaques' ? 'Destaques da curadoria' : 'Radar completo')}</h2>
             <p aria-live="polite" aria-atomic="true">{catalogLoading ? 'Buscando produtos…' : catalogError ? 'Não foi possível concluir a busca.' : `${catalog.data.total.toLocaleString('pt-BR')} ${catalog.data.total === 1 ? 'produto encontrado' : 'produtos encontrados'}`}</p>
-          </div><label className="sort-control">Ordenar por<select value={sort} onChange={(event) => updateParams({ ordem: event.target.value === 'curadoria' ? null : event.target.value }, true)}><option value="curadoria">Curadoria Promo</option><option value="recentes">Mais recentes</option><option value="nome">Nome A–Z</option></select></label></div>
+          </div><div className="sort-control"><label htmlFor="catalog-sort">Ordenar por</label><select id="catalog-sort" aria-describedby="catalog-sort-hint" value={sort} onChange={(event) => updateParams({ ordem: event.target.value === 'curadoria' ? null : event.target.value }, true)}><option value="curadoria">Curadoria Promo</option><option value="recentes">Mais recentes</option><option value="nome">Nome A–Z</option></select><span id="catalog-sort-hint" className="sort-control__hint">Curadoria equilibra relevância e variedade na página carregada, sem usar preço ou estoque.</span></div></div>
           {activeFilterCount > 0 && <div className="active-filters" aria-label="Filtros aplicados">
             <span>Filtros:</span>{query && <button type="button" onClick={() => { setSearchInput(''); updateParams({ q: null }); }}>Busca: {query} <X size={14} /></button>}
             {selectedCampaignLabels.map((item) => <button key={item.key} type="button" onClick={() => removeCampaignFilter(item.key)}>{item.label} <X size={14} /></button>)}

@@ -3,6 +3,7 @@ import {
   buildCampaignCatalogUrl,
   campaignLabels,
   campaignSelectionCount,
+  campaignSignalExplanations,
   parseCampaignSelection,
   resolveCampaignFilters,
 } from './campaignPresets';
@@ -79,5 +80,72 @@ describe('ache pelo briefing', () => {
     expect(resolveCampaignFilters({ moment: 'relacionamento', audience: 'clientes' }, categories)).toMatchObject({
       profile: 'featured',
     });
+  });
+
+  it('liga cada resposta do briefing ao filtro efetivo que ela gerou', () => {
+    const categories = [{ id: 'tech', name: 'Tecnologia', parentId: null }];
+    expect(campaignSignalExplanations({ mood: 'sustentavel' }, categories)).toEqual([
+      { source: 'Clima: Sustentável', target: 'Material reciclado' },
+    ]);
+    expect(campaignSignalExplanations({ mood: 'tech' }, categories)).toEqual([
+      { source: 'Clima: Tech', target: 'Categoria Tecnologia' },
+    ]);
+    expect(campaignSignalExplanations({ mood: 'divertido' }, categories)).toEqual([
+      { source: 'Clima: Divertido', target: 'Cor colorido' },
+    ]);
+    expect(campaignSignalExplanations({ audience: 'publico-evento' }, categories)).toEqual([
+      { source: 'Público: Público de evento', target: 'Personalizável' },
+    ]);
+  });
+
+  it('não inventa sinais para uma escolha sem filtro estrutural', () => {
+    const categories: { id: string; name: string; parentId: null }[] = [];
+    expect(campaignSignalExplanations({ moment: 'onboarding', audience: 'colaboradores' }, categories)).toEqual([
+      { source: 'Momento: Onboarding', target: 'Curadoria de boas-vindas' },
+    ]);
+    expect(campaignSignalExplanations({ moment: 'evento' }, categories)).toEqual([
+      { source: 'Momento: Evento', target: 'Coleção Em alta' },
+    ]);
+  });
+
+  it('atribui a coleção Em alta à resposta do briefing que a ativou (PF-40)', () => {
+    const categories: { id: string; name: string; parentId: null }[] = [];
+    // Público isolado ativa Em alta -> origem Público, nunca "Clima/Momento: undefined".
+    expect(campaignSignalExplanations({ audience: 'clientes' }, categories)).toEqual([
+      { source: 'Público: Clientes', target: 'Coleção Em alta' },
+    ]);
+    // Clima premium ativa Em alta -> origem Clima.
+    expect(campaignSignalExplanations({ mood: 'premium' }, categories)).toEqual([
+      { source: 'Clima: Premium', target: 'Coleção Em alta' },
+    ]);
+  });
+
+  it('suprime sinais do briefing substituídos por uma escolha explícita no catálogo (PF-40)', () => {
+    const categories = [{ id: 'tech', name: 'Tecnologia', parentId: null }];
+    // Coleção escolhida explicitamente (novos) substitui o perfil derivado do briefing.
+    expect(campaignSignalExplanations({ moment: 'evento' }, categories, { effectiveProfile: 'new' })).toEqual([]);
+    // Busca digitada substitui o termo editorial do briefing.
+    expect(campaignSignalExplanations({ moment: 'onboarding' }, categories, { query: 'camiseta' })).toEqual([]);
+    // Categoria escolhida explicitamente substitui a categoria derivada do briefing.
+    expect(campaignSignalExplanations({ mood: 'tech' }, categories, { selectedCategoryIds: ['presentes'] })).toEqual([]);
+    // SKU exato substitui categoria, cor, material e a busca editorial do
+    // briefing: a consulta só emite `sku.eq.<codigo>` nesse modo.
+    expect(campaignSignalExplanations({ mood: 'sustentavel', moment: 'onboarding' }, categories, { exactSku: 'BR-001' })).toEqual([]);
+  });
+
+  it('mantem os sinais de cor e material do briefing porque a consulta soma as escolhas (PF-40)', () => {
+    const categories = [{ id: 'tech', name: 'Tecnologia', parentId: null }];
+    const signals = campaignSignalExplanations({ mood: 'divertido' }, categories);
+    // buildCatalogParams aceita qualquer valor do grupo (OR), então escolher
+    // uma cor ou material no painel não desativa os derivados do briefing.
+    expect(signals).toContainEqual({ source: 'Clima: Divertido', target: 'Cor colorido' });
+    expect(campaignSignalExplanations({ mood: 'divertido' }, categories, {})).toEqual(signals);
+  });
+
+  it('suprime a curadoria de boas-vindas quando a busca por SKU exato assume (PF-40)', () => {
+    const categories = [{ id: 'tech', name: 'Tecnologia', parentId: null }];
+    const withoutSku = campaignSignalExplanations({ moment: 'onboarding' }, categories);
+    expect(withoutSku).toContainEqual({ source: 'Momento: Onboarding', target: 'Curadoria de boas-vindas' });
+    expect(campaignSignalExplanations({ moment: 'onboarding' }, categories, { exactSku: 'PB-100' })).toEqual([]);
   });
 });

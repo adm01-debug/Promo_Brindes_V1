@@ -6,6 +6,7 @@ import {
   campaignBriefFromSelection,
   campaignLabels,
   campaignSelectionCount,
+  campaignSignalExplanations,
   parseCampaignSelection,
   resolveCampaignFilters,
   type CampaignSelection,
@@ -97,6 +98,18 @@ export function useCatalogPageState() {
   const effectiveProfile = profileWasExplicitlySet
     ? profile === 'destaques' ? 'featured' : profile === 'novos' ? 'new' : profile === 'kits' ? 'kits' : 'all'
     : campaignFilters.profile || (profile === 'destaques' ? 'featured' : profile === 'novos' ? 'new' : profile === 'kits' ? 'kits' : 'all');
+  const campaignSignals = useMemo(
+    () => campaignSignalExplanations(campaignSelection, categories.data, {
+      effectiveProfile,
+      selectedCategoryIds,
+      query,
+      exactSku: skuQueryActive ? exactSku : undefined,
+    }),
+    // A chave estabiliza a seleção lida da URL; os demais termos refletem as
+    // escolhas efetivas que podem substituir os sinais do briefing.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [campaignKey, categories.data, effectiveProfile, selectedCategoryIds, query, exactSku, skuQueryActive],
+  );
   const filterPanelProfile: ProfileParam = effectiveProfile === 'featured' ? 'destaques' : effectiveProfile === 'new' ? 'novos' : effectiveProfile === 'kits' ? 'kits' : 'todos';
   const catalog = useCatalog({
     // A busca digitada vence o termo da campanha: quem escreve na barra está
@@ -298,7 +311,7 @@ export function useCatalogPageState() {
   };
 
   return {
-    activeFilterCount, campaignCount, catalog: rankedCatalog, catalogError, catalogLoading, categoryNameById, clearAll, clearComparison, comparison,
+    activeFilterCount, campaignCount, campaignSignals, catalog: rankedCatalog, catalogError, catalogLoading, categoryNameById, clearAll, clearComparison, comparison,
     comparisonControlRefs, comparisonExpanded, comparisonNotice, effectiveColors, effectiveMaterials, filterPanelProfile, filterPanelProps,
     giftPackaging, isSkuQueryActive: Boolean(query) && isSkuQuery(query) && catalog.data.products.length === 0, mobileCloseRef, mobileDialogRef, mobileFiltersOpen,
     mobileTriggerRef, page, personalizable, profile, profileWasExplicitlySet, query, removeCampaignFilter, removeComparison, searchCorrection, searchInput,
