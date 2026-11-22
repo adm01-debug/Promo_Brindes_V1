@@ -176,6 +176,11 @@ try {
   // (pior caso) mantem 1,8 e 1,3 KiB de folga — a rota e lazy, entao o custo
   // aparece no corpus total e nao na primeira visita, e folga abaixo de 1 KiB
   // ja fez a CI reprovar por variacao de runner nas recalibragens anteriores.
+  // Brotli recalibrado em 22/11/2026 de 279/278 para 281/280 KiB pelo mesmo
+  // motivo do teto raw acima (F-12): producao medida em 278,4 KiB e pior caso
+  // com as tres flags em 279,4 KiB. A folga fica em 1,6 KiB dos dois lados,
+  // acima da variacao de runner (~0,2 KiB) e abaixo do custo de uma feature
+  // nova, entao uma regressao real continua reprovando.
   assertBudget(
     WORST_CASE ? 'JavaScript total (Brotli, pior caso com as flags ligadas)' : 'JavaScript total (Brotli)',
     javascriptBrotli,
