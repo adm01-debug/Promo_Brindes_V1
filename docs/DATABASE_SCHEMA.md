@@ -18,6 +18,7 @@ erDiagram
   erased_customer_identities
   notification_deliveries
   notification_provider_events
+  pii_read_audit_log
   proposal_documents
   quote_adjustment_requests
   quote_items

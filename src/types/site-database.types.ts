@@ -855,6 +855,36 @@ export type Database = {
           },
         ]
       }
+      pii_read_audit_log: {
+        Row: {
+          application_name: string | null
+          id: number
+          occurred_at: string
+          operation: string
+          performed_by: string
+          subject: string | null
+          table_name: string
+        }
+        Insert: {
+          application_name?: string | null
+          id?: never
+          occurred_at?: string
+          operation?: string
+          performed_by: string
+          subject?: string | null
+          table_name: string
+        }
+        Update: {
+          application_name?: string | null
+          id?: never
+          occurred_at?: string
+          operation?: string
+          performed_by?: string
+          subject?: string | null
+          table_name?: string
+        }
+        Relationships: []
+      }
       proposal_documents: {
         Row: {
           created_at: string
@@ -1333,6 +1363,10 @@ export type Database = {
       is_valid_proposal_storage_path: {
         Args: { p_path: string }
         Returns: boolean
+      }
+      log_pii_read: {
+        Args: { p_subject?: string; p_table_name: string }
+        Returns: undefined
       }
       mod11_check_digit: { Args: { p_digits: string }; Returns: string }
       next_retry_at: {

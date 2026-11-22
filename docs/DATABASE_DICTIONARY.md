@@ -224,6 +224,20 @@ Deduplicação de eventos de webhook de entrega/devolução (Etapa 30). Sem cont
 | `provider_message_id` | `text` | F-12: id da mensagem no provedor, preservado no evento para o re-vínculo de evento que chegou antes do aceite. Eventos anteriores a esta migration não têm o valor e só podem ser expurgados. |
 | `bounce_reason` | `text` | F-12: motivo do bounce tal como o webhook enviou, preservado no evento para o re-vínculo (antes só existia em notification_deliveries, o que exigia a entrega já vinculada). |
 
+### `site_private.pii_read_audit_log`
+
+PF-34: audita leituras (SELECT) de colunas de contato do titular em tabelas de PII. Não armazena o valor lido, só que uma leitura aconteceu, para quem e quando.
+
+| Coluna | Tipo | Comentário |
+|---|---|---|
+| `id` | `bigint` | — |
+| `table_name` | `text` | — |
+| `operation` | `text` | — |
+| `subject` | `uuid` | — |
+| `performed_by` | `text` | — |
+| `application_name` | `text` | — |
+| `occurred_at` | `timestamp with time zone` | — |
+
 ### `site_private.proposal_documents`
 
 _Sem comment on table — considerar adicionar um na próxima migration que tocar esta tabela._
