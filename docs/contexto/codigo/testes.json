@@ -5,7 +5,7 @@
   "vitest",
   "playwright"
  ],
- "total": 154,
+ "total": 155,
  "por_tipo": {
   "contrato": 2,
   "e2e": 6,
@@ -1136,6 +1136,7 @@
   "site-supabase/supabase/tests/database/contact_commercial_alert.test.sql",
   "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
   "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
+  "site-supabase/supabase/tests/database/customer_message_events.test.sql",
   "site-supabase/supabase/tests/database/customer_occasion_favorites.test.sql",
   "site-supabase/supabase/tests/database/customer_portal.test.sql",
   "site-supabase/supabase/tests/database/customer_selections.test.sql",

@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "18eebb5704943b58c162630bb9a18a6c0e805948",
+  "sha": "a6cd5338ba3299460d0d3fde5ed3e71d5a0caa39",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-22 13:13 UTC",
-  "files_total": 633,
-  "code_files": 413,
-  "code_lines": 74809,
+  "generated_at": "2026-11-22 15:59 UTC",
+  "files_total": 636,
+  "code_files": 416,
+  "code_lines": 75441,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "0cf5eccb8079da8b",
+ "facts_hash": "8c712a22607e690c",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -282,7 +282,7 @@
   "package_manager": "npm",
   "languages": {
    ".ts": 160,
-   ".sql": 114,
+   ".sql": 117,
    ".tsx": 66,
    ".mjs": 63,
    ".py": 8,
@@ -3485,7 +3485,7 @@
     "args": "",
     "returns": "jsonb",
     "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
+    "src": "site-supabase/supabase/migrations/20261122080000_include_message_text_in_export.sql",
     "security_definer": true,
     "search_path": true,
     "body": "declare v_user_id uuid := auth.uid(); v_email text := site_private.current_titular_verified_email(); v_display_name text; v_company text; v_quotes jsonb; v_selections jsonb; v_favorites jsonb; v_contacts jsonb; v_adjustments jsonb; v_rights jsonb; begin insert into site_private.subject_right_requests (subject_user_id, right_type) values (v_user_id, 'export'); select profile.display_name, profile.company into v_display_name, v_company from site_private.customer_profiles profile where profile.user_id = v_user_id; select coalesce(jsonb_agg(payload order by created_at desc), '[]'::jsonb) into v_quotes from ( select request.created_at, jsonb_build_object( 'id', request.id, 'protocol', request.pro …",
@@ -3534,10 +3534,10 @@
     "args": "p_email text, p_user_id uuid default null",
     "returns": "jsonb",
     "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
+    "src": "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql",
     "security_definer": true,
     "search_path": true,
-    "body": "declare v_email text := site_private.normalize_email(p_email); v_email_hash text; v_quote_ids uuid[]; v_user_ids uuid[]; v_storage_paths jsonb; v_quotes integer := 0; v_contacts integer := 0; v_profiles integer := 0; v_documents integer := 0; v_users integer := 0; v_kit_names integer := 0; v_notifications integer := 0; begin if length(v_email) not between 5 and 160 or v_email !~ '^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$' then raise exception using errcode = '22023', message = 'invalid_erasure_email'; end if; v_email_hash := encode(sha256(convert_to(v_email, 'UTF8')), 'hex'); select coalesce(array_agg(distinct candidate.user_id), '{}'::uuid[]) into v_user_ids from ( select profile.user_id from site_private …",
+    "body": "declare v_email text := site_private.normalize_email(p_email); v_email_hash text; v_quote_ids uuid[]; v_user_ids uuid[]; v_storage_paths jsonb; v_quotes integer := 0; v_contacts integer := 0; v_profiles integer := 0; v_documents integer := 0; v_users integer := 0; v_kit_names integer := 0; v_notifications integer := 0; v_events integer := 0; begin if length(v_email) not between 5 and 160 or v_email !~ '^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$' then raise exception using errcode = '22023', message = 'invalid_erasure_email'; end if; v_email_hash := encode(sha256(convert_to(v_email, 'UTF8')), 'hex'); select coalesce(array_agg(distinct candidate.user_id), '{}'::uuid[]) into v_user_ids from ( select profile.us …",
     "raises": [
      "invalid_erasure_email"
     ],
@@ -3632,13 +3632,14 @@
     "args": "p_adjustment_id uuid, p_response text, p_status text default 'resolved'",
     "returns": "jsonb",
     "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+    "src": "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql",
     "security_definer": true,
     "search_path": true,
-    "body": "declare v_operator site_private.commercial_operators := site_private.assert_site_operator(); v_response text := nullif(btrim(coalesce(p_response, '')), ''); v_status text := nullif(btrim(coalesce(p_status, 'resolved')), ''); v_adjustment site_private.quote_adjustment_requests%rowtype; begin if p_adjustment_id is null then raise exception using errcode = '22023', message = 'adjustment_id_required'; end if; if v_response is null then raise exception using errcode = '22023', message = 'response_required'; end if; if v_status not in ('triaged', 'resolved', 'closed') then raise exception using errcode = '22023', message = 'invalid_adjustment_status'; end if; select * into v_adjustment from site_p …",
+    "body": "declare v_operator site_private.commercial_operators := site_private.assert_site_operator(); v_response text := nullif(btrim(coalesce(p_response, '')), ''); v_status text := nullif(btrim(coalesce(p_status, 'resolved')), ''); v_adjustment site_private.quote_adjustment_requests%rowtype; begin if p_adjustment_id is null then raise exception using errcode = '22023', message = 'adjustment_id_required'; end if; if v_response is null then raise exception using errcode = '22023', message = 'response_required'; end if; if length(v_response) > 500 then raise exception using errcode = '22023', message = 'response_too_long'; end if; if v_status not in ('triaged', 'resolved', 'closed') then raise excepti …",
     "raises": [
      "adjustment_id_required",
      "response_required",
+     "response_too_long",
      "invalid_adjustment_status",
      "adjustment_not_found"
     ],
@@ -4097,7 +4098,9 @@
    "site-supabase/supabase/migrations/20261117030100_repair_incomplete_customer_data_erasure.sql",
    "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
    "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
-   "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
+   "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql",
+   "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql",
+   "site-supabase/supabase/migrations/20261122080000_include_message_text_in_export.sql"
   ],
   "rls": {
    "site_private.quote_requests": "forced",
@@ -6912,11 +6915,6 @@
     "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
    },
    {
-    "function": "erase_customer_data",
-    "msg": "invalid_erasure_email",
-    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
-   },
-   {
     "function": "claim_my_quote_requests",
     "msg": "authentication_required",
     "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
@@ -6982,26 +6980,6 @@
     "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
    },
    {
-    "function": "reply_site_quote_adjustment",
-    "msg": "adjustment_id_required",
-    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
-   },
-   {
-    "function": "reply_site_quote_adjustment",
-    "msg": "response_required",
-    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
-   },
-   {
-    "function": "reply_site_quote_adjustment",
-    "msg": "invalid_adjustment_status",
-    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
-   },
-   {
-    "function": "reply_site_quote_adjustment",
-    "msg": "adjustment_not_found",
-    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
-   },
-   {
     "function": "publish_site_quote_proposal",
     "msg": "request_id_required",
     "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
@@ -7045,6 +7023,36 @@
     "function": "record_cron_heartbeat",
     "msg": "invalid_cron_outcome",
     "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
+   },
+   {
+    "function": "reply_site_quote_adjustment",
+    "msg": "adjustment_id_required",
+    "src": "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql"
+   },
+   {
+    "function": "reply_site_quote_adjustment",
+    "msg": "response_required",
+    "src": "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql"
+   },
+   {
+    "function": "reply_site_quote_adjustment",
+    "msg": "response_too_long",
+    "src": "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql"
+   },
+   {
+    "function": "reply_site_quote_adjustment",
+    "msg": "invalid_adjustment_status",
+    "src": "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql"
+   },
+   {
+    "function": "reply_site_quote_adjustment",
+    "msg": "adjustment_not_found",
+    "src": "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql"
+   },
+   {
+    "function": "erase_customer_data",
+    "msg": "invalid_erasure_email",
+    "src": "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql"
    }
   ],
   "seed": [],
@@ -8431,8 +8439,8 @@
   },
   {
    "module": "site-supabase",
-   "files": 106,
-   "lines": 15239,
+   "files": 109,
+   "lines": 15871,
    "tables": [],
    "exports": [],
    "docs": [],
@@ -8511,14 +8519,14 @@
     "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
     "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
     "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql",
+    "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql",
+    "site-supabase/supabase/migrations/20261122080000_include_message_text_in_export.sql",
     "site-supabase/supabase/tests/database/adjustment_limits.test.sql",
     "site-supabase/supabase/tests/database/admin_write_audit.test.sql",
     "site-supabase/supabase/tests/database/briefing_assets.test.sql",
     "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
     "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
-    "site-supabase/supabase/tests/database/contact_commercial_alert.test.sql",
-    "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
-    "site-supabase/supabase/tests/database/customer_data_erasure.test.sql"
+    "site-supabase/supabase/tests/database/contact_commercial_alert.test.sql"
    ]
   },
   {
@@ -15593,6 +15601,102 @@
    {
     "file": "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
     "name": "orçamento órfão é anonimizado na autoexclusão"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_message_events.test.sql",
+    "name": "check de event_type aceita message"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_message_events.test.sql",
+    "name": "operador responde o ajuste"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_message_events.test.sql",
+    "name": "a resposta produziu exatamente um evento de mensagem"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_message_events.test.sql",
+    "name": "o titulo da mensagem e fixo, sem copiar o texto do cliente"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_message_events.test.sql",
+    "name": "a mensagem e direcionada ao cliente"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_message_events.test.sql",
+    "name": "a descricao carrega o texto escrito pelo operador"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_message_events.test.sql",
+    "name": "o ajuste continua mudando de estado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_message_events.test.sql",
+    "name": "a trilha interna permanece com o texto"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_message_events.test.sql",
+    "name": "resposta acima de 500 caracteres e recusada em vez de truncada"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_message_events.test.sql",
+    "name": "a resposta recusada nao cria mensagem parcial na linha do tempo"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_message_events.test.sql",
+    "name": "a resposta recusada tambem nao entra na trilha interna"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_message_events.test.sql",
+    "name": "resposta com exatamente 500 caracteres e aceita"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_message_events.test.sql",
+    "name": "o cliente recebe os 500 caracteres integrais"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_message_events.test.sql",
+    "name": "a trilha interna guarda o mesmo texto que o cliente recebeu"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_message_events.test.sql",
+    "name": "o titular recebe a mensagem na linha do tempo"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_message_events.test.sql",
+    "name": "a mensagem mais recente aparece no topo da linha do tempo"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_message_events.test.sql",
+    "name": "o portal nao expoe evento de audiencia interna"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_message_events.test.sql",
+    "name": "o texto da nota interna nao aparece na linha do tempo do titular"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_message_events.test.sql",
+    "name": "Baixar meus dados inclui o texto da mensagem, nao so o titulo"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_message_events.test.sql",
+    "name": "a exportacao tambem nao vaza o evento interno"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_message_events.test.sql",
+    "name": "o apagamento conta as duas mensagens anonimizadas"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_message_events.test.sql",
+    "name": "nenhuma mensagem com texto livre sobrevive ao apagamento"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_message_events.test.sql",
+    "name": "os eventos de estado, que nao tem texto livre, sao preservados"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/customer_message_events.test.sql",
+    "name": "a segunda execucao e idempotente: nenhuma mensagem reprocessada"
    },
    {
     "file": "site-supabase/supabase/tests/database/customer_occasion_favorites.test.sql",
@@ -23493,7 +23597,7 @@
     "args": "",
     "returns": "jsonb",
     "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
+    "src": "site-supabase/supabase/migrations/20261122080000_include_message_text_in_export.sql",
     "security_definer": true,
     "search_path": true,
     "body": "declare v_user_id uuid := auth.uid(); v_email text := site_private.current_titular_verified_email(); v_display_name text; v_company text; v_quotes jsonb; v_selections jsonb; v_favorites jsonb; v_contacts jsonb; v_adjustments jsonb; v_rights jsonb; begin insert into site_private.subject_right_requests (subject_user_id, right_type) values (v_user_id, 'export'); select profile.display_name, profile.company into v_display_name, v_company from site_private.customer_profiles profile where profile.user_id = v_user_id; select coalesce(jsonb_agg(payload order by created_at desc), '[]'::jsonb) into v_quotes from ( select request.created_at, jsonb_build_object( 'id', request.id, 'protocol', request.pro …",
@@ -23542,10 +23646,10 @@
     "args": "p_email text, p_user_id uuid default null",
     "returns": "jsonb",
     "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
+    "src": "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql",
     "security_definer": true,
     "search_path": true,
-    "body": "declare v_email text := site_private.normalize_email(p_email); v_email_hash text; v_quote_ids uuid[]; v_user_ids uuid[]; v_storage_paths jsonb; v_quotes integer := 0; v_contacts integer := 0; v_profiles integer := 0; v_documents integer := 0; v_users integer := 0; v_kit_names integer := 0; v_notifications integer := 0; begin if length(v_email) not between 5 and 160 or v_email !~ '^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$' then raise exception using errcode = '22023', message = 'invalid_erasure_email'; end if; v_email_hash := encode(sha256(convert_to(v_email, 'UTF8')), 'hex'); select coalesce(array_agg(distinct candidate.user_id), '{}'::uuid[]) into v_user_ids from ( select profile.user_id from site_private …",
+    "body": "declare v_email text := site_private.normalize_email(p_email); v_email_hash text; v_quote_ids uuid[]; v_user_ids uuid[]; v_storage_paths jsonb; v_quotes integer := 0; v_contacts integer := 0; v_profiles integer := 0; v_documents integer := 0; v_users integer := 0; v_kit_names integer := 0; v_notifications integer := 0; v_events integer := 0; begin if length(v_email) not between 5 and 160 or v_email !~ '^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$' then raise exception using errcode = '22023', message = 'invalid_erasure_email'; end if; v_email_hash := encode(sha256(convert_to(v_email, 'UTF8')), 'hex'); select coalesce(array_agg(distinct candidate.user_id), '{}'::uuid[]) into v_user_ids from ( select profile.us …",
     "raises": [
      "invalid_erasure_email"
     ],
@@ -23640,13 +23744,14 @@
     "args": "p_adjustment_id uuid, p_response text, p_status text default 'resolved'",
     "returns": "jsonb",
     "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+    "src": "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql",
     "security_definer": true,
     "search_path": true,
-    "body": "declare v_operator site_private.commercial_operators := site_private.assert_site_operator(); v_response text := nullif(btrim(coalesce(p_response, '')), ''); v_status text := nullif(btrim(coalesce(p_status, 'resolved')), ''); v_adjustment site_private.quote_adjustment_requests%rowtype; begin if p_adjustment_id is null then raise exception using errcode = '22023', message = 'adjustment_id_required'; end if; if v_response is null then raise exception using errcode = '22023', message = 'response_required'; end if; if v_status not in ('triaged', 'resolved', 'closed') then raise exception using errcode = '22023', message = 'invalid_adjustment_status'; end if; select * into v_adjustment from site_p …",
+    "body": "declare v_operator site_private.commercial_operators := site_private.assert_site_operator(); v_response text := nullif(btrim(coalesce(p_response, '')), ''); v_status text := nullif(btrim(coalesce(p_status, 'resolved')), ''); v_adjustment site_private.quote_adjustment_requests%rowtype; begin if p_adjustment_id is null then raise exception using errcode = '22023', message = 'adjustment_id_required'; end if; if v_response is null then raise exception using errcode = '22023', message = 'response_required'; end if; if length(v_response) > 500 then raise exception using errcode = '22023', message = 'response_too_long'; end if; if v_status not in ('triaged', 'resolved', 'closed') then raise excepti …",
     "raises": [
      "adjustment_id_required",
      "response_required",
+     "response_too_long",
      "invalid_adjustment_status",
      "adjustment_not_found"
     ],
@@ -24157,11 +24262,6 @@
     "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
    },
    {
-    "function": "erase_customer_data",
-    "msg": "invalid_erasure_email",
-    "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
-   },
-   {
     "function": "claim_my_quote_requests",
     "msg": "authentication_required",
     "src": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql"
@@ -24227,26 +24327,6 @@
     "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
    },
    {
-    "function": "reply_site_quote_adjustment",
-    "msg": "adjustment_id_required",
-    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
-   },
-   {
-    "function": "reply_site_quote_adjustment",
-    "msg": "response_required",
-    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
-   },
-   {
-    "function": "reply_site_quote_adjustment",
-    "msg": "invalid_adjustment_status",
-    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
-   },
-   {
-    "function": "reply_site_quote_adjustment",
-    "msg": "adjustment_not_found",
-    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
-   },
-   {
     "function": "publish_site_quote_proposal",
     "msg": "request_id_required",
     "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
@@ -24290,6 +24370,36 @@
     "function": "record_cron_heartbeat",
     "msg": "invalid_cron_outcome",
     "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
+   },
+   {
+    "function": "reply_site_quote_adjustment",
+    "msg": "adjustment_id_required",
+    "src": "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql"
+   },
+   {
+    "function": "reply_site_quote_adjustment",
+    "msg": "response_required",
+    "src": "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql"
+   },
+   {
+    "function": "reply_site_quote_adjustment",
+    "msg": "response_too_long",
+    "src": "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql"
+   },
+   {
+    "function": "reply_site_quote_adjustment",
+    "msg": "invalid_adjustment_status",
+    "src": "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql"
+   },
+   {
+    "function": "reply_site_quote_adjustment",
+    "msg": "adjustment_not_found",
+    "src": "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql"
+   },
+   {
+    "function": "erase_customer_data",
+    "msg": "invalid_erasure_email",
+    "src": "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql"
    }
   ],
   "db_generated": [],
@@ -31497,6 +31607,15 @@
    ],
    "uses_service_role": true
   },
+  "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql": {
+   "path": "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql",
+   "lines": 227,
+   "uses_service_role": true
+  },
+  "site-supabase/supabase/migrations/20261122080000_include_message_text_in_export.sql": {
+   "path": "site-supabase/supabase/migrations/20261122080000_include_message_text_in_export.sql",
+   "lines": 142
+  },
   "site-supabase/supabase/tests/database/adjustment_limits.test.sql": {
    "path": "site-supabase/supabase/tests/database/adjustment_limits.test.sql",
    "lines": 87,
@@ -31828,6 +31947,41 @@
     "orçamento órfão é anonimizado na autoexclusão"
    ],
    "uses_service_role": true
+  },
+  "site-supabase/supabase/tests/database/customer_message_events.test.sql": {
+   "path": "site-supabase/supabase/tests/database/customer_message_events.test.sql",
+   "lines": 263,
+   "is_test": true,
+   "rule_comments": [
+    "] ? (@.title == \"NOTA INTERNA: negociacao de desconto\")'",
+    "].events[*] ? (@.title == \"NOTA INTERNA: negociacao de desconto\")'"
+   ],
+   "tests": [
+    "check de event_type aceita message",
+    "operador responde o ajuste",
+    "a resposta produziu exatamente um evento de mensagem",
+    "o titulo da mensagem e fixo, sem copiar o texto do cliente",
+    "a mensagem e direcionada ao cliente",
+    "a descricao carrega o texto escrito pelo operador",
+    "o ajuste continua mudando de estado",
+    "a trilha interna permanece com o texto",
+    "resposta acima de 500 caracteres e recusada em vez de truncada",
+    "a resposta recusada nao cria mensagem parcial na linha do tempo",
+    "a resposta recusada tambem nao entra na trilha interna",
+    "resposta com exatamente 500 caracteres e aceita",
+    "o cliente recebe os 500 caracteres integrais",
+    "a trilha interna guarda o mesmo texto que o cliente recebeu",
+    "o titular recebe a mensagem na linha do tempo",
+    "a mensagem mais recente aparece no topo da linha do tempo",
+    "o portal nao expoe evento de audiencia interna",
+    "o texto da nota interna nao aparece na linha do tempo do titular",
+    "Baixar meus dados inclui o texto da mensagem, nao so o titulo",
+    "a exportacao tambem nao vaza o evento interno",
+    "o apagamento conta as duas mensagens anonimizadas",
+    "nenhuma mensagem com texto livre sobrevive ao apagamento",
+    "os eventos de estado, que nao tem texto livre, sao preservados",
+    "a segunda execucao e idempotente: nenhuma mensagem reprocessada"
+   ]
   },
   "site-supabase/supabase/tests/database/customer_occasion_favorites.test.sql": {
    "path": "site-supabase/supabase/tests/database/customer_occasion_favorites.test.sql",
@@ -37193,10 +37347,25 @@
   }
  },
  "git": {
-  "sha": "18eebb5704943b58c162630bb9a18a6c0e805948",
+  "sha": "a6cd5338ba3299460d0d3fde5ed3e71d5a0caa39",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "a6cd533",
+    "date": "2026-11-22",
+    "author": "adm01-debug",
+    "subject": "feat: mensagens da equipe ao cliente na linha do tempo (F-05) (#235)",
+    "files": [
+     "analise-prs/funcionalidades.csv",
+     "docs/DATABASE_DICTIONARY.md",
+     "docs/DATABASE_FUNCTION_CONTRACTS.md",
+     "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql",
+     "site-supabase/supabase/migrations/20261122080000_include_message_text_in_export.sql",
+     "site-supabase/supabase/tests/database/customer_message_events.test.sql",
+     "src/pages/BackofficePage.tsx"
+    ]
+   },
    {
     "sha": "18eebb5",
     "date": "2026-11-22",
@@ -37598,23 +37767,12 @@
      "scripts/orphan-refs-baseline.json",
      "tests/orphan-refs.node.mjs"
     ]
-   },
-   {
-    "sha": "6d13174",
-    "date": "2026-11-18",
-    "author": "adm01-debug",
-    "subject": "fix(graphify): .graphifyignore passa a excluir da indexação, não só da impressão digital (#198)",
-    "files": [
-     "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
-     "scripts/graphify.mjs",
-     "tests/graphify-tools.node.mjs"
-    ]
    }
   ],
   "hot_files": [
    [
     "analise-prs/funcionalidades.csv",
-    12
+    13
    ],
    [
     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
@@ -37629,11 +37787,15 @@
     6
    ],
    [
+    "docs/DATABASE_DICTIONARY.md",
+    4
+   ],
+   [
     "src/lib/useCatalogPageState.ts",
     4
    ],
    [
-    "docs/DATABASE_DICTIONARY.md",
+    "docs/DATABASE_FUNCTION_CONTRACTS.md",
     3
    ],
    [
@@ -37657,8 +37819,8 @@
     3
    ],
    [
-    "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
-    3
+    "src/pages/BackofficePage.tsx",
+    2
    ],
    [
     "src/pages/PrivacyPage.tsx",
@@ -37670,10 +37832,6 @@
    ],
    [
     "vercel.json",
-    2
-   ],
-   [
-    "docs/DATABASE_FUNCTION_CONTRACTS.md",
     2
    ],
    [

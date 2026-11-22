@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `18eebb5704` · branch `main` · 2026-11-22 13:13 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `a6cd5338ba` · branch `main` · 2026-11-22 15:59 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -357,7 +357,6 @@ Erros lançados por funções SQL (`RAISE EXCEPTION` = regra de negócio no banc
 | `current_titular_verified_email` | authentication_required | `site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql` |
 | `current_titular_verified_email` | verified_email_required | `site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql` |
 | `correct_my_data` | invalid_profile_fields | `site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql` |
-| `erase_customer_data` | invalid_erasure_email | `site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql` |
 | `claim_my_quote_requests` | authentication_required | `site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql` |
 | `claim_my_quote_requests` | verified_email_required | `site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql` |
 | `assert_site_operator` | authentication_required | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
@@ -371,10 +370,6 @@ Erros lançados por funções SQL (`RAISE EXCEPTION` = regra de negócio no banc
 | `update_site_quote_status` | (dinâmica) format('invalid_status_transition: %s -> %s', v_previous, v_target) | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
 | `update_site_quote_status` | quoted_requires_proposal_publication | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
 | `update_site_quote_status` | quote_request_changed_concurrently | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
-| `reply_site_quote_adjustment` | adjustment_id_required | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
-| `reply_site_quote_adjustment` | response_required | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
-| `reply_site_quote_adjustment` | invalid_adjustment_status | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
-| `reply_site_quote_adjustment` | adjustment_not_found | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
 | `publish_site_quote_proposal` | request_id_required | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
 | `publish_site_quote_proposal` | title_required | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
 | `publish_site_quote_proposal` | storage_path_required | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
@@ -384,6 +379,12 @@ Erros lançados por funções SQL (`RAISE EXCEPTION` = regra de negócio no banc
 | `publish_site_quote_proposal` | quote_request_changed_concurrently | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
 | `record_cron_heartbeat` | unknown_cron_name | `site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql` |
 | `record_cron_heartbeat` | invalid_cron_outcome | `site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql` |
+| `reply_site_quote_adjustment` | adjustment_id_required | `site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql` |
+| `reply_site_quote_adjustment` | response_required | `site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql` |
+| `reply_site_quote_adjustment` | response_too_long | `site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql` |
+| `reply_site_quote_adjustment` | invalid_adjustment_status | `site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql` |
+| `reply_site_quote_adjustment` | adjustment_not_found | `site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql` |
+| `erase_customer_data` | invalid_erasure_email | `site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql` |
 
 ## E. Estados, máquinas de estado e transições
 
@@ -1117,7 +1118,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1936 testes em 145 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1960 testes em 146 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1143,6 +1144,7 @@ _nenhum item encontrado_
 | `site-supabase/supabase/tests/database/customer_selections.test.sql` | 26 | seleções privadas por titular existem · RLS é forçada na tabela · cliente não acessa o schema privado · cliente não consulta tabela diretamente … |
 | `src/lib/catalog.test.ts` | 26 | catálogo público · normaliza apenas os dados necessários para a experiência do cliente · marca como novidade um produto dentro da janela canônica mesmo sem flag explícita · não confirma personalização quando o dado público ainda é desconhecido … |
 | `src/lib/useOccasionFavorites.test.tsx` | 25 | useOccasionFavorites · preserva uma adição confirmada quando uma leitura iniciada antes dela retorna vazia · preserva uma remoção enquanto uma leitura antiga ainda contém o favorito · não deixa uma leitura antiga apagar a escrita anterior quando a intenção seguinte falha … |
+| `site-supabase/supabase/tests/database/customer_message_events.test.sql` | 24 | check de event_type aceita message · operador responde o ajuste · a resposta produziu exatamente um evento de mensagem · o titulo da mensagem e fixo, sem copiar o texto do cliente … |
 | `src/components/CampaignFinder.test.tsx` | 24 | resumo editável do briefing · resume as quatro respostas antes de abrir a curadoria · remove só a escolha solicitada e volta à etapa correspondente · permite revisar todas as respostas sem apagar o que já foi escolhido … |
 | `site-supabase/supabase/tests/database/customer_occasion_favorites.test.sql` | 22 | favoritos de datas existem no schema privado · RLS é forçada nos favoritos de datas · cliente não recebe uso do schema privado · cliente não lê a tabela diretamente … |
 | `site-supabase/supabase/tests/database/lead_preflight_rate_limit.test.sql` | 20 | preflight distribuído existe · anon não executa preflight · authenticated não executa preflight · service_role executa preflight … |

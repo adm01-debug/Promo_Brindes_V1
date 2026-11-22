@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "feat: mensagens da equipe ao cliente na linha do tempo (F-05) (#235)",
    "fix: politica de privacidade declara os estados reais de entrega (F-17) (#243)",
    "feat: vigia independente dos crons com heartbeat e alerta (F-87) (#232)",
    "feat: back-office minimo de orcamentos (F-03) e produtor de propostas versionadas (F-23) (#225)",
-   "docs: executa a revisao mensal do banco e corrige a coluna duplicada (F-90) (#229)",
-   "fix: mensagem acionavel no limite de 3 ajustes pendentes (F-04) (#230)"
+   "docs: executa a revisao mensal do banco e corrige a coluna duplicada (F-90) (#229)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

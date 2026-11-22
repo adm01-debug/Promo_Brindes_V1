@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `18eebb5704943b58c162630bb9a18a6c0e805948` (2026-11-22T13:11:31Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `a6cd5338ba3299460d0d3fde5ed3e71d5a0caa39` (2026-11-22T15:57:22Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -14,7 +14,7 @@ Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR
 Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua tarefa; não carregue tudo.
 
 ## Stack
-- linguagens: TypeScript (226), Markdown (134), SQL (114), JavaScript (65), JSON (29), YAML (19), Python (8), CSS (4)
+- linguagens: TypeScript (226), Markdown (134), SQL (117), JavaScript (65), JSON (29), YAML (19), Python (8), CSS (4)
 - linguagem_principal: TypeScript
 - framework: React
 - backend_http: vercel-functions
@@ -34,7 +34,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Números
 | item | qtd |
 |---|---|
-| arquivos_total | 739 |
+| arquivos_total | 742 |
 | arquivos_codigo | 298 |
 | linhas_codigo | 58944 |
 | rotas | 34 |
@@ -46,9 +46,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 | hooks | 6 |
 | edge_functions | 0 |
 | tabelas | 26 |
-| migrations | 72 |
+| migrations | 74 |
 | cron_jobs | 0 |
-| testes | 154 |
+| testes | 155 |
 | workflows | 15 |
 | scripts | 37 |
 | docs_md | 134 |
@@ -180,14 +180,14 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - package-lock.json (36)
 - .github/workflows/quality.yml (28)
 - vercel.json (28)
+- docs/DATABASE_DICTIONARY.md (27)
 - src/pages/QuotePage.tsx (27)
-- docs/DATABASE_DICTIONARY.md (26)
 - site-supabase/supabase/tests/database/lead_storage.test.sql (26)
 - src/components/Layout.tsx (24)
 - .github/workflows/release.yml (21)
+- docs/DATABASE_FUNCTION_CONTRACTS.md (21)
 - tests/api/lead-requests.test.ts (21)
 - api/notifications.ts (20)
-- docs/DATABASE_FUNCTION_CONTRACTS.md (20)
 - api/_lib/siteDatabase.ts (19)
 
 ## Workflows
@@ -320,7 +320,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `docs/AUTOMACAO_LOCAL.md` — Automação local — Promo_Brindes_V1 (104 linhas)
 - `docs/CUSTOMER_PORTAL_IMPLEMENTATION_20260909.md` — Área do Cliente — implementação e critérios de aceite (92 linhas)
 - `docs/DATABASE_DICTIONARY.md` — Dicionário de dados — site_private (Etapa 35) (455 linhas)
-- `docs/DATABASE_FUNCTION_CONTRACTS.md` — Contratos das funções do banco do site (Etapas 22 e 23) (246 linhas)
+- `docs/DATABASE_FUNCTION_CONTRACTS.md` — Contratos das funções do banco do site (Etapas 22 e 23) (247 linhas)
 - `docs/DATABASE_INVENTORY_PRINCIPAL.md` — Inventário de tabelas — banco principal (`doufsxqlfjyuvxuezpln`) (415 linhas)
 - `docs/DATABASE_PUBLIC_CONTRACT.md` — Contrato público de dados do Site Promo Brindes (82 linhas)
 - `docs/DATABASE_SCHEMA.md` — Diagrama entidade-relacionamento — site_private (Etapa 48) (56 linhas)
@@ -390,6 +390,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-22 `a6cd533` feat: mensagens da equipe ao cliente na linha do tempo (F-05) (#235)
 - 2026-11-22 `18eebb5` fix: politica de privacidade declara os estados reais de entrega (F-17) (#243)
 - 2026-11-22 `8543dac` feat: vigia independente dos crons com heartbeat e alerta (F-87) (#232)
 - 2026-11-22 `fc29771` feat: back-office minimo de orcamentos (F-03) e produtor de propostas versionadas (F-23) (#225)
@@ -404,7 +405,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-21 `957fa44` feat: contato via WhatsApp iniciado pelo visitante (F-47) (#222)
 - 2026-11-21 `a3e9e21` feat: fallback de SKU exato quando a busca nao encontra correspondencia (NOVO-CA-22) (#221)
 - 2026-11-21 `66ed450` feat(lgpd): direitos do titular — acesso, exportacao, correcao e autoexclusao (F-30) (#220)
-- 2026-11-21 `e40d98f` chore(docs): reconcilia ground-truth de F-01/F-31/F-110 (#219)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

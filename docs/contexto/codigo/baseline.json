@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "18eebb5704943b58c162630bb9a18a6c0e805948",
+  "commit": "a6cd5338ba3299460d0d3fde5ed3e71d5a0caa39",
   "branch": "main",
-  "data_commit": "2026-11-22T13:11:31Z",
+  "data_commit": "2026-11-22T15:57:22Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "a6cd533",
+    "data": "2026-11-22",
+    "assunto": "feat: mensagens da equipe ao cliente na linha do tempo (F-05) (#235)"
+   },
    {
     "sha": "18eebb5",
     "data": "2026-11-22",
@@ -126,22 +131,17 @@
     "sha": "8e896a7",
     "data": "2026-11-19",
     "assunto": "infra(ci): cross-browser deixa de ser cancelado no teto antes de rodar teste (#204)"
-   },
-   {
-    "sha": "3038a45",
-    "data": "2026-11-19",
-    "assunto": "feat(e2e): cobre a jornada completa do visitante com rede lenta e armazenamento bloqueado (#199)"
    }
   ],
-  "arquivos_mudados_7d": 186,
+  "arquivos_mudados_7d": 189,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "site-supabase/supabase/tests",
-    "mudancas": 18
+    "mudancas": 19
    },
    {
     "pasta": "analise-prs/funcionalidades.csv",
-    "mudancas": 16
+    "mudancas": 17
    },
    {
     "pasta": "package.json",
@@ -172,6 +172,10 @@
     "mudancas": 9
    },
    {
+    "pasta": "site-supabase/supabase/migrations",
+    "mudancas": 9
+   },
+   {
     "pasta": "AGENTS.md",
     "mudancas": 8
    },
@@ -180,7 +184,7 @@
     "mudancas": 8
    },
    {
-    "pasta": "site-supabase/supabase/migrations",
+    "pasta": "docs/DATABASE_DICTIONARY.md",
     "mudancas": 7
    },
    {
@@ -189,10 +193,6 @@
    },
    {
     "pasta": ".gitignore",
-    "mudancas": 6
-   },
-   {
-    "pasta": "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
     "mudancas": 6
    }
   ],
@@ -222,12 +222,12 @@
     "mudancas": 28
    },
    {
-    "arquivo": "src/pages/QuotePage.tsx",
+    "arquivo": "docs/DATABASE_DICTIONARY.md",
     "mudancas": 27
    },
    {
-    "arquivo": "docs/DATABASE_DICTIONARY.md",
-    "mudancas": 26
+    "arquivo": "src/pages/QuotePage.tsx",
+    "mudancas": 27
    },
    {
     "arquivo": "site-supabase/supabase/tests/database/lead_storage.test.sql",
@@ -242,15 +242,15 @@
     "mudancas": 21
    },
    {
+    "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
+    "mudancas": 21
+   },
+   {
     "arquivo": "tests/api/lead-requests.test.ts",
     "mudancas": 21
    },
    {
     "arquivo": "api/notifications.ts",
-    "mudancas": 20
-   },
-   {
-    "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
     "mudancas": 20
    },
    {
@@ -278,6 +278,10 @@
     "mudancas": 17
    },
    {
+    "arquivo": "analise-prs/funcionalidades.csv",
+    "mudancas": 17
+   },
+   {
     "arquivo": "api/_lib/leadHandler.ts",
     "mudancas": 17
    },
@@ -290,10 +294,6 @@
     "mudancas": 16
    },
    {
-    "arquivo": "analise-prs/funcionalidades.csv",
-    "mudancas": 16
-   },
-   {
     "arquivo": "tests/api/notifications.test.ts",
     "mudancas": 16
    }
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 114
+    "commits": 115
    },
    {
     "autor": "dependabot[bot]",
@@ -310,7 +310,7 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 739,
+  "arquivos_total": 742,
   "arquivos_codigo": 298,
   "linhas_codigo": 58944,
   "rotas": 34,
@@ -322,9 +322,9 @@
   "hooks": 6,
   "edge_functions": 0,
   "tabelas": 26,
-  "migrations": 72,
+  "migrations": 74,
   "cron_jobs": 0,
-  "testes": 154,
+  "testes": 155,
   "workflows": 15,
   "scripts": 37,
   "docs_md": 134

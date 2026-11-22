@@ -5,7 +5,7 @@
   "linguagens": [
    "TypeScript (226)",
    "Markdown (134)",
-   "SQL (114)",
+   "SQL (117)",
    "JavaScript (65)",
    "JSON (29)",
    "YAML (19)",
@@ -730,7 +730,7 @@
   {
    "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
    "titulo": "Contratos das funções do banco do site (Etapas 22 e 23)",
-   "linhas": 246
+   "linhas": 247
   },
   {
    "arquivo": "docs/DATABASE_INVENTORY_PRINCIPAL.md",
