@@ -96,6 +96,20 @@ _Sem comment on table — considerar adicionar um na próxima migration que toca
 | `message` | `text` | Contexto opcional da conversa, limitado a 800 caracteres e retido no banco isolado do site. |
 | `preferred_channel` | `text` | Preferência opcional de retorno; não representa consentimento para disparo automático. |
 
+### `site_private.cron_heartbeats`
+
+Heartbeat dos crons do site (F-87). Uma linha por cron agendado em vercel.json; escrita so pela RPC record_cron_heartbeat.
+
+| Coluna | Tipo | Comentário |
+|---|---|---|
+| `name` | `text` | — |
+| `installed_at` | `timestamp with time zone` | — |
+| `last_ok_at` | `timestamp with time zone` | — |
+| `last_failed_at` | `timestamp with time zone` | — |
+| `last_failure_detail` | `text` | — |
+| `consecutive_failures` | `integer` | — |
+| `updated_at` | `timestamp with time zone` | — |
+
 ### `site_private.customer_briefing_assets`
 
 Logos e referências privadas em PNG, JPEG ou WebP. PDFs ficam bloqueados até existir análise estrutural/CDR isolada e antimalware.
@@ -388,6 +402,7 @@ Trilha do exercicio dos direitos do titular (LGPD art. 18) na Area do Cliente: a
 | `attach_my_briefing_assets_to_quote` | `p_request_id uuid, p_asset_ids uuid[]` | — |
 | `can_delete_my_unverified_briefing_asset_path` | `p_path text` | Permite limpeza direta somente antes da verificação; depois dela a exclusão ocorre pela fila server-side. |
 | `cancel_site_notification_backlog` | `p_reason text` | F-11: porta do back-office para cortar o backlog inelegível da fila de notificações. Exige operador ativo (assert_site_operator) e motivo de 3 a 200 caracteres, que vai para admin_audit_log junto com o nome do operador. Devolve cancelled/scanned/cancelledIds. |
+| `check_cron_heartbeats` | `` | Devolve o estado de cada cron do site e se ele esta atrasado segundo o intervalo esperado mais a tolerancia (F-87). |
 | `claim_my_quote_requests` | `` | Associa solicitações sem titular somente após confirmação do e-mail da identidade autenticada. |
 | `claim_site_commercial_team_alert` | `p_request_id uuid` | F-11: claim pontual do alerta ao comercial. Não reivindica entrega inelegível (pedido em spam, e-mail anonimizado, idade acima de max_age) — devolve null. |
 | `claim_site_commercial_team_alerts` | `p_batch_size integer` | F-11: claim em lote dos alertas ao comercial. Antes de reivindicar, cancela as entregas inelegíveis (pedido em spam, e-mail anonimizado, idade acima de max_age) e aposenta as que estouraram as tentativas. |

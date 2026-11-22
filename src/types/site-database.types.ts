@@ -34,6 +34,10 @@ export type Database = {
         Args: { p_path: string }
         Returns: boolean
       }
+      cancel_site_notification_backlog: {
+        Args: { p_reason: string }
+        Returns: Json
+      }
       check_cron_heartbeats: {
         Args: never
         Returns: {
@@ -1287,6 +1291,16 @@ export type Database = {
         }
       }
       audit_actor: { Args: never; Returns: string }
+      cancel_ineligible_notification_backlog: {
+        Args: {
+          p_actor_label: string
+          p_max_age: string
+          p_reason: string
+          p_request_id: string
+          p_request_kind: string
+        }
+        Returns: Json
+      }
       commercial_team_alert_payload: {
         Args: { p_delivery_id: string }
         Returns: Json
@@ -1345,11 +1359,21 @@ export type Database = {
         Args: { p_delivery_id: string }
         Returns: boolean
       }
+      notification_delivery_is_eligible: {
+        Args: {
+          p_created_at: string
+          p_max_age: string
+          p_request_id: string
+          p_request_kind: string
+        }
+        Returns: boolean
+      }
       notification_policy: {
         Args: never
         Returns: {
           batch_max: number
           lease_timeout: string
+          max_age: string
           max_attempts: number
           retry_base_seconds: number
           retry_cap_seconds: number
