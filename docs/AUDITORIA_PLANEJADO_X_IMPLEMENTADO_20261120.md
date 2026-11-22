@@ -36,20 +36,20 @@ Quem destrava: **ENG** = engenharia pode fazer agora · **DONO** = decisão/cred
 
 ## 1. Resumo para o dono
 
-**O site vende a vitrine e coleta o briefing; o ciclo comercial depois do envio continua manual.** Desde 11/10 a engenharia fechou 15 dos 128 itens e avançou outros 30, mas as três coisas que mais custam continuam iguais: (1) nenhuma proposta jamais foi publicada no portal porque não existe ferramenta para publicar, mudar status ou responder ajuste (PF-03/04/05/23); (2) e-mail e WhatsApp de confirmação dependem de credenciais na Vercel que esta auditoria **não conseguiu ler** (PF-07/08/09 — estado inferido da decisão registrada em `EXECUCAO_PLANO_FECHAMENTO_20261001.md:65-66` e de `notification_deliveries` com 4 linhas no snapshot de 19/11; NÃO VERIFICADO em produção), e a tela ainda diz ao cliente que o e-mail foi "registrado para envio" mesmo quando não há provedor (PF-14); (3) o aviso ao time comercial agora existe no código para orçamento e contato (#116, #158), mas só funciona se `COMMERCIAL_TEAM_WEBHOOK_URL` estiver configurada na Vercel, o que não pôde ser confirmado, e o pedido de ajuste não gera aviso nenhum (PF-01).
+**O site vende a vitrine e coleta o briefing; o ciclo comercial depois do envio continua manual.** Desde 11/10 a engenharia fechou 16 dos 128 itens e avançou outros 30, mas as três coisas que mais custam continuam iguais: (1) nenhuma proposta jamais foi publicada no portal porque não existe ferramenta para publicar, mudar status ou responder ajuste (PF-03/04/05/23); (2) e-mail e WhatsApp de confirmação dependem de credenciais na Vercel que esta auditoria **não conseguiu ler** (PF-07/08/09 — estado inferido da decisão registrada em `EXECUCAO_PLANO_FECHAMENTO_20261001.md:65-66` e de `notification_deliveries` com 4 linhas no snapshot de 19/11; NÃO VERIFICADO em produção), e a tela ainda diz ao cliente que o e-mail foi "registrado para envio" mesmo quando não há provedor (PF-14); (3) o aviso ao time comercial agora existe no código para orçamento e contato (#116, #158), mas só funciona se `COMMERCIAL_TEAM_WEBHOOK_URL` estiver configurada na Vercel, o que não pôde ser confirmado, e o pedido de ajuste não gera aviso nenhum (PF-01).
 
 ### Placar dos 128 itens da auditoria de 11/10, reverificados hoje
 
 | Estado hoje | Itens | IDs |
 | --- | ---: | --- |
-| IMPLEMENTADO | 15 | PF-04 (mensagem acionável; liberar o limite segue dependendo da triagem), PF-10, 27, 31 (código; aplicação remota a confirmar), 49, 66, 67 (com divergência: `allowed_actions: selected`), 77, 80, 85, 102, 103, 109, 112, 117, 128 |
+| IMPLEMENTADO | 16 | PF-04 (mensagem acionável; liberar o limite segue dependendo da triagem), PF-10, 27, 31 (código; aplicação remota a confirmar), 49, 66, 67 (com divergência: `allowed_actions: selected`), 77, 80, 85, 102, 103, 109, 112, 117, 128 |
 | PARCIAL | 48 | PF-01, 11, 14, 15, 16, 17, 18, 23, 24, 25, 28, 29, 32, 35, 37, 40, 42, 43, 44, 48, 50, 53, 56, 60, 62, 63, 70, 71, 72, 73, 74, 78, 79, 88, 94, 96, 97, 100, 101, 106, 108, 111, 114, 116, 118, 119, 122, 123 |
 | PARCIAL-VALIDAÇÃO | 5 | PF-06, 26, 51, 65, 92 |
 | NÃO INICIADO | 28 | PF-03, 05, 12, 30, 34, 38 (PR #211), 39 (PR #212), 41 (PR #213), 45, 47, 54, 55, 68, 82, 84, 87, 90, 93, 95, 98, 99, 107, 110, 113, 120, 121, 124, 125 |
 | BLOQUEADO (externo) | 23 | PF-02, 07, 08, 09, 13, 22, 33, 36, 46, 52, 57, 58, 59, 64, 69, 76, 83, 86, 89, 104, 105, 126, 127 |
 | DIVERGÊNCIA | 8 | PF-19, 20, 21, 61, 75, 81, 91, 115 |
 
-**113 dos 128 itens continuam pendentes.** Somam-se **108 itens novos** (não mapeados pela auditoria de 11/10) encontrados na releitura etapa a etapa dos planos e dos runbooks, dos quais 2 já estão implementados (seção 3).
+**112 dos 128 itens continuam pendentes.** Somam-se **108 itens novos** (não mapeados pela auditoria de 11/10) encontrados na releitura etapa a etapa dos planos e dos runbooks, dos quais 2 já estão implementados (seção 3).
 
 ### Placar por plano (etapas, estado de hoje contado linha a linha nos anexos)
 
