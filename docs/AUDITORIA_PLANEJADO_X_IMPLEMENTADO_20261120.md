@@ -42,7 +42,7 @@ Quem destrava: **ENG** = engenharia pode fazer agora · **DONO** = decisão/cred
 
 | Estado hoje | Itens | IDs |
 | --- | ---: | --- |
-| IMPLEMENTADO | 15 | PF-10, 27, 31 (código; aplicação remota a confirmar), 49, 66, 67 (com divergência: `allowed_actions: selected`), 77, 80, 85, 102, 103, 109, 112, 117, 128 |
+| IMPLEMENTADO | 15 | PF-04 (mensagem acionável; liberar o limite segue dependendo da triagem), PF-10, 27, 31 (código; aplicação remota a confirmar), 49, 66, 67 (com divergência: `allowed_actions: selected`), 77, 80, 85, 102, 103, 109, 112, 117, 128 |
 | PARCIAL | 48 | PF-01, 11, 14, 15, 16, 17, 18, 23, 24, 25, 28, 29, 32, 35, 37, 40, 42, 43, 44, 48, 50, 53, 56, 60, 62, 63, 70, 71, 72, 73, 74, 78, 79, 88, 94, 96, 97, 100, 101, 106, 108, 111, 114, 116, 118, 119, 122, 123 |
 | PARCIAL-VALIDAÇÃO | 5 | PF-06, 26, 51, 65, 92 |
 | NÃO INICIADO | 28 | PF-03, 05, 12, 30, 34, 38 (PR #211), 39 (PR #212), 41 (PR #213), 45, 47, 54, 55, 68, 82, 84, 87, 90, 93, 95, 98, 99, 107, 110, 113, 120, 121, 124, 125 |

@@ -160,8 +160,8 @@ try {
   // seja a folga real era de 0,2 KiB: qualquer funcionalidade nova reprovava
   // antes de o codigo dela ser avaliado. A F-04 (mensagem acionavel no limite de
   // ajustes) custa +0,4 KiB em cada perfil (271,2 e 272,2), o que estourava os
-  // dois. 272/273 restaura a mesma folga de ~1,8 KiB documentada acima sem
-  // afrouxar o teto util: o teto raw de 966 KiB continua barrando crescimento de
+  // dois. 272/273 devolve 0,8 KiB de folga em producao e 0,8 KiB no pior caso
+  // (272 - 271,2 e 273 - 272,2), sem afrouxar o teto util: o teto raw de 966 KiB continua barrando crescimento de
   // codigo e estes dois limites seguem contendo a compressao atual.
   assertBudget(
     WORST_CASE ? 'JavaScript total (Brotli, pior caso com as flags ligadas)' : 'JavaScript total (Brotli)',
