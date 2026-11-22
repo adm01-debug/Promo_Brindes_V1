@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "71d41c66fe63824fd43134da710ae5e5c5f9a118",
+  "sha": "883ff959eb7f19468bee27cb8b313446267a3b49",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-22 18:47 UTC",
-  "files_total": 643,
-  "code_files": 421,
-  "code_lines": 76270,
+  "generated_at": "2026-11-22 19:07 UTC",
+  "files_total": 645,
+  "code_files": 423,
+  "code_lines": 78409,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "0329c0b8146b994d",
+ "facts_hash": "0ded3b3971b71763",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -282,7 +282,7 @@
   "package_manager": "npm",
   "languages": {
    ".ts": 164,
-   ".sql": 117,
+   ".sql": 119,
    ".tsx": 67,
    ".mjs": 63,
    ".py": 8,
@@ -1432,6 +1432,20 @@
       "fk": "",
       "generated": "",
       "src": "site-supabase/supabase/migrations/20260915150000_add_notification_delivery_events.sql"
+     },
+     {
+      "name": "provider_message_id",
+      "type": "text check (provider_message_id is null or length(provider_message_id) between 1 and 240)",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+     },
+     {
+      "name": "bounce_reason",
+      "type": "text check (bounce_reason is null or length(bounce_reason) <= 200)",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
      }
     ],
     "constraints": [
@@ -2607,10 +2621,10 @@
     "args": "p_channels text[], p_batch_size integer default 10",
     "returns": "jsonb",
     "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20260923200000_enrich_quote_confirmation_contract.sql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
     "security_definer": false,
     "search_path": true,
-    "body": "declare v_policy record; v_jobs jsonb; begin select * into v_policy from site_private.notification_policy(); if p_batch_size not between 1 and v_policy.batch_max or p_channels is null or cardinality(p_channels) not between 1 and 2 or exists (select 1 from unnest(p_channels) channel where channel not in ('email', 'whatsapp')) then raise exception using errcode = '22023', message = 'invalid_notification_claim_input'; end if; with exhausted_candidates as ( select delivery.id from site_private.notification_deliveries delivery where delivery.request_kind = 'quote' and delivery.audience = 'customer' and delivery.channel = any(p_channels) and delivery.attempts >= v_policy.max_attempts and (delivery …",
+    "body": "declare v_policy record; v_jobs jsonb; begin select * into v_policy from site_private.notification_policy(); if p_batch_size not between 1 and v_policy.batch_max or p_channels is null or cardinality(p_channels) not between 1 and 2 or exists (select 1 from unnest(p_channels) channel where channel not in ('email', 'whatsapp')) then raise exception using errcode = '22023', message = 'invalid_notification_claim_input'; end if; perform site_private.suppress_notification_delivery(blocked.id) from ( select delivery.id from site_private.notification_deliveries delivery where delivery.request_kind = 'quote' and delivery.audience = 'customer' and delivery.channel = any(p_channels) and delivery.status …",
     "raises": [
      "invalid_notification_claim_input"
     ],
@@ -2629,10 +2643,10 @@
     "args": "p_request_id uuid, p_channel text",
     "returns": "jsonb",
     "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20260923200000_enrich_quote_confirmation_contract.sql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
     "security_definer": false,
     "search_path": true,
-    "body": "declare v_policy record; v_delivery site_private.notification_deliveries%rowtype; begin if p_channel not in ('email', 'whatsapp') then raise exception using errcode = '22023', message = 'invalid_notification_channel'; end if; select * into v_policy from site_private.notification_policy(); select * into v_delivery from site_private.notification_deliveries delivery where delivery.request_kind = 'quote' and delivery.request_id = p_request_id and delivery.channel = p_channel and delivery.audience = 'customer' and delivery.status in ('pending', 'failed') and delivery.next_attempt_at <= now() and delivery.attempts < v_policy.max_attempts for update skip locked; if not found then return null; end i …",
+    "body": "declare v_policy record; v_delivery site_private.notification_deliveries%rowtype; begin if p_channel not in ('email', 'whatsapp') then raise exception using errcode = '22023', message = 'invalid_notification_channel'; end if; select * into v_policy from site_private.notification_policy(); select * into v_delivery from site_private.notification_deliveries delivery where delivery.request_kind = 'quote' and delivery.request_id = p_request_id and delivery.channel = p_channel and delivery.audience = 'customer' and delivery.status in ('pending', 'failed') and delivery.next_attempt_at <= now() and delivery.attempts < v_policy.max_attempts order by delivery.created_at, delivery.id limit 1; if not fo …",
     "raises": [
      "invalid_notification_channel"
     ],
@@ -2692,7 +2706,7 @@
     "args": "p_provider text, p_provider_message_id text, p_event_type text, p_provider_event_id text, p_occurred_at timestamptz, p_bounce_reason text default null",
     "returns": "jsonb",
     "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20260916140000_add_provider_event_precedence.sql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
     "security_definer": false,
     "search_path": true,
     "body": "declare v_event_id uuid; v_delivery_id uuid; v_updated integer; begin if p_provider not in ('resend', 'meta-whatsapp-cloud') or p_event_type not in ('delivered', 'bounced', 'complained') or length(coalesce(p_provider_message_id, '')) not between 1 and 240 or length(coalesce(p_provider_event_id, '')) not between 1 and 240 or p_occurred_at is null or length(coalesce(p_bounce_reason, '')) > 200 then raise exception using errcode = '22023', message = 'invalid_notification_provider_event_input'; end if; select delivery.id into v_delivery_id from site_private.notification_deliveries delivery where delivery.provider = p_provider and delivery.provider_message_id = p_provider_message_id limit 1; inse …",
@@ -3376,10 +3390,10 @@
     "args": "p_request_id uuid",
     "returns": "jsonb",
     "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20261117010000_add_commercial_team_contact_alert.sql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
     "security_definer": false,
     "search_path": true,
-    "body": "declare v_policy record; v_delivery site_private.notification_deliveries%rowtype; begin select * into v_policy from site_private.notification_policy(); select * into v_delivery from site_private.notification_deliveries delivery where delivery.request_kind in ('quote', 'contact') and delivery.request_id = p_request_id and delivery.audience = 'commercial_team' and delivery.status in ('pending', 'failed') and delivery.next_attempt_at <= now() and delivery.attempts < v_policy.max_attempts for update skip locked; if not found then return null; end if; update site_private.notification_deliveries delivery set status = 'processing', attempts = delivery.attempts + 1, updated_at = now(), lease_token = …",
+    "body": "declare v_policy record; v_delivery site_private.notification_deliveries%rowtype; begin select * into v_policy from site_private.notification_policy(); select * into v_delivery from site_private.notification_deliveries delivery where delivery.request_kind in ('quote', 'contact') and delivery.request_id = p_request_id and delivery.audience = 'commercial_team' and delivery.status in ('pending', 'failed') and delivery.next_attempt_at <= now() and delivery.attempts < v_policy.max_attempts order by delivery.created_at, delivery.id limit 1; if not found then return null; end if; if site_private.suppress_notification_delivery(v_delivery.id) then return null; end if; select * into v_delivery from si …",
     "raises": [],
     "tables": [
      "site_private",
@@ -3392,10 +3406,10 @@
     "args": "p_batch_size integer default 10",
     "returns": "jsonb",
     "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20261117010000_add_commercial_team_contact_alert.sql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
     "security_definer": false,
     "search_path": true,
-    "body": "declare v_policy record; v_jobs jsonb; begin select * into v_policy from site_private.notification_policy(); if p_batch_size not between 1 and v_policy.batch_max then raise exception using errcode = '22023', message = 'invalid_notification_claim_input'; end if; with exhausted_candidates as ( select delivery.id from site_private.notification_deliveries delivery where delivery.request_kind in ('quote', 'contact') and delivery.audience = 'commercial_team' and delivery.attempts >= v_policy.max_attempts and (delivery.status in ('pending', 'failed') or (delivery.status = 'processing' and delivery.lease_expires_at <= now())) for update of delivery skip locked ) update site_private.notification_deli …",
+    "body": "declare v_policy record; v_jobs jsonb; begin select * into v_policy from site_private.notification_policy(); if p_batch_size not between 1 and v_policy.batch_max then raise exception using errcode = '22023', message = 'invalid_notification_claim_input'; end if; perform site_private.suppress_notification_delivery(blocked.id) from ( select delivery.id from site_private.notification_deliveries delivery where delivery.request_kind in ('quote', 'contact') and delivery.audience = 'commercial_team' and delivery.status in ('pending', 'failed', 'processing') and not site_private.notification_delivery_is_claimable(delivery.id) order by delivery.created_at, delivery.id limit p_batch_size for update of …",
     "raises": [
      "invalid_notification_claim_input"
     ],
@@ -3715,6 +3729,168 @@
      "esperado",
      "site_private"
     ]
+   },
+   "email_hash": {
+    "args": "p_email text",
+    "returns": "text",
+    "lang": "sql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "select encode( sha256( convert_to(site_private.normalize_email(coalesce(p_email, '')), 'UTF8') ), 'hex' );",
+    "raises": [],
+    "tables": []
+   },
+   "notification_request_erased": {
+    "args": "p_request_kind text, p_request_id uuid",
+    "returns": "boolean",
+    "lang": "sql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "select case p_request_kind when 'quote' then exists ( select 1 from site_private.quote_requests request where request.id = p_request_id and request.email like '%@erased.invalid' ) when 'contact' then exists ( select 1 from site_private.contact_requests request where request.id = p_request_id and request.email like '%@erased.invalid' ) else false end;",
+    "raises": [],
+    "tables": [
+     "site_private"
+    ]
+   },
+   "notification_request_suppressed": {
+    "args": "p_request_kind text, p_request_id uuid",
+    "returns": "boolean",
+    "lang": "sql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "select exists ( select 1 from site_private.notification_deliveries delivery where delivery.audience = 'customer' and (delivery.delivery_state = 'bounced' or delivery.complained_at is not null) and site_private.email_hash( case p_request_kind when 'quote' then ( select request.email from site_private.quote_requests request where request.id = p_request_id ) when 'contact' then ( select request.email from site_private.contact_requests request where request.id = p_request_id ) end ) = case delivery.request_kind when 'quote' then site_private.email_hash(( select request.email from site_private.quote_requests request where request.id = delivery.request_id )) else site_private.email_hash(( select r …",
+    "raises": [],
+    "tables": [
+     "site_private"
+    ]
+   },
+   "get_site_notification_suppression": {
+    "args": "p_email_hash text",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_hash text := lower(btrim(coalesce(p_email_hash, ''))); v_result jsonb; begin if v_hash !~ '^[0-9a-f]{64}$' then raise exception using errcode = '22023', message = 'invalid_notification_suppression_input'; end if; with matches as ( select delivery.channel, delivery.delivery_state, delivery.delivery_state_at, delivery.complained_at, delivery.bounce_reason from site_private.notification_deliveries delivery join site_private.quote_requests request on delivery.request_kind = 'quote' and request.id = delivery.request_id where delivery.audience = 'customer' and site_private.email_hash(request.email) = v_hash union all select delivery.channel, delivery.delivery_state, delivery.delivery_sta …",
+    "raises": [
+     "invalid_notification_suppression_input"
+    ],
+    "tables": [
+     "matches",
+     "relevant",
+     "site_private",
+     "v_result"
+    ]
+   },
+   "reconcile_site_notification_provider_events": {
+    "args": "p_batch_size integer default 100",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_event record; v_delivery_id uuid; v_linked integer := 0; v_applied integer := 0; v_unmatched integer := 0; v_unmatched_ids uuid[] := array[]::uuid[]; v_updated integer; begin if p_batch_size is null or p_batch_size not between 1 and 500 then raise exception using errcode = '22023', message = 'invalid_notification_reconciliation_input'; end if; for v_event in select event.id, event.provider, event.provider_message_id, event.event_type, event.received_at, event.bounce_reason, matched.id as delivery_id from site_private.notification_provider_events event left join lateral ( select delivery.id from site_private.notification_deliveries delivery where delivery.provider = event.provider a …",
+    "raises": [
+     "invalid_notification_reconciliation_input"
+    ],
+    "tables": [
+     "lateral",
+     "of",
+     "site_private"
+    ]
+   },
+   "reprocess_notification_deliveries_core": {
+    "args": "p_delivery_ids uuid[], p_reason text, p_actor_label text",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_ids uuid[]; v_reason text := btrim(coalesce(p_reason, '')); v_actor text := left(btrim(coalesce(p_actor_label, 'notification worker')), 160); v_reopened_ids uuid[] := array[]::uuid[]; v_skipped jsonb; begin select array_agg(distinct item.id) into v_ids from unnest(coalesce(p_delivery_ids, array[]::uuid[])) as item(id); if v_ids is null or cardinality(v_ids) not between 1 and 100 then raise exception using errcode = '22023', message = 'invalid_notification_reprocessing_input'; end if; if length(v_reason) not between 3 and 200 then raise exception using errcode = '22023', message = 'invalid_notification_reprocessing_input'; end if; with candidates as ( select delivery.id from site_pr …",
+    "raises": [
+     "invalid_notification_reprocessing_input"
+    ],
+    "tables": [
+     "candidates",
+     "reopened",
+     "site_private",
+     "skip",
+     "unnest",
+     "v_ids",
+     "v_reopened_ids",
+     "v_skipped"
+    ]
+   },
+   "reprocess_site_notification_deliveries": {
+    "args": "p_delivery_ids uuid[], p_reason text",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_operator site_private.commercial_operators := site_private.assert_site_operator(); begin return site_private.reprocess_notification_deliveries_core( p_delivery_ids, p_reason, v_operator.display_name ); end;",
+    "raises": [],
+    "tables": []
+   },
+   "get_site_notification_delivery_report": {
+    "args": "p_limit integer default 50",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_limit integer := coalesce(p_limit, 50); begin if v_limit not between 1 and 200 then raise exception using errcode = '22023', message = 'invalid_notification_report_input'; end if; perform site_private.assert_site_operator(); return jsonb_build_object( 'exhausted', coalesce(( select jsonb_agg(jsonb_build_object( 'deliveryId', item.id, 'requestKind', item.request_kind, 'requestId', item.request_id, 'protocol', item.protocol, 'channel', item.channel, 'attempts', item.attempts, 'lastErrorCode', item.last_error_code, 'lastErrorAt', item.last_error_at, 'updatedAt', item.updated_at, 'emailHashPrefix', left(item.email_hash, 12), 'suppressed', item.suppressed, 'erased', item.erased ) order …",
+    "raises": [
+     "invalid_notification_report_input"
+    ],
+    "tables": [
+     "site_private"
+    ]
+   },
+   "notification_delivery_is_claimable": {
+    "args": "p_delivery_id uuid",
+    "returns": "boolean",
+    "lang": "sql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "select case when delivery.audience = 'customer' then not site_private.notification_request_erased(delivery.request_kind, delivery.request_id) and not site_private.notification_request_suppressed(delivery.request_kind, delivery.request_id) else not site_private.notification_request_erased(delivery.request_kind, delivery.request_id) end from site_private.notification_deliveries delivery where delivery.id = p_delivery_id;",
+    "raises": [],
+    "tables": [
+     "site_private"
+    ]
+   },
+   "suppress_notification_delivery": {
+    "args": "p_delivery_id uuid",
+    "returns": "boolean",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_delivery site_private.notification_deliveries%rowtype; begin select * into v_delivery from site_private.notification_deliveries delivery where delivery.id = p_delivery_id for update; if not found then return false; end if; if v_delivery.status in ('sent', 'cancelled', 'exhausted') then return false; end if; if v_delivery.status = 'processing' and v_delivery.lease_expires_at > now() then return false; end if; if site_private.notification_request_erased(v_delivery.request_kind, v_delivery.request_id) then update site_private.notification_deliveries delivery set status = 'cancelled', last_error_code = 'recipient_erased', lease_token = null, lease_expires_at = null, claimed_at = null, …",
+    "raises": [],
+    "tables": [
+     "site_private",
+     "v_delivery"
+    ]
+   },
+   "purge_site_notification_provider_events": {
+    "args": "p_retention_days integer default 180, p_batch_size integer default 1000",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_deleted integer; begin if p_retention_days is null or p_retention_days not between 7 and 3650 or p_batch_size is null or p_batch_size not between 1 and 5000 then raise exception using errcode = '22023', message = 'invalid_notification_event_purge_input'; end if; with candidates as ( select event.id from site_private.notification_provider_events event where event.delivery_id is null and event.received_at < now() - make_interval(days => p_retention_days) order by event.received_at, event.id limit p_batch_size ) delete from site_private.notification_provider_events event using candidates where event.id = candidates.id; get diagnostics v_deleted = row_count; return jsonb_build_object(' …",
+    "raises": [
+     "invalid_notification_event_purge_input"
+    ],
+    "tables": [
+     "site_private"
+    ]
    }
   },
   "enums": {},
@@ -4022,6 +4198,30 @@
     "unique": false,
     "where": "",
     "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "name": "quote_requests_email_hash_idx",
+    "table": "site_private.quote_requests",
+    "columns": "site_private.email_hash(email",
+    "unique": false,
+    "where": "",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "name": "contact_requests_email_hash_idx",
+    "table": "site_private.contact_requests",
+    "columns": "site_private.email_hash(email",
+    "unique": false,
+    "where": "",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "name": "notification_provider_events_orphan_idx",
+    "table": "site_private.notification_provider_events",
+    "columns": "provider, provider_message_id",
+    "unique": false,
+    "where": "where delivery_id is null",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
    }
   ],
   "cron_jobs": [],
@@ -4099,6 +4299,7 @@
    "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
    "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
    "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql",
+   "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
    "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql",
    "site-supabase/supabase/migrations/20261122080000_include_message_text_in_export.sql"
   ],
@@ -6481,6 +6682,262 @@
     "objkind": "function",
     "roles": "service_role, site_api",
     "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.email_hash",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "site_private.email_hash",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "apply_site_notification_provider_event",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "apply_site_notification_provider_event",
+    "objkind": "function",
+    "roles": "service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.notification_request_erased",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.notification_request_suppressed",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "site_private.notification_request_erased",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "site_private.notification_request_suppressed",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "get_site_notification_suppression",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "get_site_notification_suppression",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "reconcile_site_notification_provider_events",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "reconcile_site_notification_provider_events",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.reprocess_notification_deliveries_core",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "site_private.reprocess_notification_deliveries_core",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "reprocess_site_notification_deliveries",
+    "objkind": "function",
+    "roles": "public, anon",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "reprocess_site_notification_deliveries",
+    "objkind": "function",
+    "roles": "authenticated, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "get_site_notification_delivery_report",
+    "objkind": "function",
+    "roles": "public, anon",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "get_site_notification_delivery_report",
+    "objkind": "function",
+    "roles": "authenticated, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.notification_delivery_is_claimable",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "site_private.notification_delivery_is_claimable",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.suppress_notification_delivery",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "site_private.suppress_notification_delivery",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "claim_site_notification_deliveries",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "claim_site_notification_deliveries",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "claim_site_quote_notification",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "claim_site_quote_notification",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "claim_site_commercial_team_alert",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "claim_site_commercial_team_alert",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "claim_site_commercial_team_alerts",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "claim_site_commercial_team_alerts",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "purge_site_notification_provider_events",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "purge_site_notification_provider_events",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
    }
   ],
   "raises": [
@@ -6543,11 +7000,6 @@
     "function": "get_my_quote_requests",
     "msg": "invalid_status_filter",
     "src": "site-supabase/supabase/migrations/20260916130000_add_persisted_quote_protocol.sql"
-   },
-   {
-    "function": "apply_site_notification_provider_event",
-    "msg": "invalid_notification_provider_event_input",
-    "src": "site-supabase/supabase/migrations/20260916140000_add_provider_event_precedence.sql"
    },
    {
     "function": "enforce_notification_delivery_lease_and_attempts",
@@ -6810,16 +7262,6 @@
     "src": "site-supabase/supabase/migrations/20260923130000_add_customer_occasion_favorites.sql"
    },
    {
-    "function": "claim_site_notification_deliveries",
-    "msg": "invalid_notification_claim_input",
-    "src": "site-supabase/supabase/migrations/20260923200000_enrich_quote_confirmation_contract.sql"
-   },
-   {
-    "function": "claim_site_quote_notification",
-    "msg": "invalid_notification_channel",
-    "src": "site-supabase/supabase/migrations/20260923200000_enrich_quote_confirmation_contract.sql"
-   },
-   {
     "function": "create_my_briefing_asset",
     "msg": "authentication_required",
     "src": "site-supabase/supabase/migrations/20260927161243_harden_briefing_assets_and_audits.sql"
@@ -6893,11 +7335,6 @@
     "function": "attach_my_briefing_assets_to_quote",
     "msg": "briefing_asset_attachment_conflict",
     "src": "site-supabase/supabase/migrations/20261006134751_make_briefing_asset_attachment_idempotent.sql"
-   },
-   {
-    "function": "claim_site_commercial_team_alerts",
-    "msg": "invalid_notification_claim_input",
-    "src": "site-supabase/supabase/migrations/20261117010000_add_commercial_team_contact_alert.sql"
    },
    {
     "function": "current_titular_verified_email",
@@ -7025,6 +7462,51 @@
     "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
    },
    {
+    "function": "apply_site_notification_provider_event",
+    "msg": "invalid_notification_provider_event_input",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "function": "get_site_notification_suppression",
+    "msg": "invalid_notification_suppression_input",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "function": "reconcile_site_notification_provider_events",
+    "msg": "invalid_notification_reconciliation_input",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "function": "reprocess_notification_deliveries_core",
+    "msg": "invalid_notification_reprocessing_input",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "function": "get_site_notification_delivery_report",
+    "msg": "invalid_notification_report_input",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "function": "claim_site_notification_deliveries",
+    "msg": "invalid_notification_claim_input",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "function": "claim_site_quote_notification",
+    "msg": "invalid_notification_channel",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "function": "claim_site_commercial_team_alerts",
+    "msg": "invalid_notification_claim_input",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "function": "purge_site_notification_provider_events",
+    "msg": "invalid_notification_event_purge_input",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
     "function": "reply_site_quote_adjustment",
     "msg": "adjustment_id_required",
     "src": "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql"
@@ -7095,7 +7577,9 @@
    "column:site_private.subject_right_requests.right_type": "Direito exercido: access (confirmacao de tratamento), export (portabilidade), correct (correcao de perfil) ou delete (autoexclusao).",
    "table:site_private.commercial_operators": "Allowlist do back-office comercial (F-03). Só service_role escreve; as RPCs de escrita comercial recusam chamador fora daqui, mesmo com JWT válido.",
    "table:site_private.commercial_audit_log": "Trilha append-only das escritas feitas pelo back-office (F-03): quem mudou o quê e quando. Sem policy para anon/authenticated; leitura só por service_role.",
-   "table:site_private.cron_heartbeats": "Heartbeat dos crons do site (F-87). Uma linha por cron agendado em vercel.json; escrita so pela RPC record_cron_heartbeat."
+   "table:site_private.cron_heartbeats": "Heartbeat dos crons do site (F-87). Uma linha por cron agendado em vercel.json; escrita so pela RPC record_cron_heartbeat.",
+   "column:site_private.notification_provider_events.provider_message_id": "F-12: id da mensagem no provedor, preservado no evento para o re-vínculo de evento que chegou antes do aceite. Eventos anteriores a esta migration não têm o valor e só podem ser expurgados.",
+   "column:site_private.notification_provider_events.bounce_reason": "F-12: motivo do bounce tal como o webhook enviou, preservado no evento para o re-vínculo (antes só existia em notification_deliveries, o que exigia a entrega já vinculada)."
   },
   "types_file": "",
   "transitions": [
@@ -7440,10 +7924,12 @@
     "tables_transitive": [],
     "invokes_transitive": [],
     "rpc_transitive": [
+     "get_site_notification_delivery_report",
      "get_site_quote_request",
      "list_site_quote_requests",
      "publish_site_quote_proposal",
      "reply_site_quote_adjustment",
+     "reprocess_site_notification_deliveries",
      "update_site_quote_status"
     ],
     "deps_count": 10
@@ -8093,7 +8579,7 @@
   {
    "module": "api",
    "files": 32,
-   "lines": 4563,
+   "lines": 4595,
    "tables": [],
    "exports": [
     "briefing-assets.ts: REQUEST_TIMEOUT_MS, handler, async",
@@ -8278,7 +8764,7 @@
   {
    "module": "scripts",
    "files": 43,
-   "lines": 21616,
+   "lines": 21632,
    "tables": [
     "a",
     "contacts",
@@ -8447,8 +8933,8 @@
   },
   {
    "module": "site-supabase",
-   "files": 109,
-   "lines": 15871,
+   "files": 111,
+   "lines": 17479,
    "tables": [],
    "exports": [],
    "docs": [],
@@ -8527,14 +9013,14 @@
     "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
     "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
     "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql",
+    "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
     "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql",
     "site-supabase/supabase/migrations/20261122080000_include_message_text_in_export.sql",
     "site-supabase/supabase/tests/database/adjustment_limits.test.sql",
     "site-supabase/supabase/tests/database/admin_write_audit.test.sql",
     "site-supabase/supabase/tests/database/briefing_assets.test.sql",
     "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
-    "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
-    "site-supabase/supabase/tests/database/contact_commercial_alert.test.sql"
+    "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql"
    ]
   },
   {
@@ -8681,7 +9167,7 @@
   {
    "module": "src/lib",
    "files": 87,
-   "lines": 9345,
+   "lines": 9532,
    "tables": [],
    "exports": [
     "analytics.ts: FunnelEventMap, redactAnalyticsPathname, redactTelemetryUrl, redactAnalyticsUrl, briefingAssetSizeBand, trackFunnelEvent",
@@ -8831,7 +9317,7 @@
   {
    "module": "src/pages",
    "files": 27,
-   "lines": 4384,
+   "lines": 4589,
    "tables": [],
    "exports": [
     "AboutPage.tsx: AboutPage",
@@ -8917,7 +9403,7 @@
   {
    "module": "src/types",
    "files": 1,
-   "lines": 1467,
+   "lines": 1518,
    "tables": [],
    "exports": [
     "site-database.types.ts: Json, Database, Tables, TablesInsert, TablesUpdate, Enums"
@@ -8932,7 +9418,7 @@
   {
    "module": "tests",
    "files": 48,
-   "lines": 10556,
+   "lines": 10596,
    "tables": [
     "constructor",
     "quote_requests",
@@ -9631,6 +10117,9 @@
    "get_my_quote_requests": [
     "src/lib/customerAccount.ts"
    ],
+   "get_site_notification_delivery_report": [
+    "src/lib/commercialBackoffice.ts"
+   ],
    "get_site_quote_request": [
     "src/lib/commercialBackoffice.ts"
    ],
@@ -9668,6 +10157,9 @@
     "scripts/ai-context/cenarios.mjs"
    ],
    "reply_site_quote_adjustment": [
+    "src/lib/commercialBackoffice.ts"
+   ],
+   "reprocess_site_notification_deliveries": [
     "src/lib/commercialBackoffice.ts"
    ],
    "request_my_quote_adjustment": [
@@ -11180,6 +11672,10 @@
    },
    {
     "file": "src/lib/commercialBackofficeContract.ts",
+    "msg": "commercial_backoffice_invalid_delivery_report"
+   },
+   {
+    "file": "src/lib/commercialBackofficeContract.ts",
     "msg": "commercial_backoffice_invalid_event"
    },
    {
@@ -11197,6 +11693,10 @@
    {
     "file": "src/lib/commercialBackofficeContract.ts",
     "msg": "commercial_backoffice_invalid_proposal_publication"
+   },
+   {
+    "file": "src/lib/commercialBackofficeContract.ts",
+    "msg": "commercial_backoffice_invalid_reprocessing_result"
    },
    {
     "file": "src/lib/commercialBackofficeContract.ts",
@@ -11611,6 +12111,10 @@
     "text": "máquina de estados não pode virar 'new' aqui: isso ofereceria ao operador um"
    },
    {
+    "file": "src/lib/commercialBackofficeContract.ts",
+    "text": "* A RPC devolve a fila já filtrada por operador. Um item sem `deliveryId` não pode"
+   },
+   {
     "file": "src/lib/customerOccasionFavorites.ts",
     "text": "Uma leitura remota inválida não deve ser confundida com erro de digitação"
    },
@@ -11725,6 +12229,10 @@
    {
     "file": "src/lib/useOccasionFavorites.ts",
     "text": "`storage` é emitido somente nas outras abas do mesmo navegador. A ação"
+   },
+   {
+    "file": "src/pages/BackofficePage.tsx",
+    "text": "entrada passaria na RPC, senão o operador descobre o limite por um erro."
    },
    {
     "file": "src/pages/BackofficePage.tsx",
@@ -12505,6 +13013,16 @@
    },
    {
     "table": "site_private.notification_provider_events",
+    "column": "provider_message_id",
+    "rule": "CHECK provider_message_id is null or length(provider_message_id) between 1 and 240"
+   },
+   {
+    "table": "site_private.notification_provider_events",
+    "column": "bounce_reason",
+    "rule": "CHECK bounce_reason is null or length(bounce_reason) <= 200"
+   },
+   {
+    "table": "site_private.notification_provider_events",
     "column": "(tabela)",
     "rule": "unique (provider, provider_event_id)"
    },
@@ -12999,6 +13517,16 @@
     "file": "api/retention.ts",
     "name": "AUDIT_LOG_BATCH_SIZE",
     "value": "1_000"
+   },
+   {
+    "file": "api/retention.ts",
+    "name": "ORPHAN_EVENT_RETENTION_DAYS",
+    "value": "180"
+   },
+   {
+    "file": "api/retention.ts",
+    "name": "ORPHAN_EVENT_BATCH_SIZE",
+    "value": "500"
    },
    {
     "file": "api/shared-selections.ts",
@@ -17236,6 +17764,274 @@
     "name": "sair de processing limpando lease_token e lease_expires_at juntos é aceito"
    },
    {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "evento guarda o id da mensagem no provedor para poder ser religado depois"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "evento guarda o motivo do bounce para o re-vínculo não perder a informação"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "pseudônimo do e-mail existe"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "consulta de supressão existe"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "re-vínculo existe"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "reprocessamento existe"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "relatório operacional existe"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "purga de órfãos existe"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "anon não calcula o pseudônimo"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "anon não consulta a lista de supressão"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "cliente autenticado NÃO consulta a supressão: o hash é calculável e revelaria devoluções de terceiros"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "backend consulta a supressão (é a porta de envio)"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "anon não reprocessa entrega"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "cliente autenticado não dispara re-vínculo"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "backend dispara re-vínculo"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "cliente autenticado não expurga eventos"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "hash normaliza caixa e espaços: o mesmo titular tem sempre o mesmo pseudônimo"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "pseudônimo é sha256 hex de 64 dígitos"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "e-mails diferentes têm pseudônimos diferentes"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "orçamento de teste criado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "entrega ao titular foi enfileirada"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "endereço sem bounce nem reclamação não está suprimido"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "nenhuma entrega suprimida ainda"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "evento de entrega aplica normalmente"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "evento de mensagem ainda não aceita não aplica (contrato original preservado)"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "o evento órfão guarda provider_message_id — é isso que permite religar depois"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "re-vínculo religa o evento órfão à entrega"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "bounced religado sobrescreve o delivered otimista (mesma precedência da função original)"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "o motivo do bounce sobreviveu no evento e chegou à entrega"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "re-vínculo é idempotente: evento já religado não é reprocessado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "endereço que devolveu passa a estar suprimido"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "consulta devolve o último motivo do bounce"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "consulta diz em qual canal o endereço falhou"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "conta quantas entregas sustentam a supressão"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "resposta da supressão nunca traz o e-mail em claro"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "supressão de um endereço não contamina outro"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "hash fora do formato é rejeitado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "relatório exige operador autenticado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "relatório lista a entrega esgotada com o último erro"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "relatório sinaliza que o endereço da entrega esgotada está suprimido"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "relatório expõe só um prefixo do pseudônimo, nunca o e-mail"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "relatório não vaza e-mail em claro"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "segundo orçamento de teste criado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "motivo curto demais é rejeitado (a trilha precisa explicar o reprocessamento)"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "lote vazio é rejeitado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "só a entrega esgotada é reaberta"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "entrega esgotada volta para pending"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "reabertura zera attempts, como a máquina de estados exige"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "reabertura limpa o erro anterior"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "entrega que não está esgotada volta em skipped, sem abortar o lote"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "reprocessamento fica registrado na trilha com o operador e o motivo"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "entrega de pedido apagado pela autoexclusão não volta para a fila"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "entrega de pedido apagado continua esgotada depois da recusa"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "relatório lista alerta de contato esgotado (antes ficava invisível no painel)"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "contato não tem protocolo: o campo vai nulo, sem inventar valor"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "cron não reivindica entrega de endereço suprimido"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "entrega de endereço suprimido é cancelada, com motivo registrado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "motivo do cancelamento fica visível na entrega"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "envio imediato devolve null para pedido apagado (não há destinatário válido)"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "quem não está na allowlist não reprocessa entrega"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "órfão recente não é expurgado (ainda pode ser religado)"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "órfão mais antigo que a retenção é expurgado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "o órfão antigo saiu da tabela de dedupe"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "evento vinculado nunca é expurgado, mesmo antigo (é a fonte de delivery_state_source_event_id)"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "evento vinculado permanece depois da purga"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "retenção abaixo do mínimo é rejeitada"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+    "name": "lote zerado é rejeitado"
+   },
+   {
     "file": "site-supabase/supabase/tests/database/query_plans.test.sql",
     "name": "consulta de reivindicação da fila não usa Seq Scan em notification_deliveries com distribuição de regime permanente (Etapa 17)"
    },
@@ -18840,6 +19636,18 @@
     "name": "separa o conflito de concorrência para a tela recarregar o pedido"
    },
    {
+    "file": "src/lib/commercialBackofficeContract.test.ts",
+    "name": "lê o relatório da fila e descarta linha sem deliveryId"
+   },
+   {
+    "file": "src/lib/commercialBackofficeContract.test.ts",
+    "name": "lê o resultado do reprocessamento normalizando o motivo de skip"
+   },
+   {
+    "file": "src/lib/commercialBackofficeContract.test.ts",
+    "name": "traduz a recusa por lote ou motivo inválido no reprocessamento"
+   },
+   {
     "file": "src/lib/contactRequest.test.ts",
     "name": "contato rápido"
    },
@@ -19918,6 +20726,10 @@
    {
     "file": "tests/check-performance-budget.node.mjs",
     "name": "falha fechado quando o manifest aponta chunk que não foi medido"
+   },
+   {
+    "file": "tests/check-performance-budget.node.mjs",
+    "name": "o perfil de pior caso só existe se diferenciar um bundle que a produção reprova"
    },
    {
     "file": "tests/check-performance-budget.node.mjs",
@@ -22908,10 +23720,10 @@
     "args": "p_channels text[], p_batch_size integer default 10",
     "returns": "jsonb",
     "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20260923200000_enrich_quote_confirmation_contract.sql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
     "security_definer": false,
     "search_path": true,
-    "body": "declare v_policy record; v_jobs jsonb; begin select * into v_policy from site_private.notification_policy(); if p_batch_size not between 1 and v_policy.batch_max or p_channels is null or cardinality(p_channels) not between 1 and 2 or exists (select 1 from unnest(p_channels) channel where channel not in ('email', 'whatsapp')) then raise exception using errcode = '22023', message = 'invalid_notification_claim_input'; end if; with exhausted_candidates as ( select delivery.id from site_private.notification_deliveries delivery where delivery.request_kind = 'quote' and delivery.audience = 'customer' and delivery.channel = any(p_channels) and delivery.attempts >= v_policy.max_attempts and (delivery …",
+    "body": "declare v_policy record; v_jobs jsonb; begin select * into v_policy from site_private.notification_policy(); if p_batch_size not between 1 and v_policy.batch_max or p_channels is null or cardinality(p_channels) not between 1 and 2 or exists (select 1 from unnest(p_channels) channel where channel not in ('email', 'whatsapp')) then raise exception using errcode = '22023', message = 'invalid_notification_claim_input'; end if; perform site_private.suppress_notification_delivery(blocked.id) from ( select delivery.id from site_private.notification_deliveries delivery where delivery.request_kind = 'quote' and delivery.audience = 'customer' and delivery.channel = any(p_channels) and delivery.status …",
     "raises": [
      "invalid_notification_claim_input"
     ],
@@ -22930,10 +23742,10 @@
     "args": "p_request_id uuid, p_channel text",
     "returns": "jsonb",
     "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20260923200000_enrich_quote_confirmation_contract.sql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
     "security_definer": false,
     "search_path": true,
-    "body": "declare v_policy record; v_delivery site_private.notification_deliveries%rowtype; begin if p_channel not in ('email', 'whatsapp') then raise exception using errcode = '22023', message = 'invalid_notification_channel'; end if; select * into v_policy from site_private.notification_policy(); select * into v_delivery from site_private.notification_deliveries delivery where delivery.request_kind = 'quote' and delivery.request_id = p_request_id and delivery.channel = p_channel and delivery.audience = 'customer' and delivery.status in ('pending', 'failed') and delivery.next_attempt_at <= now() and delivery.attempts < v_policy.max_attempts for update skip locked; if not found then return null; end i …",
+    "body": "declare v_policy record; v_delivery site_private.notification_deliveries%rowtype; begin if p_channel not in ('email', 'whatsapp') then raise exception using errcode = '22023', message = 'invalid_notification_channel'; end if; select * into v_policy from site_private.notification_policy(); select * into v_delivery from site_private.notification_deliveries delivery where delivery.request_kind = 'quote' and delivery.request_id = p_request_id and delivery.channel = p_channel and delivery.audience = 'customer' and delivery.status in ('pending', 'failed') and delivery.next_attempt_at <= now() and delivery.attempts < v_policy.max_attempts order by delivery.created_at, delivery.id limit 1; if not fo …",
     "raises": [
      "invalid_notification_channel"
     ],
@@ -22993,7 +23805,7 @@
     "args": "p_provider text, p_provider_message_id text, p_event_type text, p_provider_event_id text, p_occurred_at timestamptz, p_bounce_reason text default null",
     "returns": "jsonb",
     "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20260916140000_add_provider_event_precedence.sql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
     "security_definer": false,
     "search_path": true,
     "body": "declare v_event_id uuid; v_delivery_id uuid; v_updated integer; begin if p_provider not in ('resend', 'meta-whatsapp-cloud') or p_event_type not in ('delivered', 'bounced', 'complained') or length(coalesce(p_provider_message_id, '')) not between 1 and 240 or length(coalesce(p_provider_event_id, '')) not between 1 and 240 or p_occurred_at is null or length(coalesce(p_bounce_reason, '')) > 200 then raise exception using errcode = '22023', message = 'invalid_notification_provider_event_input'; end if; select delivery.id into v_delivery_id from site_private.notification_deliveries delivery where delivery.provider = p_provider and delivery.provider_message_id = p_provider_message_id limit 1; inse …",
@@ -23677,10 +24489,10 @@
     "args": "p_request_id uuid",
     "returns": "jsonb",
     "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20261117010000_add_commercial_team_contact_alert.sql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
     "security_definer": false,
     "search_path": true,
-    "body": "declare v_policy record; v_delivery site_private.notification_deliveries%rowtype; begin select * into v_policy from site_private.notification_policy(); select * into v_delivery from site_private.notification_deliveries delivery where delivery.request_kind in ('quote', 'contact') and delivery.request_id = p_request_id and delivery.audience = 'commercial_team' and delivery.status in ('pending', 'failed') and delivery.next_attempt_at <= now() and delivery.attempts < v_policy.max_attempts for update skip locked; if not found then return null; end if; update site_private.notification_deliveries delivery set status = 'processing', attempts = delivery.attempts + 1, updated_at = now(), lease_token = …",
+    "body": "declare v_policy record; v_delivery site_private.notification_deliveries%rowtype; begin select * into v_policy from site_private.notification_policy(); select * into v_delivery from site_private.notification_deliveries delivery where delivery.request_kind in ('quote', 'contact') and delivery.request_id = p_request_id and delivery.audience = 'commercial_team' and delivery.status in ('pending', 'failed') and delivery.next_attempt_at <= now() and delivery.attempts < v_policy.max_attempts order by delivery.created_at, delivery.id limit 1; if not found then return null; end if; if site_private.suppress_notification_delivery(v_delivery.id) then return null; end if; select * into v_delivery from si …",
     "raises": [],
     "tables": [
      "site_private",
@@ -23693,10 +24505,10 @@
     "args": "p_batch_size integer default 10",
     "returns": "jsonb",
     "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20261117010000_add_commercial_team_contact_alert.sql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
     "security_definer": false,
     "search_path": true,
-    "body": "declare v_policy record; v_jobs jsonb; begin select * into v_policy from site_private.notification_policy(); if p_batch_size not between 1 and v_policy.batch_max then raise exception using errcode = '22023', message = 'invalid_notification_claim_input'; end if; with exhausted_candidates as ( select delivery.id from site_private.notification_deliveries delivery where delivery.request_kind in ('quote', 'contact') and delivery.audience = 'commercial_team' and delivery.attempts >= v_policy.max_attempts and (delivery.status in ('pending', 'failed') or (delivery.status = 'processing' and delivery.lease_expires_at <= now())) for update of delivery skip locked ) update site_private.notification_deli …",
+    "body": "declare v_policy record; v_jobs jsonb; begin select * into v_policy from site_private.notification_policy(); if p_batch_size not between 1 and v_policy.batch_max then raise exception using errcode = '22023', message = 'invalid_notification_claim_input'; end if; perform site_private.suppress_notification_delivery(blocked.id) from ( select delivery.id from site_private.notification_deliveries delivery where delivery.request_kind in ('quote', 'contact') and delivery.audience = 'commercial_team' and delivery.status in ('pending', 'failed', 'processing') and not site_private.notification_delivery_is_claimable(delivery.id) order by delivery.created_at, delivery.id limit p_batch_size for update of …",
     "raises": [
      "invalid_notification_claim_input"
     ],
@@ -24016,6 +24828,168 @@
      "esperado",
      "site_private"
     ]
+   },
+   "email_hash": {
+    "args": "p_email text",
+    "returns": "text",
+    "lang": "sql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "select encode( sha256( convert_to(site_private.normalize_email(coalesce(p_email, '')), 'UTF8') ), 'hex' );",
+    "raises": [],
+    "tables": []
+   },
+   "notification_request_erased": {
+    "args": "p_request_kind text, p_request_id uuid",
+    "returns": "boolean",
+    "lang": "sql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "select case p_request_kind when 'quote' then exists ( select 1 from site_private.quote_requests request where request.id = p_request_id and request.email like '%@erased.invalid' ) when 'contact' then exists ( select 1 from site_private.contact_requests request where request.id = p_request_id and request.email like '%@erased.invalid' ) else false end;",
+    "raises": [],
+    "tables": [
+     "site_private"
+    ]
+   },
+   "notification_request_suppressed": {
+    "args": "p_request_kind text, p_request_id uuid",
+    "returns": "boolean",
+    "lang": "sql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "select exists ( select 1 from site_private.notification_deliveries delivery where delivery.audience = 'customer' and (delivery.delivery_state = 'bounced' or delivery.complained_at is not null) and site_private.email_hash( case p_request_kind when 'quote' then ( select request.email from site_private.quote_requests request where request.id = p_request_id ) when 'contact' then ( select request.email from site_private.contact_requests request where request.id = p_request_id ) end ) = case delivery.request_kind when 'quote' then site_private.email_hash(( select request.email from site_private.quote_requests request where request.id = delivery.request_id )) else site_private.email_hash(( select r …",
+    "raises": [],
+    "tables": [
+     "site_private"
+    ]
+   },
+   "get_site_notification_suppression": {
+    "args": "p_email_hash text",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_hash text := lower(btrim(coalesce(p_email_hash, ''))); v_result jsonb; begin if v_hash !~ '^[0-9a-f]{64}$' then raise exception using errcode = '22023', message = 'invalid_notification_suppression_input'; end if; with matches as ( select delivery.channel, delivery.delivery_state, delivery.delivery_state_at, delivery.complained_at, delivery.bounce_reason from site_private.notification_deliveries delivery join site_private.quote_requests request on delivery.request_kind = 'quote' and request.id = delivery.request_id where delivery.audience = 'customer' and site_private.email_hash(request.email) = v_hash union all select delivery.channel, delivery.delivery_state, delivery.delivery_sta …",
+    "raises": [
+     "invalid_notification_suppression_input"
+    ],
+    "tables": [
+     "matches",
+     "relevant",
+     "site_private",
+     "v_result"
+    ]
+   },
+   "reconcile_site_notification_provider_events": {
+    "args": "p_batch_size integer default 100",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_event record; v_delivery_id uuid; v_linked integer := 0; v_applied integer := 0; v_unmatched integer := 0; v_unmatched_ids uuid[] := array[]::uuid[]; v_updated integer; begin if p_batch_size is null or p_batch_size not between 1 and 500 then raise exception using errcode = '22023', message = 'invalid_notification_reconciliation_input'; end if; for v_event in select event.id, event.provider, event.provider_message_id, event.event_type, event.received_at, event.bounce_reason, matched.id as delivery_id from site_private.notification_provider_events event left join lateral ( select delivery.id from site_private.notification_deliveries delivery where delivery.provider = event.provider a …",
+    "raises": [
+     "invalid_notification_reconciliation_input"
+    ],
+    "tables": [
+     "lateral",
+     "of",
+     "site_private"
+    ]
+   },
+   "reprocess_notification_deliveries_core": {
+    "args": "p_delivery_ids uuid[], p_reason text, p_actor_label text",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_ids uuid[]; v_reason text := btrim(coalesce(p_reason, '')); v_actor text := left(btrim(coalesce(p_actor_label, 'notification worker')), 160); v_reopened_ids uuid[] := array[]::uuid[]; v_skipped jsonb; begin select array_agg(distinct item.id) into v_ids from unnest(coalesce(p_delivery_ids, array[]::uuid[])) as item(id); if v_ids is null or cardinality(v_ids) not between 1 and 100 then raise exception using errcode = '22023', message = 'invalid_notification_reprocessing_input'; end if; if length(v_reason) not between 3 and 200 then raise exception using errcode = '22023', message = 'invalid_notification_reprocessing_input'; end if; with candidates as ( select delivery.id from site_pr …",
+    "raises": [
+     "invalid_notification_reprocessing_input"
+    ],
+    "tables": [
+     "candidates",
+     "reopened",
+     "site_private",
+     "skip",
+     "unnest",
+     "v_ids",
+     "v_reopened_ids",
+     "v_skipped"
+    ]
+   },
+   "reprocess_site_notification_deliveries": {
+    "args": "p_delivery_ids uuid[], p_reason text",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_operator site_private.commercial_operators := site_private.assert_site_operator(); begin return site_private.reprocess_notification_deliveries_core( p_delivery_ids, p_reason, v_operator.display_name ); end;",
+    "raises": [],
+    "tables": []
+   },
+   "get_site_notification_delivery_report": {
+    "args": "p_limit integer default 50",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_limit integer := coalesce(p_limit, 50); begin if v_limit not between 1 and 200 then raise exception using errcode = '22023', message = 'invalid_notification_report_input'; end if; perform site_private.assert_site_operator(); return jsonb_build_object( 'exhausted', coalesce(( select jsonb_agg(jsonb_build_object( 'deliveryId', item.id, 'requestKind', item.request_kind, 'requestId', item.request_id, 'protocol', item.protocol, 'channel', item.channel, 'attempts', item.attempts, 'lastErrorCode', item.last_error_code, 'lastErrorAt', item.last_error_at, 'updatedAt', item.updated_at, 'emailHashPrefix', left(item.email_hash, 12), 'suppressed', item.suppressed, 'erased', item.erased ) order …",
+    "raises": [
+     "invalid_notification_report_input"
+    ],
+    "tables": [
+     "site_private"
+    ]
+   },
+   "notification_delivery_is_claimable": {
+    "args": "p_delivery_id uuid",
+    "returns": "boolean",
+    "lang": "sql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "select case when delivery.audience = 'customer' then not site_private.notification_request_erased(delivery.request_kind, delivery.request_id) and not site_private.notification_request_suppressed(delivery.request_kind, delivery.request_id) else not site_private.notification_request_erased(delivery.request_kind, delivery.request_id) end from site_private.notification_deliveries delivery where delivery.id = p_delivery_id;",
+    "raises": [],
+    "tables": [
+     "site_private"
+    ]
+   },
+   "suppress_notification_delivery": {
+    "args": "p_delivery_id uuid",
+    "returns": "boolean",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_delivery site_private.notification_deliveries%rowtype; begin select * into v_delivery from site_private.notification_deliveries delivery where delivery.id = p_delivery_id for update; if not found then return false; end if; if v_delivery.status in ('sent', 'cancelled', 'exhausted') then return false; end if; if v_delivery.status = 'processing' and v_delivery.lease_expires_at > now() then return false; end if; if site_private.notification_request_erased(v_delivery.request_kind, v_delivery.request_id) then update site_private.notification_deliveries delivery set status = 'cancelled', last_error_code = 'recipient_erased', lease_token = null, lease_expires_at = null, claimed_at = null, …",
+    "raises": [],
+    "tables": [
+     "site_private",
+     "v_delivery"
+    ]
+   },
+   "purge_site_notification_provider_events": {
+    "args": "p_retention_days integer default 180, p_batch_size integer default 1000",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_deleted integer; begin if p_retention_days is null or p_retention_days not between 7 and 3650 or p_batch_size is null or p_batch_size not between 1 and 5000 then raise exception using errcode = '22023', message = 'invalid_notification_event_purge_input'; end if; with candidates as ( select event.id from site_private.notification_provider_events event where event.delivery_id is null and event.received_at < now() - make_interval(days => p_retention_days) order by event.received_at, event.id limit p_batch_size ) delete from site_private.notification_provider_events event using candidates where event.id = candidates.id; get diagnostics v_deleted = row_count; return jsonb_build_object(' …",
+    "raises": [
+     "invalid_notification_event_purge_input"
+    ],
+    "tables": [
+     "site_private"
+    ]
    }
   },
   "db_enums": {},
@@ -24079,11 +25053,6 @@
     "function": "get_my_quote_requests",
     "msg": "invalid_status_filter",
     "src": "site-supabase/supabase/migrations/20260916130000_add_persisted_quote_protocol.sql"
-   },
-   {
-    "function": "apply_site_notification_provider_event",
-    "msg": "invalid_notification_provider_event_input",
-    "src": "site-supabase/supabase/migrations/20260916140000_add_provider_event_precedence.sql"
    },
    {
     "function": "enforce_notification_delivery_lease_and_attempts",
@@ -24346,16 +25315,6 @@
     "src": "site-supabase/supabase/migrations/20260923130000_add_customer_occasion_favorites.sql"
    },
    {
-    "function": "claim_site_notification_deliveries",
-    "msg": "invalid_notification_claim_input",
-    "src": "site-supabase/supabase/migrations/20260923200000_enrich_quote_confirmation_contract.sql"
-   },
-   {
-    "function": "claim_site_quote_notification",
-    "msg": "invalid_notification_channel",
-    "src": "site-supabase/supabase/migrations/20260923200000_enrich_quote_confirmation_contract.sql"
-   },
-   {
     "function": "create_my_briefing_asset",
     "msg": "authentication_required",
     "src": "site-supabase/supabase/migrations/20260927161243_harden_briefing_assets_and_audits.sql"
@@ -24429,11 +25388,6 @@
     "function": "attach_my_briefing_assets_to_quote",
     "msg": "briefing_asset_attachment_conflict",
     "src": "site-supabase/supabase/migrations/20261006134751_make_briefing_asset_attachment_idempotent.sql"
-   },
-   {
-    "function": "claim_site_commercial_team_alerts",
-    "msg": "invalid_notification_claim_input",
-    "src": "site-supabase/supabase/migrations/20261117010000_add_commercial_team_contact_alert.sql"
    },
    {
     "function": "current_titular_verified_email",
@@ -24559,6 +25513,51 @@
     "function": "record_cron_heartbeat",
     "msg": "invalid_cron_outcome",
     "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
+   },
+   {
+    "function": "apply_site_notification_provider_event",
+    "msg": "invalid_notification_provider_event_input",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "function": "get_site_notification_suppression",
+    "msg": "invalid_notification_suppression_input",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "function": "reconcile_site_notification_provider_events",
+    "msg": "invalid_notification_reconciliation_input",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "function": "reprocess_notification_deliveries_core",
+    "msg": "invalid_notification_reprocessing_input",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "function": "get_site_notification_delivery_report",
+    "msg": "invalid_notification_report_input",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "function": "claim_site_notification_deliveries",
+    "msg": "invalid_notification_claim_input",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "function": "claim_site_quote_notification",
+    "msg": "invalid_notification_channel",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "function": "claim_site_commercial_team_alerts",
+    "msg": "invalid_notification_claim_input",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "function": "purge_site_notification_provider_events",
+    "msg": "invalid_notification_event_purge_input",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
    },
    {
     "function": "reply_site_quote_adjustment",
@@ -25457,6 +26456,7 @@
    "delete_my_briefing_asset",
    "delete_my_data",
    "delete_my_selection",
+   "email_hash",
    "enforce_valid_kit_reference_set",
    "erase_customer_assets_on_profile_change",
    "erase_customer_data",
@@ -25471,6 +26471,8 @@
    "get_my_proposal_document",
    "get_my_quote_request",
    "get_my_quote_requests",
+   "get_site_notification_delivery_report",
+   "get_site_notification_suppression",
    "get_site_quote_request",
    "list_my_briefing_assets",
    "list_my_occasion_favorites",
@@ -25479,20 +26481,28 @@
    "log_admin_ddl",
    "log_admin_write",
    "matches_my_briefing_asset_upload",
+   "notification_delivery_is_claimable",
+   "notification_request_erased",
+   "notification_request_suppressed",
    "owns_my_briefing_asset_path",
    "publish_site_quote_proposal",
    "purge_archived_customer_selections",
    "purge_site_admin_audit_logs",
+   "purge_site_notification_provider_events",
    "queue_briefing_asset_deletion",
+   "reconcile_site_notification_provider_events",
    "record_cron_heartbeat",
    "reject_site_briefing_asset_verification",
    "reply_site_quote_adjustment",
+   "reprocess_notification_deliveries_core",
+   "reprocess_site_notification_deliveries",
    "request_my_quote_adjustment",
    "require_verified_briefing_asset_attachment",
    "rls_auto_enable",
    "save_my_selection",
    "set_my_occasion_favorite",
    "set_my_selection_archived",
+   "suppress_notification_delivery",
    "update_site_quote_status"
   ],
   "public_functions": [],
@@ -27851,6 +28861,262 @@
     "objkind": "function",
     "roles": "service_role, site_api",
     "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.email_hash",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "site_private.email_hash",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "apply_site_notification_provider_event",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "apply_site_notification_provider_event",
+    "objkind": "function",
+    "roles": "service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.notification_request_erased",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.notification_request_suppressed",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "site_private.notification_request_erased",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "site_private.notification_request_suppressed",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "get_site_notification_suppression",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "get_site_notification_suppression",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "reconcile_site_notification_provider_events",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "reconcile_site_notification_provider_events",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.reprocess_notification_deliveries_core",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "site_private.reprocess_notification_deliveries_core",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "reprocess_site_notification_deliveries",
+    "objkind": "function",
+    "roles": "public, anon",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "reprocess_site_notification_deliveries",
+    "objkind": "function",
+    "roles": "authenticated, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "get_site_notification_delivery_report",
+    "objkind": "function",
+    "roles": "public, anon",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "get_site_notification_delivery_report",
+    "objkind": "function",
+    "roles": "authenticated, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.notification_delivery_is_claimable",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "site_private.notification_delivery_is_claimable",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.suppress_notification_delivery",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "site_private.suppress_notification_delivery",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "claim_site_notification_deliveries",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "claim_site_notification_deliveries",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "claim_site_quote_notification",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "claim_site_quote_notification",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "claim_site_commercial_team_alert",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "claim_site_commercial_team_alert",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "claim_site_commercial_team_alerts",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "claim_site_commercial_team_alerts",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "purge_site_notification_provider_events",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "purge_site_notification_provider_events",
+    "objkind": "function",
+    "roles": "site_api, service_role",
+    "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
    }
   ],
   "guards": [],
@@ -28440,7 +29706,7 @@
   },
   "api/retention.ts": {
    "path": "api/retention.ts",
-   "lines": 293,
+   "lines": 325,
    "exports": [
     "const REQUEST_TIMEOUT_MS",
     "const TOTAL_TIME_BUDGET_MS",
@@ -28492,6 +29758,14 @@
     {
      "name": "AUDIT_LOG_BATCH_SIZE",
      "value": "1_000"
+    },
+    {
+     "name": "ORPHAN_EVENT_RETENTION_DAYS",
+     "value": "180"
+    },
+    {
+     "name": "ORPHAN_EVENT_BATCH_SIZE",
+     "value": "500"
     }
    ],
    "rule_comments": [
@@ -29469,7 +30743,7 @@
   },
   "scripts/check-performance-budget.mjs": {
    "path": "scripts/check-performance-budget.mjs",
-   "lines": 198,
+   "lines": 214,
    "env": [
     "PERFORMANCE_BUDGET_PROFILE"
    ],
@@ -31819,6 +33093,11 @@
    ],
    "uses_service_role": true
   },
+  "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql": {
+   "path": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+   "lines": 1038,
+   "uses_service_role": true
+  },
   "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql": {
    "path": "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql",
    "lines": 227,
@@ -32721,6 +34000,85 @@
     "processing com lease_token e lease_expires_at é aceito",
     "sair de processing sem limpar lease_token/lease_expires_at viola a invariante (Etapa 9)",
     "sair de processing limpando lease_token e lease_expires_at juntos é aceito"
+   ],
+   "uses_service_role": true
+  },
+  "site-supabase/supabase/tests/database/notification_suppression.test.sql": {
+   "path": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+   "lines": 570,
+   "is_test": true,
+   "temporal": [
+    "set received_at = now() - interval '400 days'",
+    "values ('resend', 'evt-f12-old-orphan', 'delivered', null, 'resend-msg-f12-old', now() - interval '400 days');"
+   ],
+   "tests": [
+    "evento guarda o id da mensagem no provedor para poder ser religado depois",
+    "evento guarda o motivo do bounce para o re-vínculo não perder a informação",
+    "pseudônimo do e-mail existe",
+    "consulta de supressão existe",
+    "re-vínculo existe",
+    "reprocessamento existe",
+    "relatório operacional existe",
+    "purga de órfãos existe",
+    "anon não calcula o pseudônimo",
+    "anon não consulta a lista de supressão",
+    "cliente autenticado NÃO consulta a supressão: o hash é calculável e revelaria devoluções de terceiros",
+    "backend consulta a supressão (é a porta de envio)",
+    "anon não reprocessa entrega",
+    "cliente autenticado não dispara re-vínculo",
+    "backend dispara re-vínculo",
+    "cliente autenticado não expurga eventos",
+    "hash normaliza caixa e espaços: o mesmo titular tem sempre o mesmo pseudônimo",
+    "pseudônimo é sha256 hex de 64 dígitos",
+    "e-mails diferentes têm pseudônimos diferentes",
+    "orçamento de teste criado",
+    "entrega ao titular foi enfileirada",
+    "endereço sem bounce nem reclamação não está suprimido",
+    "nenhuma entrega suprimida ainda",
+    "evento de entrega aplica normalmente",
+    "evento de mensagem ainda não aceita não aplica (contrato original preservado)",
+    "o evento órfão guarda provider_message_id — é isso que permite religar depois",
+    "re-vínculo religa o evento órfão à entrega",
+    "bounced religado sobrescreve o delivered otimista (mesma precedência da função original)",
+    "o motivo do bounce sobreviveu no evento e chegou à entrega",
+    "re-vínculo é idempotente: evento já religado não é reprocessado",
+    "endereço que devolveu passa a estar suprimido",
+    "consulta devolve o último motivo do bounce",
+    "consulta diz em qual canal o endereço falhou",
+    "conta quantas entregas sustentam a supressão",
+    "resposta da supressão nunca traz o e-mail em claro",
+    "supressão de um endereço não contamina outro",
+    "hash fora do formato é rejeitado",
+    "relatório exige operador autenticado",
+    "relatório lista a entrega esgotada com o último erro",
+    "relatório sinaliza que o endereço da entrega esgotada está suprimido",
+    "relatório expõe só um prefixo do pseudônimo, nunca o e-mail",
+    "relatório não vaza e-mail em claro",
+    "segundo orçamento de teste criado",
+    "motivo curto demais é rejeitado (a trilha precisa explicar o reprocessamento)",
+    "lote vazio é rejeitado",
+    "só a entrega esgotada é reaberta",
+    "entrega esgotada volta para pending",
+    "reabertura zera attempts, como a máquina de estados exige",
+    "reabertura limpa o erro anterior",
+    "entrega que não está esgotada volta em skipped, sem abortar o lote",
+    "reprocessamento fica registrado na trilha com o operador e o motivo",
+    "entrega de pedido apagado pela autoexclusão não volta para a fila",
+    "entrega de pedido apagado continua esgotada depois da recusa",
+    "relatório lista alerta de contato esgotado (antes ficava invisível no painel)",
+    "contato não tem protocolo: o campo vai nulo, sem inventar valor",
+    "cron não reivindica entrega de endereço suprimido",
+    "entrega de endereço suprimido é cancelada, com motivo registrado",
+    "motivo do cancelamento fica visível na entrega",
+    "envio imediato devolve null para pedido apagado (não há destinatário válido)",
+    "quem não está na allowlist não reprocessa entrega",
+    "órfão recente não é expurgado (ainda pode ser religado)",
+    "órfão mais antigo que a retenção é expurgado",
+    "o órfão antigo saiu da tabela de dedupe",
+    "evento vinculado nunca é expurgado, mesmo antigo (é a fonte de delivery_state_source_event_id)",
+    "evento vinculado permanece depois da purga",
+    "retenção abaixo do mínimo é rejeitada",
+    "lote zerado é rejeitado"
    ],
    "uses_service_role": true
   },
@@ -34567,20 +35925,24 @@
   },
   "src/lib/commercialBackoffice.ts": {
    "path": "src/lib/commercialBackoffice.ts",
-   "lines": 97,
+   "lines": 133,
    "exports": [
     "interface SiteQuoteListQuery",
     "function listSiteQuoteRequests",
     "function fetchSiteQuoteDetail",
     "function updateSiteQuoteStatus",
     "function replySiteQuoteAdjustment",
-    "function publishSiteQuoteProposal"
+    "function publishSiteQuoteProposal",
+    "function fetchSiteNotificationDeliveryReport",
+    "function reprocessSiteNotificationDeliveries"
    ],
    "rpc": [
+    "get_site_notification_delivery_report",
     "get_site_quote_request",
     "list_site_quote_requests",
     "publish_site_quote_proposal",
     "reply_site_quote_adjustment",
+    "reprocess_site_notification_deliveries",
     "update_site_quote_status"
    ],
    "errors": [
@@ -34601,7 +35963,7 @@
   },
   "src/lib/commercialBackofficeContract.test.ts": {
    "path": "src/lib/commercialBackofficeContract.test.ts",
-   "lines": 172,
+   "lines": 241,
    "is_test": true,
    "tests": [
     "contrato do back-office comercial",
@@ -34617,12 +35979,15 @@
     "reconhece o 42501 de operador não cadastrado",
     "traduz cada erro conhecido do banco para uma mensagem acionável",
     "separa recusa de formulario de falha de carregamento",
-    "separa o conflito de concorrência para a tela recarregar o pedido"
+    "separa o conflito de concorrência para a tela recarregar o pedido",
+    "lê o relatório da fila e descarta linha sem deliveryId",
+    "lê o resultado do reprocessamento normalizando o motivo de skip",
+    "traduz a recusa por lote ou motivo inválido no reprocessamento"
    ]
   },
   "src/lib/commercialBackofficeContract.ts": {
    "path": "src/lib/commercialBackofficeContract.ts",
-   "lines": 370,
+   "lines": 452,
    "exports": [
     "const SITE_QUOTE_STATUSES",
     "type SiteQuoteStatus",
@@ -34637,10 +36002,16 @@
     "interface SiteQuoteDetail",
     "interface SiteQuoteStatusChange",
     "interface SiteQuoteProposalPublication",
+    "interface SiteNotificationExhaustedDelivery",
+    "interface SiteNotificationDeliveryReport",
+    "interface SiteNotificationReprocessingSkipped",
+    "interface SiteNotificationReprocessingResult",
     "function parseSiteQuoteListPage",
     "function parseSiteQuoteDetail",
     "function parseSiteQuoteStatusChange",
     "function parseSiteQuoteProposalPublication",
+    "function parseSiteNotificationDeliveryReport",
+    "function parseSiteNotificationReprocessingResult",
     "function isSiteOperatorError",
     "function isSiteProposalRejected",
     "function isSiteQuoteConflict",
@@ -34649,11 +36020,13 @@
    "errors": [
     "commercial_backoffice_invalid_adjustment",
     "commercial_backoffice_invalid_audit",
+    "commercial_backoffice_invalid_delivery_report",
     "commercial_backoffice_invalid_event",
     "commercial_backoffice_invalid_item",
     "commercial_backoffice_invalid_item_line",
     "commercial_backoffice_invalid_proposal",
     "commercial_backoffice_invalid_proposal_publication",
+    "commercial_backoffice_invalid_reprocessing_result",
     "commercial_backoffice_invalid_status_change",
     "commercial_backoffice_unavailable"
    ],
@@ -34664,7 +36037,8 @@
     }
    ],
    "rule_comments": [
-    "máquina de estados não pode virar 'new' aqui: isso ofereceria ao operador um"
+    "máquina de estados não pode virar 'new' aqui: isso ofereceria ao operador um",
+    "* A RPC devolve a fila já filtrada por operador. Um item sem `deliveryId` não pode"
    ]
   },
   "src/lib/contactRequest.test.ts": {
@@ -35853,7 +37227,7 @@
   },
   "src/pages/BackofficePage.tsx": {
    "path": "src/pages/BackofficePage.tsx",
-   "lines": 618,
+   "lines": 823,
    "exports": [
     "function BackofficePage"
    ],
@@ -35907,6 +37281,7 @@
     }
    ],
    "rule_comments": [
+    "entrada passaria na RPC, senão o operador descobre o limite por um erro.",
     "um caminho recusado nao pode derrubar o pedido da tela e obrigar o operador",
     "nao pode herdar a recusa do anterior no formulario novo."
    ],
@@ -36376,7 +37751,7 @@
   },
   "src/types/site-database.types.ts": {
    "path": "src/types/site-database.types.ts",
-   "lines": 1467,
+   "lines": 1518,
    "exports": [
     "type Json",
     "type Database",
@@ -36445,7 +37820,7 @@
   },
   "tests/check-performance-budget.node.mjs": {
    "path": "tests/check-performance-budget.node.mjs",
-   "lines": 180,
+   "lines": 202,
    "is_test": true,
    "rule_comments": [
     "cwd fora do workspace: o script não pode depender do diretório corrente."
@@ -36456,6 +37831,7 @@
     "mede a entrada declarada no manifest mesmo quando ela não se chama index-*",
     "não confunde um chunk lazy chamado index-* com a entrada",
     "falha fechado quando o manifest aponta chunk que não foi medido",
+    "o perfil de pior caso só existe se diferenciar um bundle que a produção reprova",
     "cada teto reprova com exit 1 e nomeia a métrica estourada",
     "valor exatamente no teto é aprovado",
     "dist ou manifest ausente, inválido ou sem entrada gera erro acionável",
@@ -37514,7 +38890,7 @@
   },
   "tests/api/retention.test.ts": {
    "path": "tests/api/retention.test.ts",
-   "lines": 424,
+   "lines": 442,
    "is_test": true,
    "env": [
     "CRON_SECRET",
@@ -37655,10 +39031,32 @@
   }
  },
  "git": {
-  "sha": "71d41c66fe63824fd43134da710ae5e5c5f9a118",
+  "sha": "883ff959eb7f19468bee27cb8b313446267a3b49",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "883ff95",
+    "date": "2026-11-22",
+    "author": "adm01-debug",
+    "subject": "feat: supressao de bounce e reprocessamento auditado da fila (F-12) (#233)",
+    "files": [
+     "analise-prs/funcionalidades.csv",
+     "api/retention.ts",
+     "docs/DATABASE_DICTIONARY.md",
+     "docs/DATABASE_FUNCTION_CONTRACTS.md",
+     "scripts/check-performance-budget.mjs",
+     "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+     "site-supabase/supabase/tests/database/notification_suppression.test.sql",
+     "src/lib/commercialBackoffice.ts",
+     "src/lib/commercialBackofficeContract.test.ts",
+     "src/lib/commercialBackofficeContract.ts",
+     "src/pages/BackofficePage.tsx",
+     "src/types/site-database.types.ts",
+     "tests/api/retention.test.ts",
+     "tests/check-performance-budget.node.mjs"
+    ]
+   },
    {
     "sha": "71d41c6",
     "date": "2026-11-22",
@@ -38095,21 +39493,12 @@
      "docs/audits/planejado-x-implementado-20261120/08-banco-api-runbooks-docs.md",
      "docs/audits/planejado-x-implementado-20261120/09-estado-remoto-github-vercel-supabase.md"
     ]
-   },
-   {
-    "sha": "40f6420",
-    "date": "2026-11-19",
-    "author": "adm01-debug",
-    "subject": "infra(ci): verify-db tolera espera dos gates quando cross-browser chega ao teto de 35min (#210)",
-    "files": [
-     ".github/workflows/release.yml"
-    ]
    }
   ],
   "hot_files": [
    [
     "analise-prs/funcionalidades.csv",
-    16
+    17
    ],
    [
     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
@@ -38117,11 +39506,23 @@
    ],
    [
     "scripts/check-performance-budget.mjs",
-    7
+    8
    ],
    [
     "tests/check-performance-budget.node.mjs",
-    7
+    8
+   ],
+   [
+    "docs/DATABASE_DICTIONARY.md",
+    5
+   ],
+   [
+    "docs/DATABASE_FUNCTION_CONTRACTS.md",
+    4
+   ],
+   [
+    "src/types/site-database.types.ts",
+    4
    ],
    [
     "docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md",
@@ -38136,12 +39537,12 @@
     4
    ],
    [
-    "docs/DATABASE_DICTIONARY.md",
+    "src/lib/useCatalogPageState.ts",
     4
    ],
    [
-    "src/lib/useCatalogPageState.ts",
-    4
+    "src/pages/BackofficePage.tsx",
+    3
    ],
    [
     "src/pages/QuotePage.tsx",
@@ -38156,10 +39557,6 @@
     3
    ],
    [
-    "docs/DATABASE_FUNCTION_CONTRACTS.md",
-    3
-   ],
-   [
     "docs/DATABASE_SCHEMA.md",
     3
    ],
@@ -38168,23 +39565,15 @@
     3
    ],
    [
-    "src/types/site-database.types.ts",
-    3
-   ],
-   [
     "src/lib/customerAccount.ts",
     3
    ],
    [
-    "docs/audits/planejado-x-implementado-20261120/02-pf-23-56-portal-lgpd-experiencia.md",
+    "api/retention.ts",
     2
    ],
    [
-    "docs/audits/planejado-x-implementado-20261120/06-plano-fechamento-100-e-carnegie-100.md",
-    2
-   ],
-   [
-    "src/lib/analytics.test.ts",
+    "src/lib/commercialBackoffice.ts",
     2
    ]
   ]

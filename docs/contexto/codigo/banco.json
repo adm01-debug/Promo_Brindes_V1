@@ -6,7 +6,7 @@
   "site-supabase/supabase/migrations",
   "src/types/site-database.types.ts"
  ],
- "migrations": 74,
+ "migrations": 75,
  "seeds": [],
  "avisos": [
   "4 bloco(s) com DDL dinâmico (EXECUTE format/...) não modelado — policies/colunas criadas dinamicamente podem faltar; confira no banco vivo"
@@ -46,6 +46,8 @@
   "get_my_quote_request",
   "get_my_quote_requests",
   "get_site_data_retention_candidates",
+  "get_site_notification_delivery_report",
+  "get_site_notification_suppression",
   "get_site_quote_request",
   "get_site_shared_selection",
   "list_my_briefing_assets",
@@ -58,11 +60,14 @@
   "publish_site_quote_proposal",
   "purge_archived_customer_selections",
   "purge_site_admin_audit_logs",
+  "purge_site_notification_provider_events",
+  "reconcile_site_notification_provider_events",
   "record_cron_heartbeat",
   "record_site_notification_dispatch_started",
   "record_site_notification_provider_acceptance",
   "reject_site_briefing_asset_verification",
   "reply_site_quote_adjustment",
+  "reprocess_site_notification_deliveries",
   "request_my_quote_adjustment",
   "revoke_site_shared_selection",
   "rls_auto_enable",
@@ -78,6 +83,7 @@
   "site_private.consume_rate_limit",
   "site_private.consume_shared_selection_action_limit",
   "site_private.current_titular_verified_email",
+  "site_private.email_hash",
   "site_private.enforce_notification_delivery_lease_and_attempts",
   "site_private.enforce_status_transition",
   "site_private.enforce_valid_kit_reference_set",
@@ -97,12 +103,17 @@
   "site_private.next_retry_at",
   "site_private.normalize_email",
   "site_private.normalize_selection_references",
+  "site_private.notification_delivery_is_claimable",
   "site_private.notification_policy",
+  "site_private.notification_request_erased",
+  "site_private.notification_request_suppressed",
   "site_private.queue_briefing_asset_deletion",
   "site_private.quote_notification_payload",
   "site_private.record_quote_status_event",
+  "site_private.reprocess_notification_deliveries_core",
   "site_private.require_verified_briefing_asset_attachment",
   "site_private.set_updated_at",
+  "site_private.suppress_notification_delivery",
   "update_site_quote_status"
  ],
  "triggers": [
@@ -844,6 +855,11 @@
     {
      "nome": "contact_requests_created_at_idx",
      "colunas": "created_at desc",
+     "unico": false
+    },
+    {
+     "nome": "contact_requests_email_hash_idx",
+     "colunas": "site_private.email_hash(email",
      "unico": false
     },
     {
@@ -1636,6 +1652,13 @@
   },
   "site_private.notification_provider_events": {
    "colunas": {
+    "bounce_reason": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
     "delivery_id": {
      "tipo": "uuid",
      "nn": false,
@@ -1671,6 +1694,13 @@
      "default": null,
      "ref": null
     },
+    "provider_message_id": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
     "received_at": {
      "tipo": "timestamptz",
      "nn": true,
@@ -1686,6 +1716,11 @@
      "nome": "notification_provider_events_delivery_id_idx",
      "colunas": "delivery_id",
      "unico": false
+    },
+    {
+     "nome": "notification_provider_events_orphan_idx",
+     "colunas": "provider, provider_message_id",
+     "unico": false
     }
    ],
    "fks": [
@@ -1693,11 +1728,13 @@
    ],
    "criada_em": "20260915150000_add_notification_delivery_events.sql",
    "colunas_types": {
+    "bounce_reason": "string | null",
     "delivery_id": "string | null",
     "event_type": "string",
     "id": "string",
     "provider": "string",
     "provider_event_id": "string",
+    "provider_message_id": "string | null",
     "received_at": "string"
    },
    "drift": {
@@ -2373,6 +2410,11 @@
      "unico": false
     },
     {
+     "nome": "quote_requests_email_hash_idx",
+     "colunas": "site_private.email_hash(email",
+     "unico": false
+    },
+    {
      "nome": "quote_requests_retention_idx",
      "colunas": "retention_until",
      "unico": false
@@ -2960,6 +3002,11 @@
    "usada_em": 1
   },
   {
+   "nome": "get_site_notification_delivery_report",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
    "nome": "get_site_quote_request",
    "definida": true,
    "usada_em": 1
@@ -3010,6 +3057,16 @@
    "usada_em": 1
   },
   {
+   "nome": "purge_site_notification_provider_events",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "reconcile_site_notification_provider_events",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
    "nome": "record_cron_heartbeat",
    "definida": true,
    "usada_em": 1
@@ -3031,6 +3088,11 @@
   },
   {
    "nome": "reply_site_quote_adjustment",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "reprocess_site_notification_deliveries",
    "definida": true,
    "usada_em": 1
   },

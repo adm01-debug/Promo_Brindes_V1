@@ -103,10 +103,12 @@
    ],
    "tabelas": [],
    "rpcs": [
+    "get_site_notification_delivery_report",
     "get_site_quote_request",
     "list_site_quote_requests",
     "publish_site_quote_proposal",
     "reply_site_quote_adjustment",
+    "reprocess_site_notification_deliveries",
     "update_site_quote_status"
    ],
    "edges": [],
@@ -512,6 +514,8 @@
     "preflight_site_lead_request",
     "purge_archived_customer_selections",
     "purge_site_admin_audit_logs",
+    "purge_site_notification_provider_events",
+    "reconcile_site_notification_provider_events",
     "record_cron_heartbeat",
     "record_site_notification_dispatch_started",
     "record_site_notification_provider_acceptance",
@@ -1858,6 +1862,8 @@
     "preflight_site_lead_request",
     "purge_archived_customer_selections",
     "purge_site_admin_audit_logs",
+    "purge_site_notification_provider_events",
+    "reconcile_site_notification_provider_events",
     "record_cron_heartbeat",
     "record_site_notification_dispatch_started",
     "record_site_notification_provider_acceptance",
@@ -1871,7 +1877,9 @@
      "get_briefing_asset_retention_candidates",
      "get_site_data_retention_candidates",
      "purge_archived_customer_selections",
-     "purge_site_admin_audit_logs"
+     "purge_site_admin_audit_logs",
+     "purge_site_notification_provider_events",
+     "reconcile_site_notification_provider_events"
     ],
     "env": [
      "CRON_SECRET",

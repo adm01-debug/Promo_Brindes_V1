@@ -1,6 +1,6 @@
 # 10 · ACESSO E SEGURANÇA — quem pode o quê
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `71d41c66fe` · branch `main` · 2026-11-22 18:47 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `883ff959eb` · branch `main` · 2026-11-22 19:07 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## Perfis / roles identificados
@@ -75,6 +75,7 @@
 - `delete_my_briefing_asset`
 - `delete_my_data`
 - `delete_my_selection`
+- `email_hash`
 - `enforce_valid_kit_reference_set`
 - `erase_customer_assets_on_profile_change`
 - `erase_customer_data`
@@ -89,6 +90,8 @@
 - `get_my_proposal_document`
 - `get_my_quote_request`
 - `get_my_quote_requests`
+- `get_site_notification_delivery_report`
+- `get_site_notification_suppression`
 - `get_site_quote_request`
 - `list_my_briefing_assets`
 - `list_my_occasion_favorites`
@@ -97,20 +100,28 @@
 - `log_admin_ddl`
 - `log_admin_write`
 - `matches_my_briefing_asset_upload`
+- `notification_delivery_is_claimable`
+- `notification_request_erased`
+- `notification_request_suppressed`
 - `owns_my_briefing_asset_path`
 - `publish_site_quote_proposal`
 - `purge_archived_customer_selections`
 - `purge_site_admin_audit_logs`
+- `purge_site_notification_provider_events`
 - `queue_briefing_asset_deletion`
+- `reconcile_site_notification_provider_events`
 - `record_cron_heartbeat`
 - `reject_site_briefing_asset_verification`
 - `reply_site_quote_adjustment`
+- `reprocess_notification_deliveries_core`
+- `reprocess_site_notification_deliveries`
 - `request_my_quote_adjustment`
 - `require_verified_briefing_asset_attachment`
 - `rls_auto_enable`
 - `save_my_selection`
 - `set_my_occasion_favorite`
 - `set_my_selection_archived`
+- `suppress_notification_delivery`
 - `update_site_quote_status`
 
 ## Edge functions públicas (sem JWT — qualquer um chama)
@@ -156,8 +167,8 @@ Middleware matcher (Next.js): nenhum
 |---|---|---|---|
 | grant | authenticated | execute | `list_my_selections`, `save_my_selection`, `set_my_selection_archived`, `delete_my_selection`, `create_my_briefing_asset`, `list_my_briefing_assets`, `owns_my_briefing_asset_path`, `delete_my_briefing_asset`, `attach_my_briefing_assets_to_quote`, `save_my_selection`, `save_my_selection`, `matches_my_briefing_asset_upload`, `get_my_briefing_asset_verification`, `can_delete_my_unverified_briefing_asset_path`, `list_my_occasion_favorites` … +3 |
 | grant | authenticated, anon, service_role | execute | `site_private.is_valid_proposal_storage_path` |
-| grant | authenticated, service_role | execute | `claim_my_quote_requests`, `get_my_quote_requests`, `get_my_quote_request`, `get_my_proposal_document`, `get_my_quote_request`, `get_my_quote_requests`, `get_my_quote_request`, `request_my_quote_adjustment`, `get_my_quote_request`, `get_my_quote_request`, `get_my_quote_request`, `get_my_quote_requests`, `get_my_quote_request`, `get_my_data_access`, `export_my_data` … +7 |
-| grant | service_role | execute | `create_site_quote_request`, `create_site_contact_request`, `site_private.consume_rate_limit`, `site_private.set_updated_at`, `site_private.record_quote_status_event`, `create_site_contact_request`, `create_site_quote_request`, `create_site_contact_request`, `create_site_quote_request`, `site_private.purge_expired_site_data`, `run_site_data_retention`, `create_site_shared_selection`, `get_site_shared_selection`, `revoke_site_shared_selection`, `claim_site_notification_deliveries` … +19 |
+| grant | authenticated, service_role | execute | `claim_my_quote_requests`, `get_my_quote_requests`, `get_my_quote_request`, `get_my_proposal_document`, `get_my_quote_request`, `get_my_quote_requests`, `get_my_quote_request`, `request_my_quote_adjustment`, `get_my_quote_request`, `get_my_quote_request`, `get_my_quote_request`, `get_my_quote_requests`, `get_my_quote_request`, `get_my_data_access`, `export_my_data` … +9 |
+| grant | service_role | execute | `create_site_quote_request`, `create_site_contact_request`, `site_private.consume_rate_limit`, `site_private.set_updated_at`, `site_private.record_quote_status_event`, `create_site_contact_request`, `create_site_quote_request`, `create_site_contact_request`, `create_site_quote_request`, `site_private.purge_expired_site_data`, `run_site_data_retention`, `create_site_shared_selection`, `get_site_shared_selection`, `revoke_site_shared_selection`, `claim_site_notification_deliveries` … +20 |
 | grant | service_role | select | `site_private.status_transitions`, `site_private.admin_audit_log`, `site_private.admin_ddl_log` |
 | grant | service_role | select, insert | `site_private.commercial_audit_log` |
 | grant | service_role | select, insert, update | `site_private.erased_customer_identities` |
@@ -173,10 +184,10 @@ Middleware matcher (Next.js): nenhum
 | grant | site_api | select, insert, delete | `site_private.contact_requests` |
 | grant | site_api | select, insert, update | `site_private.notification_deliveries`, `site_private.rate_limit_buckets`, `site_private.shared_selections`, `site_private.shared_selection_rate_limits` |
 | grant | site_api | usage | `site_private.quote_protocol_seq` |
-| grant | site_api, service_role | execute | `purge_archived_customer_selections`, `get_briefing_asset_retention_candidates`, `finalize_briefing_asset_retention`, `create_site_quote_request`, `create_site_shared_selection`, `create_site_shared_selection`, `site_private.normalize_selection_references`, `site_private.has_unsafe_display_controls`, `site_private.consume_shared_selection_action_limit`, `get_site_shared_selection`, `revoke_site_shared_selection`, `confirm_site_briefing_asset_verification`, `purge_site_admin_audit_logs`, `record_site_notification_dispatch_started`, `finalize_site_storage_retention` … +12 |
+| grant | site_api, service_role | execute | `purge_archived_customer_selections`, `get_briefing_asset_retention_candidates`, `finalize_briefing_asset_retention`, `create_site_quote_request`, `create_site_shared_selection`, `create_site_shared_selection`, `site_private.normalize_selection_references`, `site_private.has_unsafe_display_controls`, `site_private.consume_shared_selection_action_limit`, `get_site_shared_selection`, `revoke_site_shared_selection`, `confirm_site_briefing_asset_verification`, `purge_site_admin_audit_logs`, `record_site_notification_dispatch_started`, `finalize_site_storage_retention` … +25 |
 | revoke | public | all | `site_private.is_valid_proposal_storage_path` |
-| revoke | public, anon | all | `claim_my_quote_requests`, `get_my_quote_requests`, `get_my_quote_request`, `get_my_proposal_document`, `get_my_quote_request`, `get_my_quote_requests`, `get_my_quote_request`, `request_my_quote_adjustment`, `get_my_quote_request`, `get_my_quote_request`, `get_my_quote_request`, `get_my_quote_requests`, `list_my_selections`, `save_my_selection`, `set_my_selection_archived` … +14 |
-| revoke | public, anon, authenticated | all | `site_private`, `create_site_quote_request`, `create_site_contact_request`, `create_site_contact_request`, `create_site_quote_request`, `create_site_contact_request`, `site_private.quote_adjustment_requests`, `create_site_quote_request`, `site_private.purge_expired_site_data`, `run_site_data_retention`, `create_site_shared_selection`, `get_site_shared_selection`, `revoke_site_shared_selection`, `site_private.enqueue_quote_confirmations`, `claim_site_notification_deliveries` … +54 |
+| revoke | public, anon | all | `claim_my_quote_requests`, `get_my_quote_requests`, `get_my_quote_request`, `get_my_proposal_document`, `get_my_quote_request`, `get_my_quote_requests`, `get_my_quote_request`, `request_my_quote_adjustment`, `get_my_quote_request`, `get_my_quote_request`, `get_my_quote_request`, `get_my_quote_requests`, `list_my_selections`, `save_my_selection`, `set_my_selection_archived` … +16 |
+| revoke | public, anon, authenticated | all | `site_private`, `create_site_quote_request`, `create_site_contact_request`, `create_site_contact_request`, `create_site_quote_request`, `create_site_contact_request`, `site_private.quote_adjustment_requests`, `create_site_quote_request`, `site_private.purge_expired_site_data`, `run_site_data_retention`, `create_site_shared_selection`, `get_site_shared_selection`, `revoke_site_shared_selection`, `site_private.enqueue_quote_confirmations`, `claim_site_notification_deliveries` … +68 |
 | revoke | public, anon, authenticated, service_role | all | `rls_auto_enable` |
 | revoke | public, anon, authenticated, service_role, site_api | all | `site_private.queue_briefing_asset_deletion`, `site_private.erase_customer_assets_on_profile_change`, `site_private.enforce_valid_kit_reference_set`, `site_private.has_unsafe_display_controls`, `site_private.normalize_selection_references`, `site_private.require_verified_briefing_asset_attachment`, `site_private.audit_actor`, `site_private.erase_customer_occasion_favorites_on_profile_change`, `list_my_occasion_favorites`, `set_my_occasion_favorite`, `site_private.erase_titular_request_metadata`, `site_private.current_titular_verified_email` |
 | revoke | public, anon, authenticated, site_api | all | `site_private.admin_audit_log`, `site_private.admin_ddl_log`, `site_private.erased_customer_identities`, `erase_customer_data`, `erase_customer_data` |

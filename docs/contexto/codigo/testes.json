@@ -5,7 +5,7 @@
   "vitest",
   "playwright"
  ],
- "total": 157,
+ "total": 158,
  "por_tipo": {
   "contrato": 2,
   "e2e": 6,
@@ -349,11 +349,11 @@
   {
    "arquivo": "src/lib/commercialBackofficeContract.test.ts",
    "tipo": "unit",
-   "linhas": 172,
+   "linhas": 241,
    "testa": [
     "src/lib/commercialBackofficeContract.ts"
    ],
-   "casos": 13
+   "casos": 16
   },
   {
    "arquivo": "src/lib/contactRequest.test.ts",
@@ -885,7 +885,7 @@
   {
    "arquivo": "tests/api/retention.test.ts",
    "tipo": "unit",
-   "linhas": 424,
+   "linhas": 442,
    "testa": [
     "api/_lib/leadHandler.ts",
     "api/retention.ts"
@@ -944,9 +944,9 @@
   {
    "arquivo": "tests/check-performance-budget.node.mjs",
    "tipo": "unit",
-   "linhas": 180,
+   "linhas": 202,
    "testa": [],
-   "casos": 9
+   "casos": 10
   },
   {
    "arquivo": "tests/ci-health-metrics.node.mjs",
@@ -1172,6 +1172,7 @@
   "site-supabase/supabase/tests/database/notification_outbox.test.sql",
   "site-supabase/supabase/tests/database/notification_provider_events.test.sql",
   "site-supabase/supabase/tests/database/notification_queue_policy.test.sql",
+  "site-supabase/supabase/tests/database/notification_suppression.test.sql",
   "site-supabase/supabase/tests/database/query_plans.test.sql",
   "site-supabase/supabase/tests/database/quote_protocol.test.sql",
   "site-supabase/supabase/tests/database/selection_asset_integrity.test.sql",

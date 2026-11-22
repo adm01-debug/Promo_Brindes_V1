@@ -836,7 +836,7 @@
     "handler"
    ],
    "export_default": "handler",
-   "linhas": 293,
+   "linhas": 325,
    "tabelas": [],
    "rpcs": [
     "finalize_site_data_retention",
@@ -844,7 +844,9 @@
     "get_briefing_asset_retention_candidates",
     "get_site_data_retention_candidates",
     "purge_archived_customer_selections",
-    "purge_site_admin_audit_logs"
+    "purge_site_admin_audit_logs",
+    "purge_site_notification_provider_events",
+    "reconcile_site_notification_provider_events"
    ],
    "edges": [],
    "env": [
@@ -1646,20 +1648,24 @@
    "camada": "lib",
    "exports": [
     "SiteQuoteListQuery",
+    "fetchSiteNotificationDeliveryReport",
     "fetchSiteQuoteDetail",
     "listSiteQuoteRequests",
     "publishSiteQuoteProposal",
     "replySiteQuoteAdjustment",
+    "reprocessSiteNotificationDeliveries",
     "updateSiteQuoteStatus"
    ],
    "export_default": null,
-   "linhas": 97,
+   "linhas": 133,
    "tabelas": [],
    "rpcs": [
+    "get_site_notification_delivery_report",
     "get_site_quote_request",
     "list_site_quote_requests",
     "publish_site_quote_proposal",
     "reply_site_quote_adjustment",
+    "reprocess_site_notification_deliveries",
     "update_site_quote_status"
    ],
    "edges": [],
@@ -1681,6 +1687,10 @@
    "exports": [
     "SITE_QUOTE_STATUSES",
     "SITE_QUOTE_STATUS_LABELS",
+    "SiteNotificationDeliveryReport",
+    "SiteNotificationExhaustedDelivery",
+    "SiteNotificationReprocessingResult",
+    "SiteNotificationReprocessingSkipped",
     "SiteQuoteAdjustment",
     "SiteQuoteAuditEntry",
     "SiteQuoteDetail",
@@ -1695,6 +1705,8 @@
     "isSiteOperatorError",
     "isSiteProposalRejected",
     "isSiteQuoteConflict",
+    "parseSiteNotificationDeliveryReport",
+    "parseSiteNotificationReprocessingResult",
     "parseSiteQuoteDetail",
     "parseSiteQuoteListPage",
     "parseSiteQuoteProposalPublication",
@@ -1702,7 +1714,7 @@
     "siteOperatorErrorMessage"
    ],
    "export_default": null,
-   "linhas": 370,
+   "linhas": 452,
    "tabelas": [],
    "rpcs": [],
    "edges": [],

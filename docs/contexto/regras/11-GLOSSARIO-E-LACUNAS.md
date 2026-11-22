@@ -1,6 +1,6 @@
 # 11 · GLOSSÁRIO, DADOS DE REFERÊNCIA E LACUNAS
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `71d41c66fe` · branch `main` · 2026-11-22 18:47 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `883ff959eb` · branch `main` · 2026-11-22 19:07 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## Glossário do domínio (entidades do sistema)
@@ -20,7 +20,7 @@
 | `site_private.customer_selections` | Rascunhos privados do titular, sem preço nem estoque. A FK apaga ao excluir a conta; pedido de apagamento do titular remove via trigger do perfil; arquivados são purgados após 90 dias. | 9 colunas | migration |
 | `site_private.erased_customer_identities` | Túmulos SHA-256 irreversíveis de identidades apagadas por solicitação LGPD; impedem a reapropriação posterior do histórico sem preservar o e-mail. | 3 colunas | migration |
 | `site_private.notification_deliveries` | Auditoria de entregas futuras. WhatsApp exige consentimento específico antes da criação do registro. Etapa 40: fillfactor 80 deixa espaço para HOT updates nos vários updates por linha (claim, aceite, finalização, webhook); autovacuum mais agressivo que o padrão (20%) evita acúmulo de tuplas mortas. | 23 colunas | migration |
-| `site_private.notification_provider_events` | Deduplicação de eventos de webhook de entrega/devolução (Etapa 30). Sem conteúdo pessoal — apenas ids de correlação do provedor. | 6 colunas | migration |
+| `site_private.notification_provider_events` | Deduplicação de eventos de webhook de entrega/devolução (Etapa 30). Sem conteúdo pessoal — apenas ids de correlação do provedor. | 8 colunas | migration |
 | `site_private.proposal_documents` | _(sem COMMENT ON TABLE — significado não documentado)_ | 10 colunas | migration |
 | `site_private.quote_adjustment_requests` | _(sem COMMENT ON TABLE — significado não documentado)_ | 8 colunas | migration |
 | `site_private.quote_items` | Snapshot do produto no instante do briefing; sem FK entre projetos Supabase. | 20 colunas | migration |

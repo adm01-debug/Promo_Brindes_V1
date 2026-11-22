@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "71d41c66fe63824fd43134da710ae5e5c5f9a118",
+  "commit": "883ff959eb7f19468bee27cb8b313446267a3b49",
   "branch": "main",
-  "data_commit": "2026-11-22T18:46:24Z",
+  "data_commit": "2026-11-22T19:06:39Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "883ff95",
+    "data": "2026-11-22",
+    "assunto": "feat: supressao de bounce e reprocessamento auditado da fila (F-12) (#233)"
+   },
    {
     "sha": "71d41c6",
     "data": "2026-11-22",
@@ -126,22 +131,17 @@
     "sha": "0afb33e",
     "data": "2026-11-20",
     "assunto": "chore(docs): linha de base, regras de negocio e mapa do sistema (GOAL fase 0) (#216)"
-   },
-   {
-    "sha": "804efbc",
-    "data": "2026-11-20",
-    "assunto": "fix: promessas honestas em orcamento e catalogo (PF-14, PF-19, PF-20, PF-21) (#215)"
    }
   ],
-  "arquivos_mudados_7d": 202,
+  "arquivos_mudados_7d": 204,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "analise-prs/funcionalidades.csv",
-    "mudancas": 20
+    "mudancas": 21
    },
    {
     "pasta": "site-supabase/supabase/tests",
-    "mudancas": 19
+    "mudancas": 20
    },
    {
     "pasta": "package.json",
@@ -160,6 +160,10 @@
     "mudancas": 11
    },
    {
+    "pasta": "scripts/check-performance-budget.mjs",
+    "mudancas": 11
+   },
+   {
     "pasta": ".github/workflows/quality.yml",
     "mudancas": 10
    },
@@ -172,11 +176,11 @@
     "mudancas": 10
    },
    {
-    "pasta": "scripts/check-performance-budget.mjs",
+    "pasta": "site-supabase/supabase/migrations",
     "mudancas": 10
    },
    {
-    "pasta": "site-supabase/supabase/migrations",
+    "pasta": "tests/check-performance-budget.node.mjs",
     "mudancas": 9
    },
    {
@@ -184,16 +188,12 @@
     "mudancas": 8
    },
    {
+    "pasta": "docs/DATABASE_DICTIONARY.md",
+    "mudancas": 8
+   },
+   {
     "pasta": "src/styles.css",
     "mudancas": 8
-   },
-   {
-    "pasta": "tests/check-performance-budget.node.mjs",
-    "mudancas": 8
-   },
-   {
-    "pasta": "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
-    "mudancas": 7
    }
   ],
   "arquivos_mais_mudados_90d": [
@@ -222,12 +222,12 @@
     "mudancas": 29
    },
    {
-    "arquivo": "src/pages/QuotePage.tsx",
+    "arquivo": "docs/DATABASE_DICTIONARY.md",
     "mudancas": 28
    },
    {
-    "arquivo": "docs/DATABASE_DICTIONARY.md",
-    "mudancas": 27
+    "arquivo": "src/pages/QuotePage.tsx",
+    "mudancas": 28
    },
    {
     "arquivo": "site-supabase/supabase/tests/database/lead_storage.test.sql",
@@ -238,20 +238,20 @@
     "mudancas": 24
    },
    {
+    "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
+    "mudancas": 22
+   },
+   {
     "arquivo": ".github/workflows/release.yml",
     "mudancas": 21
    },
    {
-    "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
+    "arquivo": "analise-prs/funcionalidades.csv",
     "mudancas": 21
    },
    {
     "arquivo": "tests/api/lead-requests.test.ts",
     "mudancas": 21
-   },
-   {
-    "arquivo": "analise-prs/funcionalidades.csv",
-    "mudancas": 20
    },
    {
     "arquivo": "api/_lib/siteDatabase.ts",
@@ -266,15 +266,15 @@
     "mudancas": 19
    },
    {
+    "arquivo": "src/types/site-database.types.ts",
+    "mudancas": 19
+   },
+   {
     "arquivo": "src/App.tsx",
     "mudancas": 18
    },
    {
     "arquivo": "src/lib/analytics.ts",
-    "mudancas": 18
-   },
-   {
-    "arquivo": "src/types/site-database.types.ts",
     "mudancas": 18
    },
    {
@@ -290,18 +290,18 @@
     "mudancas": 17
    },
    {
-    "arquivo": ".github/workflows/graphify.yml",
-    "mudancas": 16
+    "arquivo": "scripts/check-performance-budget.mjs",
+    "mudancas": 17
    },
    {
-    "arquivo": "scripts/check-performance-budget.mjs",
+    "arquivo": ".github/workflows/graphify.yml",
     "mudancas": 16
    }
   ],
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 121
+    "commits": 122
    },
    {
     "autor": "dependabot[bot]",
@@ -310,9 +310,9 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 749,
+  "arquivos_total": 751,
   "arquivos_codigo": 303,
-  "linhas_codigo": 59773,
+  "linhas_codigo": 60304,
   "rotas": 35,
   "rotas_http_backend": 16,
   "vistas_por_id": 0,
@@ -322,9 +322,9 @@
   "hooks": 6,
   "edge_functions": 0,
   "tabelas": 26,
-  "migrations": 74,
+  "migrations": 75,
   "cron_jobs": 0,
-  "testes": 157,
+  "testes": 158,
   "workflows": 15,
   "scripts": 37,
   "docs_md": 136
@@ -384,7 +384,7 @@
   },
   "api/retention.ts": {
    "arquivos": 1,
-   "linhas": 293
+   "linhas": 325
   },
   "api/shared-selections.ts": {
    "arquivos": 1,
@@ -464,7 +464,7 @@
   },
   "scripts/check-performance-budget.mjs": {
    "arquivos": 1,
-   "linhas": 198
+   "linhas": 214
   },
   "scripts/ci-health-metrics.mjs": {
    "arquivos": 1,
@@ -588,7 +588,7 @@
   },
   "src/lib": {
    "arquivos": 87,
-   "linhas": 9345
+   "linhas": 9532
   },
   "src/main.tsx": {
    "arquivos": 1,
@@ -596,7 +596,7 @@
   },
   "src/pages": {
    "arquivos": 27,
-   "linhas": 4384
+   "linhas": 4589
   },
   "src/test": {
    "arquivos": 1,
@@ -604,7 +604,7 @@
   },
   "src/types": {
    "arquivos": 1,
-   "linhas": 1467
+   "linhas": 1518
   },
   "src/types.ts": {
    "arquivos": 1,
@@ -612,7 +612,7 @@
   },
   "tests/api": {
    "arquivos": 22,
-   "linhas": 4322
+   "linhas": 4340
   },
   "tests/catalog-public-contract.node.mjs": {
    "arquivos": 1,
@@ -620,7 +620,7 @@
   },
   "tests/check-performance-budget.node.mjs": {
    "arquivos": 1,
-   "linhas": 180
+   "linhas": 202
   },
   "tests/ci-health-metrics.node.mjs": {
    "arquivos": 1,
@@ -730,7 +730,7 @@
   },
   {
    "arquivo": "src/types/site-database.types.ts",
-   "linhas": 1467
+   "linhas": 1518
   },
   {
    "arquivo": "scripts/graphify-local.mjs",
@@ -757,6 +757,10 @@
    "linhas": 899
   },
   {
+   "arquivo": "src/pages/BackofficePage.tsx",
+   "linhas": 823
+  },
+  {
    "arquivo": "api/notifications.ts",
    "linhas": 734
   },
@@ -765,16 +769,16 @@
    "linhas": 620
   },
   {
-   "arquivo": "src/pages/BackofficePage.tsx",
-   "linhas": 618
-  },
-  {
    "arquivo": "scripts/inventario/gerar-banco.mjs",
    "linhas": 581
   },
   {
    "arquivo": "src/lib/catalog.ts",
    "linhas": 512
+  },
+  {
+   "arquivo": "src/lib/commercialBackofficeContract.ts",
+   "linhas": 452
   },
   {
    "arquivo": "api/_lib/contracts.ts",
@@ -797,10 +801,6 @@
    "linhas": 380
   },
   {
-   "arquivo": "src/lib/commercialBackofficeContract.ts",
-   "linhas": 370
-  },
-  {
    "arquivo": "src/pages/CommemorativeDatesPage.tsx",
    "linhas": 351
   },
@@ -817,8 +817,8 @@
    "linhas": 327
   },
   {
-   "arquivo": "src/pages/CatalogsPage.tsx",
-   "linhas": 304
+   "arquivo": "api/retention.ts",
+   "linhas": 325
   }
  ],
  "qualidade": {

@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "feat: supressao de bounce e reprocessamento auditado da fila (F-12) (#233)",
    "chore: CI mais barata e rapida (F-95) (#241)",
    "feat: feedback opcional de clareza e eventos do PF-54 (#238)",
    "chore: plano de navegação e fluidez em 200 etapas (#245)",
-   "chore: plano de correções e melhorias em 190 etapas (#244)",
-   "feat: endpoint de health confere a configuracao do banco (F-75) (#237)"
+   "chore: plano de correções e melhorias em 190 etapas (#244)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",
