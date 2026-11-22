@@ -70,7 +70,10 @@ export function ConversationForm() {
       requestAttemptRef.current = attempt;
       const result = await submitContactRequest(buildContactPayload(lead, undefined, attempt.submittedAt, attempt.id));
       if (result.mode === 'email') {
-        trackFunnelEvent('contact_submitted', { channel: 'email', has_message: lead.message.trim().length > 0 });
+        // Sem endpoint o envio vira um rascunho no cliente de e-mail do visitante:
+        // fechar o rascunho não gera mensagem nenhuma, então contar como contato
+        // enviado inflaria o funil. O evento próprio separa "abriu o rascunho".
+        trackFunnelEvent('contact_draft_opened', { has_message: lead.message.trim().length > 0 });
         setSuccess('Seu e-mail foi preparado. Revise a mensagem e envie para concluir.');
         window.location.href = result.href;
       } else {

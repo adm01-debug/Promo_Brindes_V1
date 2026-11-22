@@ -37,7 +37,8 @@ export interface FunnelEventMap {
   occasion_catalog_opened: { occasion_id: string; idea: string };
   idea_landing_viewed: { topic: string; result_count: number };
   idea_catalog_opened: { topic: string; placement: 'hero' | 'referencias' };
-  contact_submitted: { channel: 'form' | 'email'; has_message: boolean };
+  contact_submitted: { channel: 'form'; has_message: boolean };
+  contact_draft_opened: { has_message: boolean };
   briefing_asset_uploaded: { kind: string; mime: string; size_band: 'ate-1mb' | 'ate-5mb' | 'acima-5mb' };
   selection_item_removed: { item_count: number; via: 'item' | 'clear' };
   shared_selection_opened: { item_count: number; persistent: boolean };
@@ -82,6 +83,7 @@ const ALLOWED_PROPERTIES: { [Name in FunnelEventName]: ReadonlyArray<keyof Funne
   idea_landing_viewed: ['topic', 'result_count'],
   idea_catalog_opened: ['topic', 'placement'],
   contact_submitted: ['channel', 'has_message'],
+  contact_draft_opened: ['has_message'],
   briefing_asset_uploaded: ['kind', 'mime', 'size_band'],
   selection_item_removed: ['item_count', 'via'],
   shared_selection_opened: ['item_count', 'persistent'],

@@ -96,6 +96,31 @@ describe('useCatalogPageState', () => {
     expect(mocks.track).toHaveBeenCalledWith('catalog_result_viewed', expect.objectContaining({ has_query: false }));
   });
 
+  it('marca a busca por SKU exato como busca, e não como navegação', () => {
+    mocks.track.mockClear();
+    renderHook(() => useCatalogPageState(), {
+      wrapper: ({ children }) => <MemoryRouter initialEntries={['/catalogo?sku=MO-42']}>{children}</MemoryRouter>,
+    });
+
+    expect(mocks.track).toHaveBeenCalledWith('catalog_result_viewed', expect.objectContaining({ has_query: true }));
+  });
+
+  it('nao registra visualizacao enquanto a consulta ainda descreve a busca anterior', () => {
+    mocks.track.mockClear();
+    mocks.catalog.mockReturnValue({
+      data: { products: [product('a', 'A', false), product('b', 'B', true)], total: 2, page: 1, pageSize: 24 },
+      loading: false,
+      error: null,
+      stale: true,
+    });
+    renderHook(() => useCatalogPageState(), {
+      wrapper: ({ children }) => <MemoryRouter initialEntries={['/catalogo?q=mochila']}>{children}</MemoryRouter>,
+    });
+
+    // `has_query` da busca nova não pode ser combinado com o total da busca antiga.
+    expect(mocks.track).not.toHaveBeenCalledWith('catalog_result_viewed', expect.anything());
+  });
+
   it('limpa o contexto do carrinho ao remover o último filtro de campanha na sessão', () => {
     const { result } = renderHook(() => useCatalogPageState(), {
       wrapper: ({ children }) => <MemoryRouter initialEntries={['/catalogo?momento=evento']}>{children}</MemoryRouter>,

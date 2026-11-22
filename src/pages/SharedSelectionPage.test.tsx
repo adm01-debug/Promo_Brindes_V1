@@ -1,4 +1,4 @@
-import { render, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import SharedSelectionPage from './SharedSelectionPage';
@@ -44,7 +44,9 @@ describe('SharedSelectionPage telemetria', () => {
   it('nao registra a abertura quando a consulta falha', async () => {
     mocks.fetchProductsByIds.mockRejectedValue(new Error('offline'));
     render(<MemoryRouter initialEntries={[`/selecao?s=${token}`]}><QuoteCartProvider><SharedSelectionPage /></QuoteCartProvider></MemoryRouter>);
-    await waitFor(() => expect(mocks.fetchProductsByIds).toHaveBeenCalled());
+    // Espera o estado de erro renderizado: esperar só a chamada ao catálogo deixaria
+    // uma regressão que emitisse o evento ao tratar a rejeição passar despercebida.
+    expect(await screen.findByText('Não foi possível consultar esta seleção agora.')).toBeInTheDocument();
     expect(mocks.track).not.toHaveBeenCalledWith('shared_selection_opened', expect.anything());
   });
 });

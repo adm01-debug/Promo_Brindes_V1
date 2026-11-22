@@ -226,12 +226,17 @@ export function useCatalogPageState() {
     setParams(next, { replace: true });
   }, [catalogError, catalogLoading, page, params, setParams, totalPages]);
   useEffect(() => {
-    if (catalogLoading || catalogError) return;
+    // `stale` é o intervalo em que a consulta já mudou e o estado ainda descreve
+    // a anterior: sem esta guarda o evento sairia com `has_query` da busca nova e
+    // a contagem de resultados da busca antiga.
+    if (catalogLoading || catalogError || catalog.stale) return;
     const viewKey = `${paramsKey}|${catalog.data.total}`;
     if (trackedCatalogViewsRef.current.has(viewKey)) return;
     trackedCatalogViewsRef.current.add(viewKey);
-    trackFunnelEvent('catalog_result_viewed', { result_count: catalog.data.total, page: catalog.data.page, active_filters: activeFilterCount, campaign: campaignCount > 0, has_query: Boolean(query) });
-  }, [activeFilterCount, campaignCount, catalog.data.page, catalog.data.total, catalogError, catalogLoading, paramsKey, query]);
+    // A busca por SKU exato troca `q` por `sku` (NOVO-CA-22): sem `skuQueryActive`
+    // o evento classificado como busca sairia com `has_query: false`.
+    trackFunnelEvent('catalog_result_viewed', { result_count: catalog.data.total, page: catalog.data.page, active_filters: activeFilterCount, campaign: campaignCount > 0, has_query: Boolean(query) || skuQueryActive });
+  }, [activeFilterCount, campaignCount, catalog.data.page, catalog.data.total, catalog.stale, catalogError, catalogLoading, paramsKey, query, skuQueryActive]);
   useEffect(() => {
     if (!mobileFiltersOpen) return;
     const triggerButton = mobileTriggerRef.current;

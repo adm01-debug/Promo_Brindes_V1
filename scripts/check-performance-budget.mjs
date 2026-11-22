@@ -144,7 +144,11 @@ try {
   // O resumo editável do briefing e a confirmação aprovada acrescentam 1,3 KiB
   // nas rotas lazy (medição conjunta em 27/10/2026). Os tetos de entrada,
   // carga inicial, maior chunk e bytes brutos permanecem independentes.
-  // Producao agora (F-30 LGPD): 269,0 KiB; pior caso: 270,0 KiB. Teto de
+  // Medicao com a F-100/PF-120: producao 270,5 KiB e pior caso 271,8 KiB,
+  // ainda dentro dos tetos abaixo (folgas de 0,5 KiB e 0,2 KiB). A folga curta
+  // e aceita porque o teto raw de 966 KiB ja barra crescimento de codigo; estes
+  // dois limites medem transferencia e so precisam conter a compressao atual.
+  // Producao antes da F-100 (F-30 LGPD): 269,0 KiB; pior caso: 270,0 KiB. Teto de
   // producao: 271 KiB (folga de 1,8 KiB apos a variacao de runner de ~0,2 KiB,
   // mesmo criterio do perfil de pior caso). Pior caso: 272 KiB, que e o teto de
   // producao mais os 1,2 KiB das flags mais 1,8 KiB de folga — a folga existe

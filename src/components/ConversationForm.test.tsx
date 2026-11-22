@@ -50,7 +50,7 @@ describe('formulário de conversa', () => {
     expect(mocks.track).toHaveBeenCalledTimes(1);
   });
 
-  it('registra contact_submitted com canal de e-mail quando o envio cai no fallback', async () => {
+  it('registra rascunho de e-mail, e não contato enviado, quando o envio cai no fallback', async () => {
     mocks.submit.mockResolvedValue({ mode: 'email', href: 'mailto:contato@promo.test' });
     render(<MemoryRouter><ConversationForm /></MemoryRouter>);
 
@@ -59,7 +59,8 @@ describe('formulário de conversa', () => {
     fireEvent.click(screen.getByLabelText(/Li o aviso de privacidade/));
     fireEvent.click(screen.getByRole('button', { name: /Falar com a Promo/ }));
 
-    await waitFor(() => expect(mocks.track).toHaveBeenCalledWith('contact_submitted', { channel: 'email', has_message: false }));
+    await waitFor(() => expect(mocks.track).toHaveBeenCalledWith('contact_draft_opened', { has_message: false }));
+    expect(mocks.track).not.toHaveBeenCalledWith('contact_submitted', expect.anything());
   });
 
   it('não registra contact_submitted quando o envio falha', async () => {
