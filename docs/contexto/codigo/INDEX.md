@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `5b24b407dba4481f7516e17ae4adadf9d1ef899b` (2026-11-22T02:09:50Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `d7f09b6efa0369e042cbd4c8dc8896b42358f718` (2026-11-22T05:11:23Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -36,7 +36,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 |---|---|
 | arquivos_total | 724 |
 | arquivos_codigo | 289 |
-| linhas_codigo | 56616 |
+| linhas_codigo | 56814 |
 | rotas | 32 |
 | rotas_http_backend | 14 |
 | vistas_por_id | 0 |
@@ -386,6 +386,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-22 `d7f09b6` feat: resumo do briefing abre antes das 4 respostas e permite cancelar a edicao (F-37) (#226)
 - 2026-11-21 `5b24b40` chore: atualiza o inventario de funcionalidades (F-40 e F-47 COMPLETA) (#224)
 - 2026-11-21 `64e1dcc` feat: separa intencao do briefing dos filtros efetivos (F-40/PF-40) (#223)
 - 2026-11-21 `957fa44` feat: contato via WhatsApp iniciado pelo visitante (F-47) (#222)
@@ -400,7 +401,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-20 `01b873c` feat: caminho 'ainda não sei o que escolher' desbloqueia quem chega sem briefing (#211)
 - 2026-11-20 `a9dab6d` chore(docs): auditoria planejado × implementado em 40f6420 — 128 itens reverificados, 108 novos (#214)
 - 2026-11-19 `40f6420` infra(ci): verify-db tolera espera dos gates quando cross-browser chega ao teto de 35min (#210)
-- 2026-11-19 `8e896a7` infra(ci): cross-browser deixa de ser cancelado no teto antes de rodar teste (#204)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

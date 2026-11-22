@@ -158,11 +158,11 @@
   {
    "arquivo": "src/components/CampaignFinder.test.tsx",
    "tipo": "unit",
-   "linhas": 127,
+   "linhas": 270,
    "testa": [
     "src/components/CampaignFinder.tsx"
    ],
-   "casos": 9
+   "casos": 20
   },
   {
    "arquivo": "src/components/CatalogFeedback.test.tsx",

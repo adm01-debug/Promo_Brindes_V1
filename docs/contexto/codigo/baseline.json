@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "5b24b407dba4481f7516e17ae4adadf9d1ef899b",
+  "commit": "d7f09b6efa0369e042cbd4c8dc8896b42358f718",
   "branch": "main",
-  "data_commit": "2026-11-22T02:09:50Z",
+  "data_commit": "2026-11-22T05:11:23Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "d7f09b6",
+    "data": "2026-11-22",
+    "assunto": "feat: resumo do briefing abre antes das 4 respostas e permite cancelar a edicao (F-37) (#226)"
+   },
    {
     "sha": "5b24b40",
     "data": "2026-11-21",
@@ -126,11 +131,6 @@
     "sha": "e82b4d9",
     "data": "2026-11-18",
     "assunto": "fix(contrato): 401 transitório da camada Auth deixa de reprovar o contrato do catálogo (#202)"
-   },
-   {
-    "sha": "0a138dd",
-    "data": "2026-11-18",
-    "assunto": "feat(testes): cobre sessão expirada entre o upload e a verificação do anexo (#200)"
    }
   ],
   "arquivos_mudados_7d": 156,
@@ -169,7 +169,7 @@
    },
    {
     "pasta": "analise-prs/funcionalidades.csv",
-    "mudancas": 7
+    "mudancas": 8
    },
    {
     "pasta": "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 105
+    "commits": 106
    },
    {
     "autor": "dependabot[bot]",
@@ -312,7 +312,7 @@
  "contagens": {
   "arquivos_total": 724,
   "arquivos_codigo": 289,
-  "linhas_codigo": 56616,
+  "linhas_codigo": 56814,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -572,7 +572,7 @@
   },
   "src/components": {
    "arquivos": 29,
-   "linhas": 3064
+   "linhas": 3262
   },
   "src/context": {
    "arquivos": 7,

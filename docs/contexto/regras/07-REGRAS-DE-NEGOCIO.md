@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `5b24b407db` · branch `main` · 2026-11-22 02:19 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `d7f09b6efa` · branch `main` · 2026-11-22 05:11 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -1057,7 +1057,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1725 testes em 137 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1737 testes em 137 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1079,6 +1079,7 @@ _nenhum item encontrado_
 | `site-supabase/supabase/tests/database/customer_selections.test.sql` | 26 | seleções privadas por titular existem · RLS é forçada na tabela · cliente não acessa o schema privado · cliente não consulta tabela diretamente … |
 | `src/lib/catalog.test.ts` | 26 | catálogo público · normaliza apenas os dados necessários para a experiência do cliente · marca como novidade um produto dentro da janela canônica mesmo sem flag explícita · não confirma personalização quando o dado público ainda é desconhecido … |
 | `src/lib/useOccasionFavorites.test.tsx` | 25 | useOccasionFavorites · preserva uma adição confirmada quando uma leitura iniciada antes dela retorna vazia · preserva uma remoção enquanto uma leitura antiga ainda contém o favorito · não deixa uma leitura antiga apagar a escrita anterior quando a intenção seguinte falha … |
+| `src/components/CampaignFinder.test.tsx` | 24 | resumo editável do briefing · resume as quatro respostas antes de abrir a curadoria · remove só a escolha solicitada e volta à etapa correspondente · permite revisar todas as respostas sem apagar o que já foi escolhido … |
 | `site-supabase/supabase/tests/database/customer_occasion_favorites.test.sql` | 22 | favoritos de datas existem no schema privado · RLS é forçada nos favoritos de datas · cliente não recebe uso do schema privado · cliente não lê a tabela diretamente … |
 | `site-supabase/supabase/tests/database/lead_preflight_rate_limit.test.sql` | 20 | preflight distribuído existe · anon não executa preflight · authenticated não executa preflight · service_role executa preflight … |
 | `site-supabase/supabase/tests/database/notification_queue_policy.test.sql` | 20 | política: 5 tentativas máximas · política: lote máximo de 25 · política: lease de 10 minutos · anon não lê a política … |
@@ -1106,7 +1107,6 @@ _nenhum item encontrado_
 | `tests/api/webhookSignature.test.ts` | 13 | verifySvixSignature (Etapa 30, Resend) · aceita uma assinatura válida · aceita quando o header traz múltiplas assinaturas e uma delas bate (rotação de segredo) · rejeita corpo adulterado … |
 | `site-supabase/supabase/tests/database/admin_write_audit.test.sql` | 12 | anon não lê a trilha de auditoria · authenticated não lê a trilha de auditoria · site_api não lê a própria trilha de auditoria (não precisa para operar) · service_role lê a trilha de auditoria … |
 | `site-supabase/supabase/tests/database/kit_persistence_guards.test.sql` | 12 | guarda estrutural de kits existe no schema privado · rascunho valida kits no insert · rascunho valida kits no update · link compartilhado valida kits no insert … |
-| `src/components/CampaignFinder.test.tsx` | 12 | resumo editável do briefing · resume as quatro respostas antes de abrir a curadoria · remove só a escolha solicitada e volta à etapa correspondente · permite revisar todas as respostas sem apagar o que já foi escolhido … |
 | `src/lib/search.test.ts` | 12 | busca assistida · normaliza acentos, caixa e espaços sem transportar operadores · expande sinônimos como alternativas da mesma dimensão · descarta linguagem de preço e contexto quando há um objeto pesquisável … |
 | `site-supabase/supabase/tests/database/adjustment_limits.test.sql` | 11 | limite de pendências serializa transações concorrentes no mesmo orçamento · primeiro pedido é criado · replay idempotente devolve o mesmo pedido · replay não duplica a linha … |
 | `site-supabase/supabase/tests/database/query_plans.test.sql` | 11 | consulta de reivindicação da fila não usa Seq Scan em notification_deliveries com distribuição de regime permanente (Etapa 17) · recuperação de leases expiradas usa acesso indexado · reconciliação de webhook pelo identificador do provedor usa acesso indexado · histórico do cliente usa acesso indexado por titular e data … |

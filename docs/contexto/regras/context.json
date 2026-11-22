@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "5b24b407dba4481f7516e17ae4adadf9d1ef899b",
+  "sha": "d7f09b6efa0369e042cbd4c8dc8896b42358f718",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-22 02:19 UTC",
+  "generated_at": "2026-11-22 05:11 UTC",
   "files_total": 618,
   "code_files": 398,
-  "code_lines": 70570,
+  "code_lines": 70768,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "a399cf5f71127ca4",
+ "facts_hash": "5a10e4c0580b82da",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -7833,7 +7833,7 @@
   {
    "module": "src/components",
    "files": 29,
-   "lines": 3064,
+   "lines": 3262,
    "tables": [],
    "exports": [
     "AppErrorBoundary.tsx: AppErrorBoundary",
@@ -16326,6 +16326,54 @@
    {
     "file": "src/components/CampaignFinder.test.tsx",
     "name": "permite revisar todas as respostas sem apagar o que já foi escolhido"
+   },
+   {
+    "file": "src/components/CampaignFinder.test.tsx",
+    "name": "resumo antes das quatro respostas e cancelamento da edicao"
+   },
+   {
+    "file": "src/components/CampaignFinder.test.tsx",
+    "name": "abre o resumo parcial com o que ja foi escolhido"
+   },
+   {
+    "file": "src/components/CampaignFinder.test.tsx",
+    "name": "oferece o resumo parcial a partir de uma unica escolha"
+   },
+   {
+    "file": "src/components/CampaignFinder.test.tsx",
+    "name": "cancela a edicao devolvendo o resumo com as escolhas originais"
+   },
+   {
+    "file": "src/components/CampaignFinder.test.tsx",
+    "name": "nao oferece cancelar edicao em quem nunca viu o resumo"
+   },
+   {
+    "file": "src/components/CampaignFinder.test.tsx",
+    "name": "devolve o foco ao titulo do resumo ao cancelar a edicao"
+   },
+   {
+    "file": "src/components/CampaignFinder.test.tsx",
+    "name": "desfaz a remocao feita no resumo quando a edicao e cancelada"
+   },
+   {
+    "file": "src/components/CampaignFinder.test.tsx",
+    "name": "mantem a remocao quando o resumo e reaberto por Revisar escolhas"
+   },
+   {
+    "file": "src/components/CampaignFinder.test.tsx",
+    "name": "cancelar so volta ao resumo e nao desfaz respostas ja confirmadas nele"
+   },
+   {
+    "file": "src/components/CampaignFinder.test.tsx",
+    "name": "mantem Cancelar edicao disponivel ao trocar de etapa durante a edicao"
+   },
+   {
+    "file": "src/components/CampaignFinder.test.tsx",
+    "name": "oferece Revisar escolhas junto de Cancelar edicao depois de remover no resumo"
+   },
+   {
+    "file": "src/components/CampaignFinder.test.tsx",
+    "name": "nao restaura escolha desfeita fora do resumo"
    },
    {
     "file": "src/components/CampaignFinder.test.tsx",
@@ -30181,7 +30229,7 @@
   },
   "src/components/CampaignFinder.test.tsx": {
    "path": "src/components/CampaignFinder.test.tsx",
-   "lines": 127,
+   "lines": 270,
    "is_test": true,
    "routes": [
     {
@@ -30197,11 +30245,26 @@
      "roles": []
     }
    ],
+   "rule_comments": [
+    "ser a nova base, entao o cancelamento seguinte nao pode desfazer isso."
+   ],
    "tests": [
     "resumo editável do briefing",
     "resume as quatro respostas antes de abrir a curadoria",
     "remove só a escolha solicitada e volta à etapa correspondente",
     "permite revisar todas as respostas sem apagar o que já foi escolhido",
+    "resumo antes das quatro respostas e cancelamento da edicao",
+    "abre o resumo parcial com o que ja foi escolhido",
+    "oferece o resumo parcial a partir de uma unica escolha",
+    "cancela a edicao devolvendo o resumo com as escolhas originais",
+    "nao oferece cancelar edicao em quem nunca viu o resumo",
+    "devolve o foco ao titulo do resumo ao cancelar a edicao",
+    "desfaz a remocao feita no resumo quando a edicao e cancelada",
+    "mantem a remocao quando o resumo e reaberto por Revisar escolhas",
+    "cancelar so volta ao resumo e nao desfaz respostas ja confirmadas nele",
+    "mantem Cancelar edicao disponivel ao trocar de etapa durante a edicao",
+    "oferece Revisar escolhas junto de Cancelar edicao depois de remover no resumo",
+    "nao restaura escolha desfeita fora do resumo",
     "foco do teclado entre as etapas",
     "devolve o foco ao titulo da etapa seguinte em vez de perde-lo no body",
     "devolve o foco ao titulo do resumo quando o briefing fecha",
@@ -30214,7 +30277,7 @@
   },
   "src/components/CampaignFinder.tsx": {
    "path": "src/components/CampaignFinder.tsx",
-   "lines": 228,
+   "lines": 283,
    "exports": [
     "function CampaignFinder"
    ],
@@ -34217,10 +34280,22 @@
   }
  },
  "git": {
-  "sha": "5b24b407dba4481f7516e17ae4adadf9d1ef899b",
+  "sha": "d7f09b6efa0369e042cbd4c8dc8896b42358f718",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "d7f09b6",
+    "date": "2026-11-22",
+    "author": "adm01-debug",
+    "subject": "feat: resumo do briefing abre antes das 4 respostas e permite cancelar a edicao (F-37) (#226)",
+    "files": [
+     "analise-prs/funcionalidades.csv",
+     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
+     "src/components/CampaignFinder.test.tsx",
+     "src/components/CampaignFinder.tsx"
+    ]
+   },
    {
     "sha": "5b24b40",
     "date": "2026-11-21",
@@ -34555,15 +34630,6 @@
      "scripts/graphify.mjs",
      "tests/graphify-tools.node.mjs"
     ]
-   },
-   {
-    "sha": "b1c5c6a",
-    "date": "2026-11-17",
-    "author": "adm01-debug",
-    "subject": "test(e2e): favoritos ganham cobertura de reload e de sincronia entre abas (#193)",
-    "files": [
-     "e2e/favorites.spec.ts"
-    ]
    }
   ],
   "hot_files": [
@@ -34573,7 +34639,7 @@
    ],
    [
     "analise-prs/funcionalidades.csv",
-    3
+    4
    ],
    [
     "scripts/check-performance-budget.mjs",
@@ -34586,6 +34652,18 @@
    [
     "tests/check-performance-budget.node.mjs",
     3
+   ],
+   [
+    "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
+    2
+   ],
+   [
+    "src/components/CampaignFinder.test.tsx",
+    2
+   ],
+   [
+    "src/components/CampaignFinder.tsx",
+    2
    ],
    [
     "e2e/smoke.spec.ts",
@@ -34633,18 +34711,6 @@
    ],
    [
     "src/components/Layout.tsx",
-    1
-   ],
-   [
-    "src/lib/whatsappContact.test.ts",
-    1
-   ],
-   [
-    "src/lib/whatsappContact.ts",
-    1
-   ],
-   [
-    "src/pages/ContactPage.tsx",
     1
    ]
   ]
