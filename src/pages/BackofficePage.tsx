@@ -478,6 +478,10 @@ function BackofficeContent() {
     return () => { active = false; };
   }, [requestId, status, search, offset, retryKey]);
 
+  // O rascunho de publicacao pertence a um orcamento especifico: trocar de pedido
+  // nao pode herdar a recusa do anterior no formulario novo.
+  useEffect(() => { setFormError(''); }, [requestId]);
+
   useEffect(() => {
     if (!requestId) { setDetail(null); setDetailError(''); return; }
     let active = true;

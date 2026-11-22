@@ -137,10 +137,12 @@ declare
   v_operator site_private.commercial_operators := site_private.assert_site_operator();
   v_limit integer := least(greatest(coalesce(p_limit, 25), 1), 100);
   v_offset integer := greatest(coalesce(p_offset, 0), 0);
-  -- A Area do Cliente exibe o protocolo com '#' (CustomerQuotePage). O operador
-  -- cola exatamente o que o cliente viu, entao o prefixo precisa sair antes da
-  -- comparacao, senao a busca exata nunca casa.
-  v_search text := nullif(btrim(ltrim(btrim(coalesce(p_search, '')), '#')), '');
+  v_search text := nullif(btrim(coalesce(p_search, '')), '');
+  -- A Area do Cliente exibe o protocolo com '#' (CustomerQuotePage) e o operador
+  -- cola exatamente o que o cliente viu. O prefixo so sai da comparacao com o
+  -- PROTOCOLO: a busca textual continua vendo o termo literal, senao '#Marca'
+  -- passaria a casar com 'Marca' e um '#' sozinho desligaria o filtro.
+  v_protocol text := nullif(btrim(ltrim(btrim(coalesce(p_search, '')), '#')), '');
   v_status text := nullif(btrim(coalesce(p_status, '')), '');
   v_rows jsonb;
   v_total integer;
@@ -155,7 +157,7 @@ begin
     and (
       v_search is null
       or request.id::text = v_search
-      or request.protocol = upper(v_search)
+      or request.protocol = upper(v_protocol)
       or request.company ilike '%' || v_search || '%'
       or request.contact_name ilike '%' || v_search || '%'
       or request.email ilike '%' || v_search || '%'
@@ -212,7 +214,7 @@ begin
       and (
         v_search is null
         or request.id::text = v_search
-        or request.protocol = upper(v_search)
+        or request.protocol = upper(v_protocol)
         or request.company ilike '%' || v_search || '%'
         or request.contact_name ilike '%' || v_search || '%'
         or request.email ilike '%' || v_search || '%'
@@ -466,7 +468,8 @@ comment on function public.reply_site_quote_adjustment(uuid, text, text) is
 
 -- === 7b. Validacao de caminho de proposta =====================================
 --
--- Compartilhada entre a publicacao e o download. '..' so sobe de pasta quando
+-- Espelha a regra do download (api/customer-proposals.ts isSafeProposalPath).
+-- '..' so sobe de pasta quando
 -- ocupa o segmento inteiro: 'cliente/proposta..v2.pdf' e apenas um nome de
 -- arquivo com dois pontos e o download ja aceita. Recusar na publicacao o que o
 -- cliente consegue baixar obrigaria o comercial a renomear o PDF.
@@ -484,6 +487,9 @@ as $$
     when length(p_path) > 500 then false
     when p_path like '/%' then false
     when position(chr(92) in p_path) > 0 then false
+    -- O download recusa caracteres de controle antes de assinar a URL; aceitar na
+    -- publicacao produziria uma proposta que o cliente nao consegue baixar.
+    when p_path ~ '[\x01-\x1f\x7f]' then false
     when p_path !~* '\.pdf$' then false
     else not exists (
       select 1 from unnest(string_to_array(p_path, '/')) as segment

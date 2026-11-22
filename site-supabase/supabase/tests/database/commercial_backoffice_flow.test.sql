@@ -11,7 +11,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(47);
+select plan(50);
 
 -- === Fixtures ====================================================================
 
@@ -110,6 +110,21 @@ select is(
     10, 0) ->> 'total'),
   '1',
   'busca pelo protocolo com # encontra o pedido'
+);
+
+-- O '#' so sai da comparacao com o PROTOCOLO. Na busca textual ele e um
+-- caractere literal: '#Metalurgica' nao pode casar com 'Metalurgica', e um '#'
+-- sozinho nao pode desligar o filtro devolvendo a fila inteira.
+select is(
+  (public.list_site_quote_requests(null, '#Metalurgica', 10, 0) ->> 'total'),
+  '0',
+  'busca textual trata # como literal em vez de remover o prefixo'
+);
+
+select is(
+  (public.list_site_quote_requests(null, '#', 10, 0) ->> 'total'),
+  '0',
+  '# sozinho nao desliga o filtro de texto'
 );
 
 select is(
@@ -217,6 +232,15 @@ select is(
   site_private.is_valid_proposal_storage_path('cliente//proposta.pdf'),
   false,
   'caminho com segmento vazio e recusado'
+);
+
+-- O download (api/customer-proposals.ts) recusa caracteres de controle antes de
+-- assinar a URL. Aceitar na publicacao produziria uma proposta que o cliente nao
+-- consegue baixar.
+select is(
+  site_private.is_valid_proposal_storage_path('cliente/proposta' || chr(10) || '.pdf'),
+  false,
+  'caminho com caractere de controle e recusado'
 );
 
 select throws_ok(
