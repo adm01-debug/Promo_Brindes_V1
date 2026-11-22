@@ -510,6 +510,30 @@ test('escolha manual de cor mantém o sinal de cor do briefing (PF-40)', async (
   await expect(signals).toContainText('Cor colorido');
 });
 
+test('escolha manual de cor no drawer móvel também preserva o sinal do briefing (PF-40)', async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.startsWith('mobile'), 'Cenário dedicado ao drawer móvel.');
+  await page.goto('/catalogo?momento=onboarding&clima=divertido');
+  const signals = page.locator('.campaign-signals');
+  await expect(signals).toContainText('Cor colorido');
+  await page.getByRole('button', { name: 'Afinar o radar' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Afine seu radar' });
+  await expect(dialog).toBeVisible();
+  const colorRequest = page.waitForRequest((request) => {
+    const url = new URL(request.url());
+    return url.pathname.includes('products_public')
+      && (url.searchParams.get('and') ?? '').includes('colors')
+      && (url.searchParams.get('and') ?? '').includes('Vermelho');
+  });
+  await dialog.getByRole('button', { name: /^Cor Vermelho/ }).click();
+  await expect(page).toHaveURL(/cores=vermelho/);
+  const and = new URL((await colorRequest).url()).searchParams.get('and') ?? '';
+  expect(and).toContain('Vermelho');
+  expect(and).toContain('Colorido');
+  await dialog.getByRole('button', { name: 'Fechar filtros' }).click();
+  await expect(dialog).toBeHidden();
+  await expect(signals).toContainText('Cor colorido');
+});
+
 test('seletor de ordem anuncia a dica apenas como descrição', async ({ page }) => {
   await page.goto('/catalogo');
   const sort = page.locator('#catalog-sort');
