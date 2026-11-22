@@ -60,9 +60,9 @@ jobs:
         uses: actions/cache@3edfce9056124e459a23f683a21433670d47daca # v6.1.0
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+          key: ${{ runner.os }}-playwright-chromium-${{ hashFiles('package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-playwright-
+            ${{ runner.os }}-playwright-chromium-
       # O Chromium do Playwright não depende do repositório do Google Chrome.
       # Removê-lo no runner efêmero evita falhas transitórias de hash nesse
       # espelho antes que os testes do projeto possam começar.
@@ -167,9 +167,9 @@ jobs:
         uses: actions/cache@3edfce9056124e459a23f683a21433670d47daca # v6.1.0
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+          key: ${{ runner.os }}-playwright-firefox-webkit-${{ hashFiles('package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-playwright-
+            ${{ runner.os }}-playwright-firefox-webkit-
       # Separado em dois passos de proposito: `--with-deps` junta a instalacao de
       # ~130 pacotes de sistema com o download dos navegadores, e no log do job
       # as duas aparecem como um passo so. Separadas, o relatorio diz qual das
