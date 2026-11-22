@@ -73,7 +73,7 @@ Quem destrava: **ENG** = engenharia pode fazer agora · **DONO** = decisão/cred
 | 5 | Secret scanning e push protection (PF-66) | IMPLEMENTADO (API 20/11) | sim | — |
 | 6 | Restore nunca ensaiado, sem RPO/RTO, Storage sem backup (PF-86) | BLOQUEADO | não | DONO |
 | 7 | Crons sem vigia independente (PF-87); fila agora medida mesmo sem provedor (PF-10) | PF-10 IMPLEMENTADO (#190); PF-87 NÃO INICIADO | parcial | ENG |
-| 8 | LGPD: apagamento ficou completo (#161), mas sem autoexclusão, exportação ou correção (PF-17/30/125) | PARCIAL / NÃO INICIADO | parcial (#161) | ENG + jurídico |
+| 8 | LGPD: apagamento, autoexclusão, exportação e correção entregues (#161, #220) e Política alinhada ao comportamento real (PF-17) | IMPLEMENTADO | sim | ENG |
 | 9 | Briefing "escuta" fraco (PF-37 a PF-41) | PF-37 COMPLETA (#94 e #226); 38/39/41 com PRs abertas hoje | sim | ENG + mockup |
 | 10 | Domínio oficial (PF-59): canonical, sitemap, robots e CSP em `promo-brindes-v1.vercel.app`; `prod-readiness.md` diz que `www.promobrindes.com.br` já responde | BLOQUEADO | não | DONO |
 | 11 | Conteúdo de confiança (PDFs, cases, fotos próprias) (PF-57/58/127) | BLOQUEADO | não | CONTEÚDO |
@@ -114,7 +114,7 @@ Tabela consolidada (uma linha por item). Evidência completa, comandos reproduz�
 | PF-14 | "Confirmação por e-mail registrada para envio" sem provedor | PARCIAL | E-mail sempre `pending` → "Registrado para envio"; falta estado `unavailable` como o do WhatsApp | `api/notifications.ts:603,608,611`; `quoteConfirmation.ts:12,15` | sim (#181 só WhatsApp) | ENG + DONO |
 | PF-15 | Checkbox de WhatsApp | PARCIAL | Aparece sempre (`QuotePage.tsx:492`); `PrivacyPage.tsx:16` ainda diz "cópia" | `QuotePage.tsx:492`; sem `VITE_*` de canal | sim (#160) | ENG + DONO |
 | PF-16 | "Nosso time vai analisar… entrar em contato" / "aparecerá na linha do tempo" | PARCIAL | Promessa só tem base com webhook ligado; ajuste sem roteamento e sem quem responda | `QuotePage.tsx:376,469,480,494`; `CustomerQuotePage.tsx:246` | sim (#158) | DONO + ENG |
-| PF-17 | Política de Privacidade: confirmação transacional, exclusão, acesso/correção | PARCIAL (DIVERGÊNCIA) | Depende de Resend; sem autoexclusão/exportação/correção | `PrivacyPage.tsx:16-17`; `erase_customer_data` só `service_role` (`20260916200000:106-107`) | sim (#161) | ENG + jurídico |
+| PF-17 | Política de Privacidade: confirmação transacional, exclusão, acesso/correção | IMPLEMENTADO | Divergência fechada: seção 8 nomeia os 3 estados reais de entrega (inclusive "Indisponível no momento"); seção 9 reflete as 4 RPCs do titular (#220, em produção) | `PrivacyPage.tsx:20`; `api/notifications.ts:611`; `PrivacyPage.test.tsx` | sim (#220, #243) | ENG |
 | PF-18 | "Curadoria humana" / "Curadoria iniciada pelo seu briefing" / "Curadoria Promo" | PARCIAL (DIVERGÊNCIA) | Ranking roda no navegador só sobre 24 itens; decisão D7 | `CatalogPage.tsx:30,44,62,64`; `useCatalogPageState.ts:101,114-116`; `catalog.ts:406` | não | DONO + ENG |
 | PF-19 | "Personalize este produto…" sem checar `allowsPersonalization` | DIVERGÊNCIA | Condicionar fallback | `ProductCard.tsx:57` | não | ENG |
 | PF-20 | "Escala: 51–200 un." (faixa de pessoas) | DIVERGÊNCIA | Trocar "un." | `campaignPresets.ts:98`; e-mail usa "pessoas" (`notifications.ts:250`) | não | ENG |
