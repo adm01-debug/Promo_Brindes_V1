@@ -47,7 +47,7 @@ Quem destrava: **ENG** = engenharia pode fazer agora · **DONO** = decisão/cred
 | PARCIAL-VALIDAÇÃO | 5 | PF-06, 26, 51, 65, 92 |
 | NÃO INICIADO | 28 | PF-03, 05, 12, 30, 34, 38 (PR #211), 39 (PR #212), 41 (PR #213), 45, 47, 54, 55, 68, 82, 84, 87, 90, 93, 95, 98, 99, 107, 110, 113, 120, 121, 124, 125 |
 | BLOQUEADO (externo) | 23 | PF-02, 07, 08, 09, 13, 22, 33, 36, 46, 52, 57, 58, 59, 64, 69, 76, 83, 86, 89, 104, 105, 126, 127 |
-| DIVERGÊNCIA | 9 | PF-04, 19, 20, 21, 61, 75, 81, 91, 115 |
+| DIVERGÊNCIA | 8 | PF-19, 20, 21, 61, 75, 81, 91, 115 |
 
 **113 dos 128 itens continuam pendentes.** Somam-se **108 itens novos** (não mapeados pela auditoria de 11/10) encontrados na releitura etapa a etapa dos planos e dos runbooks, dos quais 2 já estão implementados (seção 3).
 
@@ -101,7 +101,7 @@ Tabela consolidada (uma linha por item). Evidência completa, comandos reproduz�
 | PF-01 | Encaminhar orçamento, contato e ajuste ao comercial | PARCIAL | Ajuste não enfileira (`request_kind` só `quote|contact`); destino = env remota `COMMERCIAL_TEAM_WEBHOOK_URL/_TOKEN`; comentário desatualizado em `commercialTeamAlerts.ts:5` | `20261106150448:34-38`; `20261117010000:35-58,103-194`; `api/commercial-alerts.ts:51-124`; `vercel.json:9`; `20260908230000:86` | sim (#116, #158) | DONO + ENG |
 | PF-02 | Responsável, estados operacionais e SLA por pedido | BLOQUEADO | Tudo | `grep assigned_to\|sla\|due_at migrations` = 0; `QuotePage.tsx:376` sem prazo | não | DONO |
 | PF-03 | Back-office mínimo (status, triagem, publicar proposta) | NÃO INICIADO | Tudo | `grep publish_proposal\|set_quote_status\|triage_` = 0; `proposal_documents` só inserido em pgTAP | não | ENG (após D1) |
-| PF-04 | Cliente bloqueado após 3 ajustes pendentes | DIVERGÊNCIA | Nada move `quote_adjustment_requests.status` para `resolved/closed` | `20260923120000:205`; updates só anonimização | não | ENG (com PF-03) |
+| PF-04 | Cliente bloqueado após 3 ajustes pendentes | COMPLETO | O 4º pedido devolve mensagem que explica o limite e oferece o canal de contato (`ADJUSTMENT_PENDING_LIMIT_MESSAGE`); a liberação do limite continua vindo da triagem do back-office (PF-03) | `20260923120000:205`; `src/lib/customerAccount.ts`; `src/pages/CustomerQuotePage.tsx` | sim | — |
 | PF-05 | Mensagens da equipe e evento `proposal_published` | NÃO INICIADO | Produtor dos eventos | só CHECK `20260909180000:30`, `20260910130000:33` | não | ENG |
 | PF-06 | "Fale conosco" com destino | PARCIAL-VALIDAÇÃO | Webhook configurado em produção | `20261117010000:55-58`; `leadHandler.ts:147-149` | sim (#158) | DONO |
 | PF-07 | Confirmação por e-mail (Resend) | BLOQUEADO | `RESEND_API_KEY` + `SITE_EMAIL_FROM` em produção; `.env.example:60` remetente fictício | `api/notifications.ts:293-320,390` | não | DONO |

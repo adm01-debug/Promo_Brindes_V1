@@ -2,7 +2,7 @@ id,funcionalidade,descricao,estado,completude_pct,prs_relacionadas,achado_audito
 F-01,Encaminhar lead ao time comercial,Outbox audience=commercial_team + adaptador de destino (CRM/e-mail/WhatsApp interno),BLOQUEADA,90,#158,Fila integra (commercialTeamAlerts+vercel.json cron */5); falta somente COMMERCIAL_TEAM_WEBHOOK_URL/_TOKEN em producao,P1
 F-02,Responsavel estados e SLA por pedido,Colunas responsavel/prazo em quote_requests + tela de sucesso com prazo,BLOQUEADA,0,,PF-02,P2
 F-03,Back-office minimo,Publicar proposta mudar status triar ajustes via UI,NÃO INICIADO,0,,PF-03,P1
-F-04,Bloqueio apos 3 ajustes pendentes,Regra too_many_pending_adjustments sem saida para o cliente,PARCIAL,30,,PF-04,P2
+F-04,Bloqueio apos 3 ajustes pendentes,Quarto pedido recebe mensagem explicando o limite de 3 em analise e link para falar com a equipe; ADJUSTMENT_PENDING_LIMIT_MESSAGE traduz o P0001 e a pagina mantem as demais recusas cruas,COMPLETA,100,,PF-04,P2
 F-05,Mensagens da equipe ao cliente,Eventos message e proposal_published na linha do tempo,PENDENTE,0,,PF-05,P2
 F-06,Fale conosco com destino,contact_requests gravado sem consumidor,PARCIAL,50,,PF-06,P2
 F-07,Confirmacao por e-mail Resend,RESEND_API_KEY + SITE_EMAIL_FROM em producao,BLOQUEADA,70,#82,PF-07,P1

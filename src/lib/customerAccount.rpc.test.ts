@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 const { rpc } = vi.hoisted(() => ({ rpc: vi.fn() }));
 vi.mock('./siteSupabase', () => ({ siteSupabase: { rpc } }));
 
-import { claimMyQuoteRequests, fetchMyQuoteRequest, fetchMyQuoteRequests, requestMyQuoteAdjustment } from './customerAccount';
+import { ADJUSTMENT_PENDING_LIMIT_MESSAGE, claimMyQuoteRequests, fetchMyQuoteRequest, fetchMyQuoteRequests, requestMyQuoteAdjustment } from './customerAccount';
 
 const quoteId = '11111111-1111-4111-8111-111111111111';
 const eventId = '22222222-2222-4222-8222-222222222222';
@@ -42,6 +42,19 @@ describe('RPCs da Área do Cliente', () => {
 
     await expect(fetchMyQuoteRequest(quoteId)).rejects.toThrow('customer_area_unavailable');
     await expect(requestMyQuoteAdjustment(quoteId, 'Preciso rever a quantidade.', 'request-001')).rejects.toThrow('customer_area_unavailable');
+  });
+
+  it('traduz o limite de 3 ajustes pendentes em mensagem acionável', async () => {
+    rpc.mockReturnValue(response({ data: null, error: { message: 'too_many_pending_adjustments' } }));
+
+    await expect(requestMyQuoteAdjustment(quoteId, 'Preciso rever a quantidade.', 'request-001'))
+      .rejects.toThrow(ADJUSTMENT_PENDING_LIMIT_MESSAGE);
+  });
+
+  it('mantém o erro original quando a recusa é outra', async () => {
+    rpc.mockReturnValue(response({ data: null, error: { message: 'quote_not_found' } }));
+
+    await expect(requestMyQuoteAdjustment(quoteId, 'Preciso rever a quantidade.', 'request-001')).rejects.toThrow('quote_not_found');
   });
 
   it('não transforma uma resposta de claim inesperada em sucesso', async () => {
