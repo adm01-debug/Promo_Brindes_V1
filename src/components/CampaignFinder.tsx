@@ -25,6 +25,18 @@ export function CampaignFinder() {
   const [stepIndex, setStepIndex] = useState(0);
   const [summaryVisible, setSummaryVisible] = useState(false);
   const [sequentialReview, setSequentialReview] = useState(false);
+  // true quando a etapa aberta veio do resumo ("Ajustar respostas" ou remover
+  // uma escolha). Sem isso nao ha como desistir da edicao e voltar ao resumo
+  // preservando o que ja estava escolhido (F-37/PF-37).
+  const [returnToSummary, setReturnToSummary] = useState(false);
+  // Estado do resumo no instante em que a edicao comecou: e o que "Cancelar
+  // edicao" restaura, para o titular nao descobrir depois que mexeu na
+  // selecao sem querer (F-37/PF-37).
+  const editSnapshotRef = useRef<CampaignSelection | null>(null);
+
+  function beginEditFromSummary() {
+    if (editSnapshotRef.current === null) editSnapshotRef.current = selection;
+  }
   const questionHeadingRef = useRef<HTMLHeadingElement>(null);
   const summaryHeadingRef = useRef<HTMLHeadingElement>(null);
   // Cada resposta desmonta o bloco anterior (as opcoes trocam de key a cada
@@ -74,6 +86,8 @@ export function CampaignFinder() {
   }
 
   function editStep(index: number) {
+    if (summaryVisible) beginEditFromSummary();
+    setReturnToSummary(summaryVisible);
     setSequentialReview(false);
     setSummaryVisible(false);
     setStepIndex(index);
@@ -81,13 +95,37 @@ export function CampaignFinder() {
   }
 
   function reviewAll() {
+    beginEditFromSummary();
+    setReturnToSummary(true);
     setSequentialReview(true);
     setSummaryVisible(false);
     setStepIndex(0);
     focusBlock('question');
   }
 
+  // Desiste da edicao sem descartar as escolhas: o resumo volta com exatamente
+  // o que estava selecionado antes de entrar na etapa.
+  function cancelEdit() {
+    const snapshot = editSnapshotRef.current;
+    editSnapshotRef.current = null;
+    if (snapshot) setSelection(snapshot);
+    setReturnToSummary(false);
+    setSequentialReview(false);
+    setSummaryVisible(true);
+    focusBlock('summary');
+  }
+
+  function showSummary() {
+    if (!selectedCount) return;
+    editSnapshotRef.current = null;
+    setReturnToSummary(false);
+    setSequentialReview(false);
+    setSummaryVisible(true);
+    focusBlock('summary');
+  }
+
   function removeSelection(key: keyof CampaignSelection, index: number) {
+    beginEditFromSummary();
     setSelection((current) => {
       const next = { ...current };
       delete next[key];
@@ -97,10 +135,12 @@ export function CampaignFinder() {
   }
 
   function reset() {
+    editSnapshotRef.current = null;
     setSelection({});
     setStepIndex(0);
     setSummaryVisible(false);
     setSequentialReview(false);
+    setReturnToSummary(false);
     focusBlock('question');
   }
 
@@ -204,6 +244,15 @@ export function CampaignFinder() {
                 <button type="button" className="brief-finder__skip" onClick={() => setStepIndex((current) => Math.min(steps.length - 1, current + 1))} disabled={stepIndex === steps.length - 1}>
                   Pular etapa
                 </button>
+                {returnToSummary ? (
+                  <button type="button" className="brief-finder__skip" onClick={cancelEdit}>
+                    Cancelar edição
+                  </button>
+                ) : selectedCount > 0 && (
+                  <button type="button" className="brief-finder__skip" onClick={showSummary}>
+                    Revisar {selectedCount === 1 ? '1 escolha' : `${selectedCount} escolhas`}
+                  </button>
+                )}
                 {!selectedCount && (
                   <button type="button" className="text-link" onClick={exploreCatalogWithoutBriefing}>
                     Ainda não sei o que escolher

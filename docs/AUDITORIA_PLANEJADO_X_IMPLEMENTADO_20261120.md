@@ -74,7 +74,7 @@ Quem destrava: **ENG** = engenharia pode fazer agora · **DONO** = decisão/cred
 | 6 | Restore nunca ensaiado, sem RPO/RTO, Storage sem backup (PF-86) | BLOQUEADO | não | DONO |
 | 7 | Crons sem vigia independente (PF-87); fila agora medida mesmo sem provedor (PF-10) | PF-10 IMPLEMENTADO (#190); PF-87 NÃO INICIADO | parcial | ENG |
 | 8 | LGPD: apagamento ficou completo (#161), mas sem autoexclusão, exportação ou correção (PF-17/30/125) | PARCIAL / NÃO INICIADO | parcial (#161) | ENG + jurídico |
-| 9 | Briefing "escuta" fraco (PF-37 a PF-41) | PF-37 PARCIAL (#94 mergeada); 38/39/41 com PRs abertas hoje | sim | ENG + mockup |
+| 9 | Briefing "escuta" fraco (PF-37 a PF-41) | PF-37 COMPLETA (#94 e #226); 38/39/41 com PRs abertas hoje | sim | ENG + mockup |
 | 10 | Domínio oficial (PF-59): canonical, sitemap, robots e CSP em `promo-brindes-v1.vercel.app`; `prod-readiness.md` diz que `www.promobrindes.com.br` já responde | BLOQUEADO | não | DONO |
 | 11 | Conteúdo de confiança (PDFs, cases, fotos próprias) (PF-57/58/127) | BLOQUEADO | não | CONTEÚDO |
 | 12 | Governança: 0 aprovações nas 25 últimas PRs mergeadas; revisor único; sem ruleset; sem tag de release (PF-69/70/99) | BLOQUEADO / PARCIAL / NÃO INICIADO | não | DONO + ENG |
@@ -139,7 +139,7 @@ Tabela consolidada (uma linha por item). Evidência completa, comandos reproduz�
 | PF-34 | Auditoria de leitura (SELECT em PII) | NÃO INICIADO | pgaudit ou RPC com log | `20260916210000:18` | não | ENG + DONO |
 | PF-35 | Saneamento de anexos; PDF | PARCIAL | Reencode/EXIF/dimensões; PDF em quarentena | `fileSignatures.ts:3-8`; `briefing-assets.ts:69,80-81` | não | ENG |
 | PF-36 | Criptografia de PII, E.164, rate limit de borda | BLOQUEADO | Decisão | só `DATABASE_FUNCTION_CONTRACTS.md` | não | DONO |
-| PF-37 | Resumo "O que entendemos" editável | PARCIAL | Só com 4/4 respostas; sem "cancelar edição"; sem registro de aprovação dos mockups | `CampaignFinder.tsx:62-66,76-81,145-170` | sim (#94 em 27/10, #159, #103) | ENG + DONO |
+| PF-37 | Resumo "O que entendemos" editável | COMPLETA | Resumo abre com N escolhas, "Cancelar edição" restaura o snapshot e o foco volta ao título; restante coberto pela #94 | `CampaignFinder.tsx` | sim (#94 em 27/10, #226, #159, #103) | ENG + DONO |
 | PF-38 | "Ainda não sei o que escolher" | NÃO INICIADO | CTA desabilitado sem resposta (PR #211 aberta) | `CampaignFinder.tsx:109,199` | não | ENG + mockup |
 | PF-39 | Troca de campanha consciente | NÃO INICIADO | `setCampaign` sobrescreve; "Limpar tudo" não limpa contexto (PR #212 aberta) | `useCatalogPageState.ts:134-139,236` | não | ENG + mockup |
 | PF-40 | Separar intenção de filtros; explicar seleção/ordenação | PARCIAL | Mostrar qual resposta virou filtro; descrever "Curadoria Promo" | `CatalogPage.tsx:44,62-67`; `useCatalogPageState.ts:80-102,115` | não | DONO + ENG |
