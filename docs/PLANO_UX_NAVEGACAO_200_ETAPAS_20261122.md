@@ -7,7 +7,7 @@ Documento irmão: `docs/PLANO_CORRECOES_190_ETAPAS_20261122.md` (correções té
 
 ## Método, e o que esta auditoria não fez
 
-Cada dimensão foi auditada por um agente independente que leu o código-fonte e precisou provar cada achado com arquivo, linha e trecho literal. Os achados de duas dimensões passaram por um segundo agente que tentou refutá-los; nessa checagem, **dois achados de uma auditoria técnica paralela caíram e foram corrigidos neste documento**: o login já permite reenviar o acesso (a etapa N-144 foi reescrita para tratar o que realmente falta, que é a visibilidade do reenvio) e o cliente HTTP já trata as mensagens de erro de transporte. Nove achados foram verificados por leitura direta nesta sessão, entre eles os botões sem estilo do back-office (N-101), o menu de celular sem rolagem (N-124), a ausência de manifesto na pasta pública (N-183) e o caminho de reenvio do login.
+Cada dimensão foi auditada por um agente independente que leu o código-fonte e precisou provar cada achado com arquivo, linha e trecho literal. Depois, **155 achados passaram por um verificador que tentou refutar cada um: três caíram** e estão corrigidos no texto das etapas, em negrito (N-044, N-081 e N-094). Na auditoria técnica paralela, **outros dois achados caíram e também foram corrigidos aqui**: o login já permite reenviar o acesso (a etapa N-144 foi reescrita para tratar o que realmente falta, que é a visibilidade do reenvio) e o cliente HTTP já trata as mensagens de erro de transporte. Nove achados foram verificados por leitura direta nesta sessão, entre eles os botões sem estilo do back-office (N-101), o menu de celular sem rolagem (N-124), a ausência de manifesto na pasta pública (N-183) e o caminho de reenvio do login.
 
 **O que não foi feito:** nenhuma etapa foi executada; o site não foi operado em produção; não houve teste com usuários, mapa de calor, gravação de sessão nem medição de campo. Onde este plano fala de impacto, é estimativa de design informada pelo código, não resultado medido. O bloco 10 existe justamente porque hoje não há como medir: os indicadores começam sem linha de base, e isso está declarado em N-200.
 
@@ -367,10 +367,11 @@ O site tem nove sobreposições (painel de seleção, menu de celular, painel de
 - **Referência:** WAI-ARIA Authoring Practices, modal e conteúdo inerte.
 - Depende de: N-032.
 
-### N-044 · [baixo · S] · Dois diálogos de seleções salvas com a mesma referência
-- **O que é:** em seleções salvas, dois diálogos compartilham a mesma referência e a tecla de escape fecha os dois estados ao mesmo tempo.
+### N-044 · [baixo · S] · Dois diálogos de seleções salvas compartilham a mesma referência
+- **O que é:** em seleções salvas, dois diálogos usam a mesma referência e a tecla de escape zera os dois estados.
 - **Como fazer:** uma referência por diálogo em `src/components/SavedSelections.tsx:53, 209, 217`, fechando apenas a camada do topo.
-- **Benefício:** cancelar uma confirmação não fecha a tela que estava por trás.
+- **Benefício:** remove um risco latente antes que ele apareça.
+- **Corrigido na verificação:** o problema de código é real, mas o cenário de erro **não é alcançável hoje**, porque a confirmação limpa seu estado antes de qualquer espera e os dois diálogos nunca coexistem. É arrumação preventiva, não correção de defeito ativo; faz sentido junto da migração para o componente único de sobreposição.
 - **Referência:** WAI-ARIA Authoring Practices, modais aninhados.
 - Depende de: N-032.
 
@@ -636,8 +637,8 @@ A navegação parece travar porque não há feedback nenhum entre a intenção e
 - **[mockup]**
 
 ### N-081 · [alto · S] · Indicador de envio no botão do briefing
-- **O que é:** o envio do briefing muda apenas o texto do botão, e o estilo anula a pista de formulário bloqueado.
-- **Como fazer:** indicador circular dentro do próprio botão mantendo largura e texto em `src/pages/QuotePage.tsx:549`, com estado desabilitado declarado e uma região de status anunciando o envio; ajustar `src/styles.css:6164`.
+- **O que é:** o envio do briefing muda apenas o texto do botão, sem indicador de progresso e sem anúncio para leitor de tela.
+- **Como fazer:** indicador circular dentro do próprio botão, mantendo largura e texto, em `src/pages/QuotePage.tsx:549`, mais uma região de status anunciando o envio. **Corrigido na verificação:** a premissa anterior, de que o estilo anulava a pista de bloqueio, é falsa. O conjunto de campos em `src/pages/QuotePage.tsx:526` realmente desabilita o botão durante o envio, e `src/styles.css:446-449` aplica cursor de espera e opacidade reduzida. O que falta é só o indicador de progresso e o anúncio.
 - **Benefício:** reduz envio duplicado e a dúvida "clicou ou não?" no momento mais importante do funil.
 - **Referência:** NN/g, feedback de envio de formulário; WCAG 4.1.3.
 - **[mockup]** acrescentado em revisão: o indicador é elemento visual novo no botão principal.
@@ -722,11 +723,12 @@ A navegação parece travar porque não há feedback nenhum entre a intenção e
 - **Benefício:** menos chamadas repetidas e menos impressão de falha.
 - **Referência:** NN/g, feedback de ação.
 
-### N-094 · [médio · S] · Reservar a caixa da imagem ampliada
-- **O que é:** a ampliação de foto abre sem dimensões declaradas, deslocando o conteúdo dentro do diálogo.
-- **Como fazer:** declarar dimensões ou proporção em `src/components/ProductGallery.tsx:89` e no estilo do diálogo.
-- **Benefício:** a ampliação deixa de pular no momento em que o visitante examina o produto.
-- **Referência:** Core Web Vitals, deslocamento de layout.
+### N-094 · [baixo · S] · Declarar as dimensões da imagem ampliada
+- **O que é:** a ampliação de foto não declara dimensões no elemento, ao contrário da imagem principal e da miniatura.
+- **Como fazer:** declarar largura e altura em `src/components/ProductGallery.tsx:89`, espelhando o que já existe em `:71` e `:83`.
+- **Benefício:** consistência entre os três pontos da galeria e proporção correta antes do download.
+- **Corrigido na verificação:** não há deslocamento de layout aqui. `src/styles.css:1979-1984` já fixa a caixa da imagem ampliada, então a falta dos atributos não move nada. O impacto caiu de médio para baixo.
+- **Referência:** especificação de HTML, dimensões intrínsecas de imagem.
 - **[190]** mesma etapa do plano técnico.
 
 ### N-095 · [médio · S] · Foco no título ao chegar à confirmação
