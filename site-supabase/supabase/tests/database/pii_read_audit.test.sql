@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 set local request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
 
-select plan(33);
+select plan(36);
 
 -- A trilha é privada: só service_role lê; ninguém além do site grava.
 select ok(not pg_catalog.has_table_privilege('anon', 'site_private.pii_read_audit_log', 'select'), 'anon não lê a trilha de leitura de PII');
@@ -138,20 +138,36 @@ select lives_ok(
 );
 
 -- A busca aceita e-mail e telefone exatos: o termo livre nunca pode ir para a trilha.
--- O e-mail buscado e o do pedido de teste: uma busca que nao casa nada nao exercita
--- o caminho "achou e registrou a leitura", que e o que importa auditar.
+-- Dois pedidos com o mesmo contato: assim o volume entregue (limite 1) diverge do
+-- total casado (2), e a trilha precisa gravar o que saiu, nao o que casou.
+insert into site_private.quote_requests (
+  client_request_id, request_hash, source, contact_name, company, email, phone,
+  client_submitted_at, customer_user_id
+) values (
+  'pii-read-test-2', repeat('c', 64), 'site-promo-brindes',
+  'Cliente PII 2', 'Empresa PII', 'titular@example.test', '11999998888', now(),
+  '11111111-1111-4111-8111-111111111111'
+);
+
 select is(
-  (public.list_site_quote_requests(null, 'titular@example.test', 10, 0) ->> 'total')::integer,
+  (public.list_site_quote_requests(null, 'titular@example.test', 1, 0) ->> 'total')::integer,
+  2,
+  'a busca por e-mail do titular casa os 2 pedidos, entregando 1'
+);
+
+select is(
+  (select row_count from site_private.pii_read_audit_log
+   where actor_kind = 'operador' and filter like '%search%'
+   order by occurred_at desc, id desc limit 1),
   1,
-  'a busca por e-mail do titular encontra o pedido'
+  'a trilha grava o volume entregue (1), nao o total casado (2)'
 );
 
 select is(
   (select count(*) from site_private.pii_read_audit_log
-   where filter ilike '%titular@example.test%' or filter ilike '%@example.test%'
-      or filter ilike '%11999998888%'),
+   where filter ilike '%titular@example.test%' or filter ilike '%11999998888%'),
   0::bigint,
-  'e-mail buscado pelo operador nao e copiado para a trilha'
+  'o termo buscado (e-mail ou telefone) nunca e copiado para a trilha'
 );
 
 -- A busca por contato precisa ser auditada: provar que a leitura existe, sem o termo.
@@ -162,13 +178,25 @@ select is(
   'a busca por e-mail gerou registro de leitura com o marcador search, sem o valor'
 );
 
--- A leitura que devolve linha precisa ser registrada com volume: sem isso a trilha
--- diria "alguem filtrou" sem dizer que dados sairam.
+-- O telefone e outro caminho de busca: precisa achar o pedido sem gravar o numero.
 select is(
-  (select row_count from site_private.pii_read_audit_log
+  (public.list_site_quote_requests(null, '11999998888', 10, 0) ->> 'total')::integer,
+  2,
+  'a busca por telefone do titular encontra os pedidos'
+);
+
+select is(
+  (select count(*) from site_private.pii_read_audit_log
+   where filter ilike '%11999998888%'),
+  0::bigint,
+  'telefone buscado pelo operador nao e copiado para a trilha'
+);
+
+select is(
+  (select count(*) from site_private.pii_read_audit_log
    where actor_kind = 'operador' and filter like '%search%'),
-  1,
-  'a busca que retornou 1 pedido grava row_count = 1'
+  2::bigint,
+  'as duas buscas por contato geraram registro de leitura com o marcador search'
 );
 
 -- Busca sem resultado tambem registra a tentativa, com volume zero.
