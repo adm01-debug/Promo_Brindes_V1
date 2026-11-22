@@ -96,6 +96,20 @@ _Sem comment on table — considerar adicionar um na próxima migration que toca
 | `message` | `text` | Contexto opcional da conversa, limitado a 800 caracteres e retido no banco isolado do site. |
 | `preferred_channel` | `text` | Preferência opcional de retorno; não representa consentimento para disparo automático. |
 
+### `site_private.cron_heartbeats`
+
+Heartbeat dos crons do site (F-87). Uma linha por cron agendado em vercel.json; escrita so pela RPC record_cron_heartbeat.
+
+| Coluna | Tipo | Comentário |
+|---|---|---|
+| `name` | `text` | — |
+| `installed_at` | `timestamp with time zone` | — |
+| `last_ok_at` | `timestamp with time zone` | — |
+| `last_failed_at` | `timestamp with time zone` | — |
+| `last_failure_detail` | `text` | — |
+| `consecutive_failures` | `integer` | — |
+| `updated_at` | `timestamp with time zone` | — |
+
 ### `site_private.customer_briefing_assets`
 
 Logos e referências privadas em PNG, JPEG ou WebP. PDFs ficam bloqueados até existir análise estrutural/CDR isolada e antimalware.
@@ -385,6 +399,7 @@ Trilha do exercicio dos direitos do titular (LGPD art. 18) na Area do Cliente: a
 | `apply_site_notification_provider_event` | `p_provider text, p_provider_message_id text, p_event_type text, p_provider_event_id text, p_occurred_at timestamp with time zone, p_bounce_reason text` | Aplica evento de webhook de forma idempotente (Etapa 30 do plano anterior). delivered só grava se delivery_state ainda for null; bounced grava se null OU se o estado atual for delivered — um bounce tardio corrige um delivered otimista (Etapa 20 do plano de correções). complained é independente e idempotente via coalesce. |
 | `attach_my_briefing_assets_to_quote` | `p_request_id uuid, p_asset_ids uuid[]` | — |
 | `can_delete_my_unverified_briefing_asset_path` | `p_path text` | Permite limpeza direta somente antes da verificação; depois dela a exclusão ocorre pela fila server-side. |
+| `check_cron_heartbeats` | `` | Devolve o estado de cada cron do site e se ele esta atrasado segundo o intervalo esperado mais a tolerancia (F-87). |
 | `claim_my_quote_requests` | `` | Associa solicitações sem titular somente após confirmação do e-mail da identidade autenticada. |
 | `claim_site_commercial_team_alert` | `p_request_id uuid` | Reivindica o alerta comercial de um lead especifico (orcamento ou contato), sem filtrar por canal. |
 | `claim_site_commercial_team_alerts` | `p_batch_size integer` | Reivindica lotes de alertas comerciais pendentes (orcamento e contato) para o cron de entrega. |
@@ -424,6 +439,7 @@ Trilha do exercicio dos direitos do titular (LGPD art. 18) na Area do Cliente: a
 | `publish_site_quote_proposal` | `p_request_id uuid, p_title text, p_storage_path text, p_valid_until date` | Publica uma proposta versionada e move o pedido para quoted (F-03, produtor que faltava para F-23). Exige status in_progress; a versão anterior vira histórica por superseded_at. |
 | `purge_archived_customer_selections` | `p_batch_size integer` | — |
 | `purge_site_admin_audit_logs` | `p_retention_days integer, p_batch_size integer` | Remove em lotes trilhas administrativas além da janela configurada; padrão 400 dias. |
+| `record_cron_heartbeat` | `p_name text, p_ok boolean, p_detail text` | Grava o desfecho de uma rodada de cron (F-87). Chamada com a credencial de servico no fim de cada execucao. |
 | `record_site_notification_dispatch_started` | `p_delivery_id uuid, p_lease_token uuid` | Persiste intenção WhatsApp antes da chamada externa; sem confirmação do marcador, a Meta não é chamada. Um envio incerto exige reconciliação humana e nunca é reenviado cegamente. |
 | `record_site_notification_provider_acceptance` | `p_delivery_id uuid, p_lease_token uuid, p_provider text, p_provider_message_id text` | Registra o aceite do provedor antes da finalização, para reconciliação em caso de falha na etapa seguinte (R01, R02). |
 | `reject_site_briefing_asset_verification` | `p_id uuid, p_storage_path text` | Caminho server-side idempotente para remover uma reserva não vinculada cuja verificação de conteúdo falhou; o trigger enfileira a exclusão do blob privado. |
