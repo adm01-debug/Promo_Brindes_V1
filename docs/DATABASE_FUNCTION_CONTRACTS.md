@@ -78,6 +78,8 @@ Todas usam `errcode = '22023'` (invalid_text_representation, reaproveitado como
 | `quote_request_changed_concurrently` | `update_site_quote_status` (o `select ... for update` não encontrou mais o status esperado) | UI recarrega o detalhe e pede para repetir a ação | genérico |
 | `invalid_adjustment_status` | `reply_site_quote_adjustment` (status fora de `triaged`/`resolved`/`closed`) | Defesa em profundidade: o tipo `SiteAdjustmentReplyStatus` já restringe na UI | genérico |
 | `proposal_requires_in_progress` | `publish_site_quote_proposal` (só publica a partir de `in_progress`) | `siteOperatorErrorMessage` orienta mover o pedido para `in_progress` antes de publicar | genérico |
+| `quoted_requires_proposal_publication` | `update_site_quote_status` (o estágio `quoted` promete uma proposta no portal) | `allowedStatuses` já omite `quoted`; a RPC recusa como segunda linha de defesa | genérico |
+| `invalid_storage_path` | `publish_site_quote_proposal` (caminho fora do padrão `nome.pdf` do bucket `customer-proposals`) | `siteOperatorErrorMessage` explica que o caminho precisa ser `pasta/arquivo.pdf` | genérico |
 
 **Leitura honesta desta tabela**: a maioria das mensagens `invalid_*` de `create_site_*`
 não tem tratamento HTTP específico porque **não deveriam ser alcançáveis** — a validação

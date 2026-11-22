@@ -41,6 +41,7 @@ const pages: Record<string, StaticPage> = {
   senha: { path: '/definir-senha', title: 'Definir senha | Promo Brindes', description: 'Defina sua senha para acessar seus orçamentos.', noIndex: true },
   conta: { path: '/minha-conta', title: 'Meus orçamentos | Promo Brindes', description: 'Consulte suas solicitações de orçamento.', noIndex: true },
   detalheOrcamento: { path: '/minha-conta/orcamentos', title: 'Detalhe do orçamento | Promo Brindes', description: 'Consulte o detalhe da sua solicitação.', noIndex: true },
+  backoffice: { path: '/admin/orcamentos', title: 'Back-office comercial | Promo Brindes', description: 'Fila de orçamentos do time comercial.', noIndex: true },
 };
 
 // Derivado de shared/ideaLandingPages.ts: o shell pre-renderizado precisa servir

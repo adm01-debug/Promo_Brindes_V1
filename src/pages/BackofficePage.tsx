@@ -7,6 +7,7 @@ import {
   SITE_QUOTE_STATUSES,
   SITE_QUOTE_STATUS_LABELS,
   isSiteOperatorError,
+  isSiteQuoteConflict,
   siteOperatorErrorMessage,
   type SiteQuoteDetail,
   type SiteQuoteListPage,
@@ -33,7 +34,9 @@ function dayLabel(value: string | null): string {
   if (!value) return '—';
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return '—';
-  return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' }).format(parsed);
+  // `desired_deadline` e `valid_until` sao colunas date: chegam como meia-noite UTC.
+  // Sem fixar o fuso, o horario de Brasilia (UTC-3) exibe o dia anterior.
+  return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeZone: 'UTC' }).format(parsed);
 }
 
 /**
@@ -408,6 +411,9 @@ function BackofficeDetail({
               <li key={`${entry.createdAt}-${index}`}>
                 <ShieldCheck aria-hidden="true" size={15} />
                 {dateLabel(entry.createdAt)} · {entry.action} por {entry.actorLabel}
+                {typeof entry.detail.response === 'string' ? (
+                  <p>Resposta registrada: {entry.detail.response}</p>
+                ) : null}
               </li>
             ))}
           </ul>
@@ -491,6 +497,9 @@ function BackofficeContent() {
     } catch (cause) {
       if (isSiteOperatorError(cause)) setOperatorError(true);
       else setDetailError(siteOperatorErrorMessage(cause));
+      // Conflito de concorrência: recarrega o estado real em vez de deixar a aba
+      // mostrando um estagio que nao existe mais no banco.
+      if (isSiteQuoteConflict(cause)) setRetryKey((key) => key + 1);
     } finally {
       setBusy(false);
     }

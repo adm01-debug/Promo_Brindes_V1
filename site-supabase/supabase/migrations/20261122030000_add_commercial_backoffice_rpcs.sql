@@ -77,6 +77,9 @@ alter table site_private.commercial_audit_log enable row level security;
 alter table site_private.commercial_audit_log force row level security;
 
 revoke all on site_private.commercial_audit_log from public, anon, authenticated;
+-- O grant de service_role herdado de 20260908230000 inclui update e delete; sem
+-- revogar explicitamente, a credencial de servico poderia reescrever a trilha.
+revoke update, delete, truncate on site_private.commercial_audit_log from service_role;
 grant select, insert on site_private.commercial_audit_log to service_role;
 
 create index if not exists commercial_audit_log_request_created_idx
@@ -149,6 +152,7 @@ begin
     and (
       v_search is null
       or request.id::text = v_search
+      or request.protocol = upper(v_search)
       or request.company ilike '%' || v_search || '%'
       or request.contact_name ilike '%' || v_search || '%'
       or request.email ilike '%' || v_search || '%'
@@ -205,6 +209,7 @@ begin
       and (
         v_search is null
         or request.id::text = v_search
+        or request.protocol = upper(v_search)
         or request.company ilike '%' || v_search || '%'
         or request.contact_name ilike '%' || v_search || '%'
         or request.email ilike '%' || v_search || '%'
@@ -285,10 +290,14 @@ begin
   from site_private.quote_adjustment_requests adjustment
   where adjustment.quote_request_id = v_request.id;
 
+  -- 'quoted' fica fora das opções avulsas: esse estágio promete uma proposta no portal
+  -- e só `publish_site_quote_proposal` pode produzi-la (a RPC de status recusa).
   select coalesce(array_agg(transition.to_status order by transition.to_status), '{}'::text[])
   into v_allowed_statuses
   from site_private.status_transitions transition
-  where transition.entity = 'quote_requests' and transition.from_status = v_request.status;
+  where transition.entity = 'quote_requests'
+    and transition.from_status = v_request.status
+    and transition.to_status <> 'quoted';
 
   select coalesce(jsonb_agg(jsonb_build_object(
     'action', log.action, 'actorLabel', log.actor_label, 'detail', log.detail, 'createdAt', log.created_at
@@ -367,6 +376,13 @@ begin
   ) then
     raise exception using errcode = '22023',
       message = format('invalid_status_transition: %s -> %s', v_previous, v_target);
+  end if;
+
+  -- 'quoted' promete uma proposta no portal. Só `publish_site_quote_proposal` pode
+  -- levar o pedido até lá; senão o cliente veria o evento "Proposta disponível" sem
+  -- nenhuma versão para abrir.
+  if v_target = 'quoted' then
+    raise exception using errcode = '22023', message = 'quoted_requires_proposal_publication';
   end if;
 
   update site_private.quote_requests request
@@ -475,6 +491,13 @@ begin
   if v_path is null then
     raise exception using errcode = '22023', message = 'storage_path_required';
   end if;
+  -- Mesmas regras do download (api/customer-proposals.ts): sem barra inicial, sem
+  -- '..', sem barra invertida, terminando em .pdf. Caminho inválido falharia só no
+  -- clique do cliente, depois do pedido já anunciar a proposta.
+  if v_path ~ '^/' or position('..' in v_path) > 0 or position(chr(92) in v_path) > 0
+     or v_path !~* '\.pdf$' then
+    raise exception using errcode = '22023', message = 'invalid_storage_path';
+  end if;
 
   select * into v_request from site_private.quote_requests request where request.id = p_request_id for update;
   if not found then
@@ -503,11 +526,17 @@ begin
   )
   returning id into v_proposal_id;
 
+  -- O trigger quote_requests_record_customer_event já publica "Proposta disponível"
+  -- para o cliente quando o status vira 'quoted'. Este registro fica só na trilha
+  -- interna (audience internal) para guardar a versão, sem duplicar no portal.
+  -- A descrição NÃO copia v_title: `erase_customer_data` anonimiza
+  -- proposal_documents (onde o título vive) mas não quote_request_events, então um
+  -- título com o nome do titular sobreviveria ao pedido de exclusão.
   insert into site_private.quote_request_events (quote_request_id, event_type, title, description, audience)
   values (
     p_request_id, 'proposal_published',
-    format('Proposta v%s disponível', v_next_version),
-    left(v_title, 500), 'customer'
+    format('Proposta v%s publicada', v_next_version),
+    format('Versao %s publicada pelo comercial.', v_next_version), 'internal'
   );
 
   update site_private.quote_requests request

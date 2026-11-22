@@ -223,7 +223,11 @@ export async function deleteMyData(confirmationEmail: string): Promise<string> {
 }
 
 export function sanitizeCustomerNextPath(value: string | null): string {
-  return value?.startsWith('/minha-conta') && !value.startsWith('//') ? value : '/minha-conta';
+  if (!value || value.startsWith('//') || value.includes('..') || value.includes('\\')) return '/minha-conta';
+  // O back-office usa a mesma sessao de cliente, entao o login precisa devolver o
+  // operador para /admin/orcamentos em vez de descarta-lo na Area do Cliente.
+  if (value === '/admin/orcamentos' || /^\/admin\/orcamentos[?#]/.test(value)) return value;
+  return value.startsWith('/minha-conta') ? value : '/minha-conta';
 }
 
 /** Normaliza a paginação antes de ela virar uma consulta RPC ou URL compartilhada. */

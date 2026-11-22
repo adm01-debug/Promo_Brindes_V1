@@ -11,7 +11,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(30);
+select plan(38);
 
 -- === Fixtures ====================================================================
 
@@ -84,6 +84,24 @@ select is(
   'busca sem correspondencia devolve fila vazia'
 );
 
+-- O protocolo (Etapa 19) e o identificador que o cliente cita no telefone; a busca
+-- precisa encontra-lo mesmo sem o operador saber o UUID.
+select is(
+  (public.list_site_quote_requests(null,
+    (select protocol from site_private.quote_requests where id = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'),
+    10, 0) ->> 'total'),
+  '1',
+  'busca pelo protocolo encontra o pedido'
+);
+
+select is(
+  (public.list_site_quote_requests(null, lower(
+    (select protocol from site_private.quote_requests where id = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc')),
+    10, 0) ->> 'total'),
+  '1',
+  'busca pelo protocolo em minusculas tambem encontra'
+);
+
 select is(
   public.get_site_quote_request('cccccccc-cccc-4ccc-8ccc-cccccccccccc') ->> 'protocol',
   (select protocol from site_private.quote_requests where id = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'),
@@ -141,9 +159,54 @@ select lives_ok(
   'operador move triaged para in_progress'
 );
 
+-- 'quoted' promete uma proposta no portal; so publish_site_quote_proposal chega la.
+select is(
+  public.get_site_quote_request('cccccccc-cccc-4ccc-8ccc-cccccccccccc') -> 'allowedStatuses' ? 'quoted',
+  false,
+  'quoted nao aparece como mudanca avulsa de estagio'
+);
+
+select throws_ok(
+  $$select public.update_site_quote_status('cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'quoted')$$,
+  '22023', 'quoted_requires_proposal_publication',
+  'mudanca avulsa para quoted e recusada mesmo sendo transicao valida'
+);
+
+-- Caminho invalido faria o cliente falhar no clique, depois do pedido ja anunciar
+-- a proposta: a validacao acontece na publicacao.
+select throws_ok(
+  $$select public.publish_site_quote_proposal('cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'Proposta', 'ccc/proposta-v1.txt', null)$$,
+  '22023', 'invalid_storage_path',
+  'publicar recusa caminho que nao termina em .pdf'
+);
+
+select throws_ok(
+  $$select public.publish_site_quote_proposal('cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'Proposta', 'ccc/../outro.pdf', null)$$,
+  '22023', 'invalid_storage_path',
+  'publicar recusa caminho com ..'
+);
+
 select lives_ok(
   $$select public.publish_site_quote_proposal('cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'Proposta v1', 'ccc/proposta-v1.pdf', '2026-12-15')$$,
   'publicar proposta em in_progress funciona'
+);
+
+-- O trigger ja anuncia a proposta ao cliente; o evento interno extra nao pode
+-- duplicar o anuncio nem copiar o titulo livre (LGPD, F-31).
+select is(
+  (select count(*) from site_private.quote_request_events
+   where quote_request_id = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'
+     and audience = 'customer' and title = 'Proposta disponível'),
+  1::bigint,
+  'cliente recebe exatamente um anuncio de proposta disponivel'
+);
+
+select is(
+  (select description from site_private.quote_request_events
+   where quote_request_id = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'
+     and event_type = 'proposal_published'),
+  'Versao 1 publicada pelo comercial.',
+  'evento interno nao copia o titulo livre da proposta'
 );
 
 select is(

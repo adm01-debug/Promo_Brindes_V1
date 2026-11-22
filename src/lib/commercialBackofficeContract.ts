@@ -336,6 +336,11 @@ export function isSiteOperatorError(error: unknown): boolean {
   return code === '42501' || message.includes('not_a_site_operator') || message.includes('authentication_required');
 }
 
+/** O pedido mudou em outra aba: a UI recarrega o detalhe em vez de só exibir erro. */
+export function isSiteQuoteConflict(error: unknown): boolean {
+  return isRecord(error) && readString(error.message).includes('quote_request_changed_concurrently');
+}
+
 export function siteOperatorErrorMessage(error: unknown): string {
   if (!isRecord(error)) return 'Não foi possível falar com o servidor.';
   const message = readString(error.message);
@@ -343,6 +348,8 @@ export function siteOperatorErrorMessage(error: unknown): string {
   if (message.includes('authentication_required')) return 'Entre com uma conta de operador para abrir o back-office.';
   if (message.includes('invalid_status_transition')) return 'Essa mudança de status não é permitida pela máquina de estados.';
   if (message.includes('proposal_requires_in_progress')) return 'Só é possível publicar proposta com o pedido em curadoria.';
+  if (message.includes('quoted_requires_proposal_publication')) return 'Para marcar como "Proposta enviada", publique a proposta pelo formulário.';
+  if (message.includes('invalid_storage_path')) return 'O caminho do PDF precisa ser pasta/arquivo.pdf dentro do bucket customer-proposals.';
   if (message.includes('quote_request_changed_concurrently')) return 'Outra pessoa alterou este pedido. Recarregue antes de continuar.';
   if (message.includes('quote_request_not_found')) return 'Pedido não encontrado.';
   if (message.includes('adjustment_not_found')) return 'Ajuste não encontrado.';

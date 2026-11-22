@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   isSiteOperatorError,
+  isSiteQuoteConflict,
   parseSiteQuoteDetail,
   parseSiteQuoteListPage,
   parseSiteQuoteProposalPublication,
@@ -148,6 +149,14 @@ describe('contrato do back-office comercial', () => {
     expect(siteOperatorErrorMessage({ message: 'invalid_status_transition: new -> closed' })).toContain('máquina de estados');
     expect(siteOperatorErrorMessage({ message: 'proposal_requires_in_progress: status atual new' })).toContain('curadoria');
     expect(siteOperatorErrorMessage({ message: 'quote_request_changed_concurrently' })).toContain('Recarregue');
+    expect(siteOperatorErrorMessage({ message: 'quoted_requires_proposal_publication' })).toContain('publique a proposta');
+    expect(siteOperatorErrorMessage({ message: 'invalid_storage_path' })).toContain('arquivo.pdf');
     expect(siteOperatorErrorMessage({ message: 'algo novo' })).toBe('Não foi possível concluir a operação.');
+  });
+
+  it('separa o conflito de concorrência para a tela recarregar o pedido', () => {
+    expect(isSiteQuoteConflict({ message: 'quote_request_changed_concurrently' })).toBe(true);
+    expect(isSiteQuoteConflict({ message: 'quote_request_not_found' })).toBe(false);
+    expect(isSiteQuoteConflict(null)).toBe(false);
   });
 });
