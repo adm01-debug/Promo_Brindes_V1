@@ -1,9 +1,9 @@
 {
  "meta": {
-  "sha": "64e1dcca3939cdbf1b32010e94a036a5d5881be5",
+  "sha": "5b24b407dba4481f7516e17ae4adadf9d1ef899b",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-22 01:38 UTC",
+  "generated_at": "2026-11-22 02:19 UTC",
   "files_total": 618,
   "code_files": 398,
   "code_lines": 70570,
@@ -34217,10 +34217,19 @@
   }
  },
  "git": {
-  "sha": "64e1dcca3939cdbf1b32010e94a036a5d5881be5",
+  "sha": "5b24b407dba4481f7516e17ae4adadf9d1ef899b",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "5b24b40",
+    "date": "2026-11-21",
+    "author": "adm01-debug",
+    "subject": "chore: atualiza o inventario de funcionalidades (F-40 e F-47 COMPLETA) (#224)",
+    "files": [
+     "analise-prs/funcionalidades.csv"
+    ]
+   },
    {
     "sha": "64e1dcc",
     "date": "2026-11-21",
@@ -34555,27 +34564,16 @@
     "files": [
      "e2e/favorites.spec.ts"
     ]
-   },
-   {
-    "sha": "aef900d",
-    "date": "2026-11-17",
-    "author": "adm01-debug",
-    "subject": "feat(api): nome e argumentos de RPC passam a ser checados contra o catálogo do banco (#192)",
-    "files": [
-     "api/_lib/siteDatabase.ts",
-     "api/_lib/siteRpcContract.ts",
-     "api/notification-events-resend.ts",
-     "api/notification-events-whatsapp.ts",
-     "api/notifications.ts",
-     "api/retention.ts",
-     "tsconfig.node.json"
-    ]
    }
   ],
   "hot_files": [
    [
     "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
     5
+   ],
+   [
+    "analise-prs/funcionalidades.csv",
+    3
    ],
    [
     "scripts/check-performance-budget.mjs",
@@ -34618,14 +34616,6 @@
     2
    ],
    [
-    "analise-prs/funcionalidades.csv",
-    2
-   ],
-   [
-    "api/notifications.ts",
-    2
-   ],
-   [
     "src/pages/QuotePage.tsx",
     2
    ],
@@ -34651,6 +34641,10 @@
    ],
    [
     "src/lib/whatsappContact.ts",
+    1
+   ],
+   [
+    "src/pages/ContactPage.tsx",
     1
    ]
   ]

@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "64e1dcca3939cdbf1b32010e94a036a5d5881be5",
+  "commit": "5b24b407dba4481f7516e17ae4adadf9d1ef899b",
   "branch": "main",
-  "data_commit": "2026-11-22T01:37:24Z",
+  "data_commit": "2026-11-22T02:09:50Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "5b24b40",
+    "data": "2026-11-21",
+    "assunto": "chore: atualiza o inventario de funcionalidades (F-40 e F-47 COMPLETA) (#224)"
+   },
    {
     "sha": "64e1dcc",
     "data": "2026-11-21",
@@ -126,11 +131,6 @@
     "sha": "0a138dd",
     "data": "2026-11-18",
     "assunto": "feat(testes): cobre sessão expirada entre o upload e a verificação do anexo (#200)"
-   },
-   {
-    "sha": "aff11ee",
-    "data": "2026-11-18",
-    "assunto": "docs: matriz risco de negocio para camada de teste, com os vazios nomeados (#205)"
    }
   ],
   "arquivos_mudados_7d": 156,
@@ -169,7 +169,7 @@
    },
    {
     "pasta": "analise-prs/funcionalidades.csv",
-    "mudancas": 6
+    "mudancas": 7
    },
    {
     "pasta": "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 104
+    "commits": 105
    },
    {
     "autor": "dependabot[bot]",
