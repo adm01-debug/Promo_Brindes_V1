@@ -487,6 +487,14 @@ test('ache pelo briefing transforma intenção em filtros explicáveis e compart
   await expect(page.getByRole('button', { name: /Momento: Onboarding/ })).toBeVisible();
 });
 
+// Extrai o grupo `or(...)` do parâmetro `and` que contém `needle`. Uma lista de
+// cores do catálogo é sempre alternativa (OR): preto e colorido não podem ser
+// exigidos juntos, então a asserção precisa olhar o grupo, não o parâmetro
+// inteiro.
+function colorGroup(and: string, needle: string): string | undefined {
+  return and.match(/or\([^()]*\)/g)?.find((group) => group.includes(needle));
+}
+
 test('escolha manual de cor mantém o sinal de cor do briefing (PF-40)', async ({ page }, testInfo) => {
   // No mobile os filtros vivem no drawer; o fluxo de clique na cor é coberto no desktop.
   test.skip(testInfo.project.name.startsWith('mobile'), 'Filtros de cor ficam no drawer no mobile.');
@@ -505,8 +513,9 @@ test('escolha manual de cor mantém o sinal de cor do briefing (PF-40)', async (
   await page.getByRole('button', { name: 'Cor vermelho' }).click();
   // A consulta soma as opções (OR): a cor do painel não desativa a do briefing.
   const and = new URL((await colorRequest).url()).searchParams.get('and') ?? '';
-  expect(and).toContain('Vermelho');
-  expect(and).toContain('Colorido');
+  const colors = colorGroup(and, 'Vermelho');
+  expect(colors, `grupo de cores ausente em ${and}`).toBeDefined();
+  expect(colors).toContain('Colorido');
   await expect(signals).toContainText('Cor colorido');
 });
 
@@ -527,8 +536,9 @@ test('escolha manual de cor no drawer móvel também preserva o sinal do briefin
   await dialog.getByRole('button', { name: /^Cor Vermelho/ }).click();
   await expect(page).toHaveURL(/cores=vermelho/);
   const and = new URL((await colorRequest).url()).searchParams.get('and') ?? '';
-  expect(and).toContain('Vermelho');
-  expect(and).toContain('Colorido');
+  const colors = colorGroup(and, 'Vermelho');
+  expect(colors, `grupo de cores ausente em ${and}`).toBeDefined();
+  expect(colors).toContain('Colorido');
   await dialog.getByRole('button', { name: 'Fechar filtros' }).click();
   await expect(dialog).toBeHidden();
   await expect(signals).toContainText('Cor colorido');
