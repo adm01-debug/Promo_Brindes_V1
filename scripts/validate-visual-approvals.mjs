@@ -63,7 +63,11 @@ export function validateRegistry(registry, files) {
     if (asset.sha256 !== file.sha256) {
       errors.push(`hash divergente em ${asset.path}: registro ${asset.sha256}, disco ${file.sha256}`);
     }
-    if (Number.isInteger(asset.bytes) && asset.bytes !== file.bytes) {
+    if (!Number.isInteger(asset.bytes)) {
+      // Sem inteiro o registro pula a conferencia de tamanho; "215873" como texto
+      // ou o campo ausente passariam batido e o erro diria so "hash divergente".
+      errors.push(`tamanho ausente ou invalido em ${asset.path}: ${asset.bytes ?? '(ausente)'} (precisa de inteiro em bytes)`);
+    } else if (asset.bytes !== file.bytes) {
       // sha256 ja cobre o conteudo; bytes existe para o erro dizer "a imagem
       // reexportada mudou de tamanho" e nao so "hash divergente".
       errors.push(`tamanho divergente em ${asset.path}: registro ${asset.bytes} bytes, disco ${file.bytes}`);

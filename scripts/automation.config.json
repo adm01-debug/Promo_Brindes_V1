@@ -340,6 +340,14 @@
       "reason": "Guarda do .env.example no mesmo padrão de validate-error-catalog.mjs; referências literais: package.json:scripts. O dispatcher não executa esta operação."
     },
     {
+      "id": "legacy-validate-visual-approvals",
+      "kind": "legacy",
+      "files": ["scripts/validate-visual-approvals.mjs"],
+      "manual": ["node", "scripts/validate-visual-approvals.mjs"],
+      "triggers": ["manual"],
+      "reason": "PF-56: guard do registro de aprovacao visual. Roda via alias approvals:visual:check no npm run check e via tests/validate-visual-approvals.node.mjs nos hooks; referências literais: package.json:scripts."
+    },
+    {
       "id": "legacy-2c3ea3d0a0479ea0",
       "kind": "legacy",
       "files": ["scripts/validate-migration-names.mjs"],

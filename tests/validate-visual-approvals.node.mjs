@@ -41,7 +41,7 @@ test('sha256 do validador devolve hex de 64 caracteres igual ao node:crypto', ()
 });
 
 test('registro coerente passa sem erros', () => {
-  const png = { path: 'docs/m/ok.png', sha256: 'f'.repeat(64), width: 10, height: 20 };
+  const png = { path: 'docs/m/ok.png', sha256: 'f'.repeat(64), width: 10, height: 20, bytes: 512 };
   const errors = validateRegistry(
     { approvals: [approval], assets: [{ ...png, kind: 'proposta', approvalId: 'AV-test' }] },
     [png],
@@ -51,8 +51,8 @@ test('registro coerente passa sem erros', () => {
 
 test('imagem aprovada trocada no disco é reprovada pelo hash', () => {
   const errors = validateRegistry(
-    { approvals: [approval], assets: [{ path: 'docs/m/ok.png', kind: 'base', approvalId: null, sha256: 'f'.repeat(64), width: 10, height: 20 }] },
-    [{ path: 'docs/m/ok.png', sha256: '0'.repeat(64), width: 10, height: 20 }],
+    { approvals: [approval], assets: [{ path: 'docs/m/ok.png', kind: 'base', approvalId: null, sha256: 'f'.repeat(64), width: 10, height: 20, bytes: 512 }] },
+    [{ path: 'docs/m/ok.png', sha256: '0'.repeat(64), width: 10, height: 20, bytes: 512 }],
   );
   assert.equal(errors.length, 1);
   assert.match(errors[0], /hash divergente/);
@@ -107,7 +107,7 @@ test('CLI termina com exit 1 e nomeia o arquivo quando o hash muda', (t) => {
     version: 1,
     roots: ['docs/mockups'],
     approvals: [{ ...approval, documentedIn: [] }],
-    assets: [{ path: 'docs/mockups/a.png', kind: 'proposta', approvalId: 'AV-test', sha256: sha256OfBuffer(png), width: 100, height: 50 }],
+    assets: [{ path: 'docs/mockups/a.png', kind: 'proposta', approvalId: 'AV-test', sha256: sha256OfBuffer(png), width: 100, height: 50, bytes: png.length }],
   };
   const registryPath = path.join(root, 'docs', 'aprovacoes-visuais', 'registro.json');
   fs.writeFileSync(registryPath, JSON.stringify(registry));
@@ -129,6 +129,18 @@ test('id de aprovacao repetido é reprovado', () => {
     [png],
   );
   assert.ok(errors.some((e) => /repetida/.test(e)), errors.join('; '));
+});
+
+test('tamanho em bytes ausente ou em texto é reprovado', () => {
+  const disk = [{ path: 'docs/m/ok.png', sha256: 'f'.repeat(64), width: 10, height: 20, bytes: 512 }];
+  for (const bytes of [undefined, '512', 512.5, null]) {
+    const errors = validateRegistry(
+      { approvals: [approval], assets: [{ ...disk[0], kind: 'base', approvalId: null, sha256: 'f'.repeat(64), width: 10, height: 20, bytes }] },
+      disk,
+    );
+    assert.equal(errors.length, 1, `bytes=${String(bytes)} deveria reprovar`);
+    assert.match(errors[0], /tamanho ausente ou invalido/);
+  }
 });
 
 test('tamanho em bytes divergente do disco é reprovado', () => {
@@ -188,4 +200,7 @@ test('registro real do repositorio está íntegro', () => {
   // enquanto `npm run approvals:visual:check` reprovava no check completo.
   const errors = validateRegistry(registry, listAssetsFromDisk(registry.roots ?? []));
   assert.deepEqual(errors, []);
+  // A descoberta de pastas tambem precisa rodar no hook: sem isto o teste passaria
+  // verde enquanto um PNG em `docs/mockups-nova/` ficasse fora do registro.
+  assert.deepEqual(findUnregisteredRoots(registry.roots ?? []), []);
 });
