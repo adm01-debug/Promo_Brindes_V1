@@ -184,7 +184,7 @@ create or replace function public.list_site_quote_requests(
 )
 returns jsonb
 language plpgsql
-stable
+volatile
 security definer
 set search_path = ''
 as $$
@@ -278,7 +278,7 @@ begin
     order by request.created_at desc
     limit v_limit offset v_offset
   ) page;
-  perform site_private.log_pii_read('quote_requests', null, jsonb_array_length(v_rows), concat_ws(' ', v_status, v_search), 'operador');
+  perform site_private.log_pii_read('quote_requests', null, jsonb_array_length(v_rows), concat_ws(' ', v_status, 'offset=' || v_offset::text, case when v_search is null then null else 'search' end), 'operador');
 
   return jsonb_build_object(
     'operator', v_operator.display_name,
@@ -297,7 +297,7 @@ grant execute on function public.list_site_quote_requests(text, text, integer, i
 create or replace function public.get_site_quote_request(p_request_id uuid)
 returns jsonb
 language plpgsql
-stable
+volatile
 security definer
 set search_path = ''
 as $$

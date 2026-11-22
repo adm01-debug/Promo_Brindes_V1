@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 set local request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
 
-select plan(26);
+select plan(29);
 
 -- A trilha é privada: só service_role lê; ninguém além do site grava.
 select ok(not pg_catalog.has_table_privilege('anon', 'site_private.pii_read_audit_log', 'select'), 'anon não lê a trilha de leitura de PII');
@@ -124,9 +124,30 @@ select is(
   'nenhuma leitura de operador antes de o operador agir'
 );
 
+select is(
+  (select bool_and(provolatile = 'v') from pg_catalog.pg_proc
+   where proname in ('list_site_quote_requests', 'get_site_quote_request')
+     and pronamespace = 'public'::regnamespace),
+  true,
+  'RPCs comerciais que auditam sao VOLATILE, nao STABLE (PostgREST abriria transacao read-only)'
+);
+
 select lives_ok(
   $$ select public.list_site_quote_requests(null, null, 10, 0) $$,
   'operador ativo consulta a fila comercial'
+);
+
+-- A busca aceita e-mail e telefone exatos: o termo livre nunca pode ir para a trilha.
+select lives_ok(
+  $$ select public.list_site_quote_requests(null, 'ana@example.test', 10, 0) $$,
+  'operação busca por e-mail sem falhar'
+);
+
+select is(
+  (select count(*) from site_private.pii_read_audit_log
+   where filter ilike '%ana@example.test%' or filter ilike '%@example.test%'),
+  0::bigint,
+  'e-mail buscado pelo operador nao e copiado para a trilha'
 );
 
 select is(
