@@ -42,6 +42,13 @@ export interface FunnelEventMap {
   briefing_asset_uploaded: { kind: string; mime: string; size_band: 'ate-1mb' | 'ate-5mb' | 'acima-5mb' };
   selection_item_removed: { item_count: number; via: 'item' | 'clear' };
   shared_selection_opened: { item_count: number; persistent: boolean };
+  // PF-54: feedback de clareza, resumo editado e conflito de campanha.
+  // Nenhum destes eventos transporta texto digitado pelo visitante: só a
+  // dimensão editada, se ficou preenchida e qual foi a resposta escolhida.
+  feedback_answered: { scope: 'envio'; answer: 'sim' | 'parcial' | 'nao'; has_campaign: boolean };
+  feedback_declined: { scope: 'envio'; has_campaign: boolean };
+  summary_edited: { field: 'actionName' | 'eventDate' | 'deadlineFlexibility' | 'budgetScope' | 'budgetRange' | 'responseChannel' | 'brandAssetStatus'; filled: boolean };
+  campaign_conflict: { resolution: 'editada' | 'removida'; fields: number };
 }
 
 type FunnelEventName = keyof FunnelEventMap;
@@ -87,6 +94,10 @@ const ALLOWED_PROPERTIES: { [Name in FunnelEventName]: ReadonlyArray<keyof Funne
   briefing_asset_uploaded: ['kind', 'mime', 'size_band'],
   selection_item_removed: ['item_count', 'via'],
   shared_selection_opened: ['item_count', 'persistent'],
+  feedback_answered: ['scope', 'answer', 'has_campaign'],
+  feedback_declined: ['scope', 'has_campaign'],
+  summary_edited: ['field', 'filled'],
+  campaign_conflict: ['resolution', 'fields'],
 };
 
 function safeProperties<Name extends FunnelEventName>(name: Name, properties: FunnelEventMap[Name]) {

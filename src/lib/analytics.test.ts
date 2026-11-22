@@ -51,6 +51,18 @@ describe('instrumentação segura', () => {
     expect(trackMock).toHaveBeenCalledWith('idea_catalog_opened', { topic: 'eventos', placement: 'hero' });
   });
 
+  it('registra clareza, resumo editado e conflito sem aceitar texto livre', () => {
+    trackFunnelEvent('feedback_answered', { scope: 'envio', answer: 'parcial', has_campaign: true, comment: 'achei confuso' } as never);
+    expect(trackMock).toHaveBeenCalledWith('feedback_answered', { scope: 'envio', answer: 'parcial', has_campaign: true });
+    trackFunnelEvent('feedback_declined', { scope: 'envio', has_campaign: false, comment: 'prefiro nao' } as never);
+    expect(trackMock).toHaveBeenCalledWith('feedback_declined', { scope: 'envio', has_campaign: false });
+    trackFunnelEvent('summary_edited', { field: 'actionName', filled: true, value: 'Kit Confidencial 2027' } as never);
+    expect(trackMock).toHaveBeenCalledWith('summary_edited', { field: 'actionName', filled: true });
+    trackFunnelEvent('campaign_conflict', { resolution: 'removida', fields: 3, moment: 'evento' } as never);
+    expect(trackMock).toHaveBeenCalledWith('campaign_conflict', { resolution: 'removida', fields: 3 });
+    expect(JSON.stringify(trackMock.mock.calls)).not.toMatch(/Kit Confidencial|achei confuso|prefiro nao/);
+  });
+
   it('mede a biblioteca sem enviar o texto pesquisado', () => {
     trackFunnelEvent('catalog_library_filtered', {
       theme: 'events',

@@ -3368,6 +3368,16 @@ p {
 .sp-asset--warning { border-color: #d5aa55; background: #fff7e4; }
 .sp-asset .text-button { width: fit-content; margin-top: 5px; }
 .privacy-check--optional { margin-top: 10px; background: #f7f5ff; border-color: #cfc6ee; }
+.sp-feedback {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  text-align: center;
+}
+.sp-feedback h2 { margin-bottom: 6px; font-size: .95rem; letter-spacing: -0.01em; }
+.sp-feedback > p { margin: 0 auto 12px; max-width: 42ch; color: var(--muted); font-size: .78rem; line-height: 1.5; }
+.sp-feedback__options { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; }
+.sp-feedback__thanks { margin: 0; color: var(--green-dark); font-size: .8rem; font-weight: 600; }
 
 .success-page__actions {
   display: flex;

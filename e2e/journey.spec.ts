@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 
 // PF-102: a suíte já cobria rota por rota, mas nenhum caso percorria a jornada
 // inteira do visitante nem exercitava os dois modificadores que mais quebram
@@ -164,3 +165,27 @@ test('jornada sobrevive a armazenamento bloqueado: envia o briefing e não guard
   await expect(page.getByRole('link', { name: /Explorar catálogo/i })).toBeVisible();
   await expect(page.getByText(product.name)).toHaveCount(0);
 });
+
+test('confirmação oferece feedback de clareza opcional sem reenviar o briefing', async ({ page }) => {
+  await mockCatalog(page);
+  const submission = await mockQuoteSubmission(page);
+
+  await walkDiscoveryToSelection(page);
+  await fillRequiredQuoteContact(page);
+  await page.getByRole('button', { name: 'Enviar briefing' }).click();
+  await expect(page.getByRole('heading', { name: /recebemos sua seleção com 1 produto\./ })).toBeVisible();
+
+  // PF-54: a pergunta entra depois da confirmação, e responder ou recusar não
+  // altera o atendimento nem cria um envio novo.
+  await expect(page.getByRole('heading', { name: 'O envio ficou claro?' })).toBeVisible();
+  await page.getByRole('button', { name: 'Ficou mais ou menos' }).click();
+  await expect(page.getByText(/Obrigado\./)).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'O envio ficou claro?' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Enviar briefing' })).toHaveCount(0);
+  expect(submission.submissions).toBe(1);
+
+  const result = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
+  expect(result.violations, 'Violações na confirmação com feedback').toEqual([]);
+});
+
+
