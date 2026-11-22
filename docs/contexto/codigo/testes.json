@@ -69,9 +69,9 @@
   {
    "arquivo": "e2e/smoke.spec.ts",
    "tipo": "e2e",
-   "linhas": 1558,
+   "linhas": 1624,
    "testa": [],
-   "casos": 65
+   "casos": 70
   },
   {
    "arquivo": "scripts/ai-context/gerar.unit.mjs",
@@ -271,11 +271,11 @@
   {
    "arquivo": "src/lib/campaignPresets.test.ts",
    "tipo": "unit",
-   "linhas": 84,
+   "linhas": 152,
    "testa": [
     "src/lib/campaignPresets.ts"
    ],
-   "casos": 6
+   "casos": 12
   },
   {
    "arquivo": "src/lib/catalog.test.ts",

@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `957fa44980ac9299ac6c6e825805633af92e968a` (2026-11-22T00:02:45Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `64e1dcca3939cdbf1b32010e94a036a5d5881be5` (2026-11-22T01:37:24Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -36,7 +36,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 |---|---|
 | arquivos_total | 724 |
 | arquivos_codigo | 289 |
-| linhas_codigo | 56365 |
+| linhas_codigo | 56616 |
 | rotas | 32 |
 | rotas_http_backend | 14 |
 | vistas_por_id | 0 |
@@ -171,9 +171,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 ## Hotspots (arquivos mais alterados, 90 dias)
 - package.json (65)
-- e2e/smoke.spec.ts (59)
+- e2e/smoke.spec.ts (60)
+- src/styles.css (37)
 - package-lock.json (36)
-- src/styles.css (36)
 - .github/workflows/quality.yml (28)
 - src/pages/QuotePage.tsx (27)
 - vercel.json (26)
@@ -386,6 +386,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-21 `64e1dcc` feat: separa intencao do briefing dos filtros efetivos (F-40/PF-40) (#223)
 - 2026-11-21 `957fa44` feat: contato via WhatsApp iniciado pelo visitante (F-47) (#222)
 - 2026-11-21 `a3e9e21` feat: fallback de SKU exato quando a busca nao encontra correspondencia (NOVO-CA-22) (#221)
 - 2026-11-21 `66ed450` feat(lgpd): direitos do titular — acesso, exportacao, correcao e autoexclusao (F-30) (#220)
@@ -400,7 +401,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-19 `40f6420` infra(ci): verify-db tolera espera dos gates quando cross-browser chega ao teto de 35min (#210)
 - 2026-11-19 `8e896a7` infra(ci): cross-browser deixa de ser cancelado no teto antes de rodar teste (#204)
 - 2026-11-19 `3038a45` feat(e2e): cobre a jornada completa do visitante com rede lenta e armazenamento bloqueado (#199)
-- 2026-11-18 `fd18af6` docs: corrige a ressalva de confianca que subestimava o que foi conferido (#207)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "957fa44980ac9299ac6c6e825805633af92e968a",
+  "commit": "64e1dcca3939cdbf1b32010e94a036a5d5881be5",
   "branch": "main",
-  "data_commit": "2026-11-22T00:02:45Z",
+  "data_commit": "2026-11-22T01:37:24Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "64e1dcc",
+    "data": "2026-11-21",
+    "assunto": "feat: separa intencao do briefing dos filtros efetivos (F-40/PF-40) (#223)"
+   },
    {
     "sha": "957fa44",
     "data": "2026-11-21",
@@ -126,11 +131,6 @@
     "sha": "aff11ee",
     "data": "2026-11-18",
     "assunto": "docs: matriz risco de negocio para camada de teste, com os vazios nomeados (#205)"
-   },
-   {
-    "sha": "dbc6479",
-    "data": "2026-11-17",
-    "assunto": "fix(graphify): graph:status deixa de exigir npm ci em clone limpo (#196)"
    }
   ],
   "arquivos_mudados_7d": 156,
@@ -160,11 +160,11 @@
     "mudancas": 9
    },
    {
-    "pasta": "AGENTS.md",
-    "mudancas": 8
+    "pasta": "e2e/smoke.spec.ts",
+    "mudancas": 9
    },
    {
-    "pasta": "e2e/smoke.spec.ts",
+    "pasta": "AGENTS.md",
     "mudancas": 8
    },
    {
@@ -176,6 +176,10 @@
     "mudancas": 6
    },
    {
+    "pasta": "scripts/check-performance-budget.mjs",
+    "mudancas": 6
+   },
+   {
     "pasta": "scripts/graphify.mjs",
     "mudancas": 6
    },
@@ -184,15 +188,11 @@
     "mudancas": 6
    },
    {
+    "pasta": "src/styles.css",
+    "mudancas": 6
+   },
+   {
     "pasta": ".gitignore",
-    "mudancas": 5
-   },
-   {
-    "pasta": ".graphify.project.json",
-    "mudancas": 5
-   },
-   {
-    "pasta": "requirements-graphify.txt",
     "mudancas": 5
    }
   ],
@@ -203,14 +203,14 @@
    },
    {
     "arquivo": "e2e/smoke.spec.ts",
-    "mudancas": 59
-   },
-   {
-    "arquivo": "package-lock.json",
-    "mudancas": 36
+    "mudancas": 60
    },
    {
     "arquivo": "src/styles.css",
+    "mudancas": 37
+   },
+   {
+    "arquivo": "package-lock.json",
     "mudancas": 36
    },
    {
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 103
+    "commits": 104
    },
    {
     "autor": "dependabot[bot]",
@@ -312,7 +312,7 @@
  "contagens": {
   "arquivos_total": 724,
   "arquivos_codigo": 289,
-  "linhas_codigo": 56365,
+  "linhas_codigo": 56616,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -416,7 +416,7 @@
   },
   "e2e/smoke.spec.ts": {
    "arquivos": 1,
-   "linhas": 1558
+   "linhas": 1624
   },
   "eslint.config.js": {
    "arquivos": 1,
@@ -456,7 +456,7 @@
   },
   "scripts/check-performance-budget.mjs": {
    "arquivos": 1,
-   "linhas": 160
+   "linhas": 166
   },
   "scripts/ci-health-metrics.mjs": {
    "arquivos": 1,
@@ -580,7 +580,7 @@
   },
   "src/lib": {
    "arquivos": 82,
-   "linhas": 8053
+   "linhas": 8232
   },
   "src/main.tsx": {
    "arquivos": 1,
@@ -798,7 +798,7 @@
   },
   {
    "arquivo": "src/lib/useCatalogPageState.ts",
-   "linhas": 310
+   "linhas": 323
   },
   {
    "arquivo": "src/pages/CatalogsPage.tsx",

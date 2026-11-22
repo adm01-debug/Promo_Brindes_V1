@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `957fa44980` · branch `main` · 2026-11-22 00:03 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `64e1dcca39` · branch `main` · 2026-11-22 01:38 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -1057,14 +1057,14 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1716 testes em 137 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1725 testes em 137 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
 | `site-supabase/supabase/tests/database/lead_storage.test.sql` | 69 | schema privado contém as vinte e uma tabelas planejadas, incluindo favoritos de datas sem PII · seleções persistentes ficam no schema privado · criação de links recebe rate limit próprio · máquina de estados administrativa vive em tabela dedicada (Etapa 8) … |
 | `site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql` | 68 | trilha de exercicio de direito existe · trilha vincula a conta · trilha registra o tipo de direito · coluna right_type tem constraint check … |
 | `tests/inventario-estado.node.mjs` | 63 | extrairInventario aceita objeto direto, envelope do PostgREST e envelope do MCP · extrairInventario recusa entrada sem as chaves obrigatórias, sem tabelas ou de outra versão · conferirOrigem aprova a resposta que cobre as tabelas das migrations e o ledger · conferirOrigem recusa um banco irmão: as tabelas das migrations não estão lá … |
-| `e2e/smoke.spec.ts` | 59 | headline principal usa Fold Text sem perder acessibilidade · categorias usam fotografia de produto publicado como ponto de descoberta · rotas públicas essenciais não introduzem violações automáticas de acessibilidade · montador de kits preserva componentes e calcula a quantidade completa … |
+| `e2e/smoke.spec.ts` | 62 | headline principal usa Fold Text sem perder acessibilidade · categorias usam fotografia de produto publicado como ponto de descoberta · rotas públicas essenciais não introduzem violações automáticas de acessibilidade · montador de kits preserva componentes e calcula a quantidade completa … |
 | `site-supabase/supabase/tests/database/briefing_assets.test.sql` | 57 | metadados privados de arquivos existem · assinatura binária possui recibo de verificação · fila de exclusão de Storage existe · bucket é privado e limitado a 10 MB … |
 | `site-supabase/supabase/tests/database/notification_outbox.test.sql` | 47 | fila possui agenda de nova tentativa · fila identifica a reivindicação ativa (R04) · novo orçamento alimenta a fila na mesma transação · anon não reivindica notificações … |
 | `site-supabase/supabase/tests/database/customer_data_erasure.test.sql` | 46 | anon não apaga dados de titular · authenticated não apaga dados de titular (operação administrativa) · service_role executa o apagamento · anonimiza 1 quote_request (e-mail com espaço/maiúsculas normalizado na entrada) … |
@@ -1100,6 +1100,7 @@ _nenhum item encontrado_
 | `tests/api/notification-events-resend.test.ts` | 14 | api/notification-events-resend (Etapa 30) · rejeita método diferente de POST · responde 503 quando o segredo do webhook não está configurado · rejeita assinatura ausente ou inválida sem chamar o banco … |
 | `tests/scripts/verify-vercel-artifact.test.ts` | 14 | verificador do artefato Vercel · exige o app shell somente das funções de página declaradas em vercel.json · aceita includeFiles como lista sem perder o contrato do app shell · falha quando uma função de página declarada não existe no artefato … |
 | `site-supabase/supabase/tests/database/kit_composition.test.sql` | 13 | item preserva o grupo do kit · item preserva o nome do kit · item preserva a quantidade de kits · item preserva unidades por kit … |
+| `src/lib/campaignPresets.test.ts` | 13 | ache pelo briefing · gera URL compartilhável somente com escolhas válidas · expõe escolhas como contexto removível sem duplicar critérios ocultos · traduz apenas sinais confiáveis para o contrato público … |
 | `tests/closure-ledger.node.mjs` | 13 | ledger atual contém todos os IDs, commits e fontes locais · não aceita trocar uma referência por um ID inexistente mantendo o total · fontes inexistentes e caminhos fora do site não passam como evidência · fonte atual que não existia no commit auditado não passa como evidência histórica … |
 | `tests/session-start-hook.node.mjs` | 13 | hook: fora da sessão remota sai com 0 sem saída e sem criar nada · hook: grafo já carimbado no commit atual responde async e não instala nem gera · hook: grafo de outro commit dispara o build e carimba o commit novo · hook: carimbo sem o mapa de banco não conta como grafo pronto … |
 | `tests/api/webhookSignature.test.ts` | 13 | verifySvixSignature (Etapa 30, Resend) · aceita uma assinatura válida · aceita quando o header traz múltiplas assinaturas e uma delas bate (rotação de segredo) · rejeita corpo adulterado … |
@@ -1134,7 +1135,6 @@ _nenhum item encontrado_
 | `tests/api/sitemap.test.ts` | 8 | sitemap público · nunca ultrapassa 50 mil URLs incluindo páginas estáticas · mantém o ano das datas no fuso editorial durante a virada UTC · prioriza o host público configurado e remove a barra final … |
 | `site-supabase/supabase/tests/database/default_privileges.test.sql` | 7 | anon não recebe nenhum privilégio implícito em futura tabela pública · authenticated não recebe nenhum privilégio implícito em futura tabela pública · anon não recebe privilégio implícito em futura sequência pública · authenticated não recebe privilégio implícito em futura sequência pública … |
 | `site-supabase/supabase/tests/database/storage_tuning.test.sql` | 7 | rate_limit_buckets é UNLOGGED (Etapa 30) · shared_selection_rate_limits é UNLOGGED (Etapa 30) · notification_deliveries continua persistente (não é efêmera como as tabelas de rate limit) · notification_deliveries tem fillfactor 80 (Etapa 40, espaço para HOT updates) … |
-| `src/lib/campaignPresets.test.ts` | 7 | ache pelo briefing · gera URL compartilhável somente com escolhas válidas · expõe escolhas como contexto removível sem duplicar critérios ocultos · traduz apenas sinais confiáveis para o contrato público … |
 | `src/lib/commemorativeDates.test.ts` | 7 | commemorativeDates · calcula datas móveis brasileiras sem depender do fuso do navegador · mantém todas as ocasiões ordenadas e com identificadores únicos · filtra por mês, público e busca sem exigir acentos … |
 | `src/lib/contactRequest.test.ts` | 7 | contato rápido · separa o consentimento do contato e registra sua versão · não transmite query ou fragmento da página de contato · prepara fallback de e-mail sem depender de infraestrutura … |
 | `src/lib/kitBuilder.test.ts` | 7 | composição de kits · permite omitir extras, mas exige os dois componentes obrigatórios · recusa estouro de unidades sem degradar o kit para itens avulsos · calcula o mínimo pelo componente mais restritivo … |
@@ -1272,6 +1272,8 @@ _nenhum item encontrado_
 | Private browsing or a full storage quota must not block the quote journey. | `src/context/QuoteCartContext.tsx` |
 | compensatória não deve esconder o erro original do upload. | `src/lib/briefingAssets.ts` |
 | A reserva expira automaticamente; esta limpeza é apenas compensatória. | `src/lib/briefingAssets.ts` |
+| compartilhando a mesma regra de resolveCampaignFilters. Evita atribuir a | `src/lib/campaignPresets.ts` |
+| resolveCampaignFilters para nunca divergir da regra aplicada na consulta. | `src/lib/campaignPresets.ts` |
 | descartados — o SKU exato deve ser encontrado fora do recorte que | `src/lib/catalog.ts` |
 | Browsing in a restricted storage context must not block comparison. | `src/lib/catalogComparison.ts` |
 | * Consulta pública usada para uma prévia real, carregada somente quando a capa aparece. */ | `src/lib/catalogLibrary.ts` |

@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "957fa44980ac9299ac6c6e825805633af92e968a",
+  "sha": "64e1dcca3939cdbf1b32010e94a036a5d5881be5",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-22 00:03 UTC",
+  "generated_at": "2026-11-22 01:38 UTC",
   "files_total": 618,
   "code_files": 398,
-  "code_lines": 70319,
+  "code_lines": 70570,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "e92849e8ce4d65d3",
+ "facts_hash": "a399cf5f71127ca4",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -7502,7 +7502,7 @@
   {
    "module": "e2e",
    "files": 6,
-   "lines": 2191,
+   "lines": 2257,
    "tables": [],
    "exports": [],
    "docs": [],
@@ -7538,7 +7538,7 @@
   {
    "module": "scripts",
    "files": 43,
-   "lines": 21559,
+   "lines": 21565,
    "tables": [
     "a",
     "contacts",
@@ -7939,7 +7939,7 @@
   {
    "module": "src/lib",
    "files": 82,
-   "lines": 8053,
+   "lines": 8232,
    "tables": [],
    "exports": [
     "analytics.ts: FunnelEventMap, redactAnalyticsPathname, redactTelemetryUrl, redactAnalyticsUrl, trackFunnelEvent",
@@ -10709,6 +10709,14 @@
     "text": "A reserva expira automaticamente; esta limpeza é apenas compensatória."
    },
    {
+    "file": "src/lib/campaignPresets.ts",
+    "text": "compartilhando a mesma regra de resolveCampaignFilters. Evita atribuir a"
+   },
+   {
+    "file": "src/lib/campaignPresets.ts",
+    "text": "resolveCampaignFilters para nunca divergir da regra aplicada na consulta."
+   },
+   {
     "file": "src/lib/catalog.ts",
     "text": "descartados — o SKU exato deve ser encontrado fora do recorte que"
    },
@@ -13378,6 +13386,18 @@
    {
     "file": "e2e/smoke.spec.ts",
     "name": "ache pelo briefing transforma intenção em filtros explicáveis e compartilháveis"
+   },
+   {
+    "file": "e2e/smoke.spec.ts",
+    "name": "escolha manual de cor mantém o sinal de cor do briefing (PF-40)"
+   },
+   {
+    "file": "e2e/smoke.spec.ts",
+    "name": "escolha manual de cor no drawer móvel também preserva o sinal do briefing (PF-40)"
+   },
+   {
+    "file": "e2e/smoke.spec.ts",
+    "name": "seletor de ordem anuncia a dica apenas como descrição"
    },
    {
     "file": "e2e/smoke.spec.ts",
@@ -16622,6 +16642,30 @@
    {
     "file": "src/lib/campaignPresets.test.ts",
     "name": "não chama catálogo completo de curadoria quando momento ou público foram escolhidos"
+   },
+   {
+    "file": "src/lib/campaignPresets.test.ts",
+    "name": "liga cada resposta do briefing ao filtro efetivo que ela gerou"
+   },
+   {
+    "file": "src/lib/campaignPresets.test.ts",
+    "name": "não inventa sinais para uma escolha sem filtro estrutural"
+   },
+   {
+    "file": "src/lib/campaignPresets.test.ts",
+    "name": "atribui a coleção Em alta à resposta do briefing que a ativou (PF-40)"
+   },
+   {
+    "file": "src/lib/campaignPresets.test.ts",
+    "name": "suprime sinais do briefing substituídos por uma escolha explícita no catálogo (PF-40)"
+   },
+   {
+    "file": "src/lib/campaignPresets.test.ts",
+    "name": "mantem os sinais de cor e material do briefing porque a consulta soma as escolhas (PF-40)"
+   },
+   {
+    "file": "src/lib/campaignPresets.test.ts",
+    "name": "suprime a curadoria de boas-vindas quando a busca por SKU exato assume (PF-40)"
    },
    {
     "file": "src/lib/catalog.test.ts",
@@ -26383,7 +26427,7 @@
   },
   "e2e/smoke.spec.ts": {
    "path": "e2e/smoke.spec.ts",
-   "lines": 1558,
+   "lines": 1624,
    "is_test": true,
    "navigates": [
     "/catalogo?perfil=novos"
@@ -26426,6 +26470,9 @@
     "toda entrada editorial da home aponta para a landing certa",
     "o card de eventos abre a landing e termina na curadoria do evento",
     "ache pelo briefing transforma intenção em filtros explicáveis e compartilháveis",
+    "escolha manual de cor mantém o sinal de cor do briefing (PF-40)",
+    "escolha manual de cor no drawer móvel também preserva o sinal do briefing (PF-40)",
+    "seletor de ordem anuncia a dica apenas como descrição",
     "briefing tech espera a taxonomia antes de consultar produtos",
     "briefing tech falha fechado quando a taxonomia está indisponível",
     "busca sugere linguagem do comprador e aceita teclado",
@@ -26598,7 +26645,7 @@
   },
   "scripts/check-performance-budget.mjs": {
    "path": "scripts/check-performance-budget.mjs",
-   "lines": 160,
+   "lines": 166,
    "env": [
     "PERFORMANCE_BUDGET_PROFILE"
    ],
@@ -30941,7 +30988,7 @@
   },
   "src/lib/campaignPresets.test.ts": {
    "path": "src/lib/campaignPresets.test.ts",
-   "lines": 84,
+   "lines": 152,
    "is_test": true,
    "tests": [
     "ache pelo briefing",
@@ -30950,12 +30997,18 @@
     "traduz apenas sinais confiáveis para o contrato público",
     "dá ao momento onboarding um termo de curadoria, já que não há sinal estrutural",
     "não converte onboarding ou colaboradores em kit sem uma escolha explícita de clima",
-    "não chama catálogo completo de curadoria quando momento ou público foram escolhidos"
+    "não chama catálogo completo de curadoria quando momento ou público foram escolhidos",
+    "liga cada resposta do briefing ao filtro efetivo que ela gerou",
+    "não inventa sinais para uma escolha sem filtro estrutural",
+    "atribui a coleção Em alta à resposta do briefing que a ativou (PF-40)",
+    "suprime sinais do briefing substituídos por uma escolha explícita no catálogo (PF-40)",
+    "mantem os sinais de cor e material do briefing porque a consulta soma as escolhas (PF-40)",
+    "suprime a curadoria de boas-vindas quando a busca por SKU exato assume (PF-40)"
    ]
   },
   "src/lib/campaignPresets.ts": {
    "path": "src/lib/campaignPresets.ts",
-   "lines": 160,
+   "lines": 258,
    "exports": [
     "interface CampaignSelection",
     "function campaignBriefFromSelection",
@@ -30968,7 +31021,14 @@
     "function buildCampaignCatalogUrl",
     "function campaignLabels",
     "interface ResolvedCampaignFilters",
-    "function resolveCampaignFilters"
+    "function resolveCampaignFilters",
+    "interface CampaignSignalExplanation",
+    "interface CampaignSignalContext",
+    "function campaignSignalExplanations"
+   ],
+   "rule_comments": [
+    "compartilhando a mesma regra de resolveCampaignFilters. Evita atribuir a",
+    "resolveCampaignFilters para nunca divergir da regra aplicada na consulta."
    ]
   },
   "src/lib/catalog.test.ts": {
@@ -32343,7 +32403,7 @@
   },
   "src/lib/useCatalogPageState.ts": {
    "path": "src/lib/useCatalogPageState.ts",
-   "lines": 310,
+   "lines": 323,
    "exports": [
     "function useCatalogPageState"
    ],
@@ -34157,10 +34217,26 @@
   }
  },
  "git": {
-  "sha": "957fa44980ac9299ac6c6e825805633af92e968a",
+  "sha": "64e1dcca3939cdbf1b32010e94a036a5d5881be5",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "64e1dcc",
+    "date": "2026-11-21",
+    "author": "adm01-debug",
+    "subject": "feat: separa intencao do briefing dos filtros efetivos (F-40/PF-40) (#223)",
+    "files": [
+     "e2e/smoke.spec.ts",
+     "scripts/check-performance-budget.mjs",
+     "src/lib/campaignPresets.test.ts",
+     "src/lib/campaignPresets.ts",
+     "src/lib/useCatalogPageState.ts",
+     "src/pages/CatalogPage.tsx",
+     "src/styles.css",
+     "tests/check-performance-budget.node.mjs"
+    ]
+   },
    {
     "sha": "957fa44",
     "date": "2026-11-21",
@@ -34494,22 +34570,6 @@
      "api/retention.ts",
      "tsconfig.node.json"
     ]
-   },
-   {
-    "sha": "16b15f3",
-    "date": "2026-11-17",
-    "author": "adm01-debug",
-    "subject": "chore(código morto): remove os 6 achados da auditoria e cobre a função que a produção usa (#191)",
-    "files": [
-     "api/_lib/siteDatabase.ts",
-     "public/brand/promo-brindes-logo-v1-360.webp",
-     "src/lib/catalog.ts",
-     "src/lib/quoteBriefing.test.ts",
-     "src/lib/quoteBriefing.ts",
-     "src/lib/sharedSelection.test.ts",
-     "src/lib/sharedSelection.ts",
-     "src/lib/siteSupabase.ts"
-    ]
    }
   ],
   "hot_files": [
@@ -34518,23 +34578,39 @@
     5
    ],
    [
-    "src/lib/analytics.ts",
-    2
-   ],
-   [
     "scripts/check-performance-budget.mjs",
-    2
-   ],
-   [
-    "src/lib/catalog.ts",
-    2
+    3
    ],
    [
     "src/lib/useCatalogPageState.ts",
-    2
+    3
    ],
    [
     "tests/check-performance-budget.node.mjs",
+    3
+   ],
+   [
+    "e2e/smoke.spec.ts",
+    2
+   ],
+   [
+    "src/lib/campaignPresets.test.ts",
+    2
+   ],
+   [
+    "src/lib/campaignPresets.ts",
+    2
+   ],
+   [
+    "src/pages/CatalogPage.tsx",
+    2
+   ],
+   [
+    "src/styles.css",
+    2
+   ],
+   [
+    "src/lib/analytics.ts",
     2
    ],
    [
@@ -34562,15 +34638,7 @@
     2
    ],
    [
-    "api/_lib/siteDatabase.ts",
-    2
-   ],
-   [
     ".env.example",
-    1
-   ],
-   [
-    "e2e/smoke.spec.ts",
     1
    ],
    [
@@ -34583,14 +34651,6 @@
    ],
    [
     "src/lib/whatsappContact.ts",
-    1
-   ],
-   [
-    "src/pages/ContactPage.tsx",
-    1
-   ],
-   [
-    "src/components/CatalogFeedback.tsx",
     1
    ]
   ]
