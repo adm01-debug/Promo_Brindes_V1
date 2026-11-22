@@ -812,11 +812,11 @@ Ação: marcar as imagens dessas listas para carregamento adiado e decodificaç�
 Verificação: teste espera o atributo nas quatro listas.
 Diff: ~12 linhas · 4 arquivos. Depende de: —.
 
-### E-122 · [P3] · estabilidade-visual — Imagem ampliada sem dimensão reservada
+### E-122 · [P3] · consistência — Imagem ampliada sem dimensão declarada no elemento
 Onde: `src/components/ProductGallery.tsx:89`.
-Ação: declarar largura e altura, ou proporção no estilo, espelhando a imagem principal.
-Verificação: medição de deslocamento de layout dentro do diálogo de zoom.
-Diff: ~6 linhas · 1 arquivo. Depende de: —.
+Ação: declarar largura e altura no elemento, como já fazem a imagem principal (`:71`, 760 por 760) e a miniatura (`:83`, 100 por 100). **Corrigido na verificação:** não há deslocamento de layout a corrigir aqui. `src/styles.css:1979-1984` já fixa a caixa da imagem ampliada com largura de 100 por cento, altura relativa à janela e ajuste de conteúdo, então a falta dos atributos não desloca nada. O que resta é consistência entre os três pontos e a proporção correta antes do download.
+Verificação: inspeção do diálogo de ampliação com rede lenta; a medição de deslocamento continua em zero, antes e depois.
+Diff: ~4 linhas · 1 arquivo. Depende de: —.
 
 ### E-123 · [P3] · imagens — Logotipo de 800 por 420 pixels servido em tamanho pequeno
 Onde: `src/components/Layout.tsx:153`.
