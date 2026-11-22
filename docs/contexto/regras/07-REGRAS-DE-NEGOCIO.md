@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `8543daca8e` · branch `main` · 2026-11-22 12:58 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `18eebb5704` · branch `main` · 2026-11-22 13:13 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -1117,7 +1117,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1933 testes em 144 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1936 testes em 145 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1248,6 +1248,7 @@ _nenhum item encontrado_
 | `src/lib/quoteRepeat.test.ts` | 3 | repetição de orçamento · preserva apenas contexto de campanha e briefing por uma janela curta · não restaura briefing do titular anterior após a limpeza de sessão |
 | `src/lib/searchRelevance.test.ts` | 3 | baseline editorial de relevância · mantém cobertura integral do corpus versionado · expõe falhas em vez de arredondar a métrica |
 | `src/lib/useInitialSuccessScroll.test.tsx` | 3 | rolagem inicial da confirmação · reposiciona apenas na entrada do sucesso, não em atualizações posteriores · respeita a interação %s antes das tentativas atrasadas |
+| `src/pages/PrivacyPage.test.tsx` | 3 | PrivacyPage · declara que a entrega pode estar indisponível em vez de prometer envio · não promete que a cópia por WhatsApp sempre será entregue |
 | `src/pages/QuotePage.test.ts` | 3 | data mínima do briefing · usa o calendário comercial brasileiro em vez de converter o instante para UTC · permanece no dia de São Paulo durante a virada UTC |
 | `src/pages/SharedSelectionPage.test.tsx` | 3 | SharedSelectionPage telemetria · registra a abertura do link compartilhado com a contagem de itens · nao registra a abertura quando a consulta falha |
 | `tests/orphan-refs.node.mjs` | 3 | aponta só o blob que não está na main nem na linha de base · linha de base ausente não é erro; inválida falha com a causa · a linha de base versionada tem veredito legível em toda entrada |

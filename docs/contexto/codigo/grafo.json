@@ -149,6 +149,10 @@
    "importado_por": 4
   },
   {
+   "arquivo": "src/lib/quoteConfirmation.ts",
+   "importado_por": 4
+  },
+  {
    "arquivo": "src/lib/quoteRepeat.ts",
    "importado_por": 4
   },
@@ -158,10 +162,6 @@
   },
   {
    "arquivo": "src/lib/siteFeatureFlags.ts",
-   "importado_por": 4
-  },
-  {
-   "arquivo": "src/lib/siteSupabaseConfig.ts",
    "importado_por": 4
   }
  ],

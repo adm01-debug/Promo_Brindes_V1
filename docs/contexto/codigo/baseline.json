@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "8543daca8e5e6d538564052e798500a39ef05ae2",
+  "commit": "18eebb5704943b58c162630bb9a18a6c0e805948",
   "branch": "main",
-  "data_commit": "2026-11-22T12:57:00Z",
+  "data_commit": "2026-11-22T13:11:31Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "18eebb5",
+    "data": "2026-11-22",
+    "assunto": "fix: politica de privacidade declara os estados reais de entrega (F-17) (#243)"
+   },
    {
     "sha": "8543dac",
     "data": "2026-11-22",
@@ -126,26 +131,21 @@
     "sha": "3038a45",
     "data": "2026-11-19",
     "assunto": "feat(e2e): cobre a jornada completa do visitante com rede lenta e armazenamento bloqueado (#199)"
-   },
-   {
-    "sha": "fd18af6",
-    "data": "2026-11-18",
-    "assunto": "docs: corrige a ressalva de confianca que subestimava o que foi conferido (#207)"
    }
   ],
-  "arquivos_mudados_7d": 184,
+  "arquivos_mudados_7d": 186,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "site-supabase/supabase/tests",
     "mudancas": 18
    },
    {
-    "pasta": "package.json",
+    "pasta": "analise-prs/funcionalidades.csv",
     "mudancas": 16
    },
    {
-    "pasta": "analise-prs/funcionalidades.csv",
-    "mudancas": 15
+    "pasta": "package.json",
+    "mudancas": 16
    },
    {
     "pasta": "docs/audits/pending-features-20261011",
@@ -177,7 +177,7 @@
    },
    {
     "pasta": "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
-    "mudancas": 7
+    "mudancas": 8
    },
    {
     "pasta": "site-supabase/supabase/migrations",
@@ -290,18 +290,18 @@
     "mudancas": 16
    },
    {
-    "arquivo": "tests/api/notifications.test.ts",
+    "arquivo": "analise-prs/funcionalidades.csv",
     "mudancas": 16
    },
    {
-    "arquivo": "analise-prs/funcionalidades.csv",
-    "mudancas": 15
+    "arquivo": "tests/api/notifications.test.ts",
+    "mudancas": 16
    }
   ],
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 113
+    "commits": 114
    },
    {
     "autor": "dependabot[bot]",
@@ -310,9 +310,9 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 738,
-  "arquivos_codigo": 297,
-  "linhas_codigo": 58908,
+  "arquivos_total": 739,
+  "arquivos_codigo": 298,
+  "linhas_codigo": 58944,
   "rotas": 34,
   "rotas_http_backend": 15,
   "vistas_por_id": 0,
@@ -324,7 +324,7 @@
   "tabelas": 26,
   "migrations": 72,
   "cron_jobs": 0,
-  "testes": 153,
+  "testes": 154,
   "workflows": 15,
   "scripts": 37,
   "docs_md": 134
@@ -591,8 +591,8 @@
    "linhas": 10
   },
   "src/pages": {
-   "arquivos": 26,
-   "linhas": 4201
+   "arquivos": 27,
+   "linhas": 4237
   },
   "src/test": {
    "arquivos": 1,

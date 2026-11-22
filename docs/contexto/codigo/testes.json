@@ -5,17 +5,17 @@
   "vitest",
   "playwright"
  ],
- "total": 153,
+ "total": 154,
  "por_tipo": {
   "contrato": 2,
   "e2e": 6,
   "pytest": 4,
-  "unit": 107
+  "unit": 108
  },
  "onde_ficam": [
   {
    "padrao": "co-localizado (*.test)",
-   "arquivos": 57
+   "arquivos": 58
   },
   {
    "padrao": "tests/",
@@ -648,6 +648,16 @@
    "casos": 4
   },
   {
+   "arquivo": "src/pages/PrivacyPage.test.tsx",
+   "tipo": "unit",
+   "linhas": 36,
+   "testa": [
+    "src/lib/quoteConfirmation.ts",
+    "src/pages/PrivacyPage.tsx"
+   ],
+   "casos": 2
+  },
+  {
    "arquivo": "src/pages/QuotePage.context.test.tsx",
    "tipo": "unit",
    "linhas": 137,
@@ -1244,7 +1254,7 @@
   "src/lib/productBadges.ts": 1,
   "src/lib/quoteBriefing.ts": 3,
   "src/lib/quoteCalendar.ts": 2,
-  "src/lib/quoteConfirmation.ts": 1,
+  "src/lib/quoteConfirmation.ts": 2,
   "src/lib/quoteDraft.ts": 1,
   "src/lib/quoteItems.ts": 2,
   "src/lib/quoteRepeat.ts": 1,
@@ -1263,6 +1273,7 @@
   "src/pages/AuthConfirmPage.tsx": 1,
   "src/pages/CommemorativeDatesPage.tsx": 1,
   "src/pages/IdeaLandingPage.tsx": 1,
+  "src/pages/PrivacyPage.tsx": 1,
   "src/pages/QuotePage.tsx": 1,
   "src/pages/SharedSelectionPage.tsx": 1,
   "src/types.ts": 10
@@ -1280,7 +1291,6 @@
    "src/pages/HomePage.tsx",
    "src/pages/KitBuilderPage.tsx",
    "src/pages/NotFoundPage.tsx",
-   "src/pages/PrivacyPage.tsx",
    "src/pages/ProductPage.tsx",
    "src/pages/SetPasswordPage.tsx"
   ],

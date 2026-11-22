@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `8543daca8e5e6d538564052e798500a39ef05ae2` (2026-11-22T12:57:00Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `18eebb5704943b58c162630bb9a18a6c0e805948` (2026-11-22T13:11:31Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -14,7 +14,7 @@ Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR
 Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua tarefa; não carregue tudo.
 
 ## Stack
-- linguagens: TypeScript (225), Markdown (134), SQL (114), JavaScript (65), JSON (29), YAML (19), Python (8), CSS (4)
+- linguagens: TypeScript (226), Markdown (134), SQL (114), JavaScript (65), JSON (29), YAML (19), Python (8), CSS (4)
 - linguagem_principal: TypeScript
 - framework: React
 - backend_http: vercel-functions
@@ -34,9 +34,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Números
 | item | qtd |
 |---|---|
-| arquivos_total | 738 |
-| arquivos_codigo | 297 |
-| linhas_codigo | 58908 |
+| arquivos_total | 739 |
+| arquivos_codigo | 298 |
+| linhas_codigo | 58944 |
 | rotas | 34 |
 | rotas_http_backend | 15 |
 | vistas_por_id | 0 |
@@ -48,7 +48,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 | tabelas | 26 |
 | migrations | 72 |
 | cron_jobs | 0 |
-| testes | 153 |
+| testes | 154 |
 | workflows | 15 |
 | scripts | 37 |
 | docs_md | 134 |
@@ -58,7 +58,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - componentes: src/components (19), src/pages (19), src/context (2)
 - hooks: src/lib (4), src/context (2)
 - servicos_logica: src/lib (46), api/_lib (16), src/context (3)
-- testes: co-localizado (*.test) (57), tests/ (47), outro (9)
+- testes: co-localizado (*.test) (58), tests/ (47), outro (9)
 - edge_functions: n/d
 - migrations: site-supabase/supabase/migrations
 - scripts: scripts/maintenance (4), scripts/inventario (3), scripts/regras_negocio (3)
@@ -390,6 +390,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-22 `18eebb5` fix: politica de privacidade declara os estados reais de entrega (F-17) (#243)
 - 2026-11-22 `8543dac` feat: vigia independente dos crons com heartbeat e alerta (F-87) (#232)
 - 2026-11-22 `fc29771` feat: back-office minimo de orcamentos (F-03) e produtor de propostas versionadas (F-23) (#225)
 - 2026-11-22 `180c09a` docs: executa a revisao mensal do banco e corrige a coluna duplicada (F-90) (#229)
@@ -404,7 +405,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-21 `a3e9e21` feat: fallback de SKU exato quando a busca nao encontra correspondencia (NOVO-CA-22) (#221)
 - 2026-11-21 `66ed450` feat(lgpd): direitos do titular — acesso, exportacao, correcao e autoexclusao (F-30) (#220)
 - 2026-11-21 `e40d98f` chore(docs): reconcilia ground-truth de F-01/F-31/F-110 (#219)
-- 2026-11-20 `fc333d4` chore(docs): reconcilia funcionalidades.csv com a main (nov/2026) (#217)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

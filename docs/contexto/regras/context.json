@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "8543daca8e5e6d538564052e798500a39ef05ae2",
+  "sha": "18eebb5704943b58c162630bb9a18a6c0e805948",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-22 12:58 UTC",
-  "files_total": 632,
-  "code_files": 412,
-  "code_lines": 74773,
+  "generated_at": "2026-11-22 13:13 UTC",
+  "files_total": 633,
+  "code_files": 413,
+  "code_lines": 74809,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "866ae40b49245e96",
+ "facts_hash": "0cf5eccb8079da8b",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -283,7 +283,7 @@
   "languages": {
    ".ts": 160,
    ".sql": 114,
-   ".tsx": 65,
+   ".tsx": 66,
    ".mjs": 63,
    ".py": 8,
    ".js": 2
@@ -7377,6 +7377,15 @@
    },
    {
     "path": "",
+    "file": "src/pages/PrivacyPage.test.tsx",
+    "component": "PrivacyPage.test",
+    "tables_transitive": [],
+    "invokes_transitive": [],
+    "rpc_transitive": [],
+    "deps_count": 4
+   },
+   {
+    "path": "",
     "file": "src/pages/QuotePage.context.test.tsx",
     "component": "QuotePage.context.test",
     "tables_transitive": [],
@@ -8803,8 +8812,8 @@
   },
   {
    "module": "src/pages",
-   "files": 26,
-   "lines": 4201,
+   "files": 27,
+   "lines": 4237,
    "tables": [],
    "exports": [
     "AboutPage.tsx: AboutPage",
@@ -8861,6 +8870,7 @@
     "src/pages/IdeaLandingPage.tsx",
     "src/pages/KitBuilderPage.tsx",
     "src/pages/NotFoundPage.tsx",
+    "src/pages/PrivacyPage.test.tsx",
     "src/pages/PrivacyPage.tsx",
     "src/pages/ProductPage.tsx",
     "src/pages/QuotePage.context.test.tsx",
@@ -19471,6 +19481,18 @@
    {
     "file": "src/pages/IdeaLandingPage.test.tsx",
     "name": "conta a visita mesmo quando a curadoria falha, para o funil não passar de 100%"
+   },
+   {
+    "file": "src/pages/PrivacyPage.test.tsx",
+    "name": "PrivacyPage"
+   },
+   {
+    "file": "src/pages/PrivacyPage.test.tsx",
+    "name": "declara que a entrega pode estar indisponível em vez de prometer envio"
+   },
+   {
+    "file": "src/pages/PrivacyPage.test.tsx",
+    "name": "não promete que a cópia por WhatsApp sempre será entregue"
    },
    {
     "file": "src/pages/QuotePage.context.test.tsx",
@@ -35677,6 +35699,16 @@
     "function NotFoundPage"
    ]
   },
+  "src/pages/PrivacyPage.test.tsx": {
+   "path": "src/pages/PrivacyPage.test.tsx",
+   "lines": 36,
+   "is_test": true,
+   "tests": [
+    "PrivacyPage",
+    "declara que a entrega pode estar indisponível em vez de prometer envio",
+    "não promete que a cópia por WhatsApp sempre será entregue"
+   ]
+  },
   "src/pages/PrivacyPage.tsx": {
    "path": "src/pages/PrivacyPage.tsx",
    "lines": 27,
@@ -37161,10 +37193,23 @@
   }
  },
  "git": {
-  "sha": "8543daca8e5e6d538564052e798500a39ef05ae2",
+  "sha": "18eebb5704943b58c162630bb9a18a6c0e805948",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "18eebb5",
+    "date": "2026-11-22",
+    "author": "adm01-debug",
+    "subject": "fix: politica de privacidade declara os estados reais de entrega (F-17) (#243)",
+    "files": [
+     "analise-prs/funcionalidades.csv",
+     "docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md",
+     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
+     "src/pages/PrivacyPage.test.tsx",
+     "src/pages/PrivacyPage.tsx"
+    ]
+   },
    {
     "sha": "8543dac",
     "date": "2026-11-22",
@@ -37564,26 +37609,16 @@
      "scripts/graphify.mjs",
      "tests/graphify-tools.node.mjs"
     ]
-   },
-   {
-    "sha": "148318e",
-    "date": "2026-11-18",
-    "author": "adm01-debug",
-    "subject": "docs: matriz dos 230 requisitos deixa de se declarar vigente (#208)",
-    "files": [
-     "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
-     "docs/MATRIZ_INDEX.md"
-    ]
    }
   ],
   "hot_files": [
    [
     "analise-prs/funcionalidades.csv",
-    11
+    12
    ],
    [
     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
-    7
+    8
    ],
    [
     "scripts/check-performance-budget.mjs",
@@ -37595,10 +37630,6 @@
    ],
    [
     "src/lib/useCatalogPageState.ts",
-    4
-   ],
-   [
-    "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
     4
    ],
    [
@@ -37626,6 +37657,14 @@
     3
    ],
    [
+    "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
+    3
+   ],
+   [
+    "src/pages/PrivacyPage.tsx",
+    2
+   ],
+   [
     "api/notifications.ts",
     2
    ],
@@ -37635,10 +37674,6 @@
    ],
    [
     "docs/DATABASE_FUNCTION_CONTRACTS.md",
-    2
-   ],
-   [
-    "docs/MATRIZ_INDEX.md",
     2
    ],
    [
