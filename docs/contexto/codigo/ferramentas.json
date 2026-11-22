@@ -3,9 +3,9 @@
  "format_version": 2,
  "stack": {
   "linguagens": [
-   "TypeScript (222)",
+   "TypeScript (225)",
    "Markdown (134)",
-   "SQL (112)",
+   "SQL (114)",
    "JavaScript (65)",
    "JSON (29)",
    "YAML (19)",
@@ -725,7 +725,7 @@
   {
    "arquivo": "docs/DATABASE_DICTIONARY.md",
    "titulo": "Dicionário de dados — site_private (Etapa 35)",
-   "linhas": 439
+   "linhas": 455
   },
   {
    "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
@@ -745,7 +745,7 @@
   {
    "arquivo": "docs/DATABASE_SCHEMA.md",
    "titulo": "Diagrama entidade-relacionamento — site_private (Etapa 48)",
-   "linhas": 55
+   "linhas": 56
   },
   {
    "arquivo": "docs/EXECUCAO_COMPLEMENTAR_20260922.md",
@@ -1206,7 +1206,8 @@
    "crons": [
     "0 3 * * * /api/retention",
     "*/15 * * * * /api/notifications",
-    "*/5 * * * * /api/commercial-alerts"
+    "*/5 * * * * /api/commercial-alerts",
+    "*/30 * * * * /api/cron-watchdog"
    ]
   }
  },

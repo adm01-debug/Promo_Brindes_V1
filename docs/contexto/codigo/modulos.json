@@ -5,15 +5,16 @@
  "modulos": [
   {
    "modulo": "api",
-   "arquivos": 14,
+   "arquivos": 15,
    "testes": 0,
-   "linhas": 2357,
+   "linhas": 2461,
    "itens_menu": [],
    "telas": [],
    "rotas_http": [
     "POST /api/briefing-assets",
     "GET /api/commercial-alerts",
     "POST /api/contact-requests",
+    "GET /api/cron-watchdog",
     "POST /api/customer-proposals",
     "GET,HEAD /api/not-found",
     "POST /api/notification-events-resend",
@@ -33,6 +34,7 @@
    "tabelas": [],
    "rpcs": [
     "apply_site_notification_provider_event",
+    "check_cron_heartbeats",
     "claim_site_commercial_team_alert",
     "claim_site_commercial_team_alerts",
     "claim_site_notification_deliveries",
@@ -52,6 +54,7 @@
     "preflight_site_lead_request",
     "purge_archived_customer_selections",
     "purge_site_admin_audit_logs",
+    "record_cron_heartbeat",
     "record_site_notification_dispatch_started",
     "record_site_notification_provider_acceptance",
     "reject_site_briefing_asset_verification",
@@ -131,9 +134,9 @@
   },
   {
    "modulo": "api/_lib",
-   "arquivos": 15,
+   "arquivos": 16,
    "testes": 0,
-   "linhas": 1973,
+   "linhas": 2067,
    "itens_menu": [],
    "telas": [],
    "rotas_http": [],
@@ -143,6 +146,7 @@
    "edges": [],
    "tabelas": [],
    "rpcs": [
+    "check_cron_heartbeats",
     "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
@@ -152,6 +156,7 @@
     "finalize_site_notification_delivery",
     "get_site_shared_selection",
     "preflight_site_lead_request",
+    "record_cron_heartbeat",
     "record_site_notification_dispatch_started",
     "record_site_notification_provider_acceptance",
     "revoke_site_shared_selection",
@@ -194,6 +199,7 @@
     "edges": [],
     "tabelas": [],
     "rpcs": [
+     "check_cron_heartbeats",
      "claim_site_commercial_team_alert",
      "create_site_contact_request",
      "create_site_quote_request",
@@ -201,6 +207,7 @@
      "finalize_site_notification_delivery",
      "get_site_shared_selection",
      "preflight_site_lead_request",
+     "record_cron_heartbeat",
      "record_site_notification_provider_acceptance",
      "revoke_site_shared_selection"
     ]
@@ -668,7 +675,7 @@
    "modulo": "types",
    "arquivos": 1,
    "testes": 0,
-   "linhas": 1419,
+   "linhas": 1467,
    "itens_menu": [],
    "telas": [],
    "rotas_http": [],

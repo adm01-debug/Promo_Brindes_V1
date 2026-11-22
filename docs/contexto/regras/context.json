@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "fc29771d0ebe0720134147e400de98fb8756a8a2",
+  "sha": "8543daca8e5e6d538564052e798500a39ef05ae2",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-22 08:08 UTC",
-  "files_total": 627,
-  "code_files": 407,
-  "code_lines": 74062,
+  "generated_at": "2026-11-22 12:58 UTC",
+  "files_total": 632,
+  "code_files": 412,
+  "code_lines": 74773,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "b6b66cf0e5f3f145",
+ "facts_hash": "866ae40b49245e96",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -281,8 +281,8 @@
   ],
   "package_manager": "npm",
   "languages": {
-   ".ts": 157,
-   ".sql": 112,
+   ".ts": 160,
+   ".sql": 114,
    ".tsx": 65,
    ".mjs": 63,
    ".py": 8,
@@ -1980,6 +1980,63 @@
     "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
     "comment": "Trilha append-only das escritas feitas pelo back-office (F-03): quem mudou o quê e quando. Sem policy para anon/authenticated; leitura só por service_role.",
     "origin": "migration"
+   },
+   "site_private.cron_heartbeats": {
+    "columns": [
+     {
+      "name": "name",
+      "type": "text primary key check (name in ('retention', 'notifications', 'commercial-alerts'))",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
+     },
+     {
+      "name": "installed_at",
+      "type": "timestamptz not null default now()",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
+     },
+     {
+      "name": "last_ok_at",
+      "type": "timestamptz",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
+     },
+     {
+      "name": "last_failed_at",
+      "type": "timestamptz",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
+     },
+     {
+      "name": "last_failure_detail",
+      "type": "text check (last_failure_detail is null or length(last_failure_detail) <= 240)",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
+     },
+     {
+      "name": "consecutive_failures",
+      "type": "integer not null default 0 check (consecutive_failures >= 0)",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
+     },
+     {
+      "name": "updated_at",
+      "type": "timestamptz not null default now()",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
+     }
+    ],
+    "constraints": [],
+    "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql",
+    "comment": "Heartbeat dos crons do site (F-87). Uma linha por cron agendado em vercel.json; escrita so pela RPC record_cron_heartbeat.",
+    "origin": "migration"
    }
   },
   "policies": [
@@ -3626,6 +3683,37 @@
      "v_proposal_id",
      "v_request"
     ]
+   },
+   "record_cron_heartbeat": {
+    "args": "p_name text, p_ok boolean, p_detail text default null",
+    "returns": "void",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "begin if p_name not in ('retention', 'notifications', 'commercial-alerts') then raise exception 'unknown_cron_name' using errcode = '22023'; end if; if p_ok is null then raise exception 'invalid_cron_outcome' using errcode = '22023'; end if; insert into site_private.cron_heartbeats (name) values (p_name) on conflict (name) do nothing; update site_private.cron_heartbeats set last_ok_at = case when p_ok then now() else last_ok_at end, last_failed_at = case when p_ok then last_failed_at else now() end, last_failure_detail = case when p_ok then null else left(coalesce(p_detail, 'unknown'), 240) end, consecutive_failures = case when p_ok then 0 else consecutive_failures + 1 end, updated_at = now( …",
+    "raises": [
+     "unknown_cron_name",
+     "invalid_cron_outcome"
+    ],
+    "tables": [
+     "site_private"
+    ]
+   },
+   "check_cron_heartbeats": {
+    "args": "",
+    "returns": "table (\n  name text,\n  status text,\n  last_ok_at timestamptz,\n  last_failed_at timestamptz,\n  last_failure_detail text,\n  consecutive_failures integer,\n  expected_interval_seconds integer,\n  seconds_since_activity bigint,\n  is_late boolean\n)",
+    "lang": "sql",
+    "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "with esperado(name, intervalo, tolerancia_minutos) as ( values ('retention', 24 * 60 * 60, 180), ('notifications', 15 * 60, 30), ('commercial-alerts', 5 * 60, 20) ), base as ( select h.name, h.installed_at, h.last_ok_at, h.last_failed_at, h.last_failure_detail, h.consecutive_failures, e.intervalo, e.tolerancia_minutos, greatest( coalesce(h.last_ok_at, h.installed_at), coalesce(h.last_failed_at, h.installed_at) ) as ultima_atividade from site_private.cron_heartbeats h join esperado e on e.name = h.name ) select b.name, case when b.last_ok_at is null and b.last_failed_at is null and now() - b.installed_at <= make_interval(secs => b.intervalo + b.tolerancia_minutos * 60) then 'never_ran' when b …",
+    "raises": [],
+    "tables": [
+     "base",
+     "esperado",
+     "site_private"
+    ]
    }
   },
   "enums": {},
@@ -4008,7 +4096,8 @@
    "site-supabase/supabase/migrations/20261117030000_complete_customer_data_erasure.sql",
    "site-supabase/supabase/migrations/20261117030100_repair_incomplete_customer_data_erasure.sql",
    "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
-   "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+   "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
   ],
   "rls": {
    "site_private.quote_requests": "forced",
@@ -4034,7 +4123,8 @@
    "site_private.customer_occasion_favorites": "forced",
    "site_private.subject_right_requests": "forced",
    "site_private.commercial_operators": "forced",
-   "site_private.commercial_audit_log": "forced"
+   "site_private.commercial_audit_log": "forced",
+   "site_private.cron_heartbeats": "forced"
   },
   "grants": [
    {
@@ -6340,6 +6430,54 @@
     "objkind": "function",
     "roles": "authenticated, service_role",
     "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.cron_heartbeats",
+    "objkind": "table",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "select",
+    "object": "site_private.cron_heartbeats",
+    "objkind": "table",
+    "roles": "service_role, site_api",
+    "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "record_cron_heartbeat",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "record_cron_heartbeat",
+    "objkind": "function",
+    "roles": "service_role, site_api",
+    "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "check_cron_heartbeats",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "check_cron_heartbeats",
+    "objkind": "function",
+    "roles": "service_role, site_api",
+    "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
    }
   ],
   "raises": [
@@ -6897,6 +7035,16 @@
     "function": "publish_site_quote_proposal",
     "msg": "quote_request_changed_concurrently",
     "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "record_cron_heartbeat",
+    "msg": "unknown_cron_name",
+    "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
+   },
+   {
+    "function": "record_cron_heartbeat",
+    "msg": "invalid_cron_outcome",
+    "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
    }
   ],
   "seed": [],
@@ -6938,7 +7086,8 @@
    "table:site_private.subject_right_requests": "Trilha do exercicio dos direitos do titular (LGPD art. 18) na Area do Cliente: access, export, correct e delete. Vinculada a conta e removida pelo cascade de auth.users; o registo persistente do apagamento e o tombstone irreversivel em erased_customer_identities.",
    "column:site_private.subject_right_requests.right_type": "Direito exercido: access (confirmacao de tratamento), export (portabilidade), correct (correcao de perfil) ou delete (autoexclusao).",
    "table:site_private.commercial_operators": "Allowlist do back-office comercial (F-03). Só service_role escreve; as RPCs de escrita comercial recusam chamador fora daqui, mesmo com JWT válido.",
-   "table:site_private.commercial_audit_log": "Trilha append-only das escritas feitas pelo back-office (F-03): quem mudou o quê e quando. Sem policy para anon/authenticated; leitura só por service_role."
+   "table:site_private.commercial_audit_log": "Trilha append-only das escritas feitas pelo back-office (F-03): quem mudou o quê e quando. Sem policy para anon/authenticated; leitura só por service_role.",
+   "table:site_private.cron_heartbeats": "Heartbeat dos crons do site (F-87). Uma linha por cron agendado em vercel.json; escrita so pela RPC record_cron_heartbeat."
   },
   "types_file": "",
   "transitions": [
@@ -7679,6 +7828,11 @@
     "file": "vercel.json"
    },
    {
+    "kind": "Vercel cron",
+    "detail": "*/30 * * * * → /api/cron-watchdog",
+    "file": "vercel.json"
+   },
+   {
     "kind": "GitHub Actions cron",
     "detail": "30 7 * * *",
     "file": ".github/workflows/catalog-contract.yml"
@@ -7782,6 +7936,14 @@
     "file": "api/contact-requests.ts",
     "cron": "",
     "methods": []
+   },
+   {
+    "route": "/api/cron-watchdog",
+    "file": "api/cron-watchdog.ts",
+    "cron": "*/30 * * * *",
+    "methods": [
+     "GET"
+    ]
    },
    {
     "route": "/api/customer-proposals",
@@ -7907,13 +8069,14 @@
   },
   {
    "module": "api",
-   "files": 29,
-   "lines": 4330,
+   "files": 31,
+   "lines": 4528,
    "tables": [],
    "exports": [
     "briefing-assets.ts: REQUEST_TIMEOUT_MS, handler, async",
     "commercial-alerts.ts: COMMERCIAL_ALERTS_TIMEOUT_MS, handler, async",
     "contact-requests.ts: handler, async",
+    "cron-watchdog.ts: CRON_WATCHDOG_TIMEOUT_MS, isUnhealthy, handler, async",
     "customer-proposals.ts: REQUEST_TIMEOUT_MS, handler, async",
     "not-found.ts: handler, async",
     "notification-events-resend.ts: REQUEST_TIMEOUT_MS, MAX_WEBHOOK_BODY_BYTES",
@@ -7928,6 +8091,7 @@
     "catalogValidation.ts: REQUEST_TIMEOUT_MS, reconcileQuoteItems",
     "commercialTeamAlerts.ts: COMMERCIAL_ALERT_TIMEOUT_MS, commercialAlertsEnabled, CommercialAlertJob, parseCommercialAlertJob, deliverCommercialAlertJob, CommercialAlertResult",
     "contracts.ts: LeadKind, NormalizedQuoteItem, NormalizedCampaignBrief, NormalizedQuoteBriefing, NormalizedQuotePayload, NormalizedLeadPayload",
+    "cronHeartbeats.ts: CronName, CRON_HEARTBEAT_TIMEOUT_MS, recordCronHeartbeat, CronHeartbeatStatus, readCronHeartbeats",
     "curatedPagePreviews.ts: CuratedPagePreview, catalogPreviews, occasionPreviews",
     "fileSignatures.ts: matchesDeclaredFileSignature, readSignaturePrefix",
     "leadHandler.ts: LEAD_TOTAL_TIME_BUDGET_MS, MIN_CONFIRMATION_WINDOW_MS, ApiRequest, ApiResponse, handleLeadRequest",
@@ -7960,6 +8124,7 @@
     "api/briefing-assets.ts",
     "api/commercial-alerts.ts",
     "api/contact-requests.ts",
+    "api/cron-watchdog.ts",
     "api/customer-proposals.ts",
     "api/not-found.ts",
     "api/notification-events-resend.ts",
@@ -7974,6 +8139,7 @@
     "api/_lib/catalogValidation.ts",
     "api/_lib/commercialTeamAlerts.ts",
     "api/_lib/contracts.ts",
+    "api/_lib/cronHeartbeats.ts",
     "api/_lib/curatedPagePreviews.ts",
     "api/_lib/fileSignatures.ts",
     "api/_lib/leadHandler.ts",
@@ -8256,8 +8422,8 @@
   },
   {
    "module": "site-supabase",
-   "files": 104,
-   "lines": 14916,
+   "files": 106,
+   "lines": 15239,
    "tables": [],
    "exports": [],
    "docs": [],
@@ -8335,15 +8501,15 @@
     "site-supabase/supabase/migrations/20261117030100_repair_incomplete_customer_data_erasure.sql",
     "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
     "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+    "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql",
     "site-supabase/supabase/tests/database/adjustment_limits.test.sql",
     "site-supabase/supabase/tests/database/admin_write_audit.test.sql",
     "site-supabase/supabase/tests/database/briefing_assets.test.sql",
     "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
     "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
     "site-supabase/supabase/tests/database/contact_commercial_alert.test.sql",
-    "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
-    "site-supabase/supabase/tests/database/customer_occasion_favorites.test.sql",
-    "site-supabase/supabase/tests/database/customer_portal.test.sql"
+    "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "site-supabase/supabase/tests/database/customer_data_erasure.test.sql"
    ]
   },
   {
@@ -8723,7 +8889,7 @@
   {
    "module": "src/types",
    "files": 1,
-   "lines": 1419,
+   "lines": 1467,
    "tables": [],
    "exports": [
     "site-database.types.ts: Json, Database, Tables, TablesInsert, TablesUpdate, Enums"
@@ -8737,8 +8903,8 @@
   },
   {
    "module": "tests",
-   "files": 46,
-   "lines": 10230,
+   "files": 47,
+   "lines": 10372,
    "tables": [
     "constructor",
     "quote_requests",
@@ -8798,6 +8964,7 @@
     "tests/api/campaign-years.test.ts",
     "tests/api/catalog-validation.test.ts",
     "tests/api/commercial-team-alerts.test.ts",
+    "tests/api/cron-watchdog.test.ts",
     "tests/api/curated-page-previews.test.ts",
     "tests/api/customer-proposals.test.ts",
     "tests/api/lead-requests.test.ts",
@@ -9001,6 +9168,7 @@
    ],
    "CRON_SECRET": [
     "api/commercial-alerts.ts",
+    "api/cron-watchdog.ts",
     "api/notifications.ts",
     "api/retention.ts",
     "scripts/ai-context/cenarios.mjs",
@@ -9075,6 +9243,7 @@
    "OPERATIONS_ALERT_WEBHOOK_URL": [
     "api/_lib/operationalAlerts.ts",
     "api/commercial-alerts.ts",
+    "api/cron-watchdog.ts",
     "api/notifications.ts",
     "api/product-page.ts",
     "api/retention.ts"
@@ -9593,6 +9762,7 @@
    "commercial_operators",
    "consent_receipts",
    "contact_requests",
+   "cron_heartbeats",
    "customer_briefing_assets",
    "customer_occasion_favorites",
    "customer_profiles",
@@ -9741,9 +9911,14 @@
     "values": "quote | contact"
    },
    {
+    "file": "api/_lib/cronHeartbeats.ts",
+    "name": "CronName",
+    "values": "retention | notifications | commercial-alerts"
+   },
+   {
     "file": "api/_lib/operationalAlerts.ts",
     "name": "OperationalAlertEvent",
-    "values": "notification_queue_alert | notification_cron_failed | retention_cron_failed | commercial_alerts_cron_failed | public_catalog_unavailable | retention_backlog_saturated"
+    "values": "notification_queue_alert | notification_cron_failed | retention_cron_failed | commercial_alerts_cron_failed | public_catalog_unavailable | retention_backlog_saturated | cron_watchdog_unhealthy | cron_watchdog_failed"
    },
    {
     "file": "api/_lib/siteDatabase.ts",
@@ -10125,6 +10300,14 @@
    {
     "file": "api/_lib/contracts.ts",
     "msg": "Os componentes do kit precisam usar o mesmo nome e a mesma quantidade de conjuntos."
+   },
+   {
+    "file": "api/_lib/cronHeartbeats.ts",
+    "msg": "check_cron_heartbeats_failed"
+   },
+   {
+    "file": "api/_lib/cronHeartbeats.ts",
+    "msg": "invalid_cron_heartbeats_response"
    },
    {
     "file": "api/_lib/leadHandler.ts",
@@ -11213,6 +11396,10 @@
    {
     "file": "api/_lib/commercialTeamAlerts.ts",
     "text": "próprio do alerta (quem tiver o prazo menor decide). */"
+   },
+   {
+    "file": "api/_lib/cronHeartbeats.ts",
+    "text": "* Best-effort de proposito: o heartbeat e observabilidade, nao pode derrubar a"
    },
    {
     "file": "api/_lib/leadHandler.ts",
@@ -12586,6 +12773,31 @@
     "table": "site_private.commercial_audit_log",
     "column": "created_at",
     "rule": "default now()"
+   },
+   {
+    "table": "site_private.cron_heartbeats",
+    "column": "name",
+    "rule": "PK; CHECK name in ('retention', 'notifications', 'commercial-alerts')"
+   },
+   {
+    "table": "site_private.cron_heartbeats",
+    "column": "installed_at",
+    "rule": "default now()"
+   },
+   {
+    "table": "site_private.cron_heartbeats",
+    "column": "last_failure_detail",
+    "rule": "CHECK last_failure_detail is null or length(last_failure_detail) <= 240"
+   },
+   {
+    "table": "site_private.cron_heartbeats",
+    "column": "consecutive_failures",
+    "rule": "default 0; CHECK consecutive_failures >= 0"
+   },
+   {
+    "table": "site_private.cron_heartbeats",
+    "column": "updated_at",
+    "rule": "default now()"
    }
   ],
   "params": [
@@ -12618,6 +12830,11 @@
     "file": "api/commercial-alerts.ts",
     "name": "COMMERCIAL_ALERTS_BATCH_SIZE",
     "value": "10"
+   },
+   {
+    "file": "api/cron-watchdog.ts",
+    "name": "CRON_WATCHDOG_TIMEOUT_MS",
+    "value": "8_000"
    },
    {
     "file": "api/customer-proposals.ts",
@@ -12753,6 +12970,11 @@
     "file": "api/_lib/commercialTeamAlerts.ts",
     "name": "COMMERCIAL_ALERT_TIMEOUT_MS",
     "value": "7_000"
+   },
+   {
+    "file": "api/_lib/cronHeartbeats.ts",
+    "name": "CRON_HEARTBEAT_TIMEOUT_MS",
+    "value": "2_000"
    },
    {
     "file": "api/_lib/leadHandler.ts",
@@ -12973,6 +13195,18 @@
   "transition_maps": [],
   "status_values": [
    {
+    "file": "api/cron-watchdog.ts",
+    "field": "status",
+    "value": "failing",
+    "kind": "compara"
+   },
+   {
+    "file": "api/cron-watchdog.ts",
+    "field": "status",
+    "value": "late",
+    "kind": "compara"
+   },
+   {
     "file": "api/notification-events-whatsapp.ts",
     "field": "status",
     "value": "delivered",
@@ -13036,6 +13270,12 @@
     "file": "api/_lib/commercialTeamAlerts.ts",
     "field": "status",
     "value": "sent",
+    "kind": "escreve"
+   },
+   {
+    "file": "api/_lib/cronHeartbeats.ts",
+    "field": "status",
+    "value": "ok",
     "kind": "escreve"
    },
    {
@@ -14003,6 +14243,10 @@
    {
     "file": "site-supabase/supabase/migrations/20261001130320_preflight_lead_rate_limit.sql",
     "line": "or p_limit < 1 or p_window <= interval '0 seconds' then"
+   },
+   {
+    "file": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql",
+    "line": "('retention', 24 * 60 * 60, 180),"
    },
    {
     "file": "src/lib/quoteDraft.ts",
@@ -15045,6 +15289,118 @@
     "name": "backend monta o envelope do alerta de contato"
    },
    {
+    "file": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "name": "tabela de heartbeat existe"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "name": "RPC de registro existe"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "name": "RPC de verificacao existe"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "name": "a tabela nasce com os tres crons agendados em vercel.json"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "name": "nenhum cron comeca com execucao registrada"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "name": "heartbeat tem RLS habilitada e forcada"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "name": "anon nao le o heartbeat"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "name": "authenticated nao le o heartbeat"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "name": "anon nao registra heartbeat"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "name": "authenticated nao registra heartbeat"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "name": "anon nao consulta o vigia"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "name": "authenticated nao consulta o vigia"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "name": "nome fora dos tres crons e recusado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "name": "registra uma rodada bem-sucedida"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "name": "sucesso zera a sequencia de falhas"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "name": "sucesso grava last_ok_at"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "name": "registra uma rodada com falha"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "name": "falha incrementa a sequencia"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "name": "cron que nunca teve sucesso e falhou aparece como failing"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "name": "cron com sucesso recente aparece como ok"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "name": "nenhum cron conta como atrasado imediatamente apos a instalacao"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "name": "cron recem instalado aparece como nunca executado, nao como atrasado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "name": "tempo sem atividade de cron recem instalado cabe na janela com tolerancia"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "name": "recem instalado e sem execucao continua never_ran dentro da tolerancia"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "name": "sem execucao e instalado alem de intervalo mais tolerancia aparece como atrasado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "name": "cron silencioso alem da tolerancia e marcado como atrasado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "name": "somente o cron atrasado conta como doente"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+    "name": "cron dentro da janela continua ok depois da atualizacao de outro"
+   },
+   {
     "file": "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
     "name": "anon não apaga dados de titular"
    },
@@ -15850,7 +16206,7 @@
    },
    {
     "file": "site-supabase/supabase/tests/database/lead_storage.test.sql",
-    "name": "schema privado contém as tabelas planejadas, incluindo favoritos de datas sem PII e as duas do back-office (F-03)"
+    "name": "schema privado contém as tabelas planejadas, incluindo favoritos de datas sem PII, as duas do back-office (F-03) e o heartbeat dos crons (F-87)"
    },
    {
     "file": "site-supabase/supabase/tests/database/lead_storage.test.sql",
@@ -20725,6 +21081,34 @@
     "name": "preview não reivindica nem envia webhook comercial real"
    },
    {
+    "file": "tests/api/cron-watchdog.test.ts",
+    "name": "vigia dos crons (F-87)"
+   },
+   {
+    "file": "tests/api/cron-watchdog.test.ts",
+    "name": "recusa chamadas sem o segredo da tarefa agendada"
+   },
+   {
+    "file": "tests/api/cron-watchdog.test.ts",
+    "name": "recusa métodos que não são GET"
+   },
+   {
+    "file": "tests/api/cron-watchdog.test.ts",
+    "name": "responde 200 quando todos os crons estão saudáveis"
+   },
+   {
+    "file": "tests/api/cron-watchdog.test.ts",
+    "name": "responde 503 e alerta quando algum cron está atrasado"
+   },
+   {
+    "file": "tests/api/cron-watchdog.test.ts",
+    "name": "considera doente o cron que falhou repetidamente mesmo dentro da janela"
+   },
+   {
+    "file": "tests/api/cron-watchdog.test.ts",
+    "name": "responde 503 sem vazar detalhe quando a leitura do banco falha"
+   },
+   {
     "file": "tests/api/curated-page-previews.test.ts",
     "name": "previews das rotas editoriais"
    },
@@ -20955,6 +21339,10 @@
    {
     "file": "tests/api/maxDuration.test.ts",
     "name": "api/commercial-alerts.ts (PF-01)"
+   },
+   {
+    "file": "tests/api/maxDuration.test.ts",
+    "name": "api/cron-watchdog.ts (F-87): leitura do heartbeat cabe no maxDuration declarado"
    },
    {
     "file": "tests/api/maxDuration.test.ts",
@@ -23281,6 +23669,37 @@
      "v_proposal_id",
      "v_request"
     ]
+   },
+   "record_cron_heartbeat": {
+    "args": "p_name text, p_ok boolean, p_detail text default null",
+    "returns": "void",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "begin if p_name not in ('retention', 'notifications', 'commercial-alerts') then raise exception 'unknown_cron_name' using errcode = '22023'; end if; if p_ok is null then raise exception 'invalid_cron_outcome' using errcode = '22023'; end if; insert into site_private.cron_heartbeats (name) values (p_name) on conflict (name) do nothing; update site_private.cron_heartbeats set last_ok_at = case when p_ok then now() else last_ok_at end, last_failed_at = case when p_ok then last_failed_at else now() end, last_failure_detail = case when p_ok then null else left(coalesce(p_detail, 'unknown'), 240) end, consecutive_failures = case when p_ok then 0 else consecutive_failures + 1 end, updated_at = now( …",
+    "raises": [
+     "unknown_cron_name",
+     "invalid_cron_outcome"
+    ],
+    "tables": [
+     "site_private"
+    ]
+   },
+   "check_cron_heartbeats": {
+    "args": "",
+    "returns": "table (\n  name text,\n  status text,\n  last_ok_at timestamptz,\n  last_failed_at timestamptz,\n  last_failure_detail text,\n  consecutive_failures integer,\n  expected_interval_seconds integer,\n  seconds_since_activity bigint,\n  is_late boolean\n)",
+    "lang": "sql",
+    "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "with esperado(name, intervalo, tolerancia_minutos) as ( values ('retention', 24 * 60 * 60, 180), ('notifications', 15 * 60, 30), ('commercial-alerts', 5 * 60, 20) ), base as ( select h.name, h.installed_at, h.last_ok_at, h.last_failed_at, h.last_failure_detail, h.consecutive_failures, e.intervalo, e.tolerancia_minutos, greatest( coalesce(h.last_ok_at, h.installed_at), coalesce(h.last_failed_at, h.installed_at) ) as ultima_atividade from site_private.cron_heartbeats h join esperado e on e.name = h.name ) select b.name, case when b.last_ok_at is null and b.last_failed_at is null and now() - b.installed_at <= make_interval(secs => b.intervalo + b.tolerancia_minutos * 60) then 'never_ran' when b …",
+    "raises": [],
+    "tables": [
+     "base",
+     "esperado",
+     "site_private"
+    ]
    }
   },
   "db_enums": {},
@@ -23839,6 +24258,16 @@
     "function": "publish_site_quote_proposal",
     "msg": "quote_request_changed_concurrently",
     "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "function": "record_cron_heartbeat",
+    "msg": "unknown_cron_name",
+    "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
+   },
+   {
+    "function": "record_cron_heartbeat",
+    "msg": "invalid_cron_outcome",
+    "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
    }
   ],
   "db_generated": [],
@@ -24174,6 +24603,12 @@
    ],
    "usage": {
     "status": {
+     "failing": [
+      "compara:api/cron-watchdog.ts"
+     ],
+     "late": [
+      "compara:api/cron-watchdog.ts"
+     ],
      "delivered": [
       "compara:api/notification-events-whatsapp.ts"
      ],
@@ -24185,6 +24620,9 @@
       "compara:src/pages/QuotePage.tsx",
       "escreve:api/_lib/commercialTeamAlerts.ts",
       "escreve:api/notifications.ts"
+     ],
+     "ok": [
+      "escreve:api/_lib/cronHeartbeats.ts"
      ],
      "published": [
       "compara:shared/catalogEditorial.ts",
@@ -24395,6 +24833,13 @@
     "UPDATE": [],
     "DELETE": []
    },
+   "site_private.cron_heartbeats": {
+    "rls": "forced",
+    "SELECT": [],
+    "INSERT": [],
+    "UPDATE": [],
+    "DELETE": []
+   },
    "site_private.customer_briefing_assets": {
     "rls": "forced",
     "SELECT": [],
@@ -24574,6 +25019,14 @@
     "methods": []
    },
    {
+    "route": "/api/cron-watchdog",
+    "file": "api/cron-watchdog.ts",
+    "cron": "*/30 * * * *",
+    "methods": [
+     "GET"
+    ]
+   },
+   {
     "route": "/api/customer-proposals",
     "file": "api/customer-proposals.ts",
     "cron": "",
@@ -24668,6 +25121,7 @@
    "assert_site_operator",
    "attach_my_briefing_assets_to_quote",
    "can_delete_my_unverified_briefing_asset_path",
+   "check_cron_heartbeats",
    "claim_my_quote_requests",
    "confirm_site_briefing_asset_verification",
    "correct_my_data",
@@ -24703,6 +25157,7 @@
    "purge_archived_customer_selections",
    "purge_site_admin_audit_logs",
    "queue_briefing_asset_deletion",
+   "record_cron_heartbeat",
    "reject_site_briefing_asset_verification",
    "reply_site_quote_adjustment",
    "request_my_quote_adjustment",
@@ -27021,6 +27476,54 @@
     "objkind": "function",
     "roles": "authenticated, service_role",
     "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.cron_heartbeats",
+    "objkind": "table",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "select",
+    "object": "site_private.cron_heartbeats",
+    "objkind": "table",
+    "roles": "service_role, site_api",
+    "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "record_cron_heartbeat",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "record_cron_heartbeat",
+    "objkind": "function",
+    "roles": "service_role, site_api",
+    "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "check_cron_heartbeats",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "check_cron_heartbeats",
+    "objkind": "function",
+    "roles": "service_role, site_api",
+    "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql"
    }
   ],
   "guards": [],
@@ -27105,6 +27608,9 @@
    ],
    "site_private.commercial_audit_log": [
     "created_at"
+   ],
+   "site_private.cron_heartbeats": [
+    "updated_at"
    ]
   },
   "pii": [
@@ -27132,6 +27638,27 @@
   "issues": [
    {
     "kind": "status",
+    "msg": "valor `failing` para `status` usado no código não existe em nenhum enum do banco/TS",
+    "where": [
+     "compara:api/cron-watchdog.ts"
+    ]
+   },
+   {
+    "kind": "status",
+    "msg": "valor `late` para `status` usado no código não existe em nenhum enum do banco/TS",
+    "where": [
+     "compara:api/cron-watchdog.ts"
+    ]
+   },
+   {
+    "kind": "status",
+    "msg": "valor `ok` para `status` usado no código não existe em nenhum enum do banco/TS",
+    "where": [
+     "escreve:api/_lib/cronHeartbeats.ts"
+    ]
+   },
+   {
+    "kind": "status",
     "msg": "valor `attached` para `status` usado no código não existe em nenhum enum do banco/TS",
     "where": [
      "compara:src/pages/QuotePage.tsx",
@@ -27145,7 +27672,7 @@
    "`site_private.quote_adjustment_requests.status` tem valores ['closed', 'new', 'resolved', 'triaged'] mas nenhum mapa de transições foi encontrado no código nem em tabela de transições do banco — a ordem permitida (ex.: pago → cancelado?) não está declarada.",
    "`site_private.status_transitions.from_status` é uma coluna de status sem enum/CHECK — os valores válidos e as transições permitidas não estão no banco.",
    "`site_private.status_transitions.to_status` é uma coluna de status sem enum/CHECK — os valores válidos e as transições permitidas não estão no banco.",
-   "8/24 tabelas sem `COMMENT ON TABLE` — o significado de negócio não está no schema: `site_private.quote_requests`, `site_private.contact_requests`, `site_private.consent_receipts`, `site_private.customer_profiles`, `site_private.quote_request_events`, `site_private.proposal_documents`, `site_private.quote_adjustment_requests`, `site_private.shared_selections`"
+   "8/25 tabelas sem `COMMENT ON TABLE` — o significado de negócio não está no schema: `site_private.quote_requests`, `site_private.contact_requests`, `site_private.consent_receipts`, `site_private.customer_profiles`, `site_private.quote_request_events`, `site_private.proposal_documents`, `site_private.quote_adjustment_requests`, `site_private.shared_selections`"
   ]
  },
  "manual": [],
@@ -27235,7 +27762,7 @@
   },
   "api/commercial-alerts.ts": {
    "path": "api/commercial-alerts.ts",
-   "lines": 125,
+   "lines": 131,
    "exports": [
     "const COMMERCIAL_ALERTS_TIMEOUT_MS",
     "function handler",
@@ -27269,6 +27796,38 @@
    "exports": [
     "function handler",
     "default async"
+   ]
+  },
+  "api/cron-watchdog.ts": {
+   "path": "api/cron-watchdog.ts",
+   "lines": 86,
+   "exports": [
+    "const CRON_WATCHDOG_TIMEOUT_MS",
+    "function isUnhealthy",
+    "function handler",
+    "default async"
+   ],
+   "env": [
+    "CRON_SECRET",
+    "OPERATIONS_ALERT_WEBHOOK_URL"
+   ],
+   "params": [
+    {
+     "name": "CRON_WATCHDOG_TIMEOUT_MS",
+     "value": "8_000"
+    }
+   ],
+   "status_values": [
+    {
+     "field": "status",
+     "value": "failing",
+     "kind": "compara"
+    },
+    {
+     "field": "status",
+     "value": "late",
+     "kind": "compara"
+    }
    ]
   },
   "api/customer-proposals.ts": {
@@ -27391,7 +27950,7 @@
   },
   "api/notifications.ts": {
    "path": "api/notifications.ts",
-   "lines": 725,
+   "lines": 734,
    "exports": [
     "const OVERALL_TIME_BUDGET_MS",
     "const MIN_TIME_PER_JOB_MS",
@@ -27542,7 +28101,7 @@
   },
   "api/retention.ts": {
    "path": "api/retention.ts",
-   "lines": 290,
+   "lines": 293,
    "exports": [
     "const REQUEST_TIMEOUT_MS",
     "const TOTAL_TIME_BUDGET_MS",
@@ -27802,6 +28361,43 @@
     "if (difference > 10 * 60_000 || difference < -7 * 24 * 60 * 60_000) {"
    ]
   },
+  "api/_lib/cronHeartbeats.ts": {
+   "path": "api/_lib/cronHeartbeats.ts",
+   "lines": 94,
+   "exports": [
+    "type CronName",
+    "const CRON_HEARTBEAT_TIMEOUT_MS",
+    "function recordCronHeartbeat",
+    "interface CronHeartbeatStatus",
+    "function readCronHeartbeats"
+   ],
+   "errors": [
+    "check_cron_heartbeats_failed",
+    "invalid_cron_heartbeats_response"
+   ],
+   "enums": [
+    {
+     "name": "CronName",
+     "values": "retention | notifications | commercial-alerts"
+    }
+   ],
+   "params": [
+    {
+     "name": "CRON_HEARTBEAT_TIMEOUT_MS",
+     "value": "2_000"
+    }
+   ],
+   "status_values": [
+    {
+     "field": "status",
+     "value": "ok",
+     "kind": "escreve"
+    }
+   ],
+   "rule_comments": [
+    "* Best-effort de proposito: o heartbeat e observabilidade, nao pode derrubar a"
+   ]
+  },
   "api/_lib/curatedPagePreviews.ts": {
    "path": "api/_lib/curatedPagePreviews.ts",
    "lines": 46,
@@ -27884,7 +28480,7 @@
    "enums": [
     {
      "name": "OperationalAlertEvent",
-     "values": "notification_queue_alert | notification_cron_failed | retention_cron_failed | commercial_alerts_cron_failed | public_catalog_unavailable | retention_backlog_saturated"
+     "values": "notification_queue_alert | notification_cron_failed | retention_cron_failed | commercial_alerts_cron_failed | public_catalog_unavailable | retention_backlog_saturated | cron_watchdog_unhealthy | cron_watchdog_failed"
     }
    ],
    "params": [
@@ -30871,6 +31467,14 @@
    "lines": 615,
    "uses_service_role": true
   },
+  "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql": {
+   "path": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql",
+   "lines": 146,
+   "temporal": [
+    "('retention', 24 * 60 * 60, 180),"
+   ],
+   "uses_service_role": true
+  },
   "site-supabase/supabase/tests/database/adjustment_limits.test.sql": {
    "path": "site-supabase/supabase/tests/database/adjustment_limits.test.sql",
    "lines": 87,
@@ -31102,6 +31706,47 @@
     "backend monta o envelope do alerta de contato"
    ],
    "uses_service_role": true
+  },
+  "site-supabase/supabase/tests/database/cron_heartbeat.test.sql": {
+   "path": "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+   "lines": 177,
+   "is_test": true,
+   "temporal": [
+    "last_ok_at = now() - interval '40 minutes'",
+    "set installed_at = now() - interval '10 minutes'",
+    "set installed_at = now() - interval '26 minutes'",
+    "set installed_at = now() - interval '40 minutes',"
+   ],
+   "tests": [
+    "tabela de heartbeat existe",
+    "RPC de registro existe",
+    "RPC de verificacao existe",
+    "a tabela nasce com os tres crons agendados em vercel.json",
+    "nenhum cron comeca com execucao registrada",
+    "heartbeat tem RLS habilitada e forcada",
+    "anon nao le o heartbeat",
+    "authenticated nao le o heartbeat",
+    "anon nao registra heartbeat",
+    "authenticated nao registra heartbeat",
+    "anon nao consulta o vigia",
+    "authenticated nao consulta o vigia",
+    "nome fora dos tres crons e recusado",
+    "registra uma rodada bem-sucedida",
+    "sucesso zera a sequencia de falhas",
+    "sucesso grava last_ok_at",
+    "registra uma rodada com falha",
+    "falha incrementa a sequencia",
+    "cron que nunca teve sucesso e falhou aparece como failing",
+    "cron com sucesso recente aparece como ok",
+    "nenhum cron conta como atrasado imediatamente apos a instalacao",
+    "cron recem instalado aparece como nunca executado, nao como atrasado",
+    "tempo sem atividade de cron recem instalado cabe na janela com tolerancia",
+    "recem instalado e sem execucao continua never_ran dentro da tolerancia",
+    "sem execucao e instalado alem de intervalo mais tolerancia aparece como atrasado",
+    "cron silencioso alem da tolerancia e marcado como atrasado",
+    "somente o cron atrasado conta como doente",
+    "cron dentro da janela continua ok depois da atualizacao de outro"
+   ]
   },
   "site-supabase/supabase/tests/database/customer_data_erasure.test.sql": {
    "path": "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
@@ -31412,7 +32057,7 @@
     "values (repeat('8', 64), now() - interval '31 days', 1, now() - interval '31 days');"
    ],
    "tests": [
-    "schema privado contém as tabelas planejadas, incluindo favoritos de datas sem PII e as duas do back-office (F-03)",
+    "schema privado contém as tabelas planejadas, incluindo favoritos de datas sem PII, as duas do back-office (F-03) e o heartbeat dos crons (F-87)",
     "seleções persistentes ficam no schema privado",
     "criação de links recebe rate limit próprio",
     "máquina de estados administrativa vive em tabela dedicada (Etapa 8)",
@@ -35264,7 +35909,7 @@
   },
   "src/types/site-database.types.ts": {
    "path": "src/types/site-database.types.ts",
-   "lines": 1419,
+   "lines": 1467,
    "exports": [
     "type Json",
     "type Database",
@@ -36082,6 +36727,20 @@
     "preview não reivindica nem envia webhook comercial real"
    ]
   },
+  "tests/api/cron-watchdog.test.ts": {
+   "path": "tests/api/cron-watchdog.test.ts",
+   "lines": 129,
+   "is_test": true,
+   "tests": [
+    "vigia dos crons (F-87)",
+    "recusa chamadas sem o segredo da tarefa agendada",
+    "recusa métodos que não são GET",
+    "responde 200 quando todos os crons estão saudáveis",
+    "responde 503 e alerta quando algum cron está atrasado",
+    "considera doente o cron que falhou repetidamente mesmo dentro da janela",
+    "responde 503 sem vazar detalhe quando a leitura do banco falha"
+   ]
+  },
   "tests/api/curated-page-previews.test.ts": {
    "path": "tests/api/curated-page-previews.test.ts",
    "lines": 28,
@@ -36178,7 +36837,7 @@
   },
   "tests/api/maxDuration.test.ts": {
    "path": "tests/api/maxDuration.test.ts",
-   "lines": 125,
+   "lines": 130,
    "is_test": true,
    "errors": [
     "Função ${path} não declarada."
@@ -36202,6 +36861,7 @@
     "api/notifications.ts: orçamento total já inclui drenagem de múltiplos lotes (Etapa 28) e o sinal de saúde da fila (Etapa 29)",
     "api/retention.ts",
     "api/commercial-alerts.ts (PF-01)",
+    "api/cron-watchdog.ts (F-87): leitura do heartbeat cabe no maxDuration declarado",
     "api/customer-proposals.ts",
     "api/briefing-assets.ts",
     "api/sitemap.ts",
@@ -36360,7 +37020,7 @@
   },
   "tests/api/retention.test.ts": {
    "path": "tests/api/retention.test.ts",
-   "lines": 416,
+   "lines": 424,
    "is_test": true,
    "env": [
     "CRON_SECRET",
@@ -36368,6 +37028,9 @@
    ],
    "errors": [
     "A exclusão de Storage esperada não ocorreu."
+   ],
+   "rule_comments": [
+    "testes de retencao contam apenas as chamadas que fazem parte da tarefa."
    ],
    "tests": [
     "tarefa de retenção",
@@ -36498,10 +37161,36 @@
   }
  },
  "git": {
-  "sha": "fc29771d0ebe0720134147e400de98fb8756a8a2",
+  "sha": "8543daca8e5e6d538564052e798500a39ef05ae2",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "8543dac",
+    "date": "2026-11-22",
+    "author": "adm01-debug",
+    "subject": "feat: vigia independente dos crons com heartbeat e alerta (F-87) (#232)",
+    "files": [
+     "analise-prs/funcionalidades.csv",
+     "api/_lib/cronHeartbeats.ts",
+     "api/_lib/operationalAlerts.ts",
+     "api/commercial-alerts.ts",
+     "api/cron-watchdog.ts",
+     "api/notifications.ts",
+     "api/retention.ts",
+     "docs/DATABASE_DICTIONARY.md",
+     "docs/DATABASE_SCHEMA.md",
+     "docs/prod-readiness.md",
+     "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql",
+     "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
+     "site-supabase/supabase/tests/database/lead_storage.test.sql",
+     "src/types/site-database.types.ts",
+     "tests/api/cron-watchdog.test.ts",
+     "tests/api/maxDuration.test.ts",
+     "tests/api/retention.test.ts",
+     "vercel.json"
+    ]
+   },
    {
     "sha": "fc29771",
     "date": "2026-11-22",
@@ -36885,22 +37574,12 @@
      "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
      "docs/MATRIZ_INDEX.md"
     ]
-   },
-   {
-    "sha": "ab6ea69",
-    "date": "2026-11-18",
-    "author": "adm01-debug",
-    "subject": "infra(graphify): cria o requirements-graphify.in que o comentario citava e nao existia (#197)",
-    "files": [
-     "requirements-graphify.in",
-     "requirements-graphify.txt"
-    ]
    }
   ],
   "hot_files": [
    [
     "analise-prs/funcionalidades.csv",
-    10
+    11
    ],
    [
     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
@@ -36923,6 +37602,22 @@
     4
    ],
    [
+    "docs/DATABASE_DICTIONARY.md",
+    3
+   ],
+   [
+    "docs/DATABASE_SCHEMA.md",
+    3
+   ],
+   [
+    "site-supabase/supabase/tests/database/lead_storage.test.sql",
+    3
+   ],
+   [
+    "src/types/site-database.types.ts",
+    3
+   ],
+   [
     "src/lib/customerAccount.ts",
     3
    ],
@@ -36931,23 +37626,15 @@
     3
    ],
    [
-    "docs/DATABASE_DICTIONARY.md",
+    "api/notifications.ts",
+    2
+   ],
+   [
+    "vercel.json",
     2
    ],
    [
     "docs/DATABASE_FUNCTION_CONTRACTS.md",
-    2
-   ],
-   [
-    "docs/DATABASE_SCHEMA.md",
-    2
-   ],
-   [
-    "site-supabase/supabase/tests/database/lead_storage.test.sql",
-    2
-   ],
-   [
-    "src/types/site-database.types.ts",
     2
    ],
    [
@@ -36968,14 +37655,6 @@
    ],
    [
     "e2e/smoke.spec.ts",
-    2
-   ],
-   [
-    "src/lib/campaignPresets.test.ts",
-    2
-   ],
-   [
-    "src/lib/campaignPresets.ts",
     2
    ]
   ]

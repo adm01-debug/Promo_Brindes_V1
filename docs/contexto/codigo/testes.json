@@ -5,12 +5,12 @@
   "vitest",
   "playwright"
  ],
- "total": 151,
+ "total": 153,
  "por_tipo": {
   "contrato": 2,
   "e2e": 6,
   "pytest": 4,
-  "unit": 106
+  "unit": 107
  },
  "onde_ficam": [
   {
@@ -19,7 +19,7 @@
   },
   {
    "padrao": "tests/",
-   "arquivos": 46
+   "arquivos": 47
   },
   {
    "padrao": "outro",
@@ -725,6 +725,17 @@
    "casos": 14
   },
   {
+   "arquivo": "tests/api/cron-watchdog.test.ts",
+   "tipo": "unit",
+   "linhas": 129,
+   "testa": [
+    "api/_lib/cronHeartbeats.ts",
+    "api/_lib/leadHandler.ts",
+    "api/cron-watchdog.ts"
+   ],
+   "casos": 6
+  },
+  {
    "arquivo": "tests/api/curated-page-previews.test.ts",
    "tipo": "unit",
    "linhas": 28,
@@ -758,7 +769,7 @@
   {
    "arquivo": "tests/api/maxDuration.test.ts",
    "tipo": "unit",
-   "linhas": 125,
+   "linhas": 130,
    "testa": [
     "api/_lib/catalogValidation.ts",
     "api/_lib/commercialTeamAlerts.ts",
@@ -768,12 +779,13 @@
     "api/_lib/siteDatabase.ts",
     "api/briefing-assets.ts",
     "api/commercial-alerts.ts",
+    "api/cron-watchdog.ts",
     "api/customer-proposals.ts",
     "api/notifications.ts",
     "api/retention.ts",
     "api/sitemap.ts"
    ],
-   "casos": 15
+   "casos": 16
   },
   {
    "arquivo": "tests/api/notification-events-resend.test.ts",
@@ -844,7 +856,7 @@
   {
    "arquivo": "tests/api/retention.test.ts",
    "tipo": "unit",
-   "linhas": 416,
+   "linhas": 424,
    "testa": [
     "api/_lib/leadHandler.ts",
     "api/retention.ts"
@@ -1112,6 +1124,7 @@
   "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
   "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql",
   "site-supabase/supabase/tests/database/contact_commercial_alert.test.sql",
+  "site-supabase/supabase/tests/database/cron_heartbeat.test.sql",
   "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
   "site-supabase/supabase/tests/database/customer_occasion_favorites.test.sql",
   "site-supabase/supabase/tests/database/customer_portal.test.sql",
@@ -1144,9 +1157,10 @@
   "api/_lib/catalogValidation.ts": 2,
   "api/_lib/commercialTeamAlerts.ts": 2,
   "api/_lib/contracts.ts": 1,
+  "api/_lib/cronHeartbeats.ts": 1,
   "api/_lib/curatedPagePreviews.ts": 1,
   "api/_lib/fileSignatures.ts": 1,
-  "api/_lib/leadHandler.ts": 7,
+  "api/_lib/leadHandler.ts": 8,
   "api/_lib/operationalAlerts.ts": 1,
   "api/_lib/pageShell.ts": 1,
   "api/_lib/publicProductPage.ts": 1,
@@ -1156,6 +1170,7 @@
   "api/briefing-assets.ts": 2,
   "api/commercial-alerts.ts": 1,
   "api/contact-requests.ts": 1,
+  "api/cron-watchdog.ts": 2,
   "api/customer-proposals.ts": 2,
   "api/not-found.ts": 1,
   "api/notification-events-resend.ts": 1,

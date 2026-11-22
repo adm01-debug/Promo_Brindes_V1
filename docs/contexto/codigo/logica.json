@@ -1,9 +1,9 @@
 {
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
- "total": 81,
+ "total": 83,
  "por_camada": {
-  "api": 29,
+  "api": 31,
   "context": 3,
   "lib": 46,
   "python": 3
@@ -106,6 +106,36 @@
    "orfao": false
   },
   {
+   "arquivo": "api/_lib/cronHeartbeats.ts",
+   "camada": "api",
+   "exports": [
+    "CRON_HEARTBEAT_TIMEOUT_MS",
+    "CronHeartbeatStatus",
+    "CronName",
+    "readCronHeartbeats",
+    "recordCronHeartbeat"
+   ],
+   "export_default": null,
+   "linhas": 94,
+   "tabelas": [],
+   "rpcs": [
+    "check_cron_heartbeats",
+    "record_cron_heartbeat"
+   ],
+   "edges": [],
+   "env": [],
+   "externos": [],
+   "zod_schemas": 0,
+   "flags": [],
+   "papeis": [],
+   "usado_por": 4,
+   "usado_por_modulos": [
+    "api"
+   ],
+   "coberto_por_testes": 1,
+   "orfao": false
+  },
+  {
    "arquivo": "api/_lib/curatedPagePreviews.ts",
    "camada": "api",
    "exports": [
@@ -174,11 +204,11 @@
    "zod_schemas": 0,
    "flags": [],
    "papeis": [],
-   "usado_por": 8,
+   "usado_por": 9,
    "usado_por_modulos": [
     "api"
    ],
-   "coberto_por_testes": 7,
+   "coberto_por_testes": 8,
    "orfao": false
   },
   {
@@ -202,7 +232,7 @@
    "zod_schemas": 0,
    "flags": [],
    "papeis": [],
-   "usado_por": 8,
+   "usado_por": 10,
    "usado_por_modulos": [
     "api",
     "api/_lib"
@@ -231,7 +261,7 @@
    "zod_schemas": 0,
    "flags": [],
    "papeis": [],
-   "usado_por": 4,
+   "usado_por": 5,
    "usado_por_modulos": [
     "api"
    ],
@@ -383,7 +413,7 @@
    "zod_schemas": 0,
    "flags": [],
    "papeis": [],
-   "usado_por": 11,
+   "usado_por": 12,
    "usado_por_modulos": [
     "api",
     "api/_lib"
@@ -506,7 +536,7 @@
     "handler"
    ],
    "export_default": "handler",
-   "linhas": 125,
+   "linhas": 131,
    "tabelas": [],
    "rpcs": [
     "claim_site_commercial_team_alerts"
@@ -546,6 +576,34 @@
    "usado_por": 0,
    "usado_por_modulos": [],
    "coberto_por_testes": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "api/cron-watchdog.ts",
+   "camada": "api",
+   "exports": [
+    "CRON_WATCHDOG_TIMEOUT_MS",
+    "handler",
+    "isUnhealthy"
+   ],
+   "export_default": "handler",
+   "linhas": 86,
+   "tabelas": [],
+   "rpcs": [],
+   "edges": [],
+   "env": [
+    "CRON_SECRET",
+    "OPERATIONS_ALERT_WEBHOOK_URL"
+   ],
+   "externos": [
+    "node:crypto"
+   ],
+   "zod_schemas": 0,
+   "flags": [],
+   "papeis": [],
+   "usado_por": 0,
+   "usado_por_modulos": [],
+   "coberto_por_testes": 2,
    "orfao": false
   },
   {
@@ -664,7 +722,7 @@
     "whatsappChannelConfigured"
    ],
    "export_default": "handler",
-   "linhas": 725,
+   "linhas": 734,
    "tabelas": [],
    "rpcs": [
     "claim_site_notification_deliveries",
@@ -757,7 +815,7 @@
     "handler"
    ],
    "export_default": "handler",
-   "linhas": 290,
+   "linhas": 293,
    "tabelas": [],
    "rpcs": [
     "finalize_site_data_retention",

@@ -6,7 +6,7 @@
   "site-supabase/supabase/migrations",
   "src/types/site-database.types.ts"
  ],
- "migrations": 71,
+ "migrations": 72,
  "seeds": [],
  "avisos": [
   "4 bloco(s) com DDL dinâmico (EXECUTE format/...) não modelado — policies/colunas criadas dinamicamente podem faltar; confira no banco vivo"
@@ -18,6 +18,7 @@
   "apply_site_notification_provider_event",
   "attach_my_briefing_assets_to_quote",
   "can_delete_my_unverified_briefing_asset_path",
+  "check_cron_heartbeats",
   "claim_my_quote_requests",
   "claim_site_commercial_team_alert",
   "claim_site_commercial_team_alerts",
@@ -57,6 +58,7 @@
   "publish_site_quote_proposal",
   "purge_archived_customer_selections",
   "purge_site_admin_audit_logs",
+  "record_cron_heartbeat",
   "record_site_notification_dispatch_started",
   "record_site_notification_provider_acceptance",
   "reject_site_briefing_asset_verification",
@@ -886,6 +888,82 @@
     "contact_requests_enqueue_commercial_alert",
     "contact_requests_set_updated_at"
    ],
+   "sem_rls": false,
+   "nao_usada": true
+  },
+  "site_private.cron_heartbeats": {
+   "colunas": {
+    "consecutive_failures": {
+     "tipo": "integer",
+     "nn": true,
+     "pk": false,
+     "default": "0",
+     "ref": null
+    },
+    "installed_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    },
+    "last_failed_at": {
+     "tipo": "timestamptz",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "last_failure_detail": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "last_ok_at": {
+     "tipo": "timestamptz",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "name": {
+     "tipo": "text",
+     "nn": false,
+     "pk": true,
+     "default": null,
+     "ref": null
+    },
+    "updated_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    }
+   },
+   "rls": true,
+   "policies": [],
+   "indices": [],
+   "fks": [],
+   "criada_em": "20261122040000_add_cron_heartbeat_and_watchdog.sql",
+   "colunas_types": {
+    "consecutive_failures": "number",
+    "installed_at": "string",
+    "last_failed_at": "string | null",
+    "last_failure_detail": "string | null",
+    "last_ok_at": "string | null",
+    "name": "string",
+    "updated_at": "string"
+   },
+   "drift": {
+    "so_na_migration": [],
+    "so_no_types": []
+   },
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [],
    "sem_rls": false,
    "nao_usada": true
   },
@@ -2752,6 +2830,11 @@
    "usada_em": 1
   },
   {
+   "nome": "check_cron_heartbeats",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
    "nome": "claim_my_quote_requests",
    "definida": true,
    "usada_em": 1
@@ -2923,6 +3006,11 @@
   },
   {
    "nome": "purge_site_admin_audit_logs",
+   "definida": true,
+   "usada_em": 1
+  },
+  {
+   "nome": "record_cron_heartbeat",
    "definida": true,
    "usada_em": 1
   },

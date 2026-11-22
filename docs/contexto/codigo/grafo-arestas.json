@@ -12,6 +12,10 @@
   "api/_lib/contracts.ts": [
    "api/_lib/siteOrigin.ts"
   ],
+  "api/_lib/cronHeartbeats.ts": [
+   "api/_lib/observability.ts",
+   "api/_lib/siteDatabase.ts"
+  ],
   "api/_lib/curatedPagePreviews.ts": [
    "shared/catalogEditorial.ts"
   ],
@@ -46,6 +50,7 @@
   ],
   "api/commercial-alerts.ts": [
    "api/_lib/commercialTeamAlerts.ts",
+   "api/_lib/cronHeartbeats.ts",
    "api/_lib/leadHandler.ts",
    "api/_lib/observability.ts",
    "api/_lib/operationalAlerts.ts",
@@ -53,6 +58,12 @@
   ],
   "api/contact-requests.ts": [
    "api/_lib/leadHandler.ts"
+  ],
+  "api/cron-watchdog.ts": [
+   "api/_lib/cronHeartbeats.ts",
+   "api/_lib/leadHandler.ts",
+   "api/_lib/observability.ts",
+   "api/_lib/operationalAlerts.ts"
   ],
   "api/customer-proposals.ts": [
    "api/_lib/leadHandler.ts",
@@ -72,6 +83,7 @@
    "api/_lib/webhookSignature.ts"
   ],
   "api/notifications.ts": [
+   "api/_lib/cronHeartbeats.ts",
    "api/_lib/leadHandler.ts",
    "api/_lib/observability.ts",
    "api/_lib/operationalAlerts.ts",
@@ -88,6 +100,7 @@
    "api/_lib/leadHandler.ts"
   ],
   "api/retention.ts": [
+   "api/_lib/cronHeartbeats.ts",
    "api/_lib/leadHandler.ts",
    "api/_lib/observability.ts",
    "api/_lib/operationalAlerts.ts",

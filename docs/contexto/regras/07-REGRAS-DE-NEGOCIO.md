@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `fc29771d0e` · branch `main` · 2026-11-22 08:08 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `8543daca8e` · branch `main` · 2026-11-22 12:58 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -230,6 +230,11 @@ _Nenhum arquivo em `manual/`. Copie `manual/TEMPLATE-regras-de-negocio.md` para 
 | `site_private.commercial_audit_log` | `quote_request_id` | obrigatório; FK → quote_requests.id on delete cascade |
 | `site_private.commercial_audit_log` | `detail` | default '{}'::jsonb; CHECK jsonb_typeof(detail) = 'object' |
 | `site_private.commercial_audit_log` | `created_at` | default now() |
+| `site_private.cron_heartbeats` | `name` | PK; CHECK name in ('retention', 'notifications', 'commercial-alerts') |
+| `site_private.cron_heartbeats` | `installed_at` | default now() |
+| `site_private.cron_heartbeats` | `last_failure_detail` | CHECK last_failure_detail is null or length(last_failure_detail) <= 240 |
+| `site_private.cron_heartbeats` | `consecutive_failures` | default 0; CHECK consecutive_failures >= 0 |
+| `site_private.cron_heartbeats` | `updated_at` | default now() |
 
 ## D. Automações no banco (triggers e funções — regras que rodam sozinhas)
 
@@ -377,6 +382,8 @@ Erros lançados por funções SQL (`RAISE EXCEPTION` = regra de negócio no banc
 | `publish_site_quote_proposal` | quote_request_not_found | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
 | `publish_site_quote_proposal` | (dinâmica) format('proposal_requires_in_progress: status atual %s', v_request.status) | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
 | `publish_site_quote_proposal` | quote_request_changed_concurrently | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
+| `record_cron_heartbeat` | unknown_cron_name | `site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql` |
+| `record_cron_heartbeat` | invalid_cron_outcome | `site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql` |
 
 ## E. Estados, máquinas de estado e transições
 
@@ -421,8 +428,11 @@ _nenhum mapa explícito encontrado no código — fora da tabela acima (se houve
 | `status` | `closed` | compara | `src/lib/customerAccount.ts` |
 | `status` | `delivered` | compara | `api/notification-events-whatsapp.ts` |
 | `status` | `failed` | compara | `api/notification-events-whatsapp.ts` |
+| `status` | `failing` | compara | `api/cron-watchdog.ts` |
 | `status` | `in_progress` | compara | `src/lib/customerAccount.ts`<br>`src/pages/BackofficePage.tsx` |
+| `status` | `late` | compara | `api/cron-watchdog.ts` |
 | `status` | `new` | compara | `src/pages/BackofficePage.tsx` |
+| `status` | `ok` | escreve | `api/_lib/cronHeartbeats.ts` |
 | `status` | `pending` | compara, escreve | `src/lib/quoteConfirmation.ts`<br>`src/pages/QuotePage.tsx` |
 | `status` | `published` | compara, escreve | `shared/catalogEditorial.ts` |
 | `status` | `quoted` | compara | `src/lib/customerAccount.ts`<br>`src/pages/BackofficePage.tsx` |
@@ -462,7 +472,8 @@ _nenhum mapa explícito encontrado no código — fora da tabela acima (se houve
 |---|---|---|
 | CommercialAlertResult | sent \| pending | `api/_lib/commercialTeamAlerts.ts` |
 | LeadKind | quote \| contact | `api/_lib/contracts.ts` |
-| OperationalAlertEvent | notification_queue_alert \| notification_cron_failed \| retention_cron_failed \| commercial_alerts_cron_failed \| public_catalog_unavailable \| retention_backlog_saturated | `api/_lib/operationalAlerts.ts` |
+| CronName | retention \| notifications \| commercial-alerts | `api/_lib/cronHeartbeats.ts` |
+| OperationalAlertEvent | notification_queue_alert \| notification_cron_failed \| retention_cron_failed \| commercial_alerts_cron_failed \| public_catalog_unavailable \| retention_backlog_saturated \| cron_watchdog_unhealthy \| cron_watchdog_failed | `api/_lib/operationalAlerts.ts` |
 | ProviderEventApplyReason | duplicate \| delivery_not_found \| delivery_state_already_set | `api/_lib/siteDatabase.ts` |
 | CatalogEditorialStatus | published \| draft \| retired | `shared/catalogEditorial.ts` |
 | IdeaLandingId | onboarding \| eventos \| clientes-vip \| sustentaveis | `shared/ideaLandingPages.ts` |
@@ -657,6 +668,7 @@ _nenhum item encontrado_
 | `BUCKET` | `'customer-briefing-assets'` | `api/briefing-assets.ts` |
 | `COMMERCIAL_ALERTS_TIMEOUT_MS` | `10_000` | `api/commercial-alerts.ts` |
 | `COMMERCIAL_ALERTS_BATCH_SIZE` | `10` | `api/commercial-alerts.ts` |
+| `CRON_WATCHDOG_TIMEOUT_MS` | `8_000` | `api/cron-watchdog.ts` |
 | `PROPOSAL_BUCKET` | `'customer-proposals'` | `api/customer-proposals.ts` |
 | `REQUEST_TIMEOUT_MS` | `10_000` | `api/customer-proposals.ts` |
 | `MAX_PROPOSAL_BODY_BYTES` | `4 * 1024` | `api/customer-proposals.ts` |
@@ -684,6 +696,7 @@ _nenhum item encontrado_
 | `REQUEST_TIMEOUT_MS` | `8_000` | `api/sitemap.ts` |
 | `REQUEST_TIMEOUT_MS` | `5_000` | `api/_lib/catalogValidation.ts` |
 | `COMMERCIAL_ALERT_TIMEOUT_MS` | `7_000` | `api/_lib/commercialTeamAlerts.ts` |
+| `CRON_HEARTBEAT_TIMEOUT_MS` | `2_000` | `api/_lib/cronHeartbeats.ts` |
 | `LEAD_TOTAL_TIME_BUDGET_MS` | `24_000` | `api/_lib/leadHandler.ts` |
 | `MIN_CONFIRMATION_WINDOW_MS` | `8_000` | `api/_lib/leadHandler.ts` |
 | `OPERATIONAL_ALERT_TIMEOUT_MS` | `1_000` | `api/_lib/operationalAlerts.ts` |
@@ -782,6 +795,7 @@ _nenhum item encontrado_
 | `or p_limit < 1 or p_window <= interval '0 seconds' then` | `site-supabase/supabase/migrations/20260927161243_harden_briefing_assets_and_audits.sql` |
 | `interval '15 minutes'` | `site-supabase/supabase/migrations/20261001130320_preflight_lead_rate_limit.sql` |
 | `or p_limit < 1 or p_window <= interval '0 seconds' then` | `site-supabase/supabase/migrations/20261001130320_preflight_lead_rate_limit.sql` |
+| `('retention', 24 * 60 * 60, 180),` | `site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql` |
 | `const MAX_AGE_MS = 24 * 60 * 60 * 1_000;` | `src/lib/quoteDraft.ts` |
 
 ### H.3 Limites de paginação
@@ -858,6 +872,8 @@ _nenhum item encontrado_
 | O prazo não pode estar no passado. | `api/_lib/contracts.ts` |
 | O produto ${index + 1} é inválido. | `api/_lib/contracts.ts` |
 | Os componentes do kit precisam usar o mesmo nome e a mesma quantidade de conjuntos. | `api/_lib/contracts.ts` |
+| check_cron_heartbeats_failed | `api/_lib/cronHeartbeats.ts` |
+| invalid_cron_heartbeats_response | `api/_lib/cronHeartbeats.ts` |
 | A chave de idempotência não corresponde à solicitação. | `api/_lib/leadHandler.ts` |
 | A solicitação ultrapassa o limite permitido. | `api/_lib/leadHandler.ts` |
 | Envie o conteúdo como application/json. | `api/_lib/leadHandler.ts` |
@@ -1090,9 +1106,7 @@ _nenhum item encontrado_
 | selection_limit_reached | `src/lib/customerSelections.ts` |
 | selection_version_conflict | `src/lib/customerSelections.ts` |
 | Não conseguimos conectar ao serviço de envio. Verifique sua conexão e tente novamente. | `src/lib/http.ts` |
-| O endpoint de ${label} precisa ser uma URL HTTPS válida. | `src/lib/http.ts` |
-| O envio demorou além do esperado. Tente novamente. | `src/lib/http.ts` |
-| … +8 linhas — lista completa em `context.json` | |
+| … +10 linhas — lista completa em `context.json` | |
 
 ## J. Controle de acesso no código (checagens de perfil/permissão)
 
@@ -1103,11 +1117,11 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1897 testes em 142 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1933 testes em 144 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
-| `site-supabase/supabase/tests/database/lead_storage.test.sql` | 69 | schema privado contém as tabelas planejadas, incluindo favoritos de datas sem PII e as duas do back-office (F-03) · seleções persistentes ficam no schema privado · criação de links recebe rate limit próprio · máquina de estados administrativa vive em tabela dedicada (Etapa 8) … |
+| `site-supabase/supabase/tests/database/lead_storage.test.sql` | 69 | schema privado contém as tabelas planejadas, incluindo favoritos de datas sem PII, as duas do back-office (F-03) e o heartbeat dos crons (F-87) · seleções persistentes ficam no schema privado · criação de links recebe rate limit próprio · máquina de estados administrativa vive em tabela dedicada (Etapa 8) … |
 | `site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql` | 68 | trilha de exercicio de direito existe · trilha vincula a conta · trilha registra o tipo de direito · coluna right_type tem constraint check … |
 | `tests/inventario-estado.node.mjs` | 63 | extrairInventario aceita objeto direto, envelope do PostgREST e envelope do MCP · extrairInventario recusa entrada sem as chaves obrigatórias, sem tabelas ou de outra versão · conferirOrigem aprova a resposta que cobre as tabelas das migrations e o ledger · conferirOrigem recusa um banco irmão: as tabelas das migrations não estão lá … |
 | `e2e/smoke.spec.ts` | 62 | headline principal usa Fold Text sem perder acessibilidade · categorias usam fotografia de produto publicado como ponto de descoberta · rotas públicas essenciais não introduzem violações automáticas de acessibilidade · montador de kits preserva componentes e calcula a quantidade completa … |
@@ -1123,6 +1137,7 @@ _nenhum item encontrado_
 | `site-supabase/supabase/tests/database/notification_provider_events.test.sql` | 30 | entrega ganha estado terminal pós-aceite (Etapa 30) · devolução guarda a categoria curta do provedor · reclamação é rastreada independentemente da entrega · deduplicação de eventos de webhook fica em tabela própria … |
 | `tests/api/notifications.test.ts` | 29 | worker de comprovantes do orçamento · recusa chamada sem o segredo agendado · não reivindica a fila enquanto nenhum provedor estiver configurado, mas mede o tamanho dela · fila velha sem provedor configurado alerta o canal operacional … |
 | `site-supabase/supabase/tests/database/commercial_backoffice.test.sql` | 28 | allowlist de operadores existe no schema privado · trilha de auditoria comercial existe · RPC de fila existe · RPC de detalhe existe … |
+| `site-supabase/supabase/tests/database/cron_heartbeat.test.sql` | 28 | tabela de heartbeat existe · RPC de registro existe · RPC de verificacao existe · a tabela nasce com os tres crons agendados em vercel.json … |
 | `tests/validate-agent-instructions.node.mjs` | 28 | aceita AGENTS.md com todas as seções obrigatórias · acusa seção obrigatória apagada por outra sessão · ${CLAUDE_FILE} precisa ser exatamente o import do ${AGENTS_FILE} · acusa referência quebrada e referência órfã em docs/agentes … |
 | `tests/catalog-public-contract.node.mjs` | 27 | aceita somente o contrato público exato de 36 colunas · falha se uma coluna esperada sumir ou uma coluna nova aparecer · falha explicitamente se preço, estoque ou fornecedor forem expostos · recusa identificador, arrays e swatches incompatíveis … |
 | `site-supabase/supabase/tests/database/customer_selections.test.sql` | 26 | seleções privadas por titular existem · RLS é forçada na tabela · cliente não acessa o schema privado · cliente não consulta tabela diretamente … |
@@ -1143,8 +1158,8 @@ _nenhum item encontrado_
 | `site-supabase/supabase/tests/database/selection_asset_integrity.test.sql` | 17 | leitura limitada recebe hash do solicitante · revogação limitada recebe hash do solicitante · site_api usa leitura limitada · anônimo não chama leitura limitada diretamente … |
 | `site-supabase/supabase/tests/database/site_api_privileges.test.sql` | 17 | anon continua sem create_site_quote_request · authenticated continua sem create_site_quote_request · site_api não tem acesso a customer_profiles (fora do escopo das 13 RPCs) · site_api não insere proposal_documents (isso é fluxo administrativo) … |
 | `tests/smoke-deployment.node.mjs` | 17 | aprova um deployment saudável consultando cada rota uma única vez · reprova status inesperado sem repetir a rota · reprova header de segurança ausente ou divergente em qualquer rota HTML · reprova corpo errado no sitemap e content-type errado no Analytics … |
+| `tests/api/maxDuration.test.ts` | 17 | Etapa 24: maxDuration em vercel.json cobre o pior caso real de cada rota · api/quote-requests.ts: catalogValidation + siteDatabase + confirmação (canais em paralelo) · api/contact-requests.ts: preflight + siteDatabase + alerta comercial (sem catalogValidation nem confirmação) · api/notification-events-resend.ts (Etapa 30): apenas uma chamada de RPC (callSiteRpc) … |
 | `site-supabase/supabase/tests/database/contact_commercial_alert.test.sql` | 16 | novo contato alimenta a fila do alerta comercial na mesma transação · contato enfileira exatamente uma entrega · a entrega é o alerta comercial pendente do contato · o envelope identifica o tipo do lead (a API não renderiza texto de orçamento) … |
-| `tests/api/maxDuration.test.ts` | 16 | Etapa 24: maxDuration em vercel.json cobre o pior caso real de cada rota · api/quote-requests.ts: catalogValidation + siteDatabase + confirmação (canais em paralelo) · api/contact-requests.ts: preflight + siteDatabase + alerta comercial (sem catalogValidation nem confirmação) · api/notification-events-resend.ts (Etapa 30): apenas uma chamada de RPC (callSiteRpc) … |
 | `src/lib/commercialBackofficeContract.test.ts` | 14 | contrato do back-office comercial · lê a fila paginada com totais e itens · trata payload que não é objeto como indisponibilidade, não como fila vazia · rejeita item de fila que não é objeto … |
 | `src/lib/sharedSelection.test.ts` | 14 | sharedSelection · preserva prioridade alternativa no link e na seleção reconstruída · preserva cor sem variantId e bloqueia fallback ambíguo ou removido · aceita nomes Unicode e mantém links Latin-1 antigos legíveis … |
 | `tests/api/briefing-assets.test.ts` | 14 | inspeção server-side de anexos privados · estouro do limite devolve 429, não  · sessão que expira entre o upload e a verificação devolve 401, não  · confirma um PNG somente depois de ler a assinatura no Storage privado … |
@@ -1194,6 +1209,7 @@ _nenhum item encontrado_
 | `src/lib/quoteItems.test.ts` | 7 | revalidação de itens históricos · preserva referência removida como bloqueio visível · marca produto removido sem apagá-lo silenciosamente · mantém os marcadores ao normalizar armazenamento local … |
 | `src/lib/quoteSubmission.test.ts` | 7 | reconciliação da seleção após o envio · considera inalterada uma seleção recriada por render sem edição · distingue edição de produto ou contexto da seleção enviada · remove somente os snapshots efetivamente enviados … |
 | `tests/soak-test-notification-queue.node.mjs` | 7 | percentile usa o método nearest-rank e devolve null para lista vazia · parseSoakConfig aplica os padrões e recusa valores fora do contrato · isTerminalDelivery reconhece sent, exhausted e failed com tentativas esgotadas · drena a fila sem falhas, só fala com o banco local e escreve o relatório com os padrões reais … |
+| `tests/api/cron-watchdog.test.ts` | 7 | vigia dos crons (F-87) · recusa chamadas sem o segredo da tarefa agendada · recusa métodos que não são GET · responde 200 quando todos os crons estão saudáveis … |
 | `tests/api/product-page.test.ts` | 7 | HTML inicial de fichas de produto · escapa conteúdo de catálogo no head e no JSON-LD · entrega produto com metadados específicos e schema sem virar checkout · responde 404 e noindex para um identificador inválido sem consultar o catálogo … |
 | `src/context/CustomerAuthContext.test.tsx` | 6 | inicialização da autenticação do cliente · sai do carregamento infinito, informa a falha e permite tentar novamente · trata o erro retornado pelo SDK mesmo quando a Promise é resolvida · não apaga a falha quando INITIAL_SESSION chega vazio após getSession falhar … |
 | `src/lib/catalogFilters.test.ts` | 6 | estado do superfiltro público · apresenta o perfil de novidades como Tendências · aceita apenas IDs conhecidos e remove repetições da URL · traduz IDs amigáveis para as grafias existentes no catálogo … |
@@ -1294,6 +1310,7 @@ _nenhum item encontrado_
 | existingProvider/existingProviderMessageId e apenas finaliza, sem | `api/_lib/commercialTeamAlerts.ts` |
 | finalização. Não reenvia — apenas finaliza. | `api/_lib/commercialTeamAlerts.ts` |
 | próprio do alerta (quem tiver o prazo menor decide). */ | `api/_lib/commercialTeamAlerts.ts` |
+| * Best-effort de proposito: o heartbeat e observabilidade, nao pode derrubar a | `api/_lib/cronHeartbeats.ts` |
 | bucket de rate limit; fora da Vercel, usamos somente o endereço do socket. | `api/_lib/leadHandler.ts` |
 | O caminho alternativo existe somente sob Vitest e aponta para uma | `api/_lib/publicProductPage.ts` |
 | Allowlist exata: por definição, o catálogo canônico não pode receber escritas do site. | `api/_lib/siteDatabase.ts` |

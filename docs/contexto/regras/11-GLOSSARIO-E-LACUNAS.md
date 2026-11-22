@@ -1,6 +1,6 @@
 # 11 · GLOSSÁRIO, DADOS DE REFERÊNCIA E LACUNAS
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `fc29771d0e` · branch `main` · 2026-11-22 08:08 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `8543daca8e` · branch `main` · 2026-11-22 12:58 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## Glossário do domínio (entidades do sistema)
@@ -13,6 +13,7 @@
 | `site_private.commercial_operators` | Allowlist do back-office comercial (F-03). Só service_role escreve; as RPCs de escrita comercial recusam chamador fora daqui, mesmo com JWT válido. | 5 colunas | migration |
 | `site_private.consent_receipts` | _(sem COMMENT ON TABLE — significado não documentado)_ | 9 colunas | migration |
 | `site_private.contact_requests` | _(sem COMMENT ON TABLE — significado não documentado)_ | 16 colunas | migration |
+| `site_private.cron_heartbeats` | Heartbeat dos crons do site (F-87). Uma linha por cron agendado em vercel.json; escrita so pela RPC record_cron_heartbeat. | 7 colunas | migration |
 | `site_private.customer_briefing_assets` | Logos e referências privadas em PNG, JPEG ou WebP. PDFs ficam bloqueados até existir análise estrutural/CDR isolada e antimalware. | 12 colunas | migration |
 | `site_private.customer_occasion_favorites` | IDs de datas comemorativas escolhidas pelo titular. A lista editorial fica no frontend; a conta guarda somente o ID e o vínculo é apagado com auth.users. | 4 colunas | migration |
 | `site_private.customer_profiles` | _(sem COMMENT ON TABLE — significado não documentado)_ | 6 colunas | migration |
@@ -33,7 +34,8 @@
 | `site_private.subject_right_requests` | Trilha do exercicio dos direitos do titular (LGPD art. 18) na Area do Cliente: access, export, correct e delete. Vinculada a conta e removida pelo cascade de auth.users; o registo persistente do apagamento e o tombstone irreversivel em erased_customer_identities. | 4 colunas | migration |
 | `CommercialAlertResult` (TS) | sent \| pending |  | `api/_lib/commercialTeamAlerts.ts` |
 | `LeadKind` (TS) | quote \| contact |  | `api/_lib/contracts.ts` |
-| `OperationalAlertEvent` (TS) | notification_queue_alert \| notification_cron_failed \| retention_cron_failed \| commercial_alerts_cron_failed \| public_catalog_unavailable \| retention_backlog_saturated |  | `api/_lib/operationalAlerts.ts` |
+| `CronName` (TS) | retention \| notifications \| commercial-alerts |  | `api/_lib/cronHeartbeats.ts` |
+| `OperationalAlertEvent` (TS) | notification_queue_alert \| notification_cron_failed \| retention_cron_failed \| commercial_alerts_cron_failed \| public_catalog_unavailable \| retention_backlog_saturated \| cron_watchdog_unhealthy \| cron_watchdog_failed |  | `api/_lib/operationalAlerts.ts` |
 | `ProviderEventApplyReason` (TS) | duplicate \| delivery_not_found \| delivery_state_already_set |  | `api/_lib/siteDatabase.ts` |
 | `CatalogEditorialStatus` (TS) | published \| draft \| retired |  | `shared/catalogEditorial.ts` |
 | `IdeaLandingId` (TS) | onboarding \| eventos \| clientes-vip \| sustentaveis |  | `shared/ideaLandingPages.ts` |
@@ -68,6 +70,9 @@ _nenhum item encontrado_
 
 | Tipo | Problema | Onde |
 |---|---|---|
+| status | valor `failing` para `status` usado no código não existe em nenhum enum do banco/TS | `compara:api/cron-watchdog.ts` |
+| status | valor `late` para `status` usado no código não existe em nenhum enum do banco/TS | `compara:api/cron-watchdog.ts` |
+| status | valor `ok` para `status` usado no código não existe em nenhum enum do banco/TS | `escreve:api/_lib/cronHeartbeats.ts` |
 | status | valor `attached` para `status` usado no código não existe em nenhum enum do banco/TS | `compara:src/pages/QuotePage.tsx`<br>`escreve:src/pages/QuotePage.tsx` |
 
 ## Lacunas — o que este contexto NÃO consegue responder (perguntas para o dono do negócio)
@@ -77,7 +82,7 @@ _nenhum item encontrado_
 - `site_private.quote_adjustment_requests.status` tem valores ['closed', 'new', 'resolved', 'triaged'] mas nenhum mapa de transições foi encontrado no código nem em tabela de transições do banco — a ordem permitida (ex.: pago → cancelado?) não está declarada.
 - `site_private.status_transitions.from_status` é uma coluna de status sem enum/CHECK — os valores válidos e as transições permitidas não estão no banco.
 - `site_private.status_transitions.to_status` é uma coluna de status sem enum/CHECK — os valores válidos e as transições permitidas não estão no banco.
-- 8/24 tabelas sem `COMMENT ON TABLE` — o significado de negócio não está no schema: `site_private.quote_requests`, `site_private.contact_requests`, `site_private.consent_receipts`, `site_private.customer_profiles`, `site_private.quote_request_events`, `site_private.proposal_documents`, `site_private.quote_adjustment_requests`, `site_private.shared_selections`
+- 8/25 tabelas sem `COMMENT ON TABLE` — o significado de negócio não está no schema: `site_private.quote_requests`, `site_private.contact_requests`, `site_private.consent_receipts`, `site_private.customer_profiles`, `site_private.quote_request_events`, `site_private.proposal_documents`, `site_private.quote_adjustment_requests`, `site_private.shared_selections`
 
 ## Regras manuais presentes
 

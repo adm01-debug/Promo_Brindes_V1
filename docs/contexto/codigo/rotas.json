@@ -2,8 +2,8 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "resumo": {
-  "urls": 33,
-  "rotas_http_backend": 14,
+  "urls": 34,
+  "rotas_http_backend": 15,
   "vistas_por_id": 0,
   "itens_menu": 11,
   "lazy": 19
@@ -132,6 +132,7 @@
    "hooks_locais": [],
    "tabelas": [],
    "rpcs": [
+    "check_cron_heartbeats",
     "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
@@ -141,6 +142,7 @@
     "finalize_site_notification_delivery",
     "get_my_briefing_asset_verification",
     "preflight_site_lead_request",
+    "record_cron_heartbeat",
     "record_site_notification_dispatch_started",
     "record_site_notification_provider_acceptance",
     "reject_site_briefing_asset_verification",
@@ -150,7 +152,7 @@
    "canais_realtime": [],
    "flags": [],
    "papeis": [],
-   "arquivos_puxados": 12
+   "arquivos_puxados": 13
   },
   {
    "protegida": false,
@@ -167,6 +169,7 @@
    "hooks_locais": [],
    "tabelas": [],
    "rpcs": [
+    "check_cron_heartbeats",
     "claim_site_commercial_team_alert",
     "claim_site_commercial_team_alerts",
     "claim_site_notification_deliveries",
@@ -175,6 +178,7 @@
     "create_site_quote_request",
     "finalize_site_notification_delivery",
     "preflight_site_lead_request",
+    "record_cron_heartbeat",
     "record_site_notification_dispatch_started",
     "record_site_notification_provider_acceptance",
     "site_notification_queue_health"
@@ -183,7 +187,7 @@
    "canais_realtime": [],
    "flags": [],
    "papeis": [],
-   "arquivos_puxados": 11
+   "arquivos_puxados": 12
   },
   {
    "protegida": false,
@@ -200,6 +204,7 @@
    "hooks_locais": [],
    "tabelas": [],
    "rpcs": [
+    "check_cron_heartbeats",
     "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
@@ -207,6 +212,7 @@
     "create_site_quote_request",
     "finalize_site_notification_delivery",
     "preflight_site_lead_request",
+    "record_cron_heartbeat",
     "record_site_notification_dispatch_started",
     "record_site_notification_provider_acceptance",
     "site_notification_queue_health"
@@ -215,7 +221,41 @@
    "canais_realtime": [],
    "flags": [],
    "papeis": [],
-   "arquivos_puxados": 11
+   "arquivos_puxados": 12
+  },
+  {
+   "protegida": false,
+   "wrappers": [],
+   "pai": null,
+   "indice": false,
+   "lazy": false,
+   "tipo": "api",
+   "caminho": "/api/cron-watchdog",
+   "componente": "cron-watchdog",
+   "arquivo": "api/cron-watchdog.ts",
+   "definida_em": "vercel/api",
+   "hooks": [],
+   "hooks_locais": [],
+   "tabelas": [],
+   "rpcs": [
+    "check_cron_heartbeats",
+    "claim_site_commercial_team_alert",
+    "claim_site_notification_deliveries",
+    "claim_site_quote_notification",
+    "create_site_contact_request",
+    "create_site_quote_request",
+    "finalize_site_notification_delivery",
+    "preflight_site_lead_request",
+    "record_cron_heartbeat",
+    "record_site_notification_dispatch_started",
+    "record_site_notification_provider_acceptance",
+    "site_notification_queue_health"
+   ],
+   "edges": [],
+   "canais_realtime": [],
+   "flags": [],
+   "papeis": [],
+   "arquivos_puxados": 12
   },
   {
    "protegida": false,
@@ -232,6 +272,7 @@
    "hooks_locais": [],
    "tabelas": [],
    "rpcs": [
+    "check_cron_heartbeats",
     "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
@@ -240,6 +281,7 @@
     "finalize_site_notification_delivery",
     "get_my_proposal_document",
     "preflight_site_lead_request",
+    "record_cron_heartbeat",
     "record_site_notification_dispatch_started",
     "record_site_notification_provider_acceptance",
     "site_notification_queue_health"
@@ -248,7 +290,7 @@
    "canais_realtime": [],
    "flags": [],
    "papeis": [],
-   "arquivos_puxados": 11
+   "arquivos_puxados": 12
   },
   {
    "protegida": false,
@@ -340,6 +382,7 @@
    "hooks_locais": [],
    "tabelas": [],
    "rpcs": [
+    "check_cron_heartbeats",
     "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
@@ -347,6 +390,7 @@
     "create_site_quote_request",
     "finalize_site_notification_delivery",
     "preflight_site_lead_request",
+    "record_cron_heartbeat",
     "record_site_notification_dispatch_started",
     "record_site_notification_provider_acceptance",
     "site_notification_queue_health"
@@ -355,7 +399,7 @@
    "canais_realtime": [],
    "flags": [],
    "papeis": [],
-   "arquivos_puxados": 10
+   "arquivos_puxados": 11
   },
   {
    "protegida": false,
@@ -395,6 +439,7 @@
    "hooks_locais": [],
    "tabelas": [],
    "rpcs": [
+    "check_cron_heartbeats",
     "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
@@ -402,6 +447,7 @@
     "create_site_quote_request",
     "finalize_site_notification_delivery",
     "preflight_site_lead_request",
+    "record_cron_heartbeat",
     "record_site_notification_dispatch_started",
     "record_site_notification_provider_acceptance",
     "site_notification_queue_health"
@@ -410,7 +456,7 @@
    "canais_realtime": [],
    "flags": [],
    "papeis": [],
-   "arquivos_puxados": 11
+   "arquivos_puxados": 12
   },
   {
    "protegida": false,
@@ -427,6 +473,7 @@
    "hooks_locais": [],
    "tabelas": [],
    "rpcs": [
+    "check_cron_heartbeats",
     "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
@@ -440,6 +487,7 @@
     "preflight_site_lead_request",
     "purge_archived_customer_selections",
     "purge_site_admin_audit_logs",
+    "record_cron_heartbeat",
     "record_site_notification_dispatch_started",
     "record_site_notification_provider_acceptance",
     "site_notification_queue_health"
@@ -448,7 +496,7 @@
    "canais_realtime": [],
    "flags": [],
    "papeis": [],
-   "arquivos_puxados": 11
+   "arquivos_puxados": 12
   },
   {
    "protegida": false,
@@ -465,6 +513,7 @@
    "hooks_locais": [],
    "tabelas": [],
    "rpcs": [
+    "check_cron_heartbeats",
     "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
@@ -474,6 +523,7 @@
     "finalize_site_notification_delivery",
     "get_site_shared_selection",
     "preflight_site_lead_request",
+    "record_cron_heartbeat",
     "record_site_notification_dispatch_started",
     "record_site_notification_provider_acceptance",
     "revoke_site_shared_selection",
@@ -483,7 +533,7 @@
    "canais_realtime": [],
    "flags": [],
    "papeis": [],
-   "arquivos_puxados": 12
+   "arquivos_puxados": 13
   },
   {
    "protegida": false,
@@ -1187,6 +1237,7 @@
     "WHATSAPP_QUOTE_TEMPLATE"
    ],
    "rpcs": [
+    "check_cron_heartbeats",
     "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
@@ -1196,6 +1247,7 @@
     "finalize_site_notification_delivery",
     "get_my_briefing_asset_verification",
     "preflight_site_lead_request",
+    "record_cron_heartbeat",
     "record_site_notification_dispatch_started",
     "record_site_notification_provider_acceptance",
     "reject_site_briefing_asset_verification",
@@ -1247,6 +1299,7 @@
     "WHATSAPP_QUOTE_TEMPLATE"
    ],
    "rpcs": [
+    "check_cron_heartbeats",
     "claim_site_commercial_team_alert",
     "claim_site_commercial_team_alerts",
     "claim_site_notification_deliveries",
@@ -1255,6 +1308,7 @@
     "create_site_quote_request",
     "finalize_site_notification_delivery",
     "preflight_site_lead_request",
+    "record_cron_heartbeat",
     "record_site_notification_dispatch_started",
     "record_site_notification_provider_acceptance",
     "site_notification_queue_health"
@@ -1304,6 +1358,7 @@
     "WHATSAPP_QUOTE_TEMPLATE"
    ],
    "rpcs": [
+    "check_cron_heartbeats",
     "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
@@ -1311,6 +1366,7 @@
     "create_site_quote_request",
     "finalize_site_notification_delivery",
     "preflight_site_lead_request",
+    "record_cron_heartbeat",
     "record_site_notification_dispatch_started",
     "record_site_notification_provider_acceptance",
     "site_notification_queue_health"
@@ -1327,6 +1383,62 @@
    "chamada_por": [
     "src/lib/http.ts"
    ]
+  },
+  {
+   "metodo": "GET",
+   "caminho": "/api/cron-watchdog",
+   "arquivo": "api/cron-watchdog.ts",
+   "tabelas": [],
+   "env": [
+    "CATALOG_SUPABASE_PUBLISHABLE_KEY",
+    "COMMERCIAL_TEAM_WEBHOOK_TOKEN",
+    "COMMERCIAL_TEAM_WEBHOOK_URL",
+    "CRON_SECRET",
+    "OPERATIONS_ALERT_WEBHOOK_TOKEN",
+    "OPERATIONS_ALERT_WEBHOOK_URL",
+    "RESEND_API_KEY",
+    "SITE_EMAIL_FROM",
+    "SITE_PREVIEW_SUPABASE_PROJECT_REF",
+    "SITE_PUBLIC_ORIGIN",
+    "SITE_REQUEST_HASH_SALT",
+    "SITE_SUPABASE_SECRET_KEY",
+    "SITE_SUPABASE_SERVICE_JWT",
+    "SITE_SUPABASE_URL",
+    "VERCEL_ENV",
+    "VERCEL_URL",
+    "VITE_SUPABASE_PUBLISHABLE_KEY",
+    "WHATSAPP_ACCESS_TOKEN",
+    "WHATSAPP_GRAPH_API_VERSION",
+    "WHATSAPP_PHONE_NUMBER_ID",
+    "WHATSAPP_QUOTE_TEMPLATE"
+   ],
+   "rpcs": [
+    "check_cron_heartbeats",
+    "claim_site_commercial_team_alert",
+    "claim_site_notification_deliveries",
+    "claim_site_quote_notification",
+    "create_site_contact_request",
+    "create_site_quote_request",
+    "finalize_site_notification_delivery",
+    "preflight_site_lead_request",
+    "record_cron_heartbeat",
+    "record_site_notification_dispatch_started",
+    "record_site_notification_provider_acceptance",
+    "site_notification_queue_health"
+   ],
+   "diretos": {
+    "tabelas": [],
+    "rpcs": [],
+    "env": [
+     "CRON_SECRET",
+     "OPERATIONS_ALERT_WEBHOOK_URL"
+    ]
+   },
+   "origem": "vercel/api",
+   "rewrites_de": [],
+   "cron": "*/30 * * * *",
+   "max_duration": 15,
+   "chamada_por": []
   },
   {
    "metodo": "POST",
@@ -1357,6 +1469,7 @@
     "WHATSAPP_QUOTE_TEMPLATE"
    ],
    "rpcs": [
+    "check_cron_heartbeats",
     "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
@@ -1365,6 +1478,7 @@
     "finalize_site_notification_delivery",
     "get_my_proposal_document",
     "preflight_site_lead_request",
+    "record_cron_heartbeat",
     "record_site_notification_dispatch_started",
     "record_site_notification_provider_acceptance",
     "site_notification_queue_health"
@@ -1516,6 +1630,7 @@
     "WHATSAPP_QUOTE_TEMPLATE"
    ],
    "rpcs": [
+    "check_cron_heartbeats",
     "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
@@ -1523,6 +1638,7 @@
     "create_site_quote_request",
     "finalize_site_notification_delivery",
     "preflight_site_lead_request",
+    "record_cron_heartbeat",
     "record_site_notification_dispatch_started",
     "record_site_notification_provider_acceptance",
     "site_notification_queue_health"
@@ -1616,6 +1732,7 @@
     "WHATSAPP_QUOTE_TEMPLATE"
    ],
    "rpcs": [
+    "check_cron_heartbeats",
     "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
@@ -1623,6 +1740,7 @@
     "create_site_quote_request",
     "finalize_site_notification_delivery",
     "preflight_site_lead_request",
+    "record_cron_heartbeat",
     "record_site_notification_dispatch_started",
     "record_site_notification_provider_acceptance",
     "site_notification_queue_health"
@@ -1669,6 +1787,7 @@
     "WHATSAPP_QUOTE_TEMPLATE"
    ],
    "rpcs": [
+    "check_cron_heartbeats",
     "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
@@ -1682,6 +1801,7 @@
     "preflight_site_lead_request",
     "purge_archived_customer_selections",
     "purge_site_admin_audit_logs",
+    "record_cron_heartbeat",
     "record_site_notification_dispatch_started",
     "record_site_notification_provider_acceptance",
     "site_notification_queue_health"
@@ -1736,6 +1856,7 @@
     "WHATSAPP_QUOTE_TEMPLATE"
    ],
    "rpcs": [
+    "check_cron_heartbeats",
     "claim_site_commercial_team_alert",
     "claim_site_notification_deliveries",
     "claim_site_quote_notification",
@@ -1745,6 +1866,7 @@
     "finalize_site_notification_delivery",
     "get_site_shared_selection",
     "preflight_site_lead_request",
+    "record_cron_heartbeat",
     "record_site_notification_dispatch_started",
     "record_site_notification_provider_acceptance",
     "revoke_site_shared_selection",
