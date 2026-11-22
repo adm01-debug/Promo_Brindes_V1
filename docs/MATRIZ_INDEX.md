@@ -16,7 +16,7 @@ Matriz completa dos 230 requisitos: [matriz de fechamento](MATRIZ_FECHAMENTO_PLA
 
 Última execução técnica: [lote controlado do plano de fechamento de 01/10/2026](EXECUCAO_PLANO_FECHAMENTO_20261001.md). A [navegação, impressão e governança editorial de 22/09/2026](EXECUCAO_VALIDACOES_UX_EDITORIAL_20260922.md), com código funcional `909b1eff043a45690a8b08f3b0f55d1dd624474f`, o [fechamento técnico anterior](EXECUCAO_FECHAMENTO_TECNICO_20260922.md), a [rodada complementar](EXECUCAO_COMPLEMENTAR_20260922.md) e a [validação independente](AUDITORIA_5_ESPECIALISTAS_20260922.md) permanecem como evidências históricas.
 
-Distribuição **apurada em 22/09/2026**: 118 I / 100 P / 1 N / 11 E. Distribuição **após a reconciliação de 22/11/2026**: **122 I / 97 P / 0 N / 11 E**. Nenhuma contagem é percentual de qualidade: cada linha conserva seu próprio critério, e dependência externa não vira implementação por decreto.
+Distribuição **apurada em 22/09/2026**: 118 I / 100 P / 1 N / 11 E. Distribuição **após a reconciliação de 22/11/2026**: **119 I / 100 P / 0 N / 11 E** — a única linha que muda de estado é LK10 (N → I); as demais 16 tiveram evidência e método reescritos sem promoção. Nenhuma contagem é percentual de qualidade: cada linha conserva seu próprio critério, e dependência externa não vira implementação por decreto.
 
 ### Reconciliação de 22/11/2026
 
@@ -25,9 +25,9 @@ Commit auditado: `abcd725`. Cada linha abaixo teve fontes relidas no código atu
 | Linha | Antes | Depois | Evidência |
 | --- | --- | --- | --- |
 | LK10 | N | I | Cards fotográficos de categoria em `HomePage.tsx:73-88` (desde #33); acervo autoral segue decisão editorial |
-| UX35 | P | I | `catalogRanking.ts:73-112` combina afinidade e diversidade; teste em `catalogRanking.test.ts:51` |
-| UX49 | P | I | `rankRelatedProducts` em `catalogRanking.ts:116-126`, testado em `catalogRanking.test.ts:43,53` |
-| UX88 | P | I | RPCs `list_my_occasion_favorites`/`set_my_occasion_favorite` em `customerOccasionFavorites.ts:32,39` |
+| UX35 | P | P | `catalogRanking.ts:73-112` combina afinidade e diversidade (`catalogRanking.test.ts:24-31`), mas o aceite exige melhora medida na amostra de consultas reais da etapa 34 — não medida |
+| UX49 | P | P | `rankRelatedProducts` (`catalogRanking.ts:116-126`) ordena por categoria/material, mas não carrega contexto nem filtros de campanha (`ProductCard.tsx:29`) |
+| UX88 | P | P | RPCs `list_my_occasion_favorites`/`set_my_occasion_favorite` (`customerOccasionFavorites.ts:32,39`), sem teste da troca de ano nem da explicação recorrente × edição anual |
 | UX12, UX14, UX19, UX83, LK15 | I | I | reconferidos: vocabulário, 37 tokens, 404 do shell, dez coleções editoriais |
 | GR03, GR06, GR11, GR38 | I | I | reconferidos: dez perguntas, versão 0.9.105, `doctor`, runbook |
 | GR25, GR31, GR34, GR37 | P | P | continuam parciais: sem benchmark de testes afetados, sem `.md` no grafo, sem mapa direcional, sem ensaio de memória |
