@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 set local request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
 
-select plan(41);
+select plan(42);
 
 -- A trilha é privada: só service_role lê; ninguém além do site grava.
 select ok(not pg_catalog.has_table_privilege('anon', 'site_private.pii_read_audit_log', 'select'), 'anon não lê a trilha de leitura de PII');
@@ -248,6 +248,14 @@ select is(
    order by occurred_at desc, id desc limit 1),
   0,
   'busca sem resultado registra a leitura com row_count = 0'
+);
+
+select is(
+  (select filter from site_private.pii_read_audit_log
+   where actor_kind = 'operador' and filter like '%search%'
+   order by occurred_at desc, id desc limit 1),
+  'offset=0 search',
+  'busca sem resultado audita o mesmo filtro canonico, sem o termo'
 );
 
 select is(
