@@ -131,6 +131,15 @@ test('reprova status inesperado sem repetir a rota', async () => {
   }
 });
 
+test('o 503 do health entra na mensagem com o código do problema', async () => {
+  const outcome = await smoke({
+    '/api/health': reply(503, { ...security, 'content-type': 'application/json' }, '{"ok":false,"code":"unsafe_database_target"}'),
+  });
+  assert.equal(outcome.ok, false);
+  assert.equal(outcome.message, '/api/health: HTTP 503 {"ok":false,"code":"unsafe_database_target"} (após 3 tentativas)');
+  assert.equal(outcome.hits['/api/health'], 3);
+});
+
 test('reprova header de segurança ausente ou divergente em qualquer rota HTML', async () => {
   const without = (name) => Object.fromEntries(Object.entries(security).filter(([key]) => key !== name));
   for (const [overrides, expected] of [

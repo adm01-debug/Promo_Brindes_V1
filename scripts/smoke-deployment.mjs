@@ -56,8 +56,11 @@ export async function runSmoke(baseUrl, options = {}) {
           }
           return { status: response.status, headers: response.headers, body };
         }
-        await response.body?.cancel().catch(() => {});
-        lastError = new Error(`${path}: HTTP ${response.status}`);
+        // O 503 do /api/health carrega o código do problema (backend_not_configured,
+        // backend_misconfigured, unsafe_database_target). Descartar o corpo deixava
+        // o release com "HTTP 503" e nenhuma pista de qual dos três aconteceu.
+        const detail = await response.text().catch(() => '');
+        lastError = new Error(`${path}: HTTP ${response.status}${detail ? ` ${detail.slice(0, 200).trim()}` : ''}`);
       } catch (error) {
         lastError = new Error(`${path}: ${describeFailure(error, timeoutMs)}`, { cause: error });
       }

@@ -96,6 +96,19 @@ describe('PF-75: /api/health confere a configuração do banco sem expor segredo
     expect(second.body).toEqual({ ok: false, code: 'backend_misconfigured' });
   });
 
+  it('rejeita porta explícita mesmo com host do projeto isolado', async () => {
+    configure({ SITE_SUPABASE_URL: `https://${SITE_PROJECT}.supabase.co:8443` });
+    const double = responseDouble();
+    await healthHandler({ method: 'GET' }, double.response);
+    expect(double.statusCode).toBe(503);
+    expect(double.body).toEqual({ ok: false, code: 'unsafe_database_target' });
+
+    configure({ SITE_SUPABASE_URL: `https://${SITE_PROJECT}.supabase.co:443` });
+    const portaPadrao = responseDouble();
+    await healthHandler({ method: 'GET' }, portaPadrao.response);
+    expect(portaPadrao.statusCode).toBe(200);
+  });
+
   it('não vaza URL, projeto, credencial nem salt no corpo da resposta', async () => {
     configure({ SITE_SUPABASE_URL: 'https://outroprojeto12345.supabase.co' });
     const double = responseDouble();
