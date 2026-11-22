@@ -182,7 +182,7 @@ Tabela consolidada (uma linha por item). Evidência completa, comandos reproduz�
 | PF-72 | Rotação de segredos | PARCIAL | Lembrete e runbook com conjuntos disjuntos; `SITE_SUPABASE_DB_URL`, `RESEND_API_KEY`, webhooks em nenhum; issue #80 aberta | `secrets-rotation-reminder.yml:36-40`; `RUNBOOK_ROTACAO_SEGREDOS.md:19-40` | não | ENG + DONO |
 | PF-73 | Privilégio mínimo (cutover JWT, Storage) | PARCIAL | Storage exige `sb_secret_`; sem renovação do JWT | `siteDatabase.ts:59-60,84` | não | DONO + ENG |
 | PF-74 | Endurecimento de workflows | PARCIAL | harden-runner 0; zizmor só comentários; SBOM 0; `persist-credentials` em 2; `permissions` por job em 2 | `release.yml:47`; `stale-branches.yml:24` | sim (pins) | ENG (regra 8) |
-| PF-75 | Verificação de configuração no boot | DIVERGÊNCIA | Função morta removida (#191); preflight não existe | `grep assertSafeSiteDatabaseConfiguration` = 0 | sim (#191) | ENG (decidir) |
+| PF-75 | Verificação de configuração no boot | IMPLEMENTADO | `api/health.ts` valida o destino do banco e o smoke de release exige `{"ok":true}` | `tests/api/health.test.ts`; `scripts/smoke-deployment.mjs:104` | sim (#191) | ENG |
 | PF-76 | Revogar `mcp_kv_get` no canônico | BLOQUEADO | Sem recibo | `docs/sql/canonical-principal/URGENTE_*.sql` | não | DONO |
 | PF-77 | Migrations aplicadas com recibo | IMPLEMENTADO | — | `release.yml:77-143` | sim (#165) | — |
 | PF-78 | Diff integral schema/ACL + Advisor | PARCIAL | Sem `db diff` remoto, grants, Advisor | `database.yml:48`; `gerar-banco.mjs:318-324` | não | ENG |

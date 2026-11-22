@@ -71,7 +71,7 @@ Os quatro vieram do lote sem bloco de evidência próprio, diferente dos 54 aber
 | PF-68 | AINDA ABERTO | MEDIO | sim |
 | PF-70 | PARCIAL HOJE | PEQUENO | não |
 | PF-74 | PARCIAL HOJE | MEDIO | não |
-| PF-75 | AINDA ABERTO | PEQUENO | não |
+| PF-75 | FECHADO HOJE (#237) | PEQUENO | não |
 | PF-78 | PARCIAL HOJE | MEDIO | sim |
 | PF-79 | PARCIAL HOJE | MEDIO | não |
 | PF-80 | FECHADO HOJE (#185) | PEQUENO | não |
@@ -232,11 +232,17 @@ Esforço: MEDIO · Depende de segredo: não
 
 Feito: npm audit signatures é passo bloqueante, sem continue-on-error, em .github/workflows/quality.yml:42-44; persist-credentials:false em 16 dos 18 checkouts (quality.yml:27,137; database.yml:27; ci-health.yml:27; graphify.yml:31; contexto.yml:91,132,194,286,317; inventario-estado-semanal.yml:54; release.yml:159; workflows-lint.yml:28; automation-local.yml:31; catalog-contract.yml:36; codeql.yml:39); todos os 16 workflows declaram bloco permissions: no topo (ex.: quality.yml:16, release.yml:16). Falta: (a) harden-runner — `grep -rni harden-runner /home/user/Promo_Brindes_V1/.github/ scripts/ package.json` → zero linhas; (b) zizmor não é executado em nenhum lugar — só existem comentários `# zizmor: ignore[excessive-permissions]` em contexto.yml:311 e inventario-estado-semanal.yml:46, e workflows-lint.yml:36 roda apenas actionlint; (c) SBOM — `grep -rni "sbom\|cyclonedx\|syft" .github/ scripts/ package.json` → zero linhas; (d) persist-credentials ainda é true em stale-branches.yml:24 e está ausente (default true) no checkout de release.yml:47; (e) permissions por job só existe em contexto.yml:311 e inventario-estado-semanal.yml:46.
 
-### PF-75 — AINDA ABERTO
+### PF-75 — IMPLEMENTADO, AGUARDANDO SMOKE EM PRODUÇÃO (#237)
 
 Esforço: PEQUENO · Depende de segredo: não
 
-Busca negativa reproduzível: `grep -rn "assertSafeSiteDatabaseConfiguration" /home/user/Promo_Brindes_V1 --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=graphify-out` → única ocorrência em código é a própria definição em api/_lib/siteDatabase.ts:264-267 (`export function assertSafeSiteDatabaseConfiguration(): boolean { getSiteDatabaseConfig(); return true; }`); os demais hits são documentos (docs/audits/pending-features-20261011/08-codigo-e-graphify.md:62,136; docs/contexto/codigo/logica.json:355; analise-prs/funcionalidades.csv:76). Nenhum chamador em api/, src/, tests/ ou e2e/ — a função continua código morto e não existe preflight de configuração no boot; a validação só ocorre quando cada requisição chama getSiteDatabaseConfig().
+O que existia: `assertSafeSiteDatabaseConfiguration()` era código morto (removida na #191) e a validação de destino do banco só acontecia quando cada requisição chamava `getSiteDatabaseConfig()`. Um deployment apontando para o banco errado só aparecia no primeiro orçamento real.
+
+O que foi feito: `api/health.ts` (declarado em `vercel.json:functions` com `maxDuration: 10`) chama `getSiteDatabaseConfig()` e devolve `200 {"ok":true}` ou `503 {"ok":false,"code":...}` — `backend_not_configured`, `backend_misconfigured` ou `unsafe_database_target`. Nunca devolve URL, projeto, credencial ou salt. `getSiteDatabaseConfig()` passou a recusar porta explícita (`url.port !== ''`), porque host certo com porta errada passava na validação e o release aprovava o candidato. `scripts/smoke-deployment.mjs` exige `/api/health` com `{"ok":true}` antes da promoção do candidato e nas duas verificações pós-promoção (`release.yml`), e passou a ler o corpo de todo 5xx para registrar o código do problema no `deployment-smoke.log`.
+
+Quando a checagem roda: no `release.yml`, não no boot da função. O `/api/health` só confere a configuração a cada requisição — é o smoke do release que transforma isso em gate de promoção.
+
+O que ainda não está verificado: o smoke contra o deployment real da Vercel só roda depois do merge, porque a rota precisa estar publicada para responder. A cobertura local é `tests/api/health.test.ts` (9 casos, incluindo porta explícita e a declaração em `vercel.json`) e os 18 cenários de `tests/smoke-deployment.node.mjs`, que sobem um servidor HTTP efêmero — a confirmação em produção é o primeiro `release.yml` pós-merge.
 
 ### PF-78 — PARCIAL HOJE
 
