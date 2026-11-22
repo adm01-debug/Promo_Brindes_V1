@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 set local request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
 
-select plan(36);
+select plan(41);
 
 -- A trilha é privada: só service_role lê; ninguém além do site grava.
 select ok(not pg_catalog.has_table_privilege('anon', 'site_private.pii_read_audit_log', 'select'), 'anon não lê a trilha de leitura de PII');
@@ -149,10 +149,20 @@ insert into site_private.quote_requests (
   '11111111-1111-4111-8111-111111111111'
 );
 
+-- A mesma resposta e reusada: nenhuma chamada extra pode inflar a contagem da trilha.
+create temp table pii_search_page on commit drop as
+select public.list_site_quote_requests(null, 'titular@example.test', 1, 0) as page;
+
 select is(
-  (public.list_site_quote_requests(null, 'titular@example.test', 1, 0) ->> 'total')::integer,
+  (select (page ->> 'total')::integer from pii_search_page),
   2,
   'a busca por e-mail do titular casa os 2 pedidos, entregando 1'
+);
+
+select is(
+  (select jsonb_array_length(page -> 'requests') from pii_search_page),
+  1,
+  'a pagina entregue traz exatamente 1 pedido, nao o total casado'
 );
 
 select is(
@@ -161,6 +171,24 @@ select is(
    order by occurred_at desc, id desc limit 1),
   1,
   'a trilha grava o volume entregue (1), nao o total casado (2)'
+);
+
+-- O volume da trilha tem de bater com o tamanho da pagina devolvida na mesma chamada.
+select is(
+  (select row_count from site_private.pii_read_audit_log
+   where actor_kind = 'operador' and filter like '%search%'
+   order by occurred_at desc, id desc limit 1),
+  (select jsonb_array_length(page -> 'requests') from pii_search_page),
+  'a linha de trilha e a pagina devolvida descrevem o mesmo volume (1 pedido)'
+);
+
+-- A trilha da busca tem de ser exatamente o status nulo + offset + marcador: nada do contato.
+select is(
+  (select filter from site_private.pii_read_audit_log
+   where actor_kind = 'operador' and filter like '%search%'
+   order by occurred_at desc, id desc limit 1),
+  'offset=0 search',
+  'o filtro auditado e exatamente offset=0 search, sem fragmento do e-mail'
 );
 
 select is(
@@ -199,6 +227,15 @@ select is(
   'as duas buscas por contato geraram registro de leitura com o marcador search'
 );
 
+-- A segunda busca (telefone) tambem tem de gravar o mesmo formato canonico.
+select is(
+  (select filter from site_private.pii_read_audit_log
+   where actor_kind = 'operador' and filter like '%search%'
+   order by occurred_at desc, id desc limit 1),
+  'offset=0 search',
+  'a busca por telefone audita o mesmo filtro canonico, sem o numero'
+);
+
 -- Busca sem resultado tambem registra a tentativa, com volume zero.
 select lives_ok(
   $$ select public.list_site_quote_requests(null, 'nao-existe@example.test', 10, 0) $$,
@@ -211,6 +248,13 @@ select is(
    order by occurred_at desc, id desc limit 1),
   0,
   'busca sem resultado registra a leitura com row_count = 0'
+);
+
+select is(
+  (select count(*) from site_private.pii_read_audit_log
+   where filter ilike '%nao-existe%'),
+  0::bigint,
+  'busca sem resultado tambem nao copia o termo para a trilha'
 );
 
 -- A consulta sem filtro e a unica dessa forma ate aqui: o marcador search fica de
