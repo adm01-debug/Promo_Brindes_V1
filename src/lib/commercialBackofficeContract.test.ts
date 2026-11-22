@@ -7,6 +7,7 @@ import {
   parseSiteNotificationReprocessingResult,
   parseSiteQuoteDetail,
   parseSiteQuoteListPage,
+  parseSiteNotificationBacklogCut,
   parseSiteQuoteProposalPublication,
   parseSiteQuoteStatusChange,
   siteOperatorErrorMessage,
@@ -131,6 +132,21 @@ describe('contrato do back-office comercial', () => {
   it('lê a publicação de proposta com a nova versão e o status quoted', () => {
     expect(parseSiteQuoteProposalPublication({ proposalId: 'prop-2', version: 3, status: 'quoted' }))
       .toEqual({ proposalId: 'prop-2', version: 3, status: 'quoted' });
+  });
+
+  it('lê o resultado do corte de backlog com motivo e totais', () => {
+    expect(parseSiteNotificationBacklogCut({
+      cancelled: 7, scanned: 9, cancelledIds: ['a', 'b'], reason: 'limpeza de backlog',
+    })).toEqual({ cancelled: 7, scanned: 9, reason: 'limpeza de backlog' });
+  });
+
+  it('zera o corte de backlog quando o banco devolve contagem inválida', () => {
+    expect(parseSiteNotificationBacklogCut({ cancelled: -1, scanned: 'muitas' }))
+      .toEqual({ cancelled: 0, scanned: 0, reason: '' });
+  });
+
+  it('trata payload de corte que não é objeto como erro de contrato', () => {
+    expect(() => parseSiteNotificationBacklogCut(null)).toThrow('commercial_backoffice_invalid_backlog_cut');
   });
 
   it('lê a mudança de status com o estágio anterior', () => {

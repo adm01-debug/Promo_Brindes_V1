@@ -133,6 +133,12 @@ export interface SiteQuoteStatusChange {
   status: SiteQuoteStatus;
 }
 
+export interface SiteNotificationBacklogCut {
+  cancelled: number;
+  scanned: number;
+  reason: string;
+}
+
 export interface SiteQuoteProposalPublication {
   proposalId: string;
   version: number;
@@ -344,6 +350,15 @@ export function parseSiteQuoteStatusChange(data: unknown): SiteQuoteStatusChange
     id: readString(data.id),
     previousStatus: readStatus(data.previousStatus),
     status: readStatus(data.status),
+  };
+}
+
+export function parseSiteNotificationBacklogCut(data: unknown): SiteNotificationBacklogCut {
+  if (!isRecord(data)) throw new Error('commercial_backoffice_invalid_backlog_cut');
+  return {
+    cancelled: readCount(data.cancelled),
+    scanned: readCount(data.scanned),
+    reason: readString(data.reason),
   };
 }
 

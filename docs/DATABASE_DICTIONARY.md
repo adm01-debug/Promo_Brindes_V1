@@ -458,5 +458,5 @@ Trilha do exercicio dos direitos do titular (LGPD art. 18) na Area do Cliente: a
 | `save_my_selection` | `p_title text, p_references jsonb, p_campaign jsonb, p_id uuid, p_expected_version integer` | — |
 | `set_my_occasion_favorite` | `p_occasion_id text, p_saved boolean` | Adiciona ou remove data favorita da conta autenticada; rejeita estado ausente. |
 | `set_my_selection_archived` | `p_id uuid, p_expected_version integer, p_archived boolean` | — |
-| `site_notification_queue_health` | `` | F-11: saúde da fila por canal (elegíveis, esgotadas, incertas e agora outOfWindowCount — entregas pending/failed que passaram de max_age e serão canceladas no próximo claim). |
+| `site_notification_queue_health` | `` | F-11: saúde da fila por canal. eligibleCount usa o mesmo critério do claim (status pronto, dentro da janela, pedido não spam e não anonimizado); outOfWindowCount conta o pending/failed que o próximo claim vai cancelar. |
 | `update_site_quote_status` | `p_request_id uuid, p_status text` | F-03/F-11: muda o status do orçamento respeitando status_transitions. Ao entrar em spam, cancela as entregas pendentes do pedido (o trigger de enfileiramento é AFTER INSERT, então sem isso o job ficaria órfão na fila). |

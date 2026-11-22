@@ -10,13 +10,54 @@ import {
   isSiteProposalRejected,
   isSiteQuoteConflict,
   siteOperatorErrorMessage,
-  type SiteNotificationDeliveryReport,
+        <>
+          <BackofficeList
+            page={page}
+            loading={loadingList}
+            error={listError}
+            status={status}
+            search={search}
+            searchDraft={searchDraft}
+            onSearchDraft={setSearchDraft}
+            onSubmitSearch={(event) => {
+              event.preventDefault();
+              patchParams({ q: searchDraft.trim() || null, pagina: null });
+            }}
+            onStatus={(value) => patchParams({ status: value, pagina: null })}
+            onPage={(value) => patchParams({ pagina: value > 0 ? String(value) : null })}
+            onOpen={(id) => patchParams({ pedido: id })}
+            onRetry={() => setRetryKey((key) => key + 1)}
+            onCutBacklog={(event) => { void handleCutBacklog(event); }}
+            backlogCut={backlogCut}
+            cutting={cutting}
+            cutError={cutError}
+            cutReason={cutReason}
+            onCutReason={setCutReason}
+          />
+          <BackofficeQueuePanel
+            report={report}
+            loading={loadingReport}
+            error={reportError}
+            notice={reportNotice}
+            busy={reportBusy}
+            selected={selectedDeliveries}
+            reason={reprocessReason}
+            onToggle={toggleDelivery}
+            onReason={setReprocessReason}
+            onReprocess={() => { void handleReprocess(); }}
+            onRetry={() => setReportKey((key) => key + 1)}
+          />
+        </>
   type SiteQuoteDetail,
   type SiteQuoteListPage,
   type SiteQuoteStatus,
 } from '../lib/commercialBackofficeContract';
 import {
+<<<<<<< HEAD
   fetchSiteNotificationDeliveryReport,
+=======
+  cancelNotificationBacklog,
+>>>>>>> 869d389 (fix: revalida elegibilidade nos claims e instrumenta o corte de backlog no painel)
   fetchSiteQuoteDetail,
   listSiteQuoteRequests,
   publishSiteQuoteProposal,
@@ -72,6 +113,12 @@ function BackofficeList({
   onPage,
   onOpen,
   onRetry,
+  onCutBacklog,
+  backlogCut,
+  cutting,
+  cutError,
+  cutReason,
+  onCutReason,
 }: {
   page: SiteQuoteListPage | null;
   loading: boolean;
@@ -85,6 +132,12 @@ function BackofficeList({
   onPage: (offset: number) => void;
   onOpen: (id: string) => void;
   onRetry: () => void;
+  onCutBacklog: (event: FormEvent<HTMLFormElement>) => void;
+  backlogCut: SiteNotificationBacklogCut | null;
+  cutting: boolean;
+  cutError: string;
+  cutReason: string;
+  onCutReason: (value: string) => void;
 }) {
   const requests = page?.requests ?? [];
   const total = page?.total ?? 0;
@@ -114,6 +167,31 @@ function BackofficeList({
           placeholder="Ex.: PB26123456 ou Metalúrgica"
         />
         <button type="submit" className="btn btn-outline"><Search aria-hidden="true" size={16} /> Buscar</button>
+      </form>
+
+      <form className="customer-pagination" onSubmit={onCutBacklog}>
+        <label htmlFor="backoffice-cut-reason">
+          Limpar a fila de notificações (cancela o que não pode mais ser enviado)
+        </label>
+        <input
+          id="backoffice-cut-reason"
+          type="text"
+          value={cutReason}
+          onChange={(event) => onCutReason(event.target.value)}
+          minLength={3}
+          maxLength={200}
+          required
+          placeholder="Motivo do corte (3 a 200 caracteres)"
+        />
+        <button type="submit" className="btn btn-outline" disabled={cutting}>
+          {cutting ? 'Limpando…' : 'Limpar fila'}
+        </button>
+        {cutError ? <p className="customer-data-error" role="alert">{cutError}</p> : null}
+        {backlogCut ? (
+          <p className="customer-data-note" role="status">
+            {backlogCut.cancelled} entrega(s) cancelada(s) de {backlogCut.scanned} verificada(s).
+          </p>
+        ) : null}
       </form>
 
       <div className="customer-data-actions" role="group" aria-label="Filtrar por estágio">
@@ -743,6 +821,34 @@ function BackofficeContent() {
     }
   }, [requestId]);
 
+  const [cutReason, setCutReason] = useState('');
+  const [cutting, setCutting] = useState(false);
+  const [cutError, setCutError] = useState('');
+  const [backlogCut, setBacklogCut] = useState<SiteNotificationBacklogCut | null>(null);
+
+  const handleCutBacklog = useCallback(async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const reason = cutReason.trim();
+    setCutError('');
+    setBacklogCut(null);
+    if (reason.length < 3) {
+      setCutError('Descreva o motivo com pelo menos 3 caracteres.');
+      return;
+    }
+    setCutting(true);
+    try {
+      const result = await cancelNotificationBacklog(reason);
+      setBacklogCut(result);
+      setCutReason('');
+      setRetryKey((key) => key + 1);
+    } catch (cause) {
+      if (isSiteOperatorError(cause)) setOperatorError(true);
+      else setCutError(siteOperatorErrorMessage(cause));
+    } finally {
+      setCutting(false);
+    }
+  }, [cutReason]);
+
   const operatorBlocked = useMemo(() => operatorError, [operatorError]);
 
   if (operatorBlocked) {
@@ -777,6 +883,7 @@ function BackofficeContent() {
           onRetry={reloadDetail}
         />
       ) : (
+<<<<<<< HEAD
         <>
           <BackofficeList
             page={page}
@@ -809,6 +916,31 @@ function BackofficeContent() {
             onRetry={() => setReportKey((key) => key + 1)}
           />
         </>
+=======
+        <BackofficeList
+          page={page}
+          loading={loadingList}
+          error={listError}
+          status={status}
+          search={search}
+          searchDraft={searchDraft}
+          onSearchDraft={setSearchDraft}
+          onSubmitSearch={(event) => {
+            event.preventDefault();
+            patchParams({ q: searchDraft.trim() || null, pagina: null });
+          }}
+          onStatus={(value) => patchParams({ status: value, pagina: null })}
+          onPage={(value) => patchParams({ pagina: value > 0 ? String(value) : null })}
+          onOpen={(id) => patchParams({ pedido: id })}
+          onRetry={() => setRetryKey((key) => key + 1)}
+          onCutBacklog={(event) => { void handleCutBacklog(event); }}
+          backlogCut={backlogCut}
+          cutting={cutting}
+          cutError={cutError}
+          cutReason={cutReason}
+          onCutReason={setCutReason}
+        />
+>>>>>>> 869d389 (fix: revalida elegibilidade nos claims e instrumenta o corte de backlog no painel)
       )}
     </section>
   );

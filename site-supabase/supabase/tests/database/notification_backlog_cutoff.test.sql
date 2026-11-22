@@ -10,7 +10,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(40);
+select plan(42);
 
 -- === Fixtures ====================================================================
 
@@ -204,38 +204,71 @@ select is(
 );
 
 -- === 4. Claims em lote cancelam o que nao e elegivel =============================
+--
+-- Pedidos novos de proposito: a secao 3 ja cancelou as entregas do fixture pelo
+-- caminho manual, e verificar 'cancelled' nelas provaria apenas o que a porta
+-- publica fez. O trigger de status nao deixa cancelled voltar a pending, entao o
+-- par inelegivel/elegivel de cada fila nasce aqui.
+insert into site_private.quote_requests (
+  id, client_request_id, request_hash, source, status, contact_name, company, email, phone,
+  city, desired_deadline, notes, client_submitted_at
+) values
+  ('c0000000-0000-4000-8000-000000000008', 'f11-quote-spam-claim', repeat('b', 64), 'site-promo-brindes',
+   'spam', 'Spam Claim', 'Spam Ltda', 'claim@spam.test', '11999990011', null, null, null, now()),
+  ('c0000000-0000-4000-8000-000000000009', 'f11-quote-antigo-claim', repeat('c', 64), 'site-promo-brindes',
+   'new', 'Antigo Claim', 'Antiga', 'claim-antigo@alfa.test', '11999990012', null, null, null, now());
+
+insert into site_private.contact_requests (
+  id, client_request_id, request_hash, source, status, contact_name, email, phone,
+  message, client_submitted_at
+) values
+  ('d0000000-0000-4000-8000-000000000004', 'f11-contact-spam-claim', repeat('d', 64), 'site-promo-brindes-contact',
+   'spam', 'Contato Spam Claim', 'contato-claim@spam.test', '11999990013', 'spam', now());
+
+delete from site_private.notification_deliveries
+ where request_id in (
+   'c0000000-0000-4000-8000-000000000008',
+   'c0000000-0000-4000-8000-000000000009',
+   'd0000000-0000-4000-8000-000000000004'
+ );
+
+insert into site_private.notification_deliveries (request_kind, request_id, channel, audience, status, created_at, next_attempt_at)
+values
+  ('quote', 'c0000000-0000-4000-8000-000000000008', 'email', 'customer', 'pending', now(), now() - interval '1 minute'),
+  ('quote', 'c0000000-0000-4000-8000-000000000009', 'email', 'customer', 'pending', now() - interval '40 days', now() - interval '1 minute'),
+  ('contact', 'd0000000-0000-4000-8000-000000000004', 'email', 'commercial_team', 'pending', now(), now() - interval '1 minute');
 
 select is(
   jsonb_array_length(public.claim_site_notification_deliveries(array['email'], 10)),
   0,
-  'claim em lote nao reivindica nada quando so resta entrega inelegivel'
+  'claim em lote nao reivindica confirmacao inelegivel (spam e fora da janela)'
 );
 select is(
   (select status from site_private.notification_deliveries
-   where request_kind = 'quote' and request_id = 'c0000000-0000-4000-8000-000000000006' and audience = 'customer'),
+   where request_kind = 'quote' and request_id = 'c0000000-0000-4000-8000-000000000008' and audience = 'customer'),
   'cancelled',
   'claim em lote cancela a entrega do pedido em spam'
 );
 select is(
   (select status from site_private.notification_deliveries
-   where request_kind = 'quote' and request_id = 'c0000000-0000-4000-8000-000000000007' and audience = 'customer'),
+   where request_kind = 'quote' and request_id = 'c0000000-0000-4000-8000-000000000009' and audience = 'customer'),
   'cancelled',
   'claim em lote cancela a entrega acima da janela'
 );
 select is(
   (select attempts from site_private.notification_deliveries
-   where request_kind = 'quote' and request_id = 'c0000000-0000-4000-8000-000000000006' and audience = 'customer')::integer,
+   where request_kind = 'quote' and request_id = 'c0000000-0000-4000-8000-000000000008' and audience = 'customer')::integer,
   0,
   'cancelar nao consome tentativa (attempts continua 0)'
 );
 select is(
   jsonb_array_length(public.claim_site_commercial_team_alerts(10)),
   0,
-  'claim em lote do comercial nao reivindica nada quando so resta alerta inelegivel'
+  'claim em lote do comercial nao reivindica alerta inelegivel'
 );
 select is(
   (select status from site_private.notification_deliveries
-   where request_kind = 'contact' and request_id = 'd0000000-0000-4000-8000-000000000003' and audience = 'commercial_team'),
+   where request_kind = 'contact' and request_id = 'd0000000-0000-4000-8000-000000000004' and audience = 'commercial_team'),
   'cancelled',
   'claim em lote do comercial cancela o alerta de contato em spam'
 );
@@ -303,6 +336,38 @@ select is(
 select ok(
   public.site_notification_queue_health() @> '[{"channel":"email","eligibleCount":0,"exhaustedCount":0}]'::jsonb,
   'saude da fila continua devolvendo o contrato anterior (channel/eligibleCount/exhaustedCount)'
+);
+
+-- Fila com entrega pronta para tentativa, dentro da janela, mas de pedido em spam:
+-- nao e trabalho pendente de verdade, e o proximo claim a cancela. Se eligibleCount
+-- voltar a medir so status/next_attempt_at, ela aparece como fila parada e o alerta
+-- de saude dispara por um job que nao existe.
+insert into site_private.quote_requests (
+  id, client_request_id, request_hash, source, status, contact_name, company, email, phone,
+  city, desired_deadline, notes, client_submitted_at
+) values
+  ('c0000000-0000-4000-8000-00000000000a', 'f11-quote-spam-saude', repeat('e', 64), 'site-promo-brindes',
+   'spam', 'Spam Saude', 'Spam Ltda', 'saude@spam.test', '11999990014', null, null, null, now());
+
+delete from site_private.notification_deliveries
+ where request_id = 'c0000000-0000-4000-8000-00000000000a';
+
+insert into site_private.notification_deliveries (request_kind, request_id, channel, audience, status, created_at, next_attempt_at)
+values ('quote', 'c0000000-0000-4000-8000-00000000000a', 'email', 'customer', 'pending', now(), now() - interval '1 minute');
+
+select is(
+  (select (item ->> 'eligibleCount')::integer
+   from jsonb_array_elements(public.site_notification_queue_health()) item
+   where item ->> 'channel' = 'email'),
+  0,
+  'saude da fila nao conta como elegivel a entrega de pedido em spam'
+);
+select is(
+  (select (item ->> 'outOfWindowCount')::integer
+   from jsonb_array_elements(public.site_notification_queue_health()) item
+   where item ->> 'channel' = 'email'),
+  1,
+  'saude da fila denuncia como fora da janela a entrega de pedido em spam'
 );
 
 -- === 8. Privilegios =============================================================

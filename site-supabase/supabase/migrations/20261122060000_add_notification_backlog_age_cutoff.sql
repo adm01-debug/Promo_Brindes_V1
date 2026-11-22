@@ -120,7 +120,10 @@ set search_path = ''
 as $fn$
 declare
   v_actor text := left(btrim(coalesce(p_actor_label, 'notification worker')), 160);
-  v_reason text := left(btrim(coalesce(p_reason, 'backlog inelegivel')), 160);
+  -- 200 acompanha o teto que a porta publica aceita: cortar em 160 aqui perdia os
+  -- ultimos 40 caracteres de um motivo valido, e era justamente onde o operador
+  -- costuma dizer de qual campanha ou cliente estava falando.
+  v_reason text := left(btrim(coalesce(p_reason, 'backlog inelegivel')), 200);
   v_cancelled_ids uuid[] := array[]::uuid[];
   v_scanned integer;
 begin
@@ -151,7 +154,7 @@ begin
   if cardinality(v_cancelled_ids) > 0 then
     insert into site_private.admin_audit_log (table_name, operation, row_id, performed_by, application_name)
     select 'notification_deliveries', 'UPDATE', item.id::text, v_actor,
-           left('cancel_ineligible_notification_backlog: ' || v_reason, 200)
+           'cancel_ineligible_notification_backlog: ' || v_reason
     from unnest(v_cancelled_ids) as item(id);
   end if;
 
@@ -272,6 +275,11 @@ begin
       and delivery.channel = any(p_channels)
       and delivery.attempts < v_policy.max_attempts
       and (delivery.last_error_code is distinct from 'whatsapp_dispatch_started' or delivery.provider_message_id is not null)
+      -- Revalidar aqui e obrigatorio: o comando acima rodou com outro snapshot, e
+      -- uma autoexclusao (F-30) que commitou no intervalo tornaria esta entrega
+      -- inelegivel. Sem a checagem, o webhook sai com contato anonimizado.
+      and site_private.notification_delivery_is_eligible(
+        delivery.request_kind, delivery.request_id, delivery.created_at, v_policy.max_age)
       and ((delivery.status in ('pending', 'failed') and delivery.next_attempt_at <= now())
         or (delivery.status = 'processing' and delivery.lease_expires_at <= now()))
     order by delivery.next_attempt_at, delivery.created_at, delivery.id
@@ -424,6 +432,10 @@ begin
     where delivery.request_kind in ('quote', 'contact')
       and delivery.audience = 'commercial_team'
       and delivery.attempts < v_policy.max_attempts
+      -- Mesma revalidacao do claim de confirmacoes: o SPAM/anonymize pode ter
+      -- commitado depois do comando de cancelamento e antes desta selecao.
+      and site_private.notification_delivery_is_eligible(
+        delivery.request_kind, delivery.request_id, delivery.created_at, v_policy.max_age)
       and ((delivery.status in ('pending', 'failed') and delivery.next_attempt_at <= now())
         or (delivery.status = 'processing' and delivery.lease_expires_at <= now()))
     order by delivery.next_attempt_at, delivery.created_at, delivery.id
@@ -553,11 +565,23 @@ as $fn$
   cross join lateral (select policy.max_age from site_private.notification_policy() policy) as policy
   left join lateral (
     select
+      -- "Elegivel" tem de usar o mesmo criterio do claim: status pronto para
+      -- tentativa, dentro da janela e com pedido existente/nao spam/nao anonimizado.
+      -- Antes so olhava status e next_attempt_at, entao uma entrega vencida e uma
+      -- de pedido em spam entravam em eligibleCount e ainda definiam a idade que
+      -- dispara o alerta de fila parada — o alarme apontava para job que o proximo
+      -- claim cancelaria.
       min(delivery.created_at) filter (
-        where delivery.status in ('pending', 'failed') and delivery.next_attempt_at <= now()
+        where delivery.status in ('pending', 'failed')
+          and delivery.next_attempt_at <= now()
+          and site_private.notification_delivery_is_eligible(
+            delivery.request_kind, delivery.request_id, delivery.created_at, policy.max_age)
       ) as oldest_eligible_created_at,
       count(*) filter (
-        where delivery.status in ('pending', 'failed') and delivery.next_attempt_at <= now()
+        where delivery.status in ('pending', 'failed')
+          and delivery.next_attempt_at <= now()
+          and site_private.notification_delivery_is_eligible(
+            delivery.request_kind, delivery.request_id, delivery.created_at, policy.max_age)
       ) as eligible_count,
       count(*) filter (where delivery.status = 'exhausted') as exhausted_count,
       count(*) filter (
@@ -566,7 +590,8 @@ as $fn$
       ) as uncertain_count,
       count(*) filter (
         where delivery.status in ('pending', 'failed')
-          and delivery.created_at < now() - policy.max_age
+          and not site_private.notification_delivery_is_eligible(
+            delivery.request_kind, delivery.request_id, delivery.created_at, policy.max_age)
       ) as out_of_window_count
     from site_private.notification_deliveries delivery
     where delivery.request_kind = 'quote'
@@ -576,4 +601,4 @@ as $fn$
 $fn$;
 
 comment on function public.site_notification_queue_health() is
-  'F-11: saúde da fila por canal (elegíveis, esgotadas, incertas e agora outOfWindowCount — entregas pending/failed que passaram de max_age e serão canceladas no próximo claim).';
+  'F-11: saúde da fila por canal. eligibleCount usa o mesmo critério do claim (status pronto, dentro da janela, pedido não spam e não anonimizado); outOfWindowCount conta o pending/failed que o próximo claim vai cancelar.';
