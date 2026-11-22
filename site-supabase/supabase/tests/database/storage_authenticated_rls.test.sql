@@ -10,7 +10,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(33);
+select plan(42);
 
 -- === A policy existe e e do papel certo (pre-condicao dos testes de comportamento) ===
 
@@ -57,7 +57,7 @@ grant usage on schema extensions to authenticated;
 grant execute on all functions in schema extensions to authenticated;
 
 -- Valor compartilhado entre os dois lados da troca de papel.
-create temporary table rls_probe (path text not null, expired_path text not null);
+create temporary table rls_probe (path text not null, expired_path text not null, upload_path text not null);
 grant select on rls_probe to authenticated;
 
 -- Titular A cria duas reservas (uma delas vai expirar) e materializa os objetos.
@@ -66,8 +66,10 @@ do $$
 declare
   v_live jsonb := public.create_my_briefing_asset('logo.png', 'image/png', 2048, 'logo');
   v_dead jsonb := public.create_my_briefing_asset('velho.png', 'image/png', 2048, 'logo');
+  v_up jsonb := public.create_my_briefing_asset('anexo.png', 'image/png', 2048, 'logo');
 begin
-  insert into rls_probe (path, expired_path) values (v_live ->> 'path', v_dead ->> 'path');
+  insert into rls_probe (path, expired_path, upload_path)
+    values (v_live ->> 'path', v_dead ->> 'path', v_up ->> 'path');
   insert into storage.objects (id, bucket_id, name, owner_id, metadata) values
     (gen_random_uuid(), 'customer-briefing-assets', v_live ->> 'path',
      'a1111111-1111-4111-8111-111111111111', '{"size":2048,"mimetype":"image/png"}'::jsonb),
@@ -78,6 +80,22 @@ begin
 end;
 $$;
 
+-- === Registro de DDL executado (event trigger log_admin_ddl) ===
+-- PF-82 pede verificar o registro de DDL executado: aqui o event trigger é
+-- exercitado de verdade, não por grep em prosrc.
+
+create table public.ddl_probe_table (id int);
+select ok(
+  (select count(*) from site_private.admin_ddl_log
+    where command_tag = 'CREATE TABLE' and schema_name = 'public') >= 1,
+  'CREATE TABLE gera linha no registro de DDL com o schema alvo'
+);
+drop table public.ddl_probe_table;
+select ok(
+  (select count(*) from site_private.admin_ddl_log where command_tag = 'DROP TABLE') >= 1,
+  'DROP TABLE também entra no registro de DDL'
+);
+
 -- === Storage com o papel `authenticated` (RLS de verdade) ===
 
 select is(
@@ -87,6 +105,45 @@ select is(
 );
 
 set local role authenticated;
+
+-- Achado PF-82/#227: se todos os uploads testados falhassem, uma policy que
+-- rejeitasse TODO upload passaria. Este bloco prova o caminho feliz: reserva
+-- valida + metadata igual ao registrado e aceita pelo with check.
+set local storage.allow_delete_query = 'true';
+insert into storage.objects (id, bucket_id, name, owner_id, metadata)
+select gen_random_uuid(), 'customer-briefing-assets', upload_path,
+       'a1111111-1111-4111-8111-111111111111', '{"size":2048,"mimetype":"image/png"}'::jsonb
+from rls_probe;
+select is(
+  (select count(*) from storage.objects
+    where bucket_id = 'customer-briefing-assets' and name = (select upload_path from rls_probe)),
+  1::bigint,
+  'upload legítimo com reserva válida passa pela policy (a policy não bloqueia todo upload)'
+);
+delete from storage.objects
+  where bucket_id = 'customer-briefing-assets' and name = (select upload_path from rls_probe);
+select is(
+  (select count(*) from storage.objects
+    where bucket_id = 'customer-briefing-assets' and name = (select upload_path from rls_probe)),
+  0::bigint,
+  'o upload de teste sai pela policy de delete do próprio titular'
+);
+select throws_ok(
+  (select format('insert into storage.objects (id, bucket_id, name, owner_id, metadata)
+    values (gen_random_uuid(), %L, %L, %L, %L::jsonb)',
+    'customer-briefing-assets', (select upload_path from rls_probe),
+    'a1111111-1111-4111-8111-111111111111', '{"size":999999,"mimetype":"image/png"}')),
+  '42501', null,
+  'upload com tamanho divergente da reserva é rejeitado'
+);
+select throws_ok(
+  (select format('insert into storage.objects (id, bucket_id, name, owner_id, metadata)
+    values (gen_random_uuid(), %L, %L, %L, %L::jsonb)',
+    'customer-briefing-assets', (select upload_path from rls_probe),
+    'a1111111-1111-4111-8111-111111111111', '{"size":2048,"mimetype":"text/html"}')),
+  '42501', null,
+  'upload com MIME diferente da reserva é rejeitado'
+);
 
 select is(
   (select count(*) from storage.objects where bucket_id = 'customer-briefing-assets'),
@@ -157,10 +214,9 @@ select throws_ok(
   '42501', null,
   'B não grava forjando owner_id de A'
 );
--- storage.objects tem o trigger protect_objects_delete, que exige a mesma
--- variavel que a Storage API liga antes de apagar. Sem ela o DELETE falharia por
--- motivo alheio a RLS e nao testaria a policy.
-set local storage.allow_delete_query = 'true';
+-- storage.allow_delete_query ja foi ligado acima (e o que a Storage API faz antes
+-- de apagar); sem ele o DELETE falharia pelo trigger protect_objects_delete, por
+-- motivo alheio a RLS.
 delete from storage.objects where name = (select path from rls_probe);
 select is(
   (select count(*) from storage.objects where name = (select path from rls_probe)),
@@ -204,9 +260,14 @@ select throws_ok(
   'authenticated não altera tabela de negócio'
 );
 select throws_ok(
-  'drop table site_private.commercial_audit_log',
+  'drop table site_private.admin_audit_log',
   '42501', null,
-  'authenticated não derruba tabela de auditoria'
+  'authenticated não derruba a tabela de auditoria real (admin_audit_log)'
+);
+select throws_ok(
+  'delete from site_private.admin_ddl_log',
+  '42501', null,
+  'authenticated não apaga o registro de DDL executado'
 );
 
 reset role;
@@ -271,6 +332,44 @@ select is(
   (select count(*) from site_private.rate_limit_buckets where identifier_hash = 'nao-e-sha256'),
   0::bigint,
   'identificador recusado não deixou linha no balde'
+);
+
+-- === Bloqueio por excesso de acessos a seleções compartilhadas ===
+-- PF-82 também pede este critério. get_site_shared_selection consome o limite de
+-- 120 leituras por hash/hora; o 121º acesso precisa falhar.
+
+create temporary table shared_probe (allowed integer, blocked boolean);
+grant insert on shared_probe to site_api;
+
+do $$
+declare
+  v_allowed integer := 0;
+  v_blocked boolean := false;
+begin
+  for i in 1..125 loop
+    begin
+      perform public.get_site_shared_selection(gen_random_uuid(), repeat('c', 64));
+      v_allowed := v_allowed + 1;
+    exception when others then
+      if sqlerrm = 'shared_selection_rate_limit_exceeded' then
+        v_blocked := true;
+        exit;
+      end if;
+      raise;
+    end;
+  end loop;
+  insert into shared_probe (allowed, blocked) values (v_allowed, v_blocked);
+end;
+$$;
+
+select is(
+  (select allowed from shared_probe),
+  120,
+  'as 120 primeiras leituras de seleção compartilhada passam'
+);
+select ok(
+  (select blocked from shared_probe),
+  'o 121º acesso do mesmo hash é bloqueado pelo limite'
 );
 
 reset role;
