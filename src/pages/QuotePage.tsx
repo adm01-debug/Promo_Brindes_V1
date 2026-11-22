@@ -90,6 +90,10 @@ export default function QuotePage() {
   const [website, setWebsite] = useState('');
   const formRef = useRef<HTMLFormElement>(null);
   const availabilityNoticeRef = useRef<HTMLDivElement>(null);
+  // Ao responder ou recusar, os quatro botões deixam de existir. Sem mover o
+  // foco, o teclado perde a posição e a região de status nasce já preenchida,
+  // então o leitor de tela não anuncia nada.
+  const feedbackReplyRef = useRef<HTMLParagraphElement>(null);
   const submittingRef = useRef(false);
   const requestAttemptRef = useRef<{ id: string; submittedAt: string } | null>(null);
   const cartInitializedRef = useRef(false);
@@ -113,7 +117,7 @@ export default function QuotePage() {
     // PF-54: o contexto recuperado só pode ser editado ou removido aqui; os
     // dois casos descrevem um conflito real com a direção que veio do catálogo.
     if (activeCampaign && !campaign) {
-      trackFunnelEvent('campaign_conflict', { resolution: 'removida', fields: campaignFieldsCount(activeCampaign) });
+      trackFunnelEvent('campaign_context_adjusted', { resolution: 'removida', fields: campaignFieldsCount(activeCampaign) });
     }
     cart.setCampaign(campaign);
     requestAttemptRef.current = null;
@@ -126,7 +130,7 @@ export default function QuotePage() {
       [key]: value,
     };
     if (activeCampaign?.[key] !== value) {
-      trackFunnelEvent('campaign_conflict', { resolution: 'editada', fields: campaignFieldsCount(next) });
+      trackFunnelEvent('campaign_context_adjusted', { resolution: 'editada', fields: campaignFieldsCount(next) });
     }
     cart.setCampaign(next);
     requestAttemptRef.current = null;
@@ -397,13 +401,21 @@ export default function QuotePage() {
     }
   }
 
+  function focusFeedbackReply() {
+    // O parágrafo entra no mesmo commit que remove os botões; o foco é movido
+    // depois para que o destino já exista no DOM.
+    requestAnimationFrame(() => feedbackReplyRef.current?.focus());
+  }
+
   function answerFeedback(answer: 'sim' | 'parcial' | 'nao') {
     setFeedback(answer);
+    focusFeedbackReply();
     trackFunnelEvent('feedback_answered', { scope: 'envio', answer, has_campaign: submittedHasCampaign });
   }
 
   function declineFeedback() {
     setFeedback('recusado');
+    focusFeedbackReply();
     trackFunnelEvent('feedback_declined', { scope: 'envio', has_campaign: submittedHasCampaign });
   }
 
@@ -465,7 +477,7 @@ export default function QuotePage() {
           {endpointSuccess && (
             <section className="sp-feedback" aria-labelledby="success-feedback-title">
               {feedback ? (
-                <p className="sp-feedback__thanks" role="status">
+                <p className="sp-feedback__thanks" role="status" tabIndex={-1} ref={feedbackReplyRef}>
                   {feedback === 'recusado'
                     ? 'Sem problema — nada muda no seu atendimento.'
                     : 'Obrigado. Sua resposta ajuda a melhorar a clareza do próximo briefing.'}

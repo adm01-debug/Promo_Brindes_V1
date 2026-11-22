@@ -58,8 +58,8 @@ describe('instrumentação segura', () => {
     expect(trackMock).toHaveBeenCalledWith('feedback_declined', { scope: 'envio', has_campaign: false });
     trackFunnelEvent('summary_edited', { field: 'actionName', filled: true, value: 'Kit Confidencial 2027' } as never);
     expect(trackMock).toHaveBeenCalledWith('summary_edited', { field: 'actionName', filled: true });
-    trackFunnelEvent('campaign_conflict', { resolution: 'removida', fields: 3, moment: 'evento' } as never);
-    expect(trackMock).toHaveBeenCalledWith('campaign_conflict', { resolution: 'removida', fields: 3 });
+    trackFunnelEvent('campaign_context_adjusted', { resolution: 'removida', fields: 3, moment: 'evento' } as never);
+    expect(trackMock).toHaveBeenCalledWith('campaign_context_adjusted', { resolution: 'removida', fields: 3 });
     expect(JSON.stringify(trackMock.mock.calls)).not.toMatch(/Kit Confidencial|achei confuso|prefiro nao/);
   });
 

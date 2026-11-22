@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { normalizeCampaignBrief } from '../lib/campaignBrief';
@@ -194,6 +194,9 @@ describe('feedback de clareza do envio (PF-54)', () => {
     expect(mocks.track).toHaveBeenCalledWith('feedback_declined', { scope: 'envio', has_campaign: true });
     const thanks = await screen.findByText(/nada muda no seu atendimento/);
     expect(thanks.closest('[role="status"]')).not.toBeNull();
+    // Os quatro botoes deixam de existir ao responder: sem mover o foco, o
+    // teclado perde a posicao e o leitor de tela nao anuncia nada.
+    await waitFor(() => expect(thanks).toHaveFocus());
     expect(screen.getByRole('link', { name: /Acompanhar meus or/ })).toBeInTheDocument();
   });
 
@@ -207,9 +210,9 @@ describe('feedback de clareza do envio (PF-54)', () => {
     renderPage();
     fireEvent.click(screen.getByRole('button', { name: 'Ajustar contexto' }));
     fireEvent.change(screen.getByLabelText('Clima'), { target: { value: 'premium' } });
-    expect(mocks.track).toHaveBeenCalledWith('campaign_conflict', { resolution: 'editada', fields: 4 });
+    expect(mocks.track).toHaveBeenCalledWith('campaign_context_adjusted', { resolution: 'editada', fields: 4 });
     mocks.track.mockClear();
     fireEvent.click(screen.getByRole('button', { name: 'Remover contexto' }));
-    expect(mocks.track).toHaveBeenCalledWith('campaign_conflict', { resolution: 'removida', fields: 4 });
+    expect(mocks.track).toHaveBeenCalledWith('campaign_context_adjusted', { resolution: 'removida', fields: 4 });
   });
 });

@@ -48,7 +48,9 @@ export interface FunnelEventMap {
   feedback_answered: { scope: 'envio'; answer: 'sim' | 'parcial' | 'nao'; has_campaign: boolean };
   feedback_declined: { scope: 'envio'; has_campaign: boolean };
   summary_edited: { field: 'actionName' | 'eventDate' | 'deadlineFlexibility' | 'budgetScope' | 'budgetRange' | 'responseChannel' | 'brandAssetStatus'; filled: boolean };
-  campaign_conflict: { resolution: 'editada' | 'removida'; fields: number };
+  // Mede ajuste e remoção do contexto de campanha recuperado no proprio orcamento.
+  // Nao mede troca de direcao no catalogo (ver campaign_finder_completed).
+  campaign_context_adjusted: { resolution: 'editada' | 'removida'; fields: number };
 }
 
 type FunnelEventName = keyof FunnelEventMap;
@@ -97,7 +99,7 @@ const ALLOWED_PROPERTIES: { [Name in FunnelEventName]: ReadonlyArray<keyof Funne
   feedback_answered: ['scope', 'answer', 'has_campaign'],
   feedback_declined: ['scope', 'has_campaign'],
   summary_edited: ['field', 'filled'],
-  campaign_conflict: ['resolution', 'fields'],
+  campaign_context_adjusted: ['resolution', 'fields'],
 };
 
 function safeProperties<Name extends FunnelEventName>(name: Name, properties: FunnelEventMap[Name]) {
