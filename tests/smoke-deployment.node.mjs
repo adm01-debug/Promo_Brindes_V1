@@ -17,7 +17,7 @@ const security = {
   'content-security-policy': "default-src 'self'; base-uri 'self'; object-src 'none'",
 };
 const shell = '<!doctype html><html><head><script type="module" src="/assets/index-0a1b2c3d.js"></script></head><body><div id="root"></div></body></html>';
-const approved = (origin) => `Smoke aprovado em ${origin}: páginas HTML (CSP+X-Frame em todas as rotas), sitemap XML, Analytics 200, rota desconhecida 404, crons sem credencial 401.`;
+const approved = (origin) => `Smoke aprovado em ${origin}: páginas HTML (CSP+X-Frame em todas as rotas), sitemap XML, Analytics 200, rota desconhecida 404, crons sem credencial 401, configuração do banco saudável.`;
 
 const reply = (status, headers = security, body = '') => (request, response) => {
   response.writeHead(status, headers);
@@ -36,6 +36,7 @@ function healthyRoutes() {
     '/_vercel/insights/script.js': reply(200, { 'content-type': 'application/javascript; charset=utf-8' }, '/* analytics */'),
     '/api/retention': cron,
     '/api/notifications': cron,
+    '/api/health': reply(200, { ...security, 'content-type': 'application/json' }, '{"ok":true}'),
   };
 }
 
@@ -106,6 +107,7 @@ test('aprova um deployment saudável consultando cada rota uma única vez', asyn
     '/_vercel/insights/script.js': 1,
     '/api/retention': 1,
     '/api/notifications': 1,
+    '/api/health': 1,
   });
 });
 
@@ -119,6 +121,8 @@ test('reprova status inesperado sem repetir a rota', async () => {
     [{ '/_vercel/insights/script.js': reply(404) }, 'Web Analytics: esperado 200, recebido 404', '/_vercel/insights/script.js'],
     [{ '/api/retention': reply(200) }, '/api/retention: chamada sem segredo deveria retornar 401, recebeu 200', '/api/retention'],
     [{ '/api/notifications': reply(403) }, '/api/notifications: chamada sem segredo deveria retornar 401, recebeu 403', '/api/notifications'],
+    [{ '/api/health': reply(200, { ...security, 'content-type': 'application/json' }, '{"ok":false,"code":"unsafe_database_target"}') }, '/api/health: esperado {"ok":true}, recebido {"ok":false,"code":"unsafe_database_target"}', '/api/health'],
+    [{ '/api/health': reply(200, { ...security, 'content-type': 'text/html' }, '<html>') }, '/api/health: corpo não é JSON: <html>', '/api/health'],
   ]) {
     const outcome = await smoke(overrides);
     assert.equal(outcome.ok, false, expected);

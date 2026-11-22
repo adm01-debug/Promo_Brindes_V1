@@ -98,7 +98,20 @@ export async function runSmoke(baseUrl, options = {}) {
     assert(response.status === 401, `${path}: chamada sem segredo deveria retornar 401, recebeu ${response.status}`);
   }
 
-  return `Smoke aprovado em ${origin}: páginas HTML (CSP+X-Frame em todas as rotas), sitemap XML, Analytics 200, rota desconhecida 404, crons sem credencial 401.`;
+  // PF-75: sem isto, um deployment apontando para o banco errado só aparece quando
+  // o primeiro cliente tenta enviar um orçamento. O endpoint devolve apenas o
+  // código do problema, então este smoke pode falhar cedo sem vazar credencial.
+  const health = await fetchWithRetry('/api/health', { readBody: true });
+  assert(health.status === 200, `/api/health: esperado 200, recebido ${health.status} ${health.body ?? ''}`.trim());
+  let healthPayload;
+  try {
+    healthPayload = JSON.parse(health.body);
+  } catch {
+    throw new Error(`/api/health: corpo não é JSON: ${String(health.body).slice(0, 120)}`);
+  }
+  assert(healthPayload?.ok === true, `/api/health: esperado {"ok":true}, recebido ${String(health.body).slice(0, 160)}`);
+
+  return `Smoke aprovado em ${origin}: páginas HTML (CSP+X-Frame em todas as rotas), sitemap XML, Analytics 200, rota desconhecida 404, crons sem credencial 401, configuração do banco saudável.`;
 }
 
 function isDirectExecution() {

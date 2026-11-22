@@ -29,7 +29,8 @@
 | `*` | NotFoundPage | OK |
 
 ### Edge functions (15) — `api/*.ts`, registradas em `vercel.json:functions`
-briefing-assets, commercial-alerts, cron-watchdog, contact-requests, customer-proposals, not-found, notification-events-resend, notification-events-whatsapp, notifications, product-page, quote-requests, retention, shared-selections, site-page, sitemap. Todas com handler exportado.
+briefing-assets, commercial-alerts, cron-watchdog, contact-requests, customer-proposals, health, not-found, notification-events-resend, notification-events-whatsapp, notifications, product-page, quote-requests, retention, shared-selections, site-page, sitemap. Todas com handler exportado.
+`/api/health` (PF-75) chama `getSiteDatabaseConfig()` e devolve 200 ou 503 com apenas o código do problema (`backend_not_configured`, `backend_misconfigured`, `unsafe_database_target`), sem URL, projeto, credencial ou salt.
 Status: **OK** (registradas em `functions` + rewrites no `vercel.json`).
 
 ### Rotas/rewrites e crons — `vercel.json`
