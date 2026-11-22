@@ -15,7 +15,7 @@ F-13,Conteudo das confirmacoes,Decisao resumo x copia integral; texto diverge do
 F-14,Texto promessa de confirmacao,Tela diz registrada para envio sem provedor ligado,COMPLETA,100,#181 #215,PF-14,P2
 F-15,Checkbox copia pelo WhatsApp,Sempre visivel sem WhatsApp ligado; nao e copia,PARCIAL,50,,PF-15,P2
 F-16,Texto time de especialistas vai entrar em contato,Sem handoff PF-01 nem escritor na timeline PF-03,PARCIAL,50,,PF-16,P3
-F-17,Promessas da Politica de Privacidade,Sem provedor sem autoexclusao sem RPC acesso/correcao,PARCIAL,40,,PF-17,P1
+F-17,"Promessas da Politica de Privacidade","Cada afirmacao com lastro no codigo; entrega por canal declara estado real (Enviada/Registrado/Indisponivel)",COMPLETA,90,#220 #243,"Secao 9 ja refletia as 4 RPCs de LGPD (#220, em producao). Gap fechado: secao 8 prometia confirmacao por e-mail e copia por WhatsApp sem declarar indisponibilidade - deliverQuoteConfirmationsNow devolve 'unavailable' quando RESEND_API_KEY/SITE_EMAIL_FROM ou WHATSAPP_TOKEN faltam (api/notifications.ts:611), mas a politica nao dizia. Texto agora nomeia os 3 estados e explica o protocolo como comprovante. Demais promessas conferidas no codigo: 50 produtos (20260922130000:78), 90 dias arquivadas (:176), 30 dias arquivos sem vinculo, 24h rascunho (quoteDraft.ts:5), 10MB (20260922150000:30), RLS por titular (:151,164), allowlist de eventos (analytics.ts:49). Teste PrivacyPage.test.tsx 2/2 provado falhar sem a correcao.",P1
 F-18,Curadoria iniciada pelo briefing,Ordenacao por intencao so na pagina carregada; sem curadoria humana,PARCIAL,60,,PF-18,P3
 F-19,Descricao padrao personalize,Descricao personalizada condicionada a allowsPersonalization (corrigido nov/2026),COMPLETA,100,#215,PF-19,P3
 F-20,Faixa de publico como unidades,Escala 51-200 un. exibe pessoas como quantidade,COMPLETA,100,#215,PF-20,P3
@@ -32,7 +32,7 @@ F-30,Direitos do titular LGPD,RPCs acesso/exportacao/correcao/autoexclusao; ensa
 F-31,Apagamento completo,erase_customer_data nao limpa metadata kit_name_snapshot pendentes,COMPLETA,100,,"erase_customer_data fecha 3 lacunas (request_metadata text livre, kit_name_snapshot, fila reivindicaavel) + repair 20261117030100 + teste 43 asserts",P1
 F-32,Retencao por tabela completa,Orfaos nunca purgados; inativos sem prazo; spam = legitimo,PARCIAL,50,,PF-32,P2
 F-33,Evento erased na timeline,Sem decisao nem implementacao,BLOQUEADA,0,,PF-33,P3
-F-34,Auditoria de leitura SELECT em PII,So ha auditoria de escrita e DDL,PENDENTE,0,,PF-34,P3
+F-34,"Auditoria de leitura SELECT em PII","Auditado via RPC get_my_quote_request com trilha site_private.pii_read_audit_log (so SELECT, sem armazenar o valor lido)",COMPLETA,100,#242,"Migration 20261122110000_add_pii_read_audit.sql cria site_private.pii_read_audit_log + log_pii_read; get_my_quote_request preservada (mesma assinatura/retorno) e passa a registrar a leitura de PII do titular; 13/13 assertions pgTAP (privilegios, RPC null p/ inexistente e p/ outro titular, log gravado).",P3
 F-35,Saneamento de anexos,So checa assinatura 1KiB; PDF em quarentena permanente,PARCIAL,40,,PF-35,P2
 F-36,Criptografia PII E.164 rate limit borda,Spikes adiados formalmente,BLOQUEADA,0,,PF-36,P2
 F-37,Resumo O que entendemos editavel,Resumo abre com qualquer numero de escolhas (botao Revisar N escolhas) e Cancelar edicao restaura o snapshot do resumo; foco devolvido ao titulo do resumo,COMPLETA,100,"#94,#226",PF-37,P1
