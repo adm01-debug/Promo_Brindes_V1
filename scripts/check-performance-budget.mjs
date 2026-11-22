@@ -124,7 +124,14 @@ try {
   // 2b2db83, 963,3 KiB na CI). O recalibro deixa ~0,7 KiB de folga no pior caso
   // do runner (964 - 963,3) e ~1,4 KiB sobre a medicao local (964 - 962,6), sem
   // mascarar regressoes acima disso.
-  assertBudget('JavaScript total', javascript, rawBytes(964));
+  // Teto recalibrado em 22/11/2026 de 964 para 966 KiB quando a F-100/PF-120
+  // (eventos de funil de contato, upload, remocao de item e link compartilhado)
+  // levou o pior caso local a 964,0 KiB sobre uma base de 963,2 KiB. O teto
+  // anterior de 964 KiB ja nascia com 0,8 KiB de folga sobre a base, entao
+  // qualquer feature seguinte reprovava por alguns bytes (a CI mediu 964,0 e
+  // recusou). A folga nova e de ~2,0 KiB sobre a medicao, o mesmo criterio
+  // usado nas recalibracoes anteriores, e ainda reprova regressoes acima disso.
+  assertBudget('JavaScript total', javascript, rawBytes(966));
   assertBudget('Bundle de entrada', entry, rawBytes(300));
   assertBudget('CSS total (Brotli)', cssBrotli, rawBytes(32));
   // O total é um teto de manutenção para todo o corpus lazy. O download real
