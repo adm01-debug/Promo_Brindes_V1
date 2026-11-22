@@ -206,6 +206,7 @@ describe('contrato do back-office comercial', () => {
         updatedAt: '2026-11-20T10:00:00.000Z',
         emailHashPrefix: '0123456789ab',
         suppressed: true,
+        erased: false,
       }],
       orphanEventCount: 7,
       reconcilableOrphanCount: 3,

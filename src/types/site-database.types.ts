@@ -1341,6 +1341,10 @@ export type Database = {
       }
       normalize_email: { Args: { p_email: string }; Returns: string }
       normalize_selection_references: { Args: { p_items: Json }; Returns: Json }
+      notification_delivery_is_claimable: {
+        Args: { p_delivery_id: string }
+        Returns: boolean
+      }
       notification_policy: {
         Args: never
         Returns: {
@@ -1350,6 +1354,14 @@ export type Database = {
           retry_base_seconds: number
           retry_cap_seconds: number
         }[]
+      }
+      notification_request_erased: {
+        Args: { p_request_id: string; p_request_kind: string }
+        Returns: boolean
+      }
+      notification_request_suppressed: {
+        Args: { p_request_id: string; p_request_kind: string }
+        Returns: boolean
       }
       quote_notification_payload: {
         Args: { p_delivery_id: string }
@@ -1362,6 +1374,10 @@ export type Database = {
           p_reason: string
         }
         Returns: Json
+      }
+      suppress_notification_delivery: {
+        Args: { p_delivery_id: string }
+        Returns: boolean
       }
     }
     Enums: {
