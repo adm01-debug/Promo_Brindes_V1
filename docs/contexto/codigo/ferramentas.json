@@ -4,7 +4,7 @@
  "stack": {
   "linguagens": [
    "TypeScript (231)",
-   "Markdown (134)",
+   "Markdown (136)",
    "SQL (117)",
    "JavaScript (65)",
    "JSON (29)",
@@ -848,6 +848,11 @@
    "linhas": 832
   },
   {
+   "arquivo": "docs/PLANO_CORRECOES_190_ETAPAS_20261122.md",
+   "titulo": "Plano de correções e melhorias em 190 etapas — Promo Brindes V1",
+   "linhas": 1318
+  },
+  {
    "arquivo": "docs/PLANO_CORRECOES_50_ETAPAS_20260913.md",
    "titulo": "Plano de melhorias e correções — 50 etapas — 13/09/2026",
    "linhas": 770
@@ -886,6 +891,11 @@
    "arquivo": "docs/PLANO_UX_100_ETAPAS_20260909.md",
    "titulo": "Promo Brindes — plano de evolução da experiência em 100 etapas",
    "linhas": 757
+  },
+  {
+   "arquivo": "docs/PLANO_UX_NAVEGACAO_200_ETAPAS_20261122.md",
+   "titulo": "Plano de navegação e fluidez em 200 etapas — Promo Brindes V1",
+   "linhas": 1520
   },
   {
    "arquivo": "docs/PLANO_WORKFLOWS_100_ETAPAS_20260927.md",

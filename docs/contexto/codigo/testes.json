@@ -55,9 +55,9 @@
   {
    "arquivo": "e2e/journey.spec.ts",
    "tipo": "e2e",
-   "linhas": 167,
+   "linhas": 192,
    "testa": [],
-   "casos": 3
+   "casos": 4
   },
   {
    "arquivo": "e2e/product-detail.spec.ts",
@@ -247,11 +247,11 @@
   {
    "arquivo": "src/lib/analytics.test.ts",
    "tipo": "unit",
-   "linhas": 92,
+   "linhas": 104,
    "testa": [
     "src/lib/analytics.ts"
    ],
-   "casos": 9
+   "casos": 10
   },
   {
    "arquivo": "src/lib/briefingAssets.test.ts",
@@ -670,13 +670,13 @@
   {
    "arquivo": "src/pages/QuotePage.context.test.tsx",
    "tipo": "unit",
-   "linhas": 137,
+   "linhas": 219,
    "testa": [
     "src/lib/campaignBrief.ts",
     "src/lib/quoteCalendar.ts",
     "src/pages/QuotePage.tsx"
    ],
-   "casos": 7
+   "casos": 11
   },
   {
    "arquivo": "src/pages/QuotePage.test.ts",

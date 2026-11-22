@@ -603,7 +603,7 @@
     "QuotePage"
    ],
    "export_default": "QuotePage",
-   "linhas": 558,
+   "linhas": 620,
    "dominio": "pages",
    "hooks_locais": [
     "useCustomerAuth",

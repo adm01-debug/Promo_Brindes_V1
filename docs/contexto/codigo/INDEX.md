@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `20f6600800369c5d19c0274552436cc196cccf00` (2026-11-22T16:24:45Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `50e5cf42896680015d605f8b09d12468fd38acc4` (2026-11-22T17:07:27Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -14,7 +14,7 @@ Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR
 Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua tarefa; não carregue tudo.
 
 ## Stack
-- linguagens: TypeScript (231), Markdown (134), SQL (117), JavaScript (65), JSON (29), YAML (19), Python (8), CSS (4)
+- linguagens: TypeScript (231), Markdown (136), SQL (117), JavaScript (65), JSON (29), YAML (19), Python (8), CSS (4)
 - linguagem_principal: TypeScript
 - framework: React
 - backend_http: vercel-functions
@@ -34,9 +34,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Números
 | item | qtd |
 |---|---|
-| arquivos_total | 747 |
+| arquivos_total | 749 |
 | arquivos_codigo | 303 |
-| linhas_codigo | 59579 |
+| linhas_codigo | 59773 |
 | rotas | 35 |
 | rotas_http_backend | 16 |
 | vistas_por_id | 0 |
@@ -51,7 +51,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 | testes | 157 |
 | workflows | 15 |
 | scripts | 37 |
-| docs_md | 134 |
+| docs_md | 136 |
 
 ## Onde ficam as coisas
 - telas: src/pages (19)
@@ -62,7 +62,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - edge_functions: n/d
 - migrations: site-supabase/supabase/migrations
 - scripts: scripts/maintenance (4), scripts/inventario (3), scripts/regras_negocio (3)
-- docs: docs (75), (raiz) (9), .github (1)
+- docs: docs (77), (raiz) (9), .github (1)
 - nomenclatura: {"componentes":"PascalCase (100%)","hooks":"use + PascalCase","servicos":"camelCase (86%)","edge_functions":null,"tabelas":"snake_case (96%)"}
 - instruções para agentes no repo: AGENTS.md, CLAUDE.md
 
@@ -178,19 +178,19 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Hotspots (arquivos mais alterados, 90 dias)
 - package.json (65)
 - e2e/smoke.spec.ts (61)
-- src/styles.css (38)
+- src/styles.css (39)
 - package-lock.json (36)
 - vercel.json (29)
 - .github/workflows/quality.yml (28)
+- src/pages/QuotePage.tsx (28)
 - docs/DATABASE_DICTIONARY.md (27)
-- src/pages/QuotePage.tsx (27)
 - site-supabase/supabase/tests/database/lead_storage.test.sql (26)
 - src/components/Layout.tsx (24)
 - .github/workflows/release.yml (21)
 - docs/DATABASE_FUNCTION_CONTRACTS.md (21)
 - tests/api/lead-requests.test.ts (21)
+- analise-prs/funcionalidades.csv (20)
 - api/_lib/siteDatabase.ts (20)
-- api/notifications.ts (20)
 
 ## Workflows
 - `automation-local.yml` — Automação local (pull_request, push, workflow_dispatch)
@@ -346,6 +346,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `docs/MATRIZ_INDEX.md` — Índice de planos e aceites (75 linhas)
 - `docs/MATRIZ_RISCO_CAMADA_TESTE.md` — Matriz risco → camada de teste — 18/11/2026 (59 linhas)
 - `docs/PLANO_CARNEGIE_UX_100_ETAPAS_20261005.md` — Plano em 100 etapas para aplicar os princípios de Carnegie à experiência da Promo Brindes (832 linhas)
+- `docs/PLANO_CORRECOES_190_ETAPAS_20261122.md` — Plano de correções e melhorias em 190 etapas — Promo Brindes V1 (1318 linhas)
 - `docs/PLANO_CORRECOES_50_ETAPAS_20260913.md` — Plano de melhorias e correções — 50 etapas — 13/09/2026 (770 linhas)
 - `docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260916.md` — Plano de correções e melhorias — 50 etapas (banco de dados, integração e governança) (1522 linhas)
 - `docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260917.md` — Plano de correções e melhorias — 50 etapas (fase seguinte) (1291 linhas)
@@ -354,6 +355,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `docs/PLANO_GRAPHIFY_50_ETAPAS_20260911.md` — Plano de integração Graphify — Promo_Brindes_V1 (286 linhas)
 - `docs/PLANO_MELHORIAS_CORRECOES_50_ETAPAS_20260923.md` — Plano de melhorias e correções — 50 etapas — 23/09/2026 (604 linhas)
 - `docs/PLANO_UX_100_ETAPAS_20260909.md` — Promo Brindes — plano de evolução da experiência em 100 etapas (757 linhas)
+- `docs/PLANO_UX_NAVEGACAO_200_ETAPAS_20261122.md` — Plano de navegação e fluidez em 200 etapas — Promo Brindes V1 (1520 linhas)
 - `docs/PLANO_WORKFLOWS_100_ETAPAS_20260927.md` — Plano de correções e melhorias — GitHub Actions (100 etapas) (505 linhas)
 - `docs/REACT_BITS_MOTION_AUDIT.md` — Auditoria de movimento — React Bits para Promo Brindes (97 linhas)
 - `docs/RELATORIO_EXPERIENCIA_MARKETING_GEN_Z_20260909.md` — Promo Brindes — experiência de uma pessoa de marketing (514 linhas)
@@ -392,6 +394,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-22 `50e5cf4` feat: feedback opcional de clareza e eventos do PF-54 (#238)
+- 2026-11-22 `1435f51` chore: plano de navegação e fluidez em 200 etapas (#245)
+- 2026-11-22 `9ace0fc` chore: plano de correções e melhorias em 190 etapas (#244)
 - 2026-11-22 `20f6600` feat: endpoint de health confere a configuracao do banco (F-75) (#237)
 - 2026-11-22 `28a86e8` feat: por que este produto e ideias de uso (F-45) (#236)
 - 2026-11-22 `a6cd533` feat: mensagens da equipe ao cliente na linha do tempo (F-05) (#235)
@@ -404,9 +409,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-22 `abcd725` test: exercita policies de Storage como authenticated, DDL real e rate limit (F-82) (#227)
 - 2026-11-22 `ec7e478` feat: eventos de funil de contato, upload, remoção e link compartilhado (F-100/PF-120) (#228)
 - 2026-11-22 `d7f09b6` feat: resumo do briefing abre antes das 4 respostas e permite cancelar a edicao (F-37) (#226)
-- 2026-11-21 `5b24b40` chore: atualiza o inventario de funcionalidades (F-40 e F-47 COMPLETA) (#224)
-- 2026-11-21 `64e1dcc` feat: separa intencao do briefing dos filtros efetivos (F-40/PF-40) (#223)
-- 2026-11-21 `957fa44` feat: contato via WhatsApp iniciado pelo visitante (F-47) (#222)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

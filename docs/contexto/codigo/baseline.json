@@ -2,11 +2,26 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "20f6600800369c5d19c0274552436cc196cccf00",
+  "commit": "50e5cf42896680015d605f8b09d12468fd38acc4",
   "branch": "main",
-  "data_commit": "2026-11-22T16:24:45Z",
+  "data_commit": "2026-11-22T17:07:27Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "50e5cf4",
+    "data": "2026-11-22",
+    "assunto": "feat: feedback opcional de clareza e eventos do PF-54 (#238)"
+   },
+   {
+    "sha": "1435f51",
+    "data": "2026-11-22",
+    "assunto": "chore: plano de navegação e fluidez em 200 etapas (#245)"
+   },
+   {
+    "sha": "9ace0fc",
+    "data": "2026-11-22",
+    "assunto": "chore: plano de correções e melhorias em 190 etapas (#244)"
+   },
    {
     "sha": "20f6600",
     "data": "2026-11-22",
@@ -116,28 +131,13 @@
     "sha": "5ad589f",
     "data": "2026-11-20",
     "assunto": "feat: permite ajustar o contexto da campanha no orçamento (#213)"
-   },
-   {
-    "sha": "1bb2a90",
-    "data": "2026-11-20",
-    "assunto": "fix: limpa contexto da campanha quando o recorte sai do catálogo (#212)"
-   },
-   {
-    "sha": "01b873c",
-    "data": "2026-11-20",
-    "assunto": "feat: caminho 'ainda não sei o que escolher' desbloqueia quem chega sem briefing (#211)"
-   },
-   {
-    "sha": "a9dab6d",
-    "data": "2026-11-20",
-    "assunto": "chore(docs): auditoria planejado × implementado em 40f6420 — 128 itens reverificados, 108 novos (#214)"
    }
   ],
-  "arquivos_mudados_7d": 199,
+  "arquivos_mudados_7d": 201,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "analise-prs/funcionalidades.csv",
-    "mudancas": 19
+    "mudancas": 20
    },
    {
     "pasta": "site-supabase/supabase/tests",
@@ -148,16 +148,16 @@
     "mudancas": 16
    },
    {
-    "pasta": "docs/audits/pending-features-20261011",
-    "mudancas": 11
+    "pasta": "docs/audits/planejado-x-implementado-20261120",
+    "mudancas": 12
    },
    {
     "pasta": "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
-    "mudancas": 10
+    "mudancas": 11
    },
    {
-    "pasta": "docs/audits/planejado-x-implementado-20261120",
-    "mudancas": 10
+    "pasta": "docs/audits/pending-features-20261011",
+    "mudancas": 11
    },
    {
     "pasta": "e2e/smoke.spec.ts",
@@ -184,15 +184,15 @@
     "mudancas": 8
    },
    {
+    "pasta": "src/styles.css",
+    "mudancas": 8
+   },
+   {
     "pasta": "tests/check-performance-budget.node.mjs",
     "mudancas": 8
    },
    {
     "pasta": "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
-    "mudancas": 7
-   },
-   {
-    "pasta": "docs/DATABASE_DICTIONARY.md",
     "mudancas": 7
    }
   ],
@@ -207,7 +207,7 @@
    },
    {
     "arquivo": "src/styles.css",
-    "mudancas": 38
+    "mudancas": 39
    },
    {
     "arquivo": "package-lock.json",
@@ -222,11 +222,11 @@
     "mudancas": 28
    },
    {
-    "arquivo": "docs/DATABASE_DICTIONARY.md",
-    "mudancas": 27
+    "arquivo": "src/pages/QuotePage.tsx",
+    "mudancas": 28
    },
    {
-    "arquivo": "src/pages/QuotePage.tsx",
+    "arquivo": "docs/DATABASE_DICTIONARY.md",
     "mudancas": 27
    },
    {
@@ -250,6 +250,10 @@
     "mudancas": 21
    },
    {
+    "arquivo": "analise-prs/funcionalidades.csv",
+    "mudancas": 20
+   },
+   {
     "arquivo": "api/_lib/siteDatabase.ts",
     "mudancas": 20
    },
@@ -258,15 +262,15 @@
     "mudancas": 20
    },
    {
-    "arquivo": "analise-prs/funcionalidades.csv",
-    "mudancas": 19
-   },
-   {
     "arquivo": "docs/DATABASE_SCHEMA.md",
     "mudancas": 19
    },
    {
     "arquivo": "src/App.tsx",
+    "mudancas": 18
+   },
+   {
+    "arquivo": "src/lib/analytics.ts",
     "mudancas": 18
    },
    {
@@ -286,10 +290,6 @@
     "mudancas": 17
    },
    {
-    "arquivo": "src/lib/analytics.ts",
-    "mudancas": 17
-   },
-   {
     "arquivo": ".github/workflows/graphify.yml",
     "mudancas": 16
    },
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 117
+    "commits": 120
    },
    {
     "autor": "dependabot[bot]",
@@ -310,9 +310,9 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 747,
+  "arquivos_total": 749,
   "arquivos_codigo": 303,
-  "linhas_codigo": 59579,
+  "linhas_codigo": 59773,
   "rotas": 35,
   "rotas_http_backend": 16,
   "vistas_por_id": 0,
@@ -327,7 +327,7 @@
   "testes": 157,
   "workflows": 15,
   "scripts": 37,
-  "docs_md": 134
+  "docs_md": 136
  },
  "por_pasta": {
   "api/_lib": {
@@ -416,7 +416,7 @@
   },
   "e2e/journey.spec.ts": {
    "arquivos": 1,
-   "linhas": 167
+   "linhas": 192
   },
   "e2e/product-detail.spec.ts": {
    "arquivos": 1,
@@ -588,7 +588,7 @@
   },
   "src/lib": {
    "arquivos": 87,
-   "linhas": 9320
+   "linhas": 9345
   },
   "src/main.tsx": {
    "arquivos": 1,
@@ -596,7 +596,7 @@
   },
   "src/pages": {
    "arquivos": 27,
-   "linhas": 4240
+   "linhas": 4384
   },
   "src/test": {
    "arquivos": 1,
@@ -761,16 +761,16 @@
    "linhas": 734
   },
   {
+   "arquivo": "src/pages/QuotePage.tsx",
+   "linhas": 620
+  },
+  {
    "arquivo": "src/pages/BackofficePage.tsx",
    "linhas": 618
   },
   {
    "arquivo": "scripts/inventario/gerar-banco.mjs",
    "linhas": 581
-  },
-  {
-   "arquivo": "src/pages/QuotePage.tsx",
-   "linhas": 558
   },
   {
    "arquivo": "src/lib/catalog.ts",

@@ -369,7 +369,7 @@
    "modulo": "lib",
    "arquivos": 47,
    "testes": 40,
-   "linhas": 6173,
+   "linhas": 6186,
    "itens_menu": [],
    "telas": [],
    "rotas_http": [],
@@ -496,7 +496,7 @@
    "modulo": "pages",
    "arquivos": 19,
    "testes": 8,
-   "linhas": 3726,
+   "linhas": 3788,
    "itens_menu": [
     "Catálogos",
     "Como funciona",

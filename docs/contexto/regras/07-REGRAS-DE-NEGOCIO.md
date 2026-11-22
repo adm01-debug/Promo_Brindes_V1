@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `20f6600800` · branch `main` · 2026-11-22 16:25 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `50e5cf4289` · branch `main` · 2026-11-22 17:07 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -640,6 +640,18 @@ _nenhum item encontrado_
   ```
   controller.signal.aborted
   ```
+- **focusFeedbackReply()** — `src/pages/QuotePage.tsx`
+  ```
+  // O parágrafo entra no mesmo commit que remove os botões; o foco é movido // depois para que o destino já exista no DOM. requestAnimationFrame(() => feedbackReplyRef.current?.focus());
+  ```
+- **answerFeedback(answer: 'sim' | 'parcial' | 'nao')** — `src/pages/QuotePage.tsx`
+  ```
+  setFeedback(answer); focusFeedbackReply(); trackFunnelEvent('feedback_answered', { scope: 'envio', answer, has_campaign: submittedHasCampaign });
+  ```
+- **declineFeedback()** — `src/pages/QuotePage.tsx`
+  ```
+  setFeedback('recusado'); focusFeedbackReply(); trackFunnelEvent('feedback_declined', { scope: 'envio', has_campaign: submittedHasCampaign });
+  ```
 - **totalUnits(items: QuoteItem[])** — `src/pages/SharedSelectionPage.tsx`
   ```
   return items.reduce((total, item) => total + item.quantity, 0);
@@ -1118,7 +1130,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1988 testes em 148 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1995 testes em 148 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1165,17 +1177,18 @@ _nenhum item encontrado_
 | `src/lib/commercialBackofficeContract.test.ts` | 14 | contrato do back-office comercial · lê a fila paginada com totais e itens · trata payload que não é objeto como indisponibilidade, não como fila vazia · rejeita item de fila que não é objeto … |
 | `src/lib/productApplications.test.ts` | 14 | product applications · omite razão de material quando a ficha não declara material · declara apenas os materiais presentes no cadastro, normalizados · descreve material durável sem prometer desempenho da campanha … |
 | `src/lib/sharedSelection.test.ts` | 14 | sharedSelection · preserva prioridade alternativa no link e na seleção reconstruída · preserva cor sem variantId e bloqueia fallback ambíguo ou removido · aceita nomes Unicode e mantém links Latin-1 antigos legíveis … |
+| `src/pages/QuotePage.context.test.tsx` | 14 | data mínima do briefing · usa o calendário comercial brasileiro em vez de converter o instante para UTC · permanece no dia de São Paulo durante a virada UTC · editor do contexto da campanha no orçamento (PF-41) … |
 | `tests/api/briefing-assets.test.ts` | 14 | inspeção server-side de anexos privados · estouro do limite devolve 429, não  · sessão que expira entre o upload e a verificação devolve 401, não  · confirma um PNG somente depois de ler a assinatura no Storage privado … |
 | `tests/api/notification-events-resend.test.ts` | 14 | api/notification-events-resend (Etapa 30) · rejeita método diferente de POST · responde 503 quando o segredo do webhook não está configurado · rejeita assinatura ausente ou inválida sem chamar o banco … |
 | `tests/scripts/verify-vercel-artifact.test.ts` | 14 | verificador do artefato Vercel · exige o app shell somente das funções de página declaradas em vercel.json · aceita includeFiles como lista sem perder o contrato do app shell · falha quando uma função de página declarada não existe no artefato … |
 | `site-supabase/supabase/tests/database/kit_composition.test.sql` | 13 | item preserva o grupo do kit · item preserva o nome do kit · item preserva a quantidade de kits · item preserva unidades por kit … |
+| `src/lib/analytics.test.ts` | 13 | instrumentação segura · remove query string e fragmento antes de enviar pageview · normaliza identificadores da área privada antes do pageview · aplica a mesma minimização de URL aos eventos de desempenho … |
 | `src/lib/campaignPresets.test.ts` | 13 | ache pelo briefing · gera URL compartilhável somente com escolhas válidas · expõe escolhas como contexto removível sem duplicar critérios ocultos · traduz apenas sinais confiáveis para o contrato público … |
 | `tests/closure-ledger.node.mjs` | 13 | ledger atual contém todos os IDs, commits e fontes locais · não aceita trocar uma referência por um ID inexistente mantendo o total · fontes inexistentes e caminhos fora do site não passam como evidência · fonte atual que não existia no commit auditado não passa como evidência histórica … |
 | `tests/session-start-hook.node.mjs` | 13 | hook: fora da sessão remota sai com 0 sem saída e sem criar nada · hook: grafo já carimbado no commit atual responde async e não instala nem gera · hook: grafo de outro commit dispara o build e carimba o commit novo · hook: carimbo sem o mapa de banco não conta como grafo pronto … |
 | `tests/api/webhookSignature.test.ts` | 13 | verifySvixSignature (Etapa 30, Resend) · aceita uma assinatura válida · aceita quando o header traz múltiplas assinaturas e uma delas bate (rotação de segredo) · rejeita corpo adulterado … |
 | `site-supabase/supabase/tests/database/admin_write_audit.test.sql` | 12 | anon não lê a trilha de auditoria · authenticated não lê a trilha de auditoria · site_api não lê a própria trilha de auditoria (não precisa para operar) · service_role lê a trilha de auditoria … |
 | `site-supabase/supabase/tests/database/kit_persistence_guards.test.sql` | 12 | guarda estrutural de kits existe no schema privado · rascunho valida kits no insert · rascunho valida kits no update · link compartilhado valida kits no insert … |
-| `src/lib/analytics.test.ts` | 12 | instrumentação segura · remove query string e fragmento antes de enviar pageview · normaliza identificadores da área privada antes do pageview · aplica a mesma minimização de URL aos eventos de desempenho … |
 | `src/lib/search.test.ts` | 12 | busca assistida · normaliza acentos, caixa e espaços sem transportar operadores · expande sinônimos como alternativas da mesma dimensão · descarta linguagem de preço e contexto quando há um objeto pesquisável … |
 | `site-supabase/supabase/tests/database/adjustment_limits.test.sql` | 11 | limite de pendências serializa transações concorrentes no mesmo orçamento · primeiro pedido é criado · replay idempotente devolve o mesmo pedido · replay não duplica a linha … |
 | `site-supabase/supabase/tests/database/query_plans.test.sql` | 11 | consulta de reivindicação da fila não usa Seq Scan em notification_deliveries com distribuição de regime permanente (Etapa 17) · recuperação de leases expiradas usa acesso indexado · reconciliação de webhook pelo identificador do provedor usa acesso indexado · histórico do cliente usa acesso indexado por titular e data … |
@@ -1193,7 +1206,6 @@ _nenhum item encontrado_
 | `src/lib/catalogLibrary.test.ts` | 9 | biblioteca de catálogos · combina tema e busca sem depender de acentos · não inventa resultados quando os termos não aparecem juntos · usa o nome atual em links novos e mantém links antigos da coleção … |
 | `src/lib/http.test.ts` | 9 | transporte dos formulários · recusa endpoint malformado antes de chamar fetch · envia JSON com chave de idempotência apenas para a API do site · aceita rota server-side de mesma origem sem expor outro host … |
 | `src/lib/quoteRequest.test.ts` | 9 | solicitação de orçamento · separa o consentimento do contato e registra versão e instante · gera um e-mail com produtos, quantidade, cor e contato · não transmite um complemento opcional vazio ou manipulado … |
-| `src/pages/QuotePage.context.test.tsx` | 9 | data mínima do briefing · usa o calendário comercial brasileiro em vez de converter o instante para UTC · permanece no dia de São Paulo durante a virada UTC · editor do contexto da campanha no orçamento (PF-41) … |
 | `tests/check-performance-budget.node.mjs` | 9 | aprova um dist coerente e imprime o resumo em uma linha de stdout · é determinístico e funciona em caminho com espaço e acento · mede a entrada declarada no manifest mesmo quando ela não se chama index-* · não confunde um chunk lazy chamado index-* com a entrada … |
 | `tests/generate-database-docs.node.mjs` | 9 | ida e volta: com as mesmas linhas do banco, o dicionário gerado é idêntico ao versionado · ida e volta: com as mesmas linhas do banco, o ERD gerado é idêntico ao versionado · gerar duas vezes produz o mesmo arquivo e a data vem da migration mais recente, não do relógio · comentário com quebra de linha ou barra vertical não parte a tabela Markdown … |
 | `tests/normalize-vercel-deployment-url.node.mjs` | 9 | adiciona https somente quando a CLI devolve hostname · preserva URL https já completa sem duplicar o protocolo · recusa protocolo, credencial, porta, caminho e domínio inesperados · CLI imprime exatamente uma origem normalizada … |
@@ -1233,6 +1245,7 @@ _nenhum item encontrado_
 | `tests/api/catalog-validation.test.ts` | 5 | reconcileQuoteItems · reconcilia a cor legada pelo nome e a converte para o ID canônico publicado · não aceita uma cor legada que não está mais publicada · reconcilia swatch público sem variant_id por nome inequívoco … |
 | `tests/api/product-page-alert.test.ts` | 5 | alerta de queda do catálogo público · avisa o canal operacional quando o catálogo cai, em vez de só mostrar 503 ao visitante · entrega que falha não compra os cinco minutos de silêncio · duas visitas simultâneas na mesma instância geram um único alerta … |
 | `tests/scripts/release-workflow.test.ts` | 5 | workflow de release Vercel · valida Web Analytics no candidato sem chamar endpoint privado de configuração · faz smoke do candidato antes de promover e mantém rollback pós-promoção · sincroniza, verifica e testa o alias git-main depois da promoção … |
+| `e2e/journey.spec.ts` | 4 | jornada completa: home, catálogos, catálogo, produto, briefing enviado · jornada sobrevive a rede lenta: o visitante vê o progresso e a seleção chega ao briefing · jornada sobrevive a armazenamento bloqueado: envia o briefing e não guarda nada · confirmação oferece feedback de clareza opcional sem reenviar o briefing |
 | `src/components/QuoteDrawer.test.tsx` | 4 | QuoteDrawer · registra a remoção de um item com a contagem restante · registra a limpeza da seleção somente depois da confirmação · deixa substituir a quantidade inteira antes de aplicar o mínimo no blur |
 | `src/lib/briefingAssets.test.ts` | 4 | arquivos privados do briefing · aceita somente os formatos publicados dentro de 10 MB · recusa arquivos vazios e nomes maiores que o contrato do banco · revoga o metadado e delega a remoção física à fila protegida |
 | `src/lib/customerQuoteContract.test.ts` | 4 | contrato runtime do histórico de orçamentos · aceita o formato público da RPC e remove somente imagens opcionais inseguras · rejeita status, identificadores e quantidades fora do contrato em vez de renderizar JSON arbitrário · mantém campanha e briefing legados opacos até a normalização de consumo, sem relaxar o snapshot de produtos |
@@ -1241,7 +1254,6 @@ _nenhum item encontrado_
 | `src/lib/scrollRestoration.test.ts` | 4 | restauração de rolagem · aguarda uma rota assíncrona crescer antes de concluir a posição salva · para no limite de tempo quando a página não alcança a altura anterior · cancela frames pendentes quando a rota muda ou a pessoa interage |
 | `src/lib/siteRpc.test.ts` | 4 | deadline das RPCs do site · aborta a consulta no deadline padrão · propaga o aborto externo para a consulta · limpa o timer quando a consulta termina |
 | `src/lib/siteSupabase.test.ts` | 4 | configuração pública da Área do Cliente · aceita somente o projeto Supabase isolado do site · recusa secret key no bundle e aceita somente chave pública · em Preview recusa o banco de produção e o banco interno, inclusive sem configuração explícita |
-| `e2e/journey.spec.ts` | 3 | jornada completa: home, catálogos, catálogo, produto, briefing enviado · jornada sobrevive a rede lenta: o visitante vê o progresso e a seleção chega ao briefing · jornada sobrevive a armazenamento bloqueado: envia o briefing e não guarda nada |
 | `site-supabase/supabase/tests/database/force_rls_hygiene.test.sql` | 3 | toda tabela de site_private tem row level security habilitada (rowsecurity) · toda tabela de site_private tem row level security FORÇADA (Etapa 26) — nem o dono bypassa sem bypassrls explícito · nenhuma tabela de site_private concede select/insert/update/delete a public, anon ou authenticated |
 | `site-supabase/supabase/tests/database/site_api_timeouts.test.sql` | 3 | site_api tem statement_timeout de 8s · site_api tem lock_timeout de 2s · site_api tem idle_in_transaction_session_timeout de 10s |
 | `src/components/SearchAutocomplete.test.tsx` | 3 | SearchAutocomplete · nomeia o landmark de busca %s de forma única · remove a opção ativa do leitor de tela quando o campo perde foco |
