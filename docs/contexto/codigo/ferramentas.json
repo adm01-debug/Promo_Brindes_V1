@@ -3,7 +3,7 @@
  "format_version": 2,
  "stack": {
   "linguagens": [
-   "TypeScript (226)",
+   "TypeScript (229)",
    "Markdown (134)",
    "SQL (117)",
    "JavaScript (65)",
@@ -1310,6 +1310,10 @@
    {
     "papel": "anon",
     "ocorrencias": 4
+   },
+   {
+    "papel": "papel",
+    "ocorrencias": 1
    }
   ],
   "enums_de_papel": [],

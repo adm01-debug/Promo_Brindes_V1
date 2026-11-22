@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `a6cd5338ba3299460d0d3fde5ed3e71d5a0caa39` (2026-11-22T15:57:22Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `28a86e8032f7a3c9b51be5b7e5f8928380e0fa0d` (2026-11-22T16:09:31Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -14,7 +14,7 @@ Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR
 Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua tarefa; não carregue tudo.
 
 ## Stack
-- linguagens: TypeScript (226), Markdown (134), SQL (117), JavaScript (65), JSON (29), YAML (19), Python (8), CSS (4)
+- linguagens: TypeScript (229), Markdown (134), SQL (117), JavaScript (65), JSON (29), YAML (19), Python (8), CSS (4)
 - linguagem_principal: TypeScript
 - framework: React
 - backend_http: vercel-functions
@@ -34,31 +34,31 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Números
 | item | qtd |
 |---|---|
-| arquivos_total | 742 |
-| arquivos_codigo | 298 |
-| linhas_codigo | 58944 |
+| arquivos_total | 745 |
+| arquivos_codigo | 301 |
+| linhas_codigo | 59341 |
 | rotas | 34 |
 | rotas_http_backend | 15 |
 | vistas_por_id | 0 |
 | itens_menu | 11 |
 | modulos | 9 |
-| componentes | 41 |
+| componentes | 42 |
 | hooks | 6 |
 | edge_functions | 0 |
 | tabelas | 26 |
 | migrations | 74 |
 | cron_jobs | 0 |
-| testes | 155 |
+| testes | 156 |
 | workflows | 15 |
 | scripts | 37 |
 | docs_md | 134 |
 
 ## Onde ficam as coisas
 - telas: src/pages (19)
-- componentes: src/components (19), src/pages (19), src/context (2)
+- componentes: src/components (20), src/pages (19), src/context (2)
 - hooks: src/lib (4), src/context (2)
-- servicos_logica: src/lib (46), api/_lib (16), src/context (3)
-- testes: co-localizado (*.test) (58), tests/ (47), outro (9)
+- servicos_logica: src/lib (47), api/_lib (16), src/context (3)
+- testes: co-localizado (*.test) (59), tests/ (47), outro (9)
 - edge_functions: n/d
 - migrations: site-supabase/supabase/migrations
 - scripts: scripts/maintenance (4), scripts/inventario (3), scripts/regras_negocio (3)
@@ -71,9 +71,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 |---|---|---|---|---|---|---|
 | api | 0 | 15 | 15 | 0 | 0 | 0 |
 | api/_lib | 0 | 0 | 16 | 0 | 0 | 0 |
-| components | 0 | 0 | 20 | 6 | 0 | 0 |
+| components | 0 | 0 | 21 | 6 | 0 | 0 |
 | context | 0 | 0 | 5 | 2 | 0 | 0 |
-| lib | 0 | 0 | 46 | 8 | 0 | 0 |
+| lib | 0 | 0 | 47 | 8 | 0 | 0 |
 | pages | 7 | 19 | 19 | 9 | 0 | 0 |
 
 ## Rotas (url → arquivo)
@@ -148,7 +148,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - env de integração (só nomes): COMMERCIAL_TEAM_WEBHOOK_TOKEN, COMMERCIAL_TEAM_WEBHOOK_URL, CRON_SECRET, OPERATIONS_ALERT_WEBHOOK_TOKEN, OPERATIONS_ALERT_WEBHOOK_URL, RESEND_API_KEY, RESEND_WEBHOOK_SECRET, SITE_SUPABASE_SECRET_KEY, VITE_CONTACT_WHATSAPP, WHATSAPP_ACCESS_TOKEN, WHATSAPP_APP_SECRET, WHATSAPP_GRAPH_API_VERSION, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_QUOTE_TEMPLATE, WHATSAPP_WEBHOOK_VERIFY_TOKEN
 
 ## Permissões / papéis
-- papéis no código: anon (4)
+- papéis no código: anon (4), papel (1)
 - enums de papel: nenhum
 - guards: nenhum · rotas protegidas: 0 · públicas: /, /*, /admin/orcamentos, /auth/confirm, /catalogo, /catalogos, /contato, /datas-comemorativas, /definir-senha, /entrar, /ideias/:topic, /minha-conta, /minha-conta/orcamentos/:id, /montar-kit, /orcamento, /privacidade, /produto/:identifier, /selecoes/compartilhada, /sobre
 - feature flags: CUSTOMER_ADJUSTMENTS_ENABLED, PERSISTENT_SHARED_SELECTIONS_ENABLED, QUOTE_DECISION_GROUPS_ENABLED
@@ -175,8 +175,8 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 ## Hotspots (arquivos mais alterados, 90 dias)
 - package.json (65)
-- e2e/smoke.spec.ts (60)
-- src/styles.css (37)
+- e2e/smoke.spec.ts (61)
+- src/styles.css (38)
 - package-lock.json (36)
 - .github/workflows/quality.yml (28)
 - vercel.json (28)
@@ -390,6 +390,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-22 `28a86e8` feat: por que este produto e ideias de uso (F-45) (#236)
 - 2026-11-22 `a6cd533` feat: mensagens da equipe ao cliente na linha do tempo (F-05) (#235)
 - 2026-11-22 `18eebb5` fix: politica de privacidade declara os estados reais de entrega (F-17) (#243)
 - 2026-11-22 `8543dac` feat: vigia independente dos crons com heartbeat e alerta (F-87) (#232)
@@ -404,7 +405,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-21 `64e1dcc` feat: separa intencao do briefing dos filtros efetivos (F-40/PF-40) (#223)
 - 2026-11-21 `957fa44` feat: contato via WhatsApp iniciado pelo visitante (F-47) (#222)
 - 2026-11-21 `a3e9e21` feat: fallback de SKU exato quando a busca nao encontra correspondencia (NOVO-CA-22) (#221)
-- 2026-11-21 `66ed450` feat(lgpd): direitos do titular — acesso, exportacao, correcao e autoexclusao (F-30) (#220)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

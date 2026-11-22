@@ -1,12 +1,12 @@
 {
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
- "nos": 178,
- "arestas": 392,
+ "nos": 180,
+ "arestas": 396,
  "hubs": [
   {
    "arquivo": "src/types.ts",
-   "importado_por": 45
+   "importado_por": 48
   },
   {
    "arquivo": "src/lib/analytics.ts",

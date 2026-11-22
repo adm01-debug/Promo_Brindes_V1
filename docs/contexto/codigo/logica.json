@@ -1,11 +1,11 @@
 {
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
- "total": 83,
+ "total": 84,
  "por_camada": {
   "api": 31,
   "context": 3,
-  "lib": 46,
+  "lib": 47,
   "python": 3
  },
  "arquivos": [
@@ -2058,6 +2058,36 @@
    "usado_por_modulos": [
     "context",
     "pages"
+   ],
+   "coberto_por_testes": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/lib/productApplications.ts",
+   "camada": "lib",
+   "exports": [
+    "ProductApplications",
+    "ProductReason",
+    "productApplicationIdeas",
+    "productHasApplications",
+    "productMaterialLabels",
+    "productReasons"
+   ],
+   "export_default": null,
+   "linhas": 225,
+   "tabelas": [],
+   "rpcs": [],
+   "edges": [],
+   "env": [],
+   "externos": [],
+   "zod_schemas": 0,
+   "flags": [],
+   "papeis": [
+    "papel"
+   ],
+   "usado_por": 1,
+   "usado_por_modulos": [
+    "components"
    ],
    "coberto_por_testes": 1,
    "orfao": false

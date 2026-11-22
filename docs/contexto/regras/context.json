@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "a6cd5338ba3299460d0d3fde5ed3e71d5a0caa39",
+  "sha": "28a86e8032f7a3c9b51be5b7e5f8928380e0fa0d",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-22 15:59 UTC",
-  "files_total": 636,
-  "code_files": 416,
-  "code_lines": 75441,
+  "generated_at": "2026-11-22 16:09 UTC",
+  "files_total": 639,
+  "code_files": 419,
+  "code_lines": 75838,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "8c712a22607e690c",
+ "facts_hash": "78bbe26f20ca2896",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -281,9 +281,9 @@
   ],
   "package_manager": "npm",
   "languages": {
-   ".ts": 160,
+   ".ts": 162,
    ".sql": 117,
-   ".tsx": 66,
+   ".tsx": 67,
    ".mjs": 63,
    ".py": 8,
    ".js": 2
@@ -7620,7 +7620,7 @@
     "tables_transitive": [],
     "invokes_transitive": [],
     "rpc_transitive": [],
-    "deps_count": 18
+    "deps_count": 20
    },
    {
     "path": "/selecoes/compartilhada",
@@ -7890,7 +7890,7 @@
     "file": ".github/workflows/stale-branches.yml"
    }
   ],
-  "components_count": 32,
+  "components_count": 33,
   "hooks": [
    {
     "name": "useCustomerAuth",
@@ -8234,7 +8234,7 @@
   {
    "module": "e2e",
    "files": 6,
-   "lines": 2257,
+   "lines": 2268,
    "tables": [],
    "exports": [],
    "docs": [],
@@ -8270,7 +8270,7 @@
   {
    "module": "scripts",
    "files": 43,
-   "lines": 21588,
+   "lines": 21597,
    "tables": [
     "a",
     "contacts",
@@ -8564,8 +8564,8 @@
   },
   {
    "module": "src/components",
-   "files": 29,
-   "lines": 3364,
+   "files": 30,
+   "lines": 3408,
    "tables": [],
    "exports": [
     "AppErrorBoundary.tsx: AppErrorBoundary",
@@ -8581,6 +8581,7 @@
     "GiftLoversSignature.tsx: GiftLoversSignature",
     "GlitchText.tsx: GlitchText",
     "Layout.tsx: Layout",
+    "ProductApplications.tsx: ProductApplications",
     "ProductCard.tsx: ProductCard",
     "ProductDescription.tsx: ProductDescription",
     "ProductGallery.tsx: ProductGallery",
@@ -8622,6 +8623,7 @@
     "src/components/GiftLoversSignature.tsx",
     "src/components/GlitchText.tsx",
     "src/components/Layout.tsx",
+    "src/components/ProductApplications.tsx",
     "src/components/ProductCard.tsx",
     "src/components/ProductDescription.test.tsx",
     "src/components/ProductDescription.tsx",
@@ -8670,8 +8672,8 @@
   },
   {
    "module": "src/lib",
-   "files": 85,
-   "lines": 8990,
+   "files": 87,
+   "lines": 9320,
    "tables": [],
    "exports": [
     "analytics.ts: FunnelEventMap, redactAnalyticsPathname, redactTelemetryUrl, redactAnalyticsUrl, briefingAssetSizeBand, trackFunnelEvent",
@@ -8699,6 +8701,7 @@
     "images.ts: replaceBrokenProductImage",
     "kitBuilder.ts: KitSlotDefinition, KitTemplate, KitComponent, kitTemplates, missingRequiredKitSlots, minimumKitQuantity",
     "personalDataReset.ts: clearPersonalQuoteStorage",
+    "productApplications.ts: ProductReason, ProductApplications, productMaterialLabels, productReasons, productApplicationIdeas, productHasApplications",
     "productBadges.ts: isWithinNoveltyWindow, isCatalogKit, ProductBadgeKind, resolveProductBadge, productBadgeConfig",
     "quoteBriefing.ts: EMPTY_QUOTE_BRIEFING, quoteBriefingLabels, QuoteBriefingValidationError, normalizeQuoteBriefing, getQuoteBriefingValidationError, quoteBriefingForm",
     "quoteCalendar.ts: localDateInputValue",
@@ -8712,8 +8715,7 @@
     "search.ts: SearchSuggestion, normalizeSearchText, normalizeSku, isSkuQuery, buildCatalogSearchGroups, suggestSearchCorrection",
     "searchRelevance.ts: SearchRelevanceJudgment, searchRelevanceJudgments, evaluateSearchRelevance",
     "sharedSelection.ts: MAX_SHARED_SELECTION_ITEMS, SharedSelectionItem, PersistentSharedSelection, SharedSelectionHydration, encodeSharedSelection, decodeSharedSelection",
-    "siteFeatureFlags.ts: quoteDecisionGroupsEnabled, customerAdjustmentsEnabled, persistentSharedSelectionsEnabled",
-    "siteRpc.ts: SITE_RPC_TIMEOUT_MS, runSiteRpc"
+    "siteFeatureFlags.ts: quoteDecisionGroupsEnabled, customerAdjustmentsEnabled, persistentSharedSelectionsEnabled"
    ],
    "docs": [
     "commercialBackoffice.ts: Camada de dados do back-office comercial (F-03). Todas as chamadas passam por `runSiteRpc`, que já impõe deadline real (12 s) — o back-office não pode ficar com spinner pendurado se o PostgREST travar. Nada aqui decide autorização: quem é operador é decidido por `site_private.assert_site_operator()` …",
@@ -8782,6 +8784,8 @@
     "src/lib/kitBuilder.test.ts",
     "src/lib/kitBuilder.ts",
     "src/lib/personalDataReset.ts",
+    "src/lib/productApplications.test.ts",
+    "src/lib/productApplications.ts",
     "src/lib/productBadges.test.ts",
     "src/lib/productBadges.ts",
     "src/lib/quoteBriefing.test.ts",
@@ -8813,15 +8817,13 @@
     "src/lib/siteSupabase.test.ts",
     "src/lib/siteSupabase.ts",
     "src/lib/siteSupabaseConfig.ts",
-    "src/lib/useCatalogPageState.test.tsx",
-    "src/lib/useCatalogPageState.ts",
-    "src/lib/useInitialSuccessScroll.test.tsx"
+    "src/lib/useCatalogPageState.test.tsx"
    ]
   },
   {
    "module": "src/pages",
    "files": 27,
-   "lines": 4237,
+   "lines": 4240,
    "tables": [],
    "exports": [
     "AboutPage.tsx: AboutPage",
@@ -11610,6 +11612,14 @@
    {
     "file": "src/lib/kitBuilder.ts",
     "text": "Um mesmo produto/variante não pode representar simultaneamente um item"
+   },
+   {
+    "file": "src/lib/productApplications.ts",
+    "text": "producao no mesmo dia: o prazo continua dependendo do orcamento."
+   },
+   {
+    "file": "src/lib/productApplications.ts",
+    "text": "O limite de 4 mantém a ficha enxuta; como o eco do briefing entra antes,"
    },
    {
     "file": "src/lib/productBadges.ts",
@@ -19001,6 +19011,62 @@
    {
     "file": "src/lib/kitBuilder.test.ts",
     "name": "não mistura silenciosamente componente de kit com item avulso existente"
+   },
+   {
+    "file": "src/lib/productApplications.test.ts",
+    "name": "product applications"
+   },
+   {
+    "file": "src/lib/productApplications.test.ts",
+    "name": "omite razão de material quando a ficha não declara material"
+   },
+   {
+    "file": "src/lib/productApplications.test.ts",
+    "name": "declara apenas os materiais presentes no cadastro, normalizados"
+   },
+   {
+    "file": "src/lib/productApplications.test.ts",
+    "name": "descreve material durável sem prometer desempenho da campanha"
+   },
+   {
+    "file": "src/lib/productApplications.test.ts",
+    "name": "marca sugestões como editoriais e não como garantia"
+   },
+   {
+    "file": "src/lib/productApplications.test.ts",
+    "name": "não cria razão de capacidade abaixo de 300 ml nem de cores quando há uma única cor"
+   },
+   {
+    "file": "src/lib/productApplications.test.ts",
+    "name": "respeita o mínimo de tiragem como dado, não como benefício"
+   },
+   {
+    "file": "src/lib/productApplications.test.ts",
+    "name": "limita a quantidade de razões e ideias para não dominar a ficha"
+   },
+   {
+    "file": "src/lib/productApplications.test.ts",
+    "name": "sinaliza produto sem nenhum atributo aproveitável"
+   },
+   {
+    "file": "src/lib/productApplications.test.ts",
+    "name": "ecoa o momento e o público declarados antes das ideias genéricas"
+   },
+   {
+    "file": "src/lib/productApplications.test.ts",
+    "name": "dá sugestões diferentes para briefings diferentes e volta ao genérico sem briefing"
+   },
+   {
+    "file": "src/lib/productApplications.test.ts",
+    "name": "não promete autonomia de hidratação a partir da capacidade"
+   },
+   {
+    "file": "src/lib/productApplications.test.ts",
+    "name": "não remete a uma data que o briefing da curadoria não coleta"
+   },
+   {
+    "file": "src/lib/productApplications.test.ts",
+    "name": "não promete personalização pronta no dia do evento"
    },
    {
     "file": "src/lib/productBadges.test.ts",
@@ -29028,7 +29094,7 @@
   },
   "e2e/product-detail.spec.ts": {
    "path": "e2e/product-detail.spec.ts",
-   "lines": 156,
+   "lines": 158,
    "is_test": true,
    "tests": [
     "ficha compacta reúne seleção e especificações ao lado da galeria no desktop",
@@ -29043,7 +29109,7 @@
   },
   "e2e/smoke.spec.ts": {
    "path": "e2e/smoke.spec.ts",
-   "lines": 1624,
+   "lines": 1633,
    "is_test": true,
    "navigates": [
     "/catalogo?perfil=novos"
@@ -29261,7 +29327,7 @@
   },
   "scripts/check-performance-budget.mjs": {
    "path": "scripts/check-performance-budget.mjs",
-   "lines": 189,
+   "lines": 198,
    "env": [
     "PERFORMANCE_BUDGET_PROFILE"
    ],
@@ -33252,6 +33318,13 @@
     "excluímos somente os modificadores/targets que o React Router deixa o"
    ]
   },
+  "src/components/ProductApplications.tsx": {
+   "path": "src/components/ProductApplications.tsx",
+   "lines": 44,
+   "exports": [
+    "function ProductApplications"
+   ]
+  },
   "src/components/ProductCard.tsx": {
    "path": "src/components/ProductCard.tsx",
    "lines": 96,
@@ -34857,6 +34930,47 @@
     "function clearPersonalQuoteStorage"
    ]
   },
+  "src/lib/productApplications.test.ts": {
+   "path": "src/lib/productApplications.test.ts",
+   "lines": 105,
+   "is_test": true,
+   "rule_comments": [
+    "Os dois primeiros lugares sobrevivem ao limite de 4.",
+    "escala e estilo, nunca a data. A sugestão não pode citar um campo inexistente."
+   ],
+   "tests": [
+    "product applications",
+    "omite razão de material quando a ficha não declara material",
+    "declara apenas os materiais presentes no cadastro, normalizados",
+    "descreve material durável sem prometer desempenho da campanha",
+    "marca sugestões como editoriais e não como garantia",
+    "não cria razão de capacidade abaixo de 300 ml nem de cores quando há uma única cor",
+    "respeita o mínimo de tiragem como dado, não como benefício",
+    "limita a quantidade de razões e ideias para não dominar a ficha",
+    "sinaliza produto sem nenhum atributo aproveitável",
+    "ecoa o momento e o público declarados antes das ideias genéricas",
+    "dá sugestões diferentes para briefings diferentes e volta ao genérico sem briefing",
+    "não promete autonomia de hidratação a partir da capacidade",
+    "não remete a uma data que o briefing da curadoria não coleta",
+    "não promete personalização pronta no dia do evento"
+   ]
+  },
+  "src/lib/productApplications.ts": {
+   "path": "src/lib/productApplications.ts",
+   "lines": 225,
+   "exports": [
+    "interface ProductReason",
+    "interface ProductApplications",
+    "function productMaterialLabels",
+    "function productReasons",
+    "function productApplicationIdeas",
+    "function productHasApplications"
+   ],
+   "rule_comments": [
+    "producao no mesmo dia: o prazo continua dependendo do orcamento.",
+    "O limite de 4 mantém a ficha enxuta; como o eco do briefing entra antes,"
+   ]
+  },
   "src/lib/productBadges.test.ts": {
    "path": "src/lib/productBadges.test.ts",
    "lines": 39,
@@ -35875,7 +35989,7 @@
   },
   "src/pages/ProductPage.tsx": {
    "path": "src/pages/ProductPage.tsx",
-   "lines": 224,
+   "lines": 227,
    "exports": [
     "function ProductPage"
    ],
@@ -37347,10 +37461,30 @@
   }
  },
  "git": {
-  "sha": "a6cd5338ba3299460d0d3fde5ed3e71d5a0caa39",
+  "sha": "28a86e8032f7a3c9b51be5b7e5f8928380e0fa0d",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "28a86e8",
+    "date": "2026-11-22",
+    "author": "adm01-debug",
+    "subject": "feat: por que este produto e ideias de uso (F-45) (#236)",
+    "files": [
+     "analise-prs/funcionalidades.csv",
+     "docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md",
+     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
+     "e2e/product-detail.spec.ts",
+     "e2e/smoke.spec.ts",
+     "scripts/check-performance-budget.mjs",
+     "src/components/ProductApplications.tsx",
+     "src/lib/productApplications.test.ts",
+     "src/lib/productApplications.ts",
+     "src/pages/ProductPage.tsx",
+     "src/styles.css",
+     "tests/check-performance-budget.node.mjs"
+    ]
+   },
    {
     "sha": "a6cd533",
     "date": "2026-11-22",
@@ -37754,37 +37888,24 @@
     "files": [
      "e2e/concurrency.spec.ts"
     ]
-   },
-   {
-    "sha": "4a23155",
-    "date": "2026-11-18",
-    "author": "adm01-debug",
-    "subject": "feat(guarda): aponta trabalho estacionado em refs fora de heads e pull (#203)",
-    "files": [
-     "package.json",
-     "scripts/automation.config.json",
-     "scripts/check-orphan-refs.mjs",
-     "scripts/orphan-refs-baseline.json",
-     "tests/orphan-refs.node.mjs"
-    ]
    }
   ],
   "hot_files": [
    [
     "analise-prs/funcionalidades.csv",
-    13
+    14
    ],
    [
     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
-    8
+    9
    ],
    [
     "scripts/check-performance-budget.mjs",
-    6
+    7
    ],
    [
     "tests/check-performance-budget.node.mjs",
-    6
+    7
    ],
    [
     "docs/DATABASE_DICTIONARY.md",
@@ -37793,6 +37914,14 @@
    [
     "src/lib/useCatalogPageState.ts",
     4
+   ],
+   [
+    "e2e/smoke.spec.ts",
+    3
+   ],
+   [
+    "src/styles.css",
+    3
    ],
    [
     "docs/DATABASE_FUNCTION_CONTRACTS.md",
@@ -37819,6 +37948,10 @@
     3
    ],
    [
+    "docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md",
+    2
+   ],
+   [
     "src/pages/BackofficePage.tsx",
     2
    ],
@@ -37836,18 +37969,6 @@
    ],
    [
     "src/lib/useCatalogPageState.test.tsx",
-    2
-   ],
-   [
-    "src/components/CampaignFinder.test.tsx",
-    2
-   ],
-   [
-    "src/components/CampaignFinder.tsx",
-    2
-   ],
-   [
-    "e2e/smoke.spec.ts",
     2
    ]
   ]

@@ -244,6 +244,10 @@
    "src/lib/siteSupabaseConfig.ts",
    "src/lib/whatsappContact.ts"
   ],
+  "src/components/ProductApplications.tsx": [
+   "src/lib/productApplications.ts",
+   "src/types.ts"
+  ],
   "src/components/ProductCard.tsx": [
    "src/context/quoteCart.ts",
    "src/lib/images.ts",
@@ -384,6 +388,9 @@
    "src/lib/http.ts",
    "src/lib/quoteDraft.ts",
    "src/lib/quoteRepeat.ts"
+  ],
+  "src/lib/productApplications.ts": [
+   "src/types.ts"
   ],
   "src/lib/quoteBriefing.ts": [
    "src/types.ts"
@@ -569,6 +576,7 @@
   "src/pages/ProductPage.tsx": [
    "src/components/CatalogFeedback.tsx",
    "src/components/ContextualFaq.tsx",
+   "src/components/ProductApplications.tsx",
    "src/components/ProductCard.tsx",
    "src/components/ProductDescription.tsx",
    "src/components/ProductGallery.tsx",

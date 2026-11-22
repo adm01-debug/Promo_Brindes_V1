@@ -5,17 +5,17 @@
   "vitest",
   "playwright"
  ],
- "total": 155,
+ "total": 156,
  "por_tipo": {
   "contrato": 2,
   "e2e": 6,
   "pytest": 4,
-  "unit": 108
+  "unit": 109
  },
  "onde_ficam": [
   {
    "padrao": "co-localizado (*.test)",
-   "arquivos": 58
+   "arquivos": 59
   },
   {
    "padrao": "tests/",
@@ -62,14 +62,14 @@
   {
    "arquivo": "e2e/product-detail.spec.ts",
    "tipo": "e2e",
-   "linhas": 156,
+   "linhas": 158,
    "testa": [],
    "casos": 9
   },
   {
    "arquivo": "e2e/smoke.spec.ts",
    "tipo": "e2e",
-   "linhas": 1624,
+   "linhas": 1633,
    "testa": [],
    "casos": 70
   },
@@ -440,6 +440,16 @@
     "src/types.ts"
    ],
    "casos": 6
+  },
+  {
+   "arquivo": "src/lib/productApplications.test.ts",
+   "tipo": "unit",
+   "linhas": 105,
+   "testa": [
+    "src/lib/productApplications.ts",
+    "src/types.ts"
+   ],
+   "casos": 13
   },
   {
    "arquivo": "src/lib/productBadges.test.ts",
@@ -1252,6 +1262,7 @@
   "src/lib/ideaLandings.ts": 1,
   "src/lib/kitBuilder.ts": 1,
   "src/lib/personalDataReset.ts": 1,
+  "src/lib/productApplications.ts": 1,
   "src/lib/productBadges.ts": 1,
   "src/lib/quoteBriefing.ts": 3,
   "src/lib/quoteCalendar.ts": 2,
@@ -1277,7 +1288,7 @@
   "src/pages/PrivacyPage.tsx": 1,
   "src/pages/QuotePage.tsx": 1,
   "src/pages/SharedSelectionPage.tsx": 1,
-  "src/types.ts": 10
+  "src/types.ts": 11
  },
  "sem_teste": {
   "telas": [

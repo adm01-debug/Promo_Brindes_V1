@@ -1140,9 +1140,10 @@
    "canais_realtime": [],
    "flags": [],
    "papeis": [
-    "anon"
+    "anon",
+    "papel"
    ],
-   "arquivos_puxados": 18
+   "arquivos_puxados": 20
   },
   {
    "protegida": false,

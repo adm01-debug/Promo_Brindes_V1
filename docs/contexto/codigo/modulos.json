@@ -228,13 +228,13 @@
   },
   {
    "modulo": "components",
-   "arquivos": 20,
+   "arquivos": 21,
    "testes": 9,
-   "linhas": 2582,
+   "linhas": 2626,
    "itens_menu": [],
    "telas": [],
    "rotas_http": [],
-   "componentes": 19,
+   "componentes": 20,
    "hooks_locais": [
     "useAllCategories",
     "useCatalog",
@@ -281,7 +281,8 @@
     "QUOTE_DECISION_GROUPS_ENABLED"
    ],
    "papeis": [
-    "anon"
+    "anon",
+    "papel"
    ],
    "diretos": {
     "edges": [],
@@ -365,9 +366,9 @@
   },
   {
    "modulo": "lib",
-   "arquivos": 46,
-   "testes": 39,
-   "linhas": 5948,
+   "arquivos": 47,
+   "testes": 40,
+   "linhas": 6173,
    "itens_menu": [],
    "telas": [],
    "rotas_http": [],
@@ -442,7 +443,8 @@
     "QUOTE_DECISION_GROUPS_ENABLED"
    ],
    "papeis": [
-    "anon"
+    "anon",
+    "papel"
    ],
    "diretos": {
     "edges": [],
@@ -493,7 +495,7 @@
    "modulo": "pages",
    "arquivos": 19,
    "testes": 8,
-   "linhas": 3723,
+   "linhas": 3726,
    "itens_menu": [
     "Catálogos",
     "Como funciona",
@@ -590,7 +592,8 @@
     "QUOTE_DECISION_GROUPS_ENABLED"
    ],
    "papeis": [
-    "anon"
+    "anon",
+    "papel"
    ],
    "diretos": {
     "edges": [],

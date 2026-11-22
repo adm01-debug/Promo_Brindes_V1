@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `a6cd5338ba` · branch `main` · 2026-11-22 15:59 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `28a86e8032` · branch `main` · 2026-11-22 16:09 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -1118,7 +1118,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1960 testes em 146 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1974 testes em 147 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1163,6 +1163,7 @@ _nenhum item encontrado_
 | `tests/api/maxDuration.test.ts` | 17 | Etapa 24: maxDuration em vercel.json cobre o pior caso real de cada rota · api/quote-requests.ts: catalogValidation + siteDatabase + confirmação (canais em paralelo) · api/contact-requests.ts: preflight + siteDatabase + alerta comercial (sem catalogValidation nem confirmação) · api/notification-events-resend.ts (Etapa 30): apenas uma chamada de RPC (callSiteRpc) … |
 | `site-supabase/supabase/tests/database/contact_commercial_alert.test.sql` | 16 | novo contato alimenta a fila do alerta comercial na mesma transação · contato enfileira exatamente uma entrega · a entrega é o alerta comercial pendente do contato · o envelope identifica o tipo do lead (a API não renderiza texto de orçamento) … |
 | `src/lib/commercialBackofficeContract.test.ts` | 14 | contrato do back-office comercial · lê a fila paginada com totais e itens · trata payload que não é objeto como indisponibilidade, não como fila vazia · rejeita item de fila que não é objeto … |
+| `src/lib/productApplications.test.ts` | 14 | product applications · omite razão de material quando a ficha não declara material · declara apenas os materiais presentes no cadastro, normalizados · descreve material durável sem prometer desempenho da campanha … |
 | `src/lib/sharedSelection.test.ts` | 14 | sharedSelection · preserva prioridade alternativa no link e na seleção reconstruída · preserva cor sem variantId e bloqueia fallback ambíguo ou removido · aceita nomes Unicode e mantém links Latin-1 antigos legíveis … |
 | `tests/api/briefing-assets.test.ts` | 14 | inspeção server-side de anexos privados · estouro do limite devolve 429, não  · sessão que expira entre o upload e a verificação devolve 401, não  · confirma um PNG somente depois de ler a assinatura no Storage privado … |
 | `tests/api/notification-events-resend.test.ts` | 14 | api/notification-events-resend (Etapa 30) · rejeita método diferente de POST · responde 503 quando o segredo do webhook não está configurado · rejeita assinatura ausente ou inválida sem chamar o banco … |
@@ -1362,6 +1363,8 @@ _nenhum item encontrado_
 | Um armazenamento indisponível não pode impedir o envio do formulário. | `src/lib/http.ts` |
 | Estruturas neutras de briefing: não recomendam SKU, preço, embalagem ou regra | `src/lib/kitBuilder.ts` |
 | Um mesmo produto/variante não pode representar simultaneamente um item | `src/lib/kitBuilder.ts` |
+| producao no mesmo dia: o prazo continua dependendo do orcamento. | `src/lib/productApplications.ts` |
+| O limite de 4 mantém a ficha enxuta; como o eco do briefing entra antes, | `src/lib/productApplications.ts` |
 | * O campo canônico continua soberano; a taxonomia é apenas um fallback para | `src/lib/productBadges.ts` |
 | * O rascunho vive somente nesta aba e expira em 24 horas. */ | `src/lib/quoteDraft.ts` |
 | recuperar referências avulsas de dados antigos, mas uma transmissão nunca deve | `src/lib/quoteItems.ts` |

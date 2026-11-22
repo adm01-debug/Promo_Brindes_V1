@@ -1,7 +1,7 @@
 {
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
- "total": 41,
+ "total": 42,
  "orfaos": 0,
  "nomes_duplicados": {},
  "componentes": [
@@ -206,6 +206,20 @@
     "useCategories",
     "useQuoteCart"
    ],
+   "tabelas": [],
+   "edges": [],
+   "usado_por": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/components/ProductApplications.tsx",
+   "exports": [
+    "ProductApplications"
+   ],
+   "export_default": null,
+   "linhas": 44,
+   "dominio": "components",
+   "hooks_locais": [],
    "tabelas": [],
    "edges": [],
    "usado_por": 1,
@@ -570,7 +584,7 @@
     "ProductPage"
    ],
    "export_default": "ProductPage",
-   "linhas": 224,
+   "linhas": 227,
    "dominio": "pages",
    "hooks_locais": [
     "useCatalog",

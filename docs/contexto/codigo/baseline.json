@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "a6cd5338ba3299460d0d3fde5ed3e71d5a0caa39",
+  "commit": "28a86e8032f7a3c9b51be5b7e5f8928380e0fa0d",
   "branch": "main",
-  "data_commit": "2026-11-22T15:57:22Z",
+  "data_commit": "2026-11-22T16:09:31Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "28a86e8",
+    "data": "2026-11-22",
+    "assunto": "feat: por que este produto e ideias de uso (F-45) (#236)"
+   },
    {
     "sha": "a6cd533",
     "data": "2026-11-22",
@@ -126,14 +131,9 @@
     "sha": "40f6420",
     "data": "2026-11-19",
     "assunto": "infra(ci): verify-db tolera espera dos gates quando cross-browser chega ao teto de 35min (#210)"
-   },
-   {
-    "sha": "8e896a7",
-    "data": "2026-11-19",
-    "assunto": "infra(ci): cross-browser deixa de ser cancelado no teto antes de rodar teste (#204)"
    }
   ],
-  "arquivos_mudados_7d": 189,
+  "arquivos_mudados_7d": 194,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "site-supabase/supabase/tests",
@@ -141,7 +141,7 @@
    },
    {
     "pasta": "analise-prs/funcionalidades.csv",
-    "mudancas": 17
+    "mudancas": 18
    },
    {
     "pasta": "package.json",
@@ -152,7 +152,15 @@
     "mudancas": 11
    },
    {
+    "pasta": "e2e/smoke.spec.ts",
+    "mudancas": 10
+   },
+   {
     "pasta": "package-lock.json",
+    "mudancas": 10
+   },
+   {
+    "pasta": "scripts/check-performance-budget.mjs",
     "mudancas": 10
    },
    {
@@ -160,15 +168,11 @@
     "mudancas": 9
    },
    {
+    "pasta": "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
+    "mudancas": 9
+   },
+   {
     "pasta": "docs/audits/planejado-x-implementado-20261120",
-    "mudancas": 9
-   },
-   {
-    "pasta": "e2e/smoke.spec.ts",
-    "mudancas": 9
-   },
-   {
-    "pasta": "scripts/check-performance-budget.mjs",
     "mudancas": 9
    },
    {
@@ -180,7 +184,7 @@
     "mudancas": 8
    },
    {
-    "pasta": "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
+    "pasta": "tests/check-performance-budget.node.mjs",
     "mudancas": 8
    },
    {
@@ -188,12 +192,8 @@
     "mudancas": 7
    },
    {
-    "pasta": "tests/check-performance-budget.node.mjs",
+    "pasta": "src/styles.css",
     "mudancas": 7
-   },
-   {
-    "pasta": ".gitignore",
-    "mudancas": 6
    }
   ],
   "arquivos_mais_mudados_90d": [
@@ -203,11 +203,11 @@
    },
    {
     "arquivo": "e2e/smoke.spec.ts",
-    "mudancas": 60
+    "mudancas": 61
    },
    {
     "arquivo": "src/styles.css",
-    "mudancas": 37
+    "mudancas": 38
    },
    {
     "arquivo": "package-lock.json",
@@ -262,6 +262,10 @@
     "mudancas": 19
    },
    {
+    "arquivo": "analise-prs/funcionalidades.csv",
+    "mudancas": 18
+   },
+   {
     "arquivo": "src/App.tsx",
     "mudancas": 18
    },
@@ -278,10 +282,6 @@
     "mudancas": 17
    },
    {
-    "arquivo": "analise-prs/funcionalidades.csv",
-    "mudancas": 17
-   },
-   {
     "arquivo": "api/_lib/leadHandler.ts",
     "mudancas": 17
    },
@@ -294,14 +294,14 @@
     "mudancas": 16
    },
    {
-    "arquivo": "tests/api/notifications.test.ts",
+    "arquivo": "scripts/check-performance-budget.mjs",
     "mudancas": 16
    }
   ],
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 115
+    "commits": 116
    },
    {
     "autor": "dependabot[bot]",
@@ -310,21 +310,21 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 742,
-  "arquivos_codigo": 298,
-  "linhas_codigo": 58944,
+  "arquivos_total": 745,
+  "arquivos_codigo": 301,
+  "linhas_codigo": 59341,
   "rotas": 34,
   "rotas_http_backend": 15,
   "vistas_por_id": 0,
   "itens_menu": 11,
   "modulos": 9,
-  "componentes": 41,
+  "componentes": 42,
   "hooks": 6,
   "edge_functions": 0,
   "tabelas": 26,
   "migrations": 74,
   "cron_jobs": 0,
-  "testes": 155,
+  "testes": 156,
   "workflows": 15,
   "scripts": 37,
   "docs_md": 134
@@ -416,11 +416,11 @@
   },
   "e2e/product-detail.spec.ts": {
    "arquivos": 1,
-   "linhas": 156
+   "linhas": 158
   },
   "e2e/smoke.spec.ts": {
    "arquivos": 1,
-   "linhas": 1624
+   "linhas": 1633
   },
   "eslint.config.js": {
    "arquivos": 1,
@@ -460,7 +460,7 @@
   },
   "scripts/check-performance-budget.mjs": {
    "arquivos": 1,
-   "linhas": 189
+   "linhas": 198
   },
   "scripts/ci-health-metrics.mjs": {
    "arquivos": 1,
@@ -575,16 +575,16 @@
    "linhas": 140
   },
   "src/components": {
-   "arquivos": 29,
-   "linhas": 3364
+   "arquivos": 30,
+   "linhas": 3408
   },
   "src/context": {
    "arquivos": 7,
    "linhas": 753
   },
   "src/lib": {
-   "arquivos": 85,
-   "linhas": 8990
+   "arquivos": 87,
+   "linhas": 9320
   },
   "src/main.tsx": {
    "arquivos": 1,
@@ -592,7 +592,7 @@
   },
   "src/pages": {
    "arquivos": 27,
-   "linhas": 4237
+   "linhas": 4240
   },
   "src/test": {
    "arquivos": 1,

@@ -6,7 +6,7 @@
    "src/pages (19)"
   ],
   "componentes": [
-   "src/components (19)",
+   "src/components (20)",
    "src/pages (19)",
    "src/context (2)"
   ],
@@ -15,12 +15,12 @@
    "src/context (2)"
   ],
   "servicos_logica": [
-   "src/lib (46)",
+   "src/lib (47)",
    "api/_lib (16)",
    "src/context (3)"
   ],
   "testes": [
-   "co-localizado (*.test) (58)",
+   "co-localizado (*.test) (59)",
    "tests/ (47)",
    "outro (9)"
   ],
@@ -46,17 +46,17 @@
  },
  "barrels_index": 0,
  "extensao_componentes": [
-  ".tsx (41)"
+  ".tsx (42)"
  ],
  "alias_imports": {},
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "feat: por que este produto e ideias de uso (F-45) (#236)",
    "feat: mensagens da equipe ao cliente na linha do tempo (F-05) (#235)",
    "fix: politica de privacidade declara os estados reais de entrega (F-17) (#243)",
    "feat: vigia independente dos crons com heartbeat e alerta (F-87) (#232)",
-   "feat: back-office minimo de orcamentos (F-03) e produtor de propostas versionadas (F-23) (#225)",
-   "docs: executa a revisao mensal do banco e corrige a coluna duplicada (F-90) (#229)"
+   "feat: back-office minimo de orcamentos (F-03) e produtor de propostas versionadas (F-23) (#225)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",
