@@ -40,12 +40,12 @@ export type Database = {
         Returns: Json
       }
       list_site_quote_requests: {
-        Args: { p_limit?: number; p_offset?: number; p_search?: string; p_status?: string }
+        Args: { p_limit?: number | null; p_offset?: number | null; p_search?: string | null; p_status?: string | null }
         Returns: Json
       }
       publish_site_quote_proposal: {
         Args: {
-          p_valid_until?: string
+          p_valid_until?: string | null
           p_storage_path: string
           p_title: string
           p_request_id: string
@@ -53,11 +53,11 @@ export type Database = {
         Returns: Json
       }
       reply_site_quote_adjustment: {
-        Args: { p_adjustment_id: string; p_note?: string; p_response: string; p_status?: string }
+        Args: { p_adjustment_id: string; p_note?: string | null; p_response: string; p_status?: string | null }
         Returns: Json
       }
       update_site_quote_status: {
-        Args: { p_note?: string; p_request_id: string; p_status: string }
+        Args: { p_note?: string | null; p_request_id: string; p_status: string }
         Returns: Json
       }
       claim_site_commercial_team_alert: {

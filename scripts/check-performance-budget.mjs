@@ -131,7 +131,15 @@ try {
   // qualquer feature seguinte reprovava por alguns bytes (a CI mediu 964,0 e
   // recusou). A folga nova e de ~2,0 KiB sobre a medicao, o mesmo criterio
   // usado nas recalibracoes anteriores, e ainda reprova regressoes acima disso.
-  assertBudget('JavaScript total', javascript, rawBytes(966));
+  // Teto recalibrado em 22/11/2026 de 966 para 987 KiB quando a F-03
+  // (back-office minimo em /admin/orcamentos) adicionou uma rota lazy inteira:
+  // BackofficePage (20,3 KiB), commercialBackoffice (3,1 KiB) e o contrato
+  // (8,9 KiB) somam 32,3 KiB de fonte, dos quais 20,2 KiB chegam ao corpus.
+  // Medicao sobre a base de 966 KiB: producao 986,1 KiB, pior caso com as tres
+  // flags 985,4 KiB. A margem de 1,6 KiB no pior caso e do mesmo tamanho das
+  // recalibragens anteriores (0,7 a 2,0 KiB) e continua reprovando regressao
+  // acima disso.
+  assertBudget('JavaScript total', javascript, rawBytes(987));
   assertBudget('Bundle de entrada', entry, rawBytes(300));
   assertBudget('CSS total (Brotli)', cssBrotli, rawBytes(32));
   // O total é um teto de manutenção para todo o corpus lazy. O download real
@@ -155,18 +163,17 @@ try {
   // porque a mesma arvore mede 266,9 KiB aqui e 267,1 KiB no runner da CI, e um
   // gate que reprova por essa diferenca nao esta medindo o codigo, esta medindo
   // a maquina.
-  // Teto recalibrado em 22/11/2026 de 271/272 para 272/273 KiB. A medicao da
-  // main no mesmo SHA deu 270,8 KiB de producao e 271,8 KiB de pior caso, ou
-  // seja a folga real era de 0,2 KiB: qualquer funcionalidade nova reprovava
-  // antes de o codigo dela ser avaliado. A F-04 (mensagem acionavel no limite de
-  // ajustes) custa +0,4 KiB em cada perfil (271,2 e 272,2), o que estourava os
-  // dois. 272/273 devolve 0,8 KiB de folga em producao e 0,8 KiB no pior caso
-  // (272 - 271,2 e 273 - 272,2), sem afrouxar o teto util: o teto raw de 966 KiB continua barrando crescimento de
-  // codigo e estes dois limites seguem contendo a compressao atual.
+  // Brotli recalibrado em 22/11/2026 sobre a base da main ja com a F-04
+  // (270,7 KiB de producao). A F-03 mede 276,3 KiB de producao e 277,7 KiB no
+  // pior caso com as tres flags ligadas, entao os tetos 278 (producao) e 279
+  // (pior caso) mantem 1,7 e 1,3 KiB de folga — a rota e lazy, entao o custo
+  // aparece no corpus total e nao na primeira visita, e folga abaixo de 1 KiB
+  // ja fez a CI reprovar por variacao de runner nas recalibragens anteriores.
   assertBudget(
     WORST_CASE ? 'JavaScript total (Brotli, pior caso com as flags ligadas)' : 'JavaScript total (Brotli)',
     javascriptBrotli,
-    rawBytes(WORST_CASE ? 273 : 272),
+    rawBytes(WORST_CASE ? 279 : 278),
+  );
   );
   assertBudget('Bundle de entrada (Brotli)', entryBrotli, rawBytes(90));
   assertBudget('JavaScript inicial (Brotli)', initialJavascriptBrotli, rawBytes(150));
