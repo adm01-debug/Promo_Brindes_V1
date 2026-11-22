@@ -21,7 +21,7 @@ function incompressible(kib) {
 
 const entryOnly = (file, extra = {}) => ({ 'index.html': { file: `assets/${file}`, isEntry: true, ...extra } });
 
-function check({ files, manifest, prefix = 'promo-budget-', setup } = {}) {
+function check({ files, manifest, prefix = 'promo-budget-', setup, env = {} } = {}) {
   const root = mkdtempSync(join(tmpdir(), prefix));
   workspaces.push(root);
   mkdirSync(join(root, 'scripts'));
@@ -36,7 +36,16 @@ function check({ files, manifest, prefix = 'promo-budget-', setup } = {}) {
   }
   setup?.(root);
   // cwd fora do workspace: o script não pode depender do diretório corrente.
-  return spawnSync(process.execPath, [join(root, 'scripts', 'check-performance-budget.mjs')], { cwd: tmpdir(), encoding: 'utf8' });
+  return spawnSync(process.execPath, [join(root, 'scripts', 'check-performance-budget.mjs')], {
+    cwd: tmpdir(),
+    encoding: 'utf8',
+    env: { ...process.env, PERFORMANCE_BUDGET_PROFILE: '', ...env },
+  });
+}
+
+function assertApproved(result) {
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.stderr, '');
 }
 
 function assertRejected(result, pattern) {
@@ -113,6 +122,19 @@ test('falha fechado quando o manifest aponta chunk que não foi medido', () => {
     check({ files: { 'index-0a1b2c3d.js': compressible(1) }, manifest: entryOnly('index-0a1b2c3d.js', { imports: ['_fantasma.js'] }) }),
     /^Chunk "_fantasma\.js" do manifest \(sem arquivo\) não existe em dist\/assets/,
   );
+});
+
+test('o perfil de pior caso só existe se diferenciar um bundle que a produção reprova', () => {
+  // 280,5 KiB de Brotli: acima do teto de produção (280) e abaixo do de pior caso
+  // (281). Sem este cenário, subir o teto de pior caso passaria despercebido por
+  // qualquer teste — os dois perfis devolveriam o mesmo veredito.
+  const scenario = {
+    files: { ...{ 'index-0a1b2c3d.js': compressible(1) },
+      ...Object.fromEntries(Array.from({ length: 6 }, (_, index) => [`lazy-${index}.js`, incompressible(46.75)])) },
+    manifest: entryOnly('index-0a1b2c3d.js'),
+  };
+  assertRejected(check(scenario), /^JavaScript total \(Brotli\): 280\.\d KiB excede o limite de 280 KiB\.\n$/);
+  assertApproved(check({ ...scenario, env: { PERFORMANCE_BUDGET_PROFILE: 'worst-case' } }));
 });
 
 test('cada teto reprova com exit 1 e nomeia a métrica estourada', () => {

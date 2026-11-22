@@ -13,11 +13,15 @@
 --   3. Lista de supressão consultável por hash (bounce/complaint), sem e-mail em claro.
 --   4. Re-vínculo dos eventos que chegaram antes do aceite.
 --   5. Reprocessamento controlado exhausted -> pending (substitui o SQL manual).
---   6. Relatório operacional da fila (esgotados, suprimidos, órfãos) para o back-office.
+--   6. Relatório operacional da fila (esgotados de orçamento E de contato, suprimidos,
+--      órfãos) para o back-office.
 --   7. Purga dos eventos órfãos, chamada por api/retention.ts.
+--   8. O envio passa a respeitar a supressão: as quatro claims (envio imediato e cron)
+--      barram destinatário suprimido e pedido apagado pela autoexclusão do titular.
 --
 -- Nenhuma função existente muda de assinatura; nenhuma coluna nova é NOT NULL, então
--- nenhum insert existente quebra.
+-- nenhum insert existente quebra. As claims são redefinidas com corpo idêntico ao vigente,
+-- apenas com o predicado site_private.notification_delivery_is_claimable a mais.
 
 -- === 1. Pseudônimo do e-mail ======================================================
 
@@ -158,6 +162,84 @@ grant execute on function public.apply_site_notification_provider_event(text, te
 comment on function public.apply_site_notification_provider_event(text, text, text, text, timestamptz, text) is
   'Aplica evento de webhook de forma idempotente. delivered só grava se delivery_state ainda for null; bounced grava se null OU se o estado atual for delivered (bounce tardio corrige delivered otimista). complained é independente e idempotente via coalesce. F-12: o evento também guarda provider_message_id e bounce_reason, para o re-vínculo de evento precoce.';
 
+-- === 2b. Predicados reutilizáveis (supressão e pedido apagado) ====================
+
+-- A supressão só vale para o negócio se o envio a consultar. Antes disso ela era um
+-- relatório: nenhuma das quatro funções que reivindicam entrega olhava a lista, então
+-- um endereço que devolveu continuava recebendo. Concentrar o critério aqui garante que
+-- envio imediato (claim_site_quote_notification, claim_site_commercial_team_alert) e
+-- cron (claim_site_notification_deliveries, claim_site_commercial_team_alerts) usem a
+-- MESMA definição — inclusive para o alerta da equipe, cujo destinatário é fixo mas o
+-- assunto é o titular do pedido.
+create or replace function site_private.notification_request_erased(
+  p_request_kind text,
+  p_request_id uuid
+)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select case p_request_kind
+    when 'quote' then exists (
+      select 1 from site_private.quote_requests request
+      where request.id = p_request_id and request.email like '%@erased.invalid'
+    )
+    when 'contact' then exists (
+      select 1 from site_private.contact_requests request
+      where request.id = p_request_id and request.email like '%@erased.invalid'
+    )
+    else false
+  end;
+$$;
+
+comment on function site_private.notification_request_erased(text, uuid) is
+  'F-12: pedido apagado pela autoexclusão do titular (F-30). Entrega cujo pedido foi apagado não é elegível para envio nem para reabertura.';
+
+create or replace function site_private.notification_request_suppressed(
+  p_request_kind text,
+  p_request_id uuid
+)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1
+    from site_private.notification_deliveries delivery
+    where delivery.audience = 'customer'
+      and (delivery.delivery_state = 'bounced' or delivery.complained_at is not null)
+      and site_private.email_hash(
+        case p_request_kind
+          when 'quote' then (
+            select request.email from site_private.quote_requests request where request.id = p_request_id
+          )
+          when 'contact' then (
+            select request.email from site_private.contact_requests request where request.id = p_request_id
+          )
+        end
+      ) = case delivery.request_kind
+        when 'quote' then site_private.email_hash((
+          select request.email from site_private.quote_requests request where request.id = delivery.request_id
+        ))
+        else site_private.email_hash((
+          select request.email from site_private.contact_requests request where request.id = delivery.request_id
+        ))
+      end
+  );
+$$;
+
+comment on function site_private.notification_request_suppressed(text, uuid) is
+  'F-12: o e-mail do pedido já devolveu (bounce) ou reclamou de spam em alguma entrega ao titular. Usado no claim das quatro filas para não reenviar a endereço suprimido.';
+
+revoke all on function site_private.notification_request_erased(text, uuid) from public, anon, authenticated;
+revoke all on function site_private.notification_request_suppressed(text, uuid) from public, anon, authenticated;
+grant execute on function site_private.notification_request_erased(text, uuid) to site_api, service_role;
+grant execute on function site_private.notification_request_suppressed(text, uuid) to site_api, service_role;
+
 -- === 3. Lista de supressão =======================================================
 
 -- O chamador calcula site_private.email_hash(e-mail do pedido) e pergunta; o banco
@@ -222,8 +304,13 @@ begin
 end;
 $$;
 
-revoke all on function public.get_site_notification_suppression(text) from public, anon;
-grant execute on function public.get_site_notification_suppression(text) to authenticated, site_api, service_role;
+-- Sem grant para authenticated: o hash é determinístico e calculável por qualquer um que
+-- conheça o endereço, então expor a consulta permitiria a um cliente logado descobrir
+-- devoluções e reclamações de terceiros. É consulta operacional/de backend: o
+-- back-office lê a supressão pelo relatório da fila (get_site_notification_delivery_report),
+-- que exige operador ativo.
+revoke all on function public.get_site_notification_suppression(text) from public, anon, authenticated;
+grant execute on function public.get_site_notification_suppression(text) to site_api, service_role;
 
 comment on function public.get_site_notification_suppression(text) is
   'F-12: lista de supressão consultável por sha256 do e-mail normalizado. Diz se o endereço já deu bounce ou reclamou de spam, quando, em quais canais e o último motivo — sem devolver o e-mail em claro.';
@@ -258,21 +345,28 @@ begin
     raise exception using errcode = '22023', message = 'invalid_notification_reconciliation_input';
   end if;
 
+  -- O lote é escolhido DEPOIS do join: órfão sem entrega correspondente (a mensagem nunca
+  -- foi aceita) é contado em "unmatched" e não consome vaga. Antes, `limit` sobre os órfãos
+  -- brutos fazia 500 eventos sem correspondência ocuparem o lote inteiro e travarem a
+  -- reconciliação dos mais novos até a purga liberar espaço.
   for v_event in
     select event.id, event.provider, event.provider_message_id, event.event_type,
-           event.received_at, event.bounce_reason
+           event.received_at, event.bounce_reason, matched.id as delivery_id
     from site_private.notification_provider_events event
+    left join lateral (
+      select delivery.id
+      from site_private.notification_deliveries delivery
+      where delivery.provider = event.provider
+        and delivery.provider_message_id = event.provider_message_id
+      order by delivery.created_at desc, delivery.id
+      limit 1
+    ) matched on true
     where event.delivery_id is null and event.provider_message_id is not null
     order by event.received_at, event.id
     limit p_batch_size
-    for update skip locked
+    for update of event skip locked
   loop
-    select delivery.id into v_delivery_id
-    from site_private.notification_deliveries delivery
-    where delivery.provider = v_event.provider
-      and delivery.provider_message_id = v_event.provider_message_id
-    order by delivery.created_at desc, delivery.id
-    limit 1;
+    v_delivery_id := v_event.delivery_id;
 
     if v_delivery_id is null then
       v_unmatched := v_unmatched + 1;
@@ -363,10 +457,16 @@ begin
     raise exception using errcode = '22023', message = 'invalid_notification_reprocessing_input';
   end if;
 
+  -- Pedido apagado pela autoexclusão do titular (F-30) não volta para a fila: o e-mail
+  -- virou @erased.invalid, então reabrir só produziria uma tentativa de entrega para um
+  -- endereço que não existe. A autoexclusão preservou a entrega justamente por ela já
+  -- não ser elegível; o botão não pode desfazer isso.
   with candidates as (
     select delivery.id
     from site_private.notification_deliveries delivery
-    where delivery.id = any(v_ids) and delivery.status = 'exhausted'
+    where delivery.id = any(v_ids)
+      and delivery.status = 'exhausted'
+      and not site_private.notification_request_erased(delivery.request_kind, delivery.request_id)
     for update skip locked
   ), reopened as (
     update site_private.notification_deliveries delivery
@@ -384,14 +484,18 @@ begin
   if cardinality(v_reopened_ids) > 0 then
     insert into site_private.admin_audit_log (table_name, operation, row_id, performed_by, application_name)
     select 'notification_deliveries', 'UPDATE', item.id::text, v_actor,
-           left('reprocess_site_notification_deliveries: ' || v_reason, 200)
+           'reprocess_site_notification_deliveries: ' || v_reason
     from unnest(v_reopened_ids) as item(id);
   end if;
 
   select coalesce(jsonb_agg(jsonb_build_object(
     'deliveryId', delivery.id,
     'status', delivery.status,
-    'reason', case when delivery.status = 'exhausted' then 'locked' else 'not_exhausted' end
+    'reason', case
+      when delivery.status <> 'exhausted' then 'not_exhausted'
+      when site_private.notification_request_erased(delivery.request_kind, delivery.request_id) then 'erased'
+      else 'locked'
+    end
   )), '[]'::jsonb)
   into v_skipped
   from site_private.notification_deliveries delivery
@@ -472,28 +576,35 @@ begin
         'lastErrorAt', item.last_error_at,
         'updatedAt', item.updated_at,
         'emailHashPrefix', left(item.email_hash, 12),
-        'suppressed', item.suppressed
+        'suppressed', item.suppressed,
+        'erased', item.erased
       ) order by item.updated_at desc, item.id)
       from (
+        -- Alerta da equipe comercial também esgota (claim_site_commercial_team_alerts),
+        -- então orçamento E contato precisam aparecer: sem isso o operador não conseguia
+        -- reabrir um alerta de contato pelo painel. Contato não guarda protocolo.
         select delivery.id, delivery.request_kind, delivery.request_id, delivery.channel,
                delivery.attempts, delivery.last_error_code, delivery.last_error_at,
                delivery.updated_at, request.protocol,
                site_private.email_hash(request.email) as email_hash,
-               exists (
-                 select 1
-                 from site_private.notification_deliveries previous
-                 join site_private.quote_requests previous_request
-                   on previous_request.id = previous.request_id
-                 where previous.request_kind = 'quote'
-                   and previous.audience = 'customer'
-                   and previous_request.email = request.email
-                   and (previous.delivery_state = 'bounced' or previous.complained_at is not null)
-               ) as suppressed
+               site_private.notification_request_suppressed(delivery.request_kind, delivery.request_id) as suppressed,
+               site_private.notification_request_erased(delivery.request_kind, delivery.request_id) as erased
         from site_private.notification_deliveries delivery
         join site_private.quote_requests request
           on delivery.request_kind = 'quote' and request.id = delivery.request_id
         where delivery.status = 'exhausted'
-        order by delivery.updated_at desc, delivery.id
+        union all
+        select delivery.id, delivery.request_kind, delivery.request_id, delivery.channel,
+               delivery.attempts, delivery.last_error_code, delivery.last_error_at,
+               delivery.updated_at, null::text as protocol,
+               site_private.email_hash(request.email) as email_hash,
+               site_private.notification_request_suppressed(delivery.request_kind, delivery.request_id) as suppressed,
+               site_private.notification_request_erased(delivery.request_kind, delivery.request_id) as erased
+        from site_private.notification_deliveries delivery
+        join site_private.contact_requests request
+          on delivery.request_kind = 'contact' and request.id = delivery.request_id
+        where delivery.status = 'exhausted'
+        order by 9 desc, 1
         limit v_limit
       ) item
     ), '[]'::jsonb),
@@ -519,6 +630,364 @@ grant execute on function public.get_site_notification_delivery_report(integer) 
 comment on function public.get_site_notification_delivery_report(integer) is
   'F-12: visão operacional da fila para o back-office — entregas esgotadas com pseudônimo do e-mail (12 hex), se o endereço está suprimido, e contagem/idade dos eventos órfãos. Exige operador ativo.';
 
+-- === 6a. Claims passam a barrar supressão e pedido apagado ======================
+
+-- Redefinições completas (mesmo corpo da versão vigente) com dois acréscimos por
+-- consulta: (1) o housekeeping de 'exhausted' ignora quem está suprimido/apagado, e
+-- (2) o candidato precisa passar em site_private.notification_delivery_is_claimable.
+-- Nenhuma assinatura muda, então os chamadores em api/ não são tocados.
+
+create or replace function site_private.notification_delivery_is_claimable(p_delivery_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select case
+    when delivery.audience = 'customer'
+      then not site_private.notification_request_erased(delivery.request_kind, delivery.request_id)
+       and not site_private.notification_request_suppressed(delivery.request_kind, delivery.request_id)
+    else not site_private.notification_request_erased(delivery.request_kind, delivery.request_id)
+  end
+  from site_private.notification_deliveries delivery
+  where delivery.id = p_delivery_id;
+$$;
+
+comment on function site_private.notification_delivery_is_claimable(uuid) is
+  'F-12: predicado único consultado pelas quatro claims. Falso para destinatário suprimido (bounce/complaint) e para pedido apagado pela autoexclusão do titular.';
+
+revoke all on function site_private.notification_delivery_is_claimable(uuid) from public, anon, authenticated;
+grant execute on function site_private.notification_delivery_is_claimable(uuid) to site_api, service_role;
+
+-- === 6b. O envio passa a respeitar a supressão ===================================
+
+-- As quatro funções abaixo são as únicas portas de reivindicação da fila: duas de envio
+-- imediato (uma por audiência) e duas de cron. Antes desta migration nenhuma consultava a
+-- lista de supressão, então um endereço que devolveu continuava recebendo. A correção
+-- entra no mesmo lugar para todas: um endereço suprimido (ou cujo pedido foi apagado pela
+-- autoexclusão) não é reivindicado, e a entrega em estado terminal não fica em loop.
+
+create or replace function site_private.suppress_notification_delivery(p_delivery_id uuid)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_delivery site_private.notification_deliveries%rowtype;
+begin
+  select * into v_delivery
+  from site_private.notification_deliveries delivery
+  where delivery.id = p_delivery_id
+  for update;
+
+  if not found then return false; end if;
+  -- Estado terminal não muda; lease de outro worker ainda válido não é pisado: o
+  -- envio em curso termina e a próxima claim já encontra a supressão.
+  if v_delivery.status in ('sent', 'cancelled', 'exhausted') then return false; end if;
+  if v_delivery.status = 'processing' and v_delivery.lease_expires_at > now() then return false; end if;
+
+  if site_private.notification_request_erased(v_delivery.request_kind, v_delivery.request_id) then
+    update site_private.notification_deliveries delivery
+    set status = 'cancelled', last_error_code = 'recipient_erased',
+        lease_token = null, lease_expires_at = null, claimed_at = null, updated_at = now()
+    where delivery.id = v_delivery.id;
+    return true;
+  end if;
+
+  if v_delivery.audience = 'customer'
+    and site_private.notification_request_suppressed(v_delivery.request_kind, v_delivery.request_id) then
+    update site_private.notification_deliveries delivery
+    set status = 'cancelled', last_error_code = 'recipient_suppressed',
+        lease_token = null, lease_expires_at = null, claimed_at = null, updated_at = now()
+    where delivery.id = v_delivery.id;
+    return true;
+  end if;
+
+  return false;
+end;
+$$;
+
+comment on function site_private.suppress_notification_delivery(uuid) is
+  'F-12: cancela entrega cujo destinatário está suprimido (bounce/complaint) ou cujo pedido foi apagado pela autoexclusão. Idempotente e restrita a estado não terminal.';
+
+revoke all on function site_private.suppress_notification_delivery(uuid) from public, anon, authenticated;
+grant execute on function site_private.suppress_notification_delivery(uuid) to site_api, service_role;
+
+-- Redefinição das quatro portas de reivindicação, corpo idêntico ao vigente com o
+-- predicado de elegibilidade aplicado no housekeeping e nos candidatos.
+
+create or replace function public.claim_site_notification_deliveries(
+  p_channels text[],
+  p_batch_size integer default 10
+)
+returns jsonb
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_policy record;
+  v_jobs jsonb;
+begin
+  select * into v_policy from site_private.notification_policy();
+  if p_batch_size not between 1 and v_policy.batch_max
+    or p_channels is null
+    or cardinality(p_channels) not between 1 and 2
+    or exists (select 1 from unnest(p_channels) channel where channel not in ('email', 'whatsapp')) then
+    raise exception using errcode = '22023', message = 'invalid_notification_claim_input';
+  end if;
+
+  perform site_private.suppress_notification_delivery(blocked.id)
+  from (
+    select delivery.id
+    from site_private.notification_deliveries delivery
+    where delivery.request_kind = 'quote'
+      and delivery.audience = 'customer'
+      and delivery.channel = any(p_channels)
+      and delivery.status in ('pending', 'failed', 'processing')
+      and not site_private.notification_delivery_is_claimable(delivery.id)
+    order by delivery.created_at, delivery.id
+    limit p_batch_size
+    for update of delivery skip locked
+  ) blocked;
+
+  with exhausted_candidates as (
+    select delivery.id
+    from site_private.notification_deliveries delivery
+    where delivery.request_kind = 'quote'
+      and delivery.audience = 'customer'
+      and delivery.channel = any(p_channels)
+      and delivery.attempts >= v_policy.max_attempts
+      and (delivery.last_error_code is distinct from 'whatsapp_dispatch_started' or delivery.provider_message_id is not null)
+      and (delivery.status in ('pending', 'failed') or (delivery.status = 'processing' and delivery.lease_expires_at <= now()))
+      and site_private.notification_delivery_is_claimable(delivery.id)
+    for update of delivery skip locked
+  )
+  update site_private.notification_deliveries delivery
+  set status = 'exhausted', lease_token = null, lease_expires_at = null, updated_at = now()
+  from exhausted_candidates
+  where delivery.id = exhausted_candidates.id;
+
+  with candidates as (
+    select delivery.id
+    from site_private.notification_deliveries delivery
+    where delivery.request_kind = 'quote'
+      and delivery.audience = 'customer'
+      and delivery.channel = any(p_channels)
+      and delivery.attempts < v_policy.max_attempts
+      and (delivery.last_error_code is distinct from 'whatsapp_dispatch_started' or delivery.provider_message_id is not null)
+      and ((delivery.status in ('pending', 'failed') and delivery.next_attempt_at <= now())
+        or (delivery.status = 'processing' and delivery.lease_expires_at <= now()))
+      and site_private.notification_delivery_is_claimable(delivery.id)
+    order by delivery.next_attempt_at, delivery.created_at, delivery.id
+    for update of delivery skip locked
+    limit p_batch_size
+  ), claimed as (
+    update site_private.notification_deliveries delivery
+    set status = 'processing', attempts = delivery.attempts + 1, updated_at = now(),
+        lease_token = gen_random_uuid(), claimed_at = now(), lease_expires_at = now() + v_policy.lease_timeout
+    from candidates
+    where delivery.id = candidates.id
+    returning delivery.id, delivery.created_at
+  )
+  select coalesce(jsonb_agg(site_private.quote_notification_payload(claimed.id) order by claimed.created_at, claimed.id), '[]'::jsonb)
+  into v_jobs
+  from claimed;
+  return v_jobs;
+end;
+$$;
+
+create or replace function public.claim_site_quote_notification(
+  p_request_id uuid,
+  p_channel text
+)
+returns jsonb
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_policy record;
+  v_delivery site_private.notification_deliveries%rowtype;
+begin
+  if p_channel not in ('email', 'whatsapp') then
+    raise exception using errcode = '22023', message = 'invalid_notification_channel';
+  end if;
+  select * into v_policy from site_private.notification_policy();
+
+  -- Leitura sem lock do candidato, para poder cancelar (predicado) antes de travar a linha.
+  select * into v_delivery
+  from site_private.notification_deliveries delivery
+  where delivery.request_kind = 'quote'
+    and delivery.request_id = p_request_id
+    and delivery.channel = p_channel
+    and delivery.audience = 'customer'
+    and delivery.status in ('pending', 'failed')
+    and delivery.next_attempt_at <= now()
+    and delivery.attempts < v_policy.max_attempts
+  order by delivery.created_at, delivery.id
+  limit 1;
+
+  if not found then return null; end if;
+  if site_private.suppress_notification_delivery(v_delivery.id) then return null; end if;
+
+  select * into v_delivery
+  from site_private.notification_deliveries delivery
+  where delivery.id = v_delivery.id
+  for update skip locked;
+  if not found then return null; end if;
+  if v_delivery.status not in ('pending', 'failed')
+    or v_delivery.next_attempt_at > now()
+    or v_delivery.attempts >= v_policy.max_attempts then
+    return null;
+  end if;
+
+  update site_private.notification_deliveries delivery
+  set status = 'processing', attempts = delivery.attempts + 1, updated_at = now(),
+      lease_token = gen_random_uuid(), claimed_at = now(), lease_expires_at = now() + v_policy.lease_timeout
+  where delivery.id = v_delivery.id
+  returning * into v_delivery;
+
+  return site_private.quote_notification_payload(v_delivery.id);
+end;
+$$;
+
+create or replace function public.claim_site_commercial_team_alert(p_request_id uuid)
+returns jsonb
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_policy record;
+  v_delivery site_private.notification_deliveries%rowtype;
+begin
+  select * into v_policy from site_private.notification_policy();
+  select * into v_delivery
+  from site_private.notification_deliveries delivery
+  where delivery.request_kind in ('quote', 'contact')
+    and delivery.request_id = p_request_id
+    and delivery.audience = 'commercial_team'
+    and delivery.status in ('pending', 'failed')
+    and delivery.next_attempt_at <= now()
+    and delivery.attempts < v_policy.max_attempts
+  order by delivery.created_at, delivery.id
+  limit 1;
+  if not found then return null; end if;
+  if site_private.suppress_notification_delivery(v_delivery.id) then return null; end if;
+
+  select * into v_delivery
+  from site_private.notification_deliveries delivery
+  where delivery.id = v_delivery.id
+  for update skip locked;
+  if not found then return null; end if;
+  if v_delivery.status not in ('pending', 'failed')
+    or v_delivery.next_attempt_at > now()
+    or v_delivery.attempts >= v_policy.max_attempts then
+    return null;
+  end if;
+
+  update site_private.notification_deliveries delivery
+  set status = 'processing', attempts = delivery.attempts + 1, updated_at = now(),
+      lease_token = gen_random_uuid(), claimed_at = now(), lease_expires_at = now() + v_policy.lease_timeout
+  where delivery.id = v_delivery.id
+  returning * into v_delivery;
+
+  if v_delivery.request_kind = 'contact' then
+    return site_private.commercial_team_contact_alert_payload(v_delivery.id);
+  end if;
+  return site_private.commercial_team_alert_payload(v_delivery.id);
+end;
+$$;
+
+create or replace function public.claim_site_commercial_team_alerts(
+  p_batch_size integer default 10
+)
+returns jsonb
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_policy record;
+  v_jobs jsonb;
+begin
+  select * into v_policy from site_private.notification_policy();
+  if p_batch_size not between 1 and v_policy.batch_max then
+    raise exception using errcode = '22023', message = 'invalid_notification_claim_input';
+  end if;
+
+  perform site_private.suppress_notification_delivery(blocked.id)
+  from (
+    select delivery.id
+    from site_private.notification_deliveries delivery
+    where delivery.request_kind in ('quote', 'contact')
+      and delivery.audience = 'commercial_team'
+      and delivery.status in ('pending', 'failed', 'processing')
+      and not site_private.notification_delivery_is_claimable(delivery.id)
+    order by delivery.created_at, delivery.id
+    limit p_batch_size
+    for update of delivery skip locked
+  ) blocked;
+
+  with exhausted_candidates as (
+    select delivery.id
+    from site_private.notification_deliveries delivery
+    where delivery.request_kind in ('quote', 'contact')
+      and delivery.audience = 'commercial_team'
+      and delivery.attempts >= v_policy.max_attempts
+      and (delivery.status in ('pending', 'failed') or (delivery.status = 'processing' and delivery.lease_expires_at <= now()))
+      and site_private.notification_delivery_is_claimable(delivery.id)
+    for update of delivery skip locked
+  )
+  update site_private.notification_deliveries delivery
+  set status = 'exhausted', lease_token = null, lease_expires_at = null, updated_at = now()
+  from exhausted_candidates
+  where delivery.id = exhausted_candidates.id;
+
+  with candidates as (
+    select delivery.id
+    from site_private.notification_deliveries delivery
+    where delivery.request_kind in ('quote', 'contact')
+      and delivery.audience = 'commercial_team'
+      and delivery.attempts < v_policy.max_attempts
+      and ((delivery.status in ('pending', 'failed') and delivery.next_attempt_at <= now())
+        or (delivery.status = 'processing' and delivery.lease_expires_at <= now()))
+      and site_private.notification_delivery_is_claimable(delivery.id)
+    order by delivery.next_attempt_at, delivery.created_at, delivery.id
+    for update of delivery skip locked
+    limit p_batch_size
+  ), claimed as (
+    update site_private.notification_deliveries delivery
+    set status = 'processing', attempts = delivery.attempts + 1, updated_at = now(),
+        lease_token = gen_random_uuid(), claimed_at = now(), lease_expires_at = now() + v_policy.lease_timeout
+    from candidates
+    where delivery.id = candidates.id
+    returning delivery.id, delivery.created_at, delivery.request_kind
+  )
+  select coalesce(jsonb_agg(
+    case when claimed.request_kind = 'contact'
+      then site_private.commercial_team_contact_alert_payload(claimed.id)
+      else site_private.commercial_team_alert_payload(claimed.id)
+    end
+    order by claimed.created_at, claimed.id), '[]'::jsonb)
+  into v_jobs
+  from claimed;
+  return v_jobs;
+end;
+$$;
+
+revoke all on function public.claim_site_notification_deliveries(text[], integer) from public, anon, authenticated;
+grant execute on function public.claim_site_notification_deliveries(text[], integer) to site_api, service_role;
+revoke all on function public.claim_site_quote_notification(uuid, text) from public, anon, authenticated;
+grant execute on function public.claim_site_quote_notification(uuid, text) to site_api, service_role;
+revoke all on function public.claim_site_commercial_team_alert(uuid) from public, anon, authenticated;
+grant execute on function public.claim_site_commercial_team_alert(uuid) to site_api, service_role;
+revoke all on function public.claim_site_commercial_team_alerts(integer) from public, anon, authenticated;
+grant execute on function public.claim_site_commercial_team_alerts(integer) to site_api, service_role;
+
 -- === 7. Purga dos eventos órfãos =================================================
 
 -- Evento sem delivery nunca era apagado: a tabela de dedupe crescia para sempre com
@@ -542,6 +1011,10 @@ begin
     raise exception using errcode = '22023', message = 'invalid_notification_event_purge_input';
   end if;
 
+  -- Só expurga órfão que a reconciliação não consegue mais religar: órfão COM
+  -- provider_message_id e mais antigo que a retenção ainda não teve chance de ser
+  -- religado se ele é recente, mas depois da retenção ele já foi tentado em várias
+  -- execuções do cron — manter outro critério faria a tabela crescer para sempre.
   with candidates as (
     select event.id
     from site_private.notification_provider_events event

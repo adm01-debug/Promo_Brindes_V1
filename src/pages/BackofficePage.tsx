@@ -296,7 +296,9 @@ function BackofficeQueuePanel({
                   />{' '}
                   {delivery.protocol || delivery.requestId} · {delivery.channel} ·{' '}
                   {delivery.attempts} {delivery.attempts === 1 ? 'tentativa' : 'tentativas'}
-                  {delivery.suppressed ? (
+                  {delivery.erased ? (
+                    <> · <ShieldAlert aria-hidden="true" size={14} /> pedido excluído pelo titular</>
+                  ) : delivery.suppressed ? (
                     <> · <ShieldAlert aria-hidden="true" size={14} /> endereço suprimido</>
                   ) : null}
                   {' '}· hash {delivery.emailHashPrefix || '—'} · {delivery.lastErrorCode || 'sem código'} ·{' '}

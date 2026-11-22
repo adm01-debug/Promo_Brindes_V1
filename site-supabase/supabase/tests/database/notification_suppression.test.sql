@@ -12,7 +12,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(58);
+select plan(67);
 
 -- === Estrutura ===================================================================
 
@@ -34,8 +34,10 @@ select ok(not pg_catalog.has_function_privilege('anon', 'site_private.email_hash
   'anon não calcula o pseudônimo');
 select ok(not pg_catalog.has_function_privilege('anon', 'public.get_site_notification_suppression(text)', 'execute'),
   'anon não consulta a lista de supressão');
-select ok(pg_catalog.has_function_privilege('authenticated', 'public.get_site_notification_suppression(text)', 'execute'),
-  'cliente autenticado consulta a supressão (a RPC não devolve e-mail)');
+select ok(not pg_catalog.has_function_privilege('authenticated', 'public.get_site_notification_suppression(text)', 'execute'),
+  'cliente autenticado NÃO consulta a supressão: o hash é calculável e revelaria devoluções de terceiros');
+select ok(pg_catalog.has_function_privilege('site_api', 'public.get_site_notification_suppression(text)', 'execute'),
+  'backend consulta a supressão (é a porta de envio)');
 select ok(not pg_catalog.has_function_privilege('anon', 'public.reprocess_site_notification_deliveries(uuid[],text)', 'execute'),
   'anon não reprocessa entrega');
 select ok(not pg_catalog.has_function_privilege('authenticated', 'public.reconcile_site_notification_provider_events(integer)', 'execute'),
@@ -361,6 +363,145 @@ select is(
      and log.application_name like 'reprocess_site_notification_deliveries:%'),
   1::bigint,
   'reprocessamento fica registrado na trilha com o operador e o motivo'
+);
+
+-- === Pedido apagado (LGPD) recusado no reprocessamento ==========================
+
+-- Um terceiro orçamento, esgotado, mas apagado pela autoexclusão do titular.
+select public.create_site_quote_request(
+  jsonb_build_object(
+    'source', 'site-promo-brindes', 'clientRequestId', 'f12-suppression-quote-erased', 'submittedAt', now(),
+    'pageUrl', 'https://promo.test/orcamento',
+    'consent', jsonb_build_object('accepted', true, 'noticeVersion', '2026-09-08', 'acceptedAt', now()),
+    'contact', jsonb_build_object('name', 'Cliente F12 C', 'company', 'Empresa F12 C', 'email', 'cliente.f12c@example.test', 'phone', '(11) 95555-5557', 'city', '', 'deadline', '', 'notes', ''),
+    'items', jsonb_build_array(jsonb_build_object(
+      'productId', '66666666-6666-4666-8666-666666666666', 'key', '66666666-6666-4666-8666-666666666666::sem-cor',
+      'slug', 'produto-f12-c', 'name', 'Produto F12 C', 'sku', 'F12-3', 'imageUrl', '/images/product-placeholder.svg',
+      'quantity', 100, 'minQuantity', 50
+    ))
+  ),
+  jsonb_build_object(
+    'requestHash', repeat('d', 64), 'identifierHash', repeat('e', 64),
+    'notificationPreferences', jsonb_build_object('emailCopy', true, 'whatsappCopy', false)
+  )
+);
+
+alter table site_private.notification_deliveries disable trigger notification_deliveries_enforce_status_transition;
+alter table site_private.notification_deliveries disable trigger notification_deliveries_enforce_lease_and_attempts;
+update site_private.notification_deliveries delivery
+set status = 'exhausted', attempts = 6, last_error_code = 'provider_unavailable'
+from site_private.quote_requests request
+where request.id = delivery.request_id and request.client_request_id = 'f12-suppression-quote-erased'
+  and delivery.channel = 'email' and delivery.audience = 'customer';
+alter table site_private.notification_deliveries enable trigger notification_deliveries_enforce_status_transition;
+alter table site_private.notification_deliveries enable trigger notification_deliveries_enforce_lease_and_attempts;
+
+-- Atalho de fixture: é o estado que erase_customer_data deixa (e-mail fictício).
+update site_private.quote_requests request
+set email = 'erased-' || request.id || '@erased.invalid'
+where request.client_request_id = 'f12-suppression-quote-erased';
+
+select is(
+  public.reprocess_site_notification_deliveries(
+    array[
+      (select delivery.id from site_private.notification_deliveries delivery
+       join site_private.quote_requests request on request.id = delivery.request_id
+       where request.client_request_id = 'f12-suppression-quote-erased' and delivery.channel = 'email' and delivery.audience = 'customer')
+    ]::uuid[],
+    'cliente pediu exclusao'
+  ) -> 'skipped' -> 0 ->> 'reason',
+  'erased',
+  'entrega de pedido apagado pela autoexclusão não volta para a fila'
+);
+select is(
+  (select delivery.status from site_private.notification_deliveries delivery
+   join site_private.quote_requests request on request.id = delivery.request_id
+   where request.client_request_id = 'f12-suppression-quote-erased' and delivery.channel = 'email' and delivery.audience = 'customer'),
+  'exhausted',
+  'entrega de pedido apagado continua esgotada depois da recusa'
+);
+
+-- === Alerta de contato esgotado aparece no relatório ============================
+
+-- O cron comercial esgota alerta de contato também (claim_site_commercial_team_alerts);
+-- antes de F-12 o relatório só olhava orçamento e o operador não conseguia reabrir
+-- esses alertas pelo painel.
+select public.create_site_contact_request(
+  jsonb_build_object(
+    'source', 'site-promo-brindes-contact', 'clientRequestId', 'f12-suppression-contact-1',
+    'submittedAt', now(), 'pageUrl', 'https://promo.test/contato',
+    'consent', jsonb_build_object('accepted', true, 'noticeVersion', '2026-09-08', 'acceptedAt', now()),
+    'contact', jsonb_build_object('name', 'Contato F12', 'email', 'contato.f12@example.test',
+      'phone', '(11) 95555-5558', 'message', 'Quero brindes personalizados')
+  ),
+  jsonb_build_object('requestHash', repeat('f', 64), 'identifierHash', repeat('1', 64),
+    'notificationPreferences', jsonb_build_object('emailCopy', false, 'whatsappCopy', false))
+);
+
+alter table site_private.notification_deliveries disable trigger notification_deliveries_enforce_status_transition;
+alter table site_private.notification_deliveries disable trigger notification_deliveries_enforce_lease_and_attempts;
+update site_private.notification_deliveries delivery
+set status = 'exhausted', attempts = 6, last_error_code = 'provider_unavailable'
+from site_private.contact_requests request
+where request.id = delivery.request_id and request.email = 'contato.f12@example.test'
+  and delivery.audience = 'commercial_team';
+alter table site_private.notification_deliveries enable trigger notification_deliveries_enforce_status_transition;
+alter table site_private.notification_deliveries enable trigger notification_deliveries_enforce_lease_and_attempts;
+
+select is(
+  (select count(*) from jsonb_array_elements(public.get_site_notification_delivery_report(50) -> 'exhausted') item
+   where item ->> 'requestKind' = 'contact'),
+  1::bigint,
+  'relatório lista alerta de contato esgotado (antes ficava invisível no painel)'
+);
+select is(
+  (select item ->> 'protocol'
+   from jsonb_array_elements(public.get_site_notification_delivery_report(50) -> 'exhausted') item
+   where item ->> 'requestKind' = 'contact'),
+  null,
+  'contato não tem protocolo: o campo vai nulo, sem inventar valor'
+);
+
+-- === A supressão barra o envio (imediato e cron) =================================
+
+-- Endereço suprimido também não é reivindicado: era o furo original — a lista existia
+-- mas nenhuma claim a consultava. O orçamento 2 ainda está pendente (nunca foi enviado).
+update site_private.quote_requests request
+set email = 'cliente.f12@example.test'
+where request.client_request_id = 'f12-suppression-quote-2';
+
+select is(
+  public.claim_site_notification_deliveries(array['email'], 10)::text,
+  '[]',
+  'cron não reivindica entrega de endereço suprimido'
+);
+select is(
+  (select delivery.status from site_private.notification_deliveries delivery
+   join site_private.quote_requests request on request.id = delivery.request_id
+   where request.client_request_id = 'f12-suppression-quote-2' and delivery.channel = 'email' and delivery.audience = 'customer'),
+  'cancelled',
+  'entrega de endereço suprimido é cancelada, com motivo registrado'
+);
+select is(
+  (select delivery.last_error_code from site_private.notification_deliveries delivery
+   join site_private.quote_requests request on request.id = delivery.request_id
+   where request.client_request_id = 'f12-suppression-quote-2' and delivery.channel = 'email' and delivery.audience = 'customer'),
+  'recipient_suppressed',
+  'motivo do cancelamento fica visível na entrega'
+);
+
+-- Mesmo critério no envio imediato: o POST do orçamento não pode entregar no ato.
+update site_private.quote_requests request
+set email = 'cliente.f12@example.test'
+where request.client_request_id = 'f12-suppression-quote-erased';
+
+select is(
+  public.claim_site_quote_notification(
+    (select request.id from site_private.quote_requests request where request.client_request_id = 'f12-suppression-quote-erased'),
+    'email'
+  ),
+  null,
+  'envio imediato devolve null para pedido apagado (não há destinatário válido)'
 );
 
 -- === Reprocessamento também é negado sem operador ================================

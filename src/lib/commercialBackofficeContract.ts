@@ -183,7 +183,7 @@ export interface SiteNotificationExhaustedDelivery {
   deliveryId: string;
   requestKind: string;
   requestId: string;
-  protocol: string;
+  protocol: string | null;
   channel: string;
   attempts: number;
   lastErrorCode: string | null;
@@ -191,6 +191,7 @@ export interface SiteNotificationExhaustedDelivery {
   updatedAt: string | null;
   emailHashPrefix: string;
   suppressed: boolean;
+  erased: boolean;
 }
 
 export interface SiteNotificationDeliveryReport {
@@ -368,7 +369,7 @@ export function parseSiteNotificationDeliveryReport(data: unknown): SiteNotifica
       deliveryId,
       requestKind: readString(item.requestKind),
       requestId: readString(item.requestId),
-      protocol: readString(item.protocol),
+      protocol: readNullableString(item.protocol),
       channel: readString(item.channel),
       attempts: readCount(item.attempts),
       lastErrorCode: readNullableString(item.lastErrorCode),
@@ -376,6 +377,7 @@ export function parseSiteNotificationDeliveryReport(data: unknown): SiteNotifica
       updatedAt: readNullableString(item.updatedAt),
       emailHashPrefix: readString(item.emailHashPrefix),
       suppressed: item.suppressed === true,
+      erased: item.erased === true,
     }];
   });
   return {
