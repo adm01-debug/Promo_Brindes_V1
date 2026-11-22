@@ -46,6 +46,14 @@ begin
   if v_response is null then
     raise exception using errcode = '22023', message = 'response_required';
   end if;
+  -- A linha do tempo aceita ate 500 caracteres (check de
+  -- site_private.quote_request_events). Recusar aqui e o que impede o cliente de
+  -- receber a resposta pela metade sem ninguem saber: um corte silencioso em
+  -- left() escondia a condicao comercial no fim do texto. O formulario do
+  -- back-office usa o mesmo limite.
+  if length(v_response) > 500 then
+    raise exception using errcode = '22023', message = 'response_too_long';
+  end if;
   -- Espelha o check da tabela (20260910130000): new/triaged/resolved/closed.
   if v_status not in ('triaged', 'resolved', 'closed') then
     raise exception using errcode = '22023', message = 'invalid_adjustment_status';
@@ -67,13 +75,13 @@ begin
   where adjustment.id = p_adjustment_id;
 
   -- F-05: o mesmo texto vira mensagem na linha do tempo do cliente. O título é fixo
-  -- (não copia o nome do titular nem o texto do ajuste) e a descrição é truncada em
-  -- 500 para caber no check da coluna — o texto integral permanece na trilha interna
-  -- acima, que o portal não lê.
+  -- (não copia o nome do titular nem o texto do ajuste). O texto entra integral: a
+  -- validação acima já garante o limite da coluna, então cliente e trilha interna
+  -- recebem exatamente a mesma resposta.
   insert into site_private.quote_request_events (quote_request_id, event_type, title, description, audience)
   values (
     v_adjustment.quote_request_id, 'message',
-    'Resposta da equipe ao seu ajuste', left(v_response, 500), 'customer'
+    'Resposta da equipe ao seu ajuste', v_response, 'customer'
   );
 
   insert into site_private.commercial_audit_log (actor_user_id, actor_label, action, quote_request_id, detail)
@@ -85,7 +93,7 @@ end;
 $$;
 
 comment on function public.reply_site_quote_adjustment(uuid, text, text) is
-  'Responde a um ajuste pedido pelo cliente (F-03, F-05): move o estado, grava o texto integral na trilha interna e publica uma mensagem (event_type message, audience customer) na linha do tempo do cliente, truncada em 500 caracteres. Trava a linha com FOR UPDATE para não sobrescrever uma resposta concorrente.';
+  'Responde a um ajuste pedido pelo cliente (F-03, F-05): move o estado, grava o texto integral na trilha interna e publica a mesma resposta integral como mensagem (event_type message, audience customer) na linha do tempo do cliente. Recusa resposta acima de 500 caracteres com response_too_long em vez de cortar o texto. Trava a linha com FOR UPDATE para não sobrescrever uma resposta concorrente.';
 
 -- === 2. Apagamento do titular alcanca a linha do tempo ==========================
 --

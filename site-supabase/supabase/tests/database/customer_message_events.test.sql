@@ -9,7 +9,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(18);
+select plan(24);
 
 -- === Fixtures ====================================================================
 
@@ -99,31 +99,61 @@ select is(
   'a trilha interna permanece com o texto'
 );
 
--- === 2. Texto maior que a coluna continua sendo aceito ============================
+-- === 2. Texto acima do limite da linha do tempo e recusado, nao cortado ===========
 
--- 600 caracteres: acima do limite de 500 da coluna e do maxLength da UI.
-select lives_ok(
+-- 600 caracteres: acima do limite de 500 da coluna e do maxLength do formulario.
+-- Cortar em left() entregava ao cliente o inicio da resposta sem a condicao que
+-- costuma vir no fim ("a nova data vale se o layout for aprovado ate sexta").
+-- O cliente recebia texto incompleto e a equipe via o ajuste como resolvido.
+select throws_ok(
   $$select public.reply_site_quote_adjustment(
       '55555555-5555-4555-8555-555555555555',
       repeat('detalhe ', 75),
       'triaged'
     )$$,
-  'resposta acima de 500 caracteres nao quebra a RPC'
+  '22023',
+  'response_too_long',
+  'resposta acima de 500 caracteres e recusada em vez de truncada'
+);
+
+select is(
+  (select count(*)::integer from site_private.quote_request_events
+   where quote_request_id = '33333333-3333-4333-8333-333333333333'
+     and event_type = 'message'),
+  1,
+  'a resposta recusada nao cria mensagem parcial na linha do tempo'
+);
+
+select is(
+  (select count(*)::integer from site_private.commercial_audit_log
+   where action = 'adjustment_replied' and detail ->> 'adjustmentId' = '55555555-5555-4555-8555-555555555555'),
+  0,
+  'a resposta recusada tambem nao entra na trilha interna'
+);
+
+-- Exatamente no limite: 500 caracteres entram integralmente, sem corte.
+select lives_ok(
+  $$select public.reply_site_quote_adjustment(
+      '55555555-5555-4555-8555-555555555555',
+      rpad('limite', 500, '.'),
+      'resolved'
+    )$$,
+  'resposta com exatamente 500 caracteres e aceita'
 );
 
 select is(
   (select length(description) from site_private.quote_request_events
    where quote_request_id = '33333333-3333-4333-8333-333333333333'
-     and event_type = 'message' and description like 'detalhe%'),
+     and event_type = 'message' and description like 'limite%'),
   500,
-  'a mensagem ao cliente e truncada no limite da coluna'
+  'o cliente recebe os 500 caracteres integrais'
 );
 
 select is(
-  (select length(detail ->> 'response') from site_private.commercial_audit_log
+  (select detail ->> 'response' from site_private.commercial_audit_log
    where action = 'adjustment_replied' and detail ->> 'adjustmentId' = '55555555-5555-4555-8555-555555555555'),
-  599,
-  'a trilha interna guarda o texto integral, sem truncar'
+  rpad('limite', 500, '.'),
+  'a trilha interna guarda o mesmo texto que o cliente recebeu'
 );
 
 -- === 3. O titular enxerga a mensagem no portal ====================================
@@ -144,12 +174,47 @@ select is(
   'a mensagem mais recente aparece no topo da linha do tempo'
 );
 
+-- Evento interno com titulo distinto: a checagem anterior procurava o campo
+-- 'audience', que get_my_quote_request nem devolve, entao passava mesmo que o
+-- portal expusesse a linha interna (os dois lados eram null).
+insert into site_private.quote_request_events (quote_request_id, event_type, title, description, audience)
+values (
+  '33333333-3333-4333-8333-333333333333', 'status_changed',
+  'NOTA INTERNA: negociacao de desconto', 'nao deve sair do back-office', 'internal'
+);
+
 select ok(
   not jsonb_path_exists(
     public.get_my_quote_request('33333333-3333-4333-8333-333333333333') -> 'events',
-    '$[*] ? (@.audience == "internal")'
+    '$[*] ? (@.title == "NOTA INTERNA: negociacao de desconto")'
   ),
-  'o portal continua sem expor a audiencia interna'
+  'o portal nao expoe evento de audiencia interna'
+);
+
+select is(
+  (select count(*)::integer
+   from jsonb_array_elements(public.get_my_quote_request('33333333-3333-4333-8333-333333333333') -> 'events') item
+   where item ->> 'title' = 'NOTA INTERNA: negociacao de desconto'),
+  0,
+  'o texto da nota interna nao aparece na linha do tempo do titular'
+);
+
+-- === 3b. A exportacao do titular entrega o texto da mensagem ======================
+
+select ok(
+  jsonb_path_exists(
+    public.export_my_data() -> 'quotes',
+    '$[*].events[*] ? (@.type == "message" && @.description == "Cor alterada para verde na proposta v2.")'
+  ),
+  'Baixar meus dados inclui o texto da mensagem, nao so o titulo'
+);
+
+select ok(
+  not jsonb_path_exists(
+    public.export_my_data() -> 'quotes',
+    '$[*].events[*] ? (@.title == "NOTA INTERNA: negociacao de desconto")'
+  ),
+  'a exportacao tambem nao vaza o evento interno'
 );
 
 -- === 4. O apagamento alcanca a mensagem ===========================================
@@ -177,7 +242,10 @@ select is(
 select is(
   (select count(*) from site_private.quote_request_events
    where quote_request_id = '33333333-3333-4333-8333-333333333333'
-     and event_type in ('received', 'status_changed')),
+     and event_type in ('received', 'status_changed')
+     -- a nota interna criada acima tambem e status_changed; o assert fala dos
+     -- eventos que o titular ve, entao restringe a audiencia.
+     and audience = 'customer'),
   1::bigint,
   'os eventos de estado, que nao tem texto livre, sao preservados'
 );
