@@ -11,7 +11,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(38);
+select plan(41);
 
 -- === Fixtures ====================================================================
 
@@ -252,6 +252,24 @@ select is(
   'a versao vigente e a 2'
 );
 
+-- p_valid_until tem default null: omitir o argumento nao pode gerar erro nem
+-- uma data inventada (a UI envia undefined quando o operador deixa em branco).
+select lives_ok(
+  $$select public.update_site_quote_status('cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'in_progress')$$,
+  'operador reabre quoted para in_progress pela terceira vez'
+);
+
+select lives_ok(
+  $$select public.publish_site_quote_proposal('cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'Proposta v3', 'ccc/proposta-v3.pdf')$$,
+  'publicar omitindo a validade usa o default da assinatura'
+);
+
+select ok(
+  (select valid_until is null from site_private.proposal_documents
+   where quote_request_id = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc' and version = 3),
+  'validade omitida fica nula, sem prazo inventado'
+);
+
 -- === Ajuste =======================================================================
 
 insert into site_private.quote_adjustment_requests (
@@ -280,8 +298,8 @@ select is(
 
 select is(
   (select count(*) from site_private.commercial_audit_log),
-  6::bigint,
-  'trilha acumula as escritas feitas pelo back-office (4 mudancas de status, 2 propostas e 1 ajuste)'
+  8::bigint,
+  'trilha acumula as escritas feitas pelo back-office (5 mudancas de status, 3 propostas e 1 ajuste)'
 );
 
 -- === Quem nao e operador nao opera ================================================
