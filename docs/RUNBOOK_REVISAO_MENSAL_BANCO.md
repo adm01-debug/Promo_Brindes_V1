@@ -33,8 +33,34 @@ contadores enxergam:
 select datname, stats_reset from pg_stat_database where datname = current_database();
 ```
 
-Um índice com `idx_scan = 0` depois de pelo menos 30 dias de tráfego real é candidato a
-remoção. Antes de remover:
+O `stats_reset` do banco **não** prova a idade de cada índice: ele só diz desde quando os
+contadores são acumulados. Um índice criado depois do reset tem `idx_scan = 0` porque
+nunca existiu durante boa parte da janela. Antes de usar `idx_scan = 0` como sinal,
+comparar a data de criação do índice com a janela analisada:
+
+```sql
+select s.relname as tabela,
+       s.indexrelname as indice,
+       s.idx_scan,
+       t.seq_scan + t.idx_scan as uso_da_tabela,
+       t.n_tup_ins + t.n_tup_upd + t.n_tup_del as escritas,
+       t.last_autovacuum
+from pg_stat_user_indexes s
+join pg_stat_user_tables t on t.relid = s.relid
+where s.schemaname = 'site_private' and s.idx_scan = 0
+order by uso_da_tabela desc;
+```
+
+`uso_da_tabela` e `escritas` mostram se a janela teve tráfego de verdade naquela tabela:
+índice zerado numa tabela que também está zerada não prova nada. A idade do índice vem
+do histórico de migrations (quem criou, quando) — `pg_stat_user_indexes` não guarda data
+de criação.
+
+Na prática, o recorte utilizável é o mais recente entre `stats_reset` do banco e o commit
+da migration que criou o índice (`git log -S <nome_do_indice> --
+site-supabase/supabase/migrations`). Só é candidato a remoção o índice que **existiu
+durante toda a janela** e ainda assim tem `idx_scan = 0` depois de pelo menos 30 dias de
+tráfego real na tabela. Antes de remover:
 
 1. Confirmar que nenhuma query no código (`api/`, `site-supabase/supabase/migrations/`)
    depende do plano que esse índice sustenta — buscar pelo nome da tabela/colunas, não
