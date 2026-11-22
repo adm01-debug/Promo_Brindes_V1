@@ -5,17 +5,17 @@
   "vitest",
   "playwright"
  ],
- "total": 145,
+ "total": 146,
  "por_tipo": {
   "contrato": 2,
   "e2e": 6,
   "pytest": 4,
-  "unit": 103
+  "unit": 104
  },
  "onde_ficam": [
   {
    "padrao": "co-localizado (*.test)",
-   "arquivos": 54
+   "arquivos": 55
   },
   {
    "padrao": "tests/",
@@ -69,9 +69,9 @@
   {
    "arquivo": "e2e/smoke.spec.ts",
    "tipo": "e2e",
-   "linhas": 1550,
+   "linhas": 1558,
    "testa": [],
-   "casos": 64
+   "casos": 65
   },
   {
    "arquivo": "scripts/ai-context/gerar.unit.mjs",
@@ -588,6 +588,15 @@
     "src/lib/useOccasionFavorites.ts"
    ],
    "casos": 24
+  },
+  {
+   "arquivo": "src/lib/whatsappContact.test.ts",
+   "tipo": "unit",
+   "linhas": 27,
+   "testa": [
+    "src/lib/whatsappContact.ts"
+   ],
+   "casos": 4
   },
   {
    "arquivo": "src/pages/AuthConfirmPage.test.tsx",
@@ -1208,6 +1217,7 @@
   "src/lib/useCatalogPageState.ts": 1,
   "src/lib/useInitialSuccessScroll.ts": 1,
   "src/lib/useOccasionFavorites.ts": 1,
+  "src/lib/whatsappContact.ts": 1,
   "src/pages/AuthConfirmPage.tsx": 1,
   "src/pages/CommemorativeDatesPage.tsx": 1,
   "src/pages/IdeaLandingPage.tsx": 1,

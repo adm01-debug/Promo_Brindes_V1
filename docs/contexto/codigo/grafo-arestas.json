@@ -225,7 +225,8 @@
    "src/context/quoteCart.ts",
    "src/lib/analytics.ts",
    "src/lib/hooks.ts",
-   "src/lib/siteSupabaseConfig.ts"
+   "src/lib/siteSupabaseConfig.ts",
+   "src/lib/whatsappContact.ts"
   ],
   "src/components/ProductCard.tsx": [
    "src/context/quoteCart.ts",
@@ -462,7 +463,9 @@
   ],
   "src/pages/ContactPage.tsx": [
    "src/components/ConversationForm.tsx",
-   "src/components/Seo.tsx"
+   "src/components/Seo.tsx",
+   "src/lib/analytics.ts",
+   "src/lib/whatsappContact.ts"
   ],
   "src/pages/CustomerAccountPage.tsx": [
    "src/components/CustomerRoute.tsx",

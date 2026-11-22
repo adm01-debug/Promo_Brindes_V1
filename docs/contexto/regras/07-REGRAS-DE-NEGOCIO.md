@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `a3e9e21024` · branch `main` · 2026-11-21 23:05 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `957fa44980` · branch `main` · 2026-11-22 00:03 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -682,6 +682,7 @@ _nenhum item encontrado_
 | `MAX_SHARED_SELECTION_ITEMS` | `50` | `src/lib/sharedSelection.ts` |
 | `MAX_LEGACY_SHARED_SELECTION_PAYLOAD_LENGTH` | `8_000` | `src/lib/sharedSelection.ts` |
 | `SITE_RPC_TIMEOUT_MS` | `12_000` | `src/lib/siteRpc.ts` |
+| `DEFAULT_WHATSAPP_NUMBER` | `'551146375517'` | `src/lib/whatsappContact.ts` |
 | `PAGE_SIZE` | `12` | `src/pages/CustomerAccountPage.tsx` |
 
 ### H.2 Prazos, expirações e janelas de tempo
@@ -1056,14 +1057,14 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1710 testes em 136 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1716 testes em 137 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
 | `site-supabase/supabase/tests/database/lead_storage.test.sql` | 69 | schema privado contém as vinte e uma tabelas planejadas, incluindo favoritos de datas sem PII · seleções persistentes ficam no schema privado · criação de links recebe rate limit próprio · máquina de estados administrativa vive em tabela dedicada (Etapa 8) … |
 | `site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql` | 68 | trilha de exercicio de direito existe · trilha vincula a conta · trilha registra o tipo de direito · coluna right_type tem constraint check … |
 | `tests/inventario-estado.node.mjs` | 63 | extrairInventario aceita objeto direto, envelope do PostgREST e envelope do MCP · extrairInventario recusa entrada sem as chaves obrigatórias, sem tabelas ou de outra versão · conferirOrigem aprova a resposta que cobre as tabelas das migrations e o ledger · conferirOrigem recusa um banco irmão: as tabelas das migrations não estão lá … |
-| `e2e/smoke.spec.ts` | 58 | headline principal usa Fold Text sem perder acessibilidade · categorias usam fotografia de produto publicado como ponto de descoberta · rotas públicas essenciais não introduzem violações automáticas de acessibilidade · montador de kits preserva componentes e calcula a quantidade completa … |
+| `e2e/smoke.spec.ts` | 59 | headline principal usa Fold Text sem perder acessibilidade · categorias usam fotografia de produto publicado como ponto de descoberta · rotas públicas essenciais não introduzem violações automáticas de acessibilidade · montador de kits preserva componentes e calcula a quantidade completa … |
 | `site-supabase/supabase/tests/database/briefing_assets.test.sql` | 57 | metadados privados de arquivos existem · assinatura binária possui recibo de verificação · fila de exclusão de Storage existe · bucket é privado e limitado a 10 MB … |
 | `site-supabase/supabase/tests/database/notification_outbox.test.sql` | 47 | fila possui agenda de nova tentativa · fila identifica a reivindicação ativa (R04) · novo orçamento alimenta a fila na mesma transação · anon não reivindica notificações … |
 | `site-supabase/supabase/tests/database/customer_data_erasure.test.sql` | 46 | anon não apaga dados de titular · authenticated não apaga dados de titular (operação administrativa) · service_role executa o apagamento · anonimiza 1 quote_request (e-mail com espaço/maiúsculas normalizado na entrada) … |
@@ -1154,6 +1155,7 @@ _nenhum item encontrado_
 | `src/lib/customerAccount.rpc.test.ts` | 5 | RPCs da Área do Cliente · aceita somente o contrato de leitura esperado para o histórico · não mascara JSON malformado como um histórico vazio · rejeita detalhe e confirmação de ajuste com identificadores ou datas inválidas … |
 | `src/lib/customerAccount.test.ts` | 5 | contrato da Área do Cliente · traduz somente estados operacionais reais · aceita retorno apenas para dentro da Área do Cliente · distingue a versão mais recente de uma proposta ainda válida … |
 | `src/lib/quoteConfirmation.test.ts` | 5 | confirmação honesta do orçamento · usa apenas o primeiro nome informado e flexiona produto no singular · mantém uma mensagem neutra quando não há nome e flexiona no plural · não apresenta uma confirmação pendente ou não solicitada como enviada … |
+| `src/lib/whatsappContact.test.ts` | 5 | contato via WhatsApp (F-47) · monta link wa.me com mensagem codificada · usa o numero padrao quando nao ha mensagem personalizada · codifica espacos e caracteres especiais … |
 | `src/pages/AuthConfirmPage.test.tsx` | 5 | confirmação de acesso do cliente · não anuncia identidade verificada enquanto a sessão ainda está carregando · expõe uma recuperação real quando a inicialização falha · só anuncia a identidade depois de receber um usuário autenticado … |
 | `src/pages/CommemorativeDatesPage.test.tsx` | 5 | favoritos de datas comemorativas por titular · promove favoritos anônimos depois do login sem perdê-los · não exibe cache da conta anterior se o carregamento da nova conta falhar · ignora rollback tardio de uma mutação da conta anterior … |
 | `src/pages/IdeaLandingPage.test.tsx` | 5 | telemetria da landing de ideias · conta as referências que a própria página mostrou, não o total do catalogQuery · emite uma única visualização por tópico, com a contagem do próprio tópico · não grava o tópico revisitado com a contagem do tópico que o visitante deixou … |

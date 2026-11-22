@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `a3e9e210241490c2098aad18e53655fb0a20415a` (2026-11-21T23:04:11Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `957fa44980ac9299ac6c6e825805633af92e968a` (2026-11-22T00:02:45Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -14,7 +14,7 @@ Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR
 Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua tarefa; não carregue tudo.
 
 ## Stack
-- linguagens: TypeScript (215), Markdown (134), SQL (108), JavaScript (65), JSON (29), YAML (19), Python (8), CSS (4)
+- linguagens: TypeScript (217), Markdown (134), SQL (108), JavaScript (65), JSON (29), YAML (19), Python (8), CSS (4)
 - linguagem_principal: TypeScript
 - framework: React
 - backend_http: vercel-functions
@@ -34,9 +34,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Números
 | item | qtd |
 |---|---|
-| arquivos_total | 722 |
-| arquivos_codigo | 287 |
-| linhas_codigo | 56293 |
+| arquivos_total | 724 |
+| arquivos_codigo | 289 |
+| linhas_codigo | 56365 |
 | rotas | 32 |
 | rotas_http_backend | 14 |
 | vistas_por_id | 0 |
@@ -48,7 +48,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 | tabelas | 23 |
 | migrations | 70 |
 | cron_jobs | 0 |
-| testes | 145 |
+| testes | 146 |
 | workflows | 15 |
 | scripts | 37 |
 | docs_md | 134 |
@@ -57,8 +57,8 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - telas: src/pages (18)
 - componentes: src/components (19), src/pages (18), src/context (2)
 - hooks: src/lib (4), src/context (2)
-- servicos_logica: src/lib (43), api/_lib (15), src/context (3)
-- testes: co-localizado (*.test) (54), tests/ (46), outro (9)
+- servicos_logica: src/lib (44), api/_lib (15), src/context (3)
+- testes: co-localizado (*.test) (55), tests/ (46), outro (9)
 - edge_functions: n/d
 - migrations: site-supabase/supabase/migrations
 - scripts: scripts/maintenance (4), scripts/inventario (3), scripts/regras_negocio (3)
@@ -73,7 +73,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 | api/_lib | 0 | 0 | 15 | 0 | 0 | 0 |
 | components | 0 | 0 | 20 | 6 | 0 | 0 |
 | context | 0 | 0 | 5 | 2 | 0 | 0 |
-| lib | 0 | 0 | 43 | 8 | 0 | 0 |
+| lib | 0 | 0 | 44 | 8 | 0 | 0 |
 | pages | 7 | 18 | 18 | 9 | 0 | 0 |
 
 ## Rotas (url → arquivo)
@@ -139,9 +139,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 ## Integrações externas
 - SDKs: Supabase, Vercel Analytics
-- hosts mais citados: promo-brindes-v1.vercel.app, cliente.sebraees.com.br, www.un.org, api.resend.com, br.pinterest.com, doufsxqlfjyuvxuezpln.supabase.co, facebook.com, graph.facebook.com, instagram.com, promo-brindes.invalid, vercel.com, www.sitemaps.org, youtube.com
+- hosts mais citados: promo-brindes-v1.vercel.app, cliente.sebraees.com.br, www.un.org, api.resend.com, br.pinterest.com, doufsxqlfjyuvxuezpln.supabase.co, facebook.com, graph.facebook.com, instagram.com, promo-brindes.invalid, vercel.com, wa.me, www.sitemaps.org, youtube.com
 - webhooks recebidos: GET,POST /api/notification-events-whatsapp, POST /api/notification-events-resend
-- env de integração (só nomes): COMMERCIAL_TEAM_WEBHOOK_TOKEN, COMMERCIAL_TEAM_WEBHOOK_URL, CRON_SECRET, OPERATIONS_ALERT_WEBHOOK_TOKEN, OPERATIONS_ALERT_WEBHOOK_URL, RESEND_API_KEY, RESEND_WEBHOOK_SECRET, SITE_SUPABASE_SECRET_KEY, WHATSAPP_ACCESS_TOKEN, WHATSAPP_APP_SECRET, WHATSAPP_GRAPH_API_VERSION, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_QUOTE_TEMPLATE, WHATSAPP_WEBHOOK_VERIFY_TOKEN
+- env de integração (só nomes): COMMERCIAL_TEAM_WEBHOOK_TOKEN, COMMERCIAL_TEAM_WEBHOOK_URL, CRON_SECRET, OPERATIONS_ALERT_WEBHOOK_TOKEN, OPERATIONS_ALERT_WEBHOOK_URL, RESEND_API_KEY, RESEND_WEBHOOK_SECRET, SITE_SUPABASE_SECRET_KEY, VITE_CONTACT_WHATSAPP, WHATSAPP_ACCESS_TOKEN, WHATSAPP_APP_SECRET, WHATSAPP_GRAPH_API_VERSION, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_QUOTE_TEMPLATE, WHATSAPP_WEBHOOK_VERIFY_TOKEN
 
 ## Permissões / papéis
 - papéis no código: anon (4)
@@ -171,7 +171,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 ## Hotspots (arquivos mais alterados, 90 dias)
 - package.json (65)
-- e2e/smoke.spec.ts (58)
+- e2e/smoke.spec.ts (59)
 - package-lock.json (36)
 - src/styles.css (36)
 - .github/workflows/quality.yml (28)
@@ -179,7 +179,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - vercel.json (26)
 - docs/DATABASE_DICTIONARY.md (24)
 - site-supabase/supabase/tests/database/lead_storage.test.sql (24)
-- src/components/Layout.tsx (23)
+- src/components/Layout.tsx (24)
 - .github/workflows/release.yml (21)
 - tests/api/lead-requests.test.ts (21)
 - api/_lib/siteDatabase.ts (19)
@@ -386,6 +386,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-21 `957fa44` feat: contato via WhatsApp iniciado pelo visitante (F-47) (#222)
 - 2026-11-21 `a3e9e21` feat: fallback de SKU exato quando a busca nao encontra correspondencia (NOVO-CA-22) (#221)
 - 2026-11-21 `66ed450` feat(lgpd): direitos do titular — acesso, exportacao, correcao e autoexclusao (F-30) (#220)
 - 2026-11-21 `e40d98f` chore(docs): reconcilia ground-truth de F-01/F-31/F-110 (#219)
@@ -400,7 +401,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-19 `8e896a7` infra(ci): cross-browser deixa de ser cancelado no teto antes de rodar teste (#204)
 - 2026-11-19 `3038a45` feat(e2e): cobre a jornada completa do visitante com rede lenta e armazenamento bloqueado (#199)
 - 2026-11-18 `fd18af6` docs: corrige a ressalva de confianca que subestimava o que foi conferido (#207)
-- 2026-11-18 `a1aeeed` feat(e2e): cobre o envio de anexo do briefing em navegador (#206)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

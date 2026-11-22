@@ -1,11 +1,11 @@
 {
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
- "total": 78,
+ "total": 79,
  "por_camada": {
   "api": 29,
   "context": 3,
-  "lib": 43,
+  "lib": 44,
   "python": 3
  },
  "arquivos": [
@@ -1195,7 +1195,7 @@
     "trackFunnelEvent"
    ],
    "export_default": null,
-   "linhas": 131,
+   "linhas": 133,
    "tabelas": [],
    "rpcs": [],
    "edges": [],
@@ -1206,7 +1206,7 @@
    "zod_schemas": 0,
    "flags": [],
    "papeis": [],
-   "usado_por": 19,
+   "usado_por": 20,
    "usado_por_modulos": [
     "components",
     "context",
@@ -2484,6 +2484,35 @@
    "papeis": [],
    "usado_por": 3,
    "usado_por_modulos": [
+    "pages"
+   ],
+   "coberto_por_testes": 1,
+   "orfao": false
+  },
+  {
+   "arquivo": "src/lib/whatsappContact.ts",
+   "camada": "lib",
+   "exports": [
+    "DEFAULT_WHATSAPP_NUMBER",
+    "buildDefaultWhatsAppHref",
+    "buildWhatsAppHref",
+    "resolveWhatsAppNumber"
+   ],
+   "export_default": null,
+   "linhas": 30,
+   "tabelas": [],
+   "rpcs": [],
+   "edges": [],
+   "env": [
+    "VITE_CONTACT_WHATSAPP"
+   ],
+   "externos": [],
+   "zod_schemas": 0,
+   "flags": [],
+   "papeis": [],
+   "usado_por": 2,
+   "usado_por_modulos": [
+    "components",
     "pages"
    ],
    "coberto_por_testes": 1,

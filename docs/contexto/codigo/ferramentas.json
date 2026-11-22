@@ -3,7 +3,7 @@
  "format_version": 2,
  "stack": {
   "linguagens": [
-   "TypeScript (215)",
+   "TypeScript (217)",
    "Markdown (134)",
    "SQL (108)",
    "JavaScript (65)",
@@ -1095,6 +1095,7 @@
    "SITE_SUPABASE_URL",
    "VITE_CONTACT_EMAIL",
    "VITE_CONTACT_REQUEST_ENDPOINT",
+   "VITE_CONTACT_WHATSAPP",
    "VITE_CUSTOMER_ADJUSTMENTS_ENABLED",
    "VITE_PERSISTENT_SHARED_SELECTIONS_ENABLED",
    "VITE_PRODUCT_CATALOG_RESOURCE",
@@ -1134,6 +1135,7 @@
    "VERCEL_URL",
    "VITE_CONTACT_EMAIL",
    "VITE_CONTACT_REQUEST_ENDPOINT",
+   "VITE_CONTACT_WHATSAPP",
    "VITE_CUSTOMER_ADJUSTMENTS_ENABLED",
    "VITE_PERSISTENT_SHARED_SELECTIONS_ENABLED",
    "VITE_PRODUCT_CATALOG_RESOURCE",
@@ -1267,6 +1269,10 @@
     "arquivos": 1
    },
    {
+    "host": "wa.me",
+    "arquivos": 1
+   },
+   {
     "host": "www.sitemaps.org",
     "arquivos": 1
    },
@@ -1284,6 +1290,7 @@
    "RESEND_API_KEY",
    "RESEND_WEBHOOK_SECRET",
    "SITE_SUPABASE_SECRET_KEY",
+   "VITE_CONTACT_WHATSAPP",
    "WHATSAPP_ACCESS_TOKEN",
    "WHATSAPP_APP_SECRET",
    "WHATSAPP_GRAPH_API_VERSION",

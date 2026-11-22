@@ -200,7 +200,7 @@
     "Layout"
    ],
    "export_default": null,
-   "linhas": 280,
+   "linhas": 282,
    "dominio": "components",
    "hooks_locais": [
     "useCategories",
@@ -414,7 +414,7 @@
     "ContactPage"
    ],
    "export_default": "ContactPage",
-   "linhas": 29,
+   "linhas": 32,
    "dominio": "pages",
    "hooks_locais": [],
    "tabelas": [],

@@ -223,7 +223,7 @@
    "modulo": "components",
    "arquivos": 20,
    "testes": 9,
-   "linhas": 2517,
+   "linhas": 2519,
    "itens_menu": [],
    "telas": [],
    "rotas_http": [],
@@ -254,6 +254,7 @@
    "env": [
     "VITE_CONTACT_EMAIL",
     "VITE_CONTACT_REQUEST_ENDPOINT",
+    "VITE_CONTACT_WHATSAPP",
     "VITE_CUSTOMER_ADJUSTMENTS_ENABLED",
     "VITE_PERSISTENT_SHARED_SELECTIONS_ENABLED",
     "VITE_PRODUCT_CATALOG_RESOURCE",
@@ -357,9 +358,9 @@
   },
   {
    "modulo": "lib",
-   "arquivos": 43,
-   "testes": 37,
-   "linhas": 5304,
+   "arquivos": 44,
+   "testes": 38,
+   "linhas": 5336,
    "itens_menu": [],
    "telas": [],
    "rotas_http": [],
@@ -410,6 +411,7 @@
    "env": [
     "VITE_CONTACT_EMAIL",
     "VITE_CONTACT_REQUEST_ENDPOINT",
+    "VITE_CONTACT_WHATSAPP",
     "VITE_CUSTOMER_ADJUSTMENTS_ENABLED",
     "VITE_PERSISTENT_SHARED_SELECTIONS_ENABLED",
     "VITE_PRODUCT_CATALOG_RESOURCE",
@@ -474,7 +476,7 @@
    "modulo": "pages",
    "arquivos": 18,
    "testes": 6,
-   "linhas": 3093,
+   "linhas": 3096,
    "itens_menu": [
     "Catálogos",
     "Como funciona",
@@ -545,6 +547,7 @@
    "env": [
     "VITE_CONTACT_EMAIL",
     "VITE_CONTACT_REQUEST_ENDPOINT",
+    "VITE_CONTACT_WHATSAPP",
     "VITE_CUSTOMER_ADJUSTMENTS_ENABLED",
     "VITE_PERSISTENT_SHARED_SELECTIONS_ENABLED",
     "VITE_PRODUCT_CATALOG_RESOURCE",

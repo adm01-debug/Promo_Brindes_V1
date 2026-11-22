@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "a3e9e210241490c2098aad18e53655fb0a20415a",
+  "commit": "957fa44980ac9299ac6c6e825805633af92e968a",
   "branch": "main",
-  "data_commit": "2026-11-21T23:04:11Z",
+  "data_commit": "2026-11-22T00:02:45Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "957fa44",
+    "data": "2026-11-21",
+    "assunto": "feat: contato via WhatsApp iniciado pelo visitante (F-47) (#222)"
+   },
    {
     "sha": "a3e9e21",
     "data": "2026-11-21",
@@ -126,14 +131,9 @@
     "sha": "dbc6479",
     "data": "2026-11-17",
     "assunto": "fix(graphify): graph:status deixa de exigir npm ci em clone limpo (#196)"
-   },
-   {
-    "sha": "2a09509",
-    "data": "2026-11-17",
-    "assunto": "fix(config): comentário de cobertura para de citar contagem de teste que envelhece (#195)"
    }
   ],
-  "arquivos_mudados_7d": 153,
+  "arquivos_mudados_7d": 156,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -165,7 +165,7 @@
    },
    {
     "pasta": "e2e/smoke.spec.ts",
-    "mudancas": 7
+    "mudancas": 8
    },
    {
     "pasta": "analise-prs/funcionalidades.csv",
@@ -203,7 +203,7 @@
    },
    {
     "arquivo": "e2e/smoke.spec.ts",
-    "mudancas": 58
+    "mudancas": 59
    },
    {
     "arquivo": "package-lock.json",
@@ -235,7 +235,7 @@
    },
    {
     "arquivo": "src/components/Layout.tsx",
-    "mudancas": 23
+    "mudancas": 24
    },
    {
     "arquivo": ".github/workflows/release.yml",
@@ -258,6 +258,10 @@
     "mudancas": 19
    },
    {
+    "arquivo": ".env.example",
+    "mudancas": 17
+   },
+   {
     "arquivo": ".github/workflows/database.yml",
     "mudancas": 17
    },
@@ -274,11 +278,11 @@
     "mudancas": 17
    },
    {
-    "arquivo": ".env.example",
+    "arquivo": ".github/workflows/graphify.yml",
     "mudancas": 16
    },
    {
-    "arquivo": ".github/workflows/graphify.yml",
+    "arquivo": "src/lib/analytics.ts",
     "mudancas": 16
    },
    {
@@ -292,16 +296,12 @@
    {
     "arquivo": "scripts/graphify.mjs",
     "mudancas": 15
-   },
-   {
-    "arquivo": "src/lib/analytics.ts",
-    "mudancas": 15
    }
   ],
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 102
+    "commits": 103
    },
    {
     "autor": "dependabot[bot]",
@@ -310,9 +310,9 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 722,
-  "arquivos_codigo": 287,
-  "linhas_codigo": 56293,
+  "arquivos_total": 724,
+  "arquivos_codigo": 289,
+  "linhas_codigo": 56365,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -324,7 +324,7 @@
   "tabelas": 23,
   "migrations": 70,
   "cron_jobs": 0,
-  "testes": 145,
+  "testes": 146,
   "workflows": 15,
   "scripts": 37,
   "docs_md": 134
@@ -416,7 +416,7 @@
   },
   "e2e/smoke.spec.ts": {
    "arquivos": 1,
-   "linhas": 1550
+   "linhas": 1558
   },
   "eslint.config.js": {
    "arquivos": 1,
@@ -572,15 +572,15 @@
   },
   "src/components": {
    "arquivos": 29,
-   "linhas": 3062
+   "linhas": 3064
   },
   "src/context": {
    "arquivos": 7,
    "linhas": 749
   },
   "src/lib": {
-   "arquivos": 80,
-   "linhas": 7994
+   "arquivos": 82,
+   "linhas": 8053
   },
   "src/main.tsx": {
    "arquivos": 1,
@@ -588,7 +588,7 @@
   },
   "src/pages": {
    "arquivos": 24,
-   "linhas": 3518
+   "linhas": 3521
   },
   "src/test": {
    "arquivos": 1,
