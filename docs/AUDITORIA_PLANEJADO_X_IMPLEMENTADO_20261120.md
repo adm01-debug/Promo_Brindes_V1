@@ -202,7 +202,7 @@ Tabela consolidada (uma linha por item). Evidência completa, comandos reproduz�
 | PF-87 | Vigia independente dos crons | NÃO INICIADO | `lastRunAt` por cron + verificador externo | `grep heartbeat\|lastRunAt\|watchdog` = 0; 3 crons | não | ENG |
 | PF-88 | Alertas operacionais | PARCIAL + BLOQUEADO | URL remota; payload genérico (relay); sem alerta para webhook de provedor, recebimento de orçamento, rate limit | `operationalAlerts.ts:5,32` (6 eventos) | sim (#178, #184) | DONO + ENG |
 | PF-89 | Preview isolado | BLOQUEADO | Sem `preview.yml`; custo | `vercel.json:3-5` | não | DONO |
-| PF-90 | Revisão mensal do banco | NÃO INICIADO | Nunca executada; query com coluna duplicada | `RUNBOOK_REVISAO_MENSAL_BANCO.md:51,68-72` | não | ENG + DONO |
+| PF-90 | Revisão mensal do banco | PARCIAL | Primeira execução real em 22/11/2026; coluna duplicada corrigida; falta o lembrete recorrente | `RUNBOOK_REVISAO_MENSAL_BANCO.md` histórico; `PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260916.md:570-574` | sim | ENG + DONO |
 | PF-91 | Runbooks atualizados e revisados | DIVERGÊNCIA | 6 runbooks parados desde set/2026 (ver seção 4) | últimos commits 16–30/09 | não | ENG + PESSOAS |
 | PF-92 | Funil homologado, coletor de erros, CWV p75 | PARCIAL-VALIDAÇÃO | Evento de contato/upload; `frontend_error` tipado; baseline remoto | `analytics.ts:4-36`; `clientObservability.ts:12` | sim (#168, #175) | ENG |
 | PF-93 | Ensaio do rollback automático | NÃO INICIADO | Nunca exercitado (35 falhas de release, nenhum rollback) | `release.yml:289-319` | não | ENG |
