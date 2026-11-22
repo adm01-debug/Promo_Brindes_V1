@@ -21,6 +21,7 @@ Uso e tamanho em `stats.md`.
 | site_private.contact_requests | contact_requests_pkey | btree | id | sim | sim |  |
 | site_private.contact_requests | contact_requests_retention_idx | btree | retention_until | não | sim |  |
 | site_private.contact_requests | contact_requests_status_created_at_idx | btree | status, created_at | não | sim |  |
+| site_private.cron_heartbeats | cron_heartbeats_pkey | btree | name | sim | sim |  |
 | site_private.customer_briefing_assets | customer_briefing_assets_expiry_idx | btree | expires_at, id | não | sim |  |
 | site_private.customer_briefing_assets | customer_briefing_assets_owner_created_idx | btree | customer_user_id, created_at, id | não | sim |  |
 | site_private.customer_briefing_assets | customer_briefing_assets_pkey | btree | id | sim | sim |  |

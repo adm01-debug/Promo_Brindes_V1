@@ -90,6 +90,15 @@ erDiagram
         text message
         text preferred_channel
     }
+    site_private_cron_heartbeats {
+        text name PK
+        timestamp_with_time_zone installed_at
+        timestamp_with_time_zone last_ok_at
+        timestamp_with_time_zone last_failed_at
+        text last_failure_detail
+        integer consecutive_failures
+        timestamp_with_time_zone updated_at
+    }
     site_private_customer_briefing_assets {
         uuid id PK
         uuid customer_user_id FK

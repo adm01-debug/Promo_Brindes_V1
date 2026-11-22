@@ -15,6 +15,8 @@ Roles da API: `anon` (sem login), `authenticated` (logado), `service_role` (bypa
 | site_private.consent_receipts | site_api | INSERT, SELECT |
 | site_private.contact_requests | service_role | DELETE, INSERT, SELECT, UPDATE |
 | site_private.contact_requests | site_api | DELETE, INSERT, SELECT |
+| site_private.cron_heartbeats | service_role | DELETE, INSERT, SELECT, UPDATE |
+| site_private.cron_heartbeats | site_api | SELECT |
 | site_private.customer_occasion_favorites | service_role | DELETE, INSERT, SELECT, UPDATE |
 | site_private.customer_profiles | service_role | DELETE, INSERT, SELECT, UPDATE |
 | site_private.customer_selections | service_role | DELETE, INSERT, SELECT, UPDATE |

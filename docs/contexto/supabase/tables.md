@@ -10,6 +10,7 @@ Um arquivo por tabela em `tables/<schema>/<tabela>.md` (colunas, constraints, í
 | [site_private.commercial_operators](tables/site_private/commercial_operators.md) | table | sim | 0 | 5 | não | Allowlist do back-office comercial (F-03). Só service_role escreve; as RPCs de escrita comercial recusam chamador fora daqui, mesmo com JWT válido. |
 | [site_private.consent_receipts](tables/site_private/consent_receipts.md) | table | sim | 0 | 9 | não |  |
 | [site_private.contact_requests](tables/site_private/contact_requests.md) | table | sim | 0 | 16 | não |  |
+| [site_private.cron_heartbeats](tables/site_private/cron_heartbeats.md) | table | sim | 0 | 7 | não | Heartbeat dos crons do site (F-87). Uma linha por cron agendado em vercel.json; escrita so pela RPC record_cron_heartbeat. |
 | [site_private.customer_briefing_assets](tables/site_private/customer_briefing_assets.md) | table | sim | 0 | 12 | não | Logos e referências privadas em PNG, JPEG ou WebP. PDFs ficam bloqueados até existir análise estrutural/CDR isolada e antimalware. |
 | [site_private.customer_occasion_favorites](tables/site_private/customer_occasion_favorites.md) | table | sim | 0 | 4 | não | IDs de datas comemorativas escolhidas pelo titular. A lista editorial fica no frontend; a conta guarda somente o ID e o vínculo é apagado com auth.users. |
 | [site_private.customer_profiles](tables/site_private/customer_profiles.md) | table | sim | 0 | 6 | não |  |

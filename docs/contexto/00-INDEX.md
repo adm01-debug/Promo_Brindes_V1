@@ -1,6 +1,6 @@
 # CONTEXTO PARA AGENTES DE IA — ÍNDICE ÚNICO
 
-> Gerado automaticamente por indice.py · 2026-11-22 13:13 UTC · HEAD `18eebb5704` · Não edite à mão.
+> Gerado automaticamente por indice.py · 2026-11-22 13:14 UTC · HEAD `18eebb5704` · Não edite à mão.
 
 Um sistema, três fontes de verdade, três produtores independentes. **Leia este arquivo e vá direto à fonte certa.** Cada fato tem um dono: se duas fontes discordarem, vale o dono.
 
@@ -8,9 +8,9 @@ Um sistema, três fontes de verdade, três produtores independentes. **Leia este
 
 | Preciso de… | Fonte (dona do fato) | Onde ler | Estado |
 |---|---|---|---|
-| Regras que não podem ser quebradas: RLS por operação, estados e transições, validações, fórmulas, prazos, erros de negócio, testes como especificação, inconsistências código×schema (NÃO VERIFICADO) e regras humanas (`manual/`) | **regras de negócio** | `docs/contexto/regras/07-REGRAS-DE-NEGOCIO.md` | ok · 0 min atrás |
-| Tabelas, colunas, RLS/políticas, funções, triggers, cron, storage, lints — **como está em produção agora** | **banco real** | `docs/contexto/supabase/README.md` | ok · 54 min atrás |
-| Rotas, telas, módulos, hooks, edge functions, grafo de dependências, testes, scripts, convenções | **código** | `docs/contexto/codigo/INDEX.md` | ok · 0 min atrás |
+| Regras que não podem ser quebradas: RLS por operação, estados e transições, validações, fórmulas, prazos, erros de negócio, testes como especificação, inconsistências código×schema (NÃO VERIFICADO) e regras humanas (`manual/`) | **regras de negócio** | `docs/contexto/regras/07-REGRAS-DE-NEGOCIO.md` | ok · 1 min atrás |
+| Tabelas, colunas, RLS/políticas, funções, triggers, cron, storage, lints — **como está em produção agora** | **banco real** | `docs/contexto/supabase/README.md` | ok · 0 min atrás |
+| Rotas, telas, módulos, hooks, edge functions, grafo de dependências, testes, scripts, convenções | **código** | `docs/contexto/codigo/INDEX.md` | ok · 1 min atrás |
 
 ## Ordem de leitura antes de qualquer tarefa ou planejamento
 
@@ -63,6 +63,7 @@ Um sistema, três fontes de verdade, três produtores independentes. **Leia este
 - `docs/contexto/supabase/tables/site_private/commercial_operators.md`
 - `docs/contexto/supabase/tables/site_private/consent_receipts.md`
 - `docs/contexto/supabase/tables/site_private/contact_requests.md`
+- `docs/contexto/supabase/tables/site_private/cron_heartbeats.md`
 - `docs/contexto/supabase/tables/site_private/customer_briefing_assets.md`
 - `docs/contexto/supabase/tables/site_private/customer_occasion_favorites.md`
 - `docs/contexto/supabase/tables/site_private/customer_profiles.md`

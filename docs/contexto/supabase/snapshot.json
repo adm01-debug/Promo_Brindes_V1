@@ -657,6 +657,97 @@
       },
       {
         "comment": null,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "name",
+        "nullable": false,
+        "position": 1,
+        "schema": "site_private",
+        "table": "cron_heartbeats",
+        "type": "text"
+      },
+      {
+        "comment": null,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "installed_at",
+        "nullable": false,
+        "position": 2,
+        "schema": "site_private",
+        "table": "cron_heartbeats",
+        "type": "timestamp with time zone"
+      },
+      {
+        "comment": null,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "last_ok_at",
+        "nullable": true,
+        "position": 3,
+        "schema": "site_private",
+        "table": "cron_heartbeats",
+        "type": "timestamp with time zone"
+      },
+      {
+        "comment": null,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "last_failed_at",
+        "nullable": true,
+        "position": 4,
+        "schema": "site_private",
+        "table": "cron_heartbeats",
+        "type": "timestamp with time zone"
+      },
+      {
+        "comment": null,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "last_failure_detail",
+        "nullable": true,
+        "position": 5,
+        "schema": "site_private",
+        "table": "cron_heartbeats",
+        "type": "text"
+      },
+      {
+        "comment": null,
+        "default": "0",
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "consecutive_failures",
+        "nullable": false,
+        "position": 6,
+        "schema": "site_private",
+        "table": "cron_heartbeats",
+        "type": "integer"
+      },
+      {
+        "comment": null,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "updated_at",
+        "nullable": false,
+        "position": 7,
+        "schema": "site_private",
+        "table": "cron_heartbeats",
+        "type": "timestamp with time zone"
+      },
+      {
+        "comment": null,
         "default": "gen_random_uuid()",
         "generated": null,
         "identity": null,
@@ -3260,6 +3351,74 @@
       },
       {
         "columns": [
+          "consecutive_failures"
+        ],
+        "deferrable": false,
+        "definition": "CHECK (consecutive_failures >= 0)",
+        "name": "cron_heartbeats_consecutive_failures_check",
+        "on_delete": null,
+        "on_update": null,
+        "ref_columns": [],
+        "ref_schema": null,
+        "ref_table": null,
+        "schema": "site_private",
+        "table": "cron_heartbeats",
+        "type": "CHECK",
+        "validated": true
+      },
+      {
+        "columns": [
+          "last_failure_detail"
+        ],
+        "deferrable": false,
+        "definition": "CHECK (last_failure_detail IS NULL OR length(last_failure_detail) <= 240)",
+        "name": "cron_heartbeats_last_failure_detail_check",
+        "on_delete": null,
+        "on_update": null,
+        "ref_columns": [],
+        "ref_schema": null,
+        "ref_table": null,
+        "schema": "site_private",
+        "table": "cron_heartbeats",
+        "type": "CHECK",
+        "validated": true
+      },
+      {
+        "columns": [
+          "name"
+        ],
+        "deferrable": false,
+        "definition": "CHECK (name = ANY (ARRAY['retention'::text, 'notifications'::text, 'commercial-alerts'::text]))",
+        "name": "cron_heartbeats_name_check",
+        "on_delete": null,
+        "on_update": null,
+        "ref_columns": [],
+        "ref_schema": null,
+        "ref_table": null,
+        "schema": "site_private",
+        "table": "cron_heartbeats",
+        "type": "CHECK",
+        "validated": true
+      },
+      {
+        "columns": [
+          "name"
+        ],
+        "deferrable": false,
+        "definition": "PRIMARY KEY (name)",
+        "name": "cron_heartbeats_pkey",
+        "on_delete": null,
+        "on_update": null,
+        "ref_columns": [],
+        "ref_schema": null,
+        "ref_table": null,
+        "schema": "site_private",
+        "table": "cron_heartbeats",
+        "type": "PRIMARY KEY",
+        "validated": true
+      },
+      {
+        "columns": [
           "customer_user_id"
         ],
         "deferrable": false,
@@ -5583,6 +5742,45 @@
         "callers": {
           "code": [
             {
+              "file": "api/_lib/cronHeartbeats.ts",
+              "hits": 1
+            },
+            {
+              "file": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql",
+              "hits": 1
+            }
+          ],
+          "code_total_files": 2,
+          "cron": [],
+          "db": [],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "Devolve o estado de cada cron do site e se ele esta atrasado segundo o intervalo esperado mais a tolerancia (F-87).",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "7fa658d604b7519f",
+        "execute_api_roles": "service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "sql",
+        "leakproof": false,
+        "name": "check_cron_heartbeats",
+        "owner": "postgres",
+        "returns": "TABLE(name text, status text, last_ok_at timestamp with time zone, last_failed_at timestamp with time zone, last_failure_detail text, consecutive_failures integer, expected_interval_seconds integer, seconds_since_activity bigint, is_late boolean)",
+        "schema": "public",
+        "security_definer": true,
+        "strict": false,
+        "volatility": "volatile"
+      },
+      {
+        "args": "",
+        "callers": {
+          "code": [
+            {
               "file": "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
               "hits": 1
             },
@@ -6901,6 +7099,41 @@
         "name": "purge_site_admin_audit_logs",
         "owner": "postgres",
         "returns": "jsonb",
+        "schema": "public",
+        "security_definer": true,
+        "strict": false,
+        "volatility": "volatile"
+      },
+      {
+        "args": "p_name text, p_ok boolean, p_detail text",
+        "callers": {
+          "code": [
+            {
+              "file": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql",
+              "hits": 1
+            }
+          ],
+          "code_total_files": 1,
+          "cron": [],
+          "db": [],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "Grava o desfecho de uma rodada de cron (F-87). Chamada com a credencial de servico no fim de cada execucao.",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "b3c5e3d2dd7883cd",
+        "execute_api_roles": "service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "plpgsql",
+        "leakproof": false,
+        "name": "record_cron_heartbeat",
+        "owner": "postgres",
+        "returns": "void",
         "schema": "public",
         "security_definer": true,
         "strict": false,
@@ -9041,6 +9274,18 @@
           "grantee": "service_role",
           "privileges": "DELETE, INSERT, SELECT, UPDATE",
           "schema": "site_private",
+          "table": "cron_heartbeats"
+        },
+        {
+          "grantee": "site_api",
+          "privileges": "SELECT",
+          "schema": "site_private",
+          "table": "cron_heartbeats"
+        },
+        {
+          "grantee": "service_role",
+          "privileges": "DELETE, INSERT, SELECT, UPDATE",
+          "schema": "site_private",
           "table": "customer_occasion_favorites"
         },
         {
@@ -9575,6 +9820,20 @@
         "predicate": null,
         "schema": "site_private",
         "table": "contact_requests"
+      },
+      {
+        "columns": [
+          "name"
+        ],
+        "definition": "CREATE UNIQUE INDEX cron_heartbeats_pkey ON site_private.cron_heartbeats USING btree (name)",
+        "is_primary": true,
+        "is_unique": true,
+        "is_valid": true,
+        "method": "btree",
+        "name": "cron_heartbeats_pkey",
+        "predicate": null,
+        "schema": "site_private",
+        "table": "cron_heartbeats"
       },
       {
         "columns": [
@@ -10836,6 +11095,12 @@
         "statements": 43,
         "statements_sha": "858f0120dd38dbee",
         "version": "20261122030000"
+      },
+      {
+        "name": "add_cron_heartbeat_and_watchdog",
+        "statements": 15,
+        "statements_sha": "6fa0950d25448ec7",
+        "version": "20261122040000"
       }
     ],
     "policies": [
@@ -11343,6 +11608,21 @@
         "is_partition": false,
         "kind": "table",
         "name": "contact_requests",
+        "owner": "postgres",
+        "parent": null,
+        "partition_bound": null,
+        "partition_key": null,
+        "replica_identity": "default",
+        "rls_enabled": true,
+        "rls_forced": true,
+        "schema": "site_private"
+      },
+      {
+        "comment": "Heartbeat dos crons do site (F-87). Uma linha por cron agendado em vercel.json; escrita so pela RPC record_cron_heartbeat.",
+        "from_extension": false,
+        "is_partition": false,
+        "kind": "table",
+        "name": "cron_heartbeats",
         "owner": "postgres",
         "parent": null,
         "partition_bound": null,

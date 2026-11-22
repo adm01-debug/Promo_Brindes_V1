@@ -2,6 +2,16 @@
 
 Diff semântico gerado a cada coleta em que algo mudou.
 
+## 2026-11-22 13:13 UTC
+
+- **colunas** adicionado (7): `site_private.cron_heartbeats.consecutive_failures`, `site_private.cron_heartbeats.installed_at`, `site_private.cron_heartbeats.last_failed_at`, `site_private.cron_heartbeats.last_failure_detail`, `site_private.cron_heartbeats.last_ok_at`, `site_private.cron_heartbeats.name`, `site_private.cron_heartbeats.updated_at`
+- **constraints** adicionado (4): `site_private.cron_heartbeats.cron_heartbeats_consecutive_failures_check`, `site_private.cron_heartbeats.cron_heartbeats_last_failure_detail_check`, `site_private.cron_heartbeats.cron_heartbeats_name_check`, `site_private.cron_heartbeats.cron_heartbeats_pkey`
+- **functions** adicionado (2): `public.check_cron_heartbeats()`, `public.record_cron_heartbeat(p_name text, p_ok boolean, p_detail text)`
+- **grants** adicionado (2): `site_private.cron_heartbeats:service_role`, `site_private.cron_heartbeats:site_api`
+- **indexes** adicionado (1): `site_private.cron_heartbeats_pkey`
+- **migrations** adicionado (1): `20261122040000_add_cron_heartbeat_and_watchdog`
+- **tabelas** adicionado (1): `site_private.cron_heartbeats`
+
 ## 2026-11-22 09:14 UTC
 
 - **migrations** adicionado (1): `20261122030000_add_commercial_backoffice_rpcs`
