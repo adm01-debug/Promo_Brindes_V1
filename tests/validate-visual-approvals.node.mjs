@@ -8,7 +8,10 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { pngDimensions, sha256OfBuffer, validateRegistry,
   findUnregisteredRoots,
+  findUnregisteredVersionedRoots,
   listAssetsFromDisk,
+  listVersionedAssets,
+  trackedPaths,
 } from '../scripts/validate-visual-approvals.mjs';
 
 const SCRIPT = fileURLToPath(new URL('../scripts/validate-visual-approvals.mjs', import.meta.url));
@@ -161,6 +164,41 @@ test('pasta de mockup fora de roots é reprovada', () => {
   assert.deepEqual(findUnregisteredRoots(['docs/mockups-carnegie-20261005'], entries), ['docs/mockups-nova-tela-20270101']);
 });
 
+test('pasta de mockup nao versionada nao bloqueia o envio', () => {
+  const entries = [
+    { name: 'mockups-carnegie-20261005', isDirectory: () => true },
+    { name: 'mockups-rascunho-local', isDirectory: () => true },
+  ];
+  // Rascunho local (sem git add) nao entra no commit: reprovar o push por causa
+  // dele bloqueava o envio de trabalho que nada tinha a ver com mockup.
+  const versionado = (root) => root === 'docs/mockups-carnegie-20261005';
+  assert.deepEqual(findUnregisteredRoots(['docs/mockups-carnegie-20261005'], entries, versionado), []);
+});
+
+test('PNG e raiz so contam quando versionados no git', () => {
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'aprovacao-git-'));
+  const raiz = path.join(base, 'docs', 'mockups-gitcheck');
+  fs.mkdirSync(raiz, { recursive: true });
+  fs.writeFileSync(path.join(raiz, 'commitado.png'), fakePng(10, 20, 'c'));
+  fs.writeFileSync(path.join(raiz, 'rascunho.png'), fakePng(10, 20, 'r'));
+  const git = (...args) => spawnSync('git', args, { cwd: base, encoding: 'utf8' });
+  try {
+    git('init', '-q');
+    git('add', 'docs/mockups-gitcheck/commitado.png');
+    git('-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '-m', 'fixture');
+    const tracked = trackedPaths(base);
+    assert.ok(tracked, 'git deveria estar disponivel no fixture');
+    assert.ok(tracked.has('docs/mockups-gitcheck/commitado.png'));
+    assert.ok(!tracked.has('docs/mockups-gitcheck/rascunho.png'));
+    const paths = listVersionedAssets(['docs/mockups-gitcheck'], base).map((f) => f.path);
+    assert.deepEqual(paths, ['docs/mockups-gitcheck/commitado.png']);
+    assert.deepEqual(findUnregisteredVersionedRoots([], base), ['docs/mockups-gitcheck']);
+    assert.deepEqual(findUnregisteredVersionedRoots(['docs/mockups-gitcheck'], base), []);
+  } finally {
+    fs.rmSync(base, { recursive: true, force: true });
+  }
+});
+
 test('PNG em subpasta da raiz de mockups também é coletado', () => {
   const base = fs.mkdtempSync(path.join(os.tmpdir(), 'aprovacao-roots-'));
   const raiz = path.join(base, 'docs', '__fixture-roots');
@@ -198,9 +236,9 @@ test('registro real do repositorio está íntegro', () => {
   // pre-push via testSuites), entao ele precisa reprovar um mockup trocado ou
   // fora do registro. Conferir so o formato do JSON deixava o hook passar verde
   // enquanto `npm run approvals:visual:check` reprovava no check completo.
-  const errors = validateRegistry(registry, listAssetsFromDisk(registry.roots ?? []));
+  const errors = validateRegistry(registry, listVersionedAssets(registry.roots ?? []));
   assert.deepEqual(errors, []);
   // A descoberta de pastas tambem precisa rodar no hook: sem isto o teste passaria
   // verde enquanto um PNG em `docs/mockups-nova/` ficasse fora do registro.
-  assert.deepEqual(findUnregisteredRoots(registry.roots ?? []), []);
+  assert.deepEqual(findUnregisteredVersionedRoots(registry.roots ?? []), []);
 });

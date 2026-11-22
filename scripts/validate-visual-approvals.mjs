@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
@@ -112,23 +113,50 @@ export function readRegistryFromDisk() {
 }
 
 /**
- * Pastas de mockup versionadas que nao estao em `roots`. Sem isso, criar
- * `docs/mockups-nova-tela/` e commitar PNGs ali passaria no guard sem dono,
- * data nem PR — exatamente o buraco que o PF-56 existe para fechar.
+ * Caminhos versionados (git ls-files). A descoberta por `readdirSync` enxerga
+ * rascunho local: uma pasta `docs/mockups-*` ainda nao commitada reprovava o
+ * envio de commits que nao a continham. Devolve null quando o git nao esta
+ * disponivel (tarball, ambiente sem VCS) e nesse caso a checagem cai no disco.
  */
-export function findUnregisteredRoots(roots, entries = readdirSync(path.resolve(ROOT, 'docs'), { withFileTypes: true })) {
-  const known = new Set(roots);
-  return entries
-    .filter((entry) => entry.isDirectory() && entry.name.startsWith('mockups-'))
-    .map((entry) => `docs/${entry.name}`)
-    .filter((root) => !known.has(root));
+export function trackedPaths(baseDir = ROOT) {
+  const result = spawnSync('git', ['ls-files', '-z'], { cwd: baseDir, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+  if (result.status !== 0 || typeof result.stdout !== 'string') return null;
+  return new Set(result.stdout.split('\0').filter(Boolean));
+}
+
+/** PNGs sob cada raiz que estao de fato versionados. */
+export function listVersionedAssets(roots, baseDir = ROOT) {
+  const tracked = trackedPaths(baseDir);
+  const files = listAssetsFromDisk(roots, baseDir);
+  return tracked ? files.filter((file) => tracked.has(file.path)) : files;
 }
 
 /**
- * PNGs sob cada raiz, em qualquer profundidade. Antes so o primeiro nivel era
- * lido: um mockup em `docs/mockups-x/ficha/` nao era visto, entao um PNG sem
- * registro passava e um PNG registrado era declarado inexistente.
+ * Pastas de mockup no disco sem registro, contando apenas o que o Git versiona.
+ * @param {string[]} roots raizes declaradas no registro
+ * @param {Array<{name: string, isDirectory: () => boolean}>} [entries] entradas de docs/
+ * @param {(root: string) => boolean} [isVersioned] filtro de versionamento
  */
+export function findUnregisteredRoots(roots, entries, isVersioned = () => true) {
+  const known = new Set(roots);
+  const list = entries ?? readdirSync(path.resolve(ROOT, 'docs'), { withFileTypes: true });
+  return list
+    .filter((entry) => entry.isDirectory() && entry.name.startsWith('mockups-'))
+    .map((entry) => `docs/${entry.name}`)
+    .filter((root) => !known.has(root) && isVersioned(root));
+}
+
+/** Pastas de mockup versionadas fora de `roots`, ignorando rascunho local. */
+export function findUnregisteredVersionedRoots(roots, baseDir = ROOT) {
+  const tracked = trackedPaths(baseDir);
+  const isVersioned = tracked
+    ? (root) => [...tracked].some((entry) => entry.startsWith(`${root}/`))
+    : () => true;
+  const docsDir = path.resolve(baseDir, 'docs');
+  const entries = existsSync(docsDir) ? readdirSync(docsDir, { withFileTypes: true }) : [];
+  return findUnregisteredRoots(roots, entries, isVersioned);
+}
+
 export function listAssetsFromDisk(roots, baseDir = ROOT) {
   const files = [];
   const walk = (relative) => {
@@ -149,9 +177,9 @@ export function listAssetsFromDisk(roots, baseDir = ROOT) {
 
 function main() {
   const registry = readRegistryFromDisk();
-  const files = listAssetsFromDisk(registry.roots ?? []);
+  const files = listVersionedAssets(registry.roots ?? []);
   const errors = validateRegistry(registry, files);
-  for (const root of findUnregisteredRoots(registry.roots ?? [])) {
+  for (const root of findUnregisteredVersionedRoots(registry.roots ?? [])) {
     errors.push(`pasta de mockup fora de "roots" no registro: ${root}`);
   }
   if (errors.length > 0) {
