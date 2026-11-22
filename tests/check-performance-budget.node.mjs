@@ -125,7 +125,7 @@ test('cada teto reprova com exit 1 e nomeia a métrica estourada', () => {
     [{ files: { ...entry, 'a.css': incompressible(33) }, manifest }, /^CSS total \(Brotli\): 33\.0 KiB excede o limite de 32 KiB\.\n$/],
     [
       { files: { ...entry, ...Object.fromEntries(Array.from({ length: 6 }, (_, index) => [`lazy-${index}.js`, incompressible(49)])) }, manifest },
-      /^JavaScript total \(Brotli\): 294\.\d KiB excede o limite de 271 KiB\.\n$/,
+      /^JavaScript total \(Brotli\): 294\.\d KiB excede o limite de 272 KiB\.\n$/,
     ],
     [{ files: { 'index-0a1b2c3d.js': incompressible(91) }, manifest }, /^Bundle de entrada \(Brotli\): 91\.0 KiB excede o limite de 90 KiB\.\n$/],
     [

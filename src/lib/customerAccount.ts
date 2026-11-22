@@ -93,7 +93,7 @@ function rpcError(error: { message?: string } | null): never {
 
 /** Mensagem devolvida quando a RPC recusa um 4º pedido de ajuste pendente. */
 export const ADJUSTMENT_PENDING_LIMIT_MESSAGE =
-  'Você já tem 3 pedidos de ajuste em análise neste orçamento. Assim que a nossa equipe responder um deles, você pode enviar outro. Se for urgente, fale com a gente pelo contato.';
+  'Você já tem 3 ajustes em análise neste orçamento. Assim que respondermos um deles, você pode enviar outro.';
 
 export async function claimMyQuoteRequests(): Promise<number> {
   const { data, error } = await runSiteRpc(requireClient().rpc('claim_my_quote_requests'));
