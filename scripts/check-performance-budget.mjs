@@ -131,15 +131,14 @@ try {
   // qualquer feature seguinte reprovava por alguns bytes (a CI mediu 964,0 e
   // recusou). A folga nova e de ~2,0 KiB sobre a medicao, o mesmo criterio
   // usado nas recalibracoes anteriores, e ainda reprova regressoes acima disso.
-  // Teto recalibrado em 22/11/2026 de 966 para 987 KiB quando a F-03
-  // (back-office minimo em /admin/orcamentos) adicionou uma rota lazy inteira:
-  // BackofficePage (20,3 KiB), commercialBackoffice (3,1 KiB) e o contrato
-  // (8,9 KiB) somam 32,3 KiB de fonte, dos quais 20,2 KiB chegam ao corpus.
-  // Medicao sobre a base de 966 KiB: producao 986,1 KiB, pior caso com as tres
-  // flags 985,4 KiB. A margem de 1,6 KiB no pior caso e do mesmo tamanho das
-  // recalibragens anteriores (0,7 a 2,0 KiB) e continua reprovando regressao
-  // acima disso.
-  assertBudget('JavaScript total', javascript, rawBytes(987));
+  // Teto recalibrado em 22/11/2026 de 966 para 985 KiB quando a F-03
+  // (back-office minimo em /admin/orcamentos) adicionou uma rota lazy inteira
+  // sobre a base de 959,3 KiB medida na main em 22/11/2026. Pior caso medido
+  // neste worktree com as tres flags: 985,6 KiB (o mesmo teto do commit
+  // original da branch, que partia de 963,2 KiB e media 983,4 KiB). A margem
+  // nova e de poucos bytes no pior caso, porque o raw ja vinha justo; o teto
+  // Brotli abaixo e quem barra regressao de transferencia.
+  assertBudget('JavaScript total', javascript, rawBytes(986));
   assertBudget('Bundle de entrada', entry, rawBytes(300));
   assertBudget('CSS total (Brotli)', cssBrotli, rawBytes(32));
   // O total é um teto de manutenção para todo o corpus lazy. O download real
@@ -173,7 +172,6 @@ try {
     WORST_CASE ? 'JavaScript total (Brotli, pior caso com as flags ligadas)' : 'JavaScript total (Brotli)',
     javascriptBrotli,
     rawBytes(WORST_CASE ? 279 : 278),
-  );
   );
   assertBudget('Bundle de entrada (Brotli)', entryBrotli, rawBytes(90));
   assertBudget('JavaScript inicial (Brotli)', initialJavascriptBrotli, rawBytes(150));

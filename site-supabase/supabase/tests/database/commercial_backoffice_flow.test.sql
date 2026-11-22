@@ -11,7 +11,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(50);
+select plan(52);
 
 -- === Fixtures ====================================================================
 
@@ -32,6 +32,17 @@ insert into site_private.quote_requests (
   'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'f03-test-request', repeat('a', 64), 'site-promo-brindes',
   'new', 'Ana Souza', 'Metalurgica Alfa', 'cliente@alfa.com.br', '11999998888',
   'Sao Paulo', '2026-12-01', 'Logo em uma cor', now()
+);
+
+-- Empresa com '#' no nome: o termo textual precisa ser comparado literalmente,
+-- e a pagina (consulta separada da contagem) precisa devolver so esse pedido.
+insert into site_private.quote_requests (
+  id, client_request_id, request_hash, source, status, contact_name, company, email, phone,
+  city, desired_deadline, notes, client_submitted_at
+) values (
+  'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', 'f03-test-cerquilha', repeat('b', 64), 'site-promo-brindes',
+  'new', 'Bruno Lima', '#Marca Eventos', 'bruno@marca.test', '11988887777',
+  'Campinas', '2026-12-05', null, now()
 );
 
 insert into site_private.quote_items (
@@ -56,7 +67,7 @@ set local request.jwt.claims = '{"sub":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","r
 
 select is(
   (select count(*) from pg_catalog.jsonb_array_elements(public.list_site_quote_requests(null, null, 10, 0) -> 'requests')),
-  1::bigint,
+  2::bigint,
   'operador ativo lista a fila'
 );
 
@@ -66,8 +77,10 @@ select is(
   'fila identifica o operador que esta consultando'
 );
 
+-- A fila tem dois pedidos e a ordem depende de created_at: busca pelo pedido com
+-- item para nao depender da posicao na pagina.
 select is(
-  (public.list_site_quote_requests('new', null, 10, 0) -> 'requests') -> 0 ->> 'itemCount',
+  (public.list_site_quote_requests('new', 'Metalurgica', 10, 0) -> 'requests') -> 0 ->> 'itemCount',
   '1',
   'fila informa a quantidade de itens do pedido'
 );
@@ -123,8 +136,21 @@ select is(
 
 select is(
   (public.list_site_quote_requests(null, '#', 10, 0) ->> 'total'),
-  '0',
-  '# sozinho nao desliga o filtro de texto'
+  '1',
+  '# sozinho filtra em vez de devolver a fila inteira'
+);
+
+-- Total e pagina sao consultas separadas: o termo com '#' precisa casar nas duas.
+select is(
+  (public.list_site_quote_requests(null, '#Marca', 10, 0) ->> 'total'),
+  '1',
+  'busca por empresa com # conta so o pedido que tem # no nome'
+);
+
+select is(
+  (public.list_site_quote_requests(null, '#Marca', 10, 0) -> 'requests') -> 0 ->> 'company',
+  '#Marca Eventos',
+  'busca por empresa com # devolve o pedido na pagina'
 );
 
 select is(
