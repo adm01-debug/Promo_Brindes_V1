@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 set local request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
 
-select plan(30);
+select plan(33);
 
 -- A trilha é privada: só service_role lê; ninguém além do site grava.
 select ok(not pg_catalog.has_table_privilege('anon', 'site_private.pii_read_audit_log', 'select'), 'anon não lê a trilha de leitura de PII');
@@ -138,14 +138,18 @@ select lives_ok(
 );
 
 -- A busca aceita e-mail e telefone exatos: o termo livre nunca pode ir para a trilha.
-select lives_ok(
-  $$ select public.list_site_quote_requests(null, 'ana@example.test', 10, 0) $$,
-  'operação busca por e-mail sem falhar'
+-- O e-mail buscado e o do pedido de teste: uma busca que nao casa nada nao exercita
+-- o caminho "achou e registrou a leitura", que e o que importa auditar.
+select is(
+  (public.list_site_quote_requests(null, 'titular@example.test', 10, 0) ->> 'total')::integer,
+  1,
+  'a busca por e-mail do titular encontra o pedido'
 );
 
 select is(
   (select count(*) from site_private.pii_read_audit_log
-   where filter ilike '%ana@example.test%' or filter ilike '%@example.test%'),
+   where filter ilike '%titular@example.test%' or filter ilike '%@example.test%'
+      or filter ilike '%11999998888%'),
   0::bigint,
   'e-mail buscado pelo operador nao e copiado para a trilha'
 );
@@ -158,10 +162,35 @@ select is(
   'a busca por e-mail gerou registro de leitura com o marcador search, sem o valor'
 );
 
+-- A leitura que devolve linha precisa ser registrada com volume: sem isso a trilha
+-- diria "alguem filtrou" sem dizer que dados sairam.
+select is(
+  (select row_count from site_private.pii_read_audit_log
+   where actor_kind = 'operador' and filter like '%search%'),
+  1,
+  'a busca que retornou 1 pedido grava row_count = 1'
+);
+
+-- Busca sem resultado tambem registra a tentativa, com volume zero.
+select lives_ok(
+  $$ select public.list_site_quote_requests(null, 'nao-existe@example.test', 10, 0) $$,
+  'operacao busca por e-mail inexistente sem falhar'
+);
+
+select is(
+  (select row_count from site_private.pii_read_audit_log
+   where actor_kind = 'operador' and filter like '%search%'
+   order by occurred_at desc, id desc limit 1),
+  0,
+  'busca sem resultado registra a leitura com row_count = 0'
+);
+
+-- A consulta sem filtro e a unica dessa forma ate aqui: o marcador search fica de
+-- fora, senao a busca adicionada acima entraria nesta contagem.
 select is(
   (select count(*) from site_private.pii_read_audit_log
    where actor_kind = 'operador' and performed_by is not null
-     and row_count >= 1 and filter is not null),
+     and row_count >= 1 and filter is not null and filter not like '%search%'),
   1::bigint,
   'fila comercial registra 1 leitura de operador com volume e filtro'
 );
