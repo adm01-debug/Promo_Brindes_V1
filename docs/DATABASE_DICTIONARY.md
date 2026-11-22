@@ -96,6 +96,20 @@ _Sem comment on table — considerar adicionar um na próxima migration que toca
 | `message` | `text` | Contexto opcional da conversa, limitado a 800 caracteres e retido no banco isolado do site. |
 | `preferred_channel` | `text` | Preferência opcional de retorno; não representa consentimento para disparo automático. |
 
+### `site_private.cron_heartbeats`
+
+Heartbeat dos crons do site (F-87). Uma linha por cron agendado em vercel.json; escrita so pela RPC record_cron_heartbeat.
+
+| Coluna | Tipo | Comentário |
+|---|---|---|
+| `name` | `text` | — |
+| `installed_at` | `timestamp with time zone` | — |
+| `last_ok_at` | `timestamp with time zone` | — |
+| `last_failed_at` | `timestamp with time zone` | — |
+| `last_failure_detail` | `text` | — |
+| `consecutive_failures` | `integer` | — |
+| `updated_at` | `timestamp with time zone` | — |
+
 ### `site_private.customer_briefing_assets`
 
 Logos e referências privadas em PNG, JPEG ou WebP. PDFs ficam bloqueados até existir análise estrutural/CDR isolada e antimalware.
@@ -404,6 +418,7 @@ Trilha do exercicio dos direitos do titular (LGPD art. 18) na Area do Cliente: a
 | `apply_site_notification_provider_event` | `p_provider text, p_provider_message_id text, p_event_type text, p_provider_event_id text, p_occurred_at timestamp with time zone, p_bounce_reason text` | Aplica evento de webhook de forma idempotente. delivered só grava se delivery_state ainda for null; bounced grava se null OU se o estado atual for delivered (bounce tardio corrige delivered otimista). complained é independente e idempotente via coalesce. F-12: o evento também guarda provider_message_id e bounce_reason, para o re-vínculo de evento precoce. |
 | `attach_my_briefing_assets_to_quote` | `p_request_id uuid, p_asset_ids uuid[]` | — |
 | `can_delete_my_unverified_briefing_asset_path` | `p_path text` | Permite limpeza direta somente antes da verificação; depois dela a exclusão ocorre pela fila server-side. |
+| `check_cron_heartbeats` | `` | Devolve o estado de cada cron do site e se ele esta atrasado segundo o intervalo esperado mais a tolerancia (F-87). |
 | `claim_my_quote_requests` | `` | Associa solicitações sem titular somente após confirmação do e-mail da identidade autenticada. |
 | `claim_site_commercial_team_alert` | `p_request_id uuid` | Reivindica o alerta comercial de um lead especifico (orcamento ou contato), sem filtrar por canal. |
 | `claim_site_commercial_team_alerts` | `p_batch_size integer` | Reivindica lotes de alertas comerciais pendentes (orcamento e contato) para o cron de entrega. |

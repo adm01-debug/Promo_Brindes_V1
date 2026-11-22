@@ -34,6 +34,20 @@ export type Database = {
         Args: { p_path: string }
         Returns: boolean
       }
+      check_cron_heartbeats: {
+        Args: never
+        Returns: {
+          consecutive_failures: number
+          expected_interval_seconds: number
+          is_late: boolean
+          last_failed_at: string
+          last_failure_detail: string
+          last_ok_at: string
+          name: string
+          seconds_since_activity: number
+          status: string
+        }[]
+      }
       claim_my_quote_requests: { Args: never; Returns: Json }
       claim_site_commercial_team_alert: {
         Args: { p_request_id: string }
@@ -529,6 +543,36 @@ export type Database = {
           retention_until?: string
           source?: string
           status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cron_heartbeats: {
+        Row: {
+          consecutive_failures: number
+          installed_at: string
+          last_failed_at: string | null
+          last_failure_detail: string | null
+          last_ok_at: string | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          consecutive_failures?: number
+          installed_at?: string
+          last_failed_at?: string | null
+          last_failure_detail?: string | null
+          last_ok_at?: string | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          consecutive_failures?: number
+          installed_at?: string
+          last_failed_at?: string | null
+          last_failure_detail?: string | null
+          last_ok_at?: string | null
+          name?: string
           updated_at?: string
         }
         Relationships: []
