@@ -57,6 +57,10 @@ function browserLocationKey(): string {
   return `${window.location.pathname}${window.location.search}`;
 }
 
+function campaignFieldsCount(brief: CampaignBrief): number {
+  return [brief.occasion, brief.moment, brief.audience, brief.scale, brief.mood].filter(Boolean).length;
+}
+
 function ConfirmationStatusIcon({ status }: { status: ConfirmationDeliveryStatus }) {
   if (status === 'sent') return <CheckCircle2 size={18} aria-hidden="true" />;
   if (status === 'pending') return <Clock3 size={18} className="sp-confirm__pending" aria-hidden="true" />;
@@ -86,6 +90,10 @@ export default function QuotePage() {
   const [website, setWebsite] = useState('');
   const formRef = useRef<HTMLFormElement>(null);
   const availabilityNoticeRef = useRef<HTMLDivElement>(null);
+  // Ao responder ou recusar, os quatro botões deixam de existir. Sem mover o
+  // foco, o teclado perde a posição e a região de status nasce já preenchida,
+  // então o leitor de tela não anuncia nada.
+  const feedbackReplyRef = useRef<HTMLParagraphElement>(null);
   const submittingRef = useRef(false);
   const requestAttemptRef = useRef<{ id: string; submittedAt: string } | null>(null);
   const cartInitializedRef = useRef(false);
@@ -106,6 +114,11 @@ export default function QuotePage() {
   const activeCampaign = cart.campaign;
   const setActiveCampaign = (campaign: CampaignBrief | undefined) => {
     setCampaignContextOpen(false);
+    // PF-54: o contexto recuperado só pode ser editado ou removido aqui; os
+    // dois casos descrevem um conflito real com a direção que veio do catálogo.
+    if (activeCampaign && !campaign) {
+      trackFunnelEvent('campaign_context_adjusted', { resolution: 'removida', fields: campaignFieldsCount(activeCampaign) });
+    }
     cart.setCampaign(campaign);
     requestAttemptRef.current = null;
     clearSubmissionAttempt('promo-brindes:quote-attempt');
@@ -116,12 +129,19 @@ export default function QuotePage() {
       ...activeCampaign,
       [key]: value,
     };
+    if (activeCampaign?.[key] !== value) {
+      trackFunnelEvent('campaign_context_adjusted', { resolution: 'editada', fields: campaignFieldsCount(next) });
+    }
     cart.setCampaign(next);
     requestAttemptRef.current = null;
     clearSubmissionAttempt('promo-brindes:quote-attempt');
   };
   const minimumDeadline = localDateInputValue();
   const hasSuccess = Boolean(success);
+  // PF-54: a resposta sobre clareza é opcional e só aparece para o envio que
+  // acabou de ser confirmado; recusar não altera nada no atendimento.
+  const [feedback, setFeedback] = useState<'sim' | 'parcial' | 'nao' | 'recusado' | null>(null);
+  const [submittedHasCampaign, setSubmittedHasCampaign] = useState(false);
   useInitialSuccessScroll(hasSuccess);
 
   useEffect(() => () => {
@@ -200,6 +220,8 @@ export default function QuotePage() {
     if (briefingErrors[key]) setBriefingErrors((current) => ({ ...current, [key]: undefined }));
     if (submitError) setSubmitError('');
     if (key === 'actionName') cart.setSelectionTitle(value as string);
+    // PF-54: registra quais dimensões do resumo foram ajustadas, nunca o texto.
+    trackFunnelEvent('summary_edited', { field: key, filled: Boolean(String(value ?? '').trim()) });
     requestAttemptRef.current = null;
     clearSubmissionAttempt('promo-brindes:quote-attempt');
   }
@@ -310,6 +332,7 @@ export default function QuotePage() {
       if (operationIsStale()) return;
       if (result.mode === 'endpoint') {
         trackFunnelEvent('quote_submitted', { item_count: submittedSelection.items.length, has_deadline: Boolean(contact.deadline) });
+        setSubmittedHasCampaign(Boolean(submittedSelection.campaign));
         const shouldAttachAssets = Boolean(result.requestId && briefingAssetIds.length && auth.user);
         const pendingAssets = shouldAttachAssets
           ? { status: 'pending' as const, count: briefingAssetIds.length }
@@ -378,8 +401,25 @@ export default function QuotePage() {
     }
   }
 
-  async function retryAssetAttachment() {
-    if (!success?.requestId || !briefingAssetIds.length) return;
+  function focusFeedbackReply() {
+    // O parágrafo entra no mesmo commit que remove os botões; o foco é movido
+    // depois para que o destino já exista no DOM.
+    requestAnimationFrame(() => feedbackReplyRef.current?.focus());
+  }
+
+  function answerFeedback(answer: 'sim' | 'parcial' | 'nao') {
+    setFeedback(answer);
+    focusFeedbackReply();
+    trackFunnelEvent('feedback_answered', { scope: 'envio', answer, has_campaign: submittedHasCampaign });
+  }
+
+  function declineFeedback() {
+    setFeedback('recusado');
+    focusFeedbackReply();
+    trackFunnelEvent('feedback_declined', { scope: 'envio', has_campaign: submittedHasCampaign });
+  }
+
+  async function retryAssetAttachment() {    if (!success?.requestId || !briefingAssetIds.length) return;
     const operationIdentity = identityKey;
     const requestId = success.requestId;
     try {
@@ -434,6 +474,28 @@ export default function QuotePage() {
             <Link className="button button--outline" to="/catalogo">Voltar ao catálogo</Link>
           </div>
           {endpointSuccess && <p className="success-page__account-note">Entre com o mesmo e-mail informado no briefing para ver esta solicitação no seu histórico.</p>}
+          {endpointSuccess && (
+            <section className="sp-feedback" aria-labelledby="success-feedback-title">
+              {feedback ? (
+                <p className="sp-feedback__thanks" role="status" tabIndex={-1} ref={feedbackReplyRef}>
+                  {feedback === 'recusado'
+                    ? 'Sem problema — nada muda no seu atendimento.'
+                    : 'Obrigado. Sua resposta ajuda a melhorar a clareza do próximo briefing.'}
+                </p>
+              ) : (
+                <>
+                  <h2 id="success-feedback-title">O envio ficou claro?</h2>
+                  <p>Uma resposta rápida e opcional. Recusar não altera o atendimento.</p>
+                  <div className="sp-feedback__options">
+                    <button type="button" className="button button--outline button--compact" onClick={() => answerFeedback('sim')}>Ficou claro</button>
+                    <button type="button" className="button button--outline button--compact" onClick={() => answerFeedback('parcial')}>Ficou mais ou menos</button>
+                    <button type="button" className="button button--outline button--compact" onClick={() => answerFeedback('nao')}>Não ficou claro</button>
+                    <button type="button" className="text-button" onClick={() => declineFeedback()}>Prefiro não responder</button>
+                  </div>
+                </>
+              )}
+            </section>
+          )}
         </div>
       </div>
     );

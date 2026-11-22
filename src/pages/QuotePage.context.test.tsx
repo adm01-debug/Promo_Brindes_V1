@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { normalizeCampaignBrief } from '../lib/campaignBrief';
@@ -22,6 +22,8 @@ const mocks = vi.hoisted(() => {
     clearSubmissionAttempt: vi.fn(),
     setSelectionTitle: vi.fn(),
     user: null as { id: string } | null,
+    track: vi.fn(),
+    submitQuoteRequest: vi.fn(),
   };
 });
 
@@ -40,6 +42,8 @@ vi.mock('../context/quoteCart', async () => {
         totalUnits: 0,
         setDrawerOpen: vi.fn(),
         clear: vi.fn(),
+        reset: vi.fn(),
+        replaceItems: vi.fn(),
       };
     },
   };
@@ -48,7 +52,7 @@ vi.mock('../context/customerAuth', () => ({ useCustomerAuth: () => ({ user: mock
 vi.mock('../components/Seo', () => ({ Seo: () => null }));
 vi.mock('../components/ContextualFaq', () => ({ ContextualFaq: () => null }));
 vi.mock('../components/BriefingAssetUploader', () => ({ BriefingAssetUploader: () => null }));
-vi.mock('../lib/quoteRequest', () => ({ buildQuotePayload: vi.fn(), submitQuoteRequest: vi.fn(), sanitizeLeadPageUrl: vi.fn() }));
+vi.mock('../lib/quoteRequest', () => ({ buildQuotePayload: vi.fn(() => ({})), submitQuoteRequest: mocks.submitQuoteRequest, sanitizeLeadPageUrl: vi.fn() }));
 vi.mock('../lib/quoteSubmission', () => ({
   sameQuoteSelectionContext: vi.fn(() => true), sameQuoteSelection: vi.fn(() => true), remainingItemsAfterSubmission: vi.fn(),
 }));
@@ -56,7 +60,7 @@ vi.mock('../lib/briefingAssets', () => ({ attachMyBriefingAssetsToQuote: vi.fn()
 vi.mock('../lib/http', () => ({
   ClientRequestError: class extends Error {}, getOrCreateSubmissionAttempt: () => ({ submittedAt: new Date(0).toISOString(), id: 'a1b2c3' }), clearSubmissionAttempt: mocks.clearSubmissionAttempt,
 }));
-vi.mock('../lib/analytics', () => ({ trackFunnelEvent: vi.fn() }));
+vi.mock('../lib/analytics', () => ({ trackFunnelEvent: mocks.track }));
 vi.mock('../lib/quoteDraft', () => ({
   EMPTY_QUOTE_CONTACT: { name: '', company: '', email: '', phone: '', city: '', deadline: '', notes: '', privacyAccepted: false, whatsappCopyAccepted: false },
   QUOTE_DRAFT_RETENTION_LABEL: '24 horas nesta aba do navegador',
@@ -132,5 +136,83 @@ describe('editor do contexto da campanha no orçamento (PF-41)', () => {
     fireEvent.change(screen.getByLabelText('Clima'), { target: { value: '' } });
     expect(screen.getByLabelText('Clima')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Concluir' })).toBeInTheDocument();
+  });
+});
+
+describe('feedback de clareza do envio (PF-54)', () => {
+  const fillContact = () => {
+    fireEvent.change(screen.getByLabelText('Seu nome *'), { target: { value: 'Ana Souza' } });
+    fireEvent.change(screen.getByLabelText('Empresa *'), { target: { value: 'Empresa Teste' } });
+    fireEvent.change(screen.getByLabelText('Seu e-mail *'), { target: { value: 'ana@empresa.test' } });
+    fireEvent.change(screen.getByLabelText('Telefone / WhatsApp *'), { target: { value: '11999999999' } });
+    fireEvent.click(screen.getByLabelText(/Li o aviso de privacidade/));
+  };
+
+  beforeEach(() => {
+    mocks.resetCampaign();
+    mocks.track.mockClear();
+    mocks.submitQuoteRequest.mockReset();
+    mocks.submitQuoteRequest.mockResolvedValue({
+      mode: 'endpoint',
+      requestId: 'e2e-1',
+      confirmations: { email: 'sent', whatsapp: 'unavailable' },
+    });
+  });
+  afterEach(() => {
+    cleanup();
+    mocks.track.mockClear();
+  });
+
+  it('oferece uma resposta opcional e envia so a escolha, nunca texto livre', async () => {
+    renderPage();
+    fillContact();
+    fireEvent.click(screen.getByRole('button', { name: /Enviar briefing/ }));
+
+    const choice = await screen.findByRole('button', { name: 'Ficou claro' });
+    mocks.track.mockClear();
+    fireEvent.click(choice);
+
+    expect(mocks.track).toHaveBeenCalledWith('feedback_answered', {
+      scope: 'envio',
+      answer: 'sim',
+      has_campaign: true,
+    });
+    const thanks = await screen.findByText(/Obrigado/);
+    expect(thanks.closest('[role="status"]')).not.toBeNull();
+    expect(screen.queryByRole('button', { name: 'Ficou claro' })).not.toBeInTheDocument();
+  });
+
+  it('permite recusar sem alterar o atendimento ja confirmado', async () => {
+    renderPage();
+    fillContact();
+    fireEvent.click(screen.getByRole('button', { name: /Enviar briefing/ }));
+
+    const decline = await screen.findByRole('button', { name: /Prefiro n.o responder/ });
+    mocks.track.mockClear();
+    fireEvent.click(decline);
+
+    expect(mocks.track).toHaveBeenCalledWith('feedback_declined', { scope: 'envio', has_campaign: true });
+    const thanks = await screen.findByText(/nada muda no seu atendimento/);
+    expect(thanks.closest('[role="status"]')).not.toBeNull();
+    // Os quatro botoes deixam de existir ao responder: sem mover o foco, o
+    // teclado perde a posicao e o leitor de tela nao anuncia nada.
+    await waitFor(() => expect(thanks).toHaveFocus());
+    expect(screen.getByRole('link', { name: /Acompanhar meus or/ })).toBeInTheDocument();
+  });
+
+  it('registra qual dimensao do resumo foi editada e se ficou preenchida', () => {
+    renderPage();
+    fireEvent.change(screen.getByLabelText(/Como voc\u00ea chama esta a\u00e7\u00e3o/), { target: { value: 'Kit 2027' } });
+    expect(mocks.track).toHaveBeenCalledWith('summary_edited', { field: 'actionName', filled: true });
+  });
+
+  it('mede o conflito ao ajustar e ao remover o contexto recuperado', () => {
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: 'Ajustar contexto' }));
+    fireEvent.change(screen.getByLabelText('Clima'), { target: { value: 'premium' } });
+    expect(mocks.track).toHaveBeenCalledWith('campaign_context_adjusted', { resolution: 'editada', fields: 4 });
+    mocks.track.mockClear();
+    fireEvent.click(screen.getByRole('button', { name: 'Remover contexto' }));
+    expect(mocks.track).toHaveBeenCalledWith('campaign_context_adjusted', { resolution: 'removida', fields: 4 });
   });
 });
