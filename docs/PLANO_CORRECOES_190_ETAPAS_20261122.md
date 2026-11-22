@@ -76,11 +76,11 @@ Diff: ~4 linhas · 2 arquivos (package.json, package-lock.json). Depende de: —
 
 ### E-002 · [P2] · contratos — Criar o envelope único de erro de API
 Onde: novo `api/_lib/apiError.ts`.
-Ação: classe `ApiError { status, code, message, fields?: Array<{ field: string; code: string; message: string }> }` e função `sendApiError(response, error)` que escreve `{ error: code, message, fields }` com `Cache-Control: no-store`. Para os handlers no estilo Web API (webhooks), exportar `jsonApiError(status, code, message, fields?)` que devolve `Response`. Nenhum handler é alterado nesta etapa.
-Verificação: teste novo `tests/api/contracts/api-error.test.ts` cobrindo com e sem `fields`, e a presença do header.
-Diff: ~70 linhas · 2 arquivos. Depende de: —.
+Ação: duas coisas, nesta ordem. **Primeiro, congelar o que existe hoje:** gravar em `tests/fixtures/api/v1/` o corpo e o status de cada resposta de erro atual, byte a byte, gerados a partir dos handlers como estão agora, sem tocar em nenhum deles. **Depois**, criar a classe `ApiError { status, code, message, fields?: Array<{ field: string; code: string; message: string }> }` e a função `sendApiError(response, error)` que escreve `{ error: code, message, fields }` com `Cache-Control: no-store`; para os handlers no estilo Web API (webhooks), exportar `jsonApiError(status, code, message, fields?)` que devolve `Response`. Nenhum handler é alterado nesta etapa. **Corrigido em revisão:** a captura dos fixtures estava descrita em E-043, que só vem depois de E-039, que por sua vez depende de E-003 — ou seja, o congelamento chegaria depois da mudança que ele existe para proteger. A captura passou para cá, que não depende de nada.
+Verificação: teste novo `tests/api/contracts/api-error.test.ts` cobrindo com e sem `fields` e a presença do header; e os fixtures de `v1` gravados e conferidos contra uma execução da suíte atual antes de qualquer mudança de handler.
+Diff: ~70 linhas de código mais os fixtures · 2 arquivos e ~20 fixtures. Depende de: —.
 
-> **Ordem obrigatória, apontada em revisão.** E-003 a E-005 mudam o corpo e o status das respostas que os clientes atuais já recebem, e o versionamento só aparece em E-036 a E-039. Para não quebrar `v1` antes de congelá-lo: gravar os fixtures de E-043 (corpo e status de hoje, byte a byte) **antes** de executar E-003, e manter o comportamento sem cabeçalho de versão idêntico ao atual. A publicação de `fields` e a troca de 400 para 422 valem **apenas** para requisições com o cabeçalho `v2` (E-039). Enquanto E-039 não estiver pronto, E-003 a E-005 só acrescentam a informação interna (`field`, `issues[]`), sem alterar nada do que sai na resposta.
+> **Ordem obrigatória, apontada em revisão.** E-003 a E-005 mudam o corpo e o status das respostas que os clientes atuais já recebem, e o versionamento só aparece em E-036 a E-039. Para não quebrar `v1` antes de congelá-lo: os fixtures de `v1` são gravados em **E-002**, que não depende de nada e vem antes de qualquer alteração de handler, e o comportamento sem cabeçalho de versão permanece idêntico ao atual. A publicação de `fields` e a troca de 400 para 422 valem **apenas** para requisições com o cabeçalho `v2` (E-039). Enquanto E-039 não estiver pronto, E-003 a E-005 só acrescentam a informação interna (`field`, `issues[]`), sem alterar nada do que sai na resposta.
 
 ### E-003 · [P2] · contratos — Dar campo e código ao erro de validação do fluxo de lead
 Onde: `api/_lib/contracts.ts:72-76` e `api/_lib/leadHandler.ts:156-169`.
@@ -324,9 +324,9 @@ Diff: ~140 linhas · 4 arquivos. Depende de: E-011, E-012.
 
 ### E-043 · [P2] · versionamento — Teste de compatibilidade retroativa com fixtures congelados
 Onde: novo `tests/api/contracts/backward-compatibility.contract.test.ts` e `tests/fixtures/api/v1/*.json`.
-Ação: gravar os payloads e as respostas de hoje como fixtures `v1` imutáveis e exigir que eles continuem aceitos e com a mesma resposta depois de todo o bloco 1. Qualquer quebra aparece como diferença de fixture, não como erro vago.
+Ação: usar os fixtures de `v1` já gravados em E-002 e exigir que eles continuem aceitos e com a mesma resposta depois de todo o bloco 1. Qualquer quebra aparece como diferença de fixture, não como erro vago. **Corrigido em revisão:** esta etapa não grava mais os fixtures, só os consome; a gravação precisava acontecer antes da primeira mudança de resposta e foi para E-002.
 Verificação: 20 pares payload/resposta; o teste falha se `v1` mudar.
-Diff: ~180 linhas · 22 arquivos. Depende de: E-039, E-042.
+Diff: ~180 linhas · 2 arquivos. Depende de: E-002, E-039, E-042.
 
 ### E-044 · [P2] · versionamento — Marcar `v1` como em descontinuação sem desligar
 Onde: `api/_lib/apiError.ts`, `api/_lib/contractVersion.ts`.
