@@ -2,6 +2,7 @@ import { timingSafeEqual } from 'node:crypto';
 import { getSiteDatabaseConfig } from './_lib/siteDatabase.js';
 import type { ApiRequest, ApiResponse } from './_lib/leadHandler.js';
 import { errorClass, logServerError, logServerWarning } from './_lib/observability.js';
+import { recordCronHeartbeat } from './_lib/cronHeartbeats.js';
 import { OPERATIONAL_ALERT_TIMEOUT_MS, sendOperationalAlert } from './_lib/operationalAlerts.js';
 import type { SiteRpcArgs, SiteRpcName } from './_lib/siteRpcContract.js';
 
@@ -668,6 +669,12 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     // cresce e que mais precisa de medicao. A chamada e best-effort (o proprio
     // reportQueueHealth engole a falha) e nao reivindica nada: so le e alerta.
     await reportQueueHealth();
+    // F-87: sem provedor o cron continua rodando no horario. O heartbeat e de
+    // SUCESSO — o que falta e canal, nao agendamento — e o `reportQueueHealth()`
+    // acima ja e quem cobra a fila. Gravar falha aqui faria o vigia disparar um
+    // alerta sem motivo a cada 30 min, e ainda mascararia uma falha real de
+    // agendamento, que e o que o vigia existe para detectar.
+    await recordCronHeartbeat('notifications', true, 'skipped:provider_not_configured');
     response.status(503).json({ error: 'notification_provider_not_configured' });
     return;
   }
@@ -713,10 +720,12 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       if (jobs.length < batchSize) break;
     }
     console.info('site_notifications_completed', { claimed, delivered, failed, inconclusive, channels });
+    await recordCronHeartbeat('notifications', true, failed ? `failed:${failed}` : undefined);
     await reportQueueHealth();
     response.status(200).json({ ok: true, claimed, delivered, failed, inconclusive });
   } catch (error) {
     logServerError('site_notifications_failed', { errorClass: errorClass(error), claimed, delivered, failed, inconclusive, channels });
+    await recordCronHeartbeat('notifications', false, errorClass(error));
     const alerted = await sendOperationalAlert('notification_cron_failed', { errorClass: errorClass(error), claimed, delivered, failed, inconclusive, channels });
     if (process.env.OPERATIONS_ALERT_WEBHOOK_URL?.trim() && !alerted) logServerWarning('site_notifications_failure_alert_delivery_failed', {});
     response.status(503).json({ error: 'notification_delivery_unavailable' });

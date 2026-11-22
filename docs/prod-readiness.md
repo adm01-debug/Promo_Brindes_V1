@@ -28,13 +28,13 @@
 | `/minha-conta/orcamentos/:id` | CustomerQuotePage | OK |
 | `*` | NotFoundPage | OK |
 
-### Edge functions (14) — `api/*.ts`, registradas em `vercel.json:functions`
-briefing-assets, commercial-alerts, contact-requests, customer-proposals, not-found, notification-events-resend, notification-events-whatsapp, notifications, product-page, quote-requests, retention, shared-selections, site-page, sitemap. Todas com handler exportado.
+### Edge functions (15) — `api/*.ts`, registradas em `vercel.json:functions`
+briefing-assets, commercial-alerts, cron-watchdog, contact-requests, customer-proposals, not-found, notification-events-resend, notification-events-whatsapp, notifications, product-page, quote-requests, retention, shared-selections, site-page, sitemap. Todas com handler exportado.
 Status: **OK** (registradas em `functions` + rewrites no `vercel.json`).
 
 ### Rotas/rewrites e crons — `vercel.json`
 Rewrites: sitemap.xml, / → /index.html (SPA estático, não passa por `site-page`), /catalogo, /catalogos, /montar-kit, /datas-comemorativas, /produto/:identifier, /orcamento, /selecoes/compartilhada, /ideias/:topic, /sobre, /contato, /privacidade (site-page), + fallback `api/not-found`.
-Crons: `/api/retention` (0 3 * * *), `/api/notifications` (*/15), `/api/commercial-alerts` (*/5).
+Crons: `/api/retention` (0 3 * * *), `/api/notifications` (*/15), `/api/commercial-alerts` (*/5), `/api/cron-watchdog` (*/30).
 Status: **OK**.
 
 ### Workflows (15) — `.github/workflows`

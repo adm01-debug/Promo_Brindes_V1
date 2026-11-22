@@ -6,7 +6,8 @@
   "crons": [
     { "path": "/api/retention", "schedule": "0 3 * * *" },
     { "path": "/api/notifications", "schedule": "*/15 * * * *" },
-    { "path": "/api/commercial-alerts", "schedule": "*/5 * * * *" }
+    { "path": "/api/commercial-alerts", "schedule": "*/5 * * * *" },
+    { "path": "/api/cron-watchdog", "schedule": "*/30 * * * *" }
   ],
   "functions": {
     "api/quote-requests.ts": { "maxDuration": 30 },
@@ -16,6 +17,7 @@
     "api/contact-requests.ts": { "maxDuration": 30 },
     "api/retention.ts": { "maxDuration": 15 },
     "api/commercial-alerts.ts": { "maxDuration": 15 },
+    "api/cron-watchdog.ts": { "maxDuration": 15 },
     "api/customer-proposals.ts": { "maxDuration": 15 },
     "api/briefing-assets.ts": { "maxDuration": 15 },
     "api/sitemap.ts": { "maxDuration": 15 },

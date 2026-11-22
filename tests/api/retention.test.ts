@@ -23,6 +23,14 @@ function configure() {
   vi.stubEnv('CRON_SECRET', 'cron-secret-de-testes-com-mais-de-32-caracteres');
 }
 
+/**
+ * A gravacao de heartbeat (F-87) e best-effort e acontece em toda rodada; os
+ * testes de retencao contam apenas as chamadas que fazem parte da tarefa.
+ */
+function businessCalls(fetchMock: { mock: { calls: unknown[][] } }) {
+  return fetchMock.mock.calls.filter(([url]) => !String(url).includes('/record_cron_heartbeat'));
+}
+
 describe('tarefa de retenção', () => {
   afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
 
@@ -58,7 +66,7 @@ describe('tarefa de retenção', () => {
     // e reporta o motivo, em vez de parar na primeira e esconder o residuo.
     expect(result.body).toEqual({ ok: true, passes: 5, stopReason: 'max_passes', backlogSaturated: ['quote_retention'] });
     expect(erro).toHaveBeenCalledWith('site_retention_backlog_saturated', expect.objectContaining({ stages: ['quote_retention'] }));
-    const alerta = fetchMock.mock.calls.find(([url]) => String(url) === 'https://alertas.test/hook');
+    const alerta = businessCalls(fetchMock).find(([url]) => String(url) === 'https://alertas.test/hook');
     expect(alerta).toBeDefined();
     expect(String((alerta?.[1] as RequestInit | undefined)?.body)).toContain('retention_backlog_saturated');
     erro.mockRestore();
@@ -84,7 +92,7 @@ describe('tarefa de retenção', () => {
     const { result, response } = responseDouble();
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
     expect(result.body).toEqual({ ok: true, passes: 5, stopReason: 'max_passes', backlogSaturated: ['contact_retention'] });
-    expect(fetchMock.mock.calls.some(([url]) => String(url) === 'https://alertas.test/hook')).toBe(true);
+    expect(businessCalls(fetchMock).some(([url]) => String(url) === 'https://alertas.test/hook')).toBe(true);
     erro.mockRestore();
   });
 
@@ -132,7 +140,7 @@ describe('tarefa de retenção', () => {
     expect(result.body).toEqual({ ok: true, passes: 2, stopReason: 'drained', backlogSaturated: [] });
     expect(candidatos).toBe(2);
     // Residuo drenado na mesma execucao nao e incidente: ninguem e acordado.
-    expect(fetchMock.mock.calls.some(([url]) => String(url) === 'https://alertas.test/hook')).toBe(false);
+    expect(businessCalls(fetchMock).some(([url]) => String(url) === 'https://alertas.test/hook')).toBe(false);
   });
 
   it('lote incompleto não sinaliza resíduo nem alerta', async () => {
@@ -153,7 +161,7 @@ describe('tarefa de retenção', () => {
     expect(result.statusCode).toBe(200);
     expect(result.body).toEqual({ ok: true, passes: 1, stopReason: 'drained', backlogSaturated: [] });
     // 99 selecoes e 999 logs ficam um abaixo do lote: nenhum alerta disparado.
-    expect(fetchMock.mock.calls.some(([url]) => String(url) === 'https://alertas.test/hook')).toBe(false);
+    expect(businessCalls(fetchMock).some(([url]) => String(url) === 'https://alertas.test/hook')).toBe(false);
   });
 
   it('remove blobs pela Storage API e finaliza somente os metadados confirmados', async () => {
@@ -175,22 +183,22 @@ describe('tarefa de retenção', () => {
     const { result, response } = responseDouble();
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
     expect(result.statusCode).toBe(200);
-    expect(fetchMock.mock.calls).toHaveLength(7);
-    const [candidatesUrl, candidatesInit] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(businessCalls(fetchMock)).toHaveLength(7);
+    const [candidatesUrl, candidatesInit] = businessCalls(fetchMock)[0] as [string, RequestInit];
     expect(candidatesUrl).toBe('https://xlzmclcjdncjfdrjxclt.supabase.co/rest/v1/rpc/get_site_data_retention_candidates');
     expect(candidatesInit.headers).toMatchObject({ apikey: expect.stringMatching(/^sb_secret_/) });
     expect(candidatesInit.body).toBe('{"p_batch_size":100}');
-    const [storageUrl, storageInit] = fetchMock.mock.calls[1] as [string, RequestInit];
+    const [storageUrl, storageInit] = businessCalls(fetchMock)[1] as [string, RequestInit];
     expect(storageUrl).toBe('https://xlzmclcjdncjfdrjxclt.supabase.co/storage/v1/object/customer-proposals');
     expect(storageInit).toMatchObject({ method: 'DELETE', body: '{"prefixes":["cliente/proposta.pdf"]}' });
-    const [finalizeUrl, finalizeInit] = fetchMock.mock.calls[2] as [string, RequestInit];
+    const [finalizeUrl, finalizeInit] = businessCalls(fetchMock)[2] as [string, RequestInit];
     expect(finalizeUrl).toBe('https://xlzmclcjdncjfdrjxclt.supabase.co/rest/v1/rpc/finalize_site_data_retention');
     expect(finalizeInit.body).toBe(`{"p_quote_ids":["${quoteId}"],"p_storage_paths":["cliente/proposta.pdf"],"p_batch_size":100}`);
-    expect(String(fetchMock.mock.calls[3]?.[0])).toContain('/purge_archived_customer_selections');
-    expect(String(fetchMock.mock.calls[4]?.[0])).toContain('/get_briefing_asset_retention_candidates');
-    expect(String(fetchMock.mock.calls[5]?.[0])).toContain('/finalize_site_storage_retention');
-    expect((fetchMock.mock.calls[5]?.[1] as RequestInit).body).toBe('{"p_objects":[],"p_batch_size":100}');
-    expect(String(fetchMock.mock.calls[6]?.[0])).toContain('/purge_site_admin_audit_logs');
+    expect(String(businessCalls(fetchMock)[3]?.[0])).toContain('/purge_archived_customer_selections');
+    expect(String(businessCalls(fetchMock)[4]?.[0])).toContain('/get_briefing_asset_retention_candidates');
+    expect(String(businessCalls(fetchMock)[5]?.[0])).toContain('/finalize_site_storage_retention');
+    expect((businessCalls(fetchMock)[5]?.[1] as RequestInit).body).toBe('{"p_objects":[],"p_batch_size":100}');
+    expect(String(businessCalls(fetchMock)[6]?.[0])).toContain('/purge_site_admin_audit_logs');
   });
 
   it('usa a role limitada para RPC e a chave de Storage separada ao migrar a autenticação', async () => {
@@ -215,15 +223,15 @@ describe('tarefa de retenção', () => {
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
 
     expect(result.statusCode).toBe(200);
-    const rpcHeaders = (fetchMock.mock.calls[0]?.[1] as RequestInit).headers;
-    const storageHeaders = (fetchMock.mock.calls[1]?.[1] as RequestInit).headers;
+    const rpcHeaders = (businessCalls(fetchMock)[0]?.[1] as RequestInit).headers;
+    const storageHeaders = (businessCalls(fetchMock)[1]?.[1] as RequestInit).headers;
     expect(rpcHeaders).toMatchObject({ Authorization: `Bearer ${serviceJwt}` });
     expect(storageHeaders).toMatchObject({ Authorization: `Bearer ${storageSecret}`, apikey: storageSecret });
-    expect((fetchMock.mock.calls[2]?.[1] as RequestInit).headers).toMatchObject({ Authorization: `Bearer ${serviceJwt}` });
-    expect((fetchMock.mock.calls[3]?.[1] as RequestInit).headers).toMatchObject({ Authorization: `Bearer ${serviceJwt}` });
-    expect((fetchMock.mock.calls[4]?.[1] as RequestInit).headers).toMatchObject({ Authorization: `Bearer ${serviceJwt}` });
-    expect((fetchMock.mock.calls[5]?.[1] as RequestInit).headers).toMatchObject({ Authorization: `Bearer ${serviceJwt}` });
-    expect((fetchMock.mock.calls[6]?.[1] as RequestInit).headers).toMatchObject({ Authorization: `Bearer ${serviceJwt}` });
+    expect((businessCalls(fetchMock)[2]?.[1] as RequestInit).headers).toMatchObject({ Authorization: `Bearer ${serviceJwt}` });
+    expect((businessCalls(fetchMock)[3]?.[1] as RequestInit).headers).toMatchObject({ Authorization: `Bearer ${serviceJwt}` });
+    expect((businessCalls(fetchMock)[4]?.[1] as RequestInit).headers).toMatchObject({ Authorization: `Bearer ${serviceJwt}` });
+    expect((businessCalls(fetchMock)[5]?.[1] as RequestInit).headers).toMatchObject({ Authorization: `Bearer ${serviceJwt}` });
+    expect((businessCalls(fetchMock)[6]?.[1] as RequestInit).headers).toMatchObject({ Authorization: `Bearer ${serviceJwt}` });
   });
 
   it('não finaliza metadados quando falta credencial para apagar um blob existente', async () => {
@@ -237,7 +245,7 @@ describe('tarefa de retenção', () => {
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
 
     expect(result.statusCode).toBe(503);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(businessCalls(fetchMock)).toHaveLength(1);
   });
 
   it('falha fechada e não remove metadados quando a Storage API falha', async () => {
@@ -252,8 +260,8 @@ describe('tarefa de retenção', () => {
     const { result, response } = responseDouble();
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
     expect(result.statusCode).toBe(503);
-    expect(fetchMock.mock.calls).toHaveLength(2);
-    const storageCall = fetchMock.mock.calls[1];
+    expect(businessCalls(fetchMock)).toHaveLength(2);
+    const storageCall = businessCalls(fetchMock)[1];
     if (!storageCall) throw new Error('A exclusão de Storage esperada não ocorreu.');
     expect(String(storageCall[0])).toContain('/storage/v1/object/customer-proposals');
   });
@@ -271,7 +279,7 @@ describe('tarefa de retenção', () => {
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
 
     expect(result.statusCode).toBe(503);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(businessCalls(fetchMock)).toHaveLength(1);
   });
 
   it('recusa caminho de proposta não textual retornado pelo RPC antes de chamar a Storage API', async () => {
@@ -287,7 +295,7 @@ describe('tarefa de retenção', () => {
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
 
     expect(result.statusCode).toBe(503);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(businessCalls(fetchMock)).toHaveLength(1);
   });
 
   // Etapa 33 do plano de correções: cenário de falha parcial que faltava — Storage
@@ -310,7 +318,7 @@ describe('tarefa de retenção', () => {
     const { result, response } = responseDouble();
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
     expect(result.statusCode).toBe(503);
-    expect(fetchMock.mock.calls).toHaveLength(3);
+    expect(businessCalls(fetchMock)).toHaveLength(3);
   });
 
   it('replay depois da falha: Storage já ausente (404) é tratado como sucesso, finalize conclui — idempotente', async () => {
@@ -337,11 +345,11 @@ describe('tarefa de retenção', () => {
     const { result, response } = responseDouble();
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
     expect(result.statusCode).toBe(200);
-    expect(fetchMock.mock.calls).toHaveLength(8);
-    expect(String(fetchMock.mock.calls[5]?.[0])).toContain('/storage/v1/object/customer-briefing-assets');
-    expect((fetchMock.mock.calls[5]?.[1] as RequestInit).body).toBe('{"prefixes":["cliente/referencia.webp"]}');
-    expect(String(fetchMock.mock.calls[6]?.[0])).toContain('/finalize_site_storage_retention');
-    expect((fetchMock.mock.calls[6]?.[1] as RequestInit).body).toBe('{"p_objects":[{"bucket":"customer-briefing-assets","path":"cliente/referencia.webp"}],"p_batch_size":100}');
+    expect(businessCalls(fetchMock)).toHaveLength(8);
+    expect(String(businessCalls(fetchMock)[5]?.[0])).toContain('/storage/v1/object/customer-briefing-assets');
+    expect((businessCalls(fetchMock)[5]?.[1] as RequestInit).body).toBe('{"prefixes":["cliente/referencia.webp"]}');
+    expect(String(businessCalls(fetchMock)[6]?.[0])).toContain('/finalize_site_storage_retention');
+    expect((businessCalls(fetchMock)[6]?.[1] as RequestInit).body).toBe('{"p_objects":[{"bucket":"customer-briefing-assets","path":"cliente/referencia.webp"}],"p_batch_size":100}');
   });
 
   it('separa por bucket e só finaliza a fila após ambos os blobs serem removidos', async () => {
@@ -365,10 +373,10 @@ describe('tarefa de retenção', () => {
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
 
     expect(result.statusCode).toBe(200);
-    expect(String(fetchMock.mock.calls[4]?.[0])).toContain('/customer-briefing-assets');
-    expect(String(fetchMock.mock.calls[5]?.[0])).toContain('/customer-proposals');
-    expect(String(fetchMock.mock.calls[6]?.[0])).toContain('/finalize_site_storage_retention');
-    expect((fetchMock.mock.calls[6]?.[1] as RequestInit).body).toBe(JSON.stringify({ p_objects: objects, p_batch_size: 100 }));
+    expect(String(businessCalls(fetchMock)[4]?.[0])).toContain('/customer-briefing-assets');
+    expect(String(businessCalls(fetchMock)[5]?.[0])).toContain('/customer-proposals');
+    expect(String(businessCalls(fetchMock)[6]?.[0])).toContain('/finalize_site_storage_retention');
+    expect((businessCalls(fetchMock)[6]?.[1] as RequestInit).body).toBe(JSON.stringify({ p_objects: objects, p_batch_size: 100 }));
   });
 
   it('não finaliza nenhum bucket quando a remoção do segundo bucket falha', async () => {
@@ -390,7 +398,7 @@ describe('tarefa de retenção', () => {
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
 
     expect(result.statusCode).toBe(503);
-    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/finalize_site_storage_retention'))).toBe(false);
+    expect(businessCalls(fetchMock).some(([url]) => String(url).includes('/finalize_site_storage_retention'))).toBe(false);
   });
 
   it('recusa caminho inválido da fila de briefing antes de apagar qualquer blob', async () => {
@@ -409,7 +417,7 @@ describe('tarefa de retenção', () => {
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
 
     expect(result.statusCode).toBe(503);
-    expect(fetchMock).toHaveBeenCalledTimes(4);
-    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/storage/v1/object/'))).toBe(false);
+    expect(businessCalls(fetchMock)).toHaveLength(4);
+    expect(businessCalls(fetchMock).some(([url]) => String(url).includes('/storage/v1/object/'))).toBe(false);
   });
 });

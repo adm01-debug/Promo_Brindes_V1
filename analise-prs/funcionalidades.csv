@@ -85,7 +85,7 @@ F-83,Remover recuo view legada v_products_public,Recuo ativo em 3 pontos; varian
 F-84,Preferencias do cliente,Migration so cria ajustes,PENDENTE,0,,PF-84,P3
 F-85,Retencao com drenagem,Lote fixo 100/dia com timeout unico 10s,COMPLETA,100,#184 #189,PF-85,P3
 F-86,Restore medido RPO/RTO PITR backup Storage,Nunca ensaiado; Storage sem copia,BLOQUEADA,0,,PF-86,P1
-F-87,Vigia independente dos crons,0 ocorrencias heartbeat/lastRunAt,PENDENTE,0,,PF-87,P2
+F-87,Vigia independente dos crons,"site_private.cron_heartbeats + record_cron_heartbeat/check_cron_heartbeats; /api/cron-watchdog a cada 30min; 3 crons instrumentados",COMPLETA,100,,PF-87,P2
 F-88,Alertas operacionais funcionando,OPERATIONS_ALERT_WEBHOOK_URL ausente; payload generico,PARCIAL,30,,PF-88,P2
 F-89,Preview isolado com banco proprio,Sem preview.yml sem branch Supabase Git integration off,BLOQUEADA,0,,PF-89,P2
 F-90,Revisao mensal do banco executada,Primeira revisao real executada em 22/11 com dados de producao; coluna duplicada corrigida; recorte de trafego e fila do comercial corrigidos no runbook; lembrete recorrente ainda nao existe no projeto,COMPLETA,100,,PF-90,P3
