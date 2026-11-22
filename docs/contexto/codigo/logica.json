@@ -1595,6 +1595,7 @@
    "arquivo": "src/lib/customerAccount.ts",
    "camada": "lib",
    "exports": [
+    "ADJUSTMENT_PENDING_LIMIT_MESSAGE",
     "CustomerAccessReport",
     "CustomerDataExport",
     "CustomerProfileCorrection",
@@ -1615,7 +1616,7 @@
     "sanitizeCustomerNextPath"
    ],
    "export_default": null,
-   "linhas": 227,
+   "linhas": 234,
    "tabelas": [],
    "rpcs": [
     "claim_my_quote_requests",

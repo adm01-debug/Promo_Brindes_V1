@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `caf7e42602` · branch `main` · 2026-11-22 07:14 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `e249b52fe4` · branch `main` · 2026-11-22 07:31 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -1057,7 +1057,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1798 testes em 139 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1800 testes em 139 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1140,6 +1140,7 @@ _nenhum item encontrado_
 | `src/components/BriefingAssetUploader.test.tsx` | 7 | privacidade de anexos durante troca de sessão · ignora upload da sessão anterior após %s · registra briefing_asset_uploaded com faixa de tamanho, nunca o byte exato · não registra briefing_asset_uploaded quando o envio é barrado pela sessão … |
 | `src/lib/commemorativeDates.test.ts` | 7 | commemorativeDates · calcula datas móveis brasileiras sem depender do fuso do navegador · mantém todas as ocasiões ordenadas e com identificadores únicos · filtra por mês, público e busca sem exigir acentos … |
 | `src/lib/contactRequest.test.ts` | 7 | contato rápido · separa o consentimento do contato e registra sua versão · não transmite query ou fragmento da página de contato · prepara fallback de e-mail sem depender de infraestrutura … |
+| `src/lib/customerAccount.rpc.test.ts` | 7 | RPCs da Área do Cliente · aceita somente o contrato de leitura esperado para o histórico · não mascara JSON malformado como um histórico vazio · rejeita detalhe e confirmação de ajuste com identificadores ou datas inválidas … |
 | `src/lib/kitBuilder.test.ts` | 7 | composição de kits · permite omitir extras, mas exige os dois componentes obrigatórios · recusa estouro de unidades sem degradar o kit para itens avulsos · calcula o mínimo pelo componente mais restritivo … |
 | `src/lib/quoteItems.test.ts` | 7 | revalidação de itens históricos · preserva referência removida como bloqueio visível · marca produto removido sem apagá-lo silenciosamente · mantém os marcadores ao normalizar armazenamento local … |
 | `src/lib/quoteSubmission.test.ts` | 7 | reconciliação da seleção após o envio · considera inalterada uma seleção recriada por render sem edição · distingue edição de produto ou contexto da seleção enviada · remove somente os snapshots efetivamente enviados … |
@@ -1154,7 +1155,6 @@ _nenhum item encontrado_
 | `site-supabase/supabase/tests/database/shared_selection_priorities.test.sql` | 5 | criar e ler preserva prioridade alternativa · referência sem prioridade continua compatível como principal · recusa prioridade desconhecida · recusa null explícito … |
 | `src/components/ConversationForm.test.tsx` | 5 | formulário de conversa · congela os dados enquanto o envio está em andamento para não apagar edições tardias · registra contact_submitted no canal do formulário quando a API aceita · registra rascunho de e-mail, e não contato enviado, quando o envio cai no fallback … |
 | `src/components/SavedSelections.test.tsx` | 5 | seleções salvas na Área do Cliente · mostra as seleções sem copiar automaticamente o carrinho para a conta · exige confirmação antes de substituir o carrinho e preserva a seleção ao cancelar · compara conflito entre dispositivos e permite preservar as duas versões … |
-| `src/lib/customerAccount.rpc.test.ts` | 5 | RPCs da Área do Cliente · aceita somente o contrato de leitura esperado para o histórico · não mascara JSON malformado como um histórico vazio · rejeita detalhe e confirmação de ajuste com identificadores ou datas inválidas … |
 | `src/lib/customerAccount.test.ts` | 5 | contrato da Área do Cliente · traduz somente estados operacionais reais · aceita retorno apenas para dentro da Área do Cliente · distingue a versão mais recente de uma proposta ainda válida … |
 | `src/lib/quoteConfirmation.test.ts` | 5 | confirmação honesta do orçamento · usa apenas o primeiro nome informado e flexiona produto no singular · mantém uma mensagem neutra quando não há nome e flexiona no plural · não apresenta uma confirmação pendente ou não solicitada como enviada … |
 | `src/lib/whatsappContact.test.ts` | 5 | contato via WhatsApp (F-47) · monta link wa.me com mensagem codificada · usa o numero padrao quando nao ha mensagem personalizada · codifica espacos e caracteres especiais … |

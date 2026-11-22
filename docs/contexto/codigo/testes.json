@@ -358,11 +358,11 @@
   {
    "arquivo": "src/lib/customerAccount.rpc.test.ts",
    "tipo": "unit",
-   "linhas": 53,
+   "linhas": 66,
    "testa": [
     "src/lib/customerAccount.ts"
    ],
-   "casos": 4
+   "casos": 6
   },
   {
    "arquivo": "src/lib/customerAccount.test.ts",

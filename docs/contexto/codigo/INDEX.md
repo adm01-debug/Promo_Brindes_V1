@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `caf7e426025d73dedbba082e2df7f94949d668b4` (2026-11-22T07:12:08Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `e249b52fe4e0ad346e0aca97e56180f3c65bef01` (2026-11-22T07:31:33Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -36,7 +36,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 |---|---|
 | arquivos_total | 726 |
 | arquivos_codigo | 290 |
-| linhas_codigo | 57079 |
+| linhas_codigo | 57107 |
 | rotas | 32 |
 | rotas_http_backend | 14 |
 | vistas_por_id | 0 |
@@ -386,6 +386,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-22 `e249b52` fix: mensagem acionavel no limite de 3 ajustes pendentes (F-04) (#230)
 - 2026-11-22 `caf7e42` docs: reconcilia a matriz de 230 requisitos contra a main (F-97/PF-109) (#231)
 - 2026-11-22 `abcd725` test: exercita policies de Storage como authenticated, DDL real e rate limit (F-82) (#227)
 - 2026-11-22 `ec7e478` feat: eventos de funil de contato, upload, remoção e link compartilhado (F-100/PF-120) (#228)
@@ -400,7 +401,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-20 `0afb33e` chore(docs): linha de base, regras de negocio e mapa do sistema (GOAL fase 0) (#216)
 - 2026-11-20 `804efbc` fix: promessas honestas em orcamento e catalogo (PF-14, PF-19, PF-20, PF-21) (#215)
 - 2026-11-20 `5ad589f` feat: permite ajustar o contexto da campanha no orçamento (#213)
-- 2026-11-20 `1bb2a90` fix: limpa contexto da campanha quando o recorte sai do catálogo (#212)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

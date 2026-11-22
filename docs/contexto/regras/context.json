@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "caf7e426025d73dedbba082e2df7f94949d668b4",
+  "sha": "e249b52fe4e0ad346e0aca97e56180f3c65bef01",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-22 07:14 UTC",
+  "generated_at": "2026-11-22 07:31 UTC",
   "files_total": 620,
   "code_files": 400,
-  "code_lines": 71466,
+  "code_lines": 71494,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "743bb422a000939e",
+ "facts_hash": "0fea98046c0177df",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -7547,7 +7547,7 @@
   {
    "module": "scripts",
    "files": 43,
-   "lines": 21576,
+   "lines": 21584,
    "tables": [
     "a",
     "contacts",
@@ -7948,7 +7948,7 @@
   {
    "module": "src/lib",
    "files": 82,
-   "lines": 8318,
+   "lines": 8338,
    "tables": [],
    "exports": [
     "analytics.ts: FunnelEventMap, redactAnalyticsPathname, redactTelemetryUrl, redactAnalyticsUrl, briefingAssetSizeBand, trackFunnelEvent",
@@ -17228,6 +17228,14 @@
    {
     "file": "src/lib/customerAccount.rpc.test.ts",
     "name": "rejeita detalhe e confirmação de ajuste com identificadores ou datas inválidas"
+   },
+   {
+    "file": "src/lib/customerAccount.rpc.test.ts",
+    "name": "traduz o limite de 3 ajustes pendentes em mensagem acionável"
+   },
+   {
+    "file": "src/lib/customerAccount.rpc.test.ts",
+    "name": "mantém o erro original quando a recusa é outra"
    },
    {
     "file": "src/lib/customerAccount.rpc.test.ts",
@@ -26951,7 +26959,7 @@
   },
   "scripts/check-performance-budget.mjs": {
    "path": "scripts/check-performance-budget.mjs",
-   "lines": 177,
+   "lines": 185,
    "env": [
     "PERFORMANCE_BUDGET_PROFILE"
    ],
@@ -26963,6 +26971,9 @@
     "dist/.vite/manifest.json não tem o formato de manifest do Vite.",
     "dist/.vite/manifest.json não é um JSON válido: ${error.message}",
     "dist/assets não existe: rode "
+   ],
+   "rule_comments": [
+    "antes de o codigo dela ser avaliado. A F-04 (mensagem acionavel no limite de"
    ]
   },
   "scripts/ci-health-metrics.mjs": {
@@ -31866,13 +31877,15 @@
   },
   "src/lib/customerAccount.rpc.test.ts": {
    "path": "src/lib/customerAccount.rpc.test.ts",
-   "lines": 53,
+   "lines": 66,
    "is_test": true,
    "tests": [
     "RPCs da Área do Cliente",
     "aceita somente o contrato de leitura esperado para o histórico",
     "não mascara JSON malformado como um histórico vazio",
     "rejeita detalhe e confirmação de ajuste com identificadores ou datas inválidas",
+    "traduz o limite de 3 ajustes pendentes em mensagem acionável",
+    "mantém o erro original quando a recusa é outra",
     "não transforma uma resposta de claim inesperada em sucesso"
    ]
   },
@@ -31890,7 +31903,7 @@
   },
   "src/lib/customerAccount.ts": {
    "path": "src/lib/customerAccount.ts",
-   "lines": 227,
+   "lines": 234,
    "exports": [
     "interface CustomerAccessReport",
     "interface CustomerDataExport",
@@ -31899,6 +31912,7 @@
     "const customerStatusOptions",
     "function customerStatusLabel",
     "function customerStatusTone",
+    "const ADJUSTMENT_PENDING_LIMIT_MESSAGE",
     "function claimMyQuoteRequests",
     "function fetchMyQuoteRequests",
     "function fetchMyQuoteRequest",
@@ -34628,10 +34642,25 @@
   }
  },
  "git": {
-  "sha": "caf7e426025d73dedbba082e2df7f94949d668b4",
+  "sha": "e249b52fe4e0ad346e0aca97e56180f3c65bef01",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "e249b52",
+    "date": "2026-11-22",
+    "author": "adm01-debug",
+    "subject": "fix: mensagem acionavel no limite de 3 ajustes pendentes (F-04) (#230)",
+    "files": [
+     "analise-prs/funcionalidades.csv",
+     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
+     "scripts/check-performance-budget.mjs",
+     "src/lib/customerAccount.rpc.test.ts",
+     "src/lib/customerAccount.ts",
+     "src/pages/CustomerQuotePage.tsx",
+     "tests/check-performance-budget.node.mjs"
+    ]
+   },
    {
     "sha": "caf7e42",
     "date": "2026-11-22",
@@ -34988,36 +35017,27 @@
     "files": [
      "tests/api/briefing-assets.test.ts"
     ]
-   },
-   {
-    "sha": "aff11ee",
-    "date": "2026-11-18",
-    "author": "adm01-debug",
-    "subject": "docs: matriz risco de negocio para camada de teste, com os vazios nomeados (#205)",
-    "files": [
-     "docs/MATRIZ_RISCO_CAMADA_TESTE.md"
-    ]
    }
   ],
   "hot_files": [
    [
     "analise-prs/funcionalidades.csv",
-    7
+    8
    ],
    [
     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
-    5
+    6
    ],
    [
     "scripts/check-performance-budget.mjs",
-    4
-   ],
-   [
-    "src/lib/useCatalogPageState.ts",
-    4
+    5
    ],
    [
     "tests/check-performance-budget.node.mjs",
+    5
+   ],
+   [
+    "src/lib/useCatalogPageState.ts",
     4
    ],
    [
@@ -35027,6 +35047,10 @@
    [
     "src/lib/analytics.ts",
     3
+   ],
+   [
+    "src/lib/customerAccount.ts",
+    2
    ],
    [
     "docs/MATRIZ_INDEX.md",
@@ -35073,11 +35097,7 @@
     2
    ],
    [
-    "docs/MATRIZ_FECHAMENTO_PLANOS_20260912.csv",
-    1
-   ],
-   [
-    ".gitignore",
+    "src/lib/customerAccount.rpc.test.ts",
     1
    ]
   ]

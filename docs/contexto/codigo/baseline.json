@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "caf7e426025d73dedbba082e2df7f94949d668b4",
+  "commit": "e249b52fe4e0ad346e0aca97e56180f3c65bef01",
   "branch": "main",
-  "data_commit": "2026-11-22T07:12:08Z",
+  "data_commit": "2026-11-22T07:31:33Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "e249b52",
+    "data": "2026-11-22",
+    "assunto": "fix: mensagem acionavel no limite de 3 ajustes pendentes (F-04) (#230)"
+   },
    {
     "sha": "caf7e42",
     "data": "2026-11-22",
@@ -126,14 +131,9 @@
     "sha": "4a23155",
     "data": "2026-11-18",
     "assunto": "feat(guarda): aponta trabalho estacionado em refs fora de heads e pull (#203)"
-   },
-   {
-    "sha": "6d13174",
-    "data": "2026-11-18",
-    "assunto": "fix(graphify): .graphifyignore passa a excluir da indexação, não só da impressão digital (#198)"
    }
   ],
-  "arquivos_mudados_7d": 166,
+  "arquivos_mudados_7d": 167,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -145,7 +145,7 @@
    },
    {
     "pasta": "analise-prs/funcionalidades.csv",
-    "mudancas": 11
+    "mudancas": 12
    },
    {
     "pasta": "docs/audits/pending-features-20261011",
@@ -173,7 +173,7 @@
    },
    {
     "pasta": "scripts/check-performance-budget.mjs",
-    "mudancas": 7
+    "mudancas": 8
    },
    {
     "pasta": ".gitignore",
@@ -184,15 +184,15 @@
     "mudancas": 6
    },
    {
+    "pasta": "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
+    "mudancas": 6
+   },
+   {
     "pasta": "scripts/graphify.mjs",
     "mudancas": 6
    },
    {
     "pasta": "src/pages/QuotePage.tsx",
-    "mudancas": 6
-   },
-   {
-    "pasta": "src/styles.css",
     "mudancas": 6
    }
   ],
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 109
+    "commits": 110
    },
    {
     "autor": "dependabot[bot]",
@@ -312,7 +312,7 @@
  "contagens": {
   "arquivos_total": 726,
   "arquivos_codigo": 290,
-  "linhas_codigo": 57079,
+  "linhas_codigo": 57107,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -456,7 +456,7 @@
   },
   "scripts/check-performance-budget.mjs": {
    "arquivos": 1,
-   "linhas": 177
+   "linhas": 185
   },
   "scripts/ci-health-metrics.mjs": {
    "arquivos": 1,
@@ -580,7 +580,7 @@
   },
   "src/lib": {
    "arquivos": 82,
-   "linhas": 8318
+   "linhas": 8338
   },
   "src/main.tsx": {
    "arquivos": 1,
