@@ -51,16 +51,31 @@ where s.schemaname = 'site_private' and s.idx_scan = 0
 order by uso_da_tabela desc;
 ```
 
-`uso_da_tabela` e `escritas` mostram se a janela teve tráfego de verdade naquela tabela:
-índice zerado numa tabela que também está zerada não prova nada. A idade do índice vem
-do histórico de migrations (quem criou, quando) — `pg_stat_user_indexes` não guarda data
-de criação.
+`uso_da_tabela` e `escritas` mostram se a tabela teve movimento — índice zerado numa tabela
+também parada não prova nada. Mas são **contadores acumulados**: não delimitam janela.
 
-Na prática, o recorte utilizável é o mais recente entre `stats_reset` do banco e o commit
-da migration que criou o índice (`git log -S <nome_do_indice> --
-site-supabase/supabase/migrations`). Só é candidato a remoção o índice que **existiu
-durante toda a janela** e ainda assim tem `idx_scan = 0` depois de pelo menos 30 dias de
-tráfego real na tabela. Antes de remover:
+**Como delimitar a janela (as duas regras abaixo são obrigatórias):**
+
+1. **Tráfego real, não só acumulado.** `n_tup_ins/n_tup_upd/n_tup_del` também contam o
+   que os testes pgTAP inserem antes de dar rollback. Guardar uma medição por revisão e
+   comparar com a anterior: a diferença é o tráfego do mês, não o total desde o reset.
+2. **Idade do índice em produção.** A data do commit da migration **não** é a data de
+   aplicação — a migration só passa a valer depois do `release.yml` rodar em produção.
+   A referência confiável é `site_private.admin_ddl_log` (`command_tag`, `object_type`,
+   `schema_name`, `occurred_at`), que registra o que o release aplicou e quando. Se o
+   `admin_ddl_log` não tiver o registro do índice, tratar como "idade desconhecida" e
+   **não remover** — aguardar uma janela completa de 30 dias medida dentro do runbook.
+
+```sql
+select occurred_at, command_tag, schema_name, object_type
+from site_private.admin_ddl_log
+order by occurred_at desc
+limit 50;
+```
+
+Só é candidato a remoção o índice que (a) apareceu como aplicado no `admin_ddl_log`
+há pelo menos 30 dias, (b) teve a tabela com tráfego medido entre duas revisões
+consecutivas nesse período e (c) continua com `idx_scan = 0`. Antes de remover:
 
 1. Confirmar que nenhuma query no código (`api/`, `site-supabase/supabase/migrations/`)
    depende do plano que esse índice sustenta — buscar pelo nome da tabela/colunas, não
