@@ -140,6 +140,23 @@ test('o 503 do health entra na mensagem com o código do problema', async () => 
   assert.equal(outcome.hits['/api/health'], 3);
 });
 
+test('o 5xx de uma página HTML nao despeja o corpo no log', async () => {
+  // /api/site-page devolve a página inteira em 503: ler esse corpo e cortar em
+  // 200 caracteres enchia o log de "<!doctype html>" sem dizer qual falha era.
+  const html503 = reply(503, { ...security, 'content-type': 'text/html; charset=utf-8' }, `<!doctype html>${'x'.repeat(500)}`);
+  const outcome = await smoke({ '/': html503 });
+  assert.equal(outcome.ok, false);
+  assert.equal(outcome.message, '/: HTTP 503 (após 3 tentativas)');
+  assert.ok(!outcome.message.includes('doctype'), 'o corpo HTML nao deve entrar na mensagem');
+});
+
+test('o 503 do /api/health continua trazendo o codigo do problema', async () => {
+  const outcome = await smoke({
+    '/api/health': reply(503, { ...security, 'content-type': 'application/json' }, '{"ok":false,"code":"backend_not_configured"}'),
+  });
+  assert.equal(outcome.message, '/api/health: HTTP 503 {"ok":false,"code":"backend_not_configured"} (após 3 tentativas)');
+});
+
 test('reprova header de segurança ausente ou divergente em qualquer rota HTML', async () => {
   const without = (name) => Object.fromEntries(Object.entries(security).filter(([key]) => key !== name));
   for (const [overrides, expected] of [

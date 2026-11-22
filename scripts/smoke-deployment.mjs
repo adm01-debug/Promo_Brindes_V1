@@ -56,10 +56,13 @@ export async function runSmoke(baseUrl, options = {}) {
           }
           return { status: response.status, headers: response.headers, body };
         }
-        // O 503 do /api/health carrega o código do problema (backend_not_configured,
-        // backend_misconfigured, unsafe_database_target). Descartar o corpo deixava
-        // o release com "HTTP 503" e nenhuma pista de qual dos três aconteceu.
-        const detail = await response.text().catch(() => '');
+        // Só o /api/health carrega o diagnóstico no corpo (backend_not_configured,
+        // backend_misconfigured, unsafe_database_target). As demais rotas devolvem
+        // HTML de página inteira em 503 — ler isso e cortar em 200 caracteres
+        // despejava "<!doctype html>..." no log sem dizer nada. Nelas o código
+        // basta; o /api/health roda em seguida e traz o motivo, se for o caso.
+        const detail = readBody ? await response.text().catch(() => '') : '';
+        if (!readBody) await response.body?.cancel().catch(() => {});
         lastError = new Error(`${path}: HTTP ${response.status}${detail ? ` ${detail.slice(0, 200).trim()}` : ''}`);
       } catch (error) {
         lastError = new Error(`${path}: ${describeFailure(error, timeoutMs)}`, { cause: error });
