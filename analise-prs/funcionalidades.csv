@@ -88,7 +88,7 @@ F-86,Restore medido RPO/RTO PITR backup Storage,Nunca ensaiado; Storage sem copi
 F-87,Vigia independente dos crons,0 ocorrencias heartbeat/lastRunAt,PENDENTE,0,,PF-87,P2
 F-88,Alertas operacionais funcionando,OPERATIONS_ALERT_WEBHOOK_URL ausente; payload generico,PARCIAL,30,,PF-88,P2
 F-89,Preview isolado com banco proprio,Sem preview.yml sem branch Supabase Git integration off,BLOQUEADA,0,,PF-89,P2
-F-90,Revisao mensal do banco executada,Nunca rodou; query com coluna duplicada,PENDENTE,0,,PF-90,P3
+F-90,Revisao mensal do banco executada,Primeira revisao real executada em 22/11 com dados de producao; coluna duplicada corrigida,COMPLETA,100,,PF-90,P3
 F-91,Runbooks atualizados e revisados,Release descreve rollback manual; contagens antigas; sem revisor,PARCIAL,50,,PF-91,P3
 F-92,Funil analytics homologado erros CWV p75,Coleta instalada; recepcao e baseline nao registradas,PARCIAL,50,,PF-92,P2
 F-93,Catalogo publico monitorado,Sonda diaria 36 colunas verde 02-11/10,COMPLETA,100,#83,A-022,P2
