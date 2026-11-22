@@ -60,7 +60,7 @@ Quem destrava: **ENG** = engenharia pode fazer agora · **DONO** = decisão/cred
 | Plano de workflows/CI (27/09) | 100 | 21 | 32 (+3) | 35 | 7 (+1 divergência, 1 não verificado) | 21 / 29 / 42 / 8 | [07](audits/planejado-x-implementado-20261120/07-workflows-100-correcoes-5x50-graphify-50.md) |
 | Planos de correções 13/09–24/09 (41 pendências deduplicadas) | 41 | 0 | 17 (+1) | 9 | 14 | 9 avançaram, nenhuma fechou | [07](audits/planejado-x-implementado-20261120/07-workflows-100-correcoes-5x50-graphify-50.md) |
 | Graphify (11/09) | 50 | 19 | 26 | 4 | 1 | 17 / 29 / 4 | [07](audits/planejado-x-implementado-20261120/07-workflows-100-correcoes-5x50-graphify-50.md) |
-| Matriz de 230 requisitos (12/09) | 230 | — | — | — | — | CSV congelado em `dafd3d9` (22/09); só o `MATRIZ_INDEX.md` deixou de chamá-lo de vigente (#208) | PF-109 |
+| Matriz de 230 requisitos (12/09) | 230 | — | — | — | — | Reconciliada em 22/11 contra `abcd725`: 122 I / 97 P / 0 N / 11 E, 17 linhas reavaliadas com fonte relida (`MATRIZ_INDEX.md:21`) | PF-109 |
 
 ### As 12 lacunas que mais custam ao negócio (estado de hoje)
 
@@ -221,7 +221,7 @@ Tabela consolidada (uma linha por item). Evidência completa, comandos reproduz�
 | PF-106 | Graphify reproduzível em clone limpo | PARCIAL | `doctor` sem Python/`tree_sitter_sql`; hashes não aplicados (decisão) | `graphify.mjs:890-903`; `requirements-graphify.txt:6-12` | sim (#196, #197) | ENG |
 | PF-107 | Conhecimento técnico no grafo | NÃO INICIADO | Tudo (`code-only`) | `.graphify.project.json` | não | ENG + DONO |
 | PF-108 | Qualidade do grafo | PARCIAL | Benchmark só acerto; comunidades sem nome | `graphify.mjs:68-71,178-181` | sim (#194, #198) | ENG |
-| PF-109 | Matriz 230 reconciliada | PARCIAL | CSV intocado desde `dafd3d9` | `MATRIZ_INDEX.md:15,19` | sim (#208) | ENG |
+| PF-109 | Matriz 230 reconciliada | COMPLETO | Reconciliada linha por linha em 22/11 contra `abcd725`; 17 linhas corrigidas, LK10 sai de N para I | `docs/MATRIZ_FECHAMENTO_PLANOS_20260912.csv`; `MATRIZ_INDEX.md:15-38` | sim (nesta PR) | — |
 | PF-110 | Planos novos mapeados; donos nomeados | NÃO INICIADO | Validador só UX/LK/GR/AC | `validate-closure-ledger.mjs:67-75` | não | DONO + ENG |
 | PF-111 | Planos sem contradições | PARCIAL | 5 frases em planos datados (histórico) | `vite.config.ts` corrigido (#195) | sim | ENG (se o dono pedir) |
 | PF-112 | Código morto removido | IMPLEMENTADO | — | greps = 0 | sim (#186, #191) | — |
@@ -373,7 +373,7 @@ Encontrados na releitura etapa a etapa dos planos (anexos 06 e 07), dos runbooks
 | `docs/PLANO_CORRECOES_50_ETAPAS_20260913.md:100` | `noUncheckedIndexedAccess` adiada | Ativa | `tsconfig.app.json:11` |
 | `docs/PLANO_CORRECOES_MELHORIAS_50_ETAPAS_20260917.md:500` | Fase 3 fechada | Etapa 19 aberta | `:513` |
 | `docs/PLANO_WORKFLOWS_100_ETAPAS_20260927.md:75` | 6 workflows | 15 | `.github/workflows` |
-| `docs/MATRIZ_FECHAMENTO_PLANOS_20260912.csv` | 118 I / 100 P / 1 N / 11 E | LK10, UX35, UX49, UX88 já resolvidas; LK44 errada; UX83/LK15/UX12/UX14/UX19 otimistas; GR03/06/11/38 "I" ainda parciais; GR14/24/40/44 "I" atendidos no escopo estrutural por decisão registrada em `GOVERNANCA_FECHAMENTO.md:22-34` (melhorias além do escopo, não pendências); GR25/31/34/37 "P" não iniciadas | PF-109 |
+| `docs/MATRIZ_FECHAMENTO_PLANOS_20260912.csv` | 118 I / 100 P / 1 N / 11 E | Reconciliada em 22/11: 122 I / 97 P / 11 E; LK10/UX35/UX49/UX88 promovidas com fonte relida, GR25/31/34/37 mantidas em P por falta de benchmark/entrega | `MATRIZ_INDEX.md:21-38` | PF-109 |
 | `docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md` | PR #94 e #88 abertas; "nenhum mockup após 09/09"; 77 fontes pequenas; PF-49/53/117 pendentes | #94 (27/10) e #88 (27/10) mergeadas; 16 PNGs (#103); 142; PF-49/117 fechados, PF-53 parcial | anexos 02, 05 |
 | `docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md` | PF-10 aberto; `e2e/` só 2 specs; 3 tags `backup/*` | #190; 6 specs; 0 tags | anexos 01, 04 |
 | `analise-prs/funcionalidades.csv`, `analise-prs/regras-de-negocio.md`, `PENDENCIAS.md` | ver NOVO-DOC-08/09/10 | defasados | anexo 08 |
