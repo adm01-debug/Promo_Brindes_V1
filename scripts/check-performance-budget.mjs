@@ -131,14 +131,13 @@ try {
   // qualquer feature seguinte reprovava por alguns bytes (a CI mediu 964,0 e
   // recusou). A folga nova e de ~2,0 KiB sobre a medicao, o mesmo criterio
   // usado nas recalibracoes anteriores, e ainda reprova regressoes acima disso.
-  // Teto recalibrado em 22/11/2026 de 966 para 985 KiB quando a F-03
+  // Teto recalibrado em 22/11/2026 de 966 para 988 KiB quando a F-03
   // (back-office minimo em /admin/orcamentos) adicionou uma rota lazy inteira
-  // sobre a base de 959,3 KiB medida na main em 22/11/2026. Pior caso medido
-  // neste worktree com as tres flags: 985,6 KiB (o mesmo teto do commit
-  // original da branch, que partia de 963,2 KiB e media 983,4 KiB). A margem
-  // nova e de poucos bytes no pior caso, porque o raw ja vinha justo; o teto
-  // Brotli abaixo e quem barra regressao de transferencia.
-  assertBudget('JavaScript total', javascript, rawBytes(986));
+  // sobre a base de 959,5 KiB medida na main em 22/11/2026. Pior caso medido
+  // neste worktree com as tres flags: 986,2 KiB; sem as flags, 980,6 KiB. A
+  // margem nova e de 1,8 KiB, porque o raw ja vinha justo — o teto Brotli
+  // abaixo e quem barra regressao de transferencia.
+  assertBudget('JavaScript total', javascript, rawBytes(988));
   assertBudget('Bundle de entrada', entry, rawBytes(300));
   assertBudget('CSS total (Brotli)', cssBrotli, rawBytes(32));
   // O total é um teto de manutenção para todo o corpus lazy. O download real
@@ -163,9 +162,9 @@ try {
   // gate que reprova por essa diferenca nao esta medindo o codigo, esta medindo
   // a maquina.
   // Brotli recalibrado em 22/11/2026 sobre a base da main ja com a F-04
-  // (270,7 KiB de producao). A F-03 mede 276,3 KiB de producao e 277,7 KiB no
+  // (270,7 KiB de producao). A F-03 mede 276,2 KiB de producao e 277,7 KiB no
   // pior caso com as tres flags ligadas, entao os tetos 278 (producao) e 279
-  // (pior caso) mantem 1,7 e 1,3 KiB de folga — a rota e lazy, entao o custo
+  // (pior caso) mantem 1,8 e 1,3 KiB de folga — a rota e lazy, entao o custo
   // aparece no corpus total e nao na primeira visita, e folga abaixo de 1 KiB
   // ja fez a CI reprovar por variacao de runner nas recalibragens anteriores.
   assertBudget(
