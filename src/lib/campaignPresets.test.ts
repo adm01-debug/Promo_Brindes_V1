@@ -107,4 +107,30 @@ describe('ache pelo briefing', () => {
       { source: 'Momento: Evento', target: 'Coleção Em alta' },
     ]);
   });
+
+  it('atribui a coleção Em alta à resposta do briefing que a ativou (PF-40)', () => {
+    const categories: { id: string; name: string; parentId: null }[] = [];
+    // Público isolado ativa Em alta -> origem Público, nunca "Clima/Momento: undefined".
+    expect(campaignSignalExplanations({ audience: 'clientes' }, categories)).toEqual([
+      { source: 'Público: Clientes', target: 'Coleção Em alta' },
+    ]);
+    // Clima premium ativa Em alta -> origem Clima.
+    expect(campaignSignalExplanations({ mood: 'premium' }, categories)).toEqual([
+      { source: 'Clima: Premium', target: 'Coleção Em alta' },
+    ]);
+  });
+
+  it('suprime sinais do briefing substituídos por uma escolha explícita no catálogo (PF-40)', () => {
+    const categories = [{ id: 'tech', name: 'Tecnologia', parentId: null }];
+    // Coleção escolhida explicitamente (novos) substitui o perfil derivado do briefing.
+    expect(campaignSignalExplanations({ moment: 'evento' }, categories, { effectiveProfile: 'new' })).toEqual([]);
+    // Busca digitada substitui o termo editorial do briefing.
+    expect(campaignSignalExplanations({ moment: 'onboarding' }, categories, { query: 'camiseta' })).toEqual([]);
+    // Categoria escolhida explicitamente substitui a categoria derivada do briefing.
+    expect(campaignSignalExplanations({ mood: 'tech' }, categories, { selectedCategoryIds: ['presentes'] })).toEqual([]);
+    // SKU exato substitui categoria, cor e material derivados do briefing.
+    expect(campaignSignalExplanations({ mood: 'sustentavel' }, categories, { exactSku: 'BR-001' })).toEqual([]);
+    // Cor/material escolhidos explicitamente substituem os derivados do briefing.
+    expect(campaignSignalExplanations({ mood: 'divertido' }, categories, { selectedColors: ['vermelho'] })).toEqual([]);
+  });
 });

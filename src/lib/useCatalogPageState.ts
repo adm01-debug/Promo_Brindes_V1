@@ -87,12 +87,6 @@ export function useCatalogPageState() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [campaignKey, categories.data],
   );
-  const campaignSignals = useMemo(
-    () => campaignSignalExplanations(campaignSelection, categories.data),
-    // A chave estabiliza a seleção lida da URL (mesma razão de campaignFilters).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [campaignKey, categories.data],
-  );
   const campaignNeedsCategories = campaignSelection.mood === 'tech' && selectedCategoryIds.length === 0;
   const campaignCategoryMissing = campaignNeedsCategories && !categories.loading && !categories.error && campaignFilters.categoryIds.length === 0;
   const catalogEnabled = !campaignNeedsCategories || (!categories.loading && !categories.error && !campaignCategoryMissing);
@@ -104,6 +98,20 @@ export function useCatalogPageState() {
   const effectiveProfile = profileWasExplicitlySet
     ? profile === 'destaques' ? 'featured' : profile === 'novos' ? 'new' : profile === 'kits' ? 'kits' : 'all'
     : campaignFilters.profile || (profile === 'destaques' ? 'featured' : profile === 'novos' ? 'new' : profile === 'kits' ? 'kits' : 'all');
+  const campaignSignals = useMemo(
+    () => campaignSignalExplanations(campaignSelection, categories.data, {
+      effectiveProfile,
+      selectedCategoryIds,
+      query,
+      exactSku: skuQueryActive ? exactSku : undefined,
+      selectedColors,
+      selectedMaterials,
+    }),
+    // A chave estabiliza a seleção lida da URL; os demais termos refletem as
+    // escolhas efetivas que podem substituir os sinais do briefing.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [campaignKey, categories.data, effectiveProfile, selectedCategoryIds, query, exactSku, skuQueryActive, selectedColors, selectedMaterials],
+  );
   const filterPanelProfile: ProfileParam = effectiveProfile === 'featured' ? 'destaques' : effectiveProfile === 'new' ? 'novos' : effectiveProfile === 'kits' ? 'kits' : 'todos';
   const catalog = useCatalog({
     // A busca digitada vence o termo da campanha: quem escreve na barra está
