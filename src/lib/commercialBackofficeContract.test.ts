@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  describeSiteNotificationSkipReasons,
   isSiteOperatorError,
   isSiteProposalRejected,
   isSiteQuoteConflict,
@@ -249,6 +250,24 @@ describe('contrato do back-office comercial', () => {
       ],
     });
     expect(() => parseSiteNotificationReprocessingResult([])).toThrow('commercial_backoffice_invalid_reprocessing_result');
+  });
+
+  it('preserva os motivos específicos de recusa do banco', () => {
+    // O banco passou a dizer por que recusou (spam, anonimização, bounce, janela):
+    // achatar tudo em "not_exhausted" esconderia do operador que a entrega nunca
+    // mais pode sair.
+    const parsed = parseSiteNotificationReprocessingResult({
+      reopened: 0,
+      skipped: ['erased', 'out_of_window', 'ineligible'].map((reason, index) => ({
+        deliveryId: `${index}${index}${index}${index}${index}${index}${index}${index}-1111-4111-8111-111111111111`,
+        status: 'exhausted',
+        reason,
+      })),
+    });
+    expect(parsed.skipped.map((item) => item.reason)).toEqual(['erased', 'out_of_window', 'ineligible']);
+    expect(describeSiteNotificationSkipReasons(parsed.skipped)).toBe(
+      'são de pedidos apagados pelo titular; passaram da janela de 30 dias; são de pedidos marcados como spam',
+    );
   });
 
   it('traduz a recusa por lote ou motivo inválido no reprocessamento', () => {

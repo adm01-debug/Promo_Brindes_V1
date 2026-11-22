@@ -10,7 +10,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(42);
+select plan(50);
 
 -- === Fixtures ====================================================================
 
@@ -180,8 +180,11 @@ select throws_ok(
 
 select is(
   (public.cancel_site_notification_backlog('limpeza de backlog de teste') ->> 'cancelled')::integer,
-  7,
-  'porta publica cancela as sete entregas inelegiveis (spam, anonimizada, fora da janela e contato spam)'
+  -- 3, e nao 7: as quatro entregas de spam/anonimizada/acima-da-janela do pedido
+  -- c...02/c...03/c...04/d...02 foram encerradas ja na secao 2, quando o claim pontual
+  -- passou a cancelar em vez de so devolver null (revisao da PR).
+  3,
+  'porta publica cancela as entregas inelegiveis restantes (spam-lote e antigo-lote)'
 );
 select is(
   (select status from site_private.notification_deliveries
@@ -194,7 +197,7 @@ select is(
    where table_name = 'notification_deliveries'
      and performed_by = 'Operador F11'
      and application_name like 'cancel_ineligible_notification_backlog: limpeza de backlog de teste%'),
-  7::bigint,
+  3::bigint,
   'porta publica grava a trilha do operador com o motivo'
 );
 select is(
@@ -370,6 +373,131 @@ select is(
   'saude da fila denuncia como fora da janela a entrega de pedido em spam'
 );
 
+-- === 9. Bloqueio unico de envio (revisao da PR) =================================
+--
+-- Tres buracos cobertos aqui: reprocessamento reabrindo entrega que o cron cancelaria
+-- na passagem seguinte, claims pontuais devolvendo null sem cancelar (job eterno na
+-- fila) e supressao apagando o marcador de envio incerto que o runbook reconcilia.
+
+-- Pedido que sera marcado como spam depois de ter a entrega esgotada.
+insert into site_private.quote_requests (
+  id, client_request_id, request_hash, source, status, contact_name, company, email, phone,
+  city, desired_deadline, notes, client_submitted_at
+) values
+  ('c0000000-0000-4000-8000-00000000000b', 'f11-quote-esgotada-spam', repeat('f', 64), 'site-promo-brindes',
+   'new', 'Esgotada Spam', 'Beta', 'esgotada-spam@alfa.test', '11999990015', null, null, null, now()),
+  ('c0000000-0000-4000-8000-00000000000c', 'f11-quote-esgotada-apta', repeat('1', 64), 'site-promo-brindes',
+   'new', 'Esgotada Apta', 'Beta', 'esgotada-apta@alfa.test', '11999990016', null, null, null, now()),
+  ('c0000000-0000-4000-8000-00000000000d', 'f11-quote-esgotada-vencida', repeat('2', 64), 'site-promo-brindes',
+   'new', 'Esgotada Vencida', 'Beta', 'esgotada-vencida@alfa.test', '11999990017', null, null, null, now());
+
+delete from site_private.notification_deliveries
+ where request_id in (
+   'c0000000-0000-4000-8000-00000000000b',
+   'c0000000-0000-4000-8000-00000000000c',
+   'c0000000-0000-4000-8000-00000000000d'
+ );
+
+insert into site_private.notification_deliveries (request_kind, request_id, channel, audience, status, created_at, next_attempt_at)
+values
+  ('quote', 'c0000000-0000-4000-8000-00000000000b', 'email', 'customer', 'pending', now(), now() - interval '1 minute'),
+  ('quote', 'c0000000-0000-4000-8000-00000000000c', 'email', 'customer', 'pending', now(), now() - interval '1 minute'),
+  ('quote', 'c0000000-0000-4000-8000-00000000000d', 'email', 'customer', 'pending', now() - interval '40 days', now() - interval '1 minute');
+
+-- Estado que o cron deixa depois de esgotar as tentativas.
+alter table site_private.notification_deliveries disable trigger notification_deliveries_enforce_status_transition;
+alter table site_private.notification_deliveries disable trigger notification_deliveries_enforce_lease_and_attempts;
+update site_private.notification_deliveries
+set status = 'exhausted', attempts = 6, last_error_code = 'provider_unavailable'
+where request_id in (
+  'c0000000-0000-4000-8000-00000000000b',
+  'c0000000-0000-4000-8000-00000000000c',
+  'c0000000-0000-4000-8000-00000000000d'
+);
+alter table site_private.notification_deliveries enable trigger notification_deliveries_enforce_status_transition;
+alter table site_private.notification_deliveries enable trigger notification_deliveries_enforce_lease_and_attempts;
+
+update site_private.quote_requests set status = 'spam'
+where id = 'c0000000-0000-4000-8000-00000000000b';
+
+-- Lote misto: a esgotada de pedido em spam e a vencida nao reabrem; so a apta volta.
+select is(
+  public.reprocess_site_notification_deliveries(
+    array[
+      (select delivery.id from site_private.notification_deliveries delivery
+       where delivery.request_id = 'c0000000-0000-4000-8000-00000000000b' and delivery.channel = 'email'),
+      (select delivery.id from site_private.notification_deliveries delivery
+       where delivery.request_id = 'c0000000-0000-4000-8000-00000000000c' and delivery.channel = 'email'),
+      (select delivery.id from site_private.notification_deliveries delivery
+       where delivery.request_id = 'c0000000-0000-4000-8000-00000000000d' and delivery.channel = 'email')
+    ]::uuid[],
+    'fila travada apos queda do provedor'
+  ) ->> 'reopened',
+  '1',
+  'reprocessamento reabre so a entrega que o cron nao vai cancelar (lote misto)'
+);
+select is(
+  (select delivery.status from site_private.notification_deliveries delivery
+   where delivery.request_id = 'c0000000-0000-4000-8000-00000000000b' and delivery.channel = 'email'),
+  'exhausted',
+  'entrega esgotada de pedido em spam continua esgotada (nao volta para a fila)'
+);
+select is(
+  (select delivery.status from site_private.notification_deliveries delivery
+   where delivery.request_id = 'c0000000-0000-4000-8000-00000000000d' and delivery.channel = 'email'),
+  'exhausted',
+  'entrega esgotada acima da janela continua esgotada'
+);
+select ok(
+  public.reprocess_site_notification_deliveries(
+    array[
+      (select delivery.id from site_private.notification_deliveries delivery
+       where delivery.request_id = 'c0000000-0000-4000-8000-00000000000d' and delivery.channel = 'email')
+    ]::uuid[],
+    'conferindo motivo devolvido'
+  ) -> 'skipped' @> '[{"reason":"out_of_window"}]'::jsonb,
+  'motivo especifico volta em skipped (out_of_window), nao apenas not_exhausted'
+);
+
+-- Claim pontual de pedido em spam: nao basta devolver null, a entrega tem de sair da
+-- fila, senao o proximo tick repete a mesma leitura para sempre.
+select is(
+  public.claim_site_quote_notification('c0000000-0000-4000-8000-00000000000b', 'email'),
+  null,
+  'claim pontual devolve null para entrega de pedido em spam'
+);
+select isnt(
+  (select delivery.status from site_private.notification_deliveries delivery
+   where delivery.request_id = 'c0000000-0000-4000-8000-00000000000b' and delivery.channel = 'email'),
+  'pending',
+  'claim pontual tira da fila a entrega bloqueada (nao deixa job orfao)'
+);
+
+-- Envio incerto: a supressao nao pode apagar o marcador que o runbook reconcilia.
+insert into site_private.notification_deliveries (
+  request_kind, request_id, channel, audience, status, created_at, next_attempt_at,
+  last_error_code, provider_message_id
+) values (
+  'quote', 'c0000000-0000-4000-8000-000000000003', 'whatsapp', 'customer', 'failed',
+  now(), now() - interval '1 minute', 'whatsapp_dispatch_started', null
+);
+
+select is(
+  site_private.suppress_notification_delivery((
+    select delivery.id from site_private.notification_deliveries delivery
+    where delivery.request_id = 'c0000000-0000-4000-8000-000000000003'
+      and delivery.channel = 'whatsapp' and delivery.audience = 'customer'
+  )),
+  false,
+  'supressao recusa cancelar envio incerto (marcador de reconciliacao preservado)'
+);
+select is(
+  (select delivery.last_error_code from site_private.notification_deliveries delivery
+   where delivery.request_id = 'c0000000-0000-4000-8000-000000000003'
+     and delivery.channel = 'whatsapp' and delivery.audience = 'customer'),
+  'whatsapp_dispatch_started',
+  'marcador whatsapp_dispatch_started sobrevive a tentativa de supressao'
+);
 -- === 8. Privilegios =============================================================
 
 select ok(

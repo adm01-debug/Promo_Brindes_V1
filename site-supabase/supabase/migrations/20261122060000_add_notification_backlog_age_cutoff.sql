@@ -678,3 +678,295 @@ $fn$;
 
 comment on function public.site_notification_queue_health() is
   'F-11: saúde da fila por canal. eligibleCount usa o mesmo critério do claim (status pronto, dentro da janela, pedido não spam e não anonimizado); outOfWindowCount conta o pending/failed que o próximo claim vai cancelar.';
+
+-- === 11. Bloqueio unico de envio (revisao das threads da PR) =====================
+--
+-- Tres furos fechados aqui, todos no mesmo ponto: o que acontece com a entrega que
+-- NAO pode ser enviada.
+--
+--  1. reprocess_notification_deliveries_core reabria qualquer entrega esgotada,
+--     inclusive a de pedido em spam, endereco suprimido ou acima de max_age. O
+--     cron cancelava na passagem seguinte e o painel confirmava uma reabertura
+--     que nunca virava envio.
+--  2. claim_site_quote_notification / claim_site_commercial_team_alert filtravam a
+--     elegibilidade no SELECT, entao a entrega bloqueada nem aparecia: devolvia null
+--     sem cancelar nada e o job ficava pending ate o proximo tick. Os dois endpoints
+--     chamam a claim UMA vez por job, sem loop de re-tentativa — o job nao anda.
+--  3. suppress_notification_delivery cancelava tambem a entrega em que o WhatsApp ja
+--     pode ter saido (last_error_code = 'whatsapp_dispatch_started' com
+--     provider_message_id nulo). Esse marcador e o que docs/RUNBOOK_INCIDENTES.md usa
+--     para reconciliar envio incerto; apaga-lo transformava "nao sei se enviou" em
+--     "cancelado".
+
+-- Correcao 3: o marcador de envio incerto sobrevive a supressao.
+create or replace function site_private.suppress_notification_delivery(p_delivery_id uuid)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_delivery site_private.notification_deliveries%rowtype;
+begin
+  select * into v_delivery
+  from site_private.notification_deliveries delivery
+  where delivery.id = p_delivery_id
+  for update;
+
+  if not found then return false; end if;
+  if v_delivery.status in ('sent', 'cancelled', 'exhausted') then return false; end if;
+  if v_delivery.status = 'processing' and v_delivery.lease_expires_at > now() then return false; end if;
+  -- Envio pode ter saido e o provedor nao confirmou. Cancelar aqui apagaria o
+  -- marcador de reconciliacao do runbook; a duvida tem de continuar visivel.
+  if v_delivery.last_error_code = 'whatsapp_dispatch_started'
+    and v_delivery.provider_message_id is null then
+    return false;
+  end if;
+
+  if site_private.notification_request_erased(v_delivery.request_kind, v_delivery.request_id) then
+    update site_private.notification_deliveries delivery
+    set status = 'cancelled', last_error_code = 'recipient_erased',
+        lease_token = null, lease_expires_at = null, claimed_at = null, updated_at = now()
+    where delivery.id = v_delivery.id;
+    return true;
+  end if;
+
+  if v_delivery.audience = 'customer'
+    and site_private.notification_request_suppressed(v_delivery.request_kind, v_delivery.request_id) then
+    update site_private.notification_deliveries delivery
+    set status = 'cancelled', last_error_code = 'recipient_suppressed',
+        lease_token = null, lease_expires_at = null, claimed_at = null, updated_at = now()
+    where delivery.id = v_delivery.id;
+    return true;
+  end if;
+
+  return false;
+end;
+$$;
+
+comment on function site_private.suppress_notification_delivery(uuid) is
+  'F-12: cancela entrega cujo destinatario esta suprimido (bounce/complaint) ou cujo pedido foi apagado pela autoexclusao. Idempotente, restrita a estado nao terminal e nunca toca o envio de WhatsApp incerto (whatsapp_dispatch_started sem provider_message_id).';
+
+-- Correcao 2: claim pontual nao pode engolir candidato bloqueado. A entrega
+-- inelegivel sai da fila (cancelled, com trilha) em vez de continuar pending.
+create or replace function public.claim_site_quote_notification(p_request_id uuid, p_channel text)
+returns jsonb
+language plpgsql
+security invoker
+set search_path = ''
+as $fn$
+declare
+  v_policy record;
+  v_delivery site_private.notification_deliveries%rowtype;
+begin
+  if p_channel not in ('email', 'whatsapp') then
+    raise exception using errcode = '22023', message = 'invalid_notification_channel';
+  end if;
+  select * into v_policy from site_private.notification_policy();
+
+  -- Sem o predicado de elegibilidade no SELECT: o candidato bloqueado precisa ser
+  -- visto para poder ser encerrado. Filtrar aqui deixava a entrega pending para sempre,
+  -- porque o chamador (api/notifications.ts) tenta uma unica vez por job.
+  select * into v_delivery
+  from site_private.notification_deliveries delivery
+  where delivery.request_kind = 'quote'
+    and delivery.request_id = p_request_id
+    and delivery.channel = p_channel
+    and delivery.audience = 'customer'
+    and delivery.status in ('pending', 'failed')
+    and delivery.next_attempt_at <= now()
+    and delivery.attempts < v_policy.max_attempts
+  order by delivery.created_at, delivery.id
+  limit 1;
+
+  if not found then return null; end if;
+  if site_private.suppress_notification_delivery(v_delivery.id) then return null; end if;
+
+  select * into v_delivery
+  from site_private.notification_deliveries delivery
+  where delivery.id = v_delivery.id
+  for update skip locked;
+  if not found then return null; end if;
+  if v_delivery.status not in ('pending', 'failed')
+    or v_delivery.next_attempt_at > now()
+    or v_delivery.attempts >= v_policy.max_attempts then
+    return null;
+  end if;
+
+  if not site_private.notification_delivery_is_eligible(
+    v_delivery.request_kind, v_delivery.request_id, v_delivery.created_at, v_policy.max_age) then
+    -- Spam, anonimizacao ou idade acima de max_age: encerra com trilha em vez de
+    -- deixar o job voltando em todo tick. O nucleo preserva o envio incerto.
+    perform site_private.cancel_ineligible_notification_backlog(
+      v_delivery.request_kind, v_delivery.request_id, 'notification worker',
+      'claim pontual de entrega inelegivel', v_policy.max_age);
+    return null;
+  end if;
+
+  update site_private.notification_deliveries delivery
+  set status = 'processing', attempts = delivery.attempts + 1, updated_at = now(),
+      lease_token = gen_random_uuid(), claimed_at = now(), lease_expires_at = now() + v_policy.lease_timeout
+  where delivery.id = v_delivery.id
+  returning * into v_delivery;
+
+  return site_private.quote_notification_payload(v_delivery.id);
+end;
+$fn$;
+
+comment on function public.claim_site_quote_notification(uuid, text) is
+  'F-11/F-12: claim pontual de uma confirmacao ao cliente. Devolve null cancelando a entrega (com trilha em admin_audit_log) quando o destinatario esta suprimido, o pedido foi apagado ou o job e inelegivel por spam, anonimizacao ou idade acima de max_age — a entrega nunca fica pending para sempre.';
+
+create or replace function public.claim_site_commercial_team_alert(p_request_id uuid)
+returns jsonb
+language plpgsql
+security invoker
+set search_path = ''
+as $fn$
+declare
+  v_policy record;
+  v_delivery site_private.notification_deliveries%rowtype;
+begin
+  select * into v_policy from site_private.notification_policy();
+  select * into v_delivery
+  from site_private.notification_deliveries delivery
+  where delivery.request_kind in ('quote', 'contact')
+    and delivery.request_id = p_request_id
+    and delivery.audience = 'commercial_team'
+    and delivery.status in ('pending', 'failed')
+    and delivery.next_attempt_at <= now()
+    and delivery.attempts < v_policy.max_attempts
+  order by delivery.created_at, delivery.id
+  limit 1;
+
+  if not found then return null; end if;
+  if site_private.suppress_notification_delivery(v_delivery.id) then return null; end if;
+
+  select * into v_delivery
+  from site_private.notification_deliveries delivery
+  where delivery.id = v_delivery.id
+  for update skip locked;
+  if not found then return null; end if;
+  if v_delivery.status not in ('pending', 'failed')
+    or v_delivery.next_attempt_at > now()
+    or v_delivery.attempts >= v_policy.max_attempts then
+    return null;
+  end if;
+
+  if not site_private.notification_delivery_is_eligible(
+    v_delivery.request_kind, v_delivery.request_id, v_delivery.created_at, v_policy.max_age) then
+    perform site_private.cancel_ineligible_notification_backlog(
+      v_delivery.request_kind, v_delivery.request_id, 'notification worker',
+      'claim pontual de entrega inelegivel', v_policy.max_age);
+    return null;
+  end if;
+
+  update site_private.notification_deliveries delivery
+  set status = 'processing', attempts = delivery.attempts + 1, updated_at = now(),
+      lease_token = gen_random_uuid(), claimed_at = now(), lease_expires_at = now() + v_policy.lease_timeout
+  where delivery.id = v_delivery.id
+  returning * into v_delivery;
+
+  if v_delivery.request_kind = 'contact' then
+    return site_private.commercial_team_contact_alert_payload(v_delivery.id);
+  end if;
+  return site_private.commercial_team_alert_payload(v_delivery.id);
+end;
+$fn$;
+
+comment on function public.claim_site_commercial_team_alert(uuid) is
+  'F-11/F-12: claim pontual do alerta ao comercial. Devolve null cancelando a entrega (com trilha em admin_audit_log) quando o destinatario esta suprimido, o pedido foi apagado ou o job e inelegivel por spam, anonimizacao ou idade acima de max_age — a entrega nunca fica pending para sempre.';
+
+-- Correcao 1: reprocessamento so reabre o que o cron nao vai cancelar na passagem
+-- seguinte, e diz exatamente por que recusou cada entrega.
+create or replace function site_private.reprocess_notification_deliveries_core(
+  p_delivery_ids uuid[],
+  p_reason text,
+  p_actor_label text
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_policy record;
+  v_ids uuid[];
+  v_reason text := btrim(coalesce(p_reason, ''));
+  v_actor text := left(btrim(coalesce(p_actor_label, 'notification worker')), 160);
+  v_reopened_ids uuid[] := array[]::uuid[];
+  v_skipped jsonb;
+begin
+  select array_agg(distinct item.id) into v_ids
+  from unnest(coalesce(p_delivery_ids, array[]::uuid[])) as item(id);
+
+  if v_ids is null or cardinality(v_ids) not between 1 and 100 then
+    raise exception using errcode = '22023', message = 'invalid_notification_reprocessing_input';
+  end if;
+  if length(v_reason) not between 3 and 200 then
+    raise exception using errcode = '22023', message = 'invalid_notification_reprocessing_input';
+  end if;
+
+  select * into v_policy from site_private.notification_policy();
+
+  -- Reabrir o que o corte de backlog cancela deixa a fila inconsistente: o painel
+  -- confirma "N entregas voltaram para a fila" e o cron as cancela minutos depois.
+  -- Aqui a recusa acontece antes, com o motivo devolvido em skipped.
+  with candidates as (
+    select delivery.id
+    from site_private.notification_deliveries delivery
+    where delivery.id = any(v_ids)
+      and delivery.status = 'exhausted'
+      and not site_private.notification_request_erased(delivery.request_kind, delivery.request_id)
+      -- Supressao NAO entra aqui: docs/RUNBOOK_INCIDENTES.md manda o operador
+      -- reprocessar justamente depois de resolver o bounce, e o banco encerra a
+      -- supressao antes ("UPDATE ... delivery_state = 'pending', complained_at = NULL").
+      -- Recusar por supressao tiraria do painel o unico caminho de recuperacao.
+      and site_private.notification_delivery_is_eligible(
+        delivery.request_kind, delivery.request_id, delivery.created_at, v_policy.max_age)
+    for update skip locked
+  ), reopened as (
+    update site_private.notification_deliveries delivery
+    set status = 'pending', attempts = 0, next_attempt_at = now(),
+        last_error_code = null, last_error_at = null,
+        lease_token = null, lease_expires_at = null, claimed_at = null,
+        updated_at = now()
+    from candidates
+    where delivery.id = candidates.id
+    returning delivery.id
+  )
+  select coalesce(array_agg(reopened.id), array[]::uuid[]) into v_reopened_ids
+  from reopened;
+
+  if cardinality(v_reopened_ids) > 0 then
+    insert into site_private.admin_audit_log (table_name, operation, row_id, performed_by, application_name)
+    select 'notification_deliveries', 'UPDATE', item.id::text, v_actor,
+           'reprocess_site_notification_deliveries: ' || v_reason
+    from unnest(v_reopened_ids) as item(id);
+  end if;
+
+  select coalesce(jsonb_agg(jsonb_build_object(
+    'deliveryId', delivery.id,
+    'status', delivery.status,
+    'reason', case
+      when delivery.status <> 'exhausted' then 'not_exhausted'
+      when site_private.notification_request_erased(delivery.request_kind, delivery.request_id) then 'erased'
+      when delivery.created_at < now() - v_policy.max_age then 'out_of_window'
+      when not site_private.notification_delivery_is_eligible(
+        delivery.request_kind, delivery.request_id, delivery.created_at, v_policy.max_age) then 'ineligible'
+      else 'locked'
+    end
+  )), '[]'::jsonb)
+  into v_skipped
+  from site_private.notification_deliveries delivery
+  where delivery.id = any(v_ids) and not (delivery.id = any(v_reopened_ids));
+
+  return jsonb_build_object(
+    'reopened', cardinality(v_reopened_ids),
+    'reopenedIds', to_jsonb(v_reopened_ids),
+    'skipped', v_skipped
+  );
+end;
+$$;
+
+comment on function site_private.reprocess_notification_deliveries_core(uuid[], text, text) is
+  'F-11/F-12: nucleo do reprocessamento (exhausted -> pending, attempts = 0, trilha em admin_audit_log). So reabre entrega que o corte de backlog nao cancelaria; as recusas voltam em "skipped" com reason not_exhausted, erased, out_of_window ou ineligible (spam).';

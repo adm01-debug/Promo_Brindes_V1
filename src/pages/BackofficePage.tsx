@@ -6,6 +6,7 @@ import { Seo } from '../components/Seo';
 import {
   SITE_QUOTE_STATUSES,
   SITE_QUOTE_STATUS_LABELS,
+  describeSiteNotificationSkipReasons,
   isSiteOperatorError,
   isSiteProposalRejected,
   isSiteQuoteConflict,
@@ -713,7 +714,7 @@ function BackofficeContent() {
     try {
       const result = await reprocessSiteNotificationDeliveries(selectedDeliveries, reprocessReason);
       const skippedNote = result.skipped.length > 0
-        ? ` ${result.skipped.length} ignorada(s): já não estavam esgotadas ou estavam em uso.`
+        ? ` ${result.skipped.length} ignorada(s): ${describeSiteNotificationSkipReasons(result.skipped)}.`
         : '';
       setReportNotice(
         `${result.reopened} ${result.reopened === 1 ? 'entrega voltou' : 'entregas voltaram'} para a fila com o motivo registrado na auditoria.${skippedNote}`,

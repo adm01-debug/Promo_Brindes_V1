@@ -207,10 +207,20 @@ export interface SiteNotificationDeliveryReport {
   orphanEventOldestAt: string | null;
 }
 
+export const SITE_NOTIFICATION_SKIP_REASONS = [
+  'locked',
+  'not_exhausted',
+  'erased',
+  'out_of_window',
+  'ineligible',
+] as const;
+
+export type SiteNotificationSkipReason = (typeof SITE_NOTIFICATION_SKIP_REASONS)[number];
+
 export interface SiteNotificationReprocessingSkipped {
   deliveryId: string;
   status: string;
-  reason: 'locked' | 'not_exhausted';
+  reason: SiteNotificationSkipReason;
 }
 
 export interface SiteNotificationReprocessingResult {
@@ -403,6 +413,30 @@ export function parseSiteNotificationDeliveryReport(data: unknown): SiteNotifica
   };
 }
 
+export function parseSiteNotificationSkipReason(value: unknown): SiteNotificationSkipReason {
+  const reason = readString(value);
+  // Motivo novo do banco não pode virar "not_exhausted": os dois têm efeitos
+  // diferentes na mensagem ao operador.
+  return (SITE_NOTIFICATION_SKIP_REASONS as readonly string[]).includes(reason)
+    ? (reason as SiteNotificationSkipReason)
+    : 'not_exhausted';
+}
+
+const SITE_NOTIFICATION_SKIP_LABELS: Record<SiteNotificationSkipReason, string> = {
+  locked: 'estavam em uso por outro envio',
+  not_exhausted: 'já não estavam esgotadas',
+  erased: 'são de pedidos apagados pelo titular',
+  out_of_window: 'passaram da janela de 30 dias',
+  ineligible: 'são de pedidos marcados como spam',
+};
+
+/** Resume os motivos de recusa do reprocessamento na ordem em que o banco devolve. */
+export function describeSiteNotificationSkipReasons(skipped: SiteNotificationReprocessingSkipped[]): string {
+  const labels = new Set<string>();
+  for (const item of skipped) labels.add(SITE_NOTIFICATION_SKIP_LABELS[item.reason]);
+  return [...labels].join('; ');
+}
+
 export function parseSiteNotificationReprocessingResult(data: unknown): SiteNotificationReprocessingResult {
   if (!isRecord(data)) throw new Error('commercial_backoffice_invalid_reprocessing_result');
   return {
@@ -413,7 +447,7 @@ export function parseSiteNotificationReprocessingResult(data: unknown): SiteNoti
       return [{
         deliveryId,
         status: readString(item.status),
-        reason: readString(item.reason) === 'locked' ? 'locked' : 'not_exhausted',
+        reason: parseSiteNotificationSkipReason(item.reason),
       }];
     }),
   };
