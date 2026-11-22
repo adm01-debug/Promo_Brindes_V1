@@ -1189,13 +1189,14 @@
    "camada": "lib",
    "exports": [
     "FunnelEventMap",
+    "briefingAssetSizeBand",
     "redactAnalyticsPathname",
     "redactAnalyticsUrl",
     "redactTelemetryUrl",
     "trackFunnelEvent"
    ],
    "export_default": null,
-   "linhas": 133,
+   "linhas": 151,
    "tabelas": [],
    "rpcs": [],
    "edges": [],
@@ -1206,14 +1207,14 @@
    "zod_schemas": 0,
    "flags": [],
    "papeis": [],
-   "usado_por": 20,
+   "usado_por": 23,
    "usado_por_modulos": [
     "components",
     "context",
     "lib",
     "pages"
    ],
-   "coberto_por_testes": 1,
+   "coberto_por_testes": 5,
    "orfao": false
   },
   {
@@ -2422,7 +2423,7 @@
     "useCatalogPageState"
    ],
    "export_default": null,
-   "linhas": 323,
+   "linhas": 328,
    "tabelas": [],
    "rpcs": [],
    "edges": [],

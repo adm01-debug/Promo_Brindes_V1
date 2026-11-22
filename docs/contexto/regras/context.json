@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "d7f09b6efa0369e042cbd4c8dc8896b42358f718",
+  "sha": "ec7e478a8d86b5229fb6d8f0dd9006abccb116f9",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-22 05:11 UTC",
-  "files_total": 618,
-  "code_files": 398,
-  "code_lines": 70768,
+  "generated_at": "2026-11-22 05:54 UTC",
+  "files_total": 619,
+  "code_files": 399,
+  "code_lines": 71033,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "5a10e4c0580b82da",
+ "facts_hash": "4551b7ea0f4d5a0d",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -283,8 +283,8 @@
   "languages": {
    ".ts": 154,
    ".sql": 108,
+   ".tsx": 64,
    ".mjs": 63,
-   ".tsx": 63,
    ".py": 8,
    ".js": 2
   },
@@ -6723,6 +6723,15 @@
     "deps_count": 30
    },
    {
+    "path": "",
+    "file": "src/pages/SharedSelectionPage.test.tsx",
+    "component": "SharedSelectionPage.test",
+    "tables_transitive": [],
+    "invokes_transitive": [],
+    "rpc_transitive": [],
+    "deps_count": 16
+   },
+   {
     "path": "*",
     "file": "src/pages/NotFoundPage.tsx",
     "component": "NotFoundPage",
@@ -6921,7 +6930,7 @@
     "tables_transitive": [],
     "invokes_transitive": [],
     "rpc_transitive": [],
-    "deps_count": 11
+    "deps_count": 12
    },
    {
     "path": "/sobre",
@@ -7538,7 +7547,7 @@
   {
    "module": "scripts",
    "files": 43,
-   "lines": 21565,
+   "lines": 21576,
    "tables": [
     "a",
     "contacts",
@@ -7833,7 +7842,7 @@
   {
    "module": "src/components",
    "files": 29,
-   "lines": 3262,
+   "lines": 3364,
    "tables": [],
    "exports": [
     "AppErrorBoundary.tsx: AppErrorBoundary",
@@ -7906,7 +7915,7 @@
   {
    "module": "src/context",
    "files": 7,
-   "lines": 749,
+   "lines": 753,
    "tables": [],
    "exports": [
     "CustomerAuthContext.tsx: CustomerAuthProvider",
@@ -7939,10 +7948,10 @@
   {
    "module": "src/lib",
    "files": 82,
-   "lines": 8232,
+   "lines": 8318,
    "tables": [],
    "exports": [
-    "analytics.ts: FunnelEventMap, redactAnalyticsPathname, redactTelemetryUrl, redactAnalyticsUrl, trackFunnelEvent",
+    "analytics.ts: FunnelEventMap, redactAnalyticsPathname, redactTelemetryUrl, redactAnalyticsUrl, briefingAssetSizeBand, trackFunnelEvent",
     "briefingAssets.ts: BRIEFING_ASSET_BUCKET, MAX_BRIEFING_ASSET_BYTES, MAX_BRIEFING_ASSETS, BRIEFING_ASSET_MIME_TYPES, BriefingAssetKind, BriefingAsset",
     "campaignBrief.ts: normalizeCampaignBrief, campaignBriefLabels, occasionCatalogUrl",
     "campaignPresets.ts: CampaignSelection, campaignBriefFromSelection, CAMPAIGN_MOMENTS, CAMPAIGN_AUDIENCES, CAMPAIGN_SCALES, CAMPAIGN_MOODS",
@@ -8087,8 +8096,8 @@
   },
   {
    "module": "src/pages",
-   "files": 24,
-   "lines": 3521,
+   "files": 25,
+   "lines": 3583,
    "tables": [],
    "exports": [
     "AboutPage.tsx: AboutPage",
@@ -8149,6 +8158,7 @@
     "src/pages/QuotePage.test.ts",
     "src/pages/QuotePage.tsx",
     "src/pages/SetPasswordPage.tsx",
+    "src/pages/SharedSelectionPage.test.tsx",
     "src/pages/SharedSelectionPage.tsx"
    ]
   },
@@ -10699,6 +10709,10 @@
    {
     "file": "src/context/QuoteCartContext.tsx",
     "text": "Private browsing or a full storage quota must not block the quote journey."
+   },
+   {
+    "file": "src/lib/analytics.ts",
+    "text": "Faixa de tamanho, nunca o byte exato: o evento nao deve virar identificador"
    },
    {
     "file": "src/lib/briefingAssets.ts",
@@ -16301,6 +16315,14 @@
    },
    {
     "file": "src/components/BriefingAssetUploader.test.tsx",
+    "name": "registra briefing_asset_uploaded com faixa de tamanho, nunca o byte exato"
+   },
+   {
+    "file": "src/components/BriefingAssetUploader.test.tsx",
+    "name": "não registra briefing_asset_uploaded quando o envio é barrado pela sessão"
+   },
+   {
+    "file": "src/components/BriefingAssetUploader.test.tsx",
     "name": "mantém o upload da sessão atual disponível para selecionar"
    },
    {
@@ -16424,6 +16446,18 @@
     "name": "congela os dados enquanto o envio está em andamento para não apagar edições tardias"
    },
    {
+    "file": "src/components/ConversationForm.test.tsx",
+    "name": "registra contact_submitted no canal do formulário quando a API aceita"
+   },
+   {
+    "file": "src/components/ConversationForm.test.tsx",
+    "name": "registra rascunho de e-mail, e não contato enviado, quando o envio cai no fallback"
+   },
+   {
+    "file": "src/components/ConversationForm.test.tsx",
+    "name": "não registra contact_submitted quando o envio falha"
+   },
+   {
     "file": "src/components/ProductDescription.test.tsx",
     "name": "descrição compacta e segura do produto"
    },
@@ -16466,6 +16500,14 @@
    {
     "file": "src/components/QuoteDrawer.test.tsx",
     "name": "QuoteDrawer"
+   },
+   {
+    "file": "src/components/QuoteDrawer.test.tsx",
+    "name": "registra a remoção de um item com a contagem restante"
+   },
+   {
+    "file": "src/components/QuoteDrawer.test.tsx",
+    "name": "registra a limpeza da seleção somente depois da confirmação"
    },
    {
     "file": "src/components/QuoteDrawer.test.tsx",
@@ -16634,6 +16676,22 @@
    {
     "file": "src/lib/analytics.test.ts",
     "name": "mede a área do cliente sem enviar identidade ou protocolo"
+   },
+   {
+    "file": "src/lib/analytics.test.ts",
+    "name": "eventos de selecao e link compartilhado"
+   },
+   {
+    "file": "src/lib/analytics.test.ts",
+    "name": "nao deixa passar propriedade fora da allowlist nos eventos novos"
+   },
+   {
+    "file": "src/lib/analytics.test.ts",
+    "name": "faixa de tamanho do anexo"
+   },
+   {
+    "file": "src/lib/analytics.test.ts",
+    "name": "agrupa o byte em faixas para nao virar identificador do arquivo"
    },
    {
     "file": "src/lib/briefingAssets.test.ts",
@@ -17529,6 +17587,22 @@
    },
    {
     "file": "src/lib/useCatalogPageState.test.tsx",
+    "name": "marca a visualizacao do catalogo como originada de busca quando ha termo"
+   },
+   {
+    "file": "src/lib/useCatalogPageState.test.tsx",
+    "name": "marca a visualizacao como navegacao quando nao ha termo de busca"
+   },
+   {
+    "file": "src/lib/useCatalogPageState.test.tsx",
+    "name": "marca a busca por SKU exato como busca, e não como navegação"
+   },
+   {
+    "file": "src/lib/useCatalogPageState.test.tsx",
+    "name": "nao registra visualizacao enquanto a consulta ainda descreve a busca anterior"
+   },
+   {
+    "file": "src/lib/useCatalogPageState.test.tsx",
     "name": "limpa o contexto do carrinho ao remover o último filtro de campanha na sessão"
    },
    {
@@ -17778,6 +17852,18 @@
    {
     "file": "src/pages/QuotePage.test.ts",
     "name": "permanece no dia de São Paulo durante a virada UTC"
+   },
+   {
+    "file": "src/pages/SharedSelectionPage.test.tsx",
+    "name": "SharedSelectionPage telemetria"
+   },
+   {
+    "file": "src/pages/SharedSelectionPage.test.tsx",
+    "name": "registra a abertura do link compartilhado com a contagem de itens"
+   },
+   {
+    "file": "src/pages/SharedSelectionPage.test.tsx",
+    "name": "nao registra a abertura quando a consulta falha"
    },
    {
     "file": "tests/catalog-public-contract.node.mjs",
@@ -26693,7 +26779,7 @@
   },
   "scripts/check-performance-budget.mjs": {
    "path": "scripts/check-performance-budget.mjs",
-   "lines": 166,
+   "lines": 177,
    "env": [
     "PERFORMANCE_BUDGET_PROFILE"
    ],
@@ -30210,11 +30296,13 @@
   },
   "src/components/BriefingAssetUploader.test.tsx": {
    "path": "src/components/BriefingAssetUploader.test.tsx",
-   "lines": 80,
+   "lines": 107,
    "is_test": true,
    "tests": [
     "privacidade de anexos durante troca de sessão",
     "ignora upload da sessão anterior após %s",
+    "registra briefing_asset_uploaded com faixa de tamanho, nunca o byte exato",
+    "não registra briefing_asset_uploaded quando o envio é barrado pela sessão",
     "mantém o upload da sessão atual disponível para selecionar",
     "não restaura anexos da sessão anterior após renovar a mesma conta",
     "mantém arquivo antigo não verificado indisponível para seleção, mas permite removê-lo"
@@ -30222,7 +30310,7 @@
   },
   "src/components/BriefingAssetUploader.tsx": {
    "path": "src/components/BriefingAssetUploader.tsx",
-   "lines": 146,
+   "lines": 148,
    "exports": [
     "function BriefingAssetUploader"
    ]
@@ -30332,16 +30420,19 @@
   },
   "src/components/ConversationForm.test.tsx": {
    "path": "src/components/ConversationForm.test.tsx",
-   "lines": 34,
+   "lines": 79,
    "is_test": true,
    "tests": [
     "formulário de conversa",
-    "congela os dados enquanto o envio está em andamento para não apagar edições tardias"
+    "congela os dados enquanto o envio está em andamento para não apagar edições tardias",
+    "registra contact_submitted no canal do formulário quando a API aceita",
+    "registra rascunho de e-mail, e não contato enviado, quando o envio cai no fallback",
+    "não registra contact_submitted quando o envio falha"
    ]
   },
   "src/components/ConversationForm.tsx": {
    "path": "src/components/ConversationForm.tsx",
-   "lines": 146,
+   "lines": 152,
    "exports": [
     "function ConversationForm"
    ],
@@ -30479,10 +30570,12 @@
   },
   "src/components/QuoteDrawer.test.tsx": {
    "path": "src/components/QuoteDrawer.test.tsx",
-   "lines": 42,
+   "lines": 64,
    "is_test": true,
    "tests": [
     "QuoteDrawer",
+    "registra a remoção de um item com a contagem restante",
+    "registra a limpeza da seleção somente depois da confirmação",
     "deixa substituir a quantidade inteira antes de aplicar o mínimo no blur"
    ]
   },
@@ -30636,7 +30729,7 @@
   },
   "src/context/QuoteCartContext.tsx": {
    "path": "src/context/QuoteCartContext.tsx",
-   "lines": 171,
+   "lines": 175,
    "exports": [
     "function QuoteCartProvider"
    ],
@@ -30930,7 +31023,7 @@
   },
   "src/lib/analytics.test.ts": {
    "path": "src/lib/analytics.test.ts",
-   "lines": 73,
+   "lines": 92,
    "is_test": true,
    "tests": [
     "instrumentação segura",
@@ -30940,17 +31033,22 @@
     "emite somente propriedades agregadas do contrato fechado",
     "mede o conteudo editorial sem vazar a URL da curadoria",
     "mede a biblioteca sem enviar o texto pesquisado",
-    "mede a área do cliente sem enviar identidade ou protocolo"
+    "mede a área do cliente sem enviar identidade ou protocolo",
+    "eventos de selecao e link compartilhado",
+    "nao deixa passar propriedade fora da allowlist nos eventos novos",
+    "faixa de tamanho do anexo",
+    "agrupa o byte em faixas para nao virar identificador do arquivo"
    ]
   },
   "src/lib/analytics.ts": {
    "path": "src/lib/analytics.ts",
-   "lines": 133,
+   "lines": 151,
    "exports": [
     "interface FunnelEventMap",
     "function redactAnalyticsPathname",
     "function redactTelemetryUrl",
     "function redactAnalyticsUrl",
+    "function briefingAssetSizeBand",
     "function trackFunnelEvent"
    ],
    "status_values": [
@@ -30959,6 +31057,9 @@
      "value": "occasion",
      "kind": "escreve"
     }
+   ],
+   "rule_comments": [
+    "Faixa de tamanho, nunca o byte exato: o evento nao deve virar identificador"
    ]
   },
   "src/lib/briefingAssets.test.ts": {
@@ -32453,20 +32554,27 @@
   },
   "src/lib/useCatalogPageState.test.tsx": {
    "path": "src/lib/useCatalogPageState.test.tsx",
-   "lines": 94,
+   "lines": 138,
    "is_test": true,
+   "rule_comments": [
+    "`has_query` da busca nova não pode ser combinado com o total da busca antiga."
+   ],
    "tests": [
     "useCatalogPageState",
     "preserva a resposta da API quando a ordem explícita é %s",
     "aplica curadoria somente quando ela é a ordem escolhida",
     "sincroniza o contexto da campanha a partir da URL",
     "preserva o contexto do carrinho na montagem sem recorte de campanha ativo",
+    "marca a visualizacao do catalogo como originada de busca quando ha termo",
+    "marca a visualizacao como navegacao quando nao ha termo de busca",
+    "marca a busca por SKU exato como busca, e não como navegação",
+    "nao registra visualizacao enquanto a consulta ainda descreve a busca anterior",
     "limpa o contexto do carrinho ao remover o último filtro de campanha na sessão"
    ]
   },
   "src/lib/useCatalogPageState.ts": {
    "path": "src/lib/useCatalogPageState.ts",
-   "lines": 323,
+   "lines": 328,
    "exports": [
     "function useCatalogPageState"
    ],
@@ -33023,9 +33131,19 @@
     }
    ]
   },
+  "src/pages/SharedSelectionPage.test.tsx": {
+   "path": "src/pages/SharedSelectionPage.test.tsx",
+   "lines": 53,
+   "is_test": true,
+   "tests": [
+    "SharedSelectionPage telemetria",
+    "registra a abertura do link compartilhado com a contagem de itens",
+    "nao registra a abertura quando a consulta falha"
+   ]
+  },
   "src/pages/SharedSelectionPage.tsx": {
    "path": "src/pages/SharedSelectionPage.tsx",
-   "lines": 199,
+   "lines": 208,
    "exports": [
     "function SharedSelectionPage"
    ],
@@ -34280,10 +34398,34 @@
   }
  },
  "git": {
-  "sha": "d7f09b6efa0369e042cbd4c8dc8896b42358f718",
+  "sha": "ec7e478a8d86b5229fb6d8f0dd9006abccb116f9",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "ec7e478",
+    "date": "2026-11-22",
+    "author": "adm01-debug",
+    "subject": "feat: eventos de funil de contato, upload, remoção e link compartilhado (F-100/PF-120) (#228)",
+    "files": [
+     "analise-prs/funcionalidades.csv",
+     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
+     "scripts/check-performance-budget.mjs",
+     "src/components/BriefingAssetUploader.test.tsx",
+     "src/components/BriefingAssetUploader.tsx",
+     "src/components/ConversationForm.test.tsx",
+     "src/components/ConversationForm.tsx",
+     "src/components/QuoteDrawer.test.tsx",
+     "src/context/QuoteCartContext.tsx",
+     "src/lib/analytics.test.ts",
+     "src/lib/analytics.ts",
+     "src/lib/useCatalogPageState.test.tsx",
+     "src/lib/useCatalogPageState.ts",
+     "src/pages/SharedSelectionPage.test.tsx",
+     "src/pages/SharedSelectionPage.tsx",
+     "tests/check-performance-budget.node.mjs"
+    ]
+   },
    {
     "sha": "d7f09b6",
     "date": "2026-11-22",
@@ -34620,41 +34762,39 @@
      "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
      "vite.config.ts"
     ]
-   },
-   {
-    "sha": "b06b1e5",
-    "date": "2026-11-17",
-    "author": "adm01-debug",
-    "subject": "fix(graphify): scanner de segredos passa a cobrir os formatos que este projeto usa (#194)",
-    "files": [
-     "scripts/graphify.mjs",
-     "tests/graphify-tools.node.mjs"
-    ]
    }
   ],
   "hot_files": [
+   [
+    "analise-prs/funcionalidades.csv",
+    5
+   ],
    [
     "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
     5
    ],
    [
-    "analise-prs/funcionalidades.csv",
+    "scripts/check-performance-budget.mjs",
     4
    ],
    [
-    "scripts/check-performance-budget.mjs",
-    3
-   ],
-   [
     "src/lib/useCatalogPageState.ts",
-    3
+    4
    ],
    [
     "tests/check-performance-budget.node.mjs",
-    3
+    4
    ],
    [
     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
+    3
+   ],
+   [
+    "src/lib/analytics.ts",
+    3
+   ],
+   [
+    "src/lib/useCatalogPageState.test.tsx",
     2
    ],
    [
@@ -34686,10 +34826,6 @@
     2
    ],
    [
-    "src/lib/analytics.ts",
-    2
-   ],
-   [
     "docs/pendencias/_linha-de-base.md",
     2
    ],
@@ -34698,19 +34834,15 @@
     2
    ],
    [
-    "scripts/graphify.mjs",
-    2
-   ],
-   [
-    "tests/graphify-tools.node.mjs",
-    2
-   ],
-   [
-    ".env.example",
+    "src/components/BriefingAssetUploader.test.tsx",
     1
    ],
    [
-    "src/components/Layout.tsx",
+    "src/components/BriefingAssetUploader.tsx",
+    1
+   ],
+   [
+    "src/components/ConversationForm.test.tsx",
     1
    ]
   ]

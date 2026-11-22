@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `d7f09b6efa` · branch `main` · 2026-11-22 05:11 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `ec7e478a8d` · branch `main` · 2026-11-22 05:54 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -1057,7 +1057,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1737 testes em 137 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1755 testes em 138 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1107,6 +1107,7 @@ _nenhum item encontrado_
 | `tests/api/webhookSignature.test.ts` | 13 | verifySvixSignature (Etapa 30, Resend) · aceita uma assinatura válida · aceita quando o header traz múltiplas assinaturas e uma delas bate (rotação de segredo) · rejeita corpo adulterado … |
 | `site-supabase/supabase/tests/database/admin_write_audit.test.sql` | 12 | anon não lê a trilha de auditoria · authenticated não lê a trilha de auditoria · site_api não lê a própria trilha de auditoria (não precisa para operar) · service_role lê a trilha de auditoria … |
 | `site-supabase/supabase/tests/database/kit_persistence_guards.test.sql` | 12 | guarda estrutural de kits existe no schema privado · rascunho valida kits no insert · rascunho valida kits no update · link compartilhado valida kits no insert … |
+| `src/lib/analytics.test.ts` | 12 | instrumentação segura · remove query string e fragmento antes de enviar pageview · normaliza identificadores da área privada antes do pageview · aplica a mesma minimização de URL aos eventos de desempenho … |
 | `src/lib/search.test.ts` | 12 | busca assistida · normaliza acentos, caixa e espaços sem transportar operadores · expande sinônimos como alternativas da mesma dimensão · descarta linguagem de preço e contexto quando há um objeto pesquisável … |
 | `site-supabase/supabase/tests/database/adjustment_limits.test.sql` | 11 | limite de pendências serializa transações concorrentes no mesmo orçamento · primeiro pedido é criado · replay idempotente devolve o mesmo pedido · replay não duplica a linha … |
 | `site-supabase/supabase/tests/database/query_plans.test.sql` | 11 | consulta de reivindicação da fila não usa Seq Scan em notification_deliveries com distribuição de regime permanente (Etapa 17) · recuperação de leases expiradas usa acesso indexado · reconciliação de webhook pelo identificador do provedor usa acesso indexado · histórico do cliente usa acesso indexado por titular e data … |
@@ -1114,6 +1115,7 @@ _nenhum item encontrado_
 | `tests/validate-error-catalog.node.mjs` | 11 | extrai mensagens literais (message = \ · extrai o prefixo de mensagens via format() (message = format(\ · ignora texto solto que não segue nenhum dos dois padrões (acentos/espaços quebram o casamento) · acusa mensagem de migration que não está no catálogo … |
 | `site-supabase/supabase/tests/database/notification_dispatch_uncertainty.test.sql` | 10 | anon não marca intenção de disparo · worker limitado pode marcar a intenção antes de chamar a Meta · orçamento com opt-in WhatsApp é criado · worker reivindica o WhatsApp … |
 | `src/components/ProductDescription.test.tsx` | 10 | descrição compacta e segura do produto · preserva texto curto sem exigir expansão · usa o resumo editorial no estado compacto e revela a descrição integral · limita um resumo longo antes de revelar a descrição integral … |
+| `src/lib/useCatalogPageState.test.tsx` | 10 | useCatalogPageState · preserva a resposta da API quando a ordem explícita é %s · aplica curadoria somente quando ela é a ordem escolhida · sincroniza o contexto da campanha a partir da URL … |
 | `tests/generate-site-api-jwt.node.mjs` | 10 | falha com mensagem clara quando SITE_SUPABASE_JWT_SECRET não está definido · gera um JWT HS256 válido com role:site_api, verificável com o mesmo segredo (nunca um segredo real: fixture de teste) · permite TTL explícito apenas dentro do teto operacional de 90 dias · segredos diferentes produzem assinaturas diferentes para o mesmo payload (não é uma constante disfarçada) … |
 | `tests/validate-env-example.node.mjs` | 10 | extrai só nomes em maiúsculas de process.env · acusa variável lida por api/ e ausente do exemplo · variável citada apenas em comentário conta como documentada · prefixo igual não cobre nome mais longo … |
 | `tests/api/shared-selections.test.ts` | 10 | links persistentes de seleção · cria link opaco, sem dados de produto ou contato no banco público · preserva a composição do kit e rejeita aritmética adulterada · preserva alternativas no envio e na leitura, sem incluir campos privados … |
@@ -1128,13 +1130,13 @@ _nenhum item encontrado_
 | `tests/stage-app-shell.node.mjs` | 9 | copia o HTML do build byte a byte e não deixa arquivo temporário · aceita as variações de marcação que a função serverless aceita · reprova build sem root ou sem script de /assets e não grava o destino · reprova página de proteção da Vercel, que a função recusaria com 503 … |
 | `tests/api/customer-proposals.test.ts` | 9 | download autenticado de propostas · assina por 60 segundos somente o documento autorizado pelo RPC · usa o JWT limitado no RPC e a credencial de Storage somente para a assinatura · rejeita origem, sessão e identificador inválidos antes do banco … |
 | `e2e/product-detail.spec.ts` | 8 | ficha compacta reúne seleção e especificações ao lado da galeria no desktop · galeria permite todas as fotos, volta ao início e amplia com foco contido · descrição completa formata marcadores sem perder conteúdo nem esconder especificações · cor e quantidade seguem para o orçamento, sem preço ou bloqueio por estoque … |
-| `src/lib/analytics.test.ts` | 8 | instrumentação segura · remove query string e fragmento antes de enviar pageview · normaliza identificadores da área privada antes do pageview · aplica a mesma minimização de URL aos eventos de desempenho … |
 | `tests/inventario-banco-sql.node.mjs` | 8 | banco.sql roda inteiro em transação somente leitura e passa na prova de origem · banco.sql: a transação somente leitura barra escrita, e a consulta não muda nada no banco · banco.sql: fila travada conta só o que ainda vai ser tentado; erro sai como código, nunca como texto · banco.sql: pg_cron sai com nome estável, só o nome das funções chamadas e as contas certas … |
 | `tests/validate-site-supabase-target.node.mjs` | 8 | aprova somente o projeto isolado do site, com código 0 e o ref em stdout · independe do diretório de onde é chamado · bloqueia o catálogo canônico e diz como refazer o vínculo · bloqueia qualquer conteúdo que não seja exatamente o ref do site … |
 | `tests/api/site-page.test.ts` | 8 | HTML inicial das páginas estáticas · entrega metadados específicos para catálogo e não indexa o detalhe privado · preserva 404 real para uma landing editorial desconhecida · serve para cada landing o mesmo título que o React grava depois da hidratação … |
 | `tests/api/sitemap.test.ts` | 8 | sitemap público · nunca ultrapassa 50 mil URLs incluindo páginas estáticas · mantém o ano das datas no fuso editorial durante a virada UTC · prioriza o host público configurado e remove a barra final … |
 | `site-supabase/supabase/tests/database/default_privileges.test.sql` | 7 | anon não recebe nenhum privilégio implícito em futura tabela pública · authenticated não recebe nenhum privilégio implícito em futura tabela pública · anon não recebe privilégio implícito em futura sequência pública · authenticated não recebe privilégio implícito em futura sequência pública … |
 | `site-supabase/supabase/tests/database/storage_tuning.test.sql` | 7 | rate_limit_buckets é UNLOGGED (Etapa 30) · shared_selection_rate_limits é UNLOGGED (Etapa 30) · notification_deliveries continua persistente (não é efêmera como as tabelas de rate limit) · notification_deliveries tem fillfactor 80 (Etapa 40, espaço para HOT updates) … |
+| `src/components/BriefingAssetUploader.test.tsx` | 7 | privacidade de anexos durante troca de sessão · ignora upload da sessão anterior após %s · registra briefing_asset_uploaded com faixa de tamanho, nunca o byte exato · não registra briefing_asset_uploaded quando o envio é barrado pela sessão … |
 | `src/lib/commemorativeDates.test.ts` | 7 | commemorativeDates · calcula datas móveis brasileiras sem depender do fuso do navegador · mantém todas as ocasiões ordenadas e com identificadores únicos · filtra por mês, público e busca sem exigir acentos … |
 | `src/lib/contactRequest.test.ts` | 7 | contato rápido · separa o consentimento do contato e registra sua versão · não transmite query ou fragmento da página de contato · prepara fallback de e-mail sem depender de infraestrutura … |
 | `src/lib/kitBuilder.test.ts` | 7 | composição de kits · permite omitir extras, mas exige os dois componentes obrigatórios · recusa estouro de unidades sem degradar o kit para itens avulsos · calcula o mínimo pelo componente mais restritivo … |
@@ -1148,9 +1150,8 @@ _nenhum item encontrado_
 | `src/lib/customerOccasionFavorites.test.ts` | 6 | favoritos de datas na conta · lê apenas IDs editoriais e elimina duplicidades · normaliza a escrita e exige confirmação idempotente do servidor · rejeita payloads e identificadores que não podem representar uma data editorial … |
 | `src/lib/customerSelections.test.ts` | 6 | seleções privadas da conta · envia somente referências públicas e preserva o grupo alternativo · preserva o nome da cor quando o catálogo não fornece variantId · lista, cria e atualiza usando a versão recebida do servidor … |
 | `src/lib/quoteBriefing.test.ts` | 6 | contexto opcional do briefing · preserva apenas escolhas reconhecidas e texto limitado · descarta briefing vazio ou valores manipulados · gera um resumo humano para e-mail e área do cliente … |
-| `src/lib/useCatalogPageState.test.tsx` | 6 | useCatalogPageState · preserva a resposta da API quando a ordem explícita é %s · aplica curadoria somente quando ela é a ordem escolhida · sincroniza o contexto da campanha a partir da URL … |
 | `site-supabase/supabase/tests/database/shared_selection_priorities.test.sql` | 5 | criar e ler preserva prioridade alternativa · referência sem prioridade continua compatível como principal · recusa prioridade desconhecida · recusa null explícito … |
-| `src/components/BriefingAssetUploader.test.tsx` | 5 | privacidade de anexos durante troca de sessão · ignora upload da sessão anterior após %s · mantém o upload da sessão atual disponível para selecionar · não restaura anexos da sessão anterior após renovar a mesma conta … |
+| `src/components/ConversationForm.test.tsx` | 5 | formulário de conversa · congela os dados enquanto o envio está em andamento para não apagar edições tardias · registra contact_submitted no canal do formulário quando a API aceita · registra rascunho de e-mail, e não contato enviado, quando o envio cai no fallback … |
 | `src/components/SavedSelections.test.tsx` | 5 | seleções salvas na Área do Cliente · mostra as seleções sem copiar automaticamente o carrinho para a conta · exige confirmação antes de substituir o carrinho e preserva a seleção ao cancelar · compara conflito entre dispositivos e permite preservar as duas versões … |
 | `src/lib/customerAccount.rpc.test.ts` | 5 | RPCs da Área do Cliente · aceita somente o contrato de leitura esperado para o histórico · não mascara JSON malformado como um histórico vazio · rejeita detalhe e confirmação de ajuste com identificadores ou datas inválidas … |
 | `src/lib/customerAccount.test.ts` | 5 | contrato da Área do Cliente · traduz somente estados operacionais reais · aceita retorno apenas para dentro da Área do Cliente · distingue a versão mais recente de uma proposta ainda válida … |
@@ -1162,6 +1163,7 @@ _nenhum item encontrado_
 | `tests/api/catalog-validation.test.ts` | 5 | reconcileQuoteItems · reconcilia a cor legada pelo nome e a converte para o ID canônico publicado · não aceita uma cor legada que não está mais publicada · reconcilia swatch público sem variant_id por nome inequívoco … |
 | `tests/api/product-page-alert.test.ts` | 5 | alerta de queda do catálogo público · avisa o canal operacional quando o catálogo cai, em vez de só mostrar 503 ao visitante · entrega que falha não compra os cinco minutos de silêncio · duas visitas simultâneas na mesma instância geram um único alerta … |
 | `tests/scripts/release-workflow.test.ts` | 5 | workflow de release Vercel · valida Web Analytics no candidato sem chamar endpoint privado de configuração · faz smoke do candidato antes de promover e mantém rollback pós-promoção · sincroniza, verifica e testa o alias git-main depois da promoção … |
+| `src/components/QuoteDrawer.test.tsx` | 4 | QuoteDrawer · registra a remoção de um item com a contagem restante · registra a limpeza da seleção somente depois da confirmação · deixa substituir a quantidade inteira antes de aplicar o mínimo no blur |
 | `src/lib/briefingAssets.test.ts` | 4 | arquivos privados do briefing · aceita somente os formatos publicados dentro de 10 MB · recusa arquivos vazios e nomes maiores que o contrato do banco · revoga o metadado e delega a remoção física à fila protegida |
 | `src/lib/customerQuoteContract.test.ts` | 4 | contrato runtime do histórico de orçamentos · aceita o formato público da RPC e remove somente imagens opcionais inseguras · rejeita status, identificadores e quantidades fora do contrato em vez de renderizar JSON arbitrário · mantém campanha e briefing legados opacos até a normalização de consumo, sem relaxar o snapshot de produtos |
 | `src/lib/productBadges.test.ts` | 4 | badges de produto · replica a janela de 30 dias do Promo Gifts sem aceitar datas futuras · prioriza is_kit e usa categoria ou prefixo somente como fallback legado · resolve exatamente um badge na ordem Novidade, Kit e Sua marca aqui |
@@ -1181,6 +1183,7 @@ _nenhum item encontrado_
 | `src/lib/searchRelevance.test.ts` | 3 | baseline editorial de relevância · mantém cobertura integral do corpus versionado · expõe falhas em vez de arredondar a métrica |
 | `src/lib/useInitialSuccessScroll.test.tsx` | 3 | rolagem inicial da confirmação · reposiciona apenas na entrada do sucesso, não em atualizações posteriores · respeita a interação %s antes das tentativas atrasadas |
 | `src/pages/QuotePage.test.ts` | 3 | data mínima do briefing · usa o calendário comercial brasileiro em vez de converter o instante para UTC · permanece no dia de São Paulo durante a virada UTC |
+| `src/pages/SharedSelectionPage.test.tsx` | 3 | SharedSelectionPage telemetria · registra a abertura do link compartilhado com a contagem de itens · nao registra a abertura quando a consulta falha |
 | `tests/orphan-refs.node.mjs` | 3 | aponta só o blob que não está na main nem na linha de base · linha de base ausente não é erro; inválida falha com a causa · a linha de base versionada tem veredito legível em toda entrada |
 | `tests/queue-concurrency.node.mjs` | 3 | duas reivindicações concorrentes da fila obtêm conjuntos disjuntos de jobs · recuperação de lease expirada: duas conexões disputam o MESMO job preso, só uma vence · exhausted sob concorrência: duas conexões terminalizam o mesmo job preso, nenhuma o reivindica como novo |
 | `tests/verify-shared-selection-contract.node.mjs` | 3 | o ensaio é transacional, com timeouts, e termina em rollback sem commit · cada RPC é chamada com a aridade definida na migration mais recente · o leitor de argumentos não se confunde com vírgulas e parênteses dentro de chamadas aninhadas e strings |
@@ -1194,8 +1197,6 @@ _nenhum item encontrado_
 | `site-supabase/supabase/tests/database/function_catalog_hygiene.test.sql` | 2 | nenhuma função pública tem duas assinaturas simultâneas (nenhum drop esquecido numa mudança de assinatura) · idem para site_private |
 | `src/components/AppErrorBoundary.test.tsx` | 2 | recuperação global da interface · mostra uma recuperação compreensível quando um componente falha |
 | `src/components/CatalogFeedback.test.tsx` | 2 | ProductGridSkeleton · anuncia o carregamento com um papel ARIA compatível |
-| `src/components/ConversationForm.test.tsx` | 2 | formulário de conversa · congela os dados enquanto o envio está em andamento para não apagar edições tardias |
-| `src/components/QuoteDrawer.test.tsx` | 2 | QuoteDrawer · deixa substituir a quantidade inteira antes de aplicar o mínimo no blur |
 | `src/pages/CustomerLoginPage.test.tsx` | 2 | redirects da Área do Cliente · mantém links de autenticação na origem pública canônica |
 | `tests/timing-safe-secret-comparisons.node.mjs` | 2 | nenhuma comparação de segredo em api/ usa === fora dos helpers timing-safe estabelecidos · a heurística do teste acima realmente detecta uma comparação insegura (não é sempre-verde) |
 
@@ -1270,6 +1271,7 @@ _nenhum item encontrado_
 | pessoa e não deve apagar seu rascunho. Depois dela, toda mudança de | `src/context/CustomerAuthContext.tsx` |
 | mas a falha não pode desaparecer sem telemetria (Etapa 39). | `src/context/CustomerAuthContext.tsx` |
 | Private browsing or a full storage quota must not block the quote journey. | `src/context/QuoteCartContext.tsx` |
+| Faixa de tamanho, nunca o byte exato: o evento nao deve virar identificador | `src/lib/analytics.ts` |
 | compensatória não deve esconder o erro original do upload. | `src/lib/briefingAssets.ts` |
 | A reserva expira automaticamente; esta limpeza é apenas compensatória. | `src/lib/briefingAssets.ts` |
 | compartilhando a mesma regra de resolveCampaignFilters. Evita atribuir a | `src/lib/campaignPresets.ts` |

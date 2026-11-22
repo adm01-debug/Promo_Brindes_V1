@@ -183,6 +183,7 @@
   ],
   "src/components/BriefingAssetUploader.tsx": [
    "src/context/customerAuth.ts",
+   "src/lib/analytics.ts",
    "src/lib/briefingAssets.ts"
   ],
   "src/components/CampaignFinder.tsx": [
@@ -201,6 +202,7 @@
    "src/lib/analytics.ts"
   ],
   "src/components/ConversationForm.tsx": [
+   "src/lib/analytics.ts",
    "src/lib/contactRequest.ts",
    "src/lib/http.ts",
    "src/types.ts"
@@ -585,6 +587,7 @@
   "src/pages/SharedSelectionPage.tsx": [
    "src/components/Seo.tsx",
    "src/context/quoteCart.ts",
+   "src/lib/analytics.ts",
    "src/lib/catalog.ts",
    "src/lib/sharedSelection.ts",
    "src/lib/siteFeatureFlags.ts",

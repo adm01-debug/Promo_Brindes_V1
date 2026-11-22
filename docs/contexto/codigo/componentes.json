@@ -39,7 +39,7 @@
     "BriefingAssetUploader"
    ],
    "export_default": null,
-   "linhas": 146,
+   "linhas": 148,
    "dominio": "components",
    "hooks_locais": [
     "useCustomerAuth"
@@ -127,7 +127,7 @@
     "ConversationForm"
    ],
    "export_default": null,
-   "linhas": 146,
+   "linhas": 152,
    "dominio": "components",
    "hooks_locais": [],
    "tabelas": [],
@@ -321,7 +321,7 @@
     "QuoteCartProvider"
    ],
    "export_default": null,
-   "linhas": 171,
+   "linhas": 175,
    "dominio": "context",
    "hooks_locais": [],
    "tabelas": [],
@@ -609,7 +609,7 @@
     "SharedSelectionPage"
    ],
    "export_default": "SharedSelectionPage",
-   "linhas": 199,
+   "linhas": 208,
    "dominio": "pages",
    "hooks_locais": [
     "useQuoteCart"

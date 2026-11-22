@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "d7f09b6efa0369e042cbd4c8dc8896b42358f718",
+  "commit": "ec7e478a8d86b5229fb6d8f0dd9006abccb116f9",
   "branch": "main",
-  "data_commit": "2026-11-22T05:11:23Z",
+  "data_commit": "2026-11-22T05:54:33Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "ec7e478",
+    "data": "2026-11-22",
+    "assunto": "feat: eventos de funil de contato, upload, remoção e link compartilhado (F-100/PF-120) (#228)"
+   },
    {
     "sha": "d7f09b6",
     "data": "2026-11-22",
@@ -126,14 +131,9 @@
     "sha": "ab6ea69",
     "data": "2026-11-18",
     "assunto": "infra(graphify): cria o requirements-graphify.in que o comentario citava e nao existia (#197)"
-   },
-   {
-    "sha": "e82b4d9",
-    "data": "2026-11-18",
-    "assunto": "fix(contrato): 401 transitório da camada Auth deixa de reprovar o contrato do catálogo (#202)"
    }
   ],
-  "arquivos_mudados_7d": 156,
+  "arquivos_mudados_7d": 164,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -156,6 +156,10 @@
     "mudancas": 9
    },
    {
+    "pasta": "analise-prs/funcionalidades.csv",
+    "mudancas": 9
+   },
+   {
     "pasta": "docs/audits/planejado-x-implementado-20261120",
     "mudancas": 9
    },
@@ -168,15 +172,11 @@
     "mudancas": 8
    },
    {
-    "pasta": "analise-prs/funcionalidades.csv",
-    "mudancas": 8
+    "pasta": "scripts/check-performance-budget.mjs",
+    "mudancas": 7
    },
    {
     "pasta": "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
-    "mudancas": 6
-   },
-   {
-    "pasta": "scripts/check-performance-budget.mjs",
     "mudancas": 6
    },
    {
@@ -278,11 +278,11 @@
     "mudancas": 17
    },
    {
-    "arquivo": ".github/workflows/graphify.yml",
-    "mudancas": 16
+    "arquivo": "src/lib/analytics.ts",
+    "mudancas": 17
    },
    {
-    "arquivo": "src/lib/analytics.ts",
+    "arquivo": ".github/workflows/graphify.yml",
     "mudancas": 16
    },
    {
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 106
+    "commits": 107
    },
    {
     "autor": "dependabot[bot]",
@@ -310,9 +310,9 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 724,
-  "arquivos_codigo": 289,
-  "linhas_codigo": 56814,
+  "arquivos_total": 725,
+  "arquivos_codigo": 290,
+  "linhas_codigo": 57079,
   "rotas": 32,
   "rotas_http_backend": 14,
   "vistas_por_id": 0,
@@ -324,7 +324,7 @@
   "tabelas": 23,
   "migrations": 70,
   "cron_jobs": 0,
-  "testes": 146,
+  "testes": 147,
   "workflows": 15,
   "scripts": 37,
   "docs_md": 134
@@ -456,7 +456,7 @@
   },
   "scripts/check-performance-budget.mjs": {
    "arquivos": 1,
-   "linhas": 166
+   "linhas": 177
   },
   "scripts/ci-health-metrics.mjs": {
    "arquivos": 1,
@@ -572,23 +572,23 @@
   },
   "src/components": {
    "arquivos": 29,
-   "linhas": 3262
+   "linhas": 3364
   },
   "src/context": {
    "arquivos": 7,
-   "linhas": 749
+   "linhas": 753
   },
   "src/lib": {
    "arquivos": 82,
-   "linhas": 8232
+   "linhas": 8318
   },
   "src/main.tsx": {
    "arquivos": 1,
    "linhas": 10
   },
   "src/pages": {
-   "arquivos": 24,
-   "linhas": 3521
+   "arquivos": 25,
+   "linhas": 3583
   },
   "src/test": {
    "arquivos": 1,
@@ -793,12 +793,12 @@
    "linhas": 336
   },
   {
-   "arquivo": "src/lib/sharedSelection.ts",
-   "linhas": 327
+   "arquivo": "src/lib/useCatalogPageState.ts",
+   "linhas": 328
   },
   {
-   "arquivo": "src/lib/useCatalogPageState.ts",
-   "linhas": 323
+   "arquivo": "src/lib/sharedSelection.ts",
+   "linhas": 327
   },
   {
    "arquivo": "src/pages/CatalogsPage.tsx",

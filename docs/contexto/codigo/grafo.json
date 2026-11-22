@@ -2,7 +2,7 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "nos": 173,
- "arestas": 372,
+ "arestas": 375,
  "hubs": [
   {
    "arquivo": "src/types.ts",
@@ -10,7 +10,7 @@
   },
   {
    "arquivo": "src/lib/analytics.ts",
-   "importado_por": 21
+   "importado_por": 28
   },
   {
    "arquivo": "src/components/Seo.tsx",

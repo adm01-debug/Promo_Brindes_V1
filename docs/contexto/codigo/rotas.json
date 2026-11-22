@@ -1070,6 +1070,7 @@
     "useEffect",
     "useMemo",
     "useQuoteCart",
+    "useRef",
     "useSearchParams",
     "useState"
    ],
@@ -1088,7 +1089,7 @@
    "papeis": [
     "anon"
    ],
-   "arquivos_puxados": 11
+   "arquivos_puxados": 12
   },
   {
    "protegida": false,
