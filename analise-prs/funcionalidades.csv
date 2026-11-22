@@ -1,4 +1,4 @@
-﻿id,funcionalidade,descricao,estado,completude_pct,prs_relacionadas,achado_auditoria,prioridade
+id,funcionalidade,descricao,estado,completude_pct,prs_relacionadas,achado_auditoria,prioridade
 F-01,Encaminhar lead ao time comercial,Outbox audience=commercial_team + adaptador de destino (CRM/e-mail/WhatsApp interno),BLOQUEADA,90,#158,Fila integra (commercialTeamAlerts+vercel.json cron */5); falta somente COMMERCIAL_TEAM_WEBHOOK_URL/_TOKEN em producao,P1
 F-02,Responsavel estados e SLA por pedido,Colunas responsavel/prazo em quote_requests + tela de sucesso com prazo,BLOQUEADA,0,,PF-02,P2
 F-03,Back-office minimo,Publicar proposta mudar status triar ajustes via UI,NÃO INICIADO,0,,PF-03,P1
