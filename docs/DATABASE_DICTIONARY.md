@@ -221,6 +221,8 @@ Deduplicação de eventos de webhook de entrega/devolução (Etapa 30). Sem cont
 | `event_type` | `text` | — |
 | `delivery_id` | `uuid` | — |
 | `received_at` | `timestamp with time zone` | — |
+| `provider_message_id` | `text` | F-12: id da mensagem no provedor, preservado no evento para o re-vínculo de evento que chegou antes do aceite. Eventos anteriores a esta migration não têm o valor e só podem ser expurgados. |
+| `bounce_reason` | `text` | F-12: motivo do bounce tal como o webhook enviou, preservado no evento para o re-vínculo (antes só existia em notification_deliveries, o que exigia a entrega já vinculada). |
 
 ### `site_private.proposal_documents`
 
@@ -396,7 +398,7 @@ Trilha do exercicio dos direitos do titular (LGPD art. 18) na Area do Cliente: a
 
 | Função | Argumentos | Comentário |
 |---|---|---|
-| `apply_site_notification_provider_event` | `p_provider text, p_provider_message_id text, p_event_type text, p_provider_event_id text, p_occurred_at timestamp with time zone, p_bounce_reason text` | Aplica evento de webhook de forma idempotente (Etapa 30 do plano anterior). delivered só grava se delivery_state ainda for null; bounced grava se null OU se o estado atual for delivered — um bounce tardio corrige um delivered otimista (Etapa 20 do plano de correções). complained é independente e idempotente via coalesce. |
+| `apply_site_notification_provider_event` | `p_provider text, p_provider_message_id text, p_event_type text, p_provider_event_id text, p_occurred_at timestamp with time zone, p_bounce_reason text` | Aplica evento de webhook de forma idempotente. delivered só grava se delivery_state ainda for null; bounced grava se null OU se o estado atual for delivered (bounce tardio corrige delivered otimista). complained é independente e idempotente via coalesce. F-12: o evento também guarda provider_message_id e bounce_reason, para o re-vínculo de evento precoce. |
 | `attach_my_briefing_assets_to_quote` | `p_request_id uuid, p_asset_ids uuid[]` | — |
 | `can_delete_my_unverified_briefing_asset_path` | `p_path text` | Permite limpeza direta somente antes da verificação; depois dela a exclusão ocorre pela fila server-side. |
 | `check_cron_heartbeats` | `` | Devolve o estado de cada cron do site e se ele esta atrasado segundo o intervalo esperado mais a tolerancia (F-87). |
@@ -427,6 +429,8 @@ Trilha do exercicio dos direitos do titular (LGPD art. 18) na Area do Cliente: a
 | `get_my_quote_request` | `p_request_id uuid` | Retorna detalhe e contexto de curadoria somente ao auth.uid() proprietário, sem metadados operacionais. |
 | `get_my_quote_requests` | `p_limit integer, p_offset integer, p_status text, p_search text` | Lista solicitações do auth.uid() com título de ação, miniaturas e última movimentação visível ao cliente. |
 | `get_site_data_retention_candidates` | `p_batch_size integer` | — |
+| `get_site_notification_delivery_report` | `p_limit integer` | F-12: visão operacional da fila para o back-office — entregas esgotadas com pseudônimo do e-mail (12 hex), se o endereço está suprimido, e contagem/idade dos eventos órfãos. Exige operador ativo. |
+| `get_site_notification_suppression` | `p_email_hash text` | F-12: lista de supressão consultável por sha256 do e-mail normalizado. Diz se o endereço já deu bounce ou reclamou de spam, quando, em quais canais e o último motivo — sem devolver o e-mail em claro. |
 | `get_site_quote_request` | `p_request_id uuid` | Detalhe interno do orçamento para o back-office (F-03), com itens, eventos de ambas as audiências, propostas, ajustes, status permitidos pela state machine e trilha de auditoria. |
 | `get_site_shared_selection` | `p_token uuid, p_identifier_hash text` | — |
 | `list_my_briefing_assets` | `` | — |
@@ -439,11 +443,14 @@ Trilha do exercicio dos direitos do titular (LGPD art. 18) na Area do Cliente: a
 | `publish_site_quote_proposal` | `p_request_id uuid, p_title text, p_storage_path text, p_valid_until date` | Publica uma proposta versionada e move o pedido para quoted (F-03, produtor que faltava para F-23). Exige status in_progress; a versão anterior vira histórica por superseded_at. |
 | `purge_archived_customer_selections` | `p_batch_size integer` | — |
 | `purge_site_admin_audit_logs` | `p_retention_days integer, p_batch_size integer` | Remove em lotes trilhas administrativas além da janela configurada; padrão 400 dias. |
+| `purge_site_notification_provider_events` | `p_retention_days integer, p_batch_size integer` | F-12: expurga eventos de webhook órfãos (delivery_id NULL) mais antigos que a retenção, em lote. Chamada por api/retention.ts depois da reconciliação — órfão recente ainda pode ser religado. |
+| `reconcile_site_notification_provider_events` | `p_batch_size integer` | F-12: religa eventos de webhook que chegaram antes do aceite do provedor (delivery_id NULL) e reaplica delivery_state/complained_at com a mesma precedência de apply_site_notification_provider_event. Idempotente: evento já vinculado nunca é reprocessado. |
 | `record_cron_heartbeat` | `p_name text, p_ok boolean, p_detail text` | Grava o desfecho de uma rodada de cron (F-87). Chamada com a credencial de servico no fim de cada execucao. |
 | `record_site_notification_dispatch_started` | `p_delivery_id uuid, p_lease_token uuid` | Persiste intenção WhatsApp antes da chamada externa; sem confirmação do marcador, a Meta não é chamada. Um envio incerto exige reconciliação humana e nunca é reenviado cegamente. |
 | `record_site_notification_provider_acceptance` | `p_delivery_id uuid, p_lease_token uuid, p_provider text, p_provider_message_id text` | Registra o aceite do provedor antes da finalização, para reconciliação em caso de falha na etapa seguinte (R01, R02). |
 | `reject_site_briefing_asset_verification` | `p_id uuid, p_storage_path text` | Caminho server-side idempotente para remover uma reserva não vinculada cuja verificação de conteúdo falhou; o trigger enfileira a exclusão do blob privado. |
 | `reply_site_quote_adjustment` | `p_adjustment_id uuid, p_response text, p_status text` | Responde a um ajuste pedido pelo cliente (F-03, F-05): move o estado, grava o texto integral na trilha interna e publica a mesma resposta integral como mensagem (event_type message, audience customer) na linha do tempo do cliente. Recusa resposta acima de 500 caracteres com response_too_long em vez de cortar o texto. Trava a linha com FOR UPDATE para não sobrescrever uma resposta concorrente. |
+| `reprocess_site_notification_deliveries` | `p_delivery_ids uuid[], p_reason text` | F-12: porta do back-office para reprocessar entregas esgotadas. Exige operador ativo (assert_site_operator) e motivo de 3 a 200 caracteres; o motivo vai para admin_audit_log junto com o nome do operador. Só aceita entregas de fato esgotadas — as demais voltam em "skipped" sem abortar o lote. |
 | `request_my_quote_adjustment` | `p_request_id uuid, p_message text, p_client_request_id text` | Registra um pedido de ajuste somente para o titular autenticado da solicitação, mantendo o texto no schema privado. |
 | `revoke_site_shared_selection` | `p_token uuid, p_management_token_hash text, p_identifier_hash text` | — |
 | `rls_auto_enable` | `` | Guarda DDL do banco isolado: novas tabelas no schema public nascem com RLS habilitada. Sem EXECUTE para roles da API. |

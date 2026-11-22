@@ -54,6 +54,8 @@ describe('tarefa de retenção', () => {
       if (url.includes('/get_briefing_asset_retention_candidates')) return new Response(JSON.stringify({ objects: [] }), { status: 200 });
       if (url.includes('/finalize_site_storage_retention')) return new Response('{}', { status: 200 });
       if (url.includes('/purge_site_admin_audit_logs')) return new Response('{}', { status: 200 });
+      if (url.includes('/reconcile_site_notification_provider_events')) return new Response(JSON.stringify({ linked: 0, appliedToDeliveryState: 0, unmatched: 0, unmatchedEventIds: [] }), { status: 200 });
+      if (url.includes('/purge_site_notification_provider_events')) return new Response(JSON.stringify({ orphanEventsDeleted: 0 }), { status: 200 });
       if (url === 'https://alertas.test/hook') return new Response(null, { status: 204 });
       return new Response('{}', { status: 500 });
     });
@@ -84,6 +86,8 @@ describe('tarefa de retenção', () => {
       if (url.includes('/get_briefing_asset_retention_candidates')) return new Response(JSON.stringify({ objects: [] }), { status: 200 });
       if (url.includes('/finalize_site_storage_retention')) return new Response('{}', { status: 200 });
       if (url.includes('/purge_site_admin_audit_logs')) return new Response('{}', { status: 200 });
+      if (url.includes('/reconcile_site_notification_provider_events')) return new Response(JSON.stringify({ linked: 0, appliedToDeliveryState: 0, unmatched: 0, unmatchedEventIds: [] }), { status: 200 });
+      if (url.includes('/purge_site_notification_provider_events')) return new Response(JSON.stringify({ orphanEventsDeleted: 0 }), { status: 200 });
       if (url === 'https://alertas.test/hook') return new Response(null, { status: 204 });
       return new Response('{}', { status: 500 });
     });
@@ -105,6 +109,8 @@ describe('tarefa de retenção', () => {
       if (url.includes('/get_briefing_asset_retention_candidates')) return new Response(JSON.stringify({ objects: [] }), { status: 200 });
       if (url.includes('/finalize_site_storage_retention')) return new Response('{}', { status: 200 });
       if (url.includes('/purge_site_admin_audit_logs')) return new Response('{}', { status: 200 });
+      if (url.includes('/reconcile_site_notification_provider_events')) return new Response(JSON.stringify({ linked: 0, appliedToDeliveryState: 0, unmatched: 0, unmatchedEventIds: [] }), { status: 200 });
+      if (url.includes('/purge_site_notification_provider_events')) return new Response(JSON.stringify({ orphanEventsDeleted: 0 }), { status: 200 });
       return new Response('{}', { status: 500 });
     });
     vi.stubGlobal('fetch', fetchMock);
@@ -131,6 +137,8 @@ describe('tarefa de retenção', () => {
       if (url.includes('/get_briefing_asset_retention_candidates')) return new Response(JSON.stringify({ objects: [] }), { status: 200 });
       if (url.includes('/finalize_site_storage_retention')) return new Response('{}', { status: 200 });
       if (url.includes('/purge_site_admin_audit_logs')) return new Response('{}', { status: 200 });
+      if (url.includes('/reconcile_site_notification_provider_events')) return new Response(JSON.stringify({ linked: 0, appliedToDeliveryState: 0, unmatched: 0, unmatchedEventIds: [] }), { status: 200 });
+      if (url.includes('/purge_site_notification_provider_events')) return new Response(JSON.stringify({ orphanEventsDeleted: 0 }), { status: 200 });
       return new Response('{}', { status: 500 });
     });
     vi.stubGlobal('fetch', fetchMock);
@@ -153,6 +161,8 @@ describe('tarefa de retenção', () => {
       if (url.includes('/get_briefing_asset_retention_candidates')) return new Response(JSON.stringify({ objects: [] }), { status: 200 });
       if (url.includes('/finalize_site_storage_retention')) return new Response('{}', { status: 200 });
       if (url.includes('/purge_site_admin_audit_logs')) return new Response(JSON.stringify({ writesDeleted: 999, ddlDeleted: 0 }), { status: 200 });
+      if (url.includes('/reconcile_site_notification_provider_events')) return new Response(JSON.stringify({ linked: 0, appliedToDeliveryState: 0, unmatched: 0, unmatchedEventIds: [] }), { status: 200 });
+      if (url.includes('/purge_site_notification_provider_events')) return new Response(JSON.stringify({ orphanEventsDeleted: 0 }), { status: 200 });
       return new Response('{}', { status: 500 });
     });
     vi.stubGlobal('fetch', fetchMock);
@@ -177,13 +187,15 @@ describe('tarefa de retenção', () => {
       if (url.includes('/get_briefing_asset_retention_candidates')) return new Response(JSON.stringify({ objects: [] }), { status: 200 });
       if (url.includes('/finalize_site_storage_retention')) return new Response('{}', { status: 200 });
       if (url.includes('/purge_site_admin_audit_logs')) return new Response('{}', { status: 200 });
+      if (url.includes('/reconcile_site_notification_provider_events')) return new Response(JSON.stringify({ linked: 0, appliedToDeliveryState: 0, unmatched: 0, unmatchedEventIds: [] }), { status: 200 });
+      if (url.includes('/purge_site_notification_provider_events')) return new Response(JSON.stringify({ orphanEventsDeleted: 0 }), { status: 200 });
       return new Response('{}', { status: 500 });
     });
     vi.stubGlobal('fetch', fetchMock);
     const { result, response } = responseDouble();
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
     expect(result.statusCode).toBe(200);
-    expect(businessCalls(fetchMock)).toHaveLength(7);
+    expect(businessCalls(fetchMock)).toHaveLength(9);
     const [candidatesUrl, candidatesInit] = businessCalls(fetchMock)[0] as [string, RequestInit];
     expect(candidatesUrl).toBe('https://xlzmclcjdncjfdrjxclt.supabase.co/rest/v1/rpc/get_site_data_retention_candidates');
     expect(candidatesInit.headers).toMatchObject({ apikey: expect.stringMatching(/^sb_secret_/) });
@@ -216,6 +228,8 @@ describe('tarefa de retenção', () => {
       if (url.includes('/get_briefing_asset_retention_candidates')) return new Response(JSON.stringify({ objects: [] }), { status: 200 });
       if (url.includes('/finalize_site_storage_retention')) return new Response('{}', { status: 200 });
       if (url.includes('/purge_site_admin_audit_logs')) return new Response('{}', { status: 200 });
+      if (url.includes('/reconcile_site_notification_provider_events')) return new Response(JSON.stringify({ linked: 0, appliedToDeliveryState: 0, unmatched: 0, unmatchedEventIds: [] }), { status: 200 });
+      if (url.includes('/purge_site_notification_provider_events')) return new Response(JSON.stringify({ orphanEventsDeleted: 0 }), { status: 200 });
       return new Response('{}', { status: 500 });
     });
     vi.stubGlobal('fetch', fetchMock);
@@ -339,13 +353,15 @@ describe('tarefa de retenção', () => {
       if (url.includes('/storage/v1/object/customer-briefing-assets')) return new Response('[]', { status: 200 });
       if (url.includes('/finalize_site_storage_retention')) return new Response(JSON.stringify({ assetsDeleted: 1, queueEntriesDeleted: 1 }), { status: 200 });
       if (url.includes('/purge_site_admin_audit_logs')) return new Response('{}', { status: 200 });
+      if (url.includes('/reconcile_site_notification_provider_events')) return new Response(JSON.stringify({ linked: 0, appliedToDeliveryState: 0, unmatched: 0, unmatchedEventIds: [] }), { status: 200 });
+      if (url.includes('/purge_site_notification_provider_events')) return new Response(JSON.stringify({ orphanEventsDeleted: 0 }), { status: 200 });
       return new Response('{}', { status: 500 });
     });
     vi.stubGlobal('fetch', fetchMock);
     const { result, response } = responseDouble();
     await handler(request(`Bearer ${process.env.CRON_SECRET}`), response);
     expect(result.statusCode).toBe(200);
-    expect(businessCalls(fetchMock)).toHaveLength(8);
+    expect(businessCalls(fetchMock)).toHaveLength(10);
     expect(String(businessCalls(fetchMock)[5]?.[0])).toContain('/storage/v1/object/customer-briefing-assets');
     expect((businessCalls(fetchMock)[5]?.[1] as RequestInit).body).toBe('{"prefixes":["cliente/referencia.webp"]}');
     expect(String(businessCalls(fetchMock)[6]?.[0])).toContain('/finalize_site_storage_retention');
@@ -366,6 +382,8 @@ describe('tarefa de retenção', () => {
       if (url.includes('/storage/v1/object/')) return new Response('[]', { status: 200 });
       if (url.includes('/finalize_site_storage_retention')) return new Response(JSON.stringify({ assetsDeleted: 1, queueEntriesDeleted: 2 }), { status: 200 });
       if (url.includes('/purge_site_admin_audit_logs')) return new Response('{}', { status: 200 });
+      if (url.includes('/reconcile_site_notification_provider_events')) return new Response(JSON.stringify({ linked: 0, appliedToDeliveryState: 0, unmatched: 0, unmatchedEventIds: [] }), { status: 200 });
+      if (url.includes('/purge_site_notification_provider_events')) return new Response(JSON.stringify({ orphanEventsDeleted: 0 }), { status: 200 });
       return new Response('{}', { status: 500 });
     });
     vi.stubGlobal('fetch', fetchMock);

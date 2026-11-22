@@ -169,6 +169,14 @@ export type Database = {
         Args: { p_batch_size?: number }
         Returns: Json
       }
+      get_site_notification_delivery_report: {
+        Args: { p_limit?: number }
+        Returns: Json
+      }
+      get_site_notification_suppression: {
+        Args: { p_email_hash: string }
+        Returns: Json
+      }
       get_site_quote_request: { Args: { p_request_id: string }; Returns: Json }
       get_site_shared_selection: {
         Args: { p_identifier_hash: string; p_token: string }
@@ -222,6 +230,14 @@ export type Database = {
         Args: { p_batch_size?: number; p_retention_days?: number }
         Returns: Json
       }
+      purge_site_notification_provider_events: {
+        Args: { p_batch_size?: number; p_retention_days?: number }
+        Returns: Json
+      }
+      reconcile_site_notification_provider_events: {
+        Args: { p_batch_size?: number }
+        Returns: Json
+      }
       record_cron_heartbeat: {
         Args: { p_detail?: string; p_name: string; p_ok: boolean }
         Returns: undefined
@@ -245,6 +261,10 @@ export type Database = {
       }
       reply_site_quote_adjustment: {
         Args: { p_adjustment_id: string; p_response: string; p_status?: string }
+        Returns: Json
+      }
+      reprocess_site_notification_deliveries: {
+        Args: { p_delivery_ids: string[]; p_reason: string }
         Returns: Json
       }
       request_my_quote_adjustment: {
@@ -796,27 +816,33 @@ export type Database = {
       }
       notification_provider_events: {
         Row: {
+          bounce_reason: string | null
           delivery_id: string | null
           event_type: string
           id: string
           provider: string
           provider_event_id: string
+          provider_message_id: string | null
           received_at: string
         }
         Insert: {
+          bounce_reason?: string | null
           delivery_id?: string | null
           event_type: string
           id?: string
           provider: string
           provider_event_id: string
+          provider_message_id?: string | null
           received_at?: string
         }
         Update: {
+          bounce_reason?: string | null
           delivery_id?: string | null
           event_type?: string
           id?: string
           provider?: string
           provider_event_id?: string
+          provider_message_id?: string | null
           received_at?: string
         }
         Relationships: [
@@ -1283,6 +1309,7 @@ export type Database = {
         Returns: undefined
       }
       current_titular_verified_email: { Args: never; Returns: string }
+      email_hash: { Args: { p_email: string }; Returns: string }
       erase_titular_request_metadata: {
         Args: { p_metadata: Json }
         Returns: Json
@@ -1314,6 +1341,10 @@ export type Database = {
       }
       normalize_email: { Args: { p_email: string }; Returns: string }
       normalize_selection_references: { Args: { p_items: Json }; Returns: Json }
+      notification_delivery_is_claimable: {
+        Args: { p_delivery_id: string }
+        Returns: boolean
+      }
       notification_policy: {
         Args: never
         Returns: {
@@ -1324,9 +1355,29 @@ export type Database = {
           retry_cap_seconds: number
         }[]
       }
+      notification_request_erased: {
+        Args: { p_request_id: string; p_request_kind: string }
+        Returns: boolean
+      }
+      notification_request_suppressed: {
+        Args: { p_request_id: string; p_request_kind: string }
+        Returns: boolean
+      }
       quote_notification_payload: {
         Args: { p_delivery_id: string }
         Returns: Json
+      }
+      reprocess_notification_deliveries_core: {
+        Args: {
+          p_actor_label: string
+          p_delivery_ids: string[]
+          p_reason: string
+        }
+        Returns: Json
+      }
+      suppress_notification_delivery: {
+        Args: { p_delivery_id: string }
+        Returns: boolean
       }
     }
     Enums: {

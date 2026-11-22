@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, Clock, FileText, Mail, PackageOpen, RefreshCw, Search, ShieldCheck, Truck, UserRound } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BellRing, Clock, FileText, Mail, PackageOpen, RefreshCw, Search, ShieldAlert, ShieldCheck, Truck, UserRound } from 'lucide-react';
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { CustomerRoute } from '../components/CustomerRoute';
@@ -10,15 +10,18 @@ import {
   isSiteProposalRejected,
   isSiteQuoteConflict,
   siteOperatorErrorMessage,
+  type SiteNotificationDeliveryReport,
   type SiteQuoteDetail,
   type SiteQuoteListPage,
   type SiteQuoteStatus,
 } from '../lib/commercialBackofficeContract';
 import {
+  fetchSiteNotificationDeliveryReport,
   fetchSiteQuoteDetail,
   listSiteQuoteRequests,
   publishSiteQuoteProposal,
   replySiteQuoteAdjustment,
+  reprocessSiteNotificationDeliveries,
   updateSiteQuoteStatus,
 } from '../lib/commercialBackoffice';
 
@@ -197,6 +200,132 @@ function BackofficeList({
         </nav>
       ) : null}
     </>
+  );
+}
+
+function BackofficeQueuePanel({
+  report,
+  loading,
+  error,
+  notice,
+  busy,
+  selected,
+  reason,
+  onToggle,
+  onReason,
+  onReprocess,
+  onRetry,
+}: {
+  report: SiteNotificationDeliveryReport | null;
+  loading: boolean;
+  error: string;
+  notice: string;
+  busy: boolean;
+  selected: string[];
+  reason: string;
+  onToggle: (deliveryId: string, checked: boolean) => void;
+  onReason: (value: string) => void;
+  onReprocess: () => void;
+  onRetry: () => void;
+}) {
+  const exhausted = report?.exhausted ?? [];
+  const selectedSet = useMemo(() => new Set(selected), [selected]);
+  // O motivo tem piso de 3 caracteres no banco: o botão só habilita quando a
+  // entrada passaria na RPC, senão o operador descobre o limite por um erro.
+  const canReprocess = !busy
+    && selected.length > 0
+    && selected.length <= 100
+    && reason.trim().length >= 3
+    && reason.trim().length <= 200;
+
+  return (
+    <section className="customer-detail-section" aria-labelledby="backoffice-queue-title">
+      <h2 id="backoffice-queue-title">
+        <BellRing aria-hidden="true" size={18} /> Fila de notificações
+      </h2>
+      <p className="customer-data-note">
+        Entregas que esgotaram as tentativas ficam aqui até alguém reprocessar com um motivo registrado.
+        O e-mail aparece só como prefixo do hash — o endereço completo nunca sai do banco.
+      </p>
+
+      {error ? (
+        <div className="customer-data-error" role="alert">
+          <p>{error}</p>
+          <button type="button" className="btn btn-outline" onClick={onRetry}>
+            <RefreshCw aria-hidden="true" size={16} /> Tentar de novo
+          </button>
+        </div>
+      ) : null}
+
+      {notice ? <p className="customer-data-note" role="status">{notice}</p> : null}
+
+      {report ? (
+        <>
+          <dl className="customer-data-counts">
+            <div><dt>Esgotadas</dt><dd>{exhausted.length}</dd></div>
+            <div><dt>Eventos órfãos</dt><dd>{report.orphanEventCount}</dd></div>
+            <div><dt>Órfãos reconciliáveis</dt><dd>{report.reconcilableOrphanCount}</dd></div>
+          </dl>
+          {report.orphanEventOldestAt ? (
+            <p className="customer-data-note">
+              Evento órfão mais antigo: {dateLabel(report.orphanEventOldestAt)}. Os reconciliáveis são
+              religados automaticamente pelo cron de retenção; os demais são purgados após o prazo.
+            </p>
+          ) : null}
+        </>
+      ) : null}
+
+      {loading ? (
+        <p className="customer-data-note" role="status">Carregando a fila de notificações…</p>
+      ) : exhausted.length === 0 && !error ? (
+        <p className="customer-data-note">
+          <ShieldCheck aria-hidden="true" size={16} /> Nenhuma entrega esgotada: toda notificação
+          agendada ainda tem tentativa disponível ou já foi confirmada pelo provedor.
+        </p>
+      ) : (
+        <>
+          <ul className="customer-proposals">
+            {exhausted.map((delivery) => (
+              <li key={delivery.deliveryId}>
+                <label htmlFor={`delivery-${delivery.deliveryId}`}>
+                  <input
+                    id={`delivery-${delivery.deliveryId}`}
+                    type="checkbox"
+                    checked={selectedSet.has(delivery.deliveryId)}
+                    onChange={(event) => onToggle(delivery.deliveryId, event.target.checked)}
+                  />{' '}
+                  {delivery.protocol || delivery.requestId} · {delivery.channel} ·{' '}
+                  {delivery.attempts} {delivery.attempts === 1 ? 'tentativa' : 'tentativas'}
+                  {delivery.erased ? (
+                    <> · <ShieldAlert aria-hidden="true" size={14} /> pedido excluído pelo titular</>
+                  ) : delivery.suppressed ? (
+                    <> · <ShieldAlert aria-hidden="true" size={14} /> endereço suprimido</>
+                  ) : null}
+                  {' '}· hash {delivery.emailHashPrefix || '—'} · {delivery.lastErrorCode || 'sem código'} ·{' '}
+                  {dateLabel(delivery.lastErrorAt ?? delivery.updatedAt)}
+                </label>
+              </li>
+            ))}
+          </ul>
+
+          <div className="customer-password">
+            <label htmlFor="backoffice-reprocess-reason">Motivo do reprocessamento</label>
+            <input
+              id="backoffice-reprocess-reason"
+              type="text"
+              value={reason}
+              onChange={(event) => onReason(event.target.value)}
+              minLength={3}
+              maxLength={200}
+              placeholder="Ex.: provedor restabelecido após incidente de 12/11"
+            />
+            <button type="button" className="btn btn-primary" disabled={!canReprocess} onClick={onReprocess}>
+              <RefreshCw aria-hidden="true" size={16} /> Reprocessar {selected.length > 0 ? `(${selected.length})` : ''}
+            </button>
+          </div>
+        </>
+      )}
+    </section>
   );
 }
 
@@ -451,6 +580,14 @@ function BackofficeContent() {
   // a redigitar titulo, caminho e validade.
   const [formError, setFormError] = useState('');
   const [retryKey, setRetryKey] = useState(0);
+  const [report, setReport] = useState<SiteNotificationDeliveryReport | null>(null);
+  const [loadingReport, setLoadingReport] = useState(true);
+  const [reportError, setReportError] = useState('');
+  const [reportNotice, setReportNotice] = useState('');
+  const [reportBusy, setReportBusy] = useState(false);
+  const [selectedDeliveries, setSelectedDeliveries] = useState<string[]>([]);
+  const [reprocessReason, setReprocessReason] = useState('');
+  const [reportKey, setReportKey] = useState(0);
 
   useEffect(() => setSearchDraft(search), [search]);
 
@@ -499,6 +636,59 @@ function BackofficeContent() {
   }, [requestId, retryKey]);
 
   const reloadDetail = useCallback(() => setRetryKey((key) => key + 1), []);
+
+  // A fila de notificações só importa na lista (o detalhe ocupa a tela inteira),
+  // mas a carga é feita sempre que o operador volta para a lista — reprocessar
+  // muda os contadores, então o painel precisa refletir o estado do banco.
+  useEffect(() => {
+    if (requestId) return;
+    let active = true;
+    setLoadingReport(true);
+    setReportError('');
+    fetchSiteNotificationDeliveryReport(50)
+      .then((result) => {
+        if (!active) return;
+        setReport(result);
+        setSelectedDeliveries((current) => current.filter((id) => result.exhausted.some((item) => item.deliveryId === id)));
+      })
+      .catch((cause) => {
+        if (!active) return;
+        if (isSiteOperatorError(cause)) setOperatorError(true);
+        else setReportError(siteOperatorErrorMessage(cause));
+      })
+      .finally(() => { if (active) setLoadingReport(false); });
+    return () => { active = false; };
+  }, [requestId, reportKey]);
+
+  const toggleDelivery = useCallback((deliveryId: string, checked: boolean) => {
+    setSelectedDeliveries((current) => {
+      if (checked) return current.includes(deliveryId) ? current : [...current, deliveryId];
+      return current.filter((id) => id !== deliveryId);
+    });
+  }, []);
+
+  const handleReprocess = useCallback(async () => {
+    setReportBusy(true);
+    setReportNotice('');
+    setReportError('');
+    try {
+      const result = await reprocessSiteNotificationDeliveries(selectedDeliveries, reprocessReason);
+      const skippedNote = result.skipped.length > 0
+        ? ` ${result.skipped.length} ignorada(s): já não estavam esgotadas ou estavam em uso.`
+        : '';
+      setReportNotice(
+        `${result.reopened} ${result.reopened === 1 ? 'entrega voltou' : 'entregas voltaram'} para a fila com o motivo registrado na auditoria.${skippedNote}`,
+      );
+      setSelectedDeliveries([]);
+      setReprocessReason('');
+      setReportKey((key) => key + 1);
+    } catch (cause) {
+      if (isSiteOperatorError(cause)) setOperatorError(true);
+      else setReportError(siteOperatorErrorMessage(cause));
+    } finally {
+      setReportBusy(false);
+    }
+  }, [selectedDeliveries, reprocessReason]);
 
   const handleStatus = useCallback(async (value: SiteQuoteStatus) => {
     if (!requestId) return;
@@ -587,23 +777,38 @@ function BackofficeContent() {
           onRetry={reloadDetail}
         />
       ) : (
-        <BackofficeList
-          page={page}
-          loading={loadingList}
-          error={listError}
-          status={status}
-          search={search}
-          searchDraft={searchDraft}
-          onSearchDraft={setSearchDraft}
-          onSubmitSearch={(event) => {
-            event.preventDefault();
-            patchParams({ q: searchDraft.trim() || null, pagina: null });
-          }}
-          onStatus={(value) => patchParams({ status: value, pagina: null })}
-          onPage={(value) => patchParams({ pagina: value > 0 ? String(value) : null })}
-          onOpen={(id) => patchParams({ pedido: id })}
-          onRetry={() => setRetryKey((key) => key + 1)}
-        />
+        <>
+          <BackofficeList
+            page={page}
+            loading={loadingList}
+            error={listError}
+            status={status}
+            search={search}
+            searchDraft={searchDraft}
+            onSearchDraft={setSearchDraft}
+            onSubmitSearch={(event) => {
+              event.preventDefault();
+              patchParams({ q: searchDraft.trim() || null, pagina: null });
+            }}
+            onStatus={(value) => patchParams({ status: value, pagina: null })}
+            onPage={(value) => patchParams({ pagina: value > 0 ? String(value) : null })}
+            onOpen={(id) => patchParams({ pedido: id })}
+            onRetry={() => setRetryKey((key) => key + 1)}
+          />
+          <BackofficeQueuePanel
+            report={report}
+            loading={loadingReport}
+            error={reportError}
+            notice={reportNotice}
+            busy={reportBusy}
+            selected={selectedDeliveries}
+            reason={reprocessReason}
+            onToggle={toggleDelivery}
+            onReason={setReprocessReason}
+            onReprocess={() => { void handleReprocess(); }}
+            onRetry={() => setReportKey((key) => key + 1)}
+          />
+        </>
       )}
     </section>
   );

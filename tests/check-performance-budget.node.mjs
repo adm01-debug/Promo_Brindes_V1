@@ -21,7 +21,7 @@ function incompressible(kib) {
 
 const entryOnly = (file, extra = {}) => ({ 'index.html': { file: `assets/${file}`, isEntry: true, ...extra } });
 
-function check({ files, manifest, prefix = 'promo-budget-', setup } = {}) {
+function check({ files, manifest, prefix = 'promo-budget-', setup, env = {} } = {}) {
   const root = mkdtempSync(join(tmpdir(), prefix));
   workspaces.push(root);
   mkdirSync(join(root, 'scripts'));
@@ -36,7 +36,16 @@ function check({ files, manifest, prefix = 'promo-budget-', setup } = {}) {
   }
   setup?.(root);
   // cwd fora do workspace: o script não pode depender do diretório corrente.
-  return spawnSync(process.execPath, [join(root, 'scripts', 'check-performance-budget.mjs')], { cwd: tmpdir(), encoding: 'utf8' });
+  return spawnSync(process.execPath, [join(root, 'scripts', 'check-performance-budget.mjs')], {
+    cwd: tmpdir(),
+    encoding: 'utf8',
+    env: { ...process.env, PERFORMANCE_BUDGET_PROFILE: '', ...env },
+  });
+}
+
+function assertApproved(result) {
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.stderr, '');
 }
 
 function assertRejected(result, pattern) {
@@ -115,17 +124,30 @@ test('falha fechado quando o manifest aponta chunk que não foi medido', () => {
   );
 });
 
+test('o perfil de pior caso só existe se diferenciar um bundle que a produção reprova', () => {
+  // 283,0 KiB de Brotli: acima do teto de produção (282) e abaixo do de pior caso
+  // (284). Sem este cenário, subir o teto de pior caso passaria despercebido por
+  // qualquer teste — os dois perfis devolveriam o mesmo veredito.
+  const scenario = {
+    files: { ...{ 'index-0a1b2c3d.js': compressible(1) },
+      ...Object.fromEntries(Array.from({ length: 6 }, (_, index) => [`lazy-${index}.js`, incompressible(47.17)])) },
+    manifest: entryOnly('index-0a1b2c3d.js'),
+  };
+  assertRejected(check(scenario), /^JavaScript total \(Brotli\): 283\.\d KiB excede o limite de 282 KiB\.\n$/);
+  assertApproved(check({ ...scenario, env: { PERFORMANCE_BUDGET_PROFILE: 'worst-case' } }));
+});
+
 test('cada teto reprova com exit 1 e nomeia a métrica estourada', () => {
   const entry = { 'index-0a1b2c3d.js': compressible(1) };
   const manifest = entryOnly('index-0a1b2c3d.js');
   for (const [scenario, pattern] of [
     [{ files: { ...entry, 'a.css': compressible(186) }, manifest }, /^CSS total: 186\.0 KiB excede o limite de 185 KiB\.\n$/],
-    [{ files: { ...entry, 'a.js': compressible(520), 'b.js': compressible(478) }, manifest }, /^JavaScript total: 999\.0 KiB excede o limite de 998 KiB\.\n$/],
+    [{ files: { ...entry, 'a.js': compressible(520), 'b.js': compressible(486) }, manifest }, /^JavaScript total: 1007\.0 KiB excede o limite de 1006 KiB\.\n$/],
     [{ files: { 'index-0a1b2c3d.js': compressible(301) }, manifest }, /^Bundle de entrada: 301\.0 KiB excede o limite de 300 KiB\.\n$/],
     [{ files: { ...entry, 'a.css': incompressible(33) }, manifest }, /^CSS total \(Brotli\): 33\.0 KiB excede o limite de 32 KiB\.\n$/],
     [
       { files: { ...entry, ...Object.fromEntries(Array.from({ length: 6 }, (_, index) => [`lazy-${index}.js`, incompressible(49)])) }, manifest },
-      /^JavaScript total \(Brotli\): 294\.\d KiB excede o limite de 280 KiB\.\n$/,
+      /^JavaScript total \(Brotli\): 294\.\d KiB excede o limite de 282 KiB\.\n$/,
     ],
     [{ files: { 'index-0a1b2c3d.js': incompressible(91) }, manifest }, /^Bundle de entrada \(Brotli\): 91\.0 KiB excede o limite de 90 KiB\.\n$/],
     [

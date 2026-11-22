@@ -178,7 +178,39 @@ function readArray(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
 }
 
-function parseListItem(value: unknown): SiteQuoteListItem {
+/** F-12: só 12 dígitos do sha256 chegam ao navegador; o e-mail nunca é devolvido. */
+export interface SiteNotificationExhaustedDelivery {
+  deliveryId: string;
+  requestKind: string;
+  requestId: string;
+  protocol: string | null;
+  channel: string;
+  attempts: number;
+  lastErrorCode: string | null;
+  lastErrorAt: string | null;
+  updatedAt: string | null;
+  emailHashPrefix: string;
+  suppressed: boolean;
+  erased: boolean;
+}
+
+export interface SiteNotificationDeliveryReport {
+  exhausted: SiteNotificationExhaustedDelivery[];
+  orphanEventCount: number;
+  reconcilableOrphanCount: number;
+  orphanEventOldestAt: string | null;
+}
+
+export interface SiteNotificationReprocessingSkipped {
+  deliveryId: string;
+  status: string;
+  reason: 'locked' | 'not_exhausted';
+}
+
+export interface SiteNotificationReprocessingResult {
+  reopened: number;
+  skipped: SiteNotificationReprocessingSkipped[];
+}function parseListItem(value: unknown): SiteQuoteListItem {
   if (!isRecord(value)) throw new Error('commercial_backoffice_invalid_item');
   return {
     id: readString(value.id),
@@ -325,6 +357,54 @@ export function parseSiteQuoteProposalPublication(data: unknown): SiteQuotePropo
 }
 
 /**
+ * A RPC devolve a fila já filtrada por operador. Um item sem `deliveryId` não pode
+ * virar linha clicável: o reprocessamento é por UUID, então ele é descartado aqui.
+ */
+export function parseSiteNotificationDeliveryReport(data: unknown): SiteNotificationDeliveryReport {
+  if (!isRecord(data)) throw new Error('commercial_backoffice_invalid_delivery_report');
+  const exhausted = readArray(data.exhausted).filter(isRecord).flatMap((item) => {
+    const deliveryId = readString(item.deliveryId);
+    if (!deliveryId) return [];
+    return [{
+      deliveryId,
+      requestKind: readString(item.requestKind),
+      requestId: readString(item.requestId),
+      protocol: readNullableString(item.protocol),
+      channel: readString(item.channel),
+      attempts: readCount(item.attempts),
+      lastErrorCode: readNullableString(item.lastErrorCode),
+      lastErrorAt: readNullableString(item.lastErrorAt),
+      updatedAt: readNullableString(item.updatedAt),
+      emailHashPrefix: readString(item.emailHashPrefix),
+      suppressed: item.suppressed === true,
+      erased: item.erased === true,
+    }];
+  });
+  return {
+    exhausted,
+    orphanEventCount: readCount(data.orphanEventCount),
+    reconcilableOrphanCount: readCount(data.reconcilableOrphanCount),
+    orphanEventOldestAt: readNullableString(data.orphanEventOldestAt),
+  };
+}
+
+export function parseSiteNotificationReprocessingResult(data: unknown): SiteNotificationReprocessingResult {
+  if (!isRecord(data)) throw new Error('commercial_backoffice_invalid_reprocessing_result');
+  return {
+    reopened: readCount(data.reopened),
+    skipped: readArray(data.skipped).filter(isRecord).flatMap((item) => {
+      const deliveryId = readString(item.deliveryId);
+      if (!deliveryId) return [];
+      return [{
+        deliveryId,
+        status: readString(item.status),
+        reason: readString(item.reason) === 'locked' ? 'locked' : 'not_exhausted',
+      }];
+    }),
+  };
+}
+
+/**
  * As RPCs recusam quem não está na allowlist com 42501. A UI precisa distinguir
  * "você não é operador" de "o banco caiu", senão o operador legítimo fica vendo
  * erro genérico quando o problema é só falta de cadastro.
@@ -366,5 +446,7 @@ export function siteOperatorErrorMessage(error: unknown): string {
   if (message.includes('quote_request_changed_concurrently')) return 'Outra pessoa alterou este pedido. Recarregue antes de continuar.';
   if (message.includes('quote_request_not_found')) return 'Pedido não encontrado.';
   if (message.includes('adjustment_not_found')) return 'Ajuste não encontrado.';
+  if (message.includes('invalid_notification_reprocessing_input')) return 'Selecione de 1 a 100 entregas e informe um motivo de 3 a 200 caracteres.';
+  if (message.includes('not_exhausted')) return 'Essas entregas não estão mais esgotadas — recarregue a fila.';
   return 'Não foi possível concluir a operação.';
 }
