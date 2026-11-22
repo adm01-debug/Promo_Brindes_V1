@@ -1,9 +1,9 @@
 {
  "meta": {
-  "sha": "abcd7258dd5e431ff2e8e75d81dd2930258a5b7b",
+  "sha": "caf7e426025d73dedbba082e2df7f94949d668b4",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-22 06:18 UTC",
+  "generated_at": "2026-11-22 07:14 UTC",
   "files_total": 620,
   "code_files": 400,
   "code_lines": 71466,
@@ -34628,10 +34628,22 @@
   }
  },
  "git": {
-  "sha": "abcd7258dd5e431ff2e8e75d81dd2930258a5b7b",
+  "sha": "caf7e426025d73dedbba082e2df7f94949d668b4",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "caf7e42",
+    "date": "2026-11-22",
+    "author": "adm01-debug",
+    "subject": "docs: reconcilia a matriz de 230 requisitos contra a main (F-97/PF-109) (#231)",
+    "files": [
+     "analise-prs/funcionalidades.csv",
+     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
+     "docs/MATRIZ_FECHAMENTO_PLANOS_20260912.csv",
+     "docs/MATRIZ_INDEX.md"
+    ]
+   },
    {
     "sha": "abcd725",
     "date": "2026-11-22",
@@ -34985,25 +34997,16 @@
     "files": [
      "docs/MATRIZ_RISCO_CAMADA_TESTE.md"
     ]
-   },
-   {
-    "sha": "dbc6479",
-    "date": "2026-11-17",
-    "author": "adm01-debug",
-    "subject": "fix(graphify): graph:status deixa de exigir npm ci em clone limpo (#196)",
-    "files": [
-     "scripts/graphify-quality.mjs"
-    ]
    }
   ],
   "hot_files": [
    [
     "analise-prs/funcionalidades.csv",
-    6
+    7
    ],
    [
     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
-    4
+    5
    ],
    [
     "scripts/check-performance-budget.mjs",
@@ -35024,6 +35027,10 @@
    [
     "src/lib/analytics.ts",
     3
+   ],
+   [
+    "docs/MATRIZ_INDEX.md",
+    2
    ],
    [
     "src/lib/useCatalogPageState.test.tsx",
@@ -35066,15 +35073,11 @@
     2
    ],
    [
+    "docs/MATRIZ_FECHAMENTO_PLANOS_20260912.csv",
+    1
+   ],
+   [
     ".gitignore",
-    1
-   ],
-   [
-    "site-supabase/supabase/tests/database/storage_authenticated_rls.test.sql",
-    1
-   ],
-   [
-    "src/components/BriefingAssetUploader.test.tsx",
     1
    ]
   ]

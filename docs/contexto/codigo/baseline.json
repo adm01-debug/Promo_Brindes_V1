@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "abcd7258dd5e431ff2e8e75d81dd2930258a5b7b",
+  "commit": "caf7e426025d73dedbba082e2df7f94949d668b4",
   "branch": "main",
-  "data_commit": "2026-11-22T06:18:01Z",
+  "data_commit": "2026-11-22T07:12:08Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "caf7e42",
+    "data": "2026-11-22",
+    "assunto": "docs: reconcilia a matriz de 230 requisitos contra a main (F-97/PF-109) (#231)"
+   },
    {
     "sha": "abcd725",
     "data": "2026-11-22",
@@ -126,14 +131,9 @@
     "sha": "6d13174",
     "data": "2026-11-18",
     "assunto": "fix(graphify): .graphifyignore passa a excluir da indexação, não só da impressão digital (#198)"
-   },
-   {
-    "sha": "148318e",
-    "data": "2026-11-18",
-    "assunto": "docs: matriz dos 230 requisitos deixa de se declarar vigente (#208)"
    }
   ],
-  "arquivos_mudados_7d": 165,
+  "arquivos_mudados_7d": 166,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "package.json",
@@ -144,12 +144,12 @@
     "mudancas": 13
    },
    {
-    "pasta": "docs/audits/pending-features-20261011",
+    "pasta": "analise-prs/funcionalidades.csv",
     "mudancas": 11
    },
    {
-    "pasta": "analise-prs/funcionalidades.csv",
-    "mudancas": 10
+    "pasta": "docs/audits/pending-features-20261011",
+    "mudancas": 11
    },
    {
     "pasta": "package-lock.json",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 108
+    "commits": 109
    },
    {
     "autor": "dependabot[bot]",

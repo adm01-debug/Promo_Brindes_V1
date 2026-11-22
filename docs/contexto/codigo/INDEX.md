@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `abcd7258dd5e431ff2e8e75d81dd2930258a5b7b` (2026-11-22T06:18:01Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `caf7e426025d73dedbba082e2df7f94949d668b4` (2026-11-22T07:12:08Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -337,7 +337,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `docs/GRAPHIFY_IMPLEMENTATION_20260911.md` — Execução da integração Graphify — 11/09/2026 (32 linhas)
 - `docs/GUIA_DE_VOZ.md` — Guia de voz da Promo Brindes (43 linhas)
 - `docs/LUKKA_BENCHMARK_PLANO_50_ETAPAS_20260909.md` — Promo Brindes: análise da Lukka e plano de melhorias em 50 etapas (335 linhas)
-- `docs/MATRIZ_INDEX.md` — Índice de planos e aceites (59 linhas)
+- `docs/MATRIZ_INDEX.md` — Índice de planos e aceites (75 linhas)
 - `docs/MATRIZ_RISCO_CAMADA_TESTE.md` — Matriz risco → camada de teste — 18/11/2026 (59 linhas)
 - `docs/PLANO_CARNEGIE_UX_100_ETAPAS_20261005.md` — Plano em 100 etapas para aplicar os princípios de Carnegie à experiência da Promo Brindes (832 linhas)
 - `docs/PLANO_CORRECOES_50_ETAPAS_20260913.md` — Plano de melhorias e correções — 50 etapas — 13/09/2026 (770 linhas)
@@ -386,6 +386,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-22 `caf7e42` docs: reconcilia a matriz de 230 requisitos contra a main (F-97/PF-109) (#231)
 - 2026-11-22 `abcd725` test: exercita policies de Storage como authenticated, DDL real e rate limit (F-82) (#227)
 - 2026-11-22 `ec7e478` feat: eventos de funil de contato, upload, remoção e link compartilhado (F-100/PF-120) (#228)
 - 2026-11-22 `d7f09b6` feat: resumo do briefing abre antes das 4 respostas e permite cancelar a edicao (F-37) (#226)
@@ -400,7 +401,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-20 `804efbc` fix: promessas honestas em orcamento e catalogo (PF-14, PF-19, PF-20, PF-21) (#215)
 - 2026-11-20 `5ad589f` feat: permite ajustar o contexto da campanha no orçamento (#213)
 - 2026-11-20 `1bb2a90` fix: limpa contexto da campanha quando o recorte sai do catálogo (#212)
-- 2026-11-20 `01b873c` feat: caminho 'ainda não sei o que escolher' desbloqueia quem chega sem briefing (#211)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`
