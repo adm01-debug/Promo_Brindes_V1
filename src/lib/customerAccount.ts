@@ -91,6 +91,10 @@ function rpcError(error: { message?: string } | null): never {
   throw new Error(error?.message || 'customer_area_unavailable');
 }
 
+/** Mensagem devolvida quando a RPC recusa um 4º pedido de ajuste pendente. */
+export const ADJUSTMENT_PENDING_LIMIT_MESSAGE =
+  'Você já tem 3 ajustes em análise neste orçamento. Assim que respondermos um deles, você pode enviar outro.';
+
 export async function claimMyQuoteRequests(): Promise<number> {
   const { data, error } = await runSiteRpc(requireClient().rpc('claim_my_quote_requests'));
   if (error) rpcError(error);
@@ -140,7 +144,10 @@ export async function requestMyQuoteAdjustment(requestId: string, message: strin
     p_message: normalizedMessage,
     p_client_request_id: clientRequestId,
   }));
-  if (error) rpcError(error);
+  if (error) {
+    if (error.message?.includes('too_many_pending_adjustments')) throw new Error(ADJUSTMENT_PENDING_LIMIT_MESSAGE);
+    rpcError(error);
+  }
   try {
     return parseCustomerQuoteAdjustmentResult(data);
   } catch {
