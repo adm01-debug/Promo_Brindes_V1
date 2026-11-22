@@ -12,11 +12,27 @@ As contagens e diagnósticos abaixo permanecem como registros históricos. Não 
 
 ## Matriz e evidências históricas
 
-Matriz completa dos 230 requisitos: [matriz de fechamento](MATRIZ_FECHAMENTO_PLANOS_20260912.csv). A data no nome é a origem do arquivo. **A última revisão de conteúdo dela foi em 22/09/2026** (`dafd3d9`); desde esse commit a `main` recebeu **190 commits em 93 pull requests**, nenhum deles tocando o arquivo. Ela é a única matriz completa que existe, e por isso segue sendo a referência de escopo — mas não é um retrato do estado de hoje.
+Matriz completa dos 230 requisitos: [matriz de fechamento](MATRIZ_FECHAMENTO_PLANOS_20260912.csv). A data no nome é a origem do arquivo. A revisão de conteúdo de 22/09/2026 (`dafd3d9`) ficou congelada por **219 commits**; em 22/11/2026 ela foi reconciliada linha por linha contra `abcd725` — 17 linhas reavaliadas com fonte e teste relidos (detalhe em "Reconciliação de 22/11/2026" abaixo). É a única matriz completa que existe e segue sendo a referência de escopo.
 
 Última execução técnica: [lote controlado do plano de fechamento de 01/10/2026](EXECUCAO_PLANO_FECHAMENTO_20261001.md). A [navegação, impressão e governança editorial de 22/09/2026](EXECUCAO_VALIDACOES_UX_EDITORIAL_20260922.md), com código funcional `909b1eff043a45690a8b08f3b0f55d1dd624474f`, o [fechamento técnico anterior](EXECUCAO_FECHAMENTO_TECNICO_20260922.md), a [rodada complementar](EXECUCAO_COMPLEMENTAR_20260922.md) e a [validação independente](AUDITORIA_5_ESPECIALISTAS_20260922.md) permanecem como evidências históricas.
 
-Distribuição **apurada em 22/09/2026**: 118 I / 100 P / 1 N / 11 E. Não é a distribuição de hoje, e tratá-la como tal subestima o que foi entregue nas 93 pull requests seguintes. A contagem também não é percentual de qualidade: cada linha conserva seu próprio critério, e dependência externa não vira implementação por decreto. Reconciliar linha por linha continua previsto nas etapas 002-003 e 099 do plano de fechamento; até lá, o número correto a citar é o desta data, com a data.
+Distribuição **apurada em 22/09/2026**: 118 I / 100 P / 1 N / 11 E. Distribuição **após a reconciliação de 22/11/2026**: **119 I / 100 P / 0 N / 11 E** — a única linha que muda de estado é LK10 (N → I); as demais 16 tiveram evidência e método reescritos sem promoção. Nenhuma contagem é percentual de qualidade: cada linha conserva seu próprio critério, e dependência externa não vira implementação por decreto.
+
+### Reconciliação de 22/11/2026
+
+Commit auditado: `abcd725`. Cada linha abaixo teve fontes relidas no código atual e o estado corrigido — nenhuma promoção foi feita sem a fonte existir no commit.
+
+| Linha | Antes | Depois | Evidência |
+| --- | --- | --- | --- |
+| LK10 | N | I | Cards fotográficos de categoria em `HomePage.tsx:73-88` (desde #33); acervo autoral segue decisão editorial |
+| UX35 | P | P | `catalogRanking.ts:73-112` combina afinidade e diversidade (`catalogRanking.test.ts:24-31`), mas o aceite exige melhora medida na amostra de consultas reais da etapa 34 — não medida |
+| UX49 | P | P | `rankRelatedProducts` (`catalogRanking.ts:116-126`) ordena por categoria/material, mas não carrega contexto nem filtros de campanha (`ProductCard.tsx:29`) |
+| UX88 | P | P | RPCs `list_my_occasion_favorites`/`set_my_occasion_favorite` (`customerOccasionFavorites.ts:32,39`), sem teste da troca de ano nem da explicação recorrente × edição anual |
+| UX12, UX14, UX19, UX83, LK15 | I | I | reconferidos: vocabulário, 37 tokens, 404 do shell, dez coleções editoriais |
+| GR03, GR06, GR11, GR38 | I | I | reconferidos: dez perguntas, versão 0.9.105, `doctor`, runbook |
+| GR25, GR31, GR34, GR37 | P | P | continuam parciais: sem benchmark de testes afetados, sem `.md` no grafo, sem mapa direcional, sem ensaio de memória |
+
+A reconciliação **não** promove linhas cuja pendência é operacional ou humana (E): essas continuam em "Pendências que não podem desaparecer".
 
 ## Como ler
 

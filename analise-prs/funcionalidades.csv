@@ -95,7 +95,7 @@ F-93,Catalogo publico monitorado,Sonda diaria 36 colunas verde 02-11/10,COMPLETA
 F-94,Release candidato smoke promote rollback,Fluxo automatico com detector de drift diario,COMPLETA,100,#52;#55;#63;#65;#67;#68;#77;#78;#79,A-001,P1
 F-95,CI mais barato e rapido,Matriz e cache sem otimizacao,PENDENTE,0,,PF-95,P3
 F-96,Graphify reproduzivel,Automacao nao le .graphifyignore; mapa banco sem RPCs,PARCIAL,60,#95,PF-106,P3
-F-97,Matriz de fechamento reconciliada,118/100/1/11 congelada desde 22/09 104 commits atras,PENDENTE,0,,PF-109,P3
+F-97,Matriz de fechamento reconciliada,"Matriz 230 relida contra abcd725 em 22/11: 119 I / 100 P / 0 N / 11 E, 17 linhas revisadas (so LK10 muda de estado) e tabela de evidencias no MATRIZ_INDEX",COMPLETA,100,,PF-109,P3
 F-98,Codigo morto removido,Graphify aponta nos de baixa conectividade sem verificacao,COMPLETA,100,#191,PF-112,P3
 F-99,Produto inexistente com mensagem adequada,Mensagem de falha temporaria em vez de 404 distinto,PARCIAL,70,,PF-114,P3
 F-100,Eventos de funil faltantes,Sem eventos contato upload selecao landing login,COMPLETA,100,#228,PF-120,P3
