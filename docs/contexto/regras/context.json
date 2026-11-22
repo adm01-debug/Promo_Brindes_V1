@@ -1,9 +1,9 @@
 {
  "meta": {
-  "sha": "50e5cf42896680015d605f8b09d12468fd38acc4",
+  "sha": "71d41c66fe63824fd43134da710ae5e5c5f9a118",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-22 17:07 UTC",
+  "generated_at": "2026-11-22 18:47 UTC",
   "files_total": 643,
   "code_files": 421,
   "code_lines": 76270,
@@ -37655,10 +37655,20 @@
   }
  },
  "git": {
-  "sha": "50e5cf42896680015d605f8b09d12468fd38acc4",
+  "sha": "71d41c66fe63824fd43134da710ae5e5c5f9a118",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "71d41c6",
+    "date": "2026-11-22",
+    "author": "adm01-debug",
+    "subject": "chore: CI mais barata e rapida (F-95) (#241)",
+    "files": [
+     ".github/actions/setup-node-project/action.yml",
+     ".github/workflows/quality.yml"
+    ]
+   },
    {
     "sha": "50e5cf4",
     "date": "2026-11-22",
@@ -38093,15 +38103,6 @@
     "subject": "infra(ci): verify-db tolera espera dos gates quando cross-browser chega ao teto de 35min (#210)",
     "files": [
      ".github/workflows/release.yml"
-    ]
-   },
-   {
-    "sha": "8e896a7",
-    "date": "2026-11-19",
-    "author": "adm01-debug",
-    "subject": "infra(ci): cross-browser deixa de ser cancelado no teto antes de rodar teste (#204)",
-    "files": [
-     ".github/workflows/quality.yml"
     ]
    }
   ],

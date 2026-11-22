@@ -515,8 +515,8 @@
     "GITHUB_TOKEN"
    ],
    "actions": [
+    "actions/cache",
     "actions/checkout",
-    "actions/setup-node",
     "actions/upload-artifact",
     "gitleaks/gitleaks-action"
    ]

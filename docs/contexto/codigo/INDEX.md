@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `50e5cf42896680015d605f8b09d12468fd38acc4` (2026-11-22T17:07:27Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `71d41c66fe63824fd43134da710ae5e5c5f9a118` (2026-11-22T18:46:24Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -180,8 +180,8 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - e2e/smoke.spec.ts (61)
 - src/styles.css (39)
 - package-lock.json (36)
+- .github/workflows/quality.yml (29)
 - vercel.json (29)
-- .github/workflows/quality.yml (28)
 - src/pages/QuotePage.tsx (28)
 - docs/DATABASE_DICTIONARY.md (27)
 - site-supabase/supabase/tests/database/lead_storage.test.sql (26)
@@ -394,6 +394,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-22 `71d41c6` chore: CI mais barata e rapida (F-95) (#241)
 - 2026-11-22 `50e5cf4` feat: feedback opcional de clareza e eventos do PF-54 (#238)
 - 2026-11-22 `1435f51` chore: plano de navegação e fluidez em 200 etapas (#245)
 - 2026-11-22 `9ace0fc` chore: plano de correções e melhorias em 190 etapas (#244)
@@ -408,7 +409,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-22 `caf7e42` docs: reconcilia a matriz de 230 requisitos contra a main (F-97/PF-109) (#231)
 - 2026-11-22 `abcd725` test: exercita policies de Storage como authenticated, DDL real e rate limit (F-82) (#227)
 - 2026-11-22 `ec7e478` feat: eventos de funil de contato, upload, remoção e link compartilhado (F-100/PF-120) (#228)
-- 2026-11-22 `d7f09b6` feat: resumo do briefing abre antes das 4 respostas e permite cancelar a edicao (F-37) (#226)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

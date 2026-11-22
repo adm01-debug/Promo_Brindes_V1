@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "50e5cf42896680015d605f8b09d12468fd38acc4",
+  "commit": "71d41c66fe63824fd43134da710ae5e5c5f9a118",
   "branch": "main",
-  "data_commit": "2026-11-22T17:07:27Z",
+  "data_commit": "2026-11-22T18:46:24Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "71d41c6",
+    "data": "2026-11-22",
+    "assunto": "chore: CI mais barata e rapida (F-95) (#241)"
+   },
    {
     "sha": "50e5cf4",
     "data": "2026-11-22",
@@ -126,14 +131,9 @@
     "sha": "804efbc",
     "data": "2026-11-20",
     "assunto": "fix: promessas honestas em orcamento e catalogo (PF-14, PF-19, PF-20, PF-21) (#215)"
-   },
-   {
-    "sha": "5ad589f",
-    "data": "2026-11-20",
-    "assunto": "feat: permite ajustar o contexto da campanha no orçamento (#213)"
    }
   ],
-  "arquivos_mudados_7d": 201,
+  "arquivos_mudados_7d": 202,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "analise-prs/funcionalidades.csv",
@@ -160,6 +160,10 @@
     "mudancas": 11
    },
    {
+    "pasta": ".github/workflows/quality.yml",
+    "mudancas": 10
+   },
+   {
     "pasta": "e2e/smoke.spec.ts",
     "mudancas": 10
    },
@@ -170,10 +174,6 @@
    {
     "pasta": "scripts/check-performance-budget.mjs",
     "mudancas": 10
-   },
-   {
-    "pasta": ".github/workflows/quality.yml",
-    "mudancas": 9
    },
    {
     "pasta": "site-supabase/supabase/migrations",
@@ -214,12 +214,12 @@
     "mudancas": 36
    },
    {
-    "arquivo": "vercel.json",
+    "arquivo": ".github/workflows/quality.yml",
     "mudancas": 29
    },
    {
-    "arquivo": ".github/workflows/quality.yml",
-    "mudancas": 28
+    "arquivo": "vercel.json",
+    "mudancas": 29
    },
    {
     "arquivo": "src/pages/QuotePage.tsx",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 120
+    "commits": 121
    },
    {
     "autor": "dependabot[bot]",
