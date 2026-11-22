@@ -2,6 +2,8 @@ import { ArrowRight, Clock3, Mail, MapPin, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ConversationForm } from '../components/ConversationForm';
 import { Seo } from '../components/Seo';
+import { trackFunnelEvent } from '../lib/analytics';
+import { buildDefaultWhatsAppHref } from '../lib/whatsappContact';
 
 export default function ContactPage() {
   return (
@@ -16,6 +18,7 @@ export default function ContactPage() {
       <section className="section contact-section">
         <div className="container contact-grid">
           <div className="contact-card contact-card--primary"><span><Phone /></span><small>Telefone</small><a href="tel:+551146375517">(11) 4637-5517</a><p>Para conversar diretamente com nosso time de especialistas.</p></div>
+          <div className="contact-card"><span><Phone /></span><small>WhatsApp</small><a href={buildDefaultWhatsAppHref()} target="_blank" rel="noopener noreferrer" onClick={() => trackFunnelEvent('whatsapp_opened', { placement: 'contact' })}>Chamar no WhatsApp</a><p>Inicie a conversa pelo aplicativo no seu celular.</p></div>
           <div className="contact-card"><span><Mail /></span><small>E-mail</small><a href="mailto:adm01@promobrindes.com.br">adm01@promobrindes.com.br</a><p>Envie seu briefing ou uma seleção de referências.</p></div>
           <div className="contact-card"><span><MapPin /></span><small>Localização</small><strong>São Paulo · SP</strong><p>Atendimento comercial a partir de São Paulo.</p></div>
           <div className="contact-card"><span><Clock3 /></span><small>Comece quando quiser</small><strong>Catálogo sempre disponível</strong><p>Monte sua seleção no seu tempo e envie tudo junto.</p></div>

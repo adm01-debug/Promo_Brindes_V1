@@ -28,6 +28,7 @@ export interface FunnelEventMap {
   customer_adjustment_requested: { item_count: number };
   customer_proposal_opened: { version: number };
   social_link_opened: { network: 'instagram' | 'facebook' | 'pinterest' | 'youtube' };
+  whatsapp_opened: { placement: 'contact' | 'utility' | 'footer' | 'catalog' };
   occasion_filtered: { has_query: boolean; audience: 'todos' | 'clientes' | 'colaboradores' | 'eventos' | 'comunidade'; month: number; result_count: number };
   occasion_opened: { occasion_id: string; year: number };
   occasion_saved: { occasion_id: string; saved: boolean };
@@ -67,6 +68,7 @@ const ALLOWED_PROPERTIES: { [Name in FunnelEventName]: ReadonlyArray<keyof Funne
   customer_adjustment_requested: ['item_count'],
   customer_proposal_opened: ['version'],
   social_link_opened: ['network'],
+  whatsapp_opened: ['placement'],
   occasion_filtered: ['has_query', 'audience', 'month', 'result_count'],
   occasion_opened: ['occasion_id', 'year'],
   occasion_saved: ['occasion_id', 'saved'],
