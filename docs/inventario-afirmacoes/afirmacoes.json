@@ -1,0 +1,255 @@
+{
+  "version": 1,
+  "_comentario": "Inventario de afirmacoes comerciais do site (PF-55). Cada item tem dono, prova no codigo e data de checagem. npm run claims:check reprova afirmacao sem lastro.",
+  "claims": [
+    {
+      "id": "AC-01",
+      "claim": "Receba uma proposta real",
+      "where": [
+        {
+          "file": "src/pages/HomePage.tsx",
+          "line": 211,
+          "snippet": "Receba uma proposta real"
+        },
+        {
+          "file": "src/components/QuoteDrawer.tsx",
+          "line": 264,
+          "snippet": "transforma tudo em uma proposta real"
+        }
+      ],
+      "owner": "adm01-debug (dono do negocio)",
+      "status": "confirmada",
+      "evidence": {
+        "file": "src/pages/CustomerQuotePage.tsx",
+        "pattern": "proposal.isCurrent"
+      },
+      "checkedAt": "2026-11-22",
+      "note": "Lastro: existe proposta versionada publicada pelo back-office (F-23) e o titular baixa o arquivo real na Area do Cliente."
+    },
+    {
+      "id": "AC-02",
+      "claim": "Zero checkout / sem checkout / nao e uma loja virtual",
+      "where": [
+        {
+          "file": "src/components/QuoteDrawer.tsx",
+          "line": 263,
+          "snippet": "Zero checkout. Zero compromisso."
+        },
+        {
+          "file": "src/components/ContextualFaq.tsx",
+          "line": 8,
+          "snippet": "sem checkout e sem compromisso"
+        },
+        {
+          "file": "src/pages/AboutPage.tsx",
+          "line": 18,
+          "snippet": "Este site não é uma loja virtual"
+        }
+      ],
+      "owner": "adm01-debug (dono do negocio)",
+      "status": "confirmada",
+      "evidence": {
+        "file": "src/components/QuoteDrawer.tsx",
+        "pattern": "to=\"/orcamento\""
+      },
+      "checkedAt": "2026-11-22",
+      "note": "Nao existe gateway de pagamento nem rota de checkout no src/: o unico destino da selecao e /orcamento."
+    },
+    {
+      "id": "AC-03",
+      "claim": "Voce nao paga nada pelo site",
+      "where": [
+        {
+          "file": "src/pages/ProductPage.tsx",
+          "line": 158,
+          "snippet": "Você não paga nada pelo site."
+        }
+      ],
+      "owner": "adm01-debug (dono do negocio)",
+      "status": "confirmada",
+      "evidence": {
+        "file": "src/components/QuoteDrawer.tsx",
+        "pattern": "Zero checkout"
+      },
+      "checkedAt": "2026-11-22",
+      "note": "Mesmo lastro de AC-02: sem pagamento no site. A frase e sobre o site, nao sobre a proposta comercial."
+    },
+    {
+      "id": "AC-04",
+      "claim": "Explore sem login",
+      "where": [
+        {
+          "file": "src/pages/HomePage.tsx",
+          "line": 369,
+          "snippet": "Explore sem login"
+        },
+        {
+          "file": "src/pages/CatalogPage.tsx",
+          "line": 32,
+          "snippet": "Explore sem login"
+        }
+      ],
+      "owner": "adm01-debug (dono do negocio)",
+      "status": "confirmada",
+      "evidence": {
+        "file": "src/pages/CatalogPage.tsx",
+        "pattern": "SearchAutocomplete"
+      },
+      "checkedAt": "2026-11-22",
+      "note": "Catalogo e produto nao importam useAuth nem redirecionam para login; a conta so aparece para salvar historico."
+    },
+    {
+      "id": "AC-05",
+      "claim": "Curadoria humana / time de especialistas",
+      "where": [
+        {
+          "file": "src/pages/CatalogPage.tsx",
+          "line": 30,
+          "snippet": "curadoria humana"
+        },
+        {
+          "file": "src/pages/ContactPage.tsx",
+          "line": 15,
+          "snippet": "time de especialistas"
+        },
+        {
+          "file": "src/pages/ProductPage.tsx",
+          "line": 158,
+          "snippet": "Nosso time de especialistas confirma"
+        }
+      ],
+      "owner": "adm01-debug (dono do negocio)",
+      "status": "ajustar-texto",
+      "evidence": {
+        "file": "src/pages/QuotePage.tsx",
+        "pattern": "Nosso time de especialistas vai analisar"
+      },
+      "checkedAt": "2026-11-22",
+      "note": "Promessa operacional sem prova no repositorio: \"curadoria humana\" e \"time de especialistas\" descrevem quem atende, e o codigo so prova que o back-office existe (/admin/orcamentos, F-03). Falta declarar o minimo operacional (quem responde, em quanto tempo) ou trocar o texto por um compromisso verificavel. Decisao do dono: 1) manter e assumir o SLA por escrito, ou 2) suavizar para \"analise da sua solicitacao\" sem prometer equipe."
+    },
+    {
+      "id": "AC-06",
+      "claim": "Referencias nao representam preco, estoque ou prazo",
+      "where": [
+        {
+          "file": "src/pages/IdeaLandingPage.tsx",
+          "line": 42,
+          "snippet": "Estas referências não representam preço, estoque ou prazo"
+        }
+      ],
+      "owner": "adm01-debug (dono do negocio)",
+      "status": "confirmada",
+      "evidence": {
+        "file": "src/components/ContextualFaq.tsx",
+        "pattern": "estoques de fornecedores mudam"
+      },
+      "checkedAt": "2026-11-22",
+      "note": "O contrato publico do catalogo nao publica preco/estoque; a UI repete o aviso onde mostra produto."
+    },
+    {
+      "id": "AC-07",
+      "claim": "Disponibilidade, cor e prazo sao confirmados na proposta",
+      "where": [
+        {
+          "file": "src/components/ContextualFaq.tsx",
+          "line": 9,
+          "snippet": "disponibilidade, cor e prazo são confirmados pelo nosso time de especialistas"
+        }
+      ],
+      "owner": "adm01-debug (dono do negocio)",
+      "status": "confirmada",
+      "evidence": {
+        "file": "src/components/ContextualFaq.tsx",
+        "pattern": "não são publicados como promessa"
+      },
+      "checkedAt": "2026-11-22",
+      "note": "Consta como aviso, nao como garantia de estoque."
+    },
+    {
+      "id": "AC-08",
+      "claim": "Contato continua pelo e-mail ou WhatsApp informado",
+      "where": [
+        {
+          "file": "src/components/ContextualFaq.tsx",
+          "line": 18,
+          "snippet": "O contato continua pelo e-mail ou WhatsApp informado no briefing"
+        }
+      ],
+      "owner": "adm01-debug (dono do negocio)",
+      "status": "confirmada",
+      "evidence": {
+        "file": "src/pages/QuotePage.tsx",
+        "pattern": "responseChannel"
+      },
+      "checkedAt": "2026-11-22",
+      "note": "O briefing coleta canal de resposta; a UI de confirmacao lista e-mail e WhatsApp como proximos passos."
+    },
+    {
+      "id": "AC-09",
+      "claim": "Amostra, variantes e prazo dependem do produto",
+      "where": [
+        {
+          "file": "src/components/ContextualFaq.tsx",
+          "line": 15,
+          "snippet": "Amostra, variantes, apresentação individual e prazo dependem do produto"
+        }
+      ],
+      "owner": "adm01-debug (dono do negocio)",
+      "status": "confirmada",
+      "evidence": {
+        "file": "src/pages/ProductPage.tsx",
+        "pattern": "Quantidade mínima a confirmar"
+      },
+      "checkedAt": "2026-11-22",
+      "note": "Sem promessa de amostra gratis."
+    },
+    {
+      "id": "AC-10",
+      "claim": "Materiais de menor impacto / sustentavel",
+      "where": [
+        {
+          "file": "src/lib/campaignPresets.ts",
+          "line": 50,
+          "snippet": "Materiais de menor impacto"
+        },
+        {
+          "file": "src/lib/commemorativeDates.ts",
+          "line": 103,
+          "snippet": "Materiais de menor impacto"
+        }
+      ],
+      "owner": "adm01-debug (dono do negocio)",
+      "status": "confirmada",
+      "evidence": {
+        "file": "src/lib/search.ts",
+        "pattern": "menor impacto"
+      },
+      "checkedAt": "2026-11-22",
+      "note": "Atributo de filtro do catalogo, nao certificacao ambiental do produto. Lastro: search.ts:46 aceita \"menor impacto\" como termo do universo sustentavel."
+    },
+    {
+      "id": "AC-11",
+      "claim": "Proposta sob medida / recomendacao sob medida",
+      "where": [
+        {
+          "file": "src/pages/QuotePage.tsx",
+          "line": 455,
+          "snippet": "recomendação sob medida"
+        },
+        {
+          "file": "src/components/ProductCard.tsx",
+          "line": 64,
+          "snippet": "Proposta sob medida"
+        }
+      ],
+      "owner": "adm01-debug (dono do negocio)",
+      "status": "confirmada",
+      "evidence": {
+        "file": "src/lib/campaignPresets.ts",
+        "pattern": "CAMPAIGN_MOODS"
+      },
+      "checkedAt": "2026-11-22",
+      "note": "Lastro: a proposta e montada pelo briefing (momento, publico, escala, clima) e nao por preco de tabela. Nao promete prazo nem desconto."
+    }
+  ]
+}

@@ -53,7 +53,7 @@ F-51,Grupos de decisao e links persistentes,Atras de flags; selo Referencia prin
 F-52,Sync automatico carrinho entre dispositivos,So por selecoes salvas explicitas,BLOQUEADA,0,,PF-52,P3
 F-53,Favoritos e2e multi-aba offline limite 100,24 testes hook; sem e2e Playwright; sem offline,PARCIAL,60,#33;#35;#36;#44;#45;#47,PF-53;A-003;A-004;A-007;A-010,P2
 F-54,Feedback de clareza e eventos Carnegie,"Pergunta opcional na confirmacao + eventos feedback_answered/feedback_declined/summary_edited/campaign_context_adjusted. A linha de base da etapa 010 (data, versao, amostra, metodo, limitacoes) nao esta registrada: os eventos medem depois da mudanca, nao antes.",PARCIAL,80,#238,PF-54,P3
-F-55,Inventario de afirmacoes comerciais,proposta real curadoria humana sem fonte/dono,PENDENTE,0,,PF-55,P3
+F-55,Inventario de afirmacoes comerciais,"docs/inventario-afirmacoes (INVENTARIO.md + afirmacoes.json + CHECKLIST-PERSUASAO.md); guard npm run claims:check + persuasion:check no CI",COMPLETA,100,,PF-55,P3
 F-56,Registro de aprovacao visual,"docs/aprovacoes-visuais com dono, data, PR mergeada, mergeCommit e SHA-256 de cada PNG; guard npm run approvals:visual:check",COMPLETA,100,#91;#92;#94;#103,PF-56,P2
 F-57,Catalogos PDF e revistas reais,Localizar arquivos aprovados e direitos; 0 .pdf em public/,BLOQUEADA,0,,PF-57,P2
 F-58,Cases prova social bastidores fotos,Acervo e autorizacoes de imagem,BLOQUEADA,0,,PF-58,P2
