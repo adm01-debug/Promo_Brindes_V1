@@ -10,10 +10,14 @@
 import { siteSupabase } from './siteSupabase';
 import { runSiteRpc } from './siteRpc';
 import {
+  parseSiteNotificationDeliveryReport,
+  parseSiteNotificationReprocessingResult,
   parseSiteQuoteDetail,
   parseSiteQuoteListPage,
   parseSiteQuoteProposalPublication,
   parseSiteQuoteStatusChange,
+  type SiteNotificationDeliveryReport,
+  type SiteNotificationReprocessingResult,
   type SiteQuoteDetail,
   type SiteQuoteListPage,
   type SiteQuoteProposalPublication,
@@ -94,4 +98,36 @@ export async function publishSiteQuoteProposal(input: {
   );
   if (error) throw error;
   return parseSiteQuoteProposalPublication(data);
+}
+
+/**
+ * F-12: fila operacional (entregas esgotadas + eventos órfãos). Exige operador;
+ * o 42501 é tratado pelo mesmo caminho do restante do back-office.
+ */
+export async function fetchSiteNotificationDeliveryReport(
+  limit = 50,
+): Promise<SiteNotificationDeliveryReport> {
+  const { data, error } = await runSiteRpc(
+    siteClient().rpc('get_site_notification_delivery_report', { p_limit: limit }),
+  );
+  if (error) throw error;
+  return parseSiteNotificationDeliveryReport(data);
+}
+
+/**
+ * F-12: reabre entregas esgotadas. O motivo é obrigatório porque ele é anexado ao
+ * registro de auditoria — sem motivo, o reprocessamento vira alteração anônima.
+ */
+export async function reprocessSiteNotificationDeliveries(
+  deliveryIds: string[],
+  reason: string,
+): Promise<SiteNotificationReprocessingResult> {
+  const { data, error } = await runSiteRpc(
+    siteClient().rpc('reprocess_site_notification_deliveries', {
+      p_delivery_ids: deliveryIds,
+      p_reason: reason.trim(),
+    }),
+  );
+  if (error) throw error;
+  return parseSiteNotificationReprocessingResult(data);
 }

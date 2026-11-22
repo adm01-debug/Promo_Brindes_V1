@@ -10,7 +10,7 @@ F-08,Confirmacao por WhatsApp Cloud API,4 variaveis WHATSAPP_* + template Meta a
 F-09,Webhooks de entrega Resend/WhatsApp,Secrets + URLs; bug 500 em payload invalido,PARCIAL,60,,PF-09,P2
 F-10,Saude da fila sem provedor,ReportQueueHealth agora antecede o 503 (corrigido nov/2026),COMPLETA,100,#190,PF-10,P2
 F-11,Corte de backlog antes de ligar provedores,claim_site_notification_deliveries sem filtro de idade/spam/apagado,PENDENTE,0,,PF-11,P2
-F-12,Supressao e reprocessamento,Lista bounce/complaint + reprocessar exhausted→pending,PENDENTE,0,,PF-12,P3
+F-12,Supressao e reprocessamento,Lista de supressao (bounce/complaint) por hash de e-mail, reprocessamento auditado exhausted->pending no back-office, re-vinculo de evento que chega antes do aceite e purga de orfaos,COMPLETA,100,,PF-12,P3
 F-13,Conteudo das confirmacoes,Decisao resumo x copia integral; texto diverge do e-mail real,BLOQUEADA,50,,PF-13,P3
 F-14,Texto promessa de confirmacao,Tela diz registrada para envio sem provedor ligado,COMPLETA,100,#181 #215,PF-14,P2
 F-15,Checkbox copia pelo WhatsApp,Sempre visivel sem WhatsApp ligado; nao e copia,PARCIAL,50,,PF-15,P2

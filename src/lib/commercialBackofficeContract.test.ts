@@ -3,6 +3,8 @@ import {
   isSiteOperatorError,
   isSiteProposalRejected,
   isSiteQuoteConflict,
+  parseSiteNotificationDeliveryReport,
+  parseSiteNotificationReprocessingResult,
   parseSiteQuoteDetail,
   parseSiteQuoteListPage,
   parseSiteQuoteProposalPublication,
@@ -168,5 +170,71 @@ describe('contrato do back-office comercial', () => {
     expect(isSiteQuoteConflict({ message: 'quote_request_changed_concurrently' })).toBe(true);
     expect(isSiteQuoteConflict({ message: 'quote_request_not_found' })).toBe(false);
     expect(isSiteQuoteConflict(null)).toBe(false);
+  });
+
+  it('lê o relatório da fila e descarta linha sem deliveryId', () => {
+    expect(parseSiteNotificationDeliveryReport({
+      exhausted: [
+        {
+          deliveryId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          requestKind: 'quote',
+          requestId,
+          protocol: 'PB26123456-7',
+          channel: 'email',
+          attempts: 5,
+          lastErrorCode: 'resend_500',
+          lastErrorAt: '2026-11-20T10:00:00.000Z',
+          updatedAt: '2026-11-20T10:00:00.000Z',
+          emailHashPrefix: '0123456789ab',
+          suppressed: true,
+        },
+        { requestKind: 'quote', protocol: 'PB26000000-0' },
+      ],
+      orphanEventCount: 7,
+      reconcilableOrphanCount: 3,
+      orphanEventOldestAt: '2026-01-02T00:00:00.000Z',
+    })).toEqual({
+      exhausted: [{
+        deliveryId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        requestKind: 'quote',
+        requestId,
+        protocol: 'PB26123456-7',
+        channel: 'email',
+        attempts: 5,
+        lastErrorCode: 'resend_500',
+        lastErrorAt: '2026-11-20T10:00:00.000Z',
+        updatedAt: '2026-11-20T10:00:00.000Z',
+        emailHashPrefix: '0123456789ab',
+        suppressed: true,
+      }],
+      orphanEventCount: 7,
+      reconcilableOrphanCount: 3,
+      orphanEventOldestAt: '2026-01-02T00:00:00.000Z',
+    });
+    expect(parseSiteNotificationDeliveryReport({}).exhausted).toEqual([]);
+    expect(() => parseSiteNotificationDeliveryReport(null)).toThrow('commercial_backoffice_invalid_delivery_report');
+  });
+
+  it('lê o resultado do reprocessamento normalizando o motivo de skip', () => {
+    expect(parseSiteNotificationReprocessingResult({
+      reopened: 2,
+      skipped: [
+        { deliveryId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', status: 'exhausted', reason: 'locked' },
+        { deliveryId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', status: 'sent', reason: 'not_exhausted' },
+        { deliveryId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', status: 'pending', reason: 'desconhecido' },
+      ],
+    })).toEqual({
+      reopened: 2,
+      skipped: [
+        { deliveryId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', status: 'exhausted', reason: 'locked' },
+        { deliveryId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', status: 'sent', reason: 'not_exhausted' },
+        { deliveryId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', status: 'pending', reason: 'not_exhausted' },
+      ],
+    });
+    expect(() => parseSiteNotificationReprocessingResult([])).toThrow('commercial_backoffice_invalid_reprocessing_result');
+  });
+
+  it('traduz a recusa por lote ou motivo inválido no reprocessamento', () => {
+    expect(siteOperatorErrorMessage({ message: 'invalid_notification_reprocessing_input' })).toContain('motivo de 3 a 200 caracteres');
   });
 });

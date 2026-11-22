@@ -109,6 +109,13 @@ function storageDeletionObjects(value: unknown): StorageDeletionObject[] {
 }
 
 const AUDIT_LOG_BATCH_SIZE = 1_000;
+/**
+ * Retencao dos eventos de webhook orfaos (F-12). 180 dias: um evento so fica orfao
+ * quando o aceite do provedor nunca chegou, e esse caso se resolve em minutos na
+ * pratica — a janela longa existe para nao apagar o que ainda pode ser religado.
+ */
+const ORPHAN_EVENT_RETENTION_DAYS = 180;
+const ORPHAN_EVENT_BATCH_SIZE = 500;
 
 type RetentionPass = {
   quotesDeleted: number;
@@ -120,6 +127,8 @@ type RetentionPass = {
   storageQueueEntriesFinalized: number;
   adminWriteAuditLogsPurged: number;
   adminDdlAuditLogsPurged: number;
+  orphanNotificationEventsPurged: number;
+  orphanNotificationEventsReconciled: number;
   backlogSaturated: string[];
 };
 
@@ -192,6 +201,23 @@ async function runRetentionPass(config: SiteDatabaseConfig, deadlineAt: number):
       { p_retention_days: 400, p_batch_size: AUDIT_LOG_BATCH_SIZE },
       budgetedSignal(),
     );
+    // F-12: evento de webhook que chegou antes do aceite ficou com delivery_id NULL e
+    // nunca mais foi olhado. Reconciliar ANTES de expurgar e o que separa "orfao que
+    // ainda da para religar" de "orfao que ninguem vai ler".
+    const reconciled = await rpc<'reconcile_site_notification_provider_events', { linked?: number; appliedToDeliveryState?: number }>(
+      config.url,
+      config.serviceCredential,
+      'reconcile_site_notification_provider_events',
+      { p_batch_size: ORPHAN_EVENT_BATCH_SIZE },
+      budgetedSignal(),
+    );
+    const orphanEventsPurged = await rpc<'purge_site_notification_provider_events', { orphanEventsDeleted?: number }>(
+      config.url,
+      config.serviceCredential,
+      'purge_site_notification_provider_events',
+      { p_retention_days: ORPHAN_EVENT_RETENTION_DAYS, p_batch_size: ORPHAN_EVENT_BATCH_SIZE },
+      budgetedSignal(),
+    );
     // Cada etapa pede um lote de tamanho fixo. Um lote que volta cheio significa
     // que sobrou trabalho: com o laco abaixo isso passa a disparar outra passada
     // na mesma execucao, e o que ainda estiver cheio no fim e o residuo real.
@@ -205,6 +231,7 @@ async function runRetentionPass(config: SiteDatabaseConfig, deadlineAt: number):
       storageObjects.length >= RETENTION_BATCH_SIZE ? 'briefing_assets' : '',
       Number(auditLogsPurged.writesDeleted || 0) >= AUDIT_LOG_BATCH_SIZE ? 'admin_write_audit_logs' : '',
       Number(auditLogsPurged.ddlDeleted || 0) >= AUDIT_LOG_BATCH_SIZE ? 'admin_ddl_audit_logs' : '',
+      Number(orphanEventsPurged.orphanEventsDeleted || 0) >= ORPHAN_EVENT_BATCH_SIZE ? 'orphan_notification_events' : '',
     ].filter(Boolean);
     return {
       quotesDeleted: Number(finalized.quotesDeleted || 0),
@@ -216,6 +243,8 @@ async function runRetentionPass(config: SiteDatabaseConfig, deadlineAt: number):
       storageQueueEntriesFinalized: Number(storageFinalized.queueEntriesDeleted || 0),
       adminWriteAuditLogsPurged: Number(auditLogsPurged.writesDeleted || 0),
       adminDdlAuditLogsPurged: Number(auditLogsPurged.ddlDeleted || 0),
+      orphanNotificationEventsPurged: Number(orphanEventsPurged.orphanEventsDeleted || 0),
+      orphanNotificationEventsReconciled: Number(reconciled.linked || 0),
       backlogSaturated,
     };
   } finally {
@@ -248,6 +277,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       quotesDeleted: 0, proposalDocumentsDeleted: 0, contactsDeleted: 0, notificationsDeleted: 0,
       archivedSelectionsDeleted: 0, briefingAssetsFinalized: 0, storageQueueEntriesFinalized: 0,
       adminWriteAuditLogsPurged: 0, adminDdlAuditLogsPurged: 0,
+      orphanNotificationEventsPurged: 0, orphanNotificationEventsReconciled: 0,
     };
     let passes = 0;
     let backlogSaturated: string[] = [];
@@ -268,6 +298,8 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       total.storageQueueEntriesFinalized += pass.storageQueueEntriesFinalized;
       total.adminWriteAuditLogsPurged += pass.adminWriteAuditLogsPurged;
       total.adminDdlAuditLogsPurged += pass.adminDdlAuditLogsPurged;
+      total.orphanNotificationEventsPurged += pass.orphanNotificationEventsPurged;
+      total.orphanNotificationEventsReconciled += pass.orphanNotificationEventsReconciled;
       backlogSaturated = pass.backlogSaturated;
       if (!backlogSaturated.length) { stopReason = 'drained'; break; }
       if (passes >= MAX_RETENTION_PASSES) { stopReason = 'max_passes'; break; }
