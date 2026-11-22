@@ -60,8 +60,10 @@ grant execute on all functions in schema extensions to authenticated;
 create temporary table rls_probe (path text not null, expired_path text not null, upload_path text not null);
 grant select on rls_probe to authenticated;
 
--- Seleção compartilhada válida para o teste de limite de leitura (criada aqui
--- porque site_api não escreve em site_private.shared_selections).
+-- Seleção compartilhada válida para o teste de limite de leitura. A fixture é
+-- criada como postgres (dono da tabela) para não consumir o balde de criação de
+-- link; o que este teste exercita é a leitura, e para ela o papel site_api tem
+-- apenas SELECT em site_private.shared_selections.
 create temporary table shared_probe_token (token uuid not null);
 grant select on shared_probe_token to site_api;
 with created as (
@@ -378,8 +380,16 @@ begin
       -- A leitura válida devolve os itens; antes o laço só contava respostas
       -- nulas de tokens inexistentes, o que passaria mesmo com a função quebrada.
       v_result := public.get_site_shared_selection(v_token, repeat('c', 64));
-      if v_result is null or pg_catalog.jsonb_typeof(v_result -> 'items') <> 'array'
-        or jsonb_array_length(v_result -> 'items') <> 1 then
+      -- Precisa ser exatamente o item gravado na fixture e trazer expiresAt:
+      -- readSharedSelection (api/_lib/sharedSelections.ts:130-140) recusa a
+      -- resposta sem expiresAt, então um array qualquer não serve de prova.
+      if v_result is null
+        or pg_catalog.jsonb_typeof(v_result -> 'items') <> 'array'
+        or jsonb_array_length(v_result -> 'items') <> 1
+        or v_result -> 'items' -> 0 ->> 'id' is distinct from '11111111-1111-4111-8111-111111111111'
+        or (v_result -> 'items' -> 0 ->> 'q')::integer is distinct from 100
+        or v_result ->> 'expiresAt' is null
+        or pg_catalog.jsonb_typeof(v_result -> 'expiresAt') <> 'string' then
         raise exception 'valid_selection_not_returned';
       end if;
       v_items := v_items + jsonb_array_length(v_result -> 'items');
