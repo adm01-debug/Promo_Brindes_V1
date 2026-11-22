@@ -8,6 +8,7 @@ import {
   deliverCommercialAlertJob,
   parseCommercialAlertJob,
 } from './_lib/commercialTeamAlerts.js';
+import { recordCronHeartbeat } from './_lib/cronHeartbeats.js';
 import { sendOperationalAlert } from './_lib/operationalAlerts.js';
 
 /** Orçamento do cron abaixo do maxDuration de 15 s da Vercel. Exportado para
@@ -72,6 +73,9 @@ export default async function handler(request: ApiRequest, response: ApiResponse
   // cada 5 min (vercel.json), entao a perda era continua.
   if (!commercialAlertsEnabled()) {
     console.info('commercial_alerts_cron_skipped', { reason: 'not_configured' });
+    // F-87: o cron rodou, so nao havia destino. Sem este heartbeat o vigia
+    // confundiria "sem provedor" com "agendador parado" e alertaria sem motivo.
+    await recordCronHeartbeat('commercial-alerts', true, 'skipped:not_configured');
     response.status(200).json({ ok: true, skipped: 'not_configured', claimed: 0, delivered: 0, failed: 0, pending: 0 });
     return;
   }
@@ -110,9 +114,11 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       failed,
       pending: pendingTotal,
     });
+    await recordCronHeartbeat('commercial-alerts', true, failed ? `failed:${failed}` : undefined);
     response.status(200).json({ ok: true, claimed: claimedJobs.length, delivered, failed, pending: pendingTotal });
   } catch (error) {
     logServerError('commercial_alerts_cron_failed', { errorClass: errorClass(error) });
+    await recordCronHeartbeat('commercial-alerts', false, errorClass(error));
     const alerted = await sendOperationalAlert('commercial_alerts_cron_failed', { errorClass: errorClass(error) });
     if (process.env.OPERATIONS_ALERT_WEBHOOK_URL?.trim() && !alerted) {
       logServerWarning('commercial_alerts_failure_alert_delivery_failed', {});

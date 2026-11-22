@@ -2,6 +2,7 @@ import { timingSafeEqual } from 'node:crypto';
 import { getSiteDatabaseConfig } from './_lib/siteDatabase.js';
 import type { ApiRequest, ApiResponse } from './_lib/leadHandler.js';
 import { errorClass, logServerError, logServerWarning } from './_lib/observability.js';
+import { recordCronHeartbeat } from './_lib/cronHeartbeats.js';
 import { sendOperationalAlert } from './_lib/operationalAlerts.js';
 import type { SiteRpcArgs, SiteRpcName } from './_lib/siteRpcContract.js';
 
@@ -279,9 +280,11 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       const alerted = await sendOperationalAlert('retention_backlog_saturated', detalhe);
       if (process.env.OPERATIONS_ALERT_WEBHOOK_URL?.trim() && !alerted) logServerWarning('site_retention_backlog_alert_delivery_failed', {});
     }
+    await recordCronHeartbeat('retention', true, backlogSaturated.length ? `backlog:${backlogSaturated.join(',')}` : undefined);
     response.status(200).json({ ok: true, passes, stopReason, backlogSaturated });
   } catch (error) {
     logServerError('site_retention_failed', { errorClass: errorClass(error) });
+    await recordCronHeartbeat('retention', false, errorClass(error));
     const alerted = await sendOperationalAlert('retention_cron_failed', { errorClass: errorClass(error) });
     if (process.env.OPERATIONS_ALERT_WEBHOOK_URL?.trim() && !alerted) logServerWarning('site_retention_failure_alert_delivery_failed', {});
     response.status(503).json({ error: 'retention_unavailable' });
