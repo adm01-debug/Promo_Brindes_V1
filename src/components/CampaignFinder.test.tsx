@@ -56,6 +56,149 @@ describe('resumo editável do briefing', () => {
   });
 });
 
+describe('resumo antes das quatro respostas e cancelamento da edicao', () => {
+  afterEach(cleanup);
+
+  it('abre o resumo parcial com o que ja foi escolhido', () => {
+    render(<MemoryRouter><CampaignFinder /></MemoryRouter>);
+
+    fireEvent.click(screen.getByText('Evento'));
+    fireEvent.click(screen.getByText('Colaboradores'));
+
+    expect(screen.queryByRole('heading', { name: 'O que entendemos da sua campanha' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Revisar 2 escolhas' }));
+
+    expect(screen.getByRole('heading', { name: 'O que entendemos da sua campanha' })).toBeVisible();
+    expect(screen.getByText('Evento')).toBeVisible();
+    expect(screen.getByText('Colaboradores')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Ver minha curadoria' })).toBeEnabled();
+  });
+
+  it('oferece o resumo parcial a partir de uma unica escolha', () => {
+    render(<MemoryRouter><CampaignFinder /></MemoryRouter>);
+
+    fireEvent.click(screen.getByText('Evento'));
+    fireEvent.click(screen.getByRole('button', { name: 'Revisar 1 escolha' }));
+
+    expect(screen.getByRole('heading', { name: 'O que entendemos da sua campanha' })).toBeVisible();
+  });
+
+  it('cancela a edicao devolvendo o resumo com as escolhas originais', () => {
+    render(<MemoryRouter><CampaignFinder /></MemoryRouter>);
+    completeBriefing();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ajustar respostas' }));
+    fireEvent.click(screen.getByText('Onboarding'));
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar edição' }));
+
+    expect(screen.getByRole('heading', { name: 'O que entendemos da sua campanha' })).toBeVisible();
+    expect(screen.getByText('Evento')).toBeVisible();
+    expect(screen.getByText('Colaboradores')).toBeVisible();
+    expect(screen.getByText('51–200')).toBeVisible();
+    expect(screen.getByText('Útil')).toBeVisible();
+  });
+
+  it('nao oferece cancelar edicao em quem nunca viu o resumo', () => {
+    render(<MemoryRouter><CampaignFinder /></MemoryRouter>);
+
+    expect(screen.queryByRole('button', { name: 'Cancelar edição' })).toBeNull();
+  });
+
+  it('devolve o foco ao titulo do resumo ao cancelar a edicao', async () => {
+    render(<MemoryRouter><CampaignFinder /></MemoryRouter>);
+    completeBriefing();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ajustar respostas' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar edição' }));
+    await new Promise<void>((resolve) => { window.requestAnimationFrame(() => resolve()); });
+
+    expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'O que entendemos da sua campanha' }));
+  });
+
+  it('desfaz a remocao feita no resumo quando a edicao e cancelada', () => {
+    render(<MemoryRouter><CampaignFinder /></MemoryRouter>);
+    completeBriefing();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remover Colaboradores e editar pessoas' }));
+    expect(screen.getByRole('heading', { name: 'Quem precisa ser encantado?' })).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar edição' }));
+
+    expect(screen.getByRole('heading', { name: 'O que entendemos da sua campanha' })).toBeVisible();
+    expect(screen.getByText('Colaboradores')).toBeVisible();
+    expect(screen.getByText('Evento')).toBeVisible();
+  });
+
+  it('mantem a remocao quando o resumo e reaberto por Revisar escolhas', () => {
+    render(<MemoryRouter><CampaignFinder /></MemoryRouter>);
+    completeBriefing();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remover Colaboradores e editar pessoas' }));
+    fireEvent.click(screen.getByText('Clientes'));
+
+    // Com a quarta resposta a etapa fecha sozinha e o resumo ja mostra a troca.
+    expect(screen.getByRole('heading', { name: 'O que entendemos da sua campanha' })).toBeVisible();
+    expect(screen.queryByText('Colaboradores')).toBeNull();
+    expect(screen.getByText('Clientes')).toBeVisible();
+  });
+
+  it('cancelar so volta ao resumo e nao desfaz respostas ja confirmadas nele', () => {
+    render(<MemoryRouter><CampaignFinder /></MemoryRouter>);
+    completeBriefing();
+
+    // Primeira edicao: remover e responder de novo. O resumo reaberto passa a
+    // ser a nova base, entao o cancelamento seguinte nao pode desfazer isso.
+    fireEvent.click(screen.getByRole('button', { name: 'Remover Colaboradores e editar pessoas' }));
+    fireEvent.click(screen.getByText('Clientes'));
+    expect(screen.getByText('Clientes')).toBeVisible();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ajustar respostas' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar edição' }));
+
+    expect(screen.getByText('Clientes')).toBeVisible();
+    expect(screen.queryByText('Colaboradores')).toBeNull();
+  });
+
+  it('mantem Cancelar edicao disponivel ao trocar de etapa durante a edicao', () => {
+    render(<MemoryRouter><CampaignFinder /></MemoryRouter>);
+    completeBriefing();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ajustar respostas' }));
+    // Sai da primeira pergunta direto para a ultima pelo progresso.
+    fireEvent.click(screen.getByRole('button', { name: 'Ir para etapa 4: clima' }));
+
+    expect(screen.getByRole('heading', { name: 'Que sensação a escolha deve passar?' })).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar edição' }));
+    expect(screen.getByRole('heading', { name: 'O que entendemos da sua campanha' })).toBeVisible();
+    expect(screen.getByText('Colaboradores')).toBeVisible();
+  });
+
+  it('oferece Revisar escolhas junto de Cancelar edicao depois de remover no resumo', () => {
+    render(<MemoryRouter><CampaignFinder /></MemoryRouter>);
+    completeBriefing();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remover Colaboradores e editar pessoas' }));
+
+    // A remocao deixa 3 escolhas: da para voltar ao resumo sem desfaze-la.
+    fireEvent.click(screen.getByRole('button', { name: 'Revisar 3 escolhas' }));
+
+    expect(screen.getByRole('heading', { name: 'O que entendemos da sua campanha' })).toBeVisible();
+    expect(screen.queryByText('Colaboradores')).toBeNull();
+    expect(screen.getByText('Evento')).toBeVisible();
+    expect(screen.queryByRole('button', { name: 'Cancelar edição' })).toBeNull();
+  });
+
+  it('nao restaura escolha desfeita fora do resumo', () => {
+    render(<MemoryRouter><CampaignFinder /></MemoryRouter>);
+
+    fireEvent.click(screen.getByText('Evento'));
+    fireEvent.click(screen.getByRole('button', { name: 'Revisar 1 escolha' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Ajustar respostas' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar edição' }));
+
+    expect(screen.getByText('Evento')).toBeVisible();
+  });
+});
+
 describe('foco do teclado entre as etapas', () => {
   afterEach(cleanup);
 

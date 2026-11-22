@@ -35,7 +35,7 @@ F-33,Evento erased na timeline,Sem decisao nem implementacao,BLOQUEADA,0,,PF-33,
 F-34,Auditoria de leitura SELECT em PII,So ha auditoria de escrita e DDL,PENDENTE,0,,PF-34,P3
 F-35,Saneamento de anexos,So checa assinatura 1KiB; PDF em quarentena permanente,PARCIAL,40,,PF-35,P2
 F-36,Criptografia PII E.164 rate limit borda,Spikes adiados formalmente,BLOQUEADA,0,,PF-36,P2
-F-37,Resumo O que entendemos editavel,PR #94: resumo so com 4/4; falta cancelar edicao foco merge,PARCIAL,70,#94,PF-37,P1
+F-37,Resumo O que entendemos editavel,Resumo abre com qualquer numero de escolhas (botao Revisar N escolhas) e Cancelar edicao restaura o snapshot do resumo; foco devolvido ao titulo do resumo,COMPLETA,100,"#94,#226",PF-37,P1
 F-38,Caminho Ainda nao sei o que escolher,CTA desabilitado com 0 respostas; sem saida ao catalogo,COMPLETA,100,#211,PF-38,P2
 F-39,Troca de campanha consciente,setCampaign sobrescreve carrinho em silencio,COMPLETA,100,#212,PF-39,P2
 F-40,Intencao x filtros efetivos,Mostrar respostas que viraram filtro; descrever Curadoria Promo,COMPLETA,100,#223,"Implementado: explicacao por sinal, colecao Em alta com origem correta (featuredSource), cor/material como uniao (so SKU exato suprime), dica de ordem apenas como descricao acessivel. Merge #223.",P2
