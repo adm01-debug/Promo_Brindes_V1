@@ -96,20 +96,6 @@ _Sem comment on table — considerar adicionar um na próxima migration que toca
 | `message` | `text` | Contexto opcional da conversa, limitado a 800 caracteres e retido no banco isolado do site. |
 | `preferred_channel` | `text` | Preferência opcional de retorno; não representa consentimento para disparo automático. |
 
-### `site_private.cron_heartbeats`
-
-Heartbeat dos crons do site (F-87). Uma linha por cron agendado em vercel.json; escrita so pela RPC record_cron_heartbeat.
-
-| Coluna | Tipo | Comentário |
-|---|---|---|
-| `name` | `text` | — |
-| `installed_at` | `timestamp with time zone` | — |
-| `last_ok_at` | `timestamp with time zone` | — |
-| `last_failed_at` | `timestamp with time zone` | — |
-| `last_failure_detail` | `text` | — |
-| `consecutive_failures` | `integer` | — |
-| `updated_at` | `timestamp with time zone` | — |
-
 ### `site_private.customer_briefing_assets`
 
 Logos e referências privadas em PNG, JPEG ou WebP. PDFs ficam bloqueados até existir análise estrutural/CDR isolada e antimalware.
@@ -226,15 +212,18 @@ Deduplicação de eventos de webhook de entrega/devolução (Etapa 30). Sem cont
 
 ### `site_private.pii_read_audit_log`
 
-PF-34: audita leituras (SELECT) de colunas de contato do titular em tabelas de PII. Não armazena o valor lido, só que uma leitura aconteceu, para quem e quando.
+PF-34: audita leituras (SELECT) de colunas de contato do titular em tabelas de PII. Não armazena o valor lido, só que uma leitura aconteceu, para quem, quando, quantas linhas e com qual filtro.
 
 | Coluna | Tipo | Comentário |
 |---|---|---|
 | `id` | `bigint` | — |
 | `table_name` | `text` | — |
 | `operation` | `text` | — |
-| `subject` | `uuid` | — |
+| `subject` | `uuid` | Titular cuja PII foi lida. Fica nulo em leitura de operador: a fila comercial pagina muitos titulares de uma vez e só o row_count descreve o volume. |
 | `performed_by` | `text` | — |
+| `actor_kind` | `text` | titular = o próprio dono leu seus dados; operador = alguém do back-office leu dados de outra pessoa. |
+| `filter` | `text` | — |
+| `row_count` | `integer` | — |
 | `application_name` | `text` | — |
 | `occurred_at` | `timestamp with time zone` | — |
 
@@ -415,7 +404,6 @@ Trilha do exercicio dos direitos do titular (LGPD art. 18) na Area do Cliente: a
 | `apply_site_notification_provider_event` | `p_provider text, p_provider_message_id text, p_event_type text, p_provider_event_id text, p_occurred_at timestamp with time zone, p_bounce_reason text` | Aplica evento de webhook de forma idempotente. delivered só grava se delivery_state ainda for null; bounced grava se null OU se o estado atual for delivered (bounce tardio corrige delivered otimista). complained é independente e idempotente via coalesce. F-12: o evento também guarda provider_message_id e bounce_reason, para o re-vínculo de evento precoce. |
 | `attach_my_briefing_assets_to_quote` | `p_request_id uuid, p_asset_ids uuid[]` | — |
 | `can_delete_my_unverified_briefing_asset_path` | `p_path text` | Permite limpeza direta somente antes da verificação; depois dela a exclusão ocorre pela fila server-side. |
-| `check_cron_heartbeats` | `` | Devolve o estado de cada cron do site e se ele esta atrasado segundo o intervalo esperado mais a tolerancia (F-87). |
 | `claim_my_quote_requests` | `` | Associa solicitações sem titular somente após confirmação do e-mail da identidade autenticada. |
 | `claim_site_commercial_team_alert` | `p_request_id uuid` | Reivindica o alerta comercial de um lead especifico (orcamento ou contato), sem filtrar por canal. |
 | `claim_site_commercial_team_alerts` | `p_batch_size integer` | Reivindica lotes de alertas comerciais pendentes (orcamento e contato) para o cron de entrega. |
@@ -458,6 +446,7 @@ Trilha do exercicio dos direitos do titular (LGPD art. 18) na Area do Cliente: a
 | `purge_archived_customer_selections` | `p_batch_size integer` | — |
 | `purge_site_admin_audit_logs` | `p_retention_days integer, p_batch_size integer` | Remove em lotes trilhas administrativas além da janela configurada; padrão 400 dias. |
 | `purge_site_notification_provider_events` | `p_retention_days integer, p_batch_size integer` | F-12: expurga eventos de webhook órfãos (delivery_id NULL) mais antigos que a retenção, em lote. Chamada por api/retention.ts depois da reconciliação — órfão recente ainda pode ser religado. |
+| `purge_site_pii_read_audit_log` | `p_retention_days integer, p_batch_size integer` | PF-34: purga em lote a trilha de leitura de PII. Mesma janela e mesmo teto de lote que purge_site_admin_audit_logs. |
 | `reconcile_site_notification_provider_events` | `p_batch_size integer` | F-12: religa eventos de webhook que chegaram antes do aceite do provedor (delivery_id NULL) e reaplica delivery_state/complained_at com a mesma precedência de apply_site_notification_provider_event. Idempotente: evento já vinculado nunca é reprocessado. |
 | `record_cron_heartbeat` | `p_name text, p_ok boolean, p_detail text` | Grava o desfecho de uma rodada de cron (F-87). Chamada com a credencial de servico no fim de cada execucao. |
 | `record_site_notification_dispatch_started` | `p_delivery_id uuid, p_lease_token uuid` | Persiste intenção WhatsApp antes da chamada externa; sem confirmação do marcador, a Meta não é chamada. Um envio incerto exige reconciliação humana e nunca é reenviado cegamente. |

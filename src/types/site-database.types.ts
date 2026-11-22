@@ -34,20 +34,6 @@ export type Database = {
         Args: { p_path: string }
         Returns: boolean
       }
-      check_cron_heartbeats: {
-        Args: never
-        Returns: {
-          consecutive_failures: number
-          expected_interval_seconds: number
-          is_late: boolean
-          last_failed_at: string
-          last_failure_detail: string
-          last_ok_at: string
-          name: string
-          seconds_since_activity: number
-          status: string
-        }[]
-      }
       claim_my_quote_requests: { Args: never; Returns: Json }
       claim_site_commercial_team_alert: {
         Args: { p_request_id: string }
@@ -231,6 +217,10 @@ export type Database = {
         Returns: Json
       }
       purge_site_notification_provider_events: {
+        Args: { p_batch_size?: number; p_retention_days?: number }
+        Returns: Json
+      }
+      purge_site_pii_read_audit_log: {
         Args: { p_batch_size?: number; p_retention_days?: number }
         Returns: Json
       }
@@ -543,36 +533,6 @@ export type Database = {
         }
         Relationships: []
       }
-      cron_heartbeats: {
-        Row: {
-          consecutive_failures: number
-          installed_at: string
-          last_failed_at: string | null
-          last_failure_detail: string | null
-          last_ok_at: string | null
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          consecutive_failures?: number
-          installed_at?: string
-          last_failed_at?: string | null
-          last_failure_detail?: string | null
-          last_ok_at?: string | null
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          consecutive_failures?: number
-          installed_at?: string
-          last_failed_at?: string | null
-          last_failure_detail?: string | null
-          last_ok_at?: string | null
-          name?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       customer_briefing_assets: {
         Row: {
           created_at: string
@@ -857,29 +817,38 @@ export type Database = {
       }
       pii_read_audit_log: {
         Row: {
+          actor_kind: string
           application_name: string | null
+          filter: string | null
           id: number
           occurred_at: string
           operation: string
           performed_by: string
+          row_count: number | null
           subject: string | null
           table_name: string
         }
         Insert: {
+          actor_kind?: string
           application_name?: string | null
+          filter?: string | null
           id?: never
           occurred_at?: string
           operation?: string
           performed_by: string
+          row_count?: number | null
           subject?: string | null
           table_name: string
         }
         Update: {
+          actor_kind?: string
           application_name?: string | null
+          filter?: string | null
           id?: never
           occurred_at?: string
           operation?: string
           performed_by?: string
+          row_count?: number | null
           subject?: string | null
           table_name?: string
         }
@@ -1365,7 +1334,13 @@ export type Database = {
         Returns: boolean
       }
       log_pii_read: {
-        Args: { p_subject?: string; p_table_name: string }
+        Args: {
+          p_actor_kind?: string
+          p_filter?: string
+          p_row_count?: number
+          p_subject?: string
+          p_table_name: string
+        }
         Returns: undefined
       }
       mod11_check_digit: { Args: { p_digits: string }; Returns: string }
