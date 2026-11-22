@@ -87,6 +87,15 @@ describe('product applications', () => {
     expect(capacity?.detail).not.toMatch(/dia inteiro/i);
   });
 
+  it('não remete a uma data que o briefing da curadoria não coleta', () => {
+    // "Data especial" é um tipo de campanha: o briefing guarda momento, público,
+    // escala e estilo, nunca a data. A sugestão não pode citar um campo inexistente.
+    const ideas = productApplicationIdeas(product(), { source: 'finder', moment: 'sazonal' }).join(' ');
+    expect(ideas).toContain('Data especial declarada');
+    expect(ideas).not.toMatch(/data informada no briefing/i);
+    expect(ideas).toMatch(/data exata entra no orçamento/i);
+  });
+
   it('não promete personalização pronta no dia do evento', () => {
     const ideas = productApplicationIdeas(product({ allowsPersonalization: true })).join(' ');
     expect(ideas).not.toMatch(/personalização no mesmo dia/i);

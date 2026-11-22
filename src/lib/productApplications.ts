@@ -157,7 +157,7 @@ const CAMPAIGN_MOMENT_IDEAS: Record<string, string> = {
   evento: 'Evento declarado: distribuição no credenciamento ou no estande, conforme a logística da ação.',
   relacionamento: 'Relacionamento declarado: envio direto ao contato como ponto de contato da conversa.',
   reconhecimento: 'Reconhecimento declarado: entrega nominal em fechamento de ciclo ou premiação.',
-  sazonal: 'Data especial declarada: composição com o calendário da campanha, na data informada no briefing.',
+  sazonal: 'Data especial declarada: composição com o calendário da campanha — a data exata entra no orçamento.',
 };
 
 const CAMPAIGN_AUDIENCE_IDEAS: Record<string, string> = {
