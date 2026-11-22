@@ -10,7 +10,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(42);
+select plan(43);
 
 -- === A policy existe e e do papel certo (pre-condicao dos testes de comportamento) ===
 
@@ -60,6 +60,17 @@ grant execute on all functions in schema extensions to authenticated;
 create temporary table rls_probe (path text not null, expired_path text not null, upload_path text not null);
 grant select on rls_probe to authenticated;
 
+-- Seleção compartilhada válida para o teste de limite de leitura (criada aqui
+-- porque site_api não escreve em site_private.shared_selections).
+create temporary table shared_probe_token (token uuid not null);
+grant select on shared_probe_token to site_api;
+with created as (
+  insert into site_private.shared_selections (management_token_hash, items)
+  values (repeat('d', 64), '[{"id":"11111111-1111-4111-8111-111111111111","q":100}]'::jsonb)
+  returning token
+)
+insert into shared_probe_token (token) select created.token from created;
+
 -- Titular A cria duas reservas (uma delas vai expirar) e materializa os objetos.
 set local request.jwt.claims = '{"sub":"a1111111-1111-4111-8111-111111111111","role":"authenticated"}';
 do $$
@@ -82,18 +93,31 @@ $$;
 
 -- === Registro de DDL executado (event trigger log_admin_ddl) ===
 -- PF-82 pede verificar o registro de DDL executado: aqui o event trigger é
--- exercitado de verdade, não por grep em prosrc.
+-- exercitado de verdade, não por grep em prosrc. A contagem é comparada antes e
+-- depois de cada comando, porque o log é histórico: um `>= 1` passaria com uma
+-- linha antiga mesmo se o trigger tivesse parado de registrar.
+
+create temporary table ddl_probe (create_before bigint not null, drop_before bigint not null);
+insert into ddl_probe (create_before, drop_before) values (
+  (select count(*) from site_private.admin_ddl_log
+    where command_tag = 'CREATE TABLE' and schema_name = 'public'),
+  (select count(*) from site_private.admin_ddl_log where command_tag = 'DROP TABLE')
+);
 
 create table public.ddl_probe_table (id int);
-select ok(
+select is(
   (select count(*) from site_private.admin_ddl_log
-    where command_tag = 'CREATE TABLE' and schema_name = 'public') >= 1,
-  'CREATE TABLE gera linha no registro de DDL com o schema alvo'
+    where command_tag = 'CREATE TABLE' and schema_name = 'public')
+    - (select create_before from ddl_probe),
+  1::bigint,
+  'CREATE TABLE acrescenta exatamente 1 linha no registro de DDL com o schema alvo'
 );
 drop table public.ddl_probe_table;
-select ok(
-  (select count(*) from site_private.admin_ddl_log where command_tag = 'DROP TABLE') >= 1,
-  'DROP TABLE também entra no registro de DDL'
+select is(
+  (select count(*) from site_private.admin_ddl_log where command_tag = 'DROP TABLE')
+    - (select drop_before from ddl_probe),
+  1::bigint,
+  'DROP TABLE também acrescenta exatamente 1 linha no registro de DDL'
 );
 
 -- === Storage com o papel `authenticated` (RLS de verdade) ===
@@ -338,17 +362,27 @@ select is(
 -- PF-82 também pede este critério. get_site_shared_selection consome o limite de
 -- 120 leituras por hash/hora; o 121º acesso precisa falhar.
 
-create temporary table shared_probe (allowed integer, blocked boolean);
+create temporary table shared_probe (allowed integer, blocked boolean, items integer);
 grant insert on shared_probe to site_api;
 
 do $$
 declare
+  v_token uuid := (select token from shared_probe_token);
   v_allowed integer := 0;
+  v_items integer := 0;
   v_blocked boolean := false;
+  v_result jsonb;
 begin
   for i in 1..125 loop
     begin
-      perform public.get_site_shared_selection(gen_random_uuid(), repeat('c', 64));
+      -- A leitura válida devolve os itens; antes o laço só contava respostas
+      -- nulas de tokens inexistentes, o que passaria mesmo com a função quebrada.
+      v_result := public.get_site_shared_selection(v_token, repeat('c', 64));
+      if v_result is null or pg_catalog.jsonb_typeof(v_result -> 'items') <> 'array'
+        or jsonb_array_length(v_result -> 'items') <> 1 then
+        raise exception 'valid_selection_not_returned';
+      end if;
+      v_items := v_items + jsonb_array_length(v_result -> 'items');
       v_allowed := v_allowed + 1;
     exception when others then
       if sqlerrm = 'shared_selection_rate_limit_exceeded' then
@@ -358,14 +392,19 @@ begin
       raise;
     end;
   end loop;
-  insert into shared_probe (allowed, blocked) values (v_allowed, v_blocked);
+  insert into shared_probe (allowed, blocked, items) values (v_allowed, v_blocked, v_items);
 end;
 $$;
 
 select is(
   (select allowed from shared_probe),
   120,
-  'as 120 primeiras leituras de seleção compartilhada passam'
+  'as 120 primeiras leituras de uma seleção válida são entregues'
+);
+select is(
+  (select items from shared_probe),
+  120,
+  'as 120 leituras devolvem os itens da seleção (nenhuma resposta vazia)'
 );
 select ok(
   (select blocked from shared_probe),
