@@ -73,9 +73,14 @@ order by occurred_at desc
 limit 50;
 ```
 
+**A medição também precisa ser contínua.** Se o `stats_reset` do banco mudou entre a
+medição anterior e a atual (ou seja, o Postgres zerou os contadores no meio do período),
+o delta não representa o mês: a observação reinicia no reset e a janela recomeça a contar
+dali. Registrar o `stats_reset` junto de cada medição é o que torna a comparação válida.
+
 Só é candidato a remoção o índice que (a) apareceu como aplicado no `admin_ddl_log`
 há pelo menos 30 dias, (b) teve a tabela com tráfego medido entre duas revisões
-consecutivas nesse período e (c) continua com `idx_scan = 0`. Antes de remover:
+consecutivas sem `stats_reset` no meio e (c) continua com `idx_scan = 0`. Antes de remover:
 
 1. Confirmar que nenhuma query no código (`api/`, `site-supabase/supabase/migrations/`)
    depende do plano que esse índice sustenta — buscar pelo nome da tabela/colunas, não
