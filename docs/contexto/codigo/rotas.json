@@ -2,8 +2,8 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "resumo": {
-  "urls": 34,
-  "rotas_http_backend": 15,
+  "urls": 35,
+  "rotas_http_backend": 16,
   "vistas_por_id": 0,
   "itens_menu": 11,
   "lazy": 19
@@ -291,6 +291,31 @@
    "flags": [],
    "papeis": [],
    "arquivos_puxados": 12
+  },
+  {
+   "protegida": false,
+   "wrappers": [],
+   "pai": null,
+   "indice": false,
+   "lazy": false,
+   "tipo": "api",
+   "caminho": "/api/health",
+   "componente": "health",
+   "arquivo": "api/health.ts",
+   "definida_em": "vercel/api",
+   "hooks": [],
+   "hooks_locais": [],
+   "tabelas": [],
+   "rpcs": [
+    "create_site_contact_request",
+    "create_site_quote_request",
+    "preflight_site_lead_request"
+   ],
+   "edges": [],
+   "canais_realtime": [],
+   "flags": [],
+   "papeis": [],
+   "arquivos_puxados": 5
   },
   {
    "protegida": false,
@@ -1498,6 +1523,37 @@
    "chamada_por": [
     "src/pages/CustomerQuotePage.tsx"
    ]
+  },
+  {
+   "metodo": "GET,HEAD",
+   "caminho": "/api/health",
+   "arquivo": "api/health.ts",
+   "tabelas": [],
+   "env": [
+    "SITE_PREVIEW_SUPABASE_PROJECT_REF",
+    "SITE_PUBLIC_ORIGIN",
+    "SITE_REQUEST_HASH_SALT",
+    "SITE_SUPABASE_SECRET_KEY",
+    "SITE_SUPABASE_SERVICE_JWT",
+    "SITE_SUPABASE_URL",
+    "VERCEL_ENV",
+    "VERCEL_URL"
+   ],
+   "rpcs": [
+    "create_site_contact_request",
+    "create_site_quote_request",
+    "preflight_site_lead_request"
+   ],
+   "diretos": {
+    "tabelas": [],
+    "rpcs": [],
+    "env": []
+   },
+   "origem": "vercel/api",
+   "rewrites_de": [],
+   "cron": null,
+   "max_duration": 10,
+   "chamada_por": []
   },
   {
    "metodo": "GET,HEAD",

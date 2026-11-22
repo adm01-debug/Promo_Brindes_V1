@@ -353,7 +353,7 @@
   {
    "arquivo": "scripts/smoke-deployment.mjs",
    "descricao": null,
-   "linhas": 129,
+   "linhas": 148,
    "env": [
     "SMOKE_BASE_URL"
    ],

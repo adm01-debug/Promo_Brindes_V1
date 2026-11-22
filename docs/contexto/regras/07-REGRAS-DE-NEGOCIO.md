@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `28a86e8032` · branch `main` · 2026-11-22 16:09 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `20f6600800` · branch `main` · 2026-11-22 16:25 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -978,6 +978,7 @@ _nenhum item encontrado_
 | URL do deployment Vercel inválida. | `scripts/normalize-vercel-deployment-url.mjs` |
 | Uso: node scripts/normalize-vercel-deployment-url.mjs <url-ou-hostname> (exatamente um argumento). | `scripts/normalize-vercel-deployment-url.mjs` |
 | ${lastError?.message \|\|  | `scripts/smoke-deployment.mjs` |
+| /api/health: corpo não é JSON: ${String(health.body).slice(0, 120)} | `scripts/smoke-deployment.mjs` |
 | SMOKE_BASE_URL ausente. | `scripts/smoke-deployment.mjs` |
 | SMOKE_BASE_URL deve usar https (ou http em teste local); recebido  | `scripts/smoke-deployment.mjs` |
 | SMOKE_BASE_URL inválida: informe a URL completa do deployment, começando por https://. | `scripts/smoke-deployment.mjs` |
@@ -1106,8 +1107,7 @@ _nenhum item encontrado_
 | selection_catalog_changed | `src/lib/customerSelections.ts` |
 | selection_limit_reached | `src/lib/customerSelections.ts` |
 | selection_version_conflict | `src/lib/customerSelections.ts` |
-| Não conseguimos conectar ao serviço de envio. Verifique sua conexão e tente novamente. | `src/lib/http.ts` |
-| … +10 linhas — lista completa em `context.json` | |
+| … +11 linhas — lista completa em `context.json` | |
 
 ## J. Controle de acesso no código (checagens de perfil/permissão)
 
@@ -1118,7 +1118,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (1974 testes em 147 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (1988 testes em 148 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1149,6 +1149,7 @@ _nenhum item encontrado_
 | `site-supabase/supabase/tests/database/customer_occasion_favorites.test.sql` | 22 | favoritos de datas existem no schema privado · RLS é forçada nos favoritos de datas · cliente não recebe uso do schema privado · cliente não lê a tabela diretamente … |
 | `site-supabase/supabase/tests/database/lead_preflight_rate_limit.test.sql` | 20 | preflight distribuído existe · anon não executa preflight · authenticated não executa preflight · service_role executa preflight … |
 | `site-supabase/supabase/tests/database/notification_queue_policy.test.sql` | 20 | política: 5 tentativas máximas · política: lote máximo de 25 · política: lease de 10 minutos · anon não lê a política … |
+| `tests/smoke-deployment.node.mjs` | 20 | aprova um deployment saudável consultando cada rota uma única vez · reprova status inesperado sem repetir a rota · o 503 do health entra na mensagem com o código do problema · o 5xx de uma página HTML nao despeja o corpo no log … |
 | `tests/supabase-db-query.node.mjs` | 20 | extrai de objeto { · extrai de array top-level sem wrapper (formato observado no CI) · ignora banner de conexão (texto solto) antes do JSON · ignora banner de conexão antes de um array top-level … |
 | `site-supabase/supabase/tests/database/status_state_machine.test.sql` | 19 | eventos têm coluna de ordem monotônica · sequence é única (identity) · sequence preserva a ordem de inserção independentemente de created_at · tabela de transições existe … |
 | `src/context/QuoteCartContext.test.ts` | 19 | seleção para orçamento · adiciona e mantém uma linha por produto e cor · respeita a quantidade mínima do item · limita quantidades acidentalmente excessivas … |
@@ -1159,7 +1160,6 @@ _nenhum item encontrado_
 | `site-supabase/supabase/tests/database/quote_protocol.test.sql` | 17 | dígito verificador de 26000001 é determinístico e conhecido (conferido manualmente) · mod11_check_digit é determinística: mesma entrada, mesma saída · entradas diferentes tendem a produzir dígitos diferentes (não uma prova geral, só o par de teste) · soma zero cai no ramo remainder<2 e retorna 0 … |
 | `site-supabase/supabase/tests/database/selection_asset_integrity.test.sql` | 17 | leitura limitada recebe hash do solicitante · revogação limitada recebe hash do solicitante · site_api usa leitura limitada · anônimo não chama leitura limitada diretamente … |
 | `site-supabase/supabase/tests/database/site_api_privileges.test.sql` | 17 | anon continua sem create_site_quote_request · authenticated continua sem create_site_quote_request · site_api não tem acesso a customer_profiles (fora do escopo das 13 RPCs) · site_api não insere proposal_documents (isso é fluxo administrativo) … |
-| `tests/smoke-deployment.node.mjs` | 17 | aprova um deployment saudável consultando cada rota uma única vez · reprova status inesperado sem repetir a rota · reprova header de segurança ausente ou divergente em qualquer rota HTML · reprova corpo errado no sitemap e content-type errado no Analytics … |
 | `tests/api/maxDuration.test.ts` | 17 | Etapa 24: maxDuration em vercel.json cobre o pior caso real de cada rota · api/quote-requests.ts: catalogValidation + siteDatabase + confirmação (canais em paralelo) · api/contact-requests.ts: preflight + siteDatabase + alerta comercial (sem catalogValidation nem confirmação) · api/notification-events-resend.ts (Etapa 30): apenas uma chamada de RPC (callSiteRpc) … |
 | `site-supabase/supabase/tests/database/contact_commercial_alert.test.sql` | 16 | novo contato alimenta a fila do alerta comercial na mesma transação · contato enfileira exatamente uma entrega · a entrega é o alerta comercial pendente do contato · o envelope identifica o tipo do lead (a API não renderiza texto de orçamento) … |
 | `src/lib/commercialBackofficeContract.test.ts` | 14 | contrato do back-office comercial · lê a fila paginada com totais e itens · trata payload que não é objeto como indisponibilidade, não como fila vazia · rejeita item de fila que não é objeto … |
@@ -1181,6 +1181,7 @@ _nenhum item encontrado_
 | `site-supabase/supabase/tests/database/query_plans.test.sql` | 11 | consulta de reivindicação da fila não usa Seq Scan em notification_deliveries com distribuição de regime permanente (Etapa 17) · recuperação de leases expiradas usa acesso indexado · reconciliação de webhook pelo identificador do provedor usa acesso indexado · histórico do cliente usa acesso indexado por titular e data … |
 | `tests/ci-health-metrics.node.mjs` | 11 | não contabiliza cancelamento, timeout ou execução pendente como sucesso · separa conclusões neutras e ignoradas do denominador terminal · amostra sem conclusão terminal permanece inconclusiva · taxas arredondadas continuam somando exatamente 100 … |
 | `tests/validate-error-catalog.node.mjs` | 11 | extrai mensagens literais (message = \ · extrai o prefixo de mensagens via format() (message = format(\ · ignora texto solto que não segue nenhum dos dois padrões (acentos/espaços quebram o casamento) · acusa mensagem de migration que não está no catálogo … |
+| `tests/api/health.test.ts` | 11 | PF-75: /api/health confere a configuração do banco sem expor segredo · responde 200 quando o deployment aponta para o projeto isolado do site · responde 503 backend_not_configured quando falta variável obrigatória · rejeita o banco canônico com unsafe_database_target … |
 | `site-supabase/supabase/tests/database/notification_dispatch_uncertainty.test.sql` | 10 | anon não marca intenção de disparo · worker limitado pode marcar a intenção antes de chamar a Meta · orçamento com opt-in WhatsApp é criado · worker reivindica o WhatsApp … |
 | `src/components/ProductDescription.test.tsx` | 10 | descrição compacta e segura do produto · preserva texto curto sem exigir expansão · usa o resumo editorial no estado compacto e revela a descrição integral · limita um resumo longo antes de revelar a descrição integral … |
 | `src/lib/useCatalogPageState.test.tsx` | 10 | useCatalogPageState · preserva a resposta da API quando a ordem explícita é %s · aplica curadoria somente quando ela é a ordem escolhida · sincroniza o contexto da campanha a partir da URL … |
@@ -1298,6 +1299,8 @@ _nenhum item encontrado_
 | O limite de 30 downloads por 15 minutos (site_private.consume_rate_limit, | `api/customer-proposals.ts` |
 | documento havia sumido e repetia a tentativa que o fez bater no limite. | `api/customer-proposals.ts` |
 | a leitura de propostas após o corte do privilégio mínimo. | `api/customer-proposals.ts` |
+| * PF-75: a validação de destino do banco do site existia só por requisição, dentro | `api/health.ts` |
+| endpoint expõe apenas o código do problema, nunca a URL, o projeto ou a | `api/health.ts` |
 | da entrega e nunca deve competir pelo tempo reservado a ela. | `api/notifications.ts` |
 | justifica o limite de 5 tentativas antes de "exhausted" (Etapa 18). | `api/notifications.ts` |
 | particular, a string "false" é truthy no JavaScript e não pode jamais | `api/notifications.ts` |

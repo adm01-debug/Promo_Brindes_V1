@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "28a86e8032f7a3c9b51be5b7e5f8928380e0fa0d",
+  "commit": "20f6600800369c5d19c0274552436cc196cccf00",
   "branch": "main",
-  "data_commit": "2026-11-22T16:09:31Z",
+  "data_commit": "2026-11-22T16:24:45Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "20f6600",
+    "data": "2026-11-22",
+    "assunto": "feat: endpoint de health confere a configuracao do banco (F-75) (#237)"
+   },
    {
     "sha": "28a86e8",
     "data": "2026-11-22",
@@ -126,22 +131,17 @@
     "sha": "a9dab6d",
     "data": "2026-11-20",
     "assunto": "chore(docs): auditoria planejado × implementado em 40f6420 — 128 itens reverificados, 108 novos (#214)"
-   },
-   {
-    "sha": "40f6420",
-    "data": "2026-11-19",
-    "assunto": "infra(ci): verify-db tolera espera dos gates quando cross-browser chega ao teto de 35min (#210)"
    }
   ],
-  "arquivos_mudados_7d": 194,
+  "arquivos_mudados_7d": 199,
   "pastas_mais_mudadas_30d": [
    {
-    "pasta": "site-supabase/supabase/tests",
+    "pasta": "analise-prs/funcionalidades.csv",
     "mudancas": 19
    },
    {
-    "pasta": "analise-prs/funcionalidades.csv",
-    "mudancas": 18
+    "pasta": "site-supabase/supabase/tests",
+    "mudancas": 19
    },
    {
     "pasta": "package.json",
@@ -150,6 +150,14 @@
    {
     "pasta": "docs/audits/pending-features-20261011",
     "mudancas": 11
+   },
+   {
+    "pasta": "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
+    "mudancas": 10
+   },
+   {
+    "pasta": "docs/audits/planejado-x-implementado-20261120",
+    "mudancas": 10
    },
    {
     "pasta": "e2e/smoke.spec.ts",
@@ -168,14 +176,6 @@
     "mudancas": 9
    },
    {
-    "pasta": "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
-    "mudancas": 9
-   },
-   {
-    "pasta": "docs/audits/planejado-x-implementado-20261120",
-    "mudancas": 9
-   },
-   {
     "pasta": "site-supabase/supabase/migrations",
     "mudancas": 9
    },
@@ -188,11 +188,11 @@
     "mudancas": 8
    },
    {
-    "pasta": "docs/DATABASE_DICTIONARY.md",
+    "pasta": "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
     "mudancas": 7
    },
    {
-    "pasta": "src/styles.css",
+    "pasta": "docs/DATABASE_DICTIONARY.md",
     "mudancas": 7
    }
   ],
@@ -214,11 +214,11 @@
     "mudancas": 36
    },
    {
-    "arquivo": ".github/workflows/quality.yml",
-    "mudancas": 28
+    "arquivo": "vercel.json",
+    "mudancas": 29
    },
    {
-    "arquivo": "vercel.json",
+    "arquivo": ".github/workflows/quality.yml",
     "mudancas": 28
    },
    {
@@ -250,20 +250,20 @@
     "mudancas": 21
    },
    {
+    "arquivo": "api/_lib/siteDatabase.ts",
+    "mudancas": 20
+   },
+   {
     "arquivo": "api/notifications.ts",
     "mudancas": 20
    },
    {
-    "arquivo": "api/_lib/siteDatabase.ts",
+    "arquivo": "analise-prs/funcionalidades.csv",
     "mudancas": 19
    },
    {
     "arquivo": "docs/DATABASE_SCHEMA.md",
     "mudancas": 19
-   },
-   {
-    "arquivo": "analise-prs/funcionalidades.csv",
-    "mudancas": 18
    },
    {
     "arquivo": "src/App.tsx",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 116
+    "commits": 117
    },
    {
     "autor": "dependabot[bot]",
@@ -310,11 +310,11 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 745,
-  "arquivos_codigo": 301,
-  "linhas_codigo": 59341,
-  "rotas": 34,
-  "rotas_http_backend": 15,
+  "arquivos_total": 747,
+  "arquivos_codigo": 303,
+  "linhas_codigo": 59579,
+  "rotas": 35,
+  "rotas_http_backend": 16,
   "vistas_por_id": 0,
   "itens_menu": 11,
   "modulos": 9,
@@ -324,7 +324,7 @@
   "tabelas": 26,
   "migrations": 74,
   "cron_jobs": 0,
-  "testes": 156,
+  "testes": 157,
   "workflows": 15,
   "scripts": 37,
   "docs_md": 134
@@ -332,7 +332,7 @@
  "por_pasta": {
   "api/_lib": {
    "arquivos": 16,
-   "linhas": 2067
+   "linhas": 2070
   },
   "api/briefing-assets.ts": {
    "arquivos": 1,
@@ -353,6 +353,10 @@
   "api/customer-proposals.ts": {
    "arquivos": 1,
    "linhas": 150
+  },
+  "api/health.ts": {
+   "arquivos": 1,
+   "linhas": 32
   },
   "api/not-found.ts": {
    "arquivos": 1,
@@ -512,7 +516,7 @@
   },
   "scripts/smoke-deployment.mjs": {
    "arquivos": 1,
-   "linhas": 129
+   "linhas": 148
   },
   "scripts/soak-test-notification-queue.mjs": {
    "arquivos": 1,
@@ -607,8 +611,8 @@
    "linhas": 168
   },
   "tests/api": {
-   "arquivos": 21,
-   "linhas": 4168
+   "arquivos": 22,
+   "linhas": 4322
   },
   "tests/catalog-public-contract.node.mjs": {
    "arquivos": 1,
@@ -668,7 +672,7 @@
   },
   "tests/smoke-deployment.node.mjs": {
    "arquivos": 1,
-   "linhas": 337
+   "linhas": 367
   },
   "tests/soak-test-notification-queue.node.mjs": {
    "arquivos": 1,

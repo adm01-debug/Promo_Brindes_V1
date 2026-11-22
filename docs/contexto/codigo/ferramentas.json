@@ -3,7 +3,7 @@
  "format_version": 2,
  "stack": {
   "linguagens": [
-   "TypeScript (229)",
+   "TypeScript (231)",
    "Markdown (134)",
    "SQL (117)",
    "JavaScript (65)",
@@ -695,7 +695,7 @@
   {
    "arquivo": "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
    "titulo": "Verificação das pendências de engenharia — 17/11/2026",
-   "linhas": 467
+   "linhas": 473
   },
   {
    "arquivo": "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
@@ -1010,7 +1010,7 @@
   {
    "arquivo": "docs/RUNBOOK_RELEASE.md",
    "titulo": "Runbook — release banco isolado → aplicação → smoke",
-   "linhas": 39
+   "linhas": 42
   },
   {
    "arquivo": "docs/RUNBOOK_RESTORE_SITE.md",
@@ -1055,7 +1055,7 @@
   {
    "arquivo": "docs/prod-readiness.md",
    "titulo": "Prod Readiness — Promo_Brindes_V1",
-   "linhas": 87
+   "linhas": 88
   }
  ],
  "docs_em_subpastas": [

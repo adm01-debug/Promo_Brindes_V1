@@ -1,6 +1,6 @@
 # 10 · ACESSO E SEGURANÇA — quem pode o quê
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `28a86e8032` · branch `main` · 2026-11-22 16:09 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `20f6600800` · branch `main` · 2026-11-22 16:25 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## Perfis / roles identificados
@@ -117,7 +117,7 @@
 
 _nenhuma declarada em config.toml_
 
-## Funções serverless HTTP (Vercel `api/`) — 15
+## Funções serverless HTTP (Vercel `api/`) — 16
 
 > Toda função em `api/` é alcançável pela internet. A exigência de segredo, JWT ou assinatura fica no código de cada arquivo e NÃO é inferida aqui — leia o arquivo antes de assumir que a rota é protegida.
 
@@ -128,6 +128,7 @@ _nenhuma declarada em config.toml_
 | /api/contact-requests | `api/contact-requests.ts` |  |  |
 | /api/cron-watchdog | `api/cron-watchdog.ts` | GET | `*/30 * * * *` |
 | /api/customer-proposals | `api/customer-proposals.ts` | POST |  |
+| /api/health | `api/health.ts` |  |  |
 | /api/not-found | `api/not-found.ts` | HEAD |  |
 | /api/notification-events-resend | `api/notification-events-resend.ts` | POST |  |
 | /api/notification-events-whatsapp | `api/notification-events-whatsapp.ts` | GET, POST |  |

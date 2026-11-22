@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "28a86e8032f7a3c9b51be5b7e5f8928380e0fa0d",
+  "sha": "20f6600800369c5d19c0274552436cc196cccf00",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-22 16:09 UTC",
-  "files_total": 639,
-  "code_files": 419,
-  "code_lines": 75838,
+  "generated_at": "2026-11-22 16:25 UTC",
+  "files_total": 641,
+  "code_files": 421,
+  "code_lines": 76076,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "78bbe26f20ca2896",
+ "facts_hash": "34bf2ed519459d88",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -281,7 +281,7 @@
   ],
   "package_manager": "npm",
   "languages": {
-   ".ts": 162,
+   ".ts": 164,
    ".sql": 117,
    ".tsx": 67,
    ".mjs": 63,
@@ -7971,6 +7971,12 @@
     ]
    },
    {
+    "route": "/api/health",
+    "file": "api/health.ts",
+    "cron": "",
+    "methods": []
+   },
+   {
     "route": "/api/not-found",
     "file": "api/not-found.ts",
     "cron": "",
@@ -8086,8 +8092,8 @@
   },
   {
    "module": "api",
-   "files": 31,
-   "lines": 4528,
+   "files": 32,
+   "lines": 4563,
    "tables": [],
    "exports": [
     "briefing-assets.ts: REQUEST_TIMEOUT_MS, handler, async",
@@ -8095,6 +8101,7 @@
     "contact-requests.ts: handler, async",
     "cron-watchdog.ts: CRON_WATCHDOG_TIMEOUT_MS, isUnhealthy, handler, async",
     "customer-proposals.ts: REQUEST_TIMEOUT_MS, handler, async",
+    "health.ts: handler, async",
     "not-found.ts: handler, async",
     "notification-events-resend.ts: REQUEST_TIMEOUT_MS, MAX_WEBHOOK_BODY_BYTES",
     "notification-events-whatsapp.ts: REQUEST_TIMEOUT_MS, MAX_WEBHOOK_BODY_BYTES, MAX_STATUSES_PER_WEBHOOK",
@@ -8143,6 +8150,7 @@
     "api/contact-requests.ts",
     "api/cron-watchdog.ts",
     "api/customer-proposals.ts",
+    "api/health.ts",
     "api/not-found.ts",
     "api/notification-events-resend.ts",
     "api/notification-events-whatsapp.ts",
@@ -8270,7 +8278,7 @@
   {
    "module": "scripts",
    "files": 43,
-   "lines": 21597,
+   "lines": 21616,
    "tables": [
     "a",
     "contacts",
@@ -8923,8 +8931,8 @@
   },
   {
    "module": "tests",
-   "files": 47,
-   "lines": 10372,
+   "files": 48,
+   "lines": 10556,
    "tables": [
     "constructor",
     "quote_requests",
@@ -8987,6 +8995,7 @@
     "tests/api/cron-watchdog.test.ts",
     "tests/api/curated-page-previews.test.ts",
     "tests/api/customer-proposals.test.ts",
+    "tests/api/health.test.ts",
     "tests/api/lead-requests.test.ts",
     "tests/api/maxDuration.test.ts",
     "tests/api/notification-events-resend.test.ts",
@@ -10743,6 +10752,10 @@
    },
    {
     "file": "scripts/smoke-deployment.mjs",
+    "msg": "/api/health: corpo não é JSON: ${String(health.body).slice(0, 120)}"
+   },
+   {
+    "file": "scripts/smoke-deployment.mjs",
     "msg": "SMOKE_BASE_URL ausente."
    },
    {
@@ -11352,6 +11365,14 @@
    {
     "file": "api/customer-proposals.ts",
     "text": "a leitura de propostas após o corte do privilégio mínimo."
+   },
+   {
+    "file": "api/health.ts",
+    "text": "* PF-75: a validação de destino do banco do site existia só por requisição, dentro"
+   },
+   {
+    "file": "api/health.ts",
+    "text": "endpoint expõe apenas o código do problema, nunca a URL, o projeto ou a"
    },
    {
     "file": "api/notifications.ts",
@@ -20590,6 +20611,18 @@
    },
    {
     "file": "tests/smoke-deployment.node.mjs",
+    "name": "o 503 do health entra na mensagem com o código do problema"
+   },
+   {
+    "file": "tests/smoke-deployment.node.mjs",
+    "name": "o 5xx de uma página HTML nao despeja o corpo no log"
+   },
+   {
+    "file": "tests/smoke-deployment.node.mjs",
+    "name": "o 503 do /api/health continua trazendo o codigo do problema"
+   },
+   {
+    "file": "tests/smoke-deployment.node.mjs",
     "name": "reprova header de segurança ausente ou divergente em qualquer rota HTML"
    },
    {
@@ -21351,6 +21384,50 @@
    {
     "file": "tests/api/customer-proposals.test.ts",
     "name": "recusa caminho de proposta forjado antes de solicitar URL assinada"
+   },
+   {
+    "file": "tests/api/health.test.ts",
+    "name": "PF-75: /api/health confere a configuração do banco sem expor segredo"
+   },
+   {
+    "file": "tests/api/health.test.ts",
+    "name": "responde 200 quando o deployment aponta para o projeto isolado do site"
+   },
+   {
+    "file": "tests/api/health.test.ts",
+    "name": "responde 503 backend_not_configured quando falta variável obrigatória"
+   },
+   {
+    "file": "tests/api/health.test.ts",
+    "name": "rejeita o banco canônico com unsafe_database_target"
+   },
+   {
+    "file": "tests/api/health.test.ts",
+    "name": "rejeita URL com credencial embutida e credencial fora do formato"
+   },
+   {
+    "file": "tests/api/health.test.ts",
+    "name": "rejeita porta explícita mesmo com host do projeto isolado"
+   },
+   {
+    "file": "tests/api/health.test.ts",
+    "name": "não vaza URL, projeto, credencial nem salt no corpo da resposta"
+   },
+   {
+    "file": "tests/api/health.test.ts",
+    "name": "marca no-store e recusa método diferente de GET/HEAD"
+   },
+   {
+    "file": "tests/api/health.test.ts",
+    "name": "mantém a prévia isolada exigindo um projeto de prévia declarado"
+   },
+   {
+    "file": "tests/api/health.test.ts",
+    "name": "PF-75: a rota é publicada e declarada como todas as outras"
+   },
+   {
+    "file": "tests/api/health.test.ts",
+    "name": "registra api/health.ts em vercel.json:functions com maxDuration explícito"
    },
    {
     "file": "tests/api/lead-requests.test.ts",
@@ -25233,6 +25310,12 @@
     ]
    },
    {
+    "route": "/api/health",
+    "file": "api/health.ts",
+    "cron": "",
+    "methods": []
+   },
+   {
     "route": "/api/not-found",
     "file": "api/not-found.ts",
     "cron": "",
@@ -28064,6 +28147,18 @@
     "body: JSON.stringify({ expiresIn: 60 }),"
    ]
   },
+  "api/health.ts": {
+   "path": "api/health.ts",
+   "lines": 32,
+   "exports": [
+    "function handler",
+    "default async"
+   ],
+   "rule_comments": [
+    "* PF-75: a validação de destino do banco do site existia só por requisição, dentro",
+    "endpoint expõe apenas o código do problema, nunca a URL, o projeto ou a"
+   ]
+  },
   "api/not-found.ts": {
    "path": "api/not-found.ts",
    "lines": 28,
@@ -28794,7 +28889,7 @@
   },
   "api/_lib/siteDatabase.ts": {
    "path": "api/_lib/siteDatabase.ts",
-   "lines": 277,
+   "lines": 280,
    "exports": [
     "const REQUEST_TIMEOUT_MS",
     "const LEAD_PREFLIGHT_TIMEOUT_MS",
@@ -29597,7 +29692,7 @@
   },
   "scripts/smoke-deployment.mjs": {
    "path": "scripts/smoke-deployment.mjs",
-   "lines": 129,
+   "lines": 148,
    "exports": [
     "function runSmoke"
    ],
@@ -29606,9 +29701,13 @@
    ],
    "errors": [
     "${lastError?.message || ",
+    "/api/health: corpo não é JSON: ${String(health.body).slice(0, 120)}",
     "SMOKE_BASE_URL ausente.",
     "SMOKE_BASE_URL deve usar https (ou http em teste local); recebido ",
     "SMOKE_BASE_URL inválida: informe a URL completa do deployment, começando por https://."
+   ],
+   "rule_comments": [
+    "o primeiro cliente tenta enviar um orçamento. O endpoint devolve apenas o"
    ]
   },
   "scripts/soak-test-notification-queue.mjs": {
@@ -36681,7 +36780,7 @@
   },
   "tests/smoke-deployment.node.mjs": {
    "path": "tests/smoke-deployment.node.mjs",
-   "lines": 337,
+   "lines": 367,
    "is_test": true,
    "env": [
     "PATH"
@@ -36692,6 +36791,9 @@
    "tests": [
     "aprova um deployment saudável consultando cada rota uma única vez",
     "reprova status inesperado sem repetir a rota",
+    "o 503 do health entra na mensagem com o código do problema",
+    "o 5xx de uma página HTML nao despeja o corpo no log",
+    "o 503 do /api/health continua trazendo o codigo do problema",
     "reprova header de segurança ausente ou divergente em qualquer rota HTML",
     "reprova corpo errado no sitemap e content-type errado no Analytics",
     "repete 5xx e aprova quando o deployment se recupera",
@@ -37081,6 +37183,30 @@
     "recusa caminho de proposta forjado antes de solicitar URL assinada"
    ]
   },
+  "tests/api/health.test.ts": {
+   "path": "tests/api/health.test.ts",
+   "lines": 154,
+   "is_test": true,
+   "params": [
+    {
+     "name": "SITE_PROJECT",
+     "value": "'xlzmclcjdncjfdrjxclt'"
+    }
+   ],
+   "tests": [
+    "PF-75: /api/health confere a configuração do banco sem expor segredo",
+    "responde 200 quando o deployment aponta para o projeto isolado do site",
+    "responde 503 backend_not_configured quando falta variável obrigatória",
+    "rejeita o banco canônico com unsafe_database_target",
+    "rejeita URL com credencial embutida e credencial fora do formato",
+    "rejeita porta explícita mesmo com host do projeto isolado",
+    "não vaza URL, projeto, credencial nem salt no corpo da resposta",
+    "marca no-store e recusa método diferente de GET/HEAD",
+    "mantém a prévia isolada exigindo um projeto de prévia declarado",
+    "PF-75: a rota é publicada e declarada como todas as outras",
+    "registra api/health.ts em vercel.json:functions com maxDuration explícito"
+   ]
+  },
   "tests/api/lead-requests.test.ts": {
    "path": "tests/api/lead-requests.test.ts",
    "lines": 728,
@@ -37461,10 +37587,31 @@
   }
  },
  "git": {
-  "sha": "28a86e8032f7a3c9b51be5b7e5f8928380e0fa0d",
+  "sha": "20f6600800369c5d19c0274552436cc196cccf00",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "20f6600",
+    "date": "2026-11-22",
+    "author": "adm01-debug",
+    "subject": "feat: endpoint de health confere a configuracao do banco (F-75) (#237)",
+    "files": [
+     "analise-prs/funcionalidades.csv",
+     "api/_lib/siteDatabase.ts",
+     "api/health.ts",
+     "docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md",
+     "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
+     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
+     "docs/RUNBOOK_RELEASE.md",
+     "docs/audits/planejado-x-implementado-20261120/03-pf-57-85-conteudo-seguranca-banco.md",
+     "docs/prod-readiness.md",
+     "scripts/smoke-deployment.mjs",
+     "tests/api/health.test.ts",
+     "tests/smoke-deployment.node.mjs",
+     "vercel.json"
+    ]
+   },
    {
     "sha": "28a86e8",
     "date": "2026-11-22",
@@ -37879,25 +38026,16 @@
     "files": [
      "e2e/briefing-upload.spec.ts"
     ]
-   },
-   {
-    "sha": "13c5acb",
-    "date": "2026-11-18",
-    "author": "adm01-debug",
-    "subject": "feat(e2e): cobre dois dispositivos escolhendo na mesma seleção de orçamento (#201)",
-    "files": [
-     "e2e/concurrency.spec.ts"
-    ]
    }
   ],
   "hot_files": [
    [
     "analise-prs/funcionalidades.csv",
-    14
+    15
    ],
    [
     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
-    9
+    10
    ],
    [
     "scripts/check-performance-budget.mjs",
@@ -37914,6 +38052,18 @@
    [
     "src/lib/useCatalogPageState.ts",
     4
+   ],
+   [
+    "docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md",
+    3
+   ],
+   [
+    "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
+    3
+   ],
+   [
+    "vercel.json",
+    3
    ],
    [
     "e2e/smoke.spec.ts",
@@ -37948,27 +38098,15 @@
     3
    ],
    [
-    "docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md",
+    "docs/audits/planejado-x-implementado-20261120/03-pf-57-85-conteudo-seguranca-banco.md",
+    2
+   ],
+   [
+    "docs/prod-readiness.md",
     2
    ],
    [
     "src/pages/BackofficePage.tsx",
-    2
-   ],
-   [
-    "src/pages/PrivacyPage.tsx",
-    2
-   ],
-   [
-    "api/notifications.ts",
-    2
-   ],
-   [
-    "vercel.json",
-    2
-   ],
-   [
-    "src/lib/useCatalogPageState.test.tsx",
     2
    ]
   ]

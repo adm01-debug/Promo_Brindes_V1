@@ -5,12 +5,12 @@
   "vitest",
   "playwright"
  ],
- "total": 156,
+ "total": 157,
  "por_tipo": {
   "contrato": 2,
   "e2e": 6,
   "pytest": 4,
-  "unit": 109
+  "unit": 110
  },
  "onde_ficam": [
   {
@@ -19,7 +19,7 @@
   },
   {
    "padrao": "tests/",
-   "arquivos": 47
+   "arquivos": 48
   },
   {
    "padrao": "outro",
@@ -776,6 +776,15 @@
    "casos": 9
   },
   {
+   "arquivo": "tests/api/health.test.ts",
+   "tipo": "unit",
+   "linhas": 154,
+   "testa": [
+    "api/health.ts"
+   ],
+   "casos": 9
+  },
+  {
    "arquivo": "tests/api/lead-requests.test.ts",
    "tipo": "unit",
    "linhas": 728,
@@ -1048,11 +1057,11 @@
   {
    "arquivo": "tests/smoke-deployment.node.mjs",
    "tipo": "unit",
-   "linhas": 337,
+   "linhas": 367,
    "testa": [
     "scripts/smoke-deployment.mjs"
    ],
-   "casos": 17
+   "casos": 20
   },
   {
    "arquivo": "tests/soak-test-notification-queue.node.mjs",
@@ -1193,6 +1202,7 @@
   "api/contact-requests.ts": 1,
   "api/cron-watchdog.ts": 2,
   "api/customer-proposals.ts": 2,
+  "api/health.ts": 1,
   "api/not-found.ts": 1,
   "api/notification-events-resend.ts": 1,
   "api/notification-events-whatsapp.ts": 1,
