@@ -96,20 +96,6 @@ _Sem comment on table — considerar adicionar um na próxima migration que toca
 | `message` | `text` | Contexto opcional da conversa, limitado a 800 caracteres e retido no banco isolado do site. |
 | `preferred_channel` | `text` | Preferência opcional de retorno; não representa consentimento para disparo automático. |
 
-### `site_private.cron_heartbeats`
-
-Heartbeat dos crons do site (F-87). Uma linha por cron agendado em vercel.json; escrita so pela RPC record_cron_heartbeat.
-
-| Coluna | Tipo | Comentário |
-|---|---|---|
-| `name` | `text` | — |
-| `installed_at` | `timestamp with time zone` | — |
-| `last_ok_at` | `timestamp with time zone` | — |
-| `last_failed_at` | `timestamp with time zone` | — |
-| `last_failure_detail` | `text` | — |
-| `consecutive_failures` | `integer` | — |
-| `updated_at` | `timestamp with time zone` | — |
-
 ### `site_private.customer_briefing_assets`
 
 Logos e referências privadas em PNG, JPEG ou WebP. PDFs ficam bloqueados até existir análise estrutural/CDR isolada e antimalware.
@@ -401,12 +387,12 @@ Trilha do exercicio dos direitos do titular (LGPD art. 18) na Area do Cliente: a
 | `apply_site_notification_provider_event` | `p_provider text, p_provider_message_id text, p_event_type text, p_provider_event_id text, p_occurred_at timestamp with time zone, p_bounce_reason text` | Aplica evento de webhook de forma idempotente. delivered só grava se delivery_state ainda for null; bounced grava se null OU se o estado atual for delivered (bounce tardio corrige delivered otimista). complained é independente e idempotente via coalesce. F-12: o evento também guarda provider_message_id e bounce_reason, para o re-vínculo de evento precoce. |
 | `attach_my_briefing_assets_to_quote` | `p_request_id uuid, p_asset_ids uuid[]` | — |
 | `can_delete_my_unverified_briefing_asset_path` | `p_path text` | Permite limpeza direta somente antes da verificação; depois dela a exclusão ocorre pela fila server-side. |
-| `check_cron_heartbeats` | `` | Devolve o estado de cada cron do site e se ele esta atrasado segundo o intervalo esperado mais a tolerancia (F-87). |
+| `cancel_site_notification_backlog` | `p_reason text` | F-11: porta do back-office para cortar o backlog inelegível da fila de notificações. Exige operador ativo (assert_site_operator) e motivo de 3 a 200 caracteres, que vai para admin_audit_log junto com o nome do operador. Devolve cancelled/scanned/cancelledIds. |
 | `claim_my_quote_requests` | `` | Associa solicitações sem titular somente após confirmação do e-mail da identidade autenticada. |
-| `claim_site_commercial_team_alert` | `p_request_id uuid` | Reivindica o alerta comercial de um lead especifico (orcamento ou contato), sem filtrar por canal. |
-| `claim_site_commercial_team_alerts` | `p_batch_size integer` | Reivindica lotes de alertas comerciais pendentes (orcamento e contato) para o cron de entrega. |
-| `claim_site_notification_deliveries` | `p_channels text[], p_batch_size integer` | Reivindica notificações com lease e devolve o contrato estruturado da confirmação, sem notas livres ou dados privados desnecessários ao e-mail. |
-| `claim_site_quote_notification` | `p_request_id uuid, p_channel text` | Reivindicação imediata com o mesmo contrato estruturado da fila; não recupera jobs processing presos. |
+| `claim_site_commercial_team_alert` | `p_request_id uuid` | F-11: claim pontual do alerta ao comercial. Não reivindica entrega inelegível (pedido em spam, e-mail anonimizado, idade acima de max_age) — devolve null. |
+| `claim_site_commercial_team_alerts` | `p_batch_size integer` | F-11: claim em lote dos alertas ao comercial. Antes de reivindicar, cancela as entregas inelegíveis (pedido em spam, e-mail anonimizado, idade acima de max_age) e aposenta as que estouraram as tentativas. |
+| `claim_site_notification_deliveries` | `p_channels text[], p_batch_size integer` | F-11: claim em lote das confirmações ao cliente. Antes de reivindicar, cancela as entregas inelegíveis (pedido em spam, e-mail anonimizado, idade acima de max_age) e aposenta as que estouraram as tentativas. |
+| `claim_site_quote_notification` | `p_request_id uuid, p_channel text` | F-11: claim pontual de uma confirmação ao cliente. Não reivindica entrega inelegível (pedido em spam, e-mail anonimizado, idade acima de max_age) — devolve null. |
 | `confirm_site_briefing_asset_verification` | `p_id uuid, p_storage_path text, p_mime_type text, p_size_bytes integer` | — |
 | `correct_my_data` | `p_display_name text, p_company text` | F-30: correcao — atualiza display_name (2 a 100) e/ou company (2 a 150) do perfil do titular autenticado; campos em branco preservam o valor anterior. Pelo menos um campo deve ser fornecido; entradas invalidas levantam invalid_profile_fields. Registra o exercicio do direito na trilha. |
 | `create_my_briefing_asset` | `p_original_name text, p_mime_type text, p_size_bytes integer, p_kind text` | — |
@@ -457,5 +443,5 @@ Trilha do exercicio dos direitos do titular (LGPD art. 18) na Area do Cliente: a
 | `save_my_selection` | `p_title text, p_references jsonb, p_campaign jsonb, p_id uuid, p_expected_version integer` | — |
 | `set_my_occasion_favorite` | `p_occasion_id text, p_saved boolean` | Adiciona ou remove data favorita da conta autenticada; rejeita estado ausente. |
 | `set_my_selection_archived` | `p_id uuid, p_expected_version integer, p_archived boolean` | — |
-| `site_notification_queue_health` | `` | Idade do job elegível mais antigo e contagem de exhausted por canal (Etapa 29); devolve só contagens e canais, sem conteúdo pessoal. |
-| `update_site_quote_status` | `p_request_id uuid, p_status text` | Muda o status de um orçamento respeitando site_private.status_transitions e registra a trilha (F-03). O update é condicionado ao status lido, então duas abas abertas não sobrescrevem uma à outra. |
+| `site_notification_queue_health` | `` | F-11: saúde da fila por canal (elegíveis, esgotadas, incertas e agora outOfWindowCount — entregas pending/failed que passaram de max_age e serão canceladas no próximo claim). |
+| `update_site_quote_status` | `p_request_id uuid, p_status text` | F-03/F-11: muda o status do orçamento respeitando status_transitions. Ao entrar em spam, cancela as entregas pendentes do pedido (o trigger de enfileiramento é AFTER INSERT, então sem isso o job ficaria órfão na fila). |

@@ -520,6 +520,9 @@ interface ChannelQueueHealth {
   eligibleCount: number;
   exhaustedCount: number;
   uncertainCount?: number;
+  /** F-11: entregas pendentes acima da janela máxima da política. Elas são
+   * canceladas no próximo claim, então um valor alto é sinal de backlog parado. */
+  outOfWindowCount?: number;
 }
 
 function isNonnegativeSafeInteger(value: unknown): value is number {
@@ -537,11 +540,13 @@ function parseQueueHealth(value: unknown): ChannelQueueHealth[] {
     const eligibleCount = health.eligibleCount;
     const exhaustedCount = health.exhaustedCount;
     const uncertainCount = health.uncertainCount;
+    const outOfWindowCount = health.outOfWindowCount;
     if ((channel !== 'email' && channel !== 'whatsapp') || seen.has(channel)
       || (oldestEligibleAgeSeconds !== null && !isNonnegativeSafeInteger(oldestEligibleAgeSeconds))
       || !isNonnegativeSafeInteger(eligibleCount)
       || !isNonnegativeSafeInteger(exhaustedCount)
-      || (uncertainCount !== undefined && !isNonnegativeSafeInteger(uncertainCount))) {
+      || (uncertainCount !== undefined && !isNonnegativeSafeInteger(uncertainCount))
+      || (outOfWindowCount !== undefined && !isNonnegativeSafeInteger(outOfWindowCount))) {
       throw new Error('invalid_notification_queue_health');
     }
     seen.add(channel);
@@ -551,6 +556,7 @@ function parseQueueHealth(value: unknown): ChannelQueueHealth[] {
       eligibleCount: eligibleCount as number,
       exhaustedCount: exhaustedCount as number,
       ...(uncertainCount === undefined ? {} : { uncertainCount: uncertainCount as number }),
+      ...(outOfWindowCount === undefined ? {} : { outOfWindowCount: outOfWindowCount as number }),
     };
   });
 }
@@ -583,6 +589,7 @@ async function reportQueueHealth(): Promise<void> {
           eligibleCount: health.eligibleCount,
           exhaustedCount: health.exhaustedCount,
           uncertainCount: Number(health.uncertainCount || 0),
+          outOfWindowCount: Number(health.outOfWindowCount || 0),
           ageAlertThresholdSeconds: QUEUE_AGE_ALERT_SECONDS,
         });
         if (process.env.OPERATIONS_ALERT_WEBHOOK_URL?.trim() && !alerted) {
