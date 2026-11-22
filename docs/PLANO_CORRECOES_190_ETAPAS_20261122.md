@@ -34,7 +34,7 @@ Números da auditoria: 739 arquivos no repositório, 298 de código, 58.944 linh
 
 P1 = bug, falha de segurança ou perda de dado que afeta usuário hoje. P2 = degrada experiência, SEO, operação ou manutenção. P3 = melhoria de qualidade. S/M/L são tamanhos relativos de diff, não prazo.
 
-Uma etapa = uma branch = uma PR, na ordem do bloco. Dependências apontam para etapas anteriores. Antes de cada PR: `npm run lint`, `npm run typecheck` e os testes dos arquivos tocados. Só erro introduzido pela etapa conta.
+Uma etapa = uma branch = uma PR, na ordem do bloco. **A dependência declarada tem precedência sobre a ordem dos blocos**: três etapas dependem de trabalho de bloco posterior (E-024 depende de E-049, E-131 de E-132 e E-159 de E-184), então execute a dependência primeiro, mesmo que ela esteja num bloco mais adiante. Apontado em revisão. Antes de cada PR: `npm run lint`, `npm run typecheck` e os testes dos arquivos tocados. Só erro introduzido pela etapa conta.
 
 ## Índice dos blocos
 
@@ -80,6 +80,8 @@ Ação: classe `ApiError { status, code, message, fields?: Array<{ field: string
 Verificação: teste novo `tests/api/contracts/api-error.test.ts` cobrindo com e sem `fields`, e a presença do header.
 Diff: ~70 linhas · 2 arquivos. Depende de: —.
 
+> **Ordem obrigatória, apontada em revisão.** E-003 a E-005 mudam o corpo e o status das respostas que os clientes atuais já recebem, e o versionamento só aparece em E-036 a E-039. Para não quebrar `v1` antes de congelá-lo: gravar os fixtures de E-043 (corpo e status de hoje, byte a byte) **antes** de executar E-003, e manter o comportamento sem cabeçalho de versão idêntico ao atual. A publicação de `fields` e a troca de 400 para 422 valem **apenas** para requisições com o cabeçalho `v2` (E-039). Enquanto E-039 não estiver pronto, E-003 a E-005 só acrescentam a informação interna (`field`, `issues[]`), sem alterar nada do que sai na resposta.
+
 ### E-003 · [P2] · contratos — Dar campo e código ao erro de validação do fluxo de lead
 Onde: `api/_lib/contracts.ts:72-76` e `api/_lib/leadHandler.ts:156-169`.
 Ação: acrescentar `field?: string` e `fieldCode?: string` a `RequestValidationError` e passar o nome do campo em cada chamada de `object()`, `text()`, `boolean()`, `email()`, `phone()`, `isoInstant()`. No handler, serializar via `sendApiError` com `fields: [{ field, code, message }]`. Mensagem em português permanece idêntica para não quebrar a UI.
@@ -118,14 +120,14 @@ Diff: ~80 linhas · 3 arquivos. Depende de: E-002.
 
 ### E-009 · [P2] · contratos — Schema Zod do pedido de ativo de briefing
 Onde: novo `api/_lib/schemas/briefingAsset.ts`; consumido por `api/briefing-assets.ts:31-42`.
-Ação: schema do corpo (`assetId` como caminho seguro, `contentType` na lista permitida, `size` com teto) e mapeamento para 415, 413 e 422 conforme a falha, no formato de `api/customer-proposals.ts:21-34`.
+Ação: schema do corpo `{ assetId: uuid }`, que é tudo o que a tela envia (`src/lib/briefingAssets.ts:71`) e tudo o que o handler lê hoje (`api/briefing-assets.ts:31-42`), com mapeamento para 415, 413 e 422 conforme a falha, no formato de `api/customer-proposals.ts:21-34`. **Corrigido em revisão:** o texto anterior inventava `contentType` e `size` no corpo. Tipo e tamanho do arquivo são outra camada, validada na emissão da URL de envio e em `api/_lib/fileSignatures.ts`; o limite de corpo HTTP (415 e 413) é separado dos limites do próprio arquivo e não deve ser misturado neste schema.
 Verificação: `tests/api/briefing-assets.test.ts` ganha casos para `assetId: '../objeto'` (422), `content-type` errado (415) e corpo grande (413) com `toBe` no status.
 Diff: ~110 linhas · 3 arquivos. Depende de: E-002.
 
 ### E-010 · [P2] · contratos — Schema Zod do pedido de proposta do cliente
-Onde: novo `api/_lib/schemas/customerProposal.ts`; consumido por `api/customer-proposals.ts`.
-Ação: schema de `quoteId` (uuid), ação e campos opcionais; erros passam pelo envelope único em vez do mapeamento ad hoc atual.
-Verificação: `tests/api/customer-proposals.test.ts` troca a asserção `status >= 400` por status e código exatos.
+Onde: novo `api/_lib/schemas/customerProposal.ts`; consumido por `api/customer-proposals.ts:93-96`.
+Ação: schema de `{ proposalId: uuid }`, que é exatamente o corpo que a tela envia (`src/pages/CustomerQuotePage.tsx:176`) e o que o handler valida hoje. **Corrigido em revisão:** o texto anterior dizia `quoteId`, campo que este endpoint não usa. Os erros passam pelo envelope único em vez do mapeamento ad hoc atual, preservando o código `invalid_proposal`.
+Verificação: `tests/api/customer-proposals.test.ts` troca a asserção `status >= 400` por status e código exatos, e um caso envia `quoteId` em vez de `proposalId` esperando 422 com o campo nomeado.
 Diff: ~90 linhas · 3 arquivos. Depende de: E-002.
 
 ### E-011 · [P2] · contratos — Schema Zod do webhook do Resend
@@ -281,7 +283,7 @@ Diff: ~60 linhas · 2 arquivos. Depende de: E-034.
 ### E-036 · [P2] · versionamento — Definir a política de versão dos contratos
 Onde: novo `docs/CONTRATOS_API.md`; referência em `docs/agentes/regras-dominio.md`.
 Ação: registrar que requisições de entrada aceitam `v1` e `v2` por cabeçalho `X-Contract-Version` (padrão `v1` quando ausente), que `v2` é o envelope com `fields`, que a remoção de `v1` exige aviso e data, e que todo webhook de saída carrega `version` no corpo. Documento, sem código.
-Verificação: `npm run refs:orfaos` não acusa referência quebrada.
+Verificação: abrir o novo documento a partir do link em `docs/agentes/regras-dominio.md` e confirmar que ele resolve, e rodar `npm run agents:instructions:check`, que é o gate que cobre os arquivos de instrução. **Corrigido em revisão:** `refs:orfaos` procura trabalho parado em refs de autosave do git, não link de documento quebrado.
 Diff: ~120 linhas · 2 arquivos. Depende de: E-005.
 
 ### E-037 · [P2] · versionamento — Resolver a versão do contrato por requisição
@@ -332,7 +334,7 @@ Ação: responder `Deprecation: true` e `Sunset` com a data acordada quando a re
 Verificação: teste exige os cabeçalhos em `v1` e a ausência deles em `v2`.
 Diff: ~60 linhas · 4 arquivos. Depende de: E-043.
 
-### E-045 · [P2] · contratos — Projeto Vitest `node` para `tests/` e resumo de cobertura por endpoint
+### E-045 · [P2] · contratos — Projeto Vitest `node` para `tests/` e resumo de cobertura por endpoint **[regra 8]**
 Onde: `vite.config.ts:36-40`, `.github/workflows/quality.yml`.
 Ação: separar `projects` em `api` (ambiente `node`, `tests/**`) e `ui` (ambiente `jsdom`, `src/**`). Hoje 21 ambientes de navegador são criados para código Node, e isso consome a maior parte do tempo da suíte. Acrescentar ao resumo do job a cobertura por arquivo de `api/`.
 Verificação: `npx vitest run` passa nos dois projetos; o tempo da suíte de `tests/api` cai.
@@ -712,7 +714,7 @@ Diff: ~4 linhas · 1 arquivo. Depende de: —.
 
 ### E-106 · [P3] · contraste-não-textual — Bordas de controles abaixo de 3:1
 Onde: `src/styles.css:90, 1584, 5275, 5886`.
-Ação: elevar a cor da borda dos controles sem preenchimento para atingir o mínimo de contraste contra o fundo. **[mockup]** se o dono considerar mudança visual perceptível.
+Ação: elevar a cor da borda dos controles sem preenchimento para atingir o mínimo de contraste contra o fundo. **[mockup]** obrigatório: a regra de aprovação visual do repositório cobre mudança de cor, sem exceção por percepção. Corrigido em revisão.
 Verificação: medição de contraste das bordas nos quatro grupos de controle.
 Diff: ~10 linhas · 1 arquivo. Depende de: —.
 
@@ -840,7 +842,7 @@ Ação: guardar os resultados por chave de consulta em um mapa limitado no módu
 Verificação: teste de ponta a ponta volta da ficha e espera a lista já preenchida e a rolagem restaurada.
 Diff: ~70 linhas · 2 arquivos. Depende de: E-114.
 
-### E-127 · [P2] · ci — Medir o que o usuário sente, não só os bytes
+### E-127 · [P2] · ci — Medir o que o usuário sente, não só os bytes **[regra 8]**
 Onde: `.github/workflows/quality.yml`, `scripts/check-performance-budget.mjs`.
 Ação: acrescentar uma medição das métricas de carregamento e interatividade contra a prévia local em três rotas fixas (home, catálogo e uma ficha de produto), com teto declarado. O gate atual só mede tamanho de pacote, então uma regressão de maior conteúdo passa.
 Verificação: o job falha quando a métrica passa do teto; o resultado aparece no resumo do job.
@@ -1160,7 +1162,7 @@ Etapas marcadas **[regra 8]** tocam CI, workflows ou segredos: a PR fica aberta 
 
 ### E-177 · [P2] · ci — Navegadores de teste baixados do zero em toda execução **[regra 8]**
 Onde: `.github/workflows/quality.yml:74` (Chromium, job de validação) e `:172` (Firefox e WebKit, job de navegadores).
-Ação: guardar o diretório de navegadores do Playwright em cache por chave do arquivo de dependências e instalar sem as bibliotecas do sistema quando o cache existir. **Corrigido na verificação:** não existe download duplicado; são navegadores diferentes em jobs diferentes, e não há nenhuma entrada de cache em todo o diretório de workflows. O cancelamento por teto de tempo registrado no comentário de `quality.yml:146-152` ocorreu durante a instalação de pacotes do sistema, que o cache de navegadores não cobre: esta etapa corta minutos e banda, não aquela falha.
+Ação: guardar o diretório de navegadores do Playwright em cache por chave do arquivo de dependências. O acerto no cache pula **apenas o download dos navegadores**; a preparação do runner continua: o job de navegadores já instala as bibliotecas do sistema em passo próprio (`quality.yml:165-173`) e esse passo permanece. **Precisão acrescentada em revisão.** **Corrigido na verificação:** não existe download duplicado; são navegadores diferentes em jobs diferentes, e não há nenhuma entrada de cache em todo o diretório de workflows. O cancelamento por teto de tempo registrado no comentário de `quality.yml:146-152` ocorreu durante a instalação de pacotes do sistema, que o cache de navegadores não cobre: esta etapa corta minutos e banda, não aquela falha.
 Verificação: a execução seguinte registra acerto de cache; o tempo dos dois jobs cai.
 Diff: ~30 linhas · 1 arquivo. Depende de: —.
 
