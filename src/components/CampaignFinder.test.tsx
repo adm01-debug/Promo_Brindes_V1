@@ -141,6 +141,52 @@ describe('resumo antes das quatro respostas e cancelamento da edicao', () => {
     expect(screen.getByText('Clientes')).toBeVisible();
   });
 
+  it('cancelar so volta ao resumo e nao desfaz respostas ja confirmadas nele', () => {
+    render(<MemoryRouter><CampaignFinder /></MemoryRouter>);
+    completeBriefing();
+
+    // Primeira edicao: remover e responder de novo. O resumo reaberto passa a
+    // ser a nova base, entao o cancelamento seguinte nao pode desfazer isso.
+    fireEvent.click(screen.getByRole('button', { name: 'Remover Colaboradores e editar pessoas' }));
+    fireEvent.click(screen.getByText('Clientes'));
+    expect(screen.getByText('Clientes')).toBeVisible();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ajustar respostas' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar edição' }));
+
+    expect(screen.getByText('Clientes')).toBeVisible();
+    expect(screen.queryByText('Colaboradores')).toBeNull();
+  });
+
+  it('mantem Cancelar edicao disponivel ao trocar de etapa durante a edicao', () => {
+    render(<MemoryRouter><CampaignFinder /></MemoryRouter>);
+    completeBriefing();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ajustar respostas' }));
+    // Sai da primeira pergunta direto para a ultima pelo progresso.
+    fireEvent.click(screen.getByRole('button', { name: 'Ir para etapa 4: clima' }));
+
+    expect(screen.getByRole('heading', { name: 'Que sensação a escolha deve passar?' })).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar edição' }));
+    expect(screen.getByRole('heading', { name: 'O que entendemos da sua campanha' })).toBeVisible();
+    expect(screen.getByText('Colaboradores')).toBeVisible();
+  });
+
+  it('oferece Revisar escolhas junto de Cancelar edicao depois de remover no resumo', () => {
+    render(<MemoryRouter><CampaignFinder /></MemoryRouter>);
+    completeBriefing();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remover Colaboradores e editar pessoas' }));
+
+    // A remocao deixa 3 escolhas: da para voltar ao resumo sem desfaze-la.
+    fireEvent.click(screen.getByRole('button', { name: 'Revisar 3 escolhas' }));
+
+    expect(screen.getByRole('heading', { name: 'O que entendemos da sua campanha' })).toBeVisible();
+    expect(screen.queryByText('Colaboradores')).toBeNull();
+    expect(screen.getByText('Evento')).toBeVisible();
+    expect(screen.queryByRole('button', { name: 'Cancelar edição' })).toBeNull();
+  });
+
   it('nao restaura escolha desfeita fora do resumo', () => {
     render(<MemoryRouter><CampaignFinder /></MemoryRouter>);
 

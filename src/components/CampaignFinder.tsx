@@ -37,6 +37,16 @@ export function CampaignFinder() {
   function beginEditFromSummary() {
     if (editSnapshotRef.current === null) editSnapshotRef.current = selection;
   }
+  // Resumo reaberto por concluir as respostas e a nova base de comparacao: o
+  // que ele mostra deixa de ser desfazivel, senao "Cancelar edicao" derrubaria
+  // escolhas que o titular ja tinha confirmado (F-37/PF-37).
+  function openSummary() {
+    editSnapshotRef.current = null;
+    setReturnToSummary(false);
+    setSequentialReview(false);
+    setSummaryVisible(true);
+    focusBlock('summary');
+  }
   const questionHeadingRef = useRef<HTMLHeadingElement>(null);
   const summaryHeadingRef = useRef<HTMLHeadingElement>(null);
   // Cada resposta desmonta o bloco anterior (as opcoes trocam de key a cada
@@ -68,15 +78,12 @@ export function CampaignFinder() {
         setStepIndex((current) => current + 1);
         focusBlock('question');
       } else {
-        setSequentialReview(false);
-        setSummaryVisible(true);
-        focusBlock('summary');
+        openSummary();
       }
       return;
     }
     if (campaignSelectionCount(nextSelection) === steps.length) {
-      setSummaryVisible(true);
-      focusBlock('summary');
+      openSummary();
       return;
     }
     if (stepIndex < steps.length - 1) {
@@ -87,7 +94,9 @@ export function CampaignFinder() {
 
   function editStep(index: number) {
     if (summaryVisible) beginEditFromSummary();
-    setReturnToSummary(summaryVisible);
+    // Trocar de etapa durante a edicao nao encerra o cancelamento: quem saiu do
+    // resumo continua podendo voltar ao estado anterior (F-37/PF-37).
+    setReturnToSummary((current) => current || summaryVisible);
     setSequentialReview(false);
     setSummaryVisible(false);
     setStepIndex(index);
@@ -117,11 +126,7 @@ export function CampaignFinder() {
 
   function showSummary() {
     if (!selectedCount) return;
-    editSnapshotRef.current = null;
-    setReturnToSummary(false);
-    setSequentialReview(false);
-    setSummaryVisible(true);
-    focusBlock('summary');
+    openSummary();
   }
 
   function removeSelection(key: keyof CampaignSelection, index: number) {
@@ -244,11 +249,12 @@ export function CampaignFinder() {
                 <button type="button" className="brief-finder__skip" onClick={() => setStepIndex((current) => Math.min(steps.length - 1, current + 1))} disabled={stepIndex === steps.length - 1}>
                   Pular etapa
                 </button>
-                {returnToSummary ? (
+                {returnToSummary && (
                   <button type="button" className="brief-finder__skip" onClick={cancelEdit}>
                     Cancelar edição
                   </button>
-                ) : selectedCount > 0 && (
+                )}
+                {selectedCount > 0 && (
                   <button type="button" className="brief-finder__skip" onClick={showSummary}>
                     Revisar {selectedCount === 1 ? '1 escolha' : `${selectedCount} escolhas`}
                   </button>
