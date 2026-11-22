@@ -189,7 +189,7 @@ Tabela consolidada (uma linha por item). Evidência completa, comandos reproduz�
 | PF-79 | API com tipos gerados | PARCIAL | 2 `name: string`, 6 `fetch` diretos, 30/58 RPCs `Json` | `siteRpcContract.ts:1-18`; `commercialTeamAlerts.ts:101` | sim (#192) | ENG |
 | PF-80 | Contratos documentados coerentes | IMPLEMENTADO | Linhas defasadas por #189 | `DATABASE_FUNCTION_CONTRACTS.md:43,49-51` | sim (#185) | — |
 | PF-81 | Remover função legada; testar vigente | DIVERGÊNCIA | `finalize_briefing_asset_retention` com GRANT e testada; `finalize_site_storage_retention` sem pgTAP | `20260922150000:259,319,327`; `briefing_assets.test.sql:169-170` | não | ENG (regra 8) |
-| PF-82 | pgTAP `authenticated` em Storage, DDL real, rate limit | NÃO INICIADO | Os 3 | `grep "role authenticated" tests/` = 0 | não | ENG |
+| PF-82 | pgTAP `authenticated` em Storage, DDL real, rate limit | IMPLEMENTADO | Os 3 | `storage_authenticated_rls.test.sql` (33 asserções, 3 mutações detectadas) | sim | ENG |
 | PF-83 | Remover recuo `v_products_public` | BLOQUEADO | Recuo em 3 pontos; "variant_id morto" já não vale | `catalog.ts:52,325-336`; `sitemap.ts:146-148`; `catalogValidation.ts:38-39,114-120` | não | DONO |
 | PF-84 | Preferências do cliente | NÃO INICIADO | Nenhum objeto | `20260910130000:5-28` | não | ENG/DONO |
 | PF-85 | Retenção com drenagem | IMPLEMENTADO | — | `api/retention.ts:9-21,133-138,258-282` | sim (#184, #189) | — |

@@ -80,7 +80,7 @@ F-78,Diff integral schema/ACL + Security Advisor,So ACL favoritos tratada; db li
 F-79,API com tipos gerados,42 RPCs tipadas mas 28 retornam Json; api/ nao importa tipos,PARCIAL,50,,PF-79,P3
 F-80,Contratos documentados coerentes,Nomes e HTTP divergem em 6 pontos,COMPLETA,100,#185,PF-80,P3
 F-81,Remover funcao legada e testar vigente,finalize_briefing_asset_retention com GRANT e testada; vigente sem pgTAP,PARCIAL,50,,PF-81,P2
-F-82,pgTAP Storage authenticated cruzado DDL rate limit,Testes so contam policies como postgres,PENDENTE,0,,PF-82,P2
+F-82,pgTAP Storage authenticated cruzado DDL rate limit,Testes so contam policies como postgres,COMPLETA,100,#227,PF-82,P2
 F-83,Remover recuo view legada v_products_public,Recuo ativo em 3 pontos; variant_id morto gera 422,BLOQUEADA,30,,PF-83,P2
 F-84,Preferencias do cliente,Migration so cria ajustes,PENDENTE,0,,PF-84,P3
 F-85,Retencao com drenagem,Lote fixo 100/dia com timeout unico 10s,COMPLETA,100,#184 #189,PF-85,P3
