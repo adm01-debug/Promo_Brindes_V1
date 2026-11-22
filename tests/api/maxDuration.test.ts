@@ -11,6 +11,7 @@ import { REQUEST_TIMEOUT_MS as CUSTOMER_PROPOSALS_TIMEOUT_MS } from '../../api/c
 import { REQUEST_TIMEOUT_MS as BRIEFING_ASSETS_TIMEOUT_MS } from '../../api/briefing-assets.js';
 import { REQUEST_TIMEOUT_MS as SITEMAP_TIMEOUT_MS } from '../../api/sitemap.js';
 import { COMMERCIAL_ALERTS_TIMEOUT_MS as COMMERCIAL_ALERTS_BUDGET_MS } from '../../api/commercial-alerts.js';
+import { CRON_WATCHDOG_TIMEOUT_MS } from '../../api/cron-watchdog.js';
 import { LEAD_TOTAL_TIME_BUDGET_MS, MIN_CONFIRMATION_WINDOW_MS } from '../../api/_lib/leadHandler.js';
 import { COMMERCIAL_ALERT_TIMEOUT_MS } from '../../api/_lib/commercialTeamAlerts.js';
 
@@ -85,6 +86,10 @@ describe('Etapa 24: maxDuration em vercel.json cobre o pior caso real de cada ro
 
   it('api/commercial-alerts.ts (PF-01)', () => {
     expect(COMMERCIAL_ALERTS_BUDGET_MS).toBeLessThan(maxDurationMs('api/commercial-alerts.ts'));
+  });
+
+  it('api/cron-watchdog.ts (F-87): leitura do heartbeat cabe no maxDuration declarado', () => {
+    expect(CRON_WATCHDOG_TIMEOUT_MS).toBeLessThan(maxDurationMs('api/cron-watchdog.ts'));
   });
 
   it('api/customer-proposals.ts', () => {

@@ -33,7 +33,7 @@ alter table site_private.cron_heartbeats enable row level security;
 alter table site_private.cron_heartbeats force row level security;
 
 revoke all on site_private.cron_heartbeats from public, anon, authenticated;
-grant select on site_private.cron_heartbeats to service_role;
+grant select on site_private.cron_heartbeats to service_role, site_api;
 
 insert into site_private.cron_heartbeats (name)
 values ('retention'), ('notifications'), ('commercial-alerts')
@@ -74,7 +74,7 @@ comment on function public.record_cron_heartbeat(text, boolean, text) is
   'Grava o desfecho de uma rodada de cron (F-87). Chamada com a credencial de servico no fim de cada execucao.';
 
 revoke all on function public.record_cron_heartbeat(text, boolean, text) from public, anon, authenticated;
-grant execute on function public.record_cron_heartbeat(text, boolean, text) to service_role;
+grant execute on function public.record_cron_heartbeat(text, boolean, text) to service_role, site_api;
 
 create or replace function public.check_cron_heartbeats()
 returns table (
@@ -115,9 +115,12 @@ as $$
       join esperado e on e.name = h.name
   )
   select b.name,
+         -- 'never_ran' vale enquanto a tolerancia pos-instalacao nao vence: antes disso
+         -- o cron simplesmente ainda nao teve a primeira janela, e acusa-lo seria alarme
+         -- falso logo apos o deploy da migration.
          case
            when b.last_ok_at is null and b.last_failed_at is null
-                and b.installed_at > now() - make_interval(secs => b.intervalo) then 'never_ran'
+                and now() - b.installed_at <= make_interval(secs => b.intervalo + b.tolerancia_minutos * 60) then 'never_ran'
            when b.last_ok_at is null and b.last_failed_at is null then 'late'
            when b.last_failed_at is not null
                 and (b.last_ok_at is null or b.last_failed_at > b.last_ok_at) then 'failing'
@@ -137,4 +140,6 @@ comment on function public.check_cron_heartbeats() is
   'Devolve o estado de cada cron do site e se ele esta atrasado segundo o intervalo esperado mais a tolerancia (F-87).';
 
 revoke all on function public.check_cron_heartbeats() from public, anon, authenticated;
-grant execute on function public.check_cron_heartbeats() to service_role;
+-- O cutover para o JWT site_api (docs/RUNBOOK_SITE_API_CUTOVER.md) troca a credencial
+-- usada pelos crons; sem estes grants o vigia responderia 503 em toda rodada.
+grant execute on function public.check_cron_heartbeats() to service_role, site_api;

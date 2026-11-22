@@ -18,7 +18,13 @@ function matchesCronSecret(authorization: string, secret: string): boolean {
   return expected.length === received.length && timingSafeEqual(expected, received);
 }
 
-/** Um cron está doente quando está atrasado ou falhando de forma consecutiva. */
+/**
+ * Um cron está doente quando está atrasado ou falhando de forma consecutiva.
+ *
+ * `never_ran` **não** é doença: enquanto a primeira janela não vence, o cron só
+ * ainda não teve oportunidade de rodar (é o estado logo após aplicar a migration).
+ * Passada a janela, `check_cron_heartbeats` já devolve `late`/`is_late`.
+ */
 export function isUnhealthy(beat: CronHeartbeatStatus): boolean {
   return beat.isLate || beat.status === 'failing' || beat.status === 'late';
 }

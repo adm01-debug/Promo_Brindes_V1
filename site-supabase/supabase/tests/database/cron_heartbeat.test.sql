@@ -11,7 +11,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(23);
+select plan(26);
 
 -- === Estrutura ===================================================================
 
@@ -92,6 +92,29 @@ select is(
   (select status from public.check_cron_heartbeats() where name = 'notifications'),
   'ok'::text,
   'cron com sucesso recente aparece como ok'
+);
+
+-- === Recem instalado nao e atraso ==============================================
+-- Acabou de aplicar a migration: todas as linhas vem do seed e a ultima
+-- atividade e `installed_at`. Nenhum cron deve aparecer como atrasado, senao o
+-- primeiro vigia dispararia alerta falso em producao.
+
+select is(
+  (select count(*)::int from public.check_cron_heartbeats() where is_late),
+  0,
+  'nenhum cron conta como atrasado imediatamente apos a instalacao'
+);
+
+select is(
+  (select status from public.check_cron_heartbeats() where name = 'commercial-alerts'),
+  'never_ran'::text,
+  'cron recem instalado aparece como nunca executado, nao como atrasado'
+);
+
+select is(
+  (select seconds_since_activity <= (select expected_interval_seconds + 20 * 60 from public.check_cron_heartbeats() where name = 'commercial-alerts') from public.check_cron_heartbeats() where name = 'commercial-alerts'),
+  true,
+  'tempo sem atividade de cron recem instalado cabe na janela com tolerancia'
 );
 
 -- === Atraso por janela ==========================================================

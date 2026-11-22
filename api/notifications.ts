@@ -669,6 +669,10 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     // cresce e que mais precisa de medicao. A chamada e best-effort (o proprio
     // reportQueueHealth engole a falha) e nao reivindica nada: so le e alerta.
     await reportQueueHealth();
+    // F-87: sem provedor o cron continua rodando no horario. Registrar o desfecho
+    // evita que o vigia leia a ausencia de heartbeat como "a plataforma parou de
+    // disparar" e alerte por um estado que ja e conhecido e reportado aqui.
+    await recordCronHeartbeat('notifications', false, 'provider_not_configured');
     response.status(503).json({ error: 'notification_provider_not_configured' });
     return;
   }
