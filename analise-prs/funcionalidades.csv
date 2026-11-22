@@ -28,7 +28,7 @@ F-26,Ciclo real de autenticacao,Ensaio com contas controladas e e-mail real,PARC
 F-27,Rate limit 429 em propostas/anexos,Estouro vira 404 nao encontrado,COMPLETA,100,#183,PF-27,P2
 F-28,Conta como beneficio opcional,Falta explicar beneficio e opcionalidade,PARCIAL,70,,PF-28,P3
 F-29,Linha do tempo com proximo passo,Status desconhecido vira Em acompanhamento; sem proximo passo,PARCIAL,60,,PF-29,P3
-F-30,Direitos do titular LGPD,RPCs acesso/exportacao/correcao/autoexclusao; ensaio sintetico,PENDENTE,10,,PF-30,P1
+F-30,Direitos do titular LGPD,RPCs acesso/exportacao/correcao/autoexclusao; ensaio sintetico,PARCIAL,90,#220,"Codigo e migration mergeados (#220), mas a migration ainda nao foi aplicada no Supabase de producao; RPCs sem efeito real ate o db push.",P1
 F-31,Apagamento completo,erase_customer_data nao limpa metadata kit_name_snapshot pendentes,COMPLETA,100,,"erase_customer_data fecha 3 lacunas (request_metadata text livre, kit_name_snapshot, fila reivindicaavel) + repair 20261117030100 + teste 43 asserts",P1
 F-32,Retencao por tabela completa,Orfaos nunca purgados; inativos sem prazo; spam = legitimo,PARCIAL,50,,PF-32,P2
 F-33,Evento erased na timeline,Sem decisao nem implementacao,BLOQUEADA,0,,PF-33,P3
@@ -38,14 +38,14 @@ F-36,Criptografia PII E.164 rate limit borda,Spikes adiados formalmente,BLOQUEAD
 F-37,Resumo O que entendemos editavel,PR #94: resumo so com 4/4; falta cancelar edicao foco merge,PARCIAL,70,#94,PF-37,P1
 F-38,Caminho Ainda nao sei o que escolher,CTA desabilitado com 0 respostas; sem saida ao catalogo,COMPLETA,100,#211,PF-38,P2
 F-39,Troca de campanha consciente,setCampaign sobrescreve carrinho em silencio,COMPLETA,100,#212,PF-39,P2
-F-40,Intencao x filtros efetivos,Mostrar respostas que viraram filtro; descrever Curadoria Promo,PENDENTE,0,,PF-40,P2
+F-40,Intencao x filtros efetivos,Mostrar respostas que viraram filtro; descrever Curadoria Promo,COMPLETA,100,#223,"Implementado: explicacao por sinal, colecao Em alta com origem correta (featuredSource), cor/material como uniao (so SKU exato suprime), dica de ordem apenas como descricao acessivel. Merge #223.",P2
 F-41,Contexto editavel no orcamento,Formulario comeca por dados pessoais; contexto so leitura,COMPLETA,100,#213,PF-41,P2
 F-42,Telefone coerente orcamento/contato,Obrigatorio no orcamento opcional no contato,PARCIAL,70,,PF-42,P3
 F-43,Repetir orcamento sem esconder mudancas,Quantidade antiga ajustada ao minimo sem aviso,PARCIAL,70,,PF-43,P3
 F-44,Retorno ao adicionar e confirmacao ao limpar,Adicionar so abre drawer; limpar sem confirma,PARCIAL,70,,PF-44,P3
 F-45,Por que este produto + ideias de uso,Regra deterministica + conteudo aplicacoes,PENDENTE,0,,PF-45,P3
 F-46,Personalizacao por familia,Contrato so expoe allows_personalization e min_quantity,BLOQUEADA,20,,PF-46,P2
-F-47,WhatsApp iniciado pelo visitante,Link wa.me contextual com numero validado,PENDENTE,0,,PF-47,P2
+F-47,WhatsApp iniciado pelo visitante,Link wa.me contextual com numero validado,COMPLETA,100,#222,Implementado: whatsappContact.ts com numero validado e wa.me contextual (aceita fixo e celular de 11 digitos). Merge #222.,P2
 F-48,Menu visual de categorias,Cabecalho so com links de texto,PARCIAL,50,,PF-48,P3
 F-49,Landings /ideias/* descobriveis,Coluna Ideias no rodape + 3 cards e chip da home + e2e,COMPLETA,100,#166,PF-49,P3
 F-50,Vitrine home/catalogo diversidade global,Home ordena so por flags; diversificacao so pagina corrente,PARCIAL,60,,PF-50,P3
