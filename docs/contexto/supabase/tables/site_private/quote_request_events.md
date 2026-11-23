@@ -60,7 +60,7 @@
 
 | nome | timing | eventos | nível | status | função |
 |---|---|---|---|---|---|
-| quote_request_events_log_admin_write | AFTER | INSERT OR DELETE OR UPDATE | ROW | disabled | site_private.log_admin_write |
+| quote_request_events_log_admin_write | AFTER | INSERT OR DELETE OR UPDATE | ROW | enabled | site_private.log_admin_write |
 
 
 ## Grants

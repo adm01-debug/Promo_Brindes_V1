@@ -8,6 +8,7 @@ Uso e tamanho em `stats.md`.
 | site_private.admin_audit_log | admin_audit_log_pkey | btree | id | sim | sim |  |
 | site_private.admin_ddl_log | admin_ddl_log_occurred_idx | btree | occurred_at, id | não | sim |  |
 | site_private.admin_ddl_log | admin_ddl_log_pkey | btree | id | sim | sim |  |
+| site_private.commercial_audit_log | commercial_audit_log_actor_user_id_idx | btree | actor_user_id | não | sim |  |
 | site_private.commercial_audit_log | commercial_audit_log_pkey | btree | id | sim | sim |  |
 | site_private.commercial_audit_log | commercial_audit_log_request_created_idx | btree | quote_request_id, created_at | não | sim |  |
 | site_private.commercial_operators | commercial_operators_active_idx | btree | user_id | não | sim | `is_active` |

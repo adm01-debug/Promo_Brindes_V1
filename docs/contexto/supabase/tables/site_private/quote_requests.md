@@ -102,7 +102,7 @@
 | quote_requests_assign_protocol | BEFORE | INSERT | ROW | enabled | site_private.assign_quote_protocol |
 | quote_requests_enforce_status_transition | BEFORE | UPDATE | ROW | enabled | site_private.enforce_status_transition |
 | quote_requests_enqueue_confirmations | AFTER | INSERT | ROW | enabled | site_private.enqueue_quote_confirmations |
-| quote_requests_log_admin_write | AFTER | INSERT OR DELETE OR UPDATE | ROW | disabled | site_private.log_admin_write |
+| quote_requests_log_admin_write | AFTER | INSERT OR DELETE OR UPDATE | ROW | enabled | site_private.log_admin_write |
 | quote_requests_record_customer_event | AFTER | INSERT OR UPDATE | ROW | enabled | site_private.record_quote_status_event |
 | quote_requests_set_updated_at | BEFORE | UPDATE | ROW | enabled | site_private.set_updated_at |
 

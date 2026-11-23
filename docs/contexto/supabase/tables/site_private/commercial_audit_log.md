@@ -43,6 +43,7 @@
 
 | nome | método | colunas | único | válido | predicado | definição |
 |---|---|---|---|---|---|---|
+| commercial_audit_log_actor_user_id_idx | btree | actor_user_id | não | sim |  | `CREATE INDEX commercial_audit_log_actor_user_id_idx ON site_private.commercial_audit_log USING btree (actor_user_id)` |
 | commercial_audit_log_pkey | btree | id | sim | sim |  | `CREATE UNIQUE INDEX commercial_audit_log_pkey ON site_private.commercial_audit_log USING btree (id)` |
 | commercial_audit_log_request_created_idx | btree | quote_request_id, created_at | não | sim |  | `CREATE INDEX commercial_audit_log_request_created_idx ON site_private.commercial_audit_log USING btree (quote_request_id, created_at DESC)` |
 

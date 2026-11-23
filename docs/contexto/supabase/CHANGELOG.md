@@ -2,6 +2,12 @@
 
 Diff semântico gerado a cada coleta em que algo mudou.
 
+## 2026-11-23 23:14 UTC
+
+- **indexes** adicionado (1): `site_private.commercial_audit_log_actor_user_id_idx`
+- **lints** removido (1): `fk_without_index:site_private.commercial_audit_log.commercial_audit_log_actor_user_id_fkey`
+- **triggers** alterado (4): `site_private.notification_deliveries.notification_deliveries_log_admin_write`, `site_private.quote_items.quote_items_log_admin_write`, `site_private.quote_request_events.quote_request_events_log_admin_write`, `site_private.quote_requests.quote_requests_log_admin_write`
+
 ## 2026-11-23 12:28 UTC
 
 - **functions** alterado (3): `public.purge_site_admin_audit_logs(p_retention_days integer, p_batch_size integer)`, `site_private.assert_site_operator()`, `site_private.audit_actor()`

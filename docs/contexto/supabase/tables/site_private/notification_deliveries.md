@@ -92,7 +92,7 @@
 |---|---|---|---|---|---|
 | notification_deliveries_enforce_lease_and_attempts | BEFORE | UPDATE | ROW | enabled | site_private.enforce_notification_delivery_lease_and_attempts |
 | notification_deliveries_enforce_status_transition | BEFORE | UPDATE | ROW | enabled | site_private.enforce_status_transition |
-| notification_deliveries_log_admin_write | AFTER | INSERT OR DELETE OR UPDATE | ROW | disabled | site_private.log_admin_write |
+| notification_deliveries_log_admin_write | AFTER | INSERT OR DELETE OR UPDATE | ROW | enabled | site_private.log_admin_write |
 | notification_deliveries_set_updated_at | BEFORE | UPDATE | ROW | enabled | site_private.set_updated_at |
 
 

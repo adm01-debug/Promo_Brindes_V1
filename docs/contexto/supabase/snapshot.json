@@ -9704,6 +9704,20 @@
       },
       {
         "columns": [
+          "actor_user_id"
+        ],
+        "definition": "CREATE INDEX commercial_audit_log_actor_user_id_idx ON site_private.commercial_audit_log USING btree (actor_user_id)",
+        "is_primary": false,
+        "is_unique": false,
+        "is_valid": true,
+        "method": "btree",
+        "name": "commercial_audit_log_actor_user_id_idx",
+        "predicate": null,
+        "schema": "site_private",
+        "table": "commercial_audit_log"
+      },
+      {
+        "columns": [
           "id"
         ],
         "definition": "CREATE UNIQUE INDEX commercial_audit_log_pkey ON site_private.commercial_audit_log USING btree (id)",
@@ -10716,12 +10730,6 @@
       }
     ],
     "lints": [
-      {
-        "code": "fk_without_index",
-        "detail": "FK sem índice nas colunas ['actor_user_id']: joins e DELETE/UPDATE na tabela pai ficam lentos.",
-        "object": "site_private.commercial_audit_log.commercial_audit_log_actor_user_id_fkey",
-        "severity": "BAIXA"
-      },
       {
         "code": "policy_auth_fn_not_wrapped",
         "detail": "Policy chama auth.uid()/jwt() sem `(select ...)`: é reavaliada por linha; envolva em subselect.",
@@ -12230,7 +12238,7 @@
         "level": "ROW",
         "name": "notification_deliveries_log_admin_write",
         "schema": "site_private",
-        "status": "disabled",
+        "status": "enabled",
         "table": "notification_deliveries",
         "timing": "AFTER"
       },
@@ -12296,7 +12304,7 @@
         "level": "ROW",
         "name": "quote_items_log_admin_write",
         "schema": "site_private",
-        "status": "disabled",
+        "status": "enabled",
         "table": "quote_items",
         "timing": "AFTER"
       },
@@ -12307,7 +12315,7 @@
         "level": "ROW",
         "name": "quote_request_events_log_admin_write",
         "schema": "site_private",
-        "status": "disabled",
+        "status": "enabled",
         "table": "quote_request_events",
         "timing": "AFTER"
       },
@@ -12351,7 +12359,7 @@
         "level": "ROW",
         "name": "quote_requests_log_admin_write",
         "schema": "site_private",
-        "status": "disabled",
+        "status": "enabled",
         "table": "quote_requests",
         "timing": "AFTER"
       },
