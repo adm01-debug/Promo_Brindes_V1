@@ -238,6 +238,10 @@ export type Database = {
         Args: { p_batch_size?: number; p_retention_days?: number }
         Returns: Json
       }
+      purge_site_pii_read_audit_log: {
+        Args: { p_batch_size?: number; p_retention_days?: number }
+        Returns: Json
+      }
       reconcile_site_notification_provider_events: {
         Args: { p_batch_size?: number }
         Returns: Json
@@ -859,6 +863,45 @@ export type Database = {
           },
         ]
       }
+      pii_read_audit_log: {
+        Row: {
+          actor_kind: string
+          application_name: string | null
+          filter: string | null
+          id: number
+          occurred_at: string
+          operation: string
+          performed_by: string
+          row_count: number | null
+          subject: string | null
+          table_name: string
+        }
+        Insert: {
+          actor_kind?: string
+          application_name?: string | null
+          filter?: string | null
+          id?: never
+          occurred_at?: string
+          operation?: string
+          performed_by: string
+          row_count?: number | null
+          subject?: string | null
+          table_name: string
+        }
+        Update: {
+          actor_kind?: string
+          application_name?: string | null
+          filter?: string | null
+          id?: never
+          occurred_at?: string
+          operation?: string
+          performed_by?: string
+          row_count?: number | null
+          subject?: string | null
+          table_name?: string
+        }
+        Relationships: []
+      }
       proposal_documents: {
         Row: {
           created_at: string
@@ -1347,6 +1390,16 @@ export type Database = {
       is_valid_proposal_storage_path: {
         Args: { p_path: string }
         Returns: boolean
+      }
+      log_pii_read: {
+        Args: {
+          p_actor_kind?: string
+          p_filter?: string
+          p_row_count?: number
+          p_subject?: string
+          p_table_name: string
+        }
+        Returns: undefined
       }
       mod11_check_digit: { Args: { p_digits: string }; Returns: string }
       next_retry_at: {
