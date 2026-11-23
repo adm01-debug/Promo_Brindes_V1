@@ -240,6 +240,10 @@ begin
 
   -- F-12: destinatário suprimido (bounce/complaint) ou pedido apagado pela
   -- autoexclusão sai como cancelled antes de qualquer candidatura.
+  -- Envios incertos (whatsapp_dispatch_started sem provider_message_id) são
+  -- excluídos: suppress_notification_delivery devolve false para eles de qualquer
+  -- forma, e incluí-los consomia o limit sem cancelar nada, impedindo que entregas
+  -- suprimidas mais novas chegassem ao lote.
   perform site_private.suppress_notification_delivery(blocked.id)
   from (
     select delivery.id
@@ -248,6 +252,8 @@ begin
       and delivery.audience = 'customer'
       and delivery.channel = any(p_channels)
       and delivery.status in ('pending', 'failed', 'processing')
+      and (delivery.last_error_code is distinct from 'whatsapp_dispatch_started'
+        or delivery.provider_message_id is not null)
       and not site_private.notification_delivery_is_claimable(delivery.id)
     order by delivery.created_at, delivery.id
     limit p_batch_size
@@ -814,7 +820,7 @@ end;
 $fn$;
 
 comment on function public.claim_site_quote_notification(uuid, text) is
-  'F-11/F-12: claim pontual de uma confirmacao ao cliente. Devolve null cancelando a entrega (com trilha em admin_audit_log) quando o destinatario esta suprimido, o pedido foi apagado ou o job e inelegivel por spam, anonimizacao ou idade acima de max_age — a entrega nunca fica pending para sempre.';
+  'F-11/F-12: claim pontual de uma confirmacao ao cliente. Devolve null quando o destinatario esta suprimido (bounce/complaint) ou o pedido foi apagado — cancela a entrega sem trilha em admin_audit_log (motivo fica em last_error_code). Quando o job e inelegivel por spam, anonimizacao ou idade acima de max_age, cancela COM trilha em admin_audit_log via cancel_ineligible_notification_backlog. A entrega nunca fica pending para sempre.';
 
 create or replace function public.claim_site_commercial_team_alert(p_request_id uuid)
 returns jsonb
@@ -874,7 +880,7 @@ end;
 $fn$;
 
 comment on function public.claim_site_commercial_team_alert(uuid) is
-  'F-11/F-12: claim pontual do alerta ao comercial. Devolve null cancelando a entrega (com trilha em admin_audit_log) quando o destinatario esta suprimido, o pedido foi apagado ou o job e inelegivel por spam, anonimizacao ou idade acima de max_age — a entrega nunca fica pending para sempre.';
+  'F-11/F-12: claim pontual do alerta ao comercial. Devolve null quando o destinatario esta suprimido (bounce/complaint) ou o pedido foi apagado — cancela a entrega sem trilha em admin_audit_log (motivo fica em last_error_code). Quando o job e inelegivel por spam, anonimizacao ou idade acima de max_age, cancela COM trilha em admin_audit_log via cancel_ineligible_notification_backlog. A entrega nunca fica pending para sempre.';
 
 -- Correcao 1: reprocessamento so reabre o que o cron nao vai cancelar na passagem
 -- seguinte, e diz exatamente por que recusou cada entrega.

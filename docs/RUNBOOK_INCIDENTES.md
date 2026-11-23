@@ -108,6 +108,41 @@ duplicar mensagem ao cliente.
 4. Toda decisão deve ficar no ticket do incidente; `admin_audit_log` registra a escrita
    administrativa, e o cron de retenção mantém essa trilha por 400 dias.
 
+## Recuperar entrega bloqueada por supressão de e-mail (bounce/complaint)
+
+Quando um e-mail retorna com bounce permanente ou complaint, `delivery_state` passa a
+`'bounced'` (ou `complained_at` é preenchido) e a entrega é marcada como suprimida.
+O cron passa a cancelar jobs `pending`/`failed` para aquele endereço. Para reprocessar:
+
+1. **Confirme a causa**: acesse o painel do provedor e verifique se o bounce foi
+   temporário (endereço com caixa cheia, domínio temporariamente fora) ou permanente
+   (usuário desconhecido). Bounce permanente não deve ser desbloqueado.
+2. **Limpe a supressão no banco** (bounce temporário confirmado):
+   ```sql
+   update site_private.notification_provider_events
+   set delivery_state = 'pending'
+   where delivery_id = (
+     select id from site_private.notification_deliveries
+     where request_kind = 'quote' and request_id = '<uuid>' and channel = 'email'
+     limit 1
+   ) and delivery_state = 'bounced';
+
+   update site_private.notification_deliveries
+   set complained_at = null
+   where request_kind = 'quote' and request_id = '<uuid>' and channel = 'email'
+     and complained_at is not null;
+   ```
+   Sem esse passo, `notification_request_suppressed` continua retornando `true` e o
+   cron cancela a entrega novamente após cada reprocessamento.
+3. **Reprocesse via painel** (`reprocess_site_notification_deliveries`) ou via SQL
+   direto (`status = 'pending', attempts = 0, next_attempt_at = now()`).
+4. Documente no ticket: data, motivo do desbloqueio, quem autorizou.
+
+> **Nota de auditoria:** `suppress_notification_delivery` cancela a entrega gravando
+> `last_error_code = 'recipient_suppressed'` na própria entrega — sem linha em
+> `admin_audit_log`. O rastreio completo fica em `notification_deliveries.updated_at`
+> e no evento de bounce em `notification_provider_events`.
+
 ## SLA de referência (Etapa 42)
 
 `oldestEligibleAgeSeconds` acima de 45 minutos (`QUEUE_AGE_ALERT_SECONDS` em

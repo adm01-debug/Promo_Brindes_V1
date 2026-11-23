@@ -461,16 +461,29 @@ select ok(
 
 -- Claim pontual de pedido em spam: nao basta devolver null, a entrega tem de sair da
 -- fila, senao o proximo tick repete a mesma leitura para sempre.
+-- Usar um pedido em spam novo (000e) com entrega pending fresca para provar que o
+-- cancelamento ocorre, nao que o claim simplesmente nao achou nada.
+insert into site_private.quote_requests (
+  id, client_request_id, request_hash, source, status, contact_name, company, email, phone,
+  city, desired_deadline, notes, client_submitted_at
+) values (
+  'c0000000-0000-4000-8000-00000000000e', 'f11-quote-spam-claim-pontual', repeat('e', 64), 'site-promo-brindes',
+  'spam', 'Spam Claim Pontual', 'Spam Ltda', 'claim-pontual@spam.test', '11999990019', null, null, null, now()
+);
+delete from site_private.notification_deliveries
+ where request_id = 'c0000000-0000-4000-8000-00000000000e';
+insert into site_private.notification_deliveries (request_kind, request_id, channel, audience, status, created_at, next_attempt_at)
+values ('quote', 'c0000000-0000-4000-8000-00000000000e', 'email', 'customer', 'pending', now(), now() - interval '1 minute');
 select is(
-  public.claim_site_quote_notification('c0000000-0000-4000-8000-00000000000b', 'email'),
+  public.claim_site_quote_notification('c0000000-0000-4000-8000-00000000000e', 'email'),
   null,
   'claim pontual devolve null para entrega de pedido em spam'
 );
-select isnt(
+select is(
   (select delivery.status from site_private.notification_deliveries delivery
-   where delivery.request_id = 'c0000000-0000-4000-8000-00000000000b' and delivery.channel = 'email'),
-  'pending',
-  'claim pontual tira da fila a entrega bloqueada (nao deixa job orfao)'
+   where delivery.request_id = 'c0000000-0000-4000-8000-00000000000e' and delivery.channel = 'email'),
+  'cancelled',
+  'claim pontual cancela a entrega pending de pedido em spam (nao deixa job orfao)'
 );
 
 -- Envio incerto: a supressao nao pode apagar o marcador que o runbook reconcilia.
