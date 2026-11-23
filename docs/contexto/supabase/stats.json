@@ -93,12 +93,20 @@
           "total_ms": 6740
         },
         {
-          "calls": 1059,
-          "mean_ms": 6.15,
+          "calls": 1066,
+          "mean_ms": 6.14,
           "query": "WITH pgrst_source AS (SELECT pgrst_call.pgrst_scalar FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT \"p_channels\", \"p_batch_size\" FROM json_to_record(pgrst_payload.json_data) AS _(\"p_channels\" text[], \"p_bat",
           "role": "service_role",
-          "rows": 1059,
-          "total_ms": 6511
+          "rows": 1066,
+          "total_ms": 6547
+        },
+        {
+          "calls": 598,
+          "mean_ms": 7.16,
+          "query": "SELECT t.oid, t.typname, t.typsend, t.typreceive, t.typoutput, t.typinput, coalesce(d.typelem, t.typelem), coalesce(r.rngsubtype, $1), ARRAY ( SELECT a.atttypid FROM pg_attribute AS a WHERE a.attrelid = t.typrelid AND a.",
+          "role": "pgbouncer",
+          "rows": 130956,
+          "total_ms": 4284
         },
         {
           "calls": 126,
@@ -109,68 +117,60 @@
           "total_ms": 4273
         },
         {
-          "calls": 596,
-          "mean_ms": 7.17,
-          "query": "SELECT t.oid, t.typname, t.typsend, t.typreceive, t.typoutput, t.typinput, coalesce(d.typelem, t.typelem), coalesce(r.rngsubtype, $1), ARRAY ( SELECT a.atttypid FROM pg_attribute AS a WHERE a.attrelid = t.typrelid AND a.",
-          "role": "pgbouncer",
-          "rows": 130518,
-          "total_ms": 4271
-        },
-        {
-          "calls": 330,
-          "mean_ms": 10.57,
+          "calls": 332,
+          "mean_ms": 10.58,
           "query": "SELECT n.nspname AS schema, p.proname AS name, pg_get_function_identity_arguments(p.oid) AS args, pg_get_function_result(p.oid) AS returns, l.lanname AS language, CASE p.prokind WHEN $1 THEN $2 WHEN $3 THEN $4 WHEN $5 TH",
           "role": "postgres",
-          "rows": 24439,
-          "total_ms": 3488
+          "rows": 24617,
+          "total_ms": 3511
         },
         {
-          "calls": 330,
-          "mean_ms": 10.18,
+          "calls": 332,
+          "mean_ms": 10.17,
           "query": "SELECT n.nspname AS schema, c.relname AS \"table\", con.conname AS name, CASE con.contype WHEN $1 THEN $2 WHEN $3 THEN $4 WHEN $5 THEN $6 WHEN $7 THEN $8 WHEN $9 THEN $10 ELSE con.contype::text END AS type, pg_get_constrai",
           "role": "postgres",
-          "rows": 48465,
-          "total_ms": 3359
+          "rows": 48789,
+          "total_ms": 3378
         },
         {
-          "calls": 330,
+          "calls": 332,
           "mean_ms": 7.64,
           "query": "SELECT n.nspname AS schema, c.relname AS name, GREATEST(c.reltuples::bigint, $1) AS est_rows, pg_total_relation_size(c.oid) AS total_bytes, pg_relation_size(c.oid) AS heap_bytes, pg_indexes_size(c.oid) AS index_bytes, s.",
           "role": "postgres",
-          "rows": 7004,
-          "total_ms": 2523
+          "rows": 7054,
+          "total_ms": 2538
         },
         {
-          "calls": 330,
+          "calls": 332,
           "mean_ms": 7.47,
           "query": "SELECT n.nspname AS schema, t.relname AS \"table\", ic.relname AS name, pg_get_indexdef(ix.indexrelid) AS definition, ix.indisunique AS is_unique, ix.indisprimary AS is_primary, ix.indisvalid AS is_valid, am.amname AS meth",
           "role": "postgres",
-          "rows": 22246,
-          "total_ms": 2465
+          "rows": 22394,
+          "total_ms": 2480
         },
         {
-          "calls": 330,
+          "calls": 332,
           "mean_ms": 7.04,
           "query": "SELECT n.nspname AS schema, c.relname AS \"table\", a.attnum AS position, a.attname AS name, format_type(a.atttypid, a.atttypmod) AS type, NOT a.attnotnull AS nullable, pg_get_expr(d.adbin, d.adrelid) AS \"default\", NULLIF(",
           "role": "postgres",
-          "rows": 63100,
-          "total_ms": 2322
+          "rows": 63526,
+          "total_ms": 2336
         },
         {
-          "calls": 330,
-          "mean_ms": 6.67,
+          "calls": 332,
+          "mean_ms": 6.68,
           "query": "SELECT version, name, statements FROM supabase_migrations.schema_migrations ORDER BY version",
           "role": "postgres",
-          "rows": 22250,
-          "total_ms": 2203
+          "rows": 22398,
+          "total_ms": 2216
         },
         {
-          "calls": 330,
-          "mean_ms": 5.68,
+          "calls": 332,
+          "mean_ms": 5.86,
           "query": "SELECT e.extname AS name, e.extversion AS version, n.nspname AS schema, (SELECT default_version FROM pg_available_extensions a WHERE a.name = e.extname) AS available_version FROM pg_extension e JOIN pg_namespace n ON n.o",
           "role": "postgres",
-          "rows": 1650,
-          "total_ms": 1874
+          "rows": 1660,
+          "total_ms": 1945
         }
       ]
     },
@@ -333,7 +333,7 @@
         "is_primary": true,
         "is_unique": true,
         "name": "cron_heartbeats_pkey",
-        "scans": 253,
+        "scans": 281,
         "schema": "site_private",
         "table": "cron_heartbeats"
       },
@@ -477,7 +477,7 @@
         "is_primary": true,
         "is_unique": true,
         "name": "notification_deliveries_pkey",
-        "scans": 10078,
+        "scans": 10106,
         "schema": "site_private",
         "table": "notification_deliveries"
       },
@@ -847,13 +847,13 @@
         "dead_rows": 32,
         "est_rows": 4,
         "heap_bytes": 16384,
-        "idx_scan": 10325,
+        "idx_scan": 10353,
         "index_bytes": 106496,
         "last_autoanalyze": "2026-11-11T23:21:01.151989+00:00",
         "last_autovacuum": "2026-11-11T23:41:01.591129+00:00",
         "name": "notification_deliveries",
         "schema": "site_private",
-        "seq_scan": 7249,
+        "seq_scan": 7277,
         "total_bytes": 163840
       },
       {
@@ -948,16 +948,16 @@
         "total_bytes": 73728
       },
       {
-        "dead_rows": 31,
+        "dead_rows": 8,
         "est_rows": 3,
         "heap_bytes": 8192,
-        "idx_scan": 253,
+        "idx_scan": 281,
         "index_bytes": 16384,
-        "last_autoanalyze": "2026-11-22T22:30:17.175501+00:00",
-        "last_autovacuum": "2026-11-22T22:41:17.449659+00:00",
+        "last_autoanalyze": "2026-11-23T01:41:21.529231+00:00",
+        "last_autovacuum": "2026-11-23T01:51:21.769090+00:00",
         "name": "cron_heartbeats",
         "schema": "site_private",
-        "seq_scan": 154,
+        "seq_scan": 185,
         "total_bytes": 65536
       },
       {
