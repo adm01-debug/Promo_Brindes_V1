@@ -2,6 +2,10 @@
 
 Diff semântico gerado a cada coleta em que algo mudou.
 
+## 2026-11-23 12:28 UTC
+
+- **functions** alterado (3): `public.purge_site_admin_audit_logs(p_retention_days integer, p_batch_size integer)`, `site_private.assert_site_operator()`, `site_private.audit_actor()`
+
 ## 2026-11-22 19:13 UTC
 
 - **functions** alterado (7): `public.purge_site_admin_audit_logs(p_retention_days integer, p_batch_size integer)`, `site_private.assert_site_operator()`, `site_private.commercial_team_alert_payload(p_delivery_id uuid)`, `site_private.commercial_team_contact_alert_payload(p_delivery_id uuid)`, `site_private.normalize_email(p_email text)`, `site_private.notification_policy()`, `site_private.quote_notification_payload(p_delivery_id uuid)`

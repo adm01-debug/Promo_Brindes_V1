@@ -7085,9 +7085,13 @@
             {
               "file": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
               "hits": 1
+            },
+            {
+              "file": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql",
+              "hits": 1
             }
           ],
-          "code_total_files": 1,
+          "code_total_files": 2,
           "cron": [],
           "db": [],
           "triggers": [],
@@ -7581,11 +7585,15 @@
               "hits": 1
             },
             {
+              "file": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql",
+              "hits": 2
+            },
+            {
               "file": "src/lib/commercialBackoffice.ts",
               "hits": 1
             }
           ],
-          "code_total_files": 4,
+          "code_total_files": 5,
           "cron": [],
           "db": [
             "public.get_site_quote_request",
@@ -7661,9 +7669,13 @@
             {
               "file": "site-supabase/supabase/migrations/20260923120000_audit_security_reliability_hardening.sql",
               "hits": 2
+            },
+            {
+              "file": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql",
+              "hits": 1
             }
           ],
-          "code_total_files": 1,
+          "code_total_files": 2,
           "cron": [],
           "db": [
             "site_private.log_admin_ddl",
