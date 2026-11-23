@@ -117,6 +117,37 @@ test('evidence sem pattern aceita (prova e a existencia do arquivo)', () => {
   assert.deepEqual(validateClaims(inventory, read), []);
 });
 
+test('afirmacao de ausencia passa quando o provedor nao existe no codigo', () => {
+  const inventory = base();
+  inventory.claims[0].evidence = {
+    absenceOf: { roots: ['src'], pattern: 'stripe|pagarme|payment_intent' },
+  };
+  const files = ['src/a.tsx', 'src/b.tsx'];
+  assert.deepEqual(validateClaims(inventory, read, () => files), []);
+});
+
+test('afirmacao de ausencia reprova quando aparece provedor de pagamento', () => {
+  const inventory = base();
+  inventory.claims[0].evidence = {
+    absenceOf: { roots: ['src'], pattern: 'stripe|pagarme|payment_intent' },
+  };
+  const comStripe = { ...FILES, 'src/pagamento.tsx': ['const key = "pk_live_stripe";'] };
+  const comStripeRead = (file) => (file in comStripe ? comStripe[file] : null);
+  const errors = validateClaims(inventory, comStripeRead, () => ['src/pagamento.tsx']);
+  assert.ok(errors.some((error) => /prova de ausencia quebrada/.test(error)), errors.join('; '));
+  assert.ok(errors.some((error) => error.includes('src/pagamento.tsx:1')), errors.join('; '));
+});
+
+test('afirmacao de ausencia sem roots ou com pattern invalido reprova', () => {
+  const semRoots = base();
+  semRoots.claims[0].evidence = { absenceOf: { roots: [], pattern: 'stripe' } };
+  assert.ok(validateClaims(semRoots, read, () => []).some((error) => /absenceOf sem roots/.test(error)));
+
+  const patternRuim = base();
+  patternRuim.claims[0].evidence = { absenceOf: { roots: ['src'], pattern: '(stripe' } };
+  assert.ok(validateClaims(patternRuim, read, () => []).some((error) => /pattern invalido/.test(error)));
+});
+
 test('CLI reprova quando o inventario do repositorio quebra', () => {
   assert.throws(
     () =>

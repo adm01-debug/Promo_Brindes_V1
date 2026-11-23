@@ -49,6 +49,38 @@ for (const limit of [
   });
 }
 
+for (const body of [
+  '<input\n  type="checkbox"\n  defaultChecked\n/>',
+  '<input\n  defaultChecked\n  type="checkbox"\n/>',
+  "<input\n  id=\"aceite\"\n  type='checkbox'\n  checked={true}\n  defaultChecked={true}\n/>",
+]) {
+  test(`reprova consentimento disfarcado em checkbox multilinha: ${body.replace(/\s+/g, ' ')}`, () => {
+    const file = fixture('multilinha.tsx', `export const A = () => (\n  <label>\n    ${body}\n  </label>\n);\n`);
+    const errors = findPersuasionViolations([file]);
+    assert.equal(errors.length >= 1, true, 'checkbox pre-marcada deveria reprovar');
+    assert.match(errors[0], /consentimento disfarcado/);
+  });
+}
+
+test('checkbox vazia em multilinha continua aprovada', () => {
+  const file = fixture('vazia.tsx', 'export const A = () => (\n  <label>\n    <input\n      type="checkbox"\n      checked={aceite}\n      onChange={aoMudar}\n    />\n  </label>\n);\n');
+  assert.deepEqual(findPersuasionViolations([file]), []);
+});
+
+for (const claim of [
+  '9 mil clientes atendidos',
+  'mais de 1.000 empresas confiam',
+  'nota 4,9 de 5 no atendimento',
+  'nota 4.9 de 5 no atendimento',
+]) {
+  test(`reprova prova social escrita por extenso: ${claim}`, () => {
+    const file = fixture('prova.tsx', `export const A = () => <p>${claim}</p>;\n`);
+    const errors = findPersuasionViolations([file]);
+    assert.equal(errors.length >= 1, true, 'numero de clientes/nota sem fonte deveria reprovar');
+    assert.match(errors[0], /prova social inventada/);
+  });
+}
+
 test('comentario que cita o padrao nao conta como promessa na tela', () => {
   const file = fixture('comentada.tsx', '// nunca escreva "últimas unidades" na interface\nexport const A = () => <p>Ok.</p>;\n');
   assert.deepEqual(findPersuasionViolations([file]), []);

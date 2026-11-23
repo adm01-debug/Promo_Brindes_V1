@@ -68,11 +68,13 @@
       "owner": "adm01-debug (dono do negocio)",
       "status": "confirmada",
       "evidence": {
-        "file": "src/components/QuoteDrawer.tsx",
-        "pattern": "Zero checkout"
+        "absenceOf": {
+          "roots": ["src", "api"],
+          "pattern": "stripe|pagarme|mercado ?pago|asaas|payment_intent|hotmart|kiwify"
+        }
       },
       "checkedAt": "2026-11-22",
-      "note": "Mesmo lastro de AC-02: sem pagamento no site. A frase e sobre o site, nao sobre a proposta comercial."
+      "note": "Antes a prova citava o slogan 'Zero checkout' do QuoteDrawer — circular: confirmava a frase, nao o fluxo. Agora a prova e a ausencia de provedor de pagamento em src/ e api/ (roteiro: nenhum gateway, nenhuma rota de checkout). Se aparecer Stripe/Pagar.me/etc, o guard reprova e a frase precisa sair da tela."
     },
     {
       "id": "AC-04",

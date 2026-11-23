@@ -40,7 +40,11 @@ promessa reprova o build em vez de passar silencioso.
 - **AC-01**: existe proposta versionada publicada pelo back-office (PF-23) e o titular
   baixa o arquivo real na Área do Cliente (`CustomerQuotePage` — `proposal.isCurrent`).
 - **AC-02 / AC-03**: não há gateway de pagamento nem rota de checkout; o único destino
-  da seleção é `/orcamento`. A frase fala do site, não da proposta comercial.
+  da seleção é `/orcamento`. A frase fala do site, não da proposta comercial. Em AC-03
+  a prova é **mecânica**: `evidence.absenceOf` varre `src/` e `api/` e reprova se
+  aparecer `stripe`, `pagarme`, `mercadopago`, `asaas`, `payment_intent`, `hotmart` ou
+  `kiwify`. Antes a prova citava o slogan "Zero checkout" do próprio site — confirmava
+  a frase com a frase.
 - **AC-04**: catálogo e produto não importam `useAuth` nem redirecionam para login. A
   conta serve para guardar histórico, não é pré-requisito para explorar.
 - **AC-05**: **ajustar-texto**, não confirmada. O código prova que o back-office existe, não que haja

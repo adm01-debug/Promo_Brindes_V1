@@ -16,8 +16,16 @@ consentimento disfarcado. Este documento e a versao legivel do que
 
 ## Como a aprovacao e exigida em cada revisao de interface
 
-1. `npm run persuasion:check` no `npm run check` e nos hooks `pre-commit`/`pre-push`
-   (`scripts/automation.config.json`, campo `testSuites`).
+1. `npm run check` (que encadeia `persuasion:check` e `claims:check`) roda no CI
+   (`.github/workflows/quality.yml:88-90`, job `validate`), e é esse check que a PR precisa
+   ter verde. Nos hooks locais o alcance é menor e vale saber exatamente qual:
+   - `pre-push` roda as `testSuites` de `scripts/automation.config.json`, que incluem
+     `tests/validate-persuasion-limits.node.mjs` — esse teste varre a interface real, então
+     o limite de persuasão é conferido antes do push;
+   - `pre-commit` só roda as `testSuites` quando o commit toca automação
+     (`scripts/**`, `.github/**`, `.husky/**`, `package.json`, lockfiles — `scripts/automation.mjs:1089-1097`).
+     Commit que muda só `src/` não roda esse bloco: a varredura acontece no `pre-push` e no CI,
+     não no commit. Foi assim que este checklist passou a descrever o que de fato acontece.
 2. Reprovar significa reescrever o texto: o guard nao tem lista de excecoes, porque a etapa 009
    pede que nenhuma pagina escape do limite.
 3. Linha de comentario que apenas cita o padrao para documentar a regra nao conta como promessa

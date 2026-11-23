@@ -52,9 +52,12 @@ export const LIMITS = [
     title: 'prova social inventada',
     why: 'numero de clientes, nota e depoimento so podem aparecer se forem reais e verificaveis',
     patterns: [
-      /\d{2,} mil clientes/i,
-      /mais de \d+ (clientes|empresas)/i,
-      /nota \d(\.\d)? de 5/i,
+      // "9 mil clientes" e "1.000 empresas" tambem sao numero inventado: o padrao antigo
+      // exigia dois digitos e deixava passar contagem escrita por extenso/milhar.
+      /\d{1,3}(?:\.\d{3})*\s*mil clientes/i,
+      /mais de \d{1,3}(?:\.\d{3})* (clientes|empresas)/i,
+      // Nota pode vir com ponto (4.9) ou virgula (4,9) e com decimais variaveis.
+      /nota \d{1,2}([.,]\d{1,2})? de 5/i,
       /5 estrelas/i,
       /melhor do mercado/i,
     ],
@@ -98,6 +101,9 @@ export function listInterfaceFiles(dir = SRC, files = []) {
   return files;
 }
 
+/** Atributo `type="checkbox"` no elemento, aceitando aspas simples e expressao JSX. */
+const CHECKBOX_TYPE = /type\s*=\s*(?:"checkbox"|'checkbox'|\{\s*['"]checkbox['"]\s*\})/;
+
 /** Reprovacoes da etapa 009 nos arquivos informados (por padrao, toda a interface). */
 export function findPersuasionViolations(files = listInterfaceFiles()) {
   const errors = [];
@@ -116,6 +122,21 @@ export function findPersuasionViolations(files = listInterfaceFiles()) {
         );
       }
     });
+
+    // Caixa pre-marcada em JSX multilinha: o padrao por linha nao enxerga
+    // <input newline type="checkbox" newline defaultChecked />, e a ordem dos atributos
+    // varia. A varredura por elemento cobre a tag inteira. O padrao `checkbox[^\n]*defaultChecked`
+    // continua na lista (pega o caso de uma linha) e aqui so entra o que ele nao viu.
+    const content = lines.join('\n');
+    for (const tag of content.matchAll(/<input\b[^>]*>/gs)) {
+      if (!/defaultChecked/.test(tag[0]) || !CHECKBOX_TYPE.test(tag[0])) continue;
+      const lineNumber = content.slice(0, tag.index + tag[0].indexOf('defaultChecked')).split('\n').length;
+      const already = errors.some((error) => error.startsWith(`${relative}:${lineNumber} viola "consentimento disfarcado"`));
+      if (already) continue;
+      errors.push(
+        `${relative}:${lineNumber} viola "consentimento disfarcado" (/checkbox[^\n]*defaultChecked/): checkbox de consentimento nao pode vir marcada | ${tag[0].replace(/\s+/g, ' ').trim().slice(0, 120)}`,
+      );
+    }
   }
   return errors;
 }
