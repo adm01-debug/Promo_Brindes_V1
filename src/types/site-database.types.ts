@@ -1421,6 +1421,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      notification_delivery_is_reopenable: {
+        Args: { p_delivery_id: string }
+        Returns: boolean
+      }
       notification_policy: {
         Args: never
         Returns: {

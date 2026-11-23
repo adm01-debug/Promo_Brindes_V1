@@ -165,6 +165,12 @@ function readNullableCount(value: unknown): number | null {
   return Number.isInteger(value) && Number(value) >= 0 ? Number(value) : null;
 }
 
+/** Destinatário da entrega: a confirmação do cliente ou o alerta do time comercial.
+ * Valor desconhecido cai em `customer`, que é a audiência com mais restrição. */
+function readAudience(value: unknown): 'customer' | 'commercial_team' {
+  return value === 'commercial_team' ? 'commercial_team' : 'customer';
+}
+
 function readStatus(value: unknown): SiteQuoteStatus {
   return readNullableStatus(value) ?? 'new';
 }
@@ -405,7 +411,7 @@ export function parseSiteNotificationDeliveryReport(data: unknown): SiteNotifica
       lastErrorAt: readNullableString(item.lastErrorAt),
       updatedAt: readNullableString(item.updatedAt),
       emailHashPrefix: readString(item.emailHashPrefix),
-      audience: item.audience === 'commercial_team' ? 'commercial_team' : 'customer',
+      audience: readAudience(item.audience),
       suppressed: item.suppressed === true,
       erased: item.erased === true,
       reopenable: item.reopenable !== false,
