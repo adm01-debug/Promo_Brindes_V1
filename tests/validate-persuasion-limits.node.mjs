@@ -90,6 +90,18 @@ test('defaultChecked sem valor explicito e flagrado pelo scanner JSX', () => {
   assert.match(errors[0], /:3 viola "consentimento disfarcado"/);
 });
 
+test('valor de outro atributo nao decide a caixa de consentimento', () => {
+  const aprovada = fixture('rotulo-aprovada.tsx',
+    'export const A = () => (\n  <label>\n    <input type="checkbox" aria-label="defaultChecked" defaultChecked={false} onChange={aoMudar} />\n  </label>\n);\n');
+  assert.deepEqual(findPersuasionViolations([aprovada]), []);
+
+  const reprovada = fixture('rotulo-reprovada.tsx',
+    'export const A = () => (\n  <label>\n    <input type="checkbox" title="defaultChecked={false}" defaultChecked />\n  </label>\n);\n');
+  const errors = findPersuasionViolations([reprovada]);
+  assert.equal(errors.length, 1, errors.join('; '));
+  assert.match(errors[0], /consentimento disfarcado/);
+});
+
 for (const claim of [
   '9 mil clientes atendidos',
   'mais de 1.000 empresas confiam',

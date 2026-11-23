@@ -177,14 +177,59 @@ function findInputTags(source) {
 /**
  * `defaultChecked` sem valor, com `true` ou com expressao qualquer deixa a caixa marcada no
  * primeiro render; so o literal `false` prova o contrario. Sem valor e sem `false`, reprova.
+ *
+ * A varredura anda por NOMES de atributo e pula o valor de cada um: busca textual levava o
+ * resultado de rotulo (`aria-label="defaultChecked"` reprovava, `title="defaultChecked={false}"`
+ * aprovava) para o atributo seguinte, que e o que importa.
  */
 function mayStartChecked(tag) {
-  const match = /\bdefaultChecked\b(\s*=\s*(\{[^}]*\}|"[^"]*"|'[^']*'))?/.exec(tag);
-  if (!match) return false;
-  const expression = match[2];
-  if (!expression) return true;
-  if (!expression.startsWith('{')) return true;
-  return expression.slice(1, -1).trim() !== 'false';
+  let index = 0;
+  while (index < tag.length) {
+    const name = /^\s*([A-Za-z_$][\w$:.-]*)/.exec(tag.slice(index));
+    if (!name) {
+      index += 1;
+      continue;
+    }
+    index += name[0].length;
+    let value = null;
+    const equals = /^\s*=\s*/.exec(tag.slice(index));
+    if (equals) {
+      index += equals[0].length;
+      const opening = tag[index];
+      if (opening === '{' || opening === '"' || opening === "'") {
+        const closing = opening === '{' ? '}' : opening;
+        const valueStart = index;
+        index += 1;
+        while (index < tag.length) {
+          const char = tag[index];
+          if (char === '\\') {
+            index += 2;
+            continue;
+          }
+          // Expressao pode conter string que fecha com a mesma aspa da tag: "a > b" ou {'}'}.
+          if (closing === '}' && (char === '"' || char === "'" || char === '`')) {
+            const inner = char;
+            index += 1;
+            while (index < tag.length && tag[index] !== inner) index += tag[index] === '\\' ? 2 : 1;
+            index += 1;
+            continue;
+          }
+          index += 1;
+          if (char === closing) break;
+        }
+        value = tag.slice(valueStart, index);
+      } else {
+        const bare = /^[^\s/>{}]+/.exec(tag.slice(index));
+        value = bare ? bare[0] : '';
+        index += value.length;
+      }
+    }
+    if (name[1] !== 'defaultChecked') continue;
+    if (value === null) return true;
+    if (!value.startsWith('{')) return true;
+    return value.slice(1, -1).trim() !== 'false';
+  }
+  return false;
 }
 
 /** Caixas de consentimento que podem nascer marcadas em um arquivo JSX. */
