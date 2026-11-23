@@ -1,7 +1,6 @@
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import ts from 'typescript';
 
 // Etapa 009 do plano Carnegie (limites de persuasao). O site nao pode usar urgencia
 // ficticia, culpa ao recusar, elogio automatico, dado presumido, prova social
@@ -101,57 +100,104 @@ export function listInterfaceFiles(dir = SRC, files = []) {
   return files;
 }
 
-/** Atributo JSX do elemento, ignorando os que vem por spread (`{...props}`). */
-function jsxAttribute(file, attributes, name) {
-  for (const property of attributes.properties) {
-    if (ts.isJsxAttribute(property) && property.name.getText(file) === name) return property;
+/** Atributo `type="checkbox"` no elemento, aceitando aspas simples e expressao JSX. */
+const CHECKBOX_TYPE = /type\s*=\s*(?:"checkbox"|'checkbox'|\{\s*['"]checkbox['"]\s*\})/;
+
+/**
+ * Comentario nao e a promessa na tela, e o CI de automacao roda sem devDependencies —
+ * `typescript` nao esta disponivel ali. Este scanner troca comentario por espaco
+ * preservando offsets (e portanto as linhas), respeitando strings e template literals.
+ */
+export function stripJsComments(source) {
+  let out = '';
+  let quote = null;
+  for (let index = 0; index < source.length;) {
+    const char = source[index];
+    const next = source[index + 1];
+    if (quote) {
+      out += char;
+      if (char === '\\') {
+        out += next ?? '';
+        index += 2;
+        continue;
+      }
+      if (char === quote) quote = null;
+      index += 1;
+      continue;
+    }
+    if (char === '/' && next === '/') {
+      while (index < source.length && source[index] !== '\n') {
+        out += ' ';
+        index += 1;
+      }
+      continue;
+    }
+    if (char === '/' && next === '*') {
+      while (index < source.length && !(source[index] === '*' && source[index + 1] === '/')) {
+        out += source[index] === '\n' ? '\n' : ' ';
+        index += 1;
+      }
+      out += '  ';
+      index += 2;
+      continue;
+    }
+    if (char === '"' || char === "'" || char === '`') quote = char;
+    out += char;
+    index += 1;
   }
-  return null;
+  return out;
 }
 
-function isCheckboxType(attribute) {
-  const initializer = attribute?.initializer;
-  if (!initializer) return false;
-  if (ts.isStringLiteral(initializer)) return initializer.text === 'checkbox';
-  return ts.isJsxExpression(initializer)
-    && Boolean(initializer.expression)
-    && ts.isStringLiteral(initializer.expression)
-    && initializer.expression.text === 'checkbox';
+/** Elementos `<input ...>` do conteudo, sem parar no `>` de uma expressao JSX. */
+function findInputTags(source) {
+  const tags = [];
+  for (let start = source.indexOf('<input'); start !== -1; start = source.indexOf('<input', start + 6)) {
+    if (/[A-Za-z0-9_-]/.test(source[start + 6] ?? '')) continue;
+    let depth = 0;
+    let quote = null;
+    let index = start + 6;
+    for (; index < source.length; index += 1) {
+      const char = source[index];
+      if (quote) {
+        if (char === '\\') index += 1;
+        else if (char === quote) quote = null;
+        continue;
+      }
+      if (char === '"' || char === "'" || char === '`') quote = char;
+      else if (char === '{') depth += 1;
+      else if (char === '}') depth -= 1;
+      else if (char === '>' && depth === 0) break;
+    }
+    if (index >= source.length) continue;
+    tags.push({ text: source.slice(start, index + 1), index: start });
+  }
+  return tags;
 }
 
 /**
  * `defaultChecked` sem valor, com `true` ou com expressao qualquer deixa a caixa marcada no
- * primeiro render; so o literal `false` prova o contrario. A arvore do TypeScript e usada
- * porque comentario nao passa a existir para o parser — exemplo comentado ou
- * `defaultChecked={false}` nao sao consentimento pre-marcado.
+ * primeiro render; so o literal `false` prova o contrario. Sem valor e sem `false`, reprova.
  */
-function mayStartChecked(attribute) {
-  const initializer = attribute.initializer;
-  if (!initializer) return true;
-  if (!ts.isJsxExpression(initializer)) return true;
-  const expression = initializer.expression;
-  return !(expression && expression.kind === ts.SyntaxKind.FalseKeyword);
+function mayStartChecked(tag) {
+  const match = /\bdefaultChecked\b(\s*=\s*(\{[^}]*\}|"[^"]*"|'[^']*'))?/.exec(tag);
+  if (!match) return false;
+  const expression = match[2];
+  if (!expression) return true;
+  if (!expression.startsWith('{')) return true;
+  return expression.slice(1, -1).trim() !== 'false';
 }
 
 /** Caixas de consentimento que podem nascer marcadas em um arquivo JSX. */
 export function findDefaultCheckedConsentInputs(source, relative) {
-  const scriptKind = /\.jsx$/i.test(relative) ? ts.ScriptKind.JSX : ts.ScriptKind.TSX;
-  const file = ts.createSourceFile(relative, source, ts.ScriptTarget.Latest, true, scriptKind);
+  const stripped = stripJsComments(source);
   const errors = [];
-  const check = (node) => {
-    if (!isCheckboxType(jsxAttribute(file, node.attributes, 'type'))) return;
-    const checked = jsxAttribute(file, node.attributes, 'defaultChecked');
-    if (!checked || !mayStartChecked(checked)) return;
-    const line = file.getLineAndCharacterOfPosition(node.getStart(file)).line + 1;
+  for (const tag of findInputTags(stripped)) {
+    if (!CHECKBOX_TYPE.test(tag.text) || !mayStartChecked(tag.text)) continue;
+    const line = stripped.slice(0, tag.index).split('\n').length;
     errors.push(
-      `${relative}:${line} viola "consentimento disfarcado" (defaultChecked): caixa de consentimento nao pode vir marcada | ${node.getText(file).replace(/\s+/g, ' ').trim().slice(0, 120)}`,
+      `${relative}:${line} viola "consentimento disfarcado" (defaultChecked): caixa de consentimento nao pode vir marcada | ${tag.text.replace(/\s+/g, ' ').trim().slice(0, 120)}`,
     );
-  };
-  const visit = (node) => {
-    if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) check(node);
-    ts.forEachChild(node, visit);
-  };
-  visit(file);
+  }
   return errors;
 }
 
@@ -176,8 +222,8 @@ export function findPersuasionViolations(files = listInterfaceFiles()) {
 
     // Caixa pre-marcada em JSX multilinha: o padrao por linha nao enxerga
     // <input newline type="checkbox" newline defaultChecked />, e a ordem dos atributos
-    // varia. A varredura por elemento cobre a tag inteira; a arvore do TypeScript ainda
-    // ignora comentario e aceita `defaultChecked={false}` como caixa desmarcada.
+    // varia. A varredura por elemento cobre a tag inteira; comentario e trocado por espaco
+    // antes, entao exemplo comentado nao reprova e `defaultChecked={false}` e aceito.
     if (/\.jsx$/i.test(absolute) || /\.tsx$/i.test(absolute)) {
       errors.push(...findDefaultCheckedConsentInputs(lines.join('\n'), relative));
     }

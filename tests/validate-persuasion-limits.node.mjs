@@ -83,7 +83,7 @@ test('exemplo comentado de defaultChecked nao e consentimento pre-marcado', () =
   assert.deepEqual(findPersuasionViolations([file]), []);
 });
 
-test('defaultChecked sem valor explicito e flagrado pela arvore JSX', () => {
+test('defaultChecked sem valor explicito e flagrado pelo scanner JSX', () => {
   const file = fixture('sem-valor.tsx', 'export const A = () => (\n  <label>\n    <input\n      type="checkbox"\n      defaultChecked\n    />\n  </label>\n);\n');
   const errors = findPersuasionViolations([file]);
   assert.equal(errors.length, 1, errors.join('; '));
