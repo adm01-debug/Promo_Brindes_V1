@@ -445,7 +445,7 @@ end;
 $fn$;
 
 comment on function public.claim_site_commercial_team_alert(uuid) is
-  'F-11/F-12: claim pontual do alerta ao comercial. Devolve null (cancelando a entrega) para destinatário suprimido, pedido apagado e job inelegível por spam, anonimização ou idade acima de max_age.';
+  'F-11/F-12: claim pontual do alerta ao comercial. Devolve null para pedido apagado (F-30) e para job inelegível por spam, anonimização ou idade acima de max_age. Supressão por bounce/complaint não se aplica: notification_request_suppressed só considera audience = customer.';
 
 create or replace function public.claim_site_commercial_team_alerts(p_batch_size integer default 10)
 returns jsonb
@@ -739,8 +739,11 @@ begin
 
   if v_delivery.audience = 'customer'
     and site_private.notification_request_suppressed(v_delivery.request_kind, v_delivery.request_id) then
+    -- 'exhausted' (reabrivel pelo painel via reprocess_site_notification_deliveries),
+    -- nao 'cancelled': 'cancelled' e terminal por omissao na matriz de transicoes e
+    -- deixaria a confirmacao ao titular morta depois de um bounce temporario.
     update site_private.notification_deliveries delivery
-    set status = 'cancelled', last_error_code = 'recipient_suppressed',
+    set status = 'exhausted', last_error_code = 'recipient_suppressed',
         lease_token = null, lease_expires_at = null, claimed_at = null, updated_at = now()
     where delivery.id = v_delivery.id;
     return true;
@@ -880,7 +883,7 @@ end;
 $fn$;
 
 comment on function public.claim_site_commercial_team_alert(uuid) is
-  'F-11/F-12: claim pontual do alerta ao comercial. Devolve null quando o destinatario esta suprimido (bounce/complaint) ou o pedido foi apagado — cancela a entrega sem trilha em admin_audit_log (motivo fica em last_error_code). Quando o job e inelegivel por spam, anonimizacao ou idade acima de max_age, cancela COM trilha em admin_audit_log via cancel_ineligible_notification_backlog. A entrega nunca fica pending para sempre.';
+  'F-11/F-12: claim pontual do alerta ao comercial. Devolve null quando o pedido foi apagado (F-30) — suppression por bounce/complaint NAO se aplica aqui: notification_request_suppressed so considera audience = customer e o alerta vai para commercial_team, entao o caminho e so o pedido apagado. Cancela a entrega sem trilha em admin_audit_log (motivo fica em last_error_code). Quando o job e inelegivel por spam, anonimizacao ou idade acima de max_age, cancela COM trilha em admin_audit_log via cancel_ineligible_notification_backlog. A entrega nunca fica pending para sempre.';
 
 -- Correcao 1: reprocessamento so reabre o que o cron nao vai cancelar na passagem
 -- seguinte, e diz exatamente por que recusou cada entrega.

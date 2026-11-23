@@ -10,7 +10,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(50);
+select plan(53);
 
 -- === Fixtures ====================================================================
 
@@ -511,6 +511,56 @@ select is(
   'whatsapp_dispatch_started',
   'marcador whatsapp_dispatch_started sobrevive a tentativa de supressao'
 );
+-- Limite do lote: o envio incerto nao pode ocupar a vaga que cancelaria a entrega
+-- suprimida ao lado. Com lote de tamanho 1 e o incerto mais antigo, o filtro e o
+-- unico motivo para a entrega suprimida sair da fila.
+insert into site_private.quote_requests (
+  id, client_request_id, request_hash, source, status, contact_name, company, email, phone,
+  city, desired_deadline, notes, client_submitted_at
+) values
+  ('c0000000-0000-4000-8000-00000000000f', 'f11-quote-lote-incerto', repeat('f', 64), 'site-promo-brindes',
+   'new', '[apagado a pedido do titular]', 'Incerto', 'incerto-lote@erased.invalid', '11999990029',
+   null, null, null, now()),
+  ('c0000000-0000-4000-8000-000000000010', 'f11-quote-lote-suprimido', repeat('9', 64), 'site-promo-brindes',
+   'new', 'Suprimido Lote', 'Suprimida', 'suprimido-lote@spam.test', '11999990030',
+   null, null, null, now());
+insert into site_private.notification_deliveries (
+  request_kind, request_id, channel, audience, status, created_at, next_attempt_at,
+  last_error_code, provider_message_id
+) values (
+  'quote', 'c0000000-0000-4000-8000-00000000000f', 'whatsapp', 'customer', 'pending',
+  now() - interval '10 minutes', now() - interval '10 minutes', 'whatsapp_dispatch_started', null
+);
+-- A entrega de e-mail do orcamento nasce no trigger de INSERT; aqui ela e
+-- reposicionada para failed/bounced e envelhecida.
+delete from site_private.notification_deliveries
+ where request_id = 'c0000000-0000-4000-8000-000000000010' and channel = 'email';
+insert into site_private.notification_deliveries (
+  request_kind, request_id, channel, audience, status, created_at, next_attempt_at, delivery_state
+) values (
+  'quote', 'c0000000-0000-4000-8000-000000000010', 'email', 'customer', 'failed',
+  now() - interval '5 minutes', now() - interval '5 minutes', 'bounced'
+);
+select public.claim_site_notification_deliveries(array['email', 'whatsapp'], 1);
+select is(
+  (select delivery.status from site_private.notification_deliveries delivery
+   where delivery.request_id = 'c0000000-0000-4000-8000-000000000010' and delivery.channel = 'email'),
+  'exhausted',
+  'lote de tamanho 1 encerra a entrega suprimida mesmo com envio incerto mais antigo na frente'
+);
+select is(
+  (select delivery.status from site_private.notification_deliveries delivery
+   where delivery.request_id = 'c0000000-0000-4000-8000-00000000000f' and delivery.channel = 'whatsapp'),
+  'pending',
+  'envio incerto fora do lote continua pending (nao e cancelado nem reenviado)'
+);
+select is(
+  (select delivery.last_error_code from site_private.notification_deliveries delivery
+   where delivery.request_id = 'c0000000-0000-4000-8000-00000000000f' and delivery.channel = 'whatsapp'),
+  'whatsapp_dispatch_started',
+  'marcador do envio incerto sobrevive ao lote'
+);
+
 -- === 8. Privilegios =============================================================
 
 select ok(

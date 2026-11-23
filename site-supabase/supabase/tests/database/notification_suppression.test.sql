@@ -479,8 +479,8 @@ select is(
   (select delivery.status from site_private.notification_deliveries delivery
    join site_private.quote_requests request on request.id = delivery.request_id
    where request.client_request_id = 'f12-suppression-quote-2' and delivery.channel = 'email' and delivery.audience = 'customer'),
-  'cancelled',
-  'entrega de endereço suprimido é cancelada, com motivo registrado'
+  'exhausted',
+  'entrega de endereço suprimido é encerrada como exhausted (reabrível pelo painel), com motivo registrado'
 );
 select is(
   (select delivery.last_error_code from site_private.notification_deliveries delivery
