@@ -117,6 +117,11 @@ test('spread de literal com defaultChecked tambem e consentimento pre-marcado', 
     'export const A = () => (\n  <label>\n    <input type="checkbox" {...{ defaultChecked: preferenciaInicial }} onChange={aoMudar} />\n  </label>\n);\n');
   const opacas = findPersuasionViolations([opaca]);
   assert.equal(opacas.length, 1, 'propriedade com valor opaco continua reprovando');
+
+  const expressao = fixture('spread-literal-expressao.tsx',
+    'export const A = () => (\n  <label>\n    <input type="checkbox" {...{ defaultChecked: false ? false : true }} onChange={aoMudar} />\n  </label>\n);\n');
+  const expressoes = findPersuasionViolations([expressao]);
+  assert.equal(expressoes.length, 1, 'expressao que resulta em true nao pode passar por comecar com false');
 });
 
 for (const claim of [

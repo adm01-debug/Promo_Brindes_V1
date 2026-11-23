@@ -233,11 +233,11 @@ function mayStartChecked(tag) {
     const attribute = name[1].split(':')[0];
     if (attribute !== 'defaultChecked') continue;
     if (name[1].endsWith(':')) {
-      // Propriedade de objeto literal em spread (`{...{ defaultChecked: true }}`).
-      const literal = /^\s*(true|false)\b/.exec(tag.slice(index));
-      if (!literal) return true;
-      if (literal[1] === 'true') return true;
-      continue;
+      // Propriedade de objeto literal em spread (`{...{ defaultChecked: true }}`). So o literal
+      // `false` encerrado por `,` ou `}` aprova; expressao que comeca por `false` pode resultar
+      // em `true` (`false ? false : true`) e continua reprovando.
+      if (/^\s*false\s*(?=[,}])/.test(tag.slice(index))) continue;
+      return true;
     }
     if (value === null) return true;
     if (!value.startsWith('{')) return true;
