@@ -136,7 +136,7 @@ Tabela consolidada (uma linha por item). Evidência completa, comandos reproduz�
 | PF-31 | Apagamento completo | IMPLEMENTADO (código) | Confirmar aplicação remota (snapshot 19/11 mostra `20261117030000/030100` aplicadas) | `20261117030000:83-118,205-234` | sim (#161) | DONO (reparo retroativo) |
 | PF-32 | Retenção por tabela completa | PARCIAL | Prazo para perfis inativos/favoritos; `spam` = legítimo; 8 tabelas sem `comment on table`; órfãos de `provider_events` | `20260911130000:28-75`; `20260908230000:27,63` | parcial (#184, #189) | ENG + DONO |
 | PF-33 | Evento `erased` na linha do tempo | BLOQUEADO | Decisão | `20260910130000:32-33` | não | DONO |
-| PF-34 | Auditoria de leitura (SELECT em PII) | NÃO INICIADO | pgaudit ou RPC com log | `20260916210000:18` | não | ENG + DONO |
+| PF-34 | Auditoria de leitura (SELECT em PII) | IMPLEMENTADO | Trilha `site_private.pii_read_audit_log` + `log_pii_read`; `get_my_quote_request` registra leitura de PII (13/13 pgTAP) | `20261122110000_add_pii_read_audit.sql` | sim | ENG |
 | PF-35 | Saneamento de anexos; PDF | PARCIAL | Reencode/EXIF/dimensões; PDF em quarentena | `fileSignatures.ts:3-8`; `briefing-assets.ts:69,80-81` | não | ENG |
 | PF-36 | Criptografia de PII, E.164, rate limit de borda | BLOQUEADO | Decisão | só `DATABASE_FUNCTION_CONTRACTS.md` | não | DONO |
 | PF-37 | Resumo "O que entendemos" editável | COMPLETA | Resumo abre com N escolhas, "Cancelar edição" restaura o snapshot e o foco volta ao título; restante coberto pela #94 | `CampaignFinder.tsx` | sim (#94 em 27/10, #226, #159, #103) | ENG + DONO |
