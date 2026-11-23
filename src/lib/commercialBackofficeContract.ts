@@ -198,6 +198,8 @@ export interface SiteNotificationExhaustedDelivery {
   emailHashPrefix: string;
   suppressed: boolean;
   erased: boolean;
+  /** Mesmo critério do reprocessamento (janela, spam, anonimização, bloqueio ativo). */
+  reopenable: boolean;
 }
 
 export interface SiteNotificationDeliveryReport {
@@ -403,6 +405,7 @@ export function parseSiteNotificationDeliveryReport(data: unknown): SiteNotifica
       emailHashPrefix: readString(item.emailHashPrefix),
       suppressed: item.suppressed === true,
       erased: item.erased === true,
+      reopenable: item.reopenable !== false,
     }];
   });
   return {

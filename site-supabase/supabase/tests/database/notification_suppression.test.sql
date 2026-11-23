@@ -12,7 +12,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(69);
+select plan(73);
 
 -- === Estrutura ===================================================================
 
@@ -247,18 +247,41 @@ where request.id = delivery.request_id and request.client_request_id = 'f12-supp
 alter table site_private.notification_deliveries enable trigger notification_deliveries_enforce_status_transition;
 alter table site_private.notification_deliveries enable trigger notification_deliveries_enforce_lease_and_attempts;
 
+-- O relatório ordena por prioridade de reabertura (F-11), então o item do orçamento é
+-- localizado pelo requestId: assumir a primeira posição quebra a cada mudança de ordem.
 select is(
-  (public.get_site_notification_delivery_report(50) -> 'exhausted' -> 0 ->> 'lastErrorCode'),
+  (select item ->> 'lastErrorCode'
+   from jsonb_array_elements(public.get_site_notification_delivery_report(50) -> 'exhausted') item
+   where item ->> 'requestId' = (select request.id::text from site_private.quote_requests request
+                                 where request.client_request_id = 'f12-suppression-quote-1')
+     and item ->> 'channel' = 'email'),
   'provider_unavailable',
   'relatório lista a entrega esgotada com o último erro'
 );
 select is(
-  (public.get_site_notification_delivery_report(50) -> 'exhausted' -> 0 ->> 'suppressed'),
+  (select item ->> 'suppressed'
+   from jsonb_array_elements(public.get_site_notification_delivery_report(50) -> 'exhausted') item
+   where item ->> 'requestId' = (select request.id::text from site_private.quote_requests request
+                                 where request.client_request_id = 'f12-suppression-quote-1')
+     and item ->> 'channel' = 'email'),
   'true',
   'relatório sinaliza que o endereço da entrega esgotada está suprimido'
 );
 select is(
-  length(public.get_site_notification_delivery_report(50) -> 'exhausted' -> 0 ->> 'emailHashPrefix'),
+  (select item ->> 'reopenable'
+   from jsonb_array_elements(public.get_site_notification_delivery_report(50) -> 'exhausted') item
+   where item ->> 'requestId' = (select request.id::text from site_private.quote_requests request
+                                 where request.client_request_id = 'f12-suppression-quote-1')
+     and item ->> 'channel' = 'email'),
+  'false',
+  'relatório não oferece reabrir a entrega cujo endereço continua bloqueado'
+);
+select is(
+  (select length(item ->> 'emailHashPrefix')
+   from jsonb_array_elements(public.get_site_notification_delivery_report(50) -> 'exhausted') item
+   where item ->> 'requestId' = (select request.id::text from site_private.quote_requests request
+                                 where request.client_request_id = 'f12-suppression-quote-1')
+     and item ->> 'channel' = 'email'),
   12,
   'relatório expõe só um prefixo do pseudônimo, nunca o e-mail'
 );
@@ -581,6 +604,43 @@ select throws_ok(
   $$select public.purge_site_notification_provider_events(180, 0)$$,
   '22023', 'invalid_notification_event_purge_input',
   'lote zerado é rejeitado'
+);
+
+-- === Desbloqueio do RUNBOOK aparece no mesmo tick (predicado vivo) ================
+
+-- O RUNBOOK manda limpar o bounce em notification_deliveries. Saúde da fila e painel têm de
+-- ler o predicado de supressão, não o last_error_code gravado na hora do bloqueio: a entrega
+-- liberada volta a contar como esgotamento por falha (o que dispara alerta) e volta a ser
+-- reabrível, mesmo com recipient_suppressed ainda no histórico do erro.
+update site_private.notification_deliveries delivery
+set delivery_state = null, delivery_state_at = null,
+    delivery_state_source_event_id = null, complained_at = null, updated_at = now()
+where delivery.audience = 'customer'
+  and delivery.delivery_state = 'bounced'
+  and delivery.complained_at is null;
+
+select is(
+  (select (item ->> 'suppressedCount')::int
+   from jsonb_array_elements(public.site_notification_queue_health()) item
+   where item ->> 'channel' = 'email'),
+  0,
+  'sem bloqueio ativo, suppressedCount zera mesmo com recipient_suppressed gravado no erro'
+);
+select cmp_ok(
+  (select (item ->> 'exhaustedCount')::int
+   from jsonb_array_elements(public.site_notification_queue_health()) item
+   where item ->> 'channel' = 'email'),
+  '>', 0,
+  'a entrega liberada volta para exhaustedCount, que é o contador que alerta o operador'
+);
+select is(
+  (select item ->> 'reopenable'
+   from jsonb_array_elements(public.get_site_notification_delivery_report(50) -> 'exhausted') item
+   where item ->> 'requestId' = (select request.id::text from site_private.quote_requests request
+                                 where request.client_request_id = 'f12-suppression-quote-1')
+     and item ->> 'channel' = 'email'),
+  'true',
+  'painel volta a oferecer a reabertura da entrega desbloqueada'
 );
 
 select * from finish();

@@ -149,9 +149,12 @@ morta depois de um bounce temporário.
      and (delivery.delivery_state = 'bounced' or delivery.complained_at is not null)
    order by delivery.created_at;
    ```
-   Confira que **toda** linha listada é do bounce temporário. Se aparecer
-   `complained_at` preenchido ou um `delivery_state_at` de outro incidente, não siga: o
-   endereço tem bloqueio legítimo e não deve ser desbloqueado.
+   Confira que **toda** linha listada é de bounce temporário. Vários incidentes temporários no
+   mesmo endereço (dois `delivery_state_at` distintos, todos já resolvidos no provedor) podem
+   ser limpos juntos: o que impede o desbloqueio é a causa, não a quantidade de linhas.
+   Remova da lista qualquer linha com `complained_at` preenchido (reclamação de spam) ou cujo
+   provedor classifique como bounce permanente — bloqueio legítimo não se desfaz aqui. Se
+   sobrar dúvida sobre a causa de alguma linha, pare e escale antes de executar o passo 3.
 3. **Limpe a supressão apenas nos IDs confirmados** (bounce temporário):
    ```sql
    update site_private.notification_deliveries delivery

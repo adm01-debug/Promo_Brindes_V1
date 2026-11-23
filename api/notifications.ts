@@ -523,6 +523,9 @@ interface ChannelQueueHealth {
   /** F-11: entregas pendentes acima da janela máxima da política. Elas são
    * canceladas no próximo claim, então um valor alto é sinal de backlog parado. */
   outOfWindowCount?: number;
+  /** F-11: esgotadas por bloqueio ativo de supressão. É intencional e reabrível pelo
+   * operador (RUNBOOK), por isso não entra em exhaustedCount nem dispara alerta. */
+  suppressedCount?: number;
 }
 
 function isNonnegativeSafeInteger(value: unknown): value is number {
@@ -541,11 +544,13 @@ function parseQueueHealth(value: unknown): ChannelQueueHealth[] {
     const exhaustedCount = health.exhaustedCount;
     const uncertainCount = health.uncertainCount;
     const outOfWindowCount = health.outOfWindowCount;
+    const suppressedCount = health.suppressedCount;
     if ((channel !== 'email' && channel !== 'whatsapp') || seen.has(channel)
       || (oldestEligibleAgeSeconds !== null && !isNonnegativeSafeInteger(oldestEligibleAgeSeconds))
       || !isNonnegativeSafeInteger(eligibleCount)
       || !isNonnegativeSafeInteger(exhaustedCount)
       || (uncertainCount !== undefined && !isNonnegativeSafeInteger(uncertainCount))
+      || (suppressedCount !== undefined && !isNonnegativeSafeInteger(suppressedCount))
       || (outOfWindowCount !== undefined && !isNonnegativeSafeInteger(outOfWindowCount))) {
       throw new Error('invalid_notification_queue_health');
     }
@@ -556,6 +561,7 @@ function parseQueueHealth(value: unknown): ChannelQueueHealth[] {
       eligibleCount: eligibleCount as number,
       exhaustedCount: exhaustedCount as number,
       ...(uncertainCount === undefined ? {} : { uncertainCount: uncertainCount as number }),
+      ...(suppressedCount === undefined ? {} : { suppressedCount: suppressedCount as number }),
       ...(outOfWindowCount === undefined ? {} : { outOfWindowCount: outOfWindowCount as number }),
     };
   });

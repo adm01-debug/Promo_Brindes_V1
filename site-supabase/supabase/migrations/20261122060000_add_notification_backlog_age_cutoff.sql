@@ -666,12 +666,15 @@ as $fn$
           and site_private.notification_delivery_is_eligible(
             delivery.request_kind, delivery.request_id, delivery.created_at, policy.max_age)
       ) as eligible_count,
-      -- Suprimida não é falha: é bloqueio deliberado que o sistema mantém de
-      -- propósito até o operador liberar. Contá-la como esgotada fazia o alerta de
-      -- fila disparar em todo ciclo por um estado correto — alarme que o operador
-      -- não pode silenciar sem burlar a supressão. Ela tem contador próprio.
-      count(*) filter (where delivery.status = 'exhausted' and delivery.last_error_code is distinct from 'recipient_suppressed') as exhausted_count,
-      count(*) filter (where delivery.status = 'exhausted' and delivery.last_error_code = 'recipient_suppressed') as suppressed_count,
+      -- Bloqueio ativo é o que o predicado de supressão diz AGORA, não o motivo gravado no
+      -- passado: depois do desbloqueio do RUNBOOK a entrega continua com
+      -- last_error_code = 'recipient_suppressed' até ser reprocessada, e ler o código antigo
+      -- a manteria classificada como bloqueada (escondendo do operador que ela voltou a ser
+      -- acionável). Com o predicado vivo, a entrega liberada volta para exhaustedCount.
+      count(*) filter (where delivery.status = 'exhausted'
+        and coalesce(site_private.notification_request_suppressed(delivery.request_kind, delivery.request_id), false)) as suppressed_count,
+      count(*) filter (where delivery.status = 'exhausted'
+        and not coalesce(site_private.notification_request_suppressed(delivery.request_kind, delivery.request_id), false)) as exhausted_count,
       count(*) filter (
         where delivery.last_error_code = 'whatsapp_dispatch_started'
           and delivery.provider_message_id is null
@@ -689,7 +692,107 @@ as $fn$
 $fn$;
 
 comment on function public.site_notification_queue_health() is
-  'F-11: saúde da fila por canal. eligibleCount usa o mesmo critério do claim (status pronto, dentro da janela, pedido não spam e não anonimizado); outOfWindowCount conta o pending/failed que o próximo claim vai cancelar; suppressedCount separa o bloqueio deliberado (recipient_suppressed) do esgotamento por falha, que é o único que dispara alerta.';
+  'F-11: saúde da fila por canal. eligibleCount usa o mesmo critério do claim (status pronto, dentro da janela, pedido não spam e não anonimizado); outOfWindowCount conta o pending/failed que o próximo claim vai cancelar; suppressedCount usa o predicado vivo de supressão (bloqueio ativo) e exhaustedCount o resto — só o segundo dispara alerta.';
+
+-- === 7a. Painel prioriza a entrega que o operador pode reabrir ===================
+
+-- O limite do painel cortava por supressão/anonimização/protocolo, sem olhar idade,
+-- spam nem a janela que o reprocessamento aplica: entrega fora da janela consumia
+-- vaga e o botão "reabrir" respondia out_of_window. A versão abaixo expõe
+-- `reopenable` (mesmo critério do reprocessamento: dentro da janela, pedido existente,
+-- não spam, não anonimizado e sem bloqueio ativo) e ordena por ele antes do limite.
+create or replace function public.get_site_notification_delivery_report(
+  p_limit integer default 50
+)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $fn$
+declare
+  v_limit integer := coalesce(p_limit, 50);
+begin
+  if v_limit not between 1 and 200 then
+    raise exception using errcode = '22023', message = 'invalid_notification_report_input';
+  end if;
+
+  perform site_private.assert_site_operator();
+
+  return jsonb_build_object(
+    'exhausted', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'deliveryId', item.id,
+        'requestKind', item.request_kind,
+        'requestId', item.request_id,
+        'protocol', item.protocol,
+        'channel', item.channel,
+        'attempts', item.attempts,
+        'lastErrorCode', item.last_error_code,
+        'lastErrorAt', item.last_error_at,
+        'updatedAt', item.updated_at,
+        'emailHashPrefix', left(item.email_hash, 12),
+        'suppressed', item.suppressed,
+        'erased', item.erased,
+        'reopenable', item.reopenable
+      ) order by item.reopenable desc, item.suppressed, item.erased, item.updated_at, item.id)
+      from (
+        select delivery.id, delivery.request_kind, delivery.request_id, delivery.channel,
+               delivery.attempts, delivery.last_error_code, delivery.last_error_at,
+               delivery.updated_at, request.protocol,
+               site_private.email_hash(request.email) as email_hash,
+               site_private.notification_request_suppressed(delivery.request_kind, delivery.request_id) as suppressed,
+               site_private.notification_request_erased(delivery.request_kind, delivery.request_id) as erased,
+               (site_private.notification_delivery_is_eligible(
+                  delivery.request_kind, delivery.request_id, delivery.created_at, policy.max_age)
+                and not site_private.notification_request_suppressed(delivery.request_kind, delivery.request_id)
+                and not site_private.notification_request_erased(delivery.request_kind, delivery.request_id)) as reopenable
+        from site_private.notification_deliveries delivery
+        cross join lateral (select max_age from site_private.notification_policy()) as policy
+        join site_private.quote_requests request
+          on delivery.request_kind = 'quote' and request.id = delivery.request_id
+        where delivery.status = 'exhausted'
+        union all
+        select delivery.id, delivery.request_kind, delivery.request_id, delivery.channel,
+               delivery.attempts, delivery.last_error_code, delivery.last_error_at,
+               delivery.updated_at, null::text as protocol,
+               site_private.email_hash(request.email) as email_hash,
+               site_private.notification_request_suppressed(delivery.request_kind, delivery.request_id) as suppressed,
+               site_private.notification_request_erased(delivery.request_kind, delivery.request_id) as erased,
+               (site_private.notification_delivery_is_eligible(
+                  delivery.request_kind, delivery.request_id, delivery.created_at, policy.max_age)
+                and not site_private.notification_request_suppressed(delivery.request_kind, delivery.request_id)
+                and not site_private.notification_request_erased(delivery.request_kind, delivery.request_id)) as reopenable
+        from site_private.notification_deliveries delivery
+        cross join lateral (select max_age from site_private.notification_policy()) as policy
+        join site_private.contact_requests request
+          on delivery.request_kind = 'contact' and request.id = delivery.request_id
+        where delivery.status = 'exhausted'
+        order by 13 desc, 11, 12, 8, 1
+        limit v_limit
+      ) item
+    ), '[]'::jsonb),
+    'orphanEventCount', (
+      select count(*) from site_private.notification_provider_events event
+      where event.delivery_id is null
+    ),
+    'reconcilableOrphanCount', (
+      select count(*) from site_private.notification_provider_events event
+      where event.delivery_id is null and event.provider_message_id is not null
+    ),
+    'orphanEventOldestAt', (
+      select min(event.received_at) from site_private.notification_provider_events event
+      where event.delivery_id is null
+    )
+  );
+end;
+$fn$;
+
+revoke all on function public.get_site_notification_delivery_report(integer) from public, anon;
+grant execute on function public.get_site_notification_delivery_report(integer) to authenticated, service_role;
+
+comment on function public.get_site_notification_delivery_report(integer) is
+  'F-12/F-11: visão operacional da fila para o back-office — entregas esgotadas com pseudônimo do e-mail (12 hex), se o endereço está suprimido/anonimizado e `reopenable`, que é o mesmo critério do reprocessamento. A lista prioriza o que o operador pode reabrir antes de aplicar o limite. Exige operador ativo.';
 
 -- === 11. Bloqueio unico de envio (revisao das threads da PR) =====================
 --

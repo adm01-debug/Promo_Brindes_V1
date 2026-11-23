@@ -331,6 +331,7 @@ function BackofficeQueuePanel({
                   <input
                     id={`delivery-${delivery.deliveryId}`}
                     type="checkbox"
+                    disabled={!delivery.reopenable}
                     checked={selectedSet.has(delivery.deliveryId)}
                     onChange={(event) => onToggle(delivery.deliveryId, event.target.checked)}
                   />{' '}
@@ -341,6 +342,9 @@ function BackofficeQueuePanel({
                   ) : delivery.suppressed ? (
                     <> · <ShieldAlert aria-hidden="true" size={14} /> endereço suprimido</>
                   ) : null}
+                  {delivery.reopenable || delivery.erased || delivery.suppressed ? null : (
+                    <> · <ShieldAlert aria-hidden="true" size={14} /> fora da janela de reprocessamento</>
+                  )}
                   {' '}· hash {delivery.emailHashPrefix || '—'} · {delivery.lastErrorCode || 'sem código'} ·{' '}
                   {dateLabel(delivery.lastErrorAt ?? delivery.updatedAt)}
                 </label>

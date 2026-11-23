@@ -224,11 +224,16 @@ describe('contrato do back-office comercial', () => {
         emailHashPrefix: '0123456789ab',
         suppressed: true,
         erased: false,
+        reopenable: true,
       }],
       orphanEventCount: 7,
       reconcilableOrphanCount: 3,
       orphanEventOldestAt: '2026-01-02T00:00:00.000Z',
     });
+    // Campo vindo do banco é respeitado; sem ele o default é true (deploy anterior do RPC).
+    expect(parseSiteNotificationDeliveryReport({
+      exhausted: [{ deliveryId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', reopenable: false }],
+    }).exhausted[0]?.reopenable).toBe(false);
     expect(parseSiteNotificationDeliveryReport({}).exhausted).toEqual([]);
     expect(() => parseSiteNotificationDeliveryReport(null)).toThrow('commercial_backoffice_invalid_delivery_report');
   });
