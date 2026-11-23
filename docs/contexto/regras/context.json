@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "883ff959eb7f19468bee27cb8b313446267a3b49",
+  "sha": "a771c0290dd8ad44f1347cf0cc3bd87181436a1a",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-22 19:07 UTC",
-  "files_total": 645,
-  "code_files": 423,
-  "code_lines": 78409,
+  "generated_at": "2026-11-23 11:29 UTC",
+  "files_total": 649,
+  "code_files": 425,
+  "code_lines": 78851,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "0ded3b3971b71763",
+ "facts_hash": "4342c1dd5d82dc8a",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -70,7 +70,7 @@
    "test:watch": "vitest",
    "test:e2e": "playwright test --project=desktop-chromium --project=mobile-chromium",
    "test:e2e:cross-browser": "playwright test --project=desktop-firefox --project=desktop-webkit --workers=1",
-   "check": "npm run lint && npm run typecheck && npm run test && npm run agents:instructions:check && npm run test:agent-instructions && npm run test:migration-names && npm run test:error-catalog && npm run test:env-example && npm run test:site-api-jwt && npm run test:timing-safe-secrets && npm run test:supabase-db-query && npm run test:ci-health && npm run test:release-url && npm run test:smoke-deployment && npm run test:stage-app-shell && npm run test:performance-budget && npm run test:site-guard && npm run test:database-docs && npm run test:soak-queue && npm run test:shared-selection-sql && npm run test:catalog-contract && npm run test:inventario && npm run contexto:test && npm run build && npm run check:performance-budget && npm run test:e2e",
+   "check": "npm run lint && npm run typecheck && npm run test && npm run agents:instructions:check && npm run test:agent-instructions && npm run test:migration-names && npm run test:error-catalog && npm run test:env-example && npm run test:site-api-jwt && npm run test:timing-safe-secrets && npm run test:supabase-db-query && npm run test:ci-health && npm run test:release-url && npm run test:smoke-deployment && npm run test:stage-app-shell && npm run test:performance-budget && npm run test:site-guard && npm run test:database-docs && npm run test:soak-queue && npm run test:shared-selection-sql && npm run test:catalog-contract && npm run test:approvals-visual && npm run approvals:visual:check && npm run test:inventario && npm run contexto:test && npm run build && npm run check:performance-budget && npm run test:e2e",
    "db:migration-names:check": "node scripts/validate-migration-names.mjs",
    "test:migration-names": "node --test tests/validate-migration-names.node.mjs",
    "db:site:error-catalog:check": "node scripts/validate-error-catalog.mjs",
@@ -144,7 +144,9 @@
    "automation:status": "node scripts/automation.mjs graph status",
    "automation:install-hooks": "node scripts/automation.mjs install-hooks",
    "automation:uninstall-hooks": "node scripts/automation.mjs uninstall-hooks",
-   "test:inventario:banco-sql": "node --test tests/inventario-banco-sql.node.mjs"
+   "test:inventario:banco-sql": "node --test tests/inventario-banco-sql.node.mjs",
+   "approvals:visual:check": "node scripts/validate-visual-approvals.mjs",
+   "test:approvals-visual": "node --test tests/validate-visual-approvals.node.mjs"
   },
   "infra": [
    {
@@ -284,7 +286,7 @@
    ".ts": 164,
    ".sql": 119,
    ".tsx": 67,
-   ".mjs": 63,
+   ".mjs": 65,
    ".py": 8,
    ".js": 2
   },
@@ -8763,8 +8765,8 @@
   },
   {
    "module": "scripts",
-   "files": 43,
-   "lines": 21632,
+   "files": 44,
+   "lines": 21829,
    "tables": [
     "a",
     "contacts",
@@ -8800,6 +8802,7 @@
     "validate-env-example.mjs: extractEnvNames, findUndocumentedEnvVars",
     "validate-error-catalog.mjs: extractErrorMessagesFromSql, findUndocumentedErrorMessages",
     "validate-migration-names.mjs: MIGRATION_DIRS, isValidCalendarTimestamp, validateMigrationFileNames, validateMigrationDirsOnDisk, validateMigrationDirsNotEmpty, validateNoTopLevelSupabaseMigrationsDir",
+    "validate-visual-approvals.mjs: REGISTRY_PATH, sha256OfBuffer, pngDimensions, validateRegistry, readRegistryFromDisk, trackedPaths",
     "supabaseDbQuery.mjs: findBalancedJsonValues, extractRows, runSupabaseDbQuery",
     "gerar.unit.mjs: AppRoutes, useContacts",
     "gerar-banco.mjs: PROJETO_SITE, PROJETO_CATALOGO_CANONICO, LIMIARES, PARECE_CREDENCIAL, CODIGO_DE_ERRO, extrairInventario",
@@ -8885,6 +8888,7 @@
     "scripts/validate-error-catalog.mjs",
     "scripts/validate-migration-names.mjs",
     "scripts/validate-site-supabase-target.mjs",
+    "scripts/validate-visual-approvals.mjs",
     "scripts/verify-vercel-artifact.mjs",
     "scripts/_lib/supabaseDbQuery.mjs",
     "scripts/ai-context/cenarios.mjs",
@@ -9417,8 +9421,8 @@
   },
   {
    "module": "tests",
-   "files": 48,
-   "lines": 10596,
+   "files": 49,
+   "lines": 10841,
    "tables": [
     "constructor",
     "quote_requests",
@@ -9473,6 +9477,7 @@
     "tests/validate-error-catalog.node.mjs",
     "tests/validate-migration-names.node.mjs",
     "tests/validate-site-supabase-target.node.mjs",
+    "tests/validate-visual-approvals.node.mjs",
     "tests/verify-shared-selection-contract.node.mjs",
     "tests/api/briefing-assets.test.ts",
     "tests/api/campaign-years.test.ts",
@@ -21992,6 +21997,74 @@
     "name": "SUPABASE_PROJECT_ID vazia ou igual ao projeto do site não bloqueia; não substitui vínculo errado"
    },
    {
+    "file": "tests/validate-visual-approvals.node.mjs",
+    "name": "sha256 do validador devolve hex de 64 caracteres igual ao node:crypto"
+   },
+   {
+    "file": "tests/validate-visual-approvals.node.mjs",
+    "name": "registro coerente passa sem erros"
+   },
+   {
+    "file": "tests/validate-visual-approvals.node.mjs",
+    "name": "imagem aprovada trocada no disco é reprovada pelo hash"
+   },
+   {
+    "file": "tests/validate-visual-approvals.node.mjs",
+    "name": "PNG novo fora do registro é reprovado"
+   },
+   {
+    "file": "tests/validate-visual-approvals.node.mjs",
+    "name": "proposta apontando para aprovacao inexistente ou nao aprovada é reprovada"
+   },
+   {
+    "file": "tests/validate-visual-approvals.node.mjs",
+    "name": "aprovacao sem dono, data, PR ou merge commit completo é reprovada"
+   },
+   {
+    "file": "tests/validate-visual-approvals.node.mjs",
+    "name": "pngDimensions lê IHDR e ignora arquivo que não é PNG"
+   },
+   {
+    "file": "tests/validate-visual-approvals.node.mjs",
+    "name": "CLI termina com exit 1 e nomeia o arquivo quando o hash muda"
+   },
+   {
+    "file": "tests/validate-visual-approvals.node.mjs",
+    "name": "id de aprovacao repetido é reprovado"
+   },
+   {
+    "file": "tests/validate-visual-approvals.node.mjs",
+    "name": "tamanho em bytes ausente ou em texto é reprovado"
+   },
+   {
+    "file": "tests/validate-visual-approvals.node.mjs",
+    "name": "tamanho em bytes divergente do disco é reprovado"
+   },
+   {
+    "file": "tests/validate-visual-approvals.node.mjs",
+    "name": "pasta de mockup fora de roots é reprovada"
+   },
+   {
+    "file": "tests/validate-visual-approvals.node.mjs",
+    "name": "pasta de mockup nao versionada nao bloqueia o envio"
+   },
+   {
+    "file": "tests/validate-visual-approvals.node.mjs",
+    "name": "PNG e raiz so contam quando versionados no git"
+   },
+   {
+    "file": "tests/validate-visual-approvals.node.mjs",
+    "name": "PNG em subpasta da raiz de mockups também é coletado"
+   },
+   {
+    "file": "tests/validate-visual-approvals.node.mjs",
+    "name": "kind fora de base/proposta é reprovado"
+   },
+   {
+    "file": "tests/validate-visual-approvals.node.mjs",
+    "name": "registro real do repositorio está íntegro"
+   },
+   {
     "file": "tests/verify-shared-selection-contract.node.mjs",
     "name": "o ensaio é transacional, com timeouts, e termina em rollback sem commit"
    },
@@ -31305,6 +31378,32 @@
     }
    ]
   },
+  "scripts/validate-visual-approvals.mjs": {
+   "path": "scripts/validate-visual-approvals.mjs",
+   "lines": 197,
+   "exports": [
+    "const REGISTRY_PATH",
+    "function sha256OfBuffer",
+    "function pngDimensions",
+    "function validateRegistry",
+    "function readRegistryFromDisk",
+    "function trackedPaths",
+    "function listVersionedAssets",
+    "function findUnregisteredRoots",
+    "function findUnregisteredVersionedRoots",
+    "function listAssetsFromDisk"
+   ],
+   "rule_comments": [
+    "* Pastas de mockup no disco sem registro, contando apenas o que o Git versiona."
+   ],
+   "calc_fns": [
+    {
+     "name": "validateRegistry",
+     "params": "registry, files",
+     "body": "const errors = []; const byPath = new Map(files.map((file) => [file.path, file])); const approvals = new Map(); for (const approval of registry.approvals ?? []) { // Map sobrescreveria em silencio: dois registros com o mesmo id fazem o // primeiro sumir, e os assets ligados a ele passariam a apontar para a // decisao do segundo (outra tela, outra data) sem ninguem notar. if (approvals.has(approval.id)) { errors.push(`aprovacao ${approval.id} repetida no registro`); continue; } approvals.set(appr …"
+    }
+   ]
+  },
   "scripts/verify-vercel-artifact.mjs": {
    "path": "scripts/verify-vercel-artifact.mjs",
    "lines": 78,
@@ -38470,6 +38569,33 @@
     "SUPABASE_PROJECT_ID vazia ou igual ao projeto do site não bloqueia; não substitui vínculo errado"
    ]
   },
+  "tests/validate-visual-approvals.node.mjs": {
+   "path": "tests/validate-visual-approvals.node.mjs",
+   "lines": 245,
+   "is_test": true,
+   "rule_comments": [
+    "PNG mínimo válido com dimensões arbitrárias: assinatura + IHDR com largura/altura reais."
+   ],
+   "tests": [
+    "sha256 do validador devolve hex de 64 caracteres igual ao node:crypto",
+    "registro coerente passa sem erros",
+    "imagem aprovada trocada no disco é reprovada pelo hash",
+    "PNG novo fora do registro é reprovado",
+    "proposta apontando para aprovacao inexistente ou nao aprovada é reprovada",
+    "aprovacao sem dono, data, PR ou merge commit completo é reprovada",
+    "pngDimensions lê IHDR e ignora arquivo que não é PNG",
+    "CLI termina com exit 1 e nomeia o arquivo quando o hash muda",
+    "id de aprovacao repetido é reprovado",
+    "tamanho em bytes ausente ou em texto é reprovado",
+    "tamanho em bytes divergente do disco é reprovado",
+    "pasta de mockup fora de roots é reprovada",
+    "pasta de mockup nao versionada nao bloqueia o envio",
+    "PNG e raiz so contam quando versionados no git",
+    "PNG em subpasta da raiz de mockups também é coletado",
+    "kind fora de base/proposta é reprovado",
+    "registro real do repositorio está íntegro"
+   ]
+  },
   "tests/verify-shared-selection-contract.node.mjs": {
    "path": "tests/verify-shared-selection-contract.node.mjs",
    "lines": 98,
@@ -39031,10 +39157,30 @@
   }
  },
  "git": {
-  "sha": "883ff959eb7f19468bee27cb8b313446267a3b49",
+  "sha": "a771c0290dd8ad44f1347cf0cc3bd87181436a1a",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "a771c02",
+    "date": "2026-11-23",
+    "author": "adm01-debug",
+    "subject": "docs: registro rastreavel de aprovacao visual (PF-56) (#239)",
+    "files": [
+     "analise-prs/funcionalidades.csv",
+     "docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md",
+     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
+     "docs/agentes/aprovacao-visual-design.md",
+     "docs/aprovacoes-visuais/REGISTRO.md",
+     "docs/aprovacoes-visuais/registro.json",
+     "docs/audits/planejado-x-implementado-20261120/02-pf-23-56-portal-lgpd-experiencia.md",
+     "docs/audits/planejado-x-implementado-20261120/06-plano-fechamento-100-e-carnegie-100.md",
+     "package.json",
+     "scripts/automation.config.json",
+     "scripts/validate-visual-approvals.mjs",
+     "tests/validate-visual-approvals.node.mjs"
+    ]
+   },
    {
     "sha": "883ff95",
     "date": "2026-11-22",
@@ -39475,30 +39621,12 @@
      "src/components/CampaignFinder.tsx",
      "src/lib/analytics.ts"
     ]
-   },
-   {
-    "sha": "a9dab6d",
-    "date": "2026-11-20",
-    "author": "adm01-debug",
-    "subject": "chore(docs): auditoria planejado × implementado em 40f6420 — 128 itens reverificados, 108 novos (#214)",
-    "files": [
-     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
-     "docs/audits/planejado-x-implementado-20261120/01-pf-01-22-comercial-confirmacoes-promessas.md",
-     "docs/audits/planejado-x-implementado-20261120/02-pf-23-56-portal-lgpd-experiencia.md",
-     "docs/audits/planejado-x-implementado-20261120/03-pf-57-85-conteudo-seguranca-banco.md",
-     "docs/audits/planejado-x-implementado-20261120/04-pf-86-113-operacao-ci-testes-graphify.md",
-     "docs/audits/planejado-x-implementado-20261120/05-pf-114-127-ux-benchmarks.md",
-     "docs/audits/planejado-x-implementado-20261120/06-plano-fechamento-100-e-carnegie-100.md",
-     "docs/audits/planejado-x-implementado-20261120/07-workflows-100-correcoes-5x50-graphify-50.md",
-     "docs/audits/planejado-x-implementado-20261120/08-banco-api-runbooks-docs.md",
-     "docs/audits/planejado-x-implementado-20261120/09-estado-remoto-github-vercel-supabase.md"
-    ]
    }
   ],
   "hot_files": [
    [
     "analise-prs/funcionalidades.csv",
-    17
+    18
    ],
    [
     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
@@ -39513,6 +39641,10 @@
     8
    ],
    [
+    "docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md",
+    5
+   ],
+   [
     "docs/DATABASE_DICTIONARY.md",
     5
    ],
@@ -39522,10 +39654,6 @@
    ],
    [
     "src/types/site-database.types.ts",
-    4
-   ],
-   [
-    "docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md",
     4
    ],
    [
@@ -39569,11 +39697,11 @@
     3
    ],
    [
-    "api/retention.ts",
+    "docs/audits/planejado-x-implementado-20261120/02-pf-23-56-portal-lgpd-experiencia.md",
     2
    ],
    [
-    "src/lib/commercialBackoffice.ts",
+    "docs/audits/planejado-x-implementado-20261120/06-plano-fechamento-100-e-carnegie-100.md",
     2
    ]
   ]

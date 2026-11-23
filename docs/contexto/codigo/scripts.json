@@ -1,7 +1,7 @@
 {
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
- "total": 37,
+ "total": 38,
  "scripts": [
   {
    "arquivo": "scripts/_lib/supabaseDbQuery.mjs",
@@ -478,6 +478,17 @@
    ],
    "npm_scripts": [
     "db:site:guard"
+   ],
+   "workflows": [],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/validate-visual-approvals.mjs",
+   "descricao": "PF-56: o projeto exige proposta visual aprovada antes de mudar design (docs/agentes/aprovacao-visual-design.md). Os PNGs estavam versionados, mas nada",
+   "linhas": 197,
+   "env": [],
+   "npm_scripts": [
+    "approvals:visual:check"
    ],
    "workflows": [],
    "orfao": false

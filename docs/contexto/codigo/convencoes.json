@@ -21,7 +21,7 @@
   ],
   "testes": [
    "co-localizado (*.test) (59)",
-   "tests/ (48)",
+   "tests/ (49)",
    "outro (9)"
   ],
   "edge_functions": null,
@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "docs: registro rastreavel de aprovacao visual (PF-56) (#239)",
    "feat: supressao de bounce e reprocessamento auditado da fila (F-12) (#233)",
    "chore: CI mais barata e rapida (F-95) (#241)",
    "feat: feedback opcional de clareza e eventos do PF-54 (#238)",
-   "chore: plano de navegação e fluidez em 200 etapas (#245)",
-   "chore: plano de correções e melhorias em 190 etapas (#244)"
+   "chore: plano de navegação e fluidez em 200 etapas (#245)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

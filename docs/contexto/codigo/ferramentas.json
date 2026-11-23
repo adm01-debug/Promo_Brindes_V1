@@ -4,10 +4,10 @@
  "stack": {
   "linguagens": [
    "TypeScript (231)",
-   "Markdown (136)",
+   "Markdown (137)",
    "SQL (119)",
-   "JavaScript (65)",
-   "JSON (29)",
+   "JavaScript (67)",
+   "JSON (30)",
    "YAML (19)",
    "Python (8)",
    "CSS (4)"
@@ -45,6 +45,7 @@
   "versao": "1.0.0",
   "scripts": {
    "agents:instructions:check": "node scripts/validate-agent-instructions.mjs",
+   "approvals:visual:check": "node scripts/validate-visual-approvals.mjs",
    "automation:check": "node scripts/automation.mjs check --ref HEAD",
    "automation:doctor": "node scripts/automation.mjs doctor",
    "automation:graph": "node scripts/automation.mjs graph",
@@ -55,7 +56,7 @@
    "automation:test": "node scripts/automation.mjs test",
    "automation:uninstall-hooks": "node scripts/automation.mjs uninstall-hooks",
    "build": "tsc -b && vite build && node scripts/stage-app-shell.mjs",
-   "check": "npm run lint && npm run typecheck && npm run test && npm run agents:instructions:check && npm run test:agent-instructions && npm run test:migration-names && npm run test:error-catalog && npm run test:env-example && npm run test:site-api-jwt && npm run test:timing-safe-secrets && npm run test:supabase-db-query && npm run test:ci-health && npm run test:release-url && npm run test:smoke-deployment && npm run test:stage-app-shell && npm run test:performance-budget && npm run test:site-guard && npm run test:database-docs && npm run test:soak-queue && npm run test:shared-selection-sql && npm run test:catalog-contract && npm run test:inventario && npm run contexto:test && npm run build && npm run check:performance-budget && npm run test:e2e",
+   "check": "npm run lint && npm run typecheck && npm run test && npm run agents:instructions:check && npm run test:agent-instructions && npm run test:migration-names && npm run test:error-catalog && npm run test:env-example && npm run test:site-api-jwt && npm run test:timing-safe-secrets && npm run test:supabase-db-query && npm run test:ci-health && npm run test:release-url && npm run test:smoke-deployment && npm run test:stage-app-shell && npm run test:performance-budget && npm run test:site-guard && npm run test:database-docs && npm run test:soak-queue && npm run test:shared-selection-sql && npm run test:catalog-contract && npm run test:approvals-visual && npm run approvals:visual:check && npm run test:inventario && npm run contexto:test && npm run build && npm run check:performance-budget && npm run test:e2e",
    "check:catalog-contract": "node scripts/check-catalog-public-contract.mjs",
    "check:performance-budget": "node scripts/check-performance-budget.mjs",
    "contexto:banco:test": "python3 scripts/supabase_snapshot/test_snapshot.py",
@@ -108,6 +109,7 @@
    "smoke:deployment": "node scripts/smoke-deployment.mjs",
    "test": "vitest run",
    "test:agent-instructions": "node --test tests/validate-agent-instructions.node.mjs",
+   "test:approvals-visual": "node --test tests/validate-visual-approvals.node.mjs",
    "test:catalog-contract": "node --test tests/catalog-public-contract.node.mjs",
    "test:ci-health": "node --test tests/ci-health-metrics.node.mjs",
    "test:coverage": "vitest run --coverage",
@@ -1084,6 +1086,10 @@
   {
    "pasta": "docs/contexto",
    "arquivos_md": 2
+  },
+  {
+   "pasta": "docs/aprovacoes-visuais",
+   "arquivos_md": 1
   }
  ],
  "changelog_topo": null,

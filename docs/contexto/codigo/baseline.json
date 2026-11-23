@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "883ff959eb7f19468bee27cb8b313446267a3b49",
+  "commit": "a771c0290dd8ad44f1347cf0cc3bd87181436a1a",
   "branch": "main",
-  "data_commit": "2026-11-22T19:06:39Z",
+  "data_commit": "2026-11-23T11:05:31Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "a771c02",
+    "data": "2026-11-23",
+    "assunto": "docs: registro rastreavel de aprovacao visual (PF-56) (#239)"
+   },
    {
     "sha": "883ff95",
     "data": "2026-11-22",
@@ -126,18 +131,13 @@
     "sha": "fc333d4",
     "data": "2026-11-20",
     "assunto": "chore(docs): reconcilia funcionalidades.csv com a main (nov/2026) (#217)"
-   },
-   {
-    "sha": "0afb33e",
-    "data": "2026-11-20",
-    "assunto": "chore(docs): linha de base, regras de negocio e mapa do sistema (GOAL fase 0) (#216)"
    }
   ],
-  "arquivos_mudados_7d": 204,
+  "arquivos_mudados_7d": 209,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "analise-prs/funcionalidades.csv",
-    "mudancas": 21
+    "mudancas": 22
    },
    {
     "pasta": "site-supabase/supabase/tests",
@@ -145,15 +145,15 @@
    },
    {
     "pasta": "package.json",
-    "mudancas": 16
+    "mudancas": 17
    },
    {
     "pasta": "docs/audits/planejado-x-implementado-20261120",
-    "mudancas": 12
+    "mudancas": 14
    },
    {
     "pasta": "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
-    "mudancas": 11
+    "mudancas": 12
    },
    {
     "pasta": "docs/audits/pending-features-20261011",
@@ -199,7 +199,7 @@
   "arquivos_mais_mudados_90d": [
    {
     "arquivo": "package.json",
-    "mudancas": 65
+    "mudancas": 66
    },
    {
     "arquivo": "e2e/smoke.spec.ts",
@@ -238,15 +238,15 @@
     "mudancas": 24
    },
    {
+    "arquivo": "analise-prs/funcionalidades.csv",
+    "mudancas": 22
+   },
+   {
     "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
     "mudancas": 22
    },
    {
     "arquivo": ".github/workflows/release.yml",
-    "mudancas": 21
-   },
-   {
-    "arquivo": "analise-prs/funcionalidades.csv",
     "mudancas": 21
    },
    {
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 122
+    "commits": 123
    },
    {
     "autor": "dependabot[bot]",
@@ -310,9 +310,9 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 751,
-  "arquivos_codigo": 303,
-  "linhas_codigo": 60304,
+  "arquivos_total": 755,
+  "arquivos_codigo": 305,
+  "linhas_codigo": 60746,
   "rotas": 35,
   "rotas_http_backend": 16,
   "vistas_por_id": 0,
@@ -324,10 +324,10 @@
   "tabelas": 26,
   "migrations": 75,
   "cron_jobs": 0,
-  "testes": 158,
+  "testes": 159,
   "workflows": 15,
-  "scripts": 37,
-  "docs_md": 136
+  "scripts": 38,
+  "docs_md": 137
  },
  "por_pasta": {
   "api/_lib": {
@@ -554,6 +554,10 @@
    "arquivos": 1,
    "linhas": 46
   },
+  "scripts/validate-visual-approvals.mjs": {
+   "arquivos": 1,
+   "linhas": 197
+  },
   "scripts/verify-vercel-artifact.mjs": {
    "arquivos": 1,
    "linhas": 78
@@ -710,6 +714,10 @@
    "arquivos": 1,
    "linhas": 116
   },
+  "tests/validate-visual-approvals.node.mjs": {
+   "arquivos": 1,
+   "linhas": 245
+  },
   "tests/verify-shared-selection-contract.node.mjs": {
    "arquivos": 1,
    "linhas": 98
@@ -823,7 +831,7 @@
  ],
  "qualidade": {
   "any": 3,
-  "console_log": 93,
+  "console_log": 94,
   "ts_ignore": 0,
   "eslint_disable": 1,
   "todos": 3,

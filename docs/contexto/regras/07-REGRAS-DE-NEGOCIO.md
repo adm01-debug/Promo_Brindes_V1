@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `883ff959eb` · branch `main` · 2026-11-22 19:07 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `a771c0290d` · branch `main` · 2026-11-23 11:29 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -1139,7 +1139,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (2066 testes em 149 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (2083 testes em 150 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1183,6 +1183,7 @@ _nenhum item encontrado_
 | `site-supabase/supabase/tests/database/selection_asset_integrity.test.sql` | 17 | leitura limitada recebe hash do solicitante · revogação limitada recebe hash do solicitante · site_api usa leitura limitada · anônimo não chama leitura limitada diretamente … |
 | `site-supabase/supabase/tests/database/site_api_privileges.test.sql` | 17 | anon continua sem create_site_quote_request · authenticated continua sem create_site_quote_request · site_api não tem acesso a customer_profiles (fora do escopo das 13 RPCs) · site_api não insere proposal_documents (isso é fluxo administrativo) … |
 | `src/lib/commercialBackofficeContract.test.ts` | 17 | contrato do back-office comercial · lê a fila paginada com totais e itens · trata payload que não é objeto como indisponibilidade, não como fila vazia · rejeita item de fila que não é objeto … |
+| `tests/validate-visual-approvals.node.mjs` | 17 | sha256 do validador devolve hex de 64 caracteres igual ao node:crypto · registro coerente passa sem erros · imagem aprovada trocada no disco é reprovada pelo hash · PNG novo fora do registro é reprovado … |
 | `tests/api/maxDuration.test.ts` | 17 | Etapa 24: maxDuration em vercel.json cobre o pior caso real de cada rota · api/quote-requests.ts: catalogValidation + siteDatabase + confirmação (canais em paralelo) · api/contact-requests.ts: preflight + siteDatabase + alerta comercial (sem catalogValidation nem confirmação) · api/notification-events-resend.ts (Etapa 30): apenas uma chamada de RPC (callSiteRpc) … |
 | `site-supabase/supabase/tests/database/contact_commercial_alert.test.sql` | 16 | novo contato alimenta a fila do alerta comercial na mesma transação · contato enfileira exatamente uma entrega · a entrega é o alerta comercial pendente do contato · o envelope identifica o tipo do lead (a API não renderiza texto de orçamento) … |
 | `src/lib/productApplications.test.ts` | 14 | product applications · omite razão de material quando a ficha não declara material · declara apenas os materiais presentes no cadastro, normalizados · descreve material durável sem prometer desempenho da campanha … |
