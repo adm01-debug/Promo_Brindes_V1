@@ -520,6 +520,16 @@ interface ChannelQueueHealth {
   eligibleCount: number;
   exhaustedCount: number;
   uncertainCount?: number;
+  /** F-11: entregas pendentes acima da janela máxima da política. Elas são
+   * canceladas no próximo claim, então um valor alto é sinal de backlog parado. */
+  outOfWindowCount?: number;
+  /** F-11: esgotadas por bloqueio ativo de supressão. É intencional e reabrível pelo
+   * operador (RUNBOOK), por isso não entra em exhaustedCount nem dispara alerta. */
+  suppressedCount?: number;
+  /** F-11: esgotadas que o painel não deixa reabrir (fora da janela de 30 dias, pedido
+   * em spam ou apagado pelo titular). Ficam fora do alerta porque não há ação possível,
+   * mas seguem no log e no webhook para não sumirem do radar. */
+  expiredExhaustedCount?: number;
 }
 
 function isNonnegativeSafeInteger(value: unknown): value is number {
@@ -537,11 +547,17 @@ function parseQueueHealth(value: unknown): ChannelQueueHealth[] {
     const eligibleCount = health.eligibleCount;
     const exhaustedCount = health.exhaustedCount;
     const uncertainCount = health.uncertainCount;
+    const outOfWindowCount = health.outOfWindowCount;
+    const suppressedCount = health.suppressedCount;
+    const expiredExhaustedCount = health.expiredExhaustedCount;
     if ((channel !== 'email' && channel !== 'whatsapp') || seen.has(channel)
       || (oldestEligibleAgeSeconds !== null && !isNonnegativeSafeInteger(oldestEligibleAgeSeconds))
       || !isNonnegativeSafeInteger(eligibleCount)
       || !isNonnegativeSafeInteger(exhaustedCount)
-      || (uncertainCount !== undefined && !isNonnegativeSafeInteger(uncertainCount))) {
+      || (uncertainCount !== undefined && !isNonnegativeSafeInteger(uncertainCount))
+      || (suppressedCount !== undefined && !isNonnegativeSafeInteger(suppressedCount))
+      || (expiredExhaustedCount !== undefined && !isNonnegativeSafeInteger(expiredExhaustedCount))
+      || (outOfWindowCount !== undefined && !isNonnegativeSafeInteger(outOfWindowCount))) {
       throw new Error('invalid_notification_queue_health');
     }
     seen.add(channel);
@@ -551,6 +567,9 @@ function parseQueueHealth(value: unknown): ChannelQueueHealth[] {
       eligibleCount: eligibleCount as number,
       exhaustedCount: exhaustedCount as number,
       ...(uncertainCount === undefined ? {} : { uncertainCount: uncertainCount as number }),
+      ...(suppressedCount === undefined ? {} : { suppressedCount: suppressedCount as number }),
+      ...(expiredExhaustedCount === undefined ? {} : { expiredExhaustedCount: expiredExhaustedCount as number }),
+      ...(outOfWindowCount === undefined ? {} : { outOfWindowCount: outOfWindowCount as number }),
     };
   });
 }
@@ -583,6 +602,8 @@ async function reportQueueHealth(): Promise<void> {
           eligibleCount: health.eligibleCount,
           exhaustedCount: health.exhaustedCount,
           uncertainCount: Number(health.uncertainCount || 0),
+          expiredExhaustedCount: Number(health.expiredExhaustedCount || 0),
+          outOfWindowCount: Number(health.outOfWindowCount || 0),
           ageAlertThresholdSeconds: QUEUE_AGE_ALERT_SECONDS,
         });
         if (process.env.OPERATIONS_ALERT_WEBHOOK_URL?.trim() && !alerted) {

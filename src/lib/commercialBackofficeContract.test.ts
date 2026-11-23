@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  describeSiteNotificationSkipReasons,
   isSiteOperatorError,
   isSiteProposalRejected,
   isSiteQuoteConflict,
@@ -7,6 +8,7 @@ import {
   parseSiteNotificationReprocessingResult,
   parseSiteQuoteDetail,
   parseSiteQuoteListPage,
+  parseSiteNotificationBacklogCut,
   parseSiteQuoteProposalPublication,
   parseSiteQuoteStatusChange,
   siteOperatorErrorMessage,
@@ -133,6 +135,21 @@ describe('contrato do back-office comercial', () => {
       .toEqual({ proposalId: 'prop-2', version: 3, status: 'quoted' });
   });
 
+  it('lê o resultado do corte de backlog com motivo e totais', () => {
+    expect(parseSiteNotificationBacklogCut({
+      cancelled: 7, scanned: 9, cancelledIds: ['a', 'b'], reason: 'limpeza de backlog',
+    })).toEqual({ cancelled: 7, scanned: 9, reason: 'limpeza de backlog' });
+  });
+
+  it('zera o corte de backlog quando o banco devolve contagem inválida', () => {
+    expect(parseSiteNotificationBacklogCut({ cancelled: -1, scanned: 'muitas' }))
+      .toEqual({ cancelled: 0, scanned: 0, reason: '' });
+  });
+
+  it('trata payload de corte que não é objeto como erro de contrato', () => {
+    expect(() => parseSiteNotificationBacklogCut(null)).toThrow('commercial_backoffice_invalid_backlog_cut');
+  });
+
   it('lê a mudança de status com o estágio anterior', () => {
     expect(parseSiteQuoteStatusChange({ id: requestId, previousStatus: 'new', status: 'triaged' }))
       .toEqual({ id: requestId, previousStatus: 'new', status: 'triaged' });
@@ -205,13 +222,24 @@ describe('contrato do back-office comercial', () => {
         lastErrorAt: '2026-11-20T10:00:00.000Z',
         updatedAt: '2026-11-20T10:00:00.000Z',
         emailHashPrefix: '0123456789ab',
+        audience: 'customer',
         suppressed: true,
         erased: false,
+        reopenable: true,
       }],
       orphanEventCount: 7,
       reconcilableOrphanCount: 3,
       orphanEventOldestAt: '2026-01-02T00:00:00.000Z',
     });
+    // Campo vindo do banco é respeitado; sem ele o default é true (deploy anterior do RPC).
+    expect(parseSiteNotificationDeliveryReport({
+      exhausted: [{ deliveryId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', reopenable: false }],
+    }).exhausted[0]?.reopenable).toBe(false);
+    // A audiência diz qual linha é o alerta comercial, que não vai para o endereço suprimido.
+    expect(parseSiteNotificationDeliveryReport({
+      exhausted: [{ deliveryId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', audience: 'commercial_team' }],
+    }).exhausted[0]?.audience).toBe('commercial_team');
+    // Sem o campo, a linha é tratada como aviso ao cliente (deploy anterior do RPC).
     expect(parseSiteNotificationDeliveryReport({}).exhausted).toEqual([]);
     expect(() => parseSiteNotificationDeliveryReport(null)).toThrow('commercial_backoffice_invalid_delivery_report');
   });
@@ -233,6 +261,24 @@ describe('contrato do back-office comercial', () => {
       ],
     });
     expect(() => parseSiteNotificationReprocessingResult([])).toThrow('commercial_backoffice_invalid_reprocessing_result');
+  });
+
+  it('preserva os motivos específicos de recusa do banco', () => {
+    // O banco passou a dizer por que recusou (spam, anonimização, bounce, janela):
+    // achatar tudo em "not_exhausted" esconderia do operador que a entrega nunca
+    // mais pode sair.
+    const parsed = parseSiteNotificationReprocessingResult({
+      reopened: 0,
+      skipped: ['erased', 'out_of_window', 'ineligible'].map((reason, index) => ({
+        deliveryId: `${index}${index}${index}${index}${index}${index}${index}${index}-1111-4111-8111-111111111111`,
+        status: 'exhausted',
+        reason,
+      })),
+    });
+    expect(parsed.skipped.map((item) => item.reason)).toEqual(['erased', 'out_of_window', 'ineligible']);
+    expect(describeSiteNotificationSkipReasons(parsed.skipped)).toBe(
+      'são de pedidos apagados pelo titular; passaram da janela de 30 dias; são de pedidos marcados como spam',
+    );
   });
 
   it('traduz a recusa por lote ou motivo inválido no reprocessamento', () => {

@@ -6,16 +6,19 @@ import { Seo } from '../components/Seo';
 import {
   SITE_QUOTE_STATUSES,
   SITE_QUOTE_STATUS_LABELS,
+  describeSiteNotificationSkipReasons,
   isSiteOperatorError,
   isSiteProposalRejected,
   isSiteQuoteConflict,
   siteOperatorErrorMessage,
+  type SiteNotificationBacklogCut,
   type SiteNotificationDeliveryReport,
   type SiteQuoteDetail,
   type SiteQuoteListPage,
   type SiteQuoteStatus,
 } from '../lib/commercialBackofficeContract';
 import {
+  cancelNotificationBacklog,
   fetchSiteNotificationDeliveryReport,
   fetchSiteQuoteDetail,
   listSiteQuoteRequests,
@@ -72,6 +75,12 @@ function BackofficeList({
   onPage,
   onOpen,
   onRetry,
+  onCutBacklog,
+  backlogCut,
+  cutting,
+  cutError,
+  cutReason,
+  onCutReason,
 }: {
   page: SiteQuoteListPage | null;
   loading: boolean;
@@ -85,6 +94,12 @@ function BackofficeList({
   onPage: (offset: number) => void;
   onOpen: (id: string) => void;
   onRetry: () => void;
+  onCutBacklog: (event: FormEvent<HTMLFormElement>) => void;
+  backlogCut: SiteNotificationBacklogCut | null;
+  cutting: boolean;
+  cutError: string;
+  cutReason: string;
+  onCutReason: (value: string) => void;
 }) {
   const requests = page?.requests ?? [];
   const total = page?.total ?? 0;
@@ -114,6 +129,31 @@ function BackofficeList({
           placeholder="Ex.: PB26123456 ou Metalúrgica"
         />
         <button type="submit" className="btn btn-outline"><Search aria-hidden="true" size={16} /> Buscar</button>
+      </form>
+
+      <form className="customer-pagination" onSubmit={onCutBacklog}>
+        <label htmlFor="backoffice-cut-reason">
+          Limpar a fila de notificações (cancela o que não pode mais ser enviado)
+        </label>
+        <input
+          id="backoffice-cut-reason"
+          type="text"
+          value={cutReason}
+          onChange={(event) => onCutReason(event.target.value)}
+          minLength={3}
+          maxLength={200}
+          required
+          placeholder="Motivo do corte (3 a 200 caracteres)"
+        />
+        <button type="submit" className="btn btn-outline" disabled={cutting}>
+          {cutting ? 'Limpando…' : 'Limpar fila'}
+        </button>
+        {cutError ? <p className="customer-data-error" role="alert">{cutError}</p> : null}
+        {backlogCut ? (
+          <p className="customer-data-note" role="status">
+            {backlogCut.cancelled} entrega(s) cancelada(s) de {backlogCut.scanned} verificada(s).
+          </p>
+        ) : null}
       </form>
 
       <div className="customer-data-actions" role="group" aria-label="Filtrar por estágio">
@@ -291,16 +331,21 @@ function BackofficeQueuePanel({
                   <input
                     id={`delivery-${delivery.deliveryId}`}
                     type="checkbox"
+                    disabled={!delivery.reopenable}
                     checked={selectedSet.has(delivery.deliveryId)}
                     onChange={(event) => onToggle(delivery.deliveryId, event.target.checked)}
                   />{' '}
                   {delivery.protocol || delivery.requestId} · {delivery.channel} ·{' '}
+                  {delivery.audience === 'commercial_team' ? 'alerta comercial' : 'confirmação ao cliente'} ·{' '}
                   {delivery.attempts} {delivery.attempts === 1 ? 'tentativa' : 'tentativas'}
                   {delivery.erased ? (
                     <> · <ShieldAlert aria-hidden="true" size={14} /> pedido excluído pelo titular</>
                   ) : delivery.suppressed ? (
                     <> · <ShieldAlert aria-hidden="true" size={14} /> endereço suprimido</>
                   ) : null}
+                  {delivery.reopenable || delivery.erased || delivery.suppressed ? null : (
+                    <> · <ShieldAlert aria-hidden="true" size={14} /> fora da janela de reprocessamento ou pedido em spam</>
+                  )}
                   {' '}· hash {delivery.emailHashPrefix || '—'} · {delivery.lastErrorCode || 'sem código'} ·{' '}
                   {dateLabel(delivery.lastErrorAt ?? delivery.updatedAt)}
                 </label>
@@ -674,7 +719,7 @@ function BackofficeContent() {
     try {
       const result = await reprocessSiteNotificationDeliveries(selectedDeliveries, reprocessReason);
       const skippedNote = result.skipped.length > 0
-        ? ` ${result.skipped.length} ignorada(s): já não estavam esgotadas ou estavam em uso.`
+        ? ` ${result.skipped.length} ignorada(s): ${describeSiteNotificationSkipReasons(result.skipped)}.`
         : '';
       setReportNotice(
         `${result.reopened} ${result.reopened === 1 ? 'entrega voltou' : 'entregas voltaram'} para a fila com o motivo registrado na auditoria.${skippedNote}`,
@@ -743,6 +788,34 @@ function BackofficeContent() {
     }
   }, [requestId]);
 
+  const [cutReason, setCutReason] = useState('');
+  const [cutting, setCutting] = useState(false);
+  const [cutError, setCutError] = useState('');
+  const [backlogCut, setBacklogCut] = useState<SiteNotificationBacklogCut | null>(null);
+
+  const handleCutBacklog = useCallback(async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const reason = cutReason.trim();
+    setCutError('');
+    setBacklogCut(null);
+    if (reason.length < 3) {
+      setCutError('Descreva o motivo com pelo menos 3 caracteres.');
+      return;
+    }
+    setCutting(true);
+    try {
+      const result = await cancelNotificationBacklog(reason);
+      setBacklogCut(result);
+      setCutReason('');
+      setRetryKey((key) => key + 1);
+    } catch (cause) {
+      if (isSiteOperatorError(cause)) setOperatorError(true);
+      else setCutError(siteOperatorErrorMessage(cause));
+    } finally {
+      setCutting(false);
+    }
+  }, [cutReason]);
+
   const operatorBlocked = useMemo(() => operatorError, [operatorError]);
 
   if (operatorBlocked) {
@@ -794,6 +867,12 @@ function BackofficeContent() {
             onPage={(value) => patchParams({ pagina: value > 0 ? String(value) : null })}
             onOpen={(id) => patchParams({ pedido: id })}
             onRetry={() => setRetryKey((key) => key + 1)}
+            onCutBacklog={(event) => { void handleCutBacklog(event); }}
+            backlogCut={backlogCut}
+            cutting={cutting}
+            cutError={cutError}
+            cutReason={cutReason}
+            onCutReason={setCutReason}
           />
           <BackofficeQueuePanel
             report={report}

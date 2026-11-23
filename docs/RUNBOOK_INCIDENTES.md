@@ -108,6 +108,84 @@ duplicar mensagem ao cliente.
 4. Toda decisão deve ficar no ticket do incidente; `admin_audit_log` registra a escrita
    administrativa, e o cron de retenção mantém essa trilha por 400 dias.
 
+## Recuperar entrega bloqueada por supressão de e-mail (bounce/complaint)
+
+Quando um e-mail volta com bounce ou complaint, o evento fica em
+`notification_provider_events` (deduplicado por `provider` + `provider_event_id`) e a entrega
+correspondente passa a `delivery_state = 'bounced'` (ou ganha `complained_at`). A partir daí
+`site_private.notification_request_suppressed(request_kind, request_id)` retorna `true` para
+**todo pedido daquele endereço**, porque o predicado compara o hash do e-mail das entregas ao
+titular — não os eventos. Consequência: o cron não reivindica novas confirmações e encerra as
+que estão na fila com `status = 'exhausted'` e `last_error_code = 'recipient_suppressed'`.
+
+`exhausted` é terminal para o sistema automático, mas deliberadamente reabrível pelo operador —
+é o mesmo estado que o painel reprocessa. Por isso a supressão **não** grava `cancelled`:
+`cancelled` é terminal por omissão na matriz de transições e deixaria a confirmação ao titular
+morta depois de um bounce temporário.
+
+1. **Confirme a causa** no painel do provedor: bounce temporário (caixa cheia, domínio fora do
+   ar) é recuperável; bounce permanente (usuário desconhecido) e complaint **não devem** ser
+   desbloqueados.
+2. **Identifique os IDs das entregas antes de limpar**: a limpeza tem de atingir só as
+   entregas daquele bounce temporário. Mensagem já entregue (`delivery_state = 'delivered'`)
+   não pode perder o histórico, e endereço com complaint não pode ser desbloqueado por engano.
+   ```sql
+   -- notification_provider_events nao tem coluna delivery_state: ele guarda o evento
+   -- (event_type/delivery_id) e nunca e alterado aqui. O predicado de supressao le
+   -- exclusivamente notification_deliveries, entao e essa tabela que precisa ser limpa.
+   -- Passo 2a: listar o que sera afetado (bounced sem complaint).
+   select delivery.id, delivery.request_kind, delivery.request_id, delivery.channel,
+          delivery.delivery_state, delivery.bounce_reason, delivery.complained_at,
+          delivery.delivery_state_at
+   from site_private.notification_deliveries delivery
+   where delivery.audience = 'customer'
+     and site_private.email_hash(
+           case delivery.request_kind
+             when 'quote' then (select request.email from site_private.quote_requests request
+                                where request.id = delivery.request_id)
+             else (select request.email from site_private.contact_requests request
+                   where request.id = delivery.request_id)
+           end) = site_private.email_hash('<email-do-titular>')
+     and (delivery.delivery_state = 'bounced' or delivery.complained_at is not null)
+   order by delivery.created_at;
+   ```
+   Confira que **toda** linha listada é de bounce temporário. Vários incidentes temporários no
+   mesmo endereço (dois `delivery_state_at` distintos, todos já resolvidos no provedor) podem
+   ser limpos juntos: o que impede o desbloqueio é a causa, não a quantidade de linhas.
+   Remova da lista qualquer linha com `complained_at` preenchido (reclamação de spam) ou cujo
+   provedor classifique como bounce permanente — bloqueio legítimo não se desfaz aqui. Se
+   sobrar dúvida sobre a causa de alguma linha, pare e escale antes de executar o passo 3.
+3. **Limpe a supressão apenas nos IDs confirmados** (bounce temporário):
+   ```sql
+   update site_private.notification_deliveries delivery
+   set delivery_state = null, delivery_state_at = null,
+       delivery_state_source_event_id = null, complained_at = null, updated_at = now()
+   where delivery.id in (
+     '00000000-0000-4000-8000-000000000000', -- IDs copiados do passo 2
+     '00000000-0000-4000-8000-000000000000'
+   )
+     and delivery.delivery_state = 'bounced'
+     and delivery.complained_at is null;
+   ```
+   Consulta sem `where delivery.id in (...)`, ou sem as duas últimas condições, apaga o
+   registro de entrega de mensagem já entregue e desfaz bloqueio por complaint.
+   Sem esse passo a supressão continua valendo e a entrega reaberta é encerrada de novo no
+   tick seguinte.
+4. **Reabra o que o cron encerrou** pelo painel (`reprocess_site_notification_deliveries`), que
+   faz `exhausted -> pending` com `attempts = 0`. Só esse caminho passa pela matriz de
+   transições: um `update ... set status = 'pending'` direto numa entrega `cancelled` é rejeitado
+   com `22023`, e entrega que já saiu como `sent` não é reenviada. Entregas que continuaram em
+   `pending`/`failed` voltam sozinhas no próximo tick, sem reabertura.
+5. Documente no ticket: data, motivo do desbloqueio, quem autorizou.
+
+> **Nota de auditoria:** `suppress_notification_delivery` grava o motivo em
+> `notification_deliveries.last_error_code` (`recipient_suppressed` ou `recipient_erased`) e não
+> escreve em `admin_audit_log` — esse caminho é automático, não uma escrita administrativa. A
+> trilha do bounce fica no evento do provedor (`notification_provider_events`) e a reabertura
+> feita pelo painel é auditada (`reprocess_site_notification_deliveries` insere em
+> `admin_audit_log`). Pedido apagado pela autoexclusão (F-30) é diferente: vai para `cancelled`
+> com `recipient_erased` e **não** é reabrível, porque o dado não existe mais.
+
 ## SLA de referência (Etapa 42)
 
 `oldestEligibleAgeSeconds` acima de 45 minutos (`QUEUE_AGE_ALERT_SECONDS` em
