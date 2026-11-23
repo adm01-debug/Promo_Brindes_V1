@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `a771c0290dd8ad44f1347cf0cc3bd87181436a1a` (2026-11-23T11:05:31Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `d41c1a27516aba382b95f8bb6c66f10d60907ca7` (2026-11-23T11:47:11Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -176,10 +176,10 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - não gerado neste run. npm run graph:update (wrapper do repositório; não rode o CLI do graphify direto); saída em graphify-out/, não versionada
 
 ## Hotspots (arquivos mais alterados, 90 dias)
-- package.json (66)
+- package.json (67)
 - e2e/smoke.spec.ts (61)
 - src/styles.css (39)
-- package-lock.json (36)
+- package-lock.json (37)
 - .github/workflows/quality.yml (29)
 - vercel.json (29)
 - docs/DATABASE_DICTIONARY.md (28)
@@ -396,6 +396,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-23 `d41c1a2` chore(deps): bump @testing-library/jest-dom from 7.0.1 to 8.0.0 (#249)
 - 2026-11-23 `a771c02` docs: registro rastreavel de aprovacao visual (PF-56) (#239)
 - 2026-11-22 `883ff95` feat: supressao de bounce e reprocessamento auditado da fila (F-12) (#233)
 - 2026-11-22 `71d41c6` chore: CI mais barata e rapida (F-95) (#241)
@@ -410,7 +411,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-22 `fc29771` feat: back-office minimo de orcamentos (F-03) e produtor de propostas versionadas (F-23) (#225)
 - 2026-11-22 `180c09a` docs: executa a revisao mensal do banco e corrige a coluna duplicada (F-90) (#229)
 - 2026-11-22 `e249b52` fix: mensagem acionavel no limite de 3 ajustes pendentes (F-04) (#230)
-- 2026-11-22 `caf7e42` docs: reconcilia a matriz de 230 requisitos contra a main (F-97/PF-109) (#231)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

@@ -1,9 +1,9 @@
 {
  "meta": {
-  "sha": "a771c0290dd8ad44f1347cf0cc3bd87181436a1a",
+  "sha": "d41c1a27516aba382b95f8bb6c66f10d60907ca7",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-23 11:29 UTC",
+  "generated_at": "2026-11-23 12:10 UTC",
   "files_total": 649,
   "code_files": 425,
   "code_lines": 78851,
@@ -39157,10 +39157,20 @@
   }
  },
  "git": {
-  "sha": "a771c0290dd8ad44f1347cf0cc3bd87181436a1a",
+  "sha": "d41c1a27516aba382b95f8bb6c66f10d60907ca7",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "d41c1a2",
+    "date": "2026-11-23",
+    "author": "dependabot[bot]",
+    "subject": "chore(deps): bump @testing-library/jest-dom from 7.0.1 to 8.0.0 (#249)",
+    "files": [
+     "package-lock.json",
+     "package.json"
+    ]
+   },
    {
     "sha": "a771c02",
     "date": "2026-11-23",
@@ -39610,17 +39620,6 @@
      "src/lib/useCatalogPageState.test.tsx",
      "src/lib/useCatalogPageState.ts"
     ]
-   },
-   {
-    "sha": "01b873c",
-    "date": "2026-11-20",
-    "author": "adm01-debug",
-    "subject": "feat: caminho 'ainda não sei o que escolher' desbloqueia quem chega sem briefing (#211)",
-    "files": [
-     "src/components/CampaignFinder.test.tsx",
-     "src/components/CampaignFinder.tsx",
-     "src/lib/analytics.ts"
-    ]
    }
   ],
   "hot_files": [
@@ -39657,10 +39656,6 @@
     4
    ],
    [
-    "src/lib/analytics.ts",
-    4
-   ],
-   [
     "src/styles.css",
     4
    ],
@@ -39670,6 +39665,10 @@
    ],
    [
     "src/pages/BackofficePage.tsx",
+    3
+   ],
+   [
+    "src/lib/analytics.ts",
     3
    ],
    [
@@ -39697,11 +39696,11 @@
     3
    ],
    [
-    "docs/audits/planejado-x-implementado-20261120/02-pf-23-56-portal-lgpd-experiencia.md",
+    "package.json",
     2
    ],
    [
-    "docs/audits/planejado-x-implementado-20261120/06-plano-fechamento-100-e-carnegie-100.md",
+    "docs/audits/planejado-x-implementado-20261120/02-pf-23-56-portal-lgpd-experiencia.md",
     2
    ]
   ]

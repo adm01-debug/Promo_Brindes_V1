@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "a771c0290dd8ad44f1347cf0cc3bd87181436a1a",
+  "commit": "d41c1a27516aba382b95f8bb6c66f10d60907ca7",
   "branch": "main",
-  "data_commit": "2026-11-23T11:05:31Z",
+  "data_commit": "2026-11-23T11:47:11Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "d41c1a2",
+    "data": "2026-11-23",
+    "assunto": "chore(deps): bump @testing-library/jest-dom from 7.0.1 to 8.0.0 (#249)"
+   },
    {
     "sha": "a771c02",
     "data": "2026-11-23",
@@ -126,11 +131,6 @@
     "sha": "e40d98f",
     "data": "2026-11-21",
     "assunto": "chore(docs): reconcilia ground-truth de F-01/F-31/F-110 (#219)"
-   },
-   {
-    "sha": "fc333d4",
-    "data": "2026-11-20",
-    "assunto": "chore(docs): reconcilia funcionalidades.csv com a main (nov/2026) (#217)"
    }
   ],
   "arquivos_mudados_7d": 209,
@@ -145,7 +145,7 @@
    },
    {
     "pasta": "package.json",
-    "mudancas": 17
+    "mudancas": 18
    },
    {
     "pasta": "docs/audits/planejado-x-implementado-20261120",
@@ -160,6 +160,10 @@
     "mudancas": 11
    },
    {
+    "pasta": "package-lock.json",
+    "mudancas": 11
+   },
+   {
     "pasta": "scripts/check-performance-budget.mjs",
     "mudancas": 11
    },
@@ -169,10 +173,6 @@
    },
    {
     "pasta": "e2e/smoke.spec.ts",
-    "mudancas": 10
-   },
-   {
-    "pasta": "package-lock.json",
     "mudancas": 10
    },
    {
@@ -199,7 +199,7 @@
   "arquivos_mais_mudados_90d": [
    {
     "arquivo": "package.json",
-    "mudancas": 66
+    "mudancas": 67
    },
    {
     "arquivo": "e2e/smoke.spec.ts",
@@ -211,7 +211,7 @@
    },
    {
     "arquivo": "package-lock.json",
-    "mudancas": 36
+    "mudancas": 37
    },
    {
     "arquivo": ".github/workflows/quality.yml",
@@ -305,7 +305,7 @@
    },
    {
     "autor": "dependabot[bot]",
-    "commits": 10
+    "commits": 11
    }
   ]
  },
