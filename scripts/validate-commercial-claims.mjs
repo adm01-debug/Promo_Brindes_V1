@@ -46,7 +46,8 @@ export function listCodeFiles(roots, root = ROOT) {
 }
 
 /** Valida o inventário contra o código. Não toca no filesystem além de leitura. */
-export function validateClaims(inventory, readFile = readLines, listFiles = listCodeFiles) {
+export function validateClaims(inventory, readFile = readLines, listFiles = listCodeFiles,
+  pathExists = (relative) => existsSync(path.resolve(ROOT, relative))) {
   const errors = [];
   const ids = new Set();
   if (!Array.isArray(inventory?.claims) || inventory.claims.length === 0) {
@@ -104,6 +105,12 @@ export function validateClaims(inventory, readFile = readLines, listFiles = list
       } else if (typeof pattern !== 'string' || pattern.length === 0) {
         errors.push(`${label}: absenceOf sem pattern`);
       } else {
+        // Raiz que nao existe e prova vazia: `listCodeFiles` pula a pasta e o inventario
+        // continuaria aprovado. Um rename de `src/` nao pode virar ausencia de provedor.
+        const missing = roots.filter((root) => !pathExists(root));
+        if (missing.length > 0) {
+          errors.push(`${label}: absenceOf aponta raiz inexistente: ${missing.join(', ')}`);
+        }
         let regex;
         try {
           regex = new RegExp(pattern, 'i');

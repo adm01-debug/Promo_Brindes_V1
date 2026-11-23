@@ -67,6 +67,29 @@ test('checkbox vazia em multilinha continua aprovada', () => {
   assert.deepEqual(findPersuasionViolations([file]), []);
 });
 
+for (const body of [
+  '<input\n      type="checkbox"\n      defaultChecked={false}\n      onChange={aoMudar}\n    />',
+  '<input type="checkbox" defaultChecked={false} onChange={aoMudar} />',
+]) {
+  test(`checkbox desmarcada por defaultChecked={false} continua aprovada: ${body.replace(/\s+/g, ' ')}`, () => {
+    const file = fixture('desmarcada.tsx', `export const A = () => (\n  <label>\n    ${body}\n  </label>\n);\n`);
+    assert.deepEqual(findPersuasionViolations([file]), []);
+  });
+}
+
+test('exemplo comentado de defaultChecked nao e consentimento pre-marcado', () => {
+  const file = fixture('comentado-default-checked.tsx',
+    'export const A = () => (\n  <p>\n    {}\n    {/* <input type="checkbox" defaultChecked /> */}\n  </p>\n);\n');
+  assert.deepEqual(findPersuasionViolations([file]), []);
+});
+
+test('defaultChecked sem valor explicito e flagrado pela arvore JSX', () => {
+  const file = fixture('sem-valor.tsx', 'export const A = () => (\n  <label>\n    <input\n      type="checkbox"\n      defaultChecked\n    />\n  </label>\n);\n');
+  const errors = findPersuasionViolations([file]);
+  assert.equal(errors.length, 1, errors.join('; '));
+  assert.match(errors[0], /:3 viola "consentimento disfarcado"/);
+});
+
 for (const claim of [
   '9 mil clientes atendidos',
   'mais de 1.000 empresas confiam',

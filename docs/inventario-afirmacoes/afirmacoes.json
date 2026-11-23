@@ -70,7 +70,7 @@
       "evidence": {
         "absenceOf": {
           "roots": ["src", "api"],
-          "pattern": "stripe|pagarme|mercado ?pago|asaas|payment_intent|hotmart|kiwify"
+          "pattern": "stripe|pagar[._ ]?me|mercado ?pago|asaas|payment_intent|hotmart|kiwify"
         }
       },
       "checkedAt": "2026-11-22",

@@ -148,6 +148,18 @@ test('afirmacao de ausencia sem roots ou com pattern invalido reprova', () => {
   assert.ok(validateClaims(patternRuim, read, () => []).some((error) => /pattern invalido/.test(error)));
 });
 
+test('afirmacao de ausencia reprova quando a raiz declarada nao existe', () => {
+  const inventory = base();
+  inventory.claims[0].evidence = {
+    absenceOf: { roots: ['src', 'src-renomeado'], pattern: 'stripe' },
+  };
+  const errors = validateClaims(inventory, read, () => [], (root) => root !== 'src-renomeado');
+  assert.ok(
+    errors.some((error) => /raiz inexistente: src-renomeado/.test(error)),
+    errors.join('; '),
+  );
+});
+
 test('CLI reprova quando o inventario do repositorio quebra', () => {
   assert.throws(
     () =>

@@ -1,6 +1,7 @@
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import ts from 'typescript';
 
 // Etapa 009 do plano Carnegie (limites de persuasao). O site nao pode usar urgencia
 // ficticia, culpa ao recusar, elogio automatico, dado presumido, prova social
@@ -74,7 +75,6 @@ export const LIMITS = [
     why: 'aceite de contato ou marketing precisa de acao explicita do visitante',
     patterns: [
       /ao continuar voce (aceita|concorda) receber/i,
-      /checkbox[^\n]*defaultChecked/i,
       /ja aceitou/i,
     ],
   },
@@ -101,8 +101,59 @@ export function listInterfaceFiles(dir = SRC, files = []) {
   return files;
 }
 
-/** Atributo `type="checkbox"` no elemento, aceitando aspas simples e expressao JSX. */
-const CHECKBOX_TYPE = /type\s*=\s*(?:"checkbox"|'checkbox'|\{\s*['"]checkbox['"]\s*\})/;
+/** Atributo JSX do elemento, ignorando os que vem por spread (`{...props}`). */
+function jsxAttribute(file, attributes, name) {
+  for (const property of attributes.properties) {
+    if (ts.isJsxAttribute(property) && property.name.getText(file) === name) return property;
+  }
+  return null;
+}
+
+function isCheckboxType(attribute) {
+  const initializer = attribute?.initializer;
+  if (!initializer) return false;
+  if (ts.isStringLiteral(initializer)) return initializer.text === 'checkbox';
+  return ts.isJsxExpression(initializer)
+    && Boolean(initializer.expression)
+    && ts.isStringLiteral(initializer.expression)
+    && initializer.expression.text === 'checkbox';
+}
+
+/**
+ * `defaultChecked` sem valor, com `true` ou com expressao qualquer deixa a caixa marcada no
+ * primeiro render; so o literal `false` prova o contrario. A arvore do TypeScript e usada
+ * porque comentario nao passa a existir para o parser — exemplo comentado ou
+ * `defaultChecked={false}` nao sao consentimento pre-marcado.
+ */
+function mayStartChecked(attribute) {
+  const initializer = attribute.initializer;
+  if (!initializer) return true;
+  if (!ts.isJsxExpression(initializer)) return true;
+  const expression = initializer.expression;
+  return !(expression && expression.kind === ts.SyntaxKind.FalseKeyword);
+}
+
+/** Caixas de consentimento que podem nascer marcadas em um arquivo JSX. */
+export function findDefaultCheckedConsentInputs(source, relative) {
+  const scriptKind = /\.jsx$/i.test(relative) ? ts.ScriptKind.JSX : ts.ScriptKind.TSX;
+  const file = ts.createSourceFile(relative, source, ts.ScriptTarget.Latest, true, scriptKind);
+  const errors = [];
+  const check = (node) => {
+    if (!isCheckboxType(jsxAttribute(file, node.attributes, 'type'))) return;
+    const checked = jsxAttribute(file, node.attributes, 'defaultChecked');
+    if (!checked || !mayStartChecked(checked)) return;
+    const line = file.getLineAndCharacterOfPosition(node.getStart(file)).line + 1;
+    errors.push(
+      `${relative}:${line} viola "consentimento disfarcado" (defaultChecked): caixa de consentimento nao pode vir marcada | ${node.getText(file).replace(/\s+/g, ' ').trim().slice(0, 120)}`,
+    );
+  };
+  const visit = (node) => {
+    if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) check(node);
+    ts.forEachChild(node, visit);
+  };
+  visit(file);
+  return errors;
+}
 
 /** Reprovacoes da etapa 009 nos arquivos informados (por padrao, toda a interface). */
 export function findPersuasionViolations(files = listInterfaceFiles()) {
@@ -125,17 +176,10 @@ export function findPersuasionViolations(files = listInterfaceFiles()) {
 
     // Caixa pre-marcada em JSX multilinha: o padrao por linha nao enxerga
     // <input newline type="checkbox" newline defaultChecked />, e a ordem dos atributos
-    // varia. A varredura por elemento cobre a tag inteira. O padrao `checkbox[^\n]*defaultChecked`
-    // continua na lista (pega o caso de uma linha) e aqui so entra o que ele nao viu.
-    const content = lines.join('\n');
-    for (const tag of content.matchAll(/<input\b[^>]*>/gs)) {
-      if (!/defaultChecked/.test(tag[0]) || !CHECKBOX_TYPE.test(tag[0])) continue;
-      const lineNumber = content.slice(0, tag.index + tag[0].indexOf('defaultChecked')).split('\n').length;
-      const already = errors.some((error) => error.startsWith(`${relative}:${lineNumber} viola "consentimento disfarcado"`));
-      if (already) continue;
-      errors.push(
-        `${relative}:${lineNumber} viola "consentimento disfarcado" (/checkbox[^\n]*defaultChecked/): checkbox de consentimento nao pode vir marcada | ${tag[0].replace(/\s+/g, ' ').trim().slice(0, 120)}`,
-      );
+    // varia. A varredura por elemento cobre a tag inteira; a arvore do TypeScript ainda
+    // ignora comentario e aceita `defaultChecked={false}` como caixa desmarcada.
+    if (/\.jsx$/i.test(absolute) || /\.tsx$/i.test(absolute)) {
+      errors.push(...findDefaultCheckedConsentInputs(lines.join('\n'), relative));
     }
   }
   return errors;

@@ -42,9 +42,10 @@ promessa reprova o build em vez de passar silencioso.
 - **AC-02 / AC-03**: não há gateway de pagamento nem rota de checkout; o único destino
   da seleção é `/orcamento`. A frase fala do site, não da proposta comercial. Em AC-03
   a prova é **mecânica**: `evidence.absenceOf` varre `src/` e `api/` e reprova se
-  aparecer `stripe`, `pagarme`, `mercadopago`, `asaas`, `payment_intent`, `hotmart` ou
-  `kiwify`. Antes a prova citava o slogan "Zero checkout" do próprio site — confirmava
-  a frase com a frase.
+  aparecer `stripe`, `pagarme`/`pagar.me`, `mercadopago`, `asaas`, `payment_intent`,
+  `hotmart` ou `kiwify`; raiz declarada que deixar de existir reprova o inventário em
+  vez de aprovar uma varredura vazia. Antes a prova citava o slogan "Zero checkout" do
+  próprio site — confirmava a frase com a frase.
 - **AC-04**: catálogo e produto não importam `useAuth` nem redirecionam para login. A
   conta serve para guardar histórico, não é pré-requisito para explorar.
 - **AC-05**: **ajustar-texto**, não confirmada. O código prova que o back-office existe, não que haja
