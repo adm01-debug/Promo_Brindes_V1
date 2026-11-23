@@ -24,7 +24,8 @@
 --      da janela, sem tocar em attempts.
 --   4. public.cancel_site_notification_backlog() — porta auditada do back-office.
 --   5. update_site_quote_status() cancela as entregas quando o pedido vira spam.
---   6. site_notification_queue_health() separa "fora da janela" de "elegivel".
+--   6. site_notification_queue_health() separa "fora da janela" de "elegivel" e o
+--      esgotamento acionavel (o que o painel reabre) do nao acionavel.
 --
 -- ADITIVA, exclusiva do Supabase isolado do site xlzmclcjdncjfdrjxclt.
 -- PROIBIDO aplicar no catalogo canonico doufsxqlfjyuvxuezpln.
@@ -100,6 +101,41 @@ grant execute on function site_private.notification_delivery_is_eligible(text, u
 
 comment on function site_private.notification_delivery_is_eligible(text, uuid, timestamptz, interval) is
   'F-11: criterio unico de elegibilidade de uma entrega — idade dentro de max_age, pedido existente e nao marcado como spam, e e-mail nao anonimizado por direito ao esquecimento (F-30).';
+
+-- === 2a. Criterio unico de reabertura manual ====================================
+
+-- Gemeo de notification_delivery_is_claimable para a porta manual: mesma separacao por
+-- audiencia, mais a janela de idade. Sem isso o painel calculava `reopenable` aplicando a
+-- supressao do titular a TODA entrega, inclusive ao alerta comercial do mesmo orcamento —
+-- que nao vai para o endereco suprimido, vai para o webhook do time comercial. O operador
+-- ficava sem conseguir reabrir o alerta que a claim permitiria enviar.
+-- Security definer porque le a fila e o predicado de supressao, ambos fora do alcance do
+-- operador (authenticated), e o retorno e um booleano sem dado pessoal.
+create or replace function site_private.notification_delivery_is_reopenable(p_delivery_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $fn$
+  select coalesce(
+    site_private.notification_delivery_is_eligible(
+      delivery.request_kind, delivery.request_id, delivery.created_at, policy.max_age)
+    and not site_private.notification_request_erased(delivery.request_kind, delivery.request_id)
+    and (delivery.audience <> 'customer'
+      or not site_private.notification_request_suppressed(delivery.request_kind, delivery.request_id)),
+    false)
+  from site_private.notification_deliveries delivery
+  cross join lateral (select policy.max_age from site_private.notification_policy() policy) as policy
+  where delivery.id = p_delivery_id;
+$fn$;
+
+comment on function site_private.notification_delivery_is_reopenable(uuid) is
+  'F-11: criterio unico do que o operador consegue reabrir no painel — dentro da janela, pedido existente/nao spam/nao anonimizado, e supressao de bounce aplicada so a quem recebe (audience = customer). Sem a separacao por audiencia o alerta comercial era bloqueado pelo bounce do e-mail do cliente.';
+
+revoke all on function site_private.notification_delivery_is_reopenable(uuid) from public, anon, authenticated;
+grant execute on function site_private.notification_delivery_is_reopenable(uuid) to site_api, service_role;
+
 -- === 3. Núcleo de cancelamento do backlog ========================================
 --
 -- Um único núcleo para os dois casos de uso (backlog inteiro pelo back-office e
@@ -640,6 +676,7 @@ as $fn$
       then extract(epoch from (now() - stats.oldest_eligible_created_at))::bigint else null end,
     'eligibleCount', coalesce(stats.eligible_count, 0),
     'exhaustedCount', coalesce(stats.exhausted_count, 0),
+    'expiredExhaustedCount', coalesce(stats.expired_exhausted_count, 0),
     'suppressedCount', coalesce(stats.suppressed_count, 0),
     'uncertainCount', coalesce(stats.uncertain_count, 0),
     'outOfWindowCount', coalesce(stats.out_of_window_count, 0)
@@ -673,8 +710,15 @@ as $fn$
       -- acionável). Com o predicado vivo, a entrega liberada volta para exhaustedCount.
       count(*) filter (where delivery.status = 'exhausted'
         and coalesce(site_private.notification_request_suppressed(delivery.request_kind, delivery.request_id), false)) as suppressed_count,
+      -- Só o que o operador consegue reabrir dispara alerta: a entrega esgotada que o
+      -- painel desabilita (fora da janela de 30 dias, pedido em spam ou apagado) nao e
+      -- acionavel, entao o alerta apontava para uma fila que ninguem podia limpar. Ela
+      -- some do alerta e passa a expiredExhaustedCount, que o log e o webhook ainda veem.
       count(*) filter (where delivery.status = 'exhausted'
-        and not coalesce(site_private.notification_request_suppressed(delivery.request_kind, delivery.request_id), false)) as exhausted_count,
+        and site_private.notification_delivery_is_reopenable(delivery.id)) as exhausted_count,
+      count(*) filter (where delivery.status = 'exhausted'
+        and not site_private.notification_delivery_is_reopenable(delivery.id)
+        and not coalesce(site_private.notification_request_suppressed(delivery.request_kind, delivery.request_id), false)) as expired_exhausted_count,
       count(*) filter (
         where delivery.last_error_code = 'whatsapp_dispatch_started'
           and delivery.provider_message_id is null
@@ -692,7 +736,7 @@ as $fn$
 $fn$;
 
 comment on function public.site_notification_queue_health() is
-  'F-11: saúde da fila por canal. eligibleCount usa o mesmo critério do claim (status pronto, dentro da janela, pedido não spam e não anonimizado); outOfWindowCount conta o pending/failed que o próximo claim vai cancelar; suppressedCount usa o predicado vivo de supressão (bloqueio ativo) e exhaustedCount o resto — só o segundo dispara alerta.';
+  'F-11: saúde da fila por canal. eligibleCount usa o mesmo critério do claim (status pronto, dentro da janela, pedido não spam e não anonimizado); outOfWindowCount conta o pending/failed que o próximo claim vai cancelar; suppressedCount é o bloqueio ativo de supressão; exhaustedCount conta só a esgotada que o operador consegue reabrir (é o único que dispara alerta) e expiredExhaustedCount a esgotada que o painel desabilita (fora da janela, spam ou pedido apagado).';
 
 -- === 7a. Painel prioriza a entrega que o operador pode reabrir ===================
 
@@ -700,7 +744,9 @@ comment on function public.site_notification_queue_health() is
 -- spam nem a janela que o reprocessamento aplica: entrega fora da janela consumia
 -- vaga e o botão "reabrir" respondia out_of_window. A versão abaixo expõe
 -- `reopenable` (mesmo critério do reprocessamento: dentro da janela, pedido existente,
--- não spam, não anonimizado e sem bloqueio ativo) e ordena por ele antes do limite.
+-- não spam, não anonimizado e sem bloqueio ativo — o bloqueio de bounce vale para quem
+-- recebe, então o alerta comercial do pedido continua reabrível) e ordena por ele antes
+-- do limite.
 create or replace function public.get_site_notification_delivery_report(
   p_limit integer default 50
 )
@@ -732,6 +778,7 @@ begin
         'lastErrorAt', item.last_error_at,
         'updatedAt', item.updated_at,
         'emailHashPrefix', left(item.email_hash, 12),
+        'audience', item.audience,
         'suppressed', item.suppressed,
         'erased', item.erased,
         'reopenable', item.reopenable
@@ -741,14 +788,15 @@ begin
                delivery.attempts, delivery.last_error_code, delivery.last_error_at,
                delivery.updated_at, request.protocol,
                site_private.email_hash(request.email) as email_hash,
-               site_private.notification_request_suppressed(delivery.request_kind, delivery.request_id) as suppressed,
+               (delivery.audience = 'customer'
+                and site_private.notification_request_suppressed(delivery.request_kind, delivery.request_id)) as suppressed,
                site_private.notification_request_erased(delivery.request_kind, delivery.request_id) as erased,
-               (site_private.notification_delivery_is_eligible(
-                  delivery.request_kind, delivery.request_id, delivery.created_at, policy.max_age)
-                and not site_private.notification_request_suppressed(delivery.request_kind, delivery.request_id)
-                and not site_private.notification_request_erased(delivery.request_kind, delivery.request_id)) as reopenable
+               site_private.notification_delivery_is_reopenable(delivery.id) as reopenable,
+               -- Coluna 14 (fora do order by): o painel precisa dizer se a linha é a
+               -- confirmação do cliente ou o alerta comercial, senão as duas aparecem
+               -- iguais — mesmo protocolo, mesmo canal — com estados diferentes.
+               delivery.audience
         from site_private.notification_deliveries delivery
-        cross join lateral (select max_age from site_private.notification_policy()) as policy
         join site_private.quote_requests request
           on delivery.request_kind = 'quote' and request.id = delivery.request_id
         where delivery.status = 'exhausted'
@@ -757,14 +805,12 @@ begin
                delivery.attempts, delivery.last_error_code, delivery.last_error_at,
                delivery.updated_at, null::text as protocol,
                site_private.email_hash(request.email) as email_hash,
-               site_private.notification_request_suppressed(delivery.request_kind, delivery.request_id) as suppressed,
+               (delivery.audience = 'customer'
+                and site_private.notification_request_suppressed(delivery.request_kind, delivery.request_id)) as suppressed,
                site_private.notification_request_erased(delivery.request_kind, delivery.request_id) as erased,
-               (site_private.notification_delivery_is_eligible(
-                  delivery.request_kind, delivery.request_id, delivery.created_at, policy.max_age)
-                and not site_private.notification_request_suppressed(delivery.request_kind, delivery.request_id)
-                and not site_private.notification_request_erased(delivery.request_kind, delivery.request_id)) as reopenable
+               site_private.notification_delivery_is_reopenable(delivery.id) as reopenable,
+               delivery.audience
         from site_private.notification_deliveries delivery
-        cross join lateral (select max_age from site_private.notification_policy()) as policy
         join site_private.contact_requests request
           on delivery.request_kind = 'contact' and request.id = delivery.request_id
         where delivery.status = 'exhausted'
@@ -792,7 +838,7 @@ revoke all on function public.get_site_notification_delivery_report(integer) fro
 grant execute on function public.get_site_notification_delivery_report(integer) to authenticated, service_role;
 
 comment on function public.get_site_notification_delivery_report(integer) is
-  'F-12/F-11: visão operacional da fila para o back-office — entregas esgotadas com pseudônimo do e-mail (12 hex), se o endereço está suprimido/anonimizado e `reopenable`, que é o mesmo critério do reprocessamento. A lista prioriza o que o operador pode reabrir antes de aplicar o limite. Exige operador ativo.';
+  'F-12/F-11: visão operacional da fila para o back-office — entregas esgotadas com pseudônimo do e-mail (12 hex), se o endereço está suprimido/anonimizado e `reopenable`, que é o mesmo critério do reprocessamento, inclusive ao separar por audiência: a supressão do titular não bloqueia o alerta comercial do mesmo pedido. A lista prioriza o que o operador pode reabrir antes de aplicar o limite. Exige operador ativo.';
 
 -- === 11. Bloqueio unico de envio (revisao das threads da PR) =====================
 --

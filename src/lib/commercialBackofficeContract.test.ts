@@ -222,6 +222,7 @@ describe('contrato do back-office comercial', () => {
         lastErrorAt: '2026-11-20T10:00:00.000Z',
         updatedAt: '2026-11-20T10:00:00.000Z',
         emailHashPrefix: '0123456789ab',
+        audience: 'customer',
         suppressed: true,
         erased: false,
         reopenable: true,
@@ -234,6 +235,11 @@ describe('contrato do back-office comercial', () => {
     expect(parseSiteNotificationDeliveryReport({
       exhausted: [{ deliveryId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', reopenable: false }],
     }).exhausted[0]?.reopenable).toBe(false);
+    // A audiência diz qual linha é o alerta comercial, que não vai para o endereço suprimido.
+    expect(parseSiteNotificationDeliveryReport({
+      exhausted: [{ deliveryId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', audience: 'commercial_team' }],
+    }).exhausted[0]?.audience).toBe('commercial_team');
+    // Sem o campo, a linha é tratada como aviso ao cliente (deploy anterior do RPC).
     expect(parseSiteNotificationDeliveryReport({}).exhausted).toEqual([]);
     expect(() => parseSiteNotificationDeliveryReport(null)).toThrow('commercial_backoffice_invalid_delivery_report');
   });

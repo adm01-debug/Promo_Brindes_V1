@@ -336,6 +336,7 @@ function BackofficeQueuePanel({
                     onChange={(event) => onToggle(delivery.deliveryId, event.target.checked)}
                   />{' '}
                   {delivery.protocol || delivery.requestId} · {delivery.channel} ·{' '}
+                  {delivery.audience === 'commercial_team' ? 'alerta comercial' : 'confirmação ao cliente'} ·{' '}
                   {delivery.attempts} {delivery.attempts === 1 ? 'tentativa' : 'tentativas'}
                   {delivery.erased ? (
                     <> · <ShieldAlert aria-hidden="true" size={14} /> pedido excluído pelo titular</>
@@ -343,7 +344,7 @@ function BackofficeQueuePanel({
                     <> · <ShieldAlert aria-hidden="true" size={14} /> endereço suprimido</>
                   ) : null}
                   {delivery.reopenable || delivery.erased || delivery.suppressed ? null : (
-                    <> · <ShieldAlert aria-hidden="true" size={14} /> fora da janela de reprocessamento</>
+                    <> · <ShieldAlert aria-hidden="true" size={14} /> fora da janela de reprocessamento ou pedido em spam</>
                   )}
                   {' '}· hash {delivery.emailHashPrefix || '—'} · {delivery.lastErrorCode || 'sem código'} ·{' '}
                   {dateLabel(delivery.lastErrorAt ?? delivery.updatedAt)}

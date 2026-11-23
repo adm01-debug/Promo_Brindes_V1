@@ -196,6 +196,8 @@ export interface SiteNotificationExhaustedDelivery {
   lastErrorAt: string | null;
   updatedAt: string | null;
   emailHashPrefix: string;
+  /** Destinatário da entrega: a confirmação do cliente ou o alerta do time comercial. */
+  audience: 'customer' | 'commercial_team';
   suppressed: boolean;
   erased: boolean;
   /** Mesmo critério do reprocessamento (janela, spam, anonimização, bloqueio ativo). */
@@ -403,6 +405,7 @@ export function parseSiteNotificationDeliveryReport(data: unknown): SiteNotifica
       lastErrorAt: readNullableString(item.lastErrorAt),
       updatedAt: readNullableString(item.updatedAt),
       emailHashPrefix: readString(item.emailHashPrefix),
+      audience: item.audience === 'commercial_team' ? 'commercial_team' : 'customer',
       suppressed: item.suppressed === true,
       erased: item.erased === true,
       reopenable: item.reopenable !== false,

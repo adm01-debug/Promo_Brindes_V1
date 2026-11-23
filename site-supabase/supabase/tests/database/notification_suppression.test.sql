@@ -12,7 +12,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(73);
+select plan(78);
 
 -- === Estrutura ===================================================================
 
@@ -27,6 +27,8 @@ select has_function('public', 'reconcile_site_notification_provider_events', arr
 select has_function('public', 'reprocess_site_notification_deliveries', array['uuid[]','text'], 'reprocessamento existe');
 select has_function('public', 'get_site_notification_delivery_report', array['integer'], 'relatório operacional existe');
 select has_function('public', 'purge_site_notification_provider_events', array['integer','integer'], 'purga de órfãos existe');
+select has_function('site_private', 'notification_delivery_is_reopenable', array['uuid'],
+  'critério único do que o painel pode reabrir existe');
 
 -- === Permissões ==================================================================
 
@@ -514,15 +516,18 @@ select is(
 );
 
 -- Supressão não é falha: contá-la em exhaustedCount fazia o alerta de fila disparar em
--- todo ciclo por um bloqueio que o sistema mantém de propósito. Contador separado.
+-- todo ciclo por um bloqueio que o sistema mantém de propósito. Contador separado. E o
+-- esgotamento que o painel não deixa reabrir (fora da janela, spam, pedido apagado) sai do
+-- alerta para expiredExhaustedCount: alertar sobre fila que ninguém pode limpar é ruído.
 select is(
   (select (item ->> 'exhaustedCount')::int from jsonb_array_elements(public.site_notification_queue_health()) item where item ->> 'channel' = 'email')
-  + (select (item ->> 'suppressedCount')::int from jsonb_array_elements(public.site_notification_queue_health()) item where item ->> 'channel' = 'email'),
+  + (select (item ->> 'suppressedCount')::int from jsonb_array_elements(public.site_notification_queue_health()) item where item ->> 'channel' = 'email')
+  + (select (item ->> 'expiredExhaustedCount')::int from jsonb_array_elements(public.site_notification_queue_health()) item where item ->> 'channel' = 'email'),
   (select count(*)::int
    from site_private.notification_deliveries delivery
    where delivery.request_kind = 'quote' and delivery.audience = 'customer'
      and delivery.channel = 'email' and delivery.status = 'exhausted'),
-  'saúde da fila separa bloqueio deliberado do esgotamento por falha (a soma bate com o total de esgotadas)'
+  'saúde da fila separa bloqueio deliberado, esgotamento acionável e o que o painel não reabre (a soma bate com o total de esgotadas)'
 );
 select cmp_ok(
   (select (item ->> 'suppressedCount')::int from jsonb_array_elements(public.site_notification_queue_health()) item where item ->> 'channel' = 'email'),
@@ -641,6 +646,73 @@ select is(
      and item ->> 'channel' = 'email'),
   'true',
   'painel volta a oferecer a reabertura da entrega desbloqueada'
+);
+
+-- === Alerta comercial não é bloqueado pelo bounce do cliente =====================
+
+-- A supressão vale para o endereço do titular; o alerta comercial do mesmo pedido vai para
+-- o webhook do time, não para o endereço que devolveu. Reabrir esse alerta é legítimo, então
+-- a supressão não pode desabilitar a linha dele no painel.
+insert into site_private.notification_deliveries (request_kind, request_id, channel, audience)
+select 'quote', request.id, 'email', 'commercial_team'
+from site_private.quote_requests request
+where request.client_request_id = 'f12-suppression-quote-1'
+on conflict (request_kind, request_id, channel, audience) do nothing;
+
+alter table site_private.notification_deliveries disable trigger notification_deliveries_enforce_status_transition;
+alter table site_private.notification_deliveries disable trigger notification_deliveries_enforce_lease_and_attempts;
+update site_private.notification_deliveries delivery
+set status = 'exhausted', attempts = 6, last_error_code = 'provider_unavailable'
+from site_private.quote_requests request
+where request.id = delivery.request_id and request.client_request_id = 'f12-suppression-quote-1'
+  and delivery.channel = 'email' and delivery.audience = 'commercial_team';
+alter table site_private.notification_deliveries enable trigger notification_deliveries_enforce_status_transition;
+alter table site_private.notification_deliveries enable trigger notification_deliveries_enforce_lease_and_attempts;
+
+select is(
+  (select item ->> 'reopenable'
+   from jsonb_array_elements(public.get_site_notification_delivery_report(50) -> 'exhausted') item
+   where item ->> 'requestId' = (select request.id::text from site_private.quote_requests request
+                                 where request.client_request_id = 'f12-suppression-quote-1')
+     and item ->> 'channel' = 'email' and item ->> 'audience' = 'commercial_team'),
+  'true',
+  'supressão do endereço do titular não desabilita a reabertura do alerta comercial do mesmo pedido'
+);
+select is(
+  (select item ->> 'audience'
+   from jsonb_array_elements(public.get_site_notification_delivery_report(50) -> 'exhausted') item
+   where item ->> 'requestId' = (select request.id::text from site_private.quote_requests request
+                                 where request.client_request_id = 'f12-suppression-quote-1')
+     and item ->> 'channel' = 'email' and item ->> 'audience' = 'commercial_team'),
+  'commercial_team',
+  'relatório identifica a linha do alerta comercial (mesmo protocolo e canal do aviso ao cliente)'
+);
+
+-- === Esgotada fora da janela sai do alerta =======================================
+
+-- Entrega acima de max_age não é reabrível (o painel desabilita e a claim aposenta), então
+-- contá-la em exhaustedCount fazia o alerta apontar para uma fila sem ação possível.
+update site_private.notification_deliveries delivery
+set created_at = now() - interval '40 days'
+from site_private.quote_requests request
+where request.id = delivery.request_id and request.client_request_id = 'f12-suppression-quote-1'
+  and delivery.channel = 'email' and delivery.audience = 'customer';
+
+select is(
+  (select item ->> 'reopenable'
+   from jsonb_array_elements(public.get_site_notification_delivery_report(50) -> 'exhausted') item
+   where item ->> 'requestId' = (select request.id::text from site_private.quote_requests request
+                                 where request.client_request_id = 'f12-suppression-quote-1')
+     and item ->> 'channel' = 'email' and item ->> 'audience' = 'customer'),
+  'false',
+  'entrega acima da janela de 30 dias não é oferecida para reabertura'
+);
+select cmp_ok(
+  (select (item ->> 'expiredExhaustedCount')::int
+   from jsonb_array_elements(public.site_notification_queue_health()) item
+   where item ->> 'channel' = 'email'),
+  '>', 0,
+  'a esgotada fora da janela passa a ter contador próprio, visível sem disparar alerta'
 );
 
 select * from finish();
