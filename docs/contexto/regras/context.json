@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "81ab3f8cd3a20a845b57f1792f1dfade764601a1",
+  "sha": "0d78534be6e7f0075d81a12719cf923c77bdda54",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-23 14:44 UTC",
+  "generated_at": "2026-11-23 15:58 UTC",
   "files_total": 651,
   "code_files": 427,
   "code_lines": 79628,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "3400ecd5e9f92af7",
+ "facts_hash": "173581a47201c6c2",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -18,12 +18,12 @@
   ],
   "deps": {
    "@supabase/supabase-js": {
-    "version": "^2.119.0",
+    "version": "^2.119.2",
     "role": "Supabase (DB/Auth/Storage/Functions)",
     "in": "package.json"
    },
    "lucide-react": {
-    "version": "^1.72.0",
+    "version": "^1.76.0",
     "role": "Ícones Lucide",
     "in": "package.json"
    },
@@ -33,7 +33,7 @@
     "in": "package.json"
    },
    "react-router-dom": {
-    "version": "^7.18.5",
+    "version": "^7.18.6",
     "role": "Roteamento (React Router)",
     "in": "package.json"
    },
@@ -39781,10 +39781,20 @@
   }
  },
  "git": {
-  "sha": "81ab3f8cd3a20a845b57f1792f1dfade764601a1",
+  "sha": "0d78534be6e7f0075d81a12719cf923c77bdda54",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "0d78534",
+    "date": "2026-11-23",
+    "author": "dependabot[bot]",
+    "subject": "chore(deps): bump the npm-minor-and-patch group with 7 updates (#248)",
+    "files": [
+     "package-lock.json",
+     "package.json"
+    ]
+   },
    {
     "sha": "81ab3f8",
     "date": "2026-11-23",
@@ -40230,18 +40240,6 @@
     "files": [
      "analise-prs/funcionalidades.csv"
     ]
-   },
-   {
-    "sha": "0afb33e",
-    "date": "2026-11-20",
-    "author": "adm01-debug",
-    "subject": "chore(docs): linha de base, regras de negocio e mapa do sistema (GOAL fase 0) (#216)",
-    "files": [
-     "docs/pendencias/_achados.md",
-     "docs/pendencias/_linha-de-base.md",
-     "docs/pendencias/_mapa-sistema.md",
-     "docs/pendencias/_regras-de-negocio.md"
-    ]
    }
   ],
   "hot_files": [
@@ -40290,6 +40288,10 @@
     4
    ],
    [
+    "package.json",
+    3
+   ],
+   [
     "src/pages/BackofficePage.tsx",
     3
    ],
@@ -40314,15 +40316,11 @@
     3
    ],
    [
+    "package-lock.json",
+    2
+   ],
+   [
     "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
-    2
-   ],
-   [
-    "package.json",
-    2
-   ],
-   [
-    "docs/audits/planejado-x-implementado-20261120/02-pf-23-56-portal-lgpd-experiencia.md",
     2
    ]
   ]

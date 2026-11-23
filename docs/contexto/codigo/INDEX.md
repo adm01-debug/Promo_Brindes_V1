@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `81ab3f8cd3a20a845b57f1792f1dfade764601a1` (2026-11-23T14:32:47Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `0d78534be6e7f0075d81a12719cf923c77bdda54` (2026-11-23T15:41:30Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -176,10 +176,10 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - não gerado neste run. npm run graph:update (wrapper do repositório; não rode o CLI do graphify direto); saída em graphify-out/, não versionada
 
 ## Hotspots (arquivos mais alterados, 90 dias)
-- package.json (67)
+- package.json (68)
 - e2e/smoke.spec.ts (61)
 - src/styles.css (39)
-- package-lock.json (37)
+- package-lock.json (38)
 - .github/workflows/quality.yml (29)
 - docs/DATABASE_DICTIONARY.md (29)
 - vercel.json (29)
@@ -396,6 +396,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-23 `0d78534` chore(deps): bump the npm-minor-and-patch group with 7 updates (#248)
 - 2026-11-23 `81ab3f8` chore(deps): bump actions/dependency-review-action (#246)
 - 2026-11-23 `f54efb6` chore(deps): bump actions/setup-node from 6.5.0 to 7.1.0 (#247)
 - 2026-11-23 `53252ed` feat: auditoria de leitura SELECT em PII (F-34) (#242)
@@ -410,7 +411,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-22 `28a86e8` feat: por que este produto e ideias de uso (F-45) (#236)
 - 2026-11-22 `a6cd533` feat: mensagens da equipe ao cliente na linha do tempo (F-05) (#235)
 - 2026-11-22 `18eebb5` fix: politica de privacidade declara os estados reais de entrega (F-17) (#243)
-- 2026-11-22 `8543dac` feat: vigia independente dos crons com heartbeat e alerta (F-87) (#232)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

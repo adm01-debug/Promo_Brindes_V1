@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "81ab3f8cd3a20a845b57f1792f1dfade764601a1",
+  "commit": "0d78534be6e7f0075d81a12719cf923c77bdda54",
   "branch": "main",
-  "data_commit": "2026-11-23T14:32:47Z",
+  "data_commit": "2026-11-23T15:41:30Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "0d78534",
+    "data": "2026-11-23",
+    "assunto": "chore(deps): bump the npm-minor-and-patch group with 7 updates (#248)"
+   },
    {
     "sha": "81ab3f8",
     "data": "2026-11-23",
@@ -126,11 +131,6 @@
     "sha": "64e1dcc",
     "data": "2026-11-21",
     "assunto": "feat: separa intencao do briefing dos filtros efetivos (F-40/PF-40) (#223)"
-   },
-   {
-    "sha": "957fa44",
-    "data": "2026-11-21",
-    "assunto": "feat: contato via WhatsApp iniciado pelo visitante (F-47) (#222)"
    }
   ],
   "arquivos_mudados_7d": 212,
@@ -145,7 +145,7 @@
    },
    {
     "pasta": "package.json",
-    "mudancas": 18
+    "mudancas": 19
    },
    {
     "pasta": "docs/audits/planejado-x-implementado-20261120",
@@ -156,11 +156,11 @@
     "mudancas": 13
    },
    {
-    "pasta": "docs/audits/pending-features-20261011",
-    "mudancas": 11
+    "pasta": "package-lock.json",
+    "mudancas": 12
    },
    {
-    "pasta": "package-lock.json",
+    "pasta": "docs/audits/pending-features-20261011",
     "mudancas": 11
    },
    {
@@ -199,7 +199,7 @@
   "arquivos_mais_mudados_90d": [
    {
     "arquivo": "package.json",
-    "mudancas": 67
+    "mudancas": 68
    },
    {
     "arquivo": "e2e/smoke.spec.ts",
@@ -211,7 +211,7 @@
    },
    {
     "arquivo": "package-lock.json",
-    "mudancas": 37
+    "mudancas": 38
    },
    {
     "arquivo": ".github/workflows/quality.yml",
@@ -305,7 +305,7 @@
    },
    {
     "autor": "dependabot[bot]",
-    "commits": 13
+    "commits": 14
    }
   ]
  },
