@@ -108,6 +108,15 @@ test('spread de literal com defaultChecked tambem e consentimento pre-marcado', 
   const errors = findPersuasionViolations([file]);
   assert.equal(errors.length, 1, errors.join('; '));
   assert.match(errors[0], /consentimento disfarcado/);
+
+  const desmarcada = fixture('spread-literal-desmarcada.tsx',
+    'export const A = () => (\n  <label>\n    <input type="checkbox" {...{ defaultChecked: false }} onChange={aoMudar} />\n  </label>\n);\n');
+  assert.deepEqual(findPersuasionViolations([desmarcada]), [], 'caixa que nasce desmarcada nao pode reprovar');
+
+  const opaca = fixture('spread-literal-opaca.tsx',
+    'export const A = () => (\n  <label>\n    <input type="checkbox" {...{ defaultChecked: preferenciaInicial }} onChange={aoMudar} />\n  </label>\n);\n');
+  const opacas = findPersuasionViolations([opaca]);
+  assert.equal(opacas.length, 1, 'propriedade com valor opaco continua reprovando');
 });
 
 for (const claim of [

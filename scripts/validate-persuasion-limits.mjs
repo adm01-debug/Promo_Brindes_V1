@@ -183,8 +183,10 @@ function findInputTags(source) {
  * aprovava) para o atributo seguinte, que e o que importa.
  *
  * O nome e comparado antes do `:` para nao perder spread de literal
- * (`{...{ defaultChecked: true }}` marca a caixa igual a `defaultChecked`). Spread opaco
- * (`{...props}`) nao entra: exigiria avaliar o objeto, que uma varredura de texto nao faz.
+ * (`{...{ defaultChecked: true }}` marca a caixa igual a `defaultChecked`). Na propriedade do
+ * objeto literal o valor vem depois de `:`, entao `defaultChecked: false` e lido e aprovado.
+ * Spread opaco (`{...props}`) nao entra: exigiria avaliar o objeto, que uma varredura de texto
+ * nao faz.
  */
 function mayStartChecked(tag) {
   let index = 0;
@@ -230,6 +232,13 @@ function mayStartChecked(tag) {
     }
     const attribute = name[1].split(':')[0];
     if (attribute !== 'defaultChecked') continue;
+    if (name[1].endsWith(':')) {
+      // Propriedade de objeto literal em spread (`{...{ defaultChecked: true }}`).
+      const literal = /^\s*(true|false)\b/.exec(tag.slice(index));
+      if (!literal) return true;
+      if (literal[1] === 'true') return true;
+      continue;
+    }
     if (value === null) return true;
     if (!value.startsWith('{')) return true;
     return value.slice(1, -1).trim() !== 'false';

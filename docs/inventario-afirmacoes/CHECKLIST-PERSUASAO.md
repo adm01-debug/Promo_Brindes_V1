@@ -12,7 +12,7 @@ consentimento disfarcado. Este documento e a versao legivel do que
 | 3 | Elogio automatico exagerado | Elogiar a escolha sem conhecer o pedido e adulacao vazia e reduz a confianca no restante da pagina. | "excelente escolha", "otima escolha", "perfeita escolha", "voce tem bom gosto", "escolha inteligente" |
 | 4 | Prova social inventada | Numero de clientes, nota e depoimento so entram se forem reais e rastreaveis; sem fonte, e fabricacao. | "N mil clientes", "mais de N empresas", "nota X de 5", "5 estrelas", "melhor do mercado" |
 | 5 | Dado presumido | Campo de formulario so pode vir do visitante ou da conta dele (`useAuth`), nunca de suposicao sobre o historico. | "supomos que", "provavelmente voce", "sabemos que voce", "como voce sempre" |
-| 6 | Consentimento disfarcado | Aceite de contato ou marketing precisa de acao explicita; caixa pre-marcada nao e consentimento. | "ao continuar voce aceita receber", checkbox com `defaultChecked` sem valor / `={true}` / expressao (o scanner aceita `defaultChecked={false}` e ignora exemplo comentado, e valor de rotulo como `aria-label="defaultChecked"` nao conta), spread de literal (`{...{ defaultChecked: true }}`), "ja aceitou" |
+| 6 | Consentimento disfarcado | Aceite de contato ou marketing precisa de acao explicita; caixa pre-marcada nao e consentimento. | "ao continuar voce aceita receber", checkbox com `defaultChecked` sem valor / `={true}` / expressao (o scanner aceita `defaultChecked={false}` e ignora exemplo comentado, e valor de rotulo como `aria-label="defaultChecked"` nao conta), spread de literal (`{...{ defaultChecked: true }}` reprova, `{...{ defaultChecked: false }}` aprova), "ja aceitou" |
 
 ## Como a aprovacao e exigida em cada revisao de interface
 
@@ -43,9 +43,9 @@ consentimento disfarcado. Este documento e a versao legivel do que
 
 - Spread opaco de props numa caixa de consentimento (`<input {...props} />`): a varredura le
   texto, nao avalia o objeto, entao `defaultChecked` que chegue por um spread desses nao e
-  visto. Spread de literal (`{...{ defaultChecked: true }}`) e visto e reprovado. Quem
-  espalhar props numa caixa de consentimento precisa garantir que elas nao liguem
-  `defaultChecked`.
+  visto. Spread de literal (`{...{ defaultChecked: true }}`) e visto e reprovado, e o valor
+  literal `false` dele e aprovado. Quem espalhar props numa caixa de consentimento precisa
+  garantir que elas nao liguem `defaultChecked`.
 - Honestidade do conteudo de produto e prazo — materia do inventario de afirmacoes
   (`docs/inventario-afirmacoes/INVENTARIO.md`, PF-55).
 - Comparacao de mockup contra tela renderizada em 5 larguras — PF-56: o registro versionado em
