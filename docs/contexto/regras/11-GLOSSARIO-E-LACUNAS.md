@@ -1,6 +1,6 @@
 # 11 · GLOSSÁRIO, DADOS DE REFERÊNCIA E LACUNAS
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `0d78534be6` · branch `main` · 2026-11-23 15:58 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `c93830fe68` · branch `main` · 2026-11-23 23:41 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## Glossário do domínio (entidades do sistema)
@@ -57,6 +57,7 @@
 | `OccasionAudience` (TS) | clientes \| colaboradores \| eventos \| comunidade |  | `src/lib/commemorativeDates.ts` |
 | `OccasionKind` (TS) | relacionamento \| cultura \| impacto \| sazonal |  | `src/lib/commemorativeDates.ts` |
 | `SITE_QUOTE_STATUSES` (TS) | 'new', 'triaged', 'in_progress', 'quoted', 'closed', 'spam' |  | `src/lib/commercialBackofficeContract.ts` |
+| `SITE_NOTIFICATION_SKIP_REASONS` (TS) | 'locked', 'not_exhausted', 'erased', 'out_of_window', 'ineligible', |  | `src/lib/commercialBackofficeContract.ts` |
 | `CustomerQuoteStatus` (TS) | new \| triaged \| in_progress \| quoted \| closed |  | `src/lib/customerQuoteContract.ts` |
 | `ProductBadgeKind` (TS) | new \| kit \| personalizable |  | `src/lib/productBadges.ts` |
 | `ConfirmationDeliveryStatus` (TS) | sent \| pending \| not_requested \| unavailable |  | `src/lib/quoteConfirmation.ts` |

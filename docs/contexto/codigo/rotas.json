@@ -103,6 +103,7 @@
    ],
    "tabelas": [],
    "rpcs": [
+    "cancel_site_notification_backlog",
     "get_site_notification_delivery_report",
     "get_site_quote_request",
     "list_site_quote_requests",

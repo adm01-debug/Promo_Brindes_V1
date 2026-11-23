@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `0d78534be6` · branch `main` · 2026-11-23 15:58 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `c93830fe68` · branch `main` · 2026-11-23 23:41 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -364,12 +364,6 @@ Erros lançados por funções SQL (`RAISE EXCEPTION` = regra de negócio no banc
 | `claim_my_quote_requests` | verified_email_required | `site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql` |
 | `assert_site_operator` | authentication_required | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
 | `assert_site_operator` | not_a_site_operator | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
-| `update_site_quote_status` | request_id_required | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
-| `update_site_quote_status` | status_required | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
-| `update_site_quote_status` | quote_request_not_found | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
-| `update_site_quote_status` | (dinâmica) format('invalid_status_transition: %s -> %s', v_previous, v_target) | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
-| `update_site_quote_status` | quoted_requires_proposal_publication | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
-| `update_site_quote_status` | quote_request_changed_concurrently | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
 | `publish_site_quote_proposal` | request_id_required | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
 | `publish_site_quote_proposal` | title_required | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
 | `publish_site_quote_proposal` | storage_path_required | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
@@ -382,12 +376,19 @@ Erros lançados por funções SQL (`RAISE EXCEPTION` = regra de negócio no banc
 | `apply_site_notification_provider_event` | invalid_notification_provider_event_input | `site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql` |
 | `get_site_notification_suppression` | invalid_notification_suppression_input | `site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql` |
 | `reconcile_site_notification_provider_events` | invalid_notification_reconciliation_input | `site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql` |
-| `reprocess_notification_deliveries_core` | invalid_notification_reprocessing_input | `site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql` |
-| `get_site_notification_delivery_report` | invalid_notification_report_input | `site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql` |
-| `claim_site_notification_deliveries` | invalid_notification_claim_input | `site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql` |
-| `claim_site_quote_notification` | invalid_notification_channel | `site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql` |
-| `claim_site_commercial_team_alerts` | invalid_notification_claim_input | `site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql` |
 | `purge_site_notification_provider_events` | invalid_notification_event_purge_input | `site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql` |
+| `cancel_site_notification_backlog` | invalid_notification_backlog_input | `site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql` |
+| `claim_site_notification_deliveries` | invalid_notification_claim_input | `site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql` |
+| `claim_site_commercial_team_alerts` | invalid_notification_claim_input | `site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql` |
+| `update_site_quote_status` | request_id_required | `site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql` |
+| `update_site_quote_status` | status_required | `site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql` |
+| `update_site_quote_status` | quote_request_not_found | `site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql` |
+| `update_site_quote_status` | (dinâmica) format('invalid_status_transition: %s -> %s', v_previous, v_target) | `site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql` |
+| `update_site_quote_status` | quoted_requires_proposal_publication | `site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql` |
+| `update_site_quote_status` | quote_request_changed_concurrently | `site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql` |
+| `get_site_notification_delivery_report` | invalid_notification_report_input | `site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql` |
+| `claim_site_quote_notification` | invalid_notification_channel | `site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql` |
+| `reprocess_notification_deliveries_core` | invalid_notification_reprocessing_input | `site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql` |
 | `reply_site_quote_adjustment` | adjustment_id_required | `site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql` |
 | `reply_site_quote_adjustment` | response_required | `site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql` |
 | `reply_site_quote_adjustment` | response_too_long | `site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql` |
@@ -509,6 +510,7 @@ _nenhum mapa explícito encontrado no código — fora da tabela acima (se houve
 | OccasionAudience | clientes \| colaboradores \| eventos \| comunidade | `src/lib/commemorativeDates.ts` |
 | OccasionKind | relacionamento \| cultura \| impacto \| sazonal | `src/lib/commemorativeDates.ts` |
 | SITE_QUOTE_STATUSES | 'new', 'triaged', 'in_progress', 'quoted', 'closed', 'spam' | `src/lib/commercialBackofficeContract.ts` |
+| SITE_NOTIFICATION_SKIP_REASONS | 'locked', 'not_exhausted', 'erased', 'out_of_window', 'ineligible', | `src/lib/commercialBackofficeContract.ts` |
 | CustomerQuoteStatus | new \| triaged \| in_progress \| quoted \| closed | `src/lib/customerQuoteContract.ts` |
 | ProductBadgeKind | new \| kit \| personalizable | `src/lib/productBadges.ts` |
 | ConfirmationDeliveryStatus | sent \| pending \| not_requested \| unavailable | `src/lib/quoteConfirmation.ts` |
@@ -825,6 +827,8 @@ _nenhum item encontrado_
 | `interval '15 minutes'` | `site-supabase/supabase/migrations/20261001130320_preflight_lead_rate_limit.sql` |
 | `or p_limit < 1 or p_window <= interval '0 seconds' then` | `site-supabase/supabase/migrations/20261001130320_preflight_lead_rate_limit.sql` |
 | `('retention', 24 * 60 * 60, 180),` | `site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql` |
+| `'pedido marcado como spam', interval '100 years');` | `site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql` |
+| `select 5::smallint, interval '10 minutes', 25, 60, 3600, interval '30 days';` | `site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql` |
 | `const MAX_AGE_MS = 24 * 60 * 60 * 1_000;` | `src/lib/quoteDraft.ts` |
 
 ### H.3 Limites de paginação
@@ -1113,6 +1117,7 @@ _nenhum item encontrado_
 | commercial_backoffice_unavailable | `src/lib/commercialBackoffice.ts` |
 | commercial_backoffice_invalid_adjustment | `src/lib/commercialBackofficeContract.ts` |
 | commercial_backoffice_invalid_audit | `src/lib/commercialBackofficeContract.ts` |
+| commercial_backoffice_invalid_backlog_cut | `src/lib/commercialBackofficeContract.ts` |
 | commercial_backoffice_invalid_delivery_report | `src/lib/commercialBackofficeContract.ts` |
 | commercial_backoffice_invalid_event | `src/lib/commercialBackofficeContract.ts` |
 | commercial_backoffice_invalid_item | `src/lib/commercialBackofficeContract.ts` |
@@ -1134,8 +1139,7 @@ _nenhum item encontrado_
 | occasion_favorites_unavailable | `src/lib/customerOccasionFavorites.ts` |
 | invalid_customer_quote_response | `src/lib/customerQuoteContract.ts` |
 | customer_area_not_configured | `src/lib/customerSelections.ts` |
-| selection_catalog_changed | `src/lib/customerSelections.ts` |
-| … +13 linhas — lista completa em `context.json` | |
+| … +14 linhas — lista completa em `context.json` | |
 
 ## J. Controle de acesso no código (checagens de perfil/permissão)
 
@@ -1146,16 +1150,17 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (2125 testes em 151 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (2195 testes em 152 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
+| `site-supabase/supabase/tests/database/notification_suppression.test.sql` | 80 | evento guarda o id da mensagem no provedor para poder ser religado depois · evento guarda o motivo do bounce para o re-vínculo não perder a informação · pseudônimo do e-mail existe · consulta de supressão existe … |
 | `site-supabase/supabase/tests/database/lead_storage.test.sql` | 69 | schema privado contém as tabelas planejadas, incluindo favoritos de datas sem PII, as duas do back-office (F-03), o heartbeat dos crons (F-87) e a trilha de leitura de PII (F-34) · seleções persistentes ficam no schema privado · criação de links recebe rate limit próprio · máquina de estados administrativa vive em tabela dedicada (Etapa 8) … |
 | `site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql` | 68 | trilha de exercicio de direito existe · trilha vincula a conta · trilha registra o tipo de direito · coluna right_type tem constraint check … |
-| `site-supabase/supabase/tests/database/notification_suppression.test.sql` | 67 | evento guarda o id da mensagem no provedor para poder ser religado depois · evento guarda o motivo do bounce para o re-vínculo não perder a informação · pseudônimo do e-mail existe · consulta de supressão existe … |
 | `tests/inventario-estado.node.mjs` | 63 | extrairInventario aceita objeto direto, envelope do PostgREST e envelope do MCP · extrairInventario recusa entrada sem as chaves obrigatórias, sem tabelas ou de outra versão · conferirOrigem aprova a resposta que cobre as tabelas das migrations e o ledger · conferirOrigem recusa um banco irmão: as tabelas das migrations não estão lá … |
 | `e2e/smoke.spec.ts` | 62 | headline principal usa Fold Text sem perder acessibilidade · categorias usam fotografia de produto publicado como ponto de descoberta · rotas públicas essenciais não introduzem violações automáticas de acessibilidade · montador de kits preserva componentes e calcula a quantidade completa … |
 | `site-supabase/supabase/tests/database/briefing_assets.test.sql` | 57 | metadados privados de arquivos existem · assinatura binária possui recibo de verificação · fila de exclusão de Storage existe · bucket é privado e limitado a 10 MB … |
+| `site-supabase/supabase/tests/database/notification_backlog_cutoff.test.sql` | 53 | politica da fila publica a janela maxima de 30 dias · politica da fila preserva max_attempts (contrato anterior intacto) · entrega de pedido normal dentro da janela e elegivel · entrega de pedido marcado como spam nao e elegivel … |
 | `site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql` | 52 | pedido de teste recebeu protocolo persistido no insert · operador ativo lista a fila · fila identifica o operador que esta consultando · fila informa a quantidade de itens do pedido … |
 | `site-supabase/supabase/tests/database/notification_outbox.test.sql` | 47 | fila possui agenda de nova tentativa · fila identifica a reivindicação ativa (R04) · novo orçamento alimenta a fila na mesma transação · anon não reivindica notificações … |
 | `site-supabase/supabase/tests/database/customer_data_erasure.test.sql` | 46 | anon não apaga dados de titular · authenticated não apaga dados de titular (operação administrativa) · service_role executa o apagamento · anonimiza 1 quote_request (e-mail com espaço/maiúsculas normalizado na entrada) … |
@@ -1177,6 +1182,7 @@ _nenhum item encontrado_
 | `site-supabase/supabase/tests/database/customer_message_events.test.sql` | 24 | check de event_type aceita message · operador responde o ajuste · a resposta produziu exatamente um evento de mensagem · o titulo da mensagem e fixo, sem copiar o texto do cliente … |
 | `src/components/CampaignFinder.test.tsx` | 24 | resumo editável do briefing · resume as quatro respostas antes de abrir a curadoria · remove só a escolha solicitada e volta à etapa correspondente · permite revisar todas as respostas sem apagar o que já foi escolhido … |
 | `site-supabase/supabase/tests/database/customer_occasion_favorites.test.sql` | 22 | favoritos de datas existem no schema privado · RLS é forçada nos favoritos de datas · cliente não recebe uso do schema privado · cliente não lê a tabela diretamente … |
+| `src/lib/commercialBackofficeContract.test.ts` | 21 | contrato do back-office comercial · lê a fila paginada com totais e itens · trata payload que não é objeto como indisponibilidade, não como fila vazia · rejeita item de fila que não é objeto … |
 | `site-supabase/supabase/tests/database/lead_preflight_rate_limit.test.sql` | 20 | preflight distribuído existe · anon não executa preflight · authenticated não executa preflight · service_role executa preflight … |
 | `site-supabase/supabase/tests/database/notification_queue_policy.test.sql` | 20 | política: 5 tentativas máximas · política: lote máximo de 25 · política: lease de 10 minutos · anon não lê a política … |
 | `tests/smoke-deployment.node.mjs` | 20 | aprova um deployment saudável consultando cada rota uma única vez · reprova status inesperado sem repetir a rota · o 503 do health entra na mensagem com o código do problema · o 5xx de uma página HTML nao despeja o corpo no log … |
@@ -1190,7 +1196,6 @@ _nenhum item encontrado_
 | `site-supabase/supabase/tests/database/quote_protocol.test.sql` | 17 | dígito verificador de 26000001 é determinístico e conhecido (conferido manualmente) · mod11_check_digit é determinística: mesma entrada, mesma saída · entradas diferentes tendem a produzir dígitos diferentes (não uma prova geral, só o par de teste) · soma zero cai no ramo remainder<2 e retorna 0 … |
 | `site-supabase/supabase/tests/database/selection_asset_integrity.test.sql` | 17 | leitura limitada recebe hash do solicitante · revogação limitada recebe hash do solicitante · site_api usa leitura limitada · anônimo não chama leitura limitada diretamente … |
 | `site-supabase/supabase/tests/database/site_api_privileges.test.sql` | 17 | anon continua sem create_site_quote_request · authenticated continua sem create_site_quote_request · site_api não tem acesso a customer_profiles (fora do escopo das 13 RPCs) · site_api não insere proposal_documents (isso é fluxo administrativo) … |
-| `src/lib/commercialBackofficeContract.test.ts` | 17 | contrato do back-office comercial · lê a fila paginada com totais e itens · trata payload que não é objeto como indisponibilidade, não como fila vazia · rejeita item de fila que não é objeto … |
 | `tests/validate-visual-approvals.node.mjs` | 17 | sha256 do validador devolve hex de 64 caracteres igual ao node:crypto · registro coerente passa sem erros · imagem aprovada trocada no disco é reprovada pelo hash · PNG novo fora do registro é reprovado … |
 | `tests/api/maxDuration.test.ts` | 17 | Etapa 24: maxDuration em vercel.json cobre o pior caso real de cada rota · api/quote-requests.ts: catalogValidation + siteDatabase + confirmação (canais em paralelo) · api/contact-requests.ts: preflight + siteDatabase + alerta comercial (sem catalogValidation nem confirmação) · api/notification-events-resend.ts (Etapa 30): apenas uma chamada de RPC (callSiteRpc) … |
 | `site-supabase/supabase/tests/database/contact_commercial_alert.test.sql` | 16 | novo contato alimenta a fila do alerta comercial na mesma transação · contato enfileira exatamente uma entrega · a entrega é o alerta comercial pendente do contato · o envelope identifica o tipo do lead (a API não renderiza texto de orçamento) … |
@@ -1392,6 +1397,7 @@ _nenhum item encontrado_
 | o back-office não pode ficar com spinner pendurado se o PostgREST travar. | `src/lib/commercialBackoffice.ts` |
 | máquina de estados não pode virar 'new' aqui: isso ofereceria ao operador um | `src/lib/commercialBackofficeContract.ts` |
 | * A RPC devolve a fila já filtrada por operador. Um item sem `deliveryId` não pode | `src/lib/commercialBackofficeContract.ts` |
+| Motivo novo do banco não pode virar "not_exhausted": os dois têm efeitos | `src/lib/commercialBackofficeContract.ts` |
 | Uma leitura remota inválida não deve ser confundida com erro de digitação | `src/lib/customerOccasionFavorites.ts` |
 | * Lista somente IDs editoriais; título e descrição continuam no catálogo estático do site. */ | `src/lib/customerOccasionFavorites.ts` |
 | consumidor deve normalizá-los antes de usar. Itens, status e identificadores | `src/lib/customerQuoteContract.ts` |

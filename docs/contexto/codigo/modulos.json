@@ -7,7 +7,7 @@
    "modulo": "api",
    "arquivos": 16,
    "testes": 0,
-   "linhas": 2525,
+   "linhas": 2546,
    "itens_menu": [],
    "telas": [],
    "rotas_http": [
@@ -373,7 +373,7 @@
    "modulo": "lib",
    "arquivos": 47,
    "testes": 40,
-   "linhas": 6304,
+   "linhas": 6375,
    "itens_menu": [],
    "telas": [],
    "rotas_http": [],
@@ -401,6 +401,7 @@
    "tabelas": [],
    "rpcs": [
     "attach_my_briefing_assets_to_quote",
+    "cancel_site_notification_backlog",
     "claim_my_quote_requests",
     "correct_my_data",
     "create_my_briefing_asset",
@@ -458,6 +459,7 @@
     "tabelas": [],
     "rpcs": [
      "attach_my_briefing_assets_to_quote",
+     "cancel_site_notification_backlog",
      "claim_my_quote_requests",
      "correct_my_data",
      "create_my_briefing_asset",
@@ -504,7 +506,7 @@
    "modulo": "pages",
    "arquivos": 19,
    "testes": 8,
-   "linhas": 3993,
+   "linhas": 4072,
    "itens_menu": [
     "Catálogos",
     "Como funciona",
@@ -553,6 +555,7 @@
    "tabelas": [],
    "rpcs": [
     "attach_my_briefing_assets_to_quote",
+    "cancel_site_notification_backlog",
     "claim_my_quote_requests",
     "correct_my_data",
     "create_my_briefing_asset",
@@ -689,7 +692,7 @@
    "modulo": "types",
    "arquivos": 1,
    "testes": 0,
-   "linhas": 1571,
+   "linhas": 1599,
    "itens_menu": [],
    "telas": [],
    "rotas_http": [],

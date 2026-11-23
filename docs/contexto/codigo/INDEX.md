@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `0d78534be6e7f0075d81a12719cf923c77bdda54` (2026-11-23T15:41:30Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `c93830fe6812dda2b68a6f00c4ee165ea7eb3445` (2026-11-23T23:38:45Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -14,7 +14,7 @@ Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR
 Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua tarefa; não carregue tudo.
 
 ## Stack
-- linguagens: TypeScript (231), Markdown (137), SQL (121), JavaScript (67), JSON (30), YAML (19), Python (8), CSS (4)
+- linguagens: TypeScript (231), Markdown (137), SQL (123), JavaScript (67), JSON (30), YAML (19), Python (8), CSS (4)
 - linguagem_principal: TypeScript
 - framework: React
 - backend_http: vercel-functions
@@ -34,9 +34,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Números
 | item | qtd |
 |---|---|
-| arquivos_total | 757 |
+| arquivos_total | 759 |
 | arquivos_codigo | 305 |
-| linhas_codigo | 60799 |
+| linhas_codigo | 61047 |
 | rotas | 35 |
 | rotas_http_backend | 16 |
 | vistas_por_id | 0 |
@@ -46,9 +46,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 | hooks | 6 |
 | edge_functions | 0 |
 | tabelas | 27 |
-| migrations | 76 |
+| migrations | 77 |
 | cron_jobs | 0 |
-| testes | 160 |
+| testes | 161 |
 | workflows | 15 |
 | scripts | 38 |
 | docs_md | 137 |
@@ -180,17 +180,17 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - e2e/smoke.spec.ts (61)
 - src/styles.css (39)
 - package-lock.json (38)
+- docs/DATABASE_DICTIONARY.md (30)
 - .github/workflows/quality.yml (29)
-- docs/DATABASE_DICTIONARY.md (29)
 - vercel.json (29)
 - src/pages/QuotePage.tsx (28)
 - site-supabase/supabase/tests/database/lead_storage.test.sql (27)
+- analise-prs/funcionalidades.csv (24)
+- docs/DATABASE_FUNCTION_CONTRACTS.md (24)
 - src/components/Layout.tsx (24)
-- analise-prs/funcionalidades.csv (23)
-- docs/DATABASE_FUNCTION_CONTRACTS.md (23)
 - .github/workflows/release.yml (21)
-- tests/api/lead-requests.test.ts (21)
-- api/_lib/siteDatabase.ts (20)
+- api/notifications.ts (21)
+- src/types/site-database.types.ts (21)
 
 ## Workflows
 - `automation-local.yml` — Automação local (pull_request, push, workflow_dispatch)
@@ -323,8 +323,8 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `docs/AUDIT_REPORT_20260908.md` — Auditoria técnica consolidada — 08–09/09/2026 (75 linhas)
 - `docs/AUTOMACAO_LOCAL.md` — Automação local — Promo_Brindes_V1 (104 linhas)
 - `docs/CUSTOMER_PORTAL_IMPLEMENTATION_20260909.md` — Área do Cliente — implementação e critérios de aceite (92 linhas)
-- `docs/DATABASE_DICTIONARY.md` — Dicionário de dados — site_private (Etapa 35) (480 linhas)
-- `docs/DATABASE_FUNCTION_CONTRACTS.md` — Contratos das funções do banco do site (Etapas 22 e 23) (253 linhas)
+- `docs/DATABASE_DICTIONARY.md` — Dicionário de dados — site_private (Etapa 35) (481 linhas)
+- `docs/DATABASE_FUNCTION_CONTRACTS.md` — Contratos das funções do banco do site (Etapas 22 e 23) (254 linhas)
 - `docs/DATABASE_INVENTORY_PRINCIPAL.md` — Inventário de tabelas — banco principal (`doufsxqlfjyuvxuezpln`) (415 linhas)
 - `docs/DATABASE_PUBLIC_CONTRACT.md` — Contrato público de dados do Site Promo Brindes (82 linhas)
 - `docs/DATABASE_SCHEMA.md` — Diagrama entidade-relacionamento — site_private (Etapa 48) (57 linhas)
@@ -378,7 +378,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `docs/REVISAO_PRODUTO_230_20260928.md` — Rastreabilidade das 230 referências de produto — revisão 28/09/2026 (241 linhas)
 - `docs/REVISAO_WORKFLOWS_100_20260928.md` — Revisão das 100 etapas de workflows — 28/09/2026 (111 linhas)
 - `docs/RUNBOOK_BANCO_PRINCIPAL.md` — Runbook — banco principal (`doufsxqlfjyuvxuezpln`) (79 linhas)
-- `docs/RUNBOOK_INCIDENTES.md` — Runbooks de incidente (Etapa 49) (123 linhas)
+- `docs/RUNBOOK_INCIDENTES.md` — Runbooks de incidente (Etapa 49) (201 linhas)
 - `docs/RUNBOOK_PEDIDO_TITULAR.md` — Runbook — pedido de apagamento do titular (LGPD art. 18, Etapa 32) (87 linhas)
 - `docs/RUNBOOK_PREVIEW_ISOLADO.md` — Preview isolado do Site Promo Brindes (19 linhas)
 - `docs/RUNBOOK_RECONCILIACAO_LEDGER.md` — Runbook — reconciliação do ledger de migrations (Etapa 1 / Etapa 49) (70 linhas)
@@ -396,6 +396,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-23 `c93830f` feat: corte de backlog da fila de notificações (F-11) (#234)
 - 2026-11-23 `0d78534` chore(deps): bump the npm-minor-and-patch group with 7 updates (#248)
 - 2026-11-23 `81ab3f8` chore(deps): bump actions/dependency-review-action (#246)
 - 2026-11-23 `f54efb6` chore(deps): bump actions/setup-node from 6.5.0 to 7.1.0 (#247)
@@ -410,7 +411,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-22 `20f6600` feat: endpoint de health confere a configuracao do banco (F-75) (#237)
 - 2026-11-22 `28a86e8` feat: por que este produto e ideias de uso (F-45) (#236)
 - 2026-11-22 `a6cd533` feat: mensagens da equipe ao cliente na linha do tempo (F-05) (#235)
-- 2026-11-22 `18eebb5` fix: politica de privacidade declara os estados reais de entrega (F-17) (#243)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

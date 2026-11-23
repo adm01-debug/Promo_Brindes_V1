@@ -743,7 +743,7 @@
     "whatsappChannelConfigured"
    ],
    "export_default": "handler",
-   "linhas": 734,
+   "linhas": 755,
    "tabelas": [],
    "rpcs": [
     "claim_site_notification_deliveries",
@@ -1648,6 +1648,7 @@
    "camada": "lib",
    "exports": [
     "SiteQuoteListQuery",
+    "cancelNotificationBacklog",
     "fetchSiteNotificationDeliveryReport",
     "fetchSiteQuoteDetail",
     "listSiteQuoteRequests",
@@ -1657,9 +1658,10 @@
     "updateSiteQuoteStatus"
    ],
    "export_default": null,
-   "linhas": 133,
+   "linhas": 143,
    "tabelas": [],
    "rpcs": [
+    "cancel_site_notification_backlog",
     "get_site_notification_delivery_report",
     "get_site_quote_request",
     "list_site_quote_requests",
@@ -1685,12 +1687,15 @@
    "arquivo": "src/lib/commercialBackofficeContract.ts",
    "camada": "lib",
    "exports": [
+    "SITE_NOTIFICATION_SKIP_REASONS",
     "SITE_QUOTE_STATUSES",
     "SITE_QUOTE_STATUS_LABELS",
+    "SiteNotificationBacklogCut",
     "SiteNotificationDeliveryReport",
     "SiteNotificationExhaustedDelivery",
     "SiteNotificationReprocessingResult",
     "SiteNotificationReprocessingSkipped",
+    "SiteNotificationSkipReason",
     "SiteQuoteAdjustment",
     "SiteQuoteAuditEntry",
     "SiteQuoteDetail",
@@ -1702,11 +1707,14 @@
     "SiteQuoteProposalPublication",
     "SiteQuoteStatus",
     "SiteQuoteStatusChange",
+    "describeSiteNotificationSkipReasons",
     "isSiteOperatorError",
     "isSiteProposalRejected",
     "isSiteQuoteConflict",
+    "parseSiteNotificationBacklogCut",
     "parseSiteNotificationDeliveryReport",
     "parseSiteNotificationReprocessingResult",
+    "parseSiteNotificationSkipReason",
     "parseSiteQuoteDetail",
     "parseSiteQuoteListPage",
     "parseSiteQuoteProposalPublication",
@@ -1714,7 +1722,7 @@
     "siteOperatorErrorMessage"
    ],
    "export_default": null,
-   "linhas": 452,
+   "linhas": 513,
    "tabelas": [],
    "rpcs": [],
    "edges": [],

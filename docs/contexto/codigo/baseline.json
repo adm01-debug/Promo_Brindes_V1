@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "0d78534be6e7f0075d81a12719cf923c77bdda54",
+  "commit": "c93830fe6812dda2b68a6f00c4ee165ea7eb3445",
   "branch": "main",
-  "data_commit": "2026-11-23T15:41:30Z",
+  "data_commit": "2026-11-23T23:38:45Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "c93830f",
+    "data": "2026-11-23",
+    "assunto": "feat: corte de backlog da fila de notificações (F-11) (#234)"
+   },
    {
     "sha": "0d78534",
     "data": "2026-11-23",
@@ -126,22 +131,17 @@
     "sha": "5b24b40",
     "data": "2026-11-21",
     "assunto": "chore: atualiza o inventario de funcionalidades (F-40 e F-47 COMPLETA) (#224)"
-   },
-   {
-    "sha": "64e1dcc",
-    "data": "2026-11-21",
-    "assunto": "feat: separa intencao do briefing dos filtros efetivos (F-40/PF-40) (#223)"
    }
   ],
-  "arquivos_mudados_7d": 212,
+  "arquivos_mudados_7d": 209,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "analise-prs/funcionalidades.csv",
-    "mudancas": 23
+    "mudancas": 24
    },
    {
     "pasta": "site-supabase/supabase/tests",
-    "mudancas": 22
+    "mudancas": 24
    },
    {
     "pasta": "package.json",
@@ -156,7 +156,15 @@
     "mudancas": 13
    },
    {
+    "pasta": "site-supabase/supabase/migrations",
+    "mudancas": 13
+   },
+   {
     "pasta": "package-lock.json",
+    "mudancas": 12
+   },
+   {
+    "pasta": "scripts/check-performance-budget.mjs",
     "mudancas": 12
    },
    {
@@ -164,15 +172,11 @@
     "mudancas": 11
    },
    {
-    "pasta": "scripts/check-performance-budget.mjs",
-    "mudancas": 11
-   },
-   {
-    "pasta": "site-supabase/supabase/migrations",
-    "mudancas": 11
-   },
-   {
     "pasta": ".github/workflows/quality.yml",
+    "mudancas": 10
+   },
+   {
+    "pasta": "docs/DATABASE_DICTIONARY.md",
     "mudancas": 10
    },
    {
@@ -180,20 +184,16 @@
     "mudancas": 10
    },
    {
-    "pasta": "docs/DATABASE_DICTIONARY.md",
-    "mudancas": 9
-   },
-   {
     "pasta": "tests/check-performance-budget.node.mjs",
+    "mudancas": 10
+   },
+   {
+    "pasta": "docs/DATABASE_FUNCTION_CONTRACTS.md",
     "mudancas": 9
    },
    {
-    "pasta": "AGENTS.md",
-    "mudancas": 8
-   },
-   {
-    "pasta": "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
-    "mudancas": 8
+    "pasta": "src/types/site-database.types.ts",
+    "mudancas": 9
    }
   ],
   "arquivos_mais_mudados_90d": [
@@ -214,11 +214,11 @@
     "mudancas": 38
    },
    {
-    "arquivo": ".github/workflows/quality.yml",
-    "mudancas": 29
+    "arquivo": "docs/DATABASE_DICTIONARY.md",
+    "mudancas": 30
    },
    {
-    "arquivo": "docs/DATABASE_DICTIONARY.md",
+    "arquivo": ".github/workflows/quality.yml",
     "mudancas": 29
    },
    {
@@ -234,19 +234,27 @@
     "mudancas": 27
    },
    {
+    "arquivo": "analise-prs/funcionalidades.csv",
+    "mudancas": 24
+   },
+   {
+    "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
+    "mudancas": 24
+   },
+   {
     "arquivo": "src/components/Layout.tsx",
     "mudancas": 24
    },
    {
-    "arquivo": "analise-prs/funcionalidades.csv",
-    "mudancas": 23
-   },
-   {
-    "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
-    "mudancas": 23
-   },
-   {
     "arquivo": ".github/workflows/release.yml",
+    "mudancas": 21
+   },
+   {
+    "arquivo": "api/notifications.ts",
+    "mudancas": 21
+   },
+   {
+    "arquivo": "src/types/site-database.types.ts",
     "mudancas": 21
    },
    {
@@ -258,16 +266,12 @@
     "mudancas": 20
    },
    {
-    "arquivo": "api/notifications.ts",
-    "mudancas": 20
-   },
-   {
     "arquivo": "docs/DATABASE_SCHEMA.md",
     "mudancas": 20
    },
    {
-    "arquivo": "src/types/site-database.types.ts",
-    "mudancas": 20
+    "arquivo": "scripts/check-performance-budget.mjs",
+    "mudancas": 18
    },
    {
     "arquivo": "src/App.tsx",
@@ -290,10 +294,6 @@
     "mudancas": 17
    },
    {
-    "arquivo": "scripts/check-performance-budget.mjs",
-    "mudancas": 17
-   },
-   {
     "arquivo": ".github/workflows/graphify.yml",
     "mudancas": 16
    }
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 124
+    "commits": 125
    },
    {
     "autor": "dependabot[bot]",
@@ -310,9 +310,9 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 757,
+  "arquivos_total": 759,
   "arquivos_codigo": 305,
-  "linhas_codigo": 60799,
+  "linhas_codigo": 61047,
   "rotas": 35,
   "rotas_http_backend": 16,
   "vistas_por_id": 0,
@@ -322,9 +322,9 @@
   "hooks": 6,
   "edge_functions": 0,
   "tabelas": 27,
-  "migrations": 76,
+  "migrations": 77,
   "cron_jobs": 0,
-  "testes": 160,
+  "testes": 161,
   "workflows": 15,
   "scripts": 38,
   "docs_md": 137
@@ -372,7 +372,7 @@
   },
   "api/notifications.ts": {
    "arquivos": 1,
-   "linhas": 734
+   "linhas": 755
   },
   "api/product-page.ts": {
    "arquivos": 1,
@@ -464,7 +464,7 @@
   },
   "scripts/check-performance-budget.mjs": {
    "arquivos": 1,
-   "linhas": 214
+   "linhas": 217
   },
   "scripts/ci-health-metrics.mjs": {
    "arquivos": 1,
@@ -592,7 +592,7 @@
   },
   "src/lib": {
    "arquivos": 87,
-   "linhas": 9532
+   "linhas": 9649
   },
   "src/main.tsx": {
    "arquivos": 1,
@@ -600,7 +600,7 @@
   },
   "src/pages": {
    "arquivos": 27,
-   "linhas": 4589
+   "linhas": 4668
   },
   "src/test": {
    "arquivos": 1,
@@ -608,7 +608,7 @@
   },
   "src/types": {
    "arquivos": 1,
-   "linhas": 1571
+   "linhas": 1599
   },
   "src/types.ts": {
    "arquivos": 1,
@@ -738,7 +738,7 @@
   },
   {
    "arquivo": "src/types/site-database.types.ts",
-   "linhas": 1571
+   "linhas": 1599
   },
   {
    "arquivo": "scripts/graphify-local.mjs",
@@ -761,16 +761,16 @@
    "linhas": 962
   },
   {
+   "arquivo": "src/pages/BackofficePage.tsx",
+   "linhas": 902
+  },
+  {
    "arquivo": "scripts/maintenance/run.mjs",
    "linhas": 899
   },
   {
-   "arquivo": "src/pages/BackofficePage.tsx",
-   "linhas": 823
-  },
-  {
    "arquivo": "api/notifications.ts",
-   "linhas": 734
+   "linhas": 755
   },
   {
    "arquivo": "src/pages/QuotePage.tsx",
@@ -781,12 +781,12 @@
    "linhas": 581
   },
   {
-   "arquivo": "src/lib/catalog.ts",
-   "linhas": 512
+   "arquivo": "src/lib/commercialBackofficeContract.ts",
+   "linhas": 513
   },
   {
-   "arquivo": "src/lib/commercialBackofficeContract.ts",
-   "linhas": 452
+   "arquivo": "src/lib/catalog.ts",
+   "linhas": 512
   },
   {
    "arquivo": "api/_lib/contracts.ts",
@@ -835,7 +835,7 @@
   "ts_ignore": 0,
   "eslint_disable": 1,
   "todos": 3,
-  "arquivos_acima_500_linhas": 14
+  "arquivos_acima_500_linhas": 15
  },
  "todos": [
   {

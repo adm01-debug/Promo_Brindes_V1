@@ -5,7 +5,7 @@
   "linguagens": [
    "TypeScript (231)",
    "Markdown (137)",
-   "SQL (121)",
+   "SQL (123)",
    "JavaScript (67)",
    "JSON (30)",
    "YAML (19)",
@@ -727,12 +727,12 @@
   {
    "arquivo": "docs/DATABASE_DICTIONARY.md",
    "titulo": "Dicionário de dados — site_private (Etapa 35)",
-   "linhas": 480
+   "linhas": 481
   },
   {
    "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
    "titulo": "Contratos das funções do banco do site (Etapas 22 e 23)",
-   "linhas": 253
+   "linhas": 254
   },
   {
    "arquivo": "docs/DATABASE_INVENTORY_PRINCIPAL.md",
@@ -1002,7 +1002,7 @@
   {
    "arquivo": "docs/RUNBOOK_INCIDENTES.md",
    "titulo": "Runbooks de incidente (Etapa 49)",
-   "linhas": 123
+   "linhas": 201
   },
   {
    "arquivo": "docs/RUNBOOK_PEDIDO_TITULAR.md",

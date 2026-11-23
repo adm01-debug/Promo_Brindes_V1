@@ -5,7 +5,7 @@
   "vitest",
   "playwright"
  ],
- "total": 160,
+ "total": 161,
  "por_tipo": {
   "contrato": 2,
   "e2e": 6,
@@ -349,11 +349,11 @@
   {
    "arquivo": "src/lib/commercialBackofficeContract.test.ts",
    "tipo": "unit",
-   "linhas": 241,
+   "linhas": 287,
    "testa": [
     "src/lib/commercialBackofficeContract.ts"
    ],
-   "casos": 16
+   "casos": 20
   },
   {
    "arquivo": "src/lib/contactRequest.test.ts",
@@ -1176,6 +1176,7 @@
   "site-supabase/supabase/tests/database/kit_persistence_guards.test.sql",
   "site-supabase/supabase/tests/database/lead_preflight_rate_limit.test.sql",
   "site-supabase/supabase/tests/database/lead_storage.test.sql",
+  "site-supabase/supabase/tests/database/notification_backlog_cutoff.test.sql",
   "site-supabase/supabase/tests/database/notification_delivery_status_machine.test.sql",
   "site-supabase/supabase/tests/database/notification_dispatch_uncertainty.test.sql",
   "site-supabase/supabase/tests/database/notification_outbox.test.sql",
