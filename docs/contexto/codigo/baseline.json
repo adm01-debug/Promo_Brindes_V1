@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "f54efb6b1b924c7037590e48ceb9f7651d602d9f",
+  "commit": "81ab3f8cd3a20a845b57f1792f1dfade764601a1",
   "branch": "main",
-  "data_commit": "2026-11-23T13:57:21Z",
+  "data_commit": "2026-11-23T14:32:47Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "81ab3f8",
+    "data": "2026-11-23",
+    "assunto": "chore(deps): bump actions/dependency-review-action (#246)"
+   },
    {
     "sha": "f54efb6",
     "data": "2026-11-23",
@@ -126,14 +131,9 @@
     "sha": "957fa44",
     "data": "2026-11-21",
     "assunto": "feat: contato via WhatsApp iniciado pelo visitante (F-47) (#222)"
-   },
-   {
-    "sha": "a3e9e21",
-    "data": "2026-11-21",
-    "assunto": "feat: fallback de SKU exato quando a busca nao encontra correspondencia (NOVO-CA-22) (#221)"
    }
   ],
-  "arquivos_mudados_7d": 211,
+  "arquivos_mudados_7d": 212,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "analise-prs/funcionalidades.csv",
@@ -305,7 +305,7 @@
    },
    {
     "autor": "dependabot[bot]",
-    "commits": 12
+    "commits": 13
    }
   ]
  },

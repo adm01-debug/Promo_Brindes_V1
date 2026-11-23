@@ -1,9 +1,9 @@
 {
  "meta": {
-  "sha": "f54efb6b1b924c7037590e48ceb9f7651d602d9f",
+  "sha": "81ab3f8cd3a20a845b57f1792f1dfade764601a1",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-23 14:03 UTC",
+  "generated_at": "2026-11-23 14:44 UTC",
   "files_total": 651,
   "code_files": 427,
   "code_lines": 79628,
@@ -39781,10 +39781,19 @@
   }
  },
  "git": {
-  "sha": "f54efb6b1b924c7037590e48ceb9f7651d602d9f",
+  "sha": "81ab3f8cd3a20a845b57f1792f1dfade764601a1",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "81ab3f8",
+    "date": "2026-11-23",
+    "author": "dependabot[bot]",
+    "subject": "chore(deps): bump actions/dependency-review-action (#246)",
+    "files": [
+     ".github/workflows/dependency-review.yml"
+    ]
+   },
    {
     "sha": "f54efb6",
     "date": "2026-11-23",
@@ -40232,25 +40241,6 @@
      "docs/pendencias/_linha-de-base.md",
      "docs/pendencias/_mapa-sistema.md",
      "docs/pendencias/_regras-de-negocio.md"
-    ]
-   },
-   {
-    "sha": "804efbc",
-    "date": "2026-11-20",
-    "author": "adm01-debug",
-    "subject": "fix: promessas honestas em orcamento e catalogo (PF-14, PF-19, PF-20, PF-21) (#215)",
-    "files": [
-     "api/notifications.ts",
-     "src/components/ProductCard.tsx",
-     "src/lib/campaignPresets.test.ts",
-     "src/lib/campaignPresets.ts",
-     "src/lib/quoteConfirmation.test.ts",
-     "src/lib/quoteDraft.test.ts",
-     "src/lib/quoteDraft.ts",
-     "src/lib/quoteRequest.test.ts",
-     "src/lib/quoteRequest.ts",
-     "src/pages/QuotePage.tsx",
-     "tests/api/notifications.test.ts"
     ]
    }
   ],
