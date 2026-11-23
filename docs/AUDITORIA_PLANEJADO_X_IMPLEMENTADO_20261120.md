@@ -158,7 +158,7 @@ Tabela consolidada (uma linha por item). Evidência completa, comandos reproduz�
 | PF-53 | Favoritos: e2e multi-aba, offline, limite 100 | PARCIAL | e2e do limite de 100 e tratamento offline | `e2e/favorites.spec.ts:14,30`; `grep navigator.onLine` = 0 | sim (#193) | ENG |
 | PF-54 | Feedback de clareza; eventos Carnegie; baseline | PARCIAL | `feedback_*`, `summary_edited`, `campaign_context_adjusted` | `analytics.ts` + `.sp-feedback` em `QuotePage.tsx` | sim (5 unit novos, 21 na cobertura do PF-54 + 1 e2e) | ENG (baseline CA 010 pendente com o DONO) |
 | PF-55 | Inventário de afirmações comerciais | NÃO INICIADO | Documento com fonte/dono | `HomePage.tsx:211`; `CatalogPage.tsx:30`; `QuotePage.tsx:385` | não | DONO |
-| PF-56 | Registro rastreável de aprovação visual | PARCIAL | Mockups versionados (#103) sem registro quem/quando/versão | `docs/mockups-*` 16 PNG; `aprovacao-visual-design.md:8-13` | sim (#103) | DONO + ENG |
+| PF-56 | Registro rastreável de aprovação visual | IMPLEMENTADO | Mockups (#103) com dono, data, PR, mergeCommit e SHA-256; guard reprova imagem fora do registro | `docs/aprovacoes-visuais/`, `scripts/validate-visual-approvals.mjs` | sim (9 testes + guard) | ENG |
 
 ### 2.3 Conteúdo, SEO, segurança do repositório, banco e contratos (anexo 03)
 
