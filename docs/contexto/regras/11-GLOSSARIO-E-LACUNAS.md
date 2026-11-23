@@ -1,6 +1,6 @@
 # 11 · GLOSSÁRIO, DADOS DE REFERÊNCIA E LACUNAS
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `d41c1a2751` · branch `main` · 2026-11-23 12:10 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `53252edfe5` · branch `main` · 2026-11-23 12:14 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## Glossário do domínio (entidades do sistema)
@@ -21,6 +21,7 @@
 | `site_private.erased_customer_identities` | Túmulos SHA-256 irreversíveis de identidades apagadas por solicitação LGPD; impedem a reapropriação posterior do histórico sem preservar o e-mail. | 3 colunas | migration |
 | `site_private.notification_deliveries` | Auditoria de entregas futuras. WhatsApp exige consentimento específico antes da criação do registro. Etapa 40: fillfactor 80 deixa espaço para HOT updates nos vários updates por linha (claim, aceite, finalização, webhook); autovacuum mais agressivo que o padrão (20%) evita acúmulo de tuplas mortas. | 23 colunas | migration |
 | `site_private.notification_provider_events` | Deduplicação de eventos de webhook de entrega/devolução (Etapa 30). Sem conteúdo pessoal — apenas ids de correlação do provedor. | 8 colunas | migration |
+| `site_private.pii_read_audit_log` | PF-34: audita leituras (SELECT) de colunas de contato do titular em tabelas de PII. Não armazena o valor lido, só que uma leitura aconteceu, para quem, quando, quantas linhas e com qual filtro. | 10 colunas | migration |
 | `site_private.proposal_documents` | _(sem COMMENT ON TABLE — significado não documentado)_ | 10 colunas | migration |
 | `site_private.quote_adjustment_requests` | _(sem COMMENT ON TABLE — significado não documentado)_ | 8 colunas | migration |
 | `site_private.quote_items` | Snapshot do produto no instante do briefing; sem FK entre projetos Supabase. | 20 colunas | migration |
@@ -82,7 +83,7 @@ _nenhum item encontrado_
 - `site_private.quote_adjustment_requests.status` tem valores ['closed', 'new', 'resolved', 'triaged'] mas nenhum mapa de transições foi encontrado no código nem em tabela de transições do banco — a ordem permitida (ex.: pago → cancelado?) não está declarada.
 - `site_private.status_transitions.from_status` é uma coluna de status sem enum/CHECK — os valores válidos e as transições permitidas não estão no banco.
 - `site_private.status_transitions.to_status` é uma coluna de status sem enum/CHECK — os valores válidos e as transições permitidas não estão no banco.
-- 8/25 tabelas sem `COMMENT ON TABLE` — o significado de negócio não está no schema: `site_private.quote_requests`, `site_private.contact_requests`, `site_private.consent_receipts`, `site_private.customer_profiles`, `site_private.quote_request_events`, `site_private.proposal_documents`, `site_private.quote_adjustment_requests`, `site_private.shared_selections`
+- 8/26 tabelas sem `COMMENT ON TABLE` — o significado de negócio não está no schema: `site_private.quote_requests`, `site_private.contact_requests`, `site_private.consent_receipts`, `site_private.customer_profiles`, `site_private.quote_request_events`, `site_private.proposal_documents`, `site_private.quote_adjustment_requests`, `site_private.shared_selections`
 
 ## Regras manuais presentes
 

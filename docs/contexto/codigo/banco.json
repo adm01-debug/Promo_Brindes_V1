@@ -6,7 +6,7 @@
   "site-supabase/supabase/migrations",
   "src/types/site-database.types.ts"
  ],
- "migrations": 75,
+ "migrations": 76,
  "seeds": [],
  "avisos": [
   "4 bloco(s) com DDL dinâmico (EXECUTE format/...) não modelado — policies/colunas criadas dinamicamente podem faltar; confira no banco vivo"
@@ -61,6 +61,7 @@
   "purge_archived_customer_selections",
   "purge_site_admin_audit_logs",
   "purge_site_notification_provider_events",
+  "purge_site_pii_read_audit_log",
   "reconcile_site_notification_provider_events",
   "record_cron_heartbeat",
   "record_site_notification_dispatch_started",
@@ -99,6 +100,7 @@
   "site_private.is_valid_proposal_storage_path",
   "site_private.log_admin_ddl",
   "site_private.log_admin_write",
+  "site_private.log_pii_read",
   "site_private.mod11_check_digit",
   "site_private.next_retry_at",
   "site_private.normalize_email",
@@ -1736,6 +1738,117 @@
     "provider_event_id": "string",
     "provider_message_id": "string | null",
     "received_at": "string"
+   },
+   "drift": {
+    "so_na_migration": [],
+    "so_no_types": []
+   },
+   "usada_no_front": 0,
+   "usada_em_edges": [],
+   "triggers": [],
+   "sem_rls": false,
+   "nao_usada": true
+  },
+  "site_private.pii_read_audit_log": {
+   "colunas": {
+    "actor_kind": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": "'titular'",
+     "ref": null
+    },
+    "application_name": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "filter": {
+     "tipo": "text",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "id": {
+     "tipo": "bigint",
+     "nn": false,
+     "pk": true,
+     "default": null,
+     "ref": null
+    },
+    "occurred_at": {
+     "tipo": "timestamptz",
+     "nn": true,
+     "pk": false,
+     "default": "now()",
+     "ref": null
+    },
+    "operation": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": "'SELECT'",
+     "ref": null
+    },
+    "performed_by": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "row_count": {
+     "tipo": "integer",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "subject": {
+     "tipo": "uuid",
+     "nn": false,
+     "pk": false,
+     "default": null,
+     "ref": null
+    },
+    "table_name": {
+     "tipo": "text",
+     "nn": true,
+     "pk": false,
+     "default": null,
+     "ref": null
+    }
+   },
+   "rls": true,
+   "policies": [],
+   "indices": [
+    {
+     "nome": "pii_read_audit_log_occurred_idx",
+     "colunas": "occurred_at, id",
+     "unico": false
+    },
+    {
+     "nome": "pii_read_audit_log_subject_occurred_idx",
+     "colunas": "subject, occurred_at desc, id",
+     "unico": false
+    }
+   ],
+   "fks": [],
+   "criada_em": "20261122110000_add_pii_read_audit.sql",
+   "colunas_types": {
+    "actor_kind": "string",
+    "application_name": "string | null",
+    "filter": "string | null",
+    "id": "number",
+    "occurred_at": "string",
+    "operation": "string",
+    "performed_by": "string",
+    "row_count": "number | null",
+    "subject": "string | null",
+    "table_name": "string"
    },
    "drift": {
     "so_na_migration": [],

@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "feat: auditoria de leitura SELECT em PII (F-34) (#242)",
    "chore(deps): bump @testing-library/jest-dom from 7.0.1 to 8.0.0 (#249)",
    "docs: registro rastreavel de aprovacao visual (PF-56) (#239)",
    "feat: supressao de bounce e reprocessamento auditado da fila (F-12) (#233)",
-   "chore: CI mais barata e rapida (F-95) (#241)",
-   "feat: feedback opcional de clareza e eventos do PF-54 (#238)"
+   "chore: CI mais barata e rapida (F-95) (#241)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

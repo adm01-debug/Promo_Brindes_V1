@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `d41c1a2751` · branch `main` · 2026-11-23 12:10 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `53252edfe5` · branch `main` · 2026-11-23 12:14 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -237,6 +237,12 @@ _Nenhum arquivo em `manual/`. Copie `manual/TEMPLATE-regras-de-negocio.md` para 
 | `site_private.cron_heartbeats` | `last_failure_detail` | CHECK last_failure_detail is null or length(last_failure_detail) <= 240 |
 | `site_private.cron_heartbeats` | `consecutive_failures` | default 0; CHECK consecutive_failures >= 0 |
 | `site_private.cron_heartbeats` | `updated_at` | default now() |
+| `site_private.pii_read_audit_log` | `id` | PK |
+| `site_private.pii_read_audit_log` | `table_name` | obrigatório |
+| `site_private.pii_read_audit_log` | `operation` | default 'SELECT'; CHECK operation = 'SELECT' |
+| `site_private.pii_read_audit_log` | `performed_by` | obrigatório |
+| `site_private.pii_read_audit_log` | `actor_kind` | default 'titular'; CHECK actor_kind in ('titular', 'operador') |
+| `site_private.pii_read_audit_log` | `occurred_at` | default now() |
 
 ## D. Automações no banco (triggers e funções — regras que rodam sozinhas)
 
@@ -303,7 +309,6 @@ Erros lançados por funções SQL (`RAISE EXCEPTION` = regra de negócio no banc
 | `create_site_quote_request` | client_request_id_conflict | `site-supabase/supabase/migrations/20260922160000_preserve_kit_composition.sql` |
 | `create_site_quote_request` | invalid_item_decision_group | `site-supabase/supabase/migrations/20260922160000_preserve_kit_composition.sql` |
 | `create_site_quote_request` | invalid_kit_composition | `site-supabase/supabase/migrations/20260922160000_preserve_kit_composition.sql` |
-| `get_my_quote_request` | authentication_required | `site-supabase/supabase/migrations/20260922160000_preserve_kit_composition.sql` |
 | `normalize_selection_references` | invalid_selection_reference_set | `site-supabase/supabase/migrations/20260922210000_close_selection_and_asset_integrity_gaps.sql` |
 | `normalize_selection_references` | invalid_selection_reference | `site-supabase/supabase/migrations/20260922210000_close_selection_and_asset_integrity_gaps.sql` |
 | `normalize_selection_references` | invalid_kit_reference_set | `site-supabase/supabase/migrations/20260922210000_close_selection_and_asset_integrity_gaps.sql` |
@@ -359,9 +364,6 @@ Erros lançados por funções SQL (`RAISE EXCEPTION` = regra de negócio no banc
 | `claim_my_quote_requests` | verified_email_required | `site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql` |
 | `assert_site_operator` | authentication_required | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
 | `assert_site_operator` | not_a_site_operator | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
-| `list_site_quote_requests` | invalid_status_filter | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
-| `get_site_quote_request` | request_id_required | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
-| `get_site_quote_request` | quote_request_not_found | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
 | `update_site_quote_status` | request_id_required | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
 | `update_site_quote_status` | status_required | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
 | `update_site_quote_status` | quote_request_not_found | `site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql` |
@@ -392,6 +394,11 @@ Erros lançados por funções SQL (`RAISE EXCEPTION` = regra de negócio no banc
 | `reply_site_quote_adjustment` | invalid_adjustment_status | `site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql` |
 | `reply_site_quote_adjustment` | adjustment_not_found | `site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql` |
 | `erase_customer_data` | invalid_erasure_email | `site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql` |
+| `purge_site_pii_read_audit_log` | invalid_pii_read_retention_input | `site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql` |
+| `get_my_quote_request` | authentication_required | `site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql` |
+| `list_site_quote_requests` | invalid_status_filter | `site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql` |
+| `get_site_quote_request` | request_id_required | `site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql` |
+| `get_site_quote_request` | quote_request_not_found | `site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql` |
 
 ## E. Estados, máquinas de estado e transições
 
@@ -1139,11 +1146,11 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (2083 testes em 150 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (2125 testes em 151 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
-| `site-supabase/supabase/tests/database/lead_storage.test.sql` | 69 | schema privado contém as tabelas planejadas, incluindo favoritos de datas sem PII, as duas do back-office (F-03) e o heartbeat dos crons (F-87) · seleções persistentes ficam no schema privado · criação de links recebe rate limit próprio · máquina de estados administrativa vive em tabela dedicada (Etapa 8) … |
+| `site-supabase/supabase/tests/database/lead_storage.test.sql` | 69 | schema privado contém as tabelas planejadas, incluindo favoritos de datas sem PII, as duas do back-office (F-03), o heartbeat dos crons (F-87) e a trilha de leitura de PII (F-34) · seleções persistentes ficam no schema privado · criação de links recebe rate limit próprio · máquina de estados administrativa vive em tabela dedicada (Etapa 8) … |
 | `site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql` | 68 | trilha de exercicio de direito existe · trilha vincula a conta · trilha registra o tipo de direito · coluna right_type tem constraint check … |
 | `site-supabase/supabase/tests/database/notification_suppression.test.sql` | 67 | evento guarda o id da mensagem no provedor para poder ser religado depois · evento guarda o motivo do bounce para o re-vínculo não perder a informação · pseudônimo do e-mail existe · consulta de supressão existe … |
 | `tests/inventario-estado.node.mjs` | 63 | extrairInventario aceita objeto direto, envelope do PostgREST e envelope do MCP · extrairInventario recusa entrada sem as chaves obrigatórias, sem tabelas ou de outra versão · conferirOrigem aprova a resposta que cobre as tabelas das migrations e o ledger · conferirOrigem recusa um banco irmão: as tabelas das migrations não estão lá … |
@@ -1153,6 +1160,7 @@ _nenhum item encontrado_
 | `site-supabase/supabase/tests/database/notification_outbox.test.sql` | 47 | fila possui agenda de nova tentativa · fila identifica a reivindicação ativa (R04) · novo orçamento alimenta a fila na mesma transação · anon não reivindica notificações … |
 | `site-supabase/supabase/tests/database/customer_data_erasure.test.sql` | 46 | anon não apaga dados de titular · authenticated não apaga dados de titular (operação administrativa) · service_role executa o apagamento · anonimiza 1 quote_request (e-mail com espaço/maiúsculas normalizado na entrada) … |
 | `site-supabase/supabase/tests/database/storage_authenticated_rls.test.sql` | 43 | bucket privado tem exatamente 3 policies próprias (leitura, upload, exclusão) · as 3 policies valem só para authenticated (nem anon, nem service_role) · RLS está habilitada em storage.objects · authenticated não tem BYPASSRLS — o papel testado aqui é o que roda em produção … |
+| `site-supabase/supabase/tests/database/pii_read_audit.test.sql` | 42 | anon não lê a trilha de leitura de PII · authenticated não lê a trilha de leitura de PII · site_api não lê a trilha de leitura de PII (só grava via RPC) · service_role lê a trilha de leitura de PII … |
 | `site-supabase/supabase/tests/database/customer_portal.test.sql` | 41 | orçamento possui titular autenticado opcional · perfil do cliente existe no schema privado · linha do tempo existe no schema privado · metadados de propostas existem no schema privado … |
 | `site-supabase/supabase/tests/database/notification_delivery_status_machine.test.sql` | 40 | pending -> pending (no-op) · pending -> processing · pending -> sent (rejeitado: pula processing) · pending -> failed (rejeitado: pula processing) … |
 | `tests/api/lead-requests.test.ts` | 37 | APIs de leads isoladas · registra contato normalizado pelo RPC server-side · rejeita resposta malformada do banco: %s · repetição idempotente promete envio quando o provedor de WhatsApp existe … |

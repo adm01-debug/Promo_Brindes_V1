@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "d41c1a27516aba382b95f8bb6c66f10d60907ca7",
+  "commit": "53252edfe537c9798475112a1241b682768b40f4",
   "branch": "main",
-  "data_commit": "2026-11-23T11:47:11Z",
+  "data_commit": "2026-11-23T12:12:47Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "53252ed",
+    "data": "2026-11-23",
+    "assunto": "feat: auditoria de leitura SELECT em PII (F-34) (#242)"
+   },
    {
     "sha": "d41c1a2",
     "data": "2026-11-23",
@@ -126,22 +131,17 @@
     "sha": "66ed450",
     "data": "2026-11-21",
     "assunto": "feat(lgpd): direitos do titular — acesso, exportacao, correcao e autoexclusao (F-30) (#220)"
-   },
-   {
-    "sha": "e40d98f",
-    "data": "2026-11-21",
-    "assunto": "chore(docs): reconcilia ground-truth de F-01/F-31/F-110 (#219)"
    }
   ],
-  "arquivos_mudados_7d": 209,
+  "arquivos_mudados_7d": 211,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "analise-prs/funcionalidades.csv",
-    "mudancas": 22
+    "mudancas": 23
    },
    {
     "pasta": "site-supabase/supabase/tests",
-    "mudancas": 20
+    "mudancas": 22
    },
    {
     "pasta": "package.json",
@@ -153,7 +153,7 @@
    },
    {
     "pasta": "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
-    "mudancas": 12
+    "mudancas": 13
    },
    {
     "pasta": "docs/audits/pending-features-20261011",
@@ -168,6 +168,10 @@
     "mudancas": 11
    },
    {
+    "pasta": "site-supabase/supabase/migrations",
+    "mudancas": 11
+   },
+   {
     "pasta": ".github/workflows/quality.yml",
     "mudancas": 10
    },
@@ -176,8 +180,8 @@
     "mudancas": 10
    },
    {
-    "pasta": "site-supabase/supabase/migrations",
-    "mudancas": 10
+    "pasta": "docs/DATABASE_DICTIONARY.md",
+    "mudancas": 9
    },
    {
     "pasta": "tests/check-performance-budget.node.mjs",
@@ -188,11 +192,7 @@
     "mudancas": 8
    },
    {
-    "pasta": "docs/DATABASE_DICTIONARY.md",
-    "mudancas": 8
-   },
-   {
-    "pasta": "src/styles.css",
+    "pasta": "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
     "mudancas": 8
    }
   ],
@@ -218,12 +218,12 @@
     "mudancas": 29
    },
    {
-    "arquivo": "vercel.json",
+    "arquivo": "docs/DATABASE_DICTIONARY.md",
     "mudancas": 29
    },
    {
-    "arquivo": "docs/DATABASE_DICTIONARY.md",
-    "mudancas": 28
+    "arquivo": "vercel.json",
+    "mudancas": 29
    },
    {
     "arquivo": "src/pages/QuotePage.tsx",
@@ -231,7 +231,7 @@
    },
    {
     "arquivo": "site-supabase/supabase/tests/database/lead_storage.test.sql",
-    "mudancas": 26
+    "mudancas": 27
    },
    {
     "arquivo": "src/components/Layout.tsx",
@@ -239,11 +239,11 @@
    },
    {
     "arquivo": "analise-prs/funcionalidades.csv",
-    "mudancas": 22
+    "mudancas": 23
    },
    {
     "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
-    "mudancas": 22
+    "mudancas": 23
    },
    {
     "arquivo": ".github/workflows/release.yml",
@@ -263,11 +263,11 @@
    },
    {
     "arquivo": "docs/DATABASE_SCHEMA.md",
-    "mudancas": 19
+    "mudancas": 20
    },
    {
     "arquivo": "src/types/site-database.types.ts",
-    "mudancas": 19
+    "mudancas": 20
    },
    {
     "arquivo": "src/App.tsx",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 123
+    "commits": 124
    },
    {
     "autor": "dependabot[bot]",
@@ -310,9 +310,9 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 755,
+  "arquivos_total": 757,
   "arquivos_codigo": 305,
-  "linhas_codigo": 60746,
+  "linhas_codigo": 60799,
   "rotas": 35,
   "rotas_http_backend": 16,
   "vistas_por_id": 0,
@@ -321,10 +321,10 @@
   "componentes": 42,
   "hooks": 6,
   "edge_functions": 0,
-  "tabelas": 26,
-  "migrations": 75,
+  "tabelas": 27,
+  "migrations": 76,
   "cron_jobs": 0,
-  "testes": 159,
+  "testes": 160,
   "workflows": 15,
   "scripts": 38,
   "docs_md": 137
@@ -608,7 +608,7 @@
   },
   "src/types": {
    "arquivos": 1,
-   "linhas": 1518
+   "linhas": 1571
   },
   "src/types.ts": {
    "arquivos": 1,
@@ -738,7 +738,7 @@
   },
   {
    "arquivo": "src/types/site-database.types.ts",
-   "linhas": 1518
+   "linhas": 1571
   },
   {
    "arquivo": "scripts/graphify-local.mjs",

@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `d41c1a27516aba382b95f8bb6c66f10d60907ca7` (2026-11-23T11:47:11Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `53252edfe537c9798475112a1241b682768b40f4` (2026-11-23T12:12:47Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -14,7 +14,7 @@ Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR
 Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua tarefa; não carregue tudo.
 
 ## Stack
-- linguagens: TypeScript (231), Markdown (137), SQL (119), JavaScript (67), JSON (30), YAML (19), Python (8), CSS (4)
+- linguagens: TypeScript (231), Markdown (137), SQL (121), JavaScript (67), JSON (30), YAML (19), Python (8), CSS (4)
 - linguagem_principal: TypeScript
 - framework: React
 - backend_http: vercel-functions
@@ -34,9 +34,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Números
 | item | qtd |
 |---|---|
-| arquivos_total | 755 |
+| arquivos_total | 757 |
 | arquivos_codigo | 305 |
-| linhas_codigo | 60746 |
+| linhas_codigo | 60799 |
 | rotas | 35 |
 | rotas_http_backend | 16 |
 | vistas_por_id | 0 |
@@ -45,10 +45,10 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 | componentes | 42 |
 | hooks | 6 |
 | edge_functions | 0 |
-| tabelas | 26 |
-| migrations | 75 |
+| tabelas | 27 |
+| migrations | 76 |
 | cron_jobs | 0 |
-| testes | 159 |
+| testes | 160 |
 | workflows | 15 |
 | scripts | 38 |
 | docs_md | 137 |
@@ -181,13 +181,13 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - src/styles.css (39)
 - package-lock.json (37)
 - .github/workflows/quality.yml (29)
+- docs/DATABASE_DICTIONARY.md (29)
 - vercel.json (29)
-- docs/DATABASE_DICTIONARY.md (28)
 - src/pages/QuotePage.tsx (28)
-- site-supabase/supabase/tests/database/lead_storage.test.sql (26)
+- site-supabase/supabase/tests/database/lead_storage.test.sql (27)
 - src/components/Layout.tsx (24)
-- analise-prs/funcionalidades.csv (22)
-- docs/DATABASE_FUNCTION_CONTRACTS.md (22)
+- analise-prs/funcionalidades.csv (23)
+- docs/DATABASE_FUNCTION_CONTRACTS.md (23)
 - .github/workflows/release.yml (21)
 - tests/api/lead-requests.test.ts (21)
 - api/_lib/siteDatabase.ts (20)
@@ -323,11 +323,11 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `docs/AUDIT_REPORT_20260908.md` — Auditoria técnica consolidada — 08–09/09/2026 (75 linhas)
 - `docs/AUTOMACAO_LOCAL.md` — Automação local — Promo_Brindes_V1 (104 linhas)
 - `docs/CUSTOMER_PORTAL_IMPLEMENTATION_20260909.md` — Área do Cliente — implementação e critérios de aceite (92 linhas)
-- `docs/DATABASE_DICTIONARY.md` — Dicionário de dados — site_private (Etapa 35) (462 linhas)
-- `docs/DATABASE_FUNCTION_CONTRACTS.md` — Contratos das funções do banco do site (Etapas 22 e 23) (252 linhas)
+- `docs/DATABASE_DICTIONARY.md` — Dicionário de dados — site_private (Etapa 35) (480 linhas)
+- `docs/DATABASE_FUNCTION_CONTRACTS.md` — Contratos das funções do banco do site (Etapas 22 e 23) (253 linhas)
 - `docs/DATABASE_INVENTORY_PRINCIPAL.md` — Inventário de tabelas — banco principal (`doufsxqlfjyuvxuezpln`) (415 linhas)
 - `docs/DATABASE_PUBLIC_CONTRACT.md` — Contrato público de dados do Site Promo Brindes (82 linhas)
-- `docs/DATABASE_SCHEMA.md` — Diagrama entidade-relacionamento — site_private (Etapa 48) (56 linhas)
+- `docs/DATABASE_SCHEMA.md` — Diagrama entidade-relacionamento — site_private (Etapa 48) (57 linhas)
 - `docs/EXECUCAO_COMPLEMENTAR_20260922.md` — Execução complementar e correção das evidências — 22/09/2026 (50 linhas)
 - `docs/EXECUCAO_CORRECOES_20260912.md` — Execução das correções prioritárias — 12/09/2026 (68 linhas)
 - `docs/EXECUCAO_FECHAMENTO_TECNICO_20260922.md` — Fechamento das lacunas técnicas priorizadas — 22/09/2026 (54 linhas)
@@ -396,6 +396,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-23 `53252ed` feat: auditoria de leitura SELECT em PII (F-34) (#242)
 - 2026-11-23 `d41c1a2` chore(deps): bump @testing-library/jest-dom from 7.0.1 to 8.0.0 (#249)
 - 2026-11-23 `a771c02` docs: registro rastreavel de aprovacao visual (PF-56) (#239)
 - 2026-11-22 `883ff95` feat: supressao de bounce e reprocessamento auditado da fila (F-12) (#233)
@@ -410,7 +411,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-22 `8543dac` feat: vigia independente dos crons com heartbeat e alerta (F-87) (#232)
 - 2026-11-22 `fc29771` feat: back-office minimo de orcamentos (F-03) e produtor de propostas versionadas (F-23) (#225)
 - 2026-11-22 `180c09a` docs: executa a revisao mensal do banco e corrige a coluna duplicada (F-90) (#229)
-- 2026-11-22 `e249b52` fix: mensagem acionavel no limite de 3 ajustes pendentes (F-04) (#230)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

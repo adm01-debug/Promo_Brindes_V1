@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "d41c1a27516aba382b95f8bb6c66f10d60907ca7",
+  "sha": "53252edfe537c9798475112a1241b682768b40f4",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-23 12:10 UTC",
-  "files_total": 649,
-  "code_files": 425,
-  "code_lines": 78851,
+  "generated_at": "2026-11-23 12:14 UTC",
+  "files_total": 651,
+  "code_files": 427,
+  "code_lines": 79628,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "4342c1dd5d82dc8a",
+ "facts_hash": "3400ecd5e9f92af7",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -284,7 +284,7 @@
   "package_manager": "npm",
   "languages": {
    ".ts": 164,
-   ".sql": 119,
+   ".sql": 121,
    ".tsx": 67,
    ".mjs": 65,
    ".py": 8,
@@ -2053,6 +2053,84 @@
     "src": "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql",
     "comment": "Heartbeat dos crons do site (F-87). Uma linha por cron agendado em vercel.json; escrita so pela RPC record_cron_heartbeat.",
     "origin": "migration"
+   },
+   "site_private.pii_read_audit_log": {
+    "columns": [
+     {
+      "name": "id",
+      "type": "bigint generated always as identity primary key",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+     },
+     {
+      "name": "table_name",
+      "type": "text not null",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+     },
+     {
+      "name": "operation",
+      "type": "text not null default 'SELECT' check (operation = 'SELECT')",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+     },
+     {
+      "name": "subject",
+      "type": "uuid",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+     },
+     {
+      "name": "performed_by",
+      "type": "text not null",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+     },
+     {
+      "name": "actor_kind",
+      "type": "text not null default 'titular' check (actor_kind in ('titular', 'operador'))",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+     },
+     {
+      "name": "filter",
+      "type": "text",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+     },
+     {
+      "name": "row_count",
+      "type": "integer",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+     },
+     {
+      "name": "application_name",
+      "type": "text",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+     },
+     {
+      "name": "occurred_at",
+      "type": "timestamptz not null default now()",
+      "fk": "",
+      "generated": "",
+      "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+     }
+    ],
+    "constraints": [],
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql",
+    "comment": "PF-34: audita leituras (SELECT) de colunas de contato do titular em tabelas de PII. Não armazena o valor lido, só que uma leitura aconteceu, para quem, quando, quantas linhas e com qual filtro.",
+    "origin": "migration"
    }
   },
   "policies": [
@@ -2445,7 +2523,7 @@
     "args": "p_request_id uuid",
     "returns": "jsonb",
     "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20260922160000_preserve_kit_composition.sql",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql",
     "security_definer": true,
     "search_path": true,
     "body": "declare v_user_id uuid := auth.uid(); v_request site_private.quote_requests%rowtype; v_items jsonb; v_events jsonb; v_proposals jsonb; begin if v_user_id is null then raise exception using errcode = '42501', message = 'authentication_required'; end if; select * into v_request from site_private.quote_requests request where request.id = p_request_id and request.customer_user_id = v_user_id and request.status <> 'spam'; if not found then return null; end if; select coalesce(jsonb_agg(jsonb_strip_nulls(jsonb_build_object( 'key', item.item_key, 'productId', item.source_product_id, 'slug', item.product_slug, 'name', item.product_name_snapshot, 'sku', item.sku_snapshot, 'imageUrl', item.image_url_s …",
@@ -3587,7 +3665,7 @@
     "args": "p_status text default null, p_search text default null, p_limit integer default 25, p_offset integer default 0",
     "returns": "jsonb",
     "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql",
     "security_definer": true,
     "search_path": true,
     "body": "declare v_operator site_private.commercial_operators := site_private.assert_site_operator(); v_limit integer := least(greatest(coalesce(p_limit, 25), 1), 100); v_offset integer := greatest(coalesce(p_offset, 0), 0); v_search text := nullif(btrim(coalesce(p_search, '')), ''); v_protocol text := nullif(btrim(ltrim(btrim(coalesce(p_search, '')), '#')), ''); v_status text := nullif(btrim(coalesce(p_status, '')), ''); v_rows jsonb; v_total integer; begin if v_status is not null and v_status not in ('new', 'triaged', 'in_progress', 'quoted', 'closed', 'spam') then raise exception using errcode = '22023', message = 'invalid_status_filter'; end if; select count(*) into v_total from site_private.quot …",
@@ -3604,10 +3682,10 @@
     "args": "p_request_id uuid",
     "returns": "jsonb",
     "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql",
     "security_definer": true,
     "search_path": true,
-    "body": "declare v_operator site_private.commercial_operators := site_private.assert_site_operator(); v_request site_private.quote_requests%rowtype; v_items jsonb; v_events jsonb; v_proposals jsonb; v_adjustments jsonb; v_allowed_statuses text[]; v_audit jsonb; begin if p_request_id is null then raise exception using errcode = '22023', message = 'request_id_required'; end if; select * into v_request from site_private.quote_requests request where request.id = p_request_id; if not found then raise exception using errcode = 'P0002', message = 'quote_request_not_found'; end if; select coalesce(jsonb_agg(jsonb_build_object( 'key', item.item_key, 'productId', item.source_product_id, 'slug', item.product_sl …",
+    "body": "declare v_operator site_private.commercial_operators := site_private.assert_site_operator(); v_request site_private.quote_requests%rowtype; v_items jsonb; v_events jsonb; v_proposals jsonb; v_adjustments jsonb; v_allowed_statuses text[]; v_audit jsonb; begin if p_request_id is null then raise exception using errcode = '22023', message = 'request_id_required'; end if; select * into v_request from site_private.quote_requests request where request.id = p_request_id; if not found then raise exception using errcode = 'P0002', message = 'quote_request_not_found'; end if; perform site_private.log_pii_read('quote_requests', null, 1, v_request.id::text, 'operador'); select coalesce(jsonb_agg(jsonb_bu …",
     "raises": [
      "request_id_required",
      "quote_request_not_found"
@@ -3889,6 +3967,34 @@
     "body": "declare v_deleted integer; begin if p_retention_days is null or p_retention_days not between 7 and 3650 or p_batch_size is null or p_batch_size not between 1 and 5000 then raise exception using errcode = '22023', message = 'invalid_notification_event_purge_input'; end if; with candidates as ( select event.id from site_private.notification_provider_events event where event.delivery_id is null and event.received_at < now() - make_interval(days => p_retention_days) order by event.received_at, event.id limit p_batch_size ) delete from site_private.notification_provider_events event using candidates where event.id = candidates.id; get diagnostics v_deleted = row_count; return jsonb_build_object(' …",
     "raises": [
      "invalid_notification_event_purge_input"
+    ],
+    "tables": [
+     "site_private"
+    ]
+   },
+   "log_pii_read": {
+    "args": "p_table_name text, p_subject uuid default null, p_row_count integer default null, p_filter text default null, p_actor_kind text default 'titular'",
+    "returns": "void",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "begin insert into site_private.pii_read_audit_log (table_name, subject, performed_by, application_name, row_count, filter, actor_kind) values ( p_table_name, p_subject, coalesce(auth.uid()::text, site_private.audit_actor(), 'anonymous'), current_setting('application_name', true), p_row_count, p_filter, p_actor_kind ); end;",
+    "raises": [],
+    "tables": [
+     "site_private"
+    ]
+   },
+   "purge_site_pii_read_audit_log": {
+    "args": "p_retention_days integer default 400, p_batch_size integer default 1000",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_reads integer; begin if p_retention_days not between 30 and 3650 or p_batch_size not between 1 and 5000 then raise exception using errcode = '22023', message = 'invalid_pii_read_retention_input'; end if; with candidates as ( select id from site_private.pii_read_audit_log where occurred_at < now() - make_interval(days => p_retention_days) order by occurred_at, id limit p_batch_size ) delete from site_private.pii_read_audit_log log using candidates where log.id = candidates.id; get diagnostics v_reads = row_count; return jsonb_build_object('readsDeleted', v_reads); end;",
+    "raises": [
+     "invalid_pii_read_retention_input"
     ],
     "tables": [
      "site_private"
@@ -4224,6 +4330,22 @@
     "unique": false,
     "where": "where delivery_id is null",
     "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "name": "pii_read_audit_log_subject_occurred_idx",
+    "table": "site_private.pii_read_audit_log",
+    "columns": "subject, occurred_at desc, id",
+    "unique": false,
+    "where": "",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "name": "pii_read_audit_log_occurred_idx",
+    "table": "site_private.pii_read_audit_log",
+    "columns": "occurred_at, id",
+    "unique": false,
+    "where": "",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
    }
   ],
   "cron_jobs": [],
@@ -4303,7 +4425,8 @@
    "site-supabase/supabase/migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql",
    "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
    "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql",
-   "site-supabase/supabase/migrations/20261122080000_include_message_text_in_export.sql"
+   "site-supabase/supabase/migrations/20261122080000_include_message_text_in_export.sql",
+   "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
   ],
   "rls": {
    "site_private.quote_requests": "forced",
@@ -4330,7 +4453,8 @@
    "site_private.subject_right_requests": "forced",
    "site_private.commercial_operators": "forced",
    "site_private.commercial_audit_log": "forced",
-   "site_private.cron_heartbeats": "forced"
+   "site_private.cron_heartbeats": "forced",
+   "site_private.pii_read_audit_log": "forced"
   },
   "grants": [
    {
@@ -6940,6 +7064,102 @@
     "objkind": "function",
     "roles": "site_api, service_role",
     "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.pii_read_audit_log",
+    "objkind": "table",
+    "roles": "public, anon, authenticated, site_api",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "select, insert",
+    "object": "site_private.pii_read_audit_log",
+    "objkind": "table",
+    "roles": "service_role",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.log_pii_read",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "site_private.log_pii_read",
+    "objkind": "function",
+    "roles": "authenticated",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "purge_site_pii_read_audit_log",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "purge_site_pii_read_audit_log",
+    "objkind": "function",
+    "roles": "service_role",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "get_my_quote_request",
+    "objkind": "function",
+    "roles": "public, anon",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "get_my_quote_request",
+    "objkind": "function",
+    "roles": "authenticated, service_role",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "list_site_quote_requests",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "list_site_quote_requests",
+    "objkind": "function",
+    "roles": "authenticated, service_role",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "get_site_quote_request",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "get_site_quote_request",
+    "objkind": "function",
+    "roles": "authenticated, service_role",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
    }
   ],
   "raises": [
@@ -7091,11 +7311,6 @@
    {
     "function": "create_site_quote_request",
     "msg": "invalid_kit_composition",
-    "src": "site-supabase/supabase/migrations/20260922160000_preserve_kit_composition.sql"
-   },
-   {
-    "function": "get_my_quote_request",
-    "msg": "authentication_required",
     "src": "site-supabase/supabase/migrations/20260922160000_preserve_kit_composition.sql"
    },
    {
@@ -7374,21 +7589,6 @@
     "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
    },
    {
-    "function": "list_site_quote_requests",
-    "msg": "invalid_status_filter",
-    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
-   },
-   {
-    "function": "get_site_quote_request",
-    "msg": "request_id_required",
-    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
-   },
-   {
-    "function": "get_site_quote_request",
-    "msg": "quote_request_not_found",
-    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
-   },
-   {
     "function": "update_site_quote_status",
     "msg": "request_id_required",
     "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
@@ -7537,6 +7737,31 @@
     "function": "erase_customer_data",
     "msg": "invalid_erasure_email",
     "src": "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql"
+   },
+   {
+    "function": "purge_site_pii_read_audit_log",
+    "msg": "invalid_pii_read_retention_input",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "function": "get_my_quote_request",
+    "msg": "authentication_required",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "function": "list_site_quote_requests",
+    "msg": "invalid_status_filter",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "function": "get_site_quote_request",
+    "msg": "request_id_required",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "function": "get_site_quote_request",
+    "msg": "quote_request_not_found",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
    }
   ],
   "seed": [],
@@ -7581,7 +7806,10 @@
    "table:site_private.commercial_audit_log": "Trilha append-only das escritas feitas pelo back-office (F-03): quem mudou o quê e quando. Sem policy para anon/authenticated; leitura só por service_role.",
    "table:site_private.cron_heartbeats": "Heartbeat dos crons do site (F-87). Uma linha por cron agendado em vercel.json; escrita so pela RPC record_cron_heartbeat.",
    "column:site_private.notification_provider_events.provider_message_id": "F-12: id da mensagem no provedor, preservado no evento para o re-vínculo de evento que chegou antes do aceite. Eventos anteriores a esta migration não têm o valor e só podem ser expurgados.",
-   "column:site_private.notification_provider_events.bounce_reason": "F-12: motivo do bounce tal como o webhook enviou, preservado no evento para o re-vínculo (antes só existia em notification_deliveries, o que exigia a entrega já vinculada)."
+   "column:site_private.notification_provider_events.bounce_reason": "F-12: motivo do bounce tal como o webhook enviou, preservado no evento para o re-vínculo (antes só existia em notification_deliveries, o que exigia a entrega já vinculada).",
+   "table:site_private.pii_read_audit_log": "PF-34: audita leituras (SELECT) de colunas de contato do titular em tabelas de PII. Não armazena o valor lido, só que uma leitura aconteceu, para quem, quando, quantas linhas e com qual filtro.",
+   "column:site_private.pii_read_audit_log.subject": "Titular cuja PII foi lida. Fica nulo em leitura de operador: a fila comercial pagina muitos titulares de uma vez e só o row_count descreve o volume.",
+   "column:site_private.pii_read_audit_log.actor_kind": "titular = o próprio dono leu seus dados; operador = alguém do back-office leu dados de outra pessoa."
   },
   "types_file": "",
   "transitions": [
@@ -8937,8 +9165,8 @@
   },
   {
    "module": "site-supabase",
-   "files": 111,
-   "lines": 17479,
+   "files": 113,
+   "lines": 18203,
    "tables": [],
    "exports": [],
    "docs": [],
@@ -9020,11 +9248,11 @@
     "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
     "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql",
     "site-supabase/supabase/migrations/20261122080000_include_message_text_in_export.sql",
+    "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql",
     "site-supabase/supabase/tests/database/adjustment_limits.test.sql",
     "site-supabase/supabase/tests/database/admin_write_audit.test.sql",
     "site-supabase/supabase/tests/database/briefing_assets.test.sql",
-    "site-supabase/supabase/tests/database/commercial_backoffice.test.sql",
-    "site-supabase/supabase/tests/database/commercial_backoffice_flow.test.sql"
+    "site-supabase/supabase/tests/database/commercial_backoffice.test.sql"
    ]
   },
   {
@@ -9407,7 +9635,7 @@
   {
    "module": "src/types",
    "files": 1,
-   "lines": 1518,
+   "lines": 1571,
    "tables": [],
    "exports": [
     "site-database.types.ts: Json, Database, Tables, TablesInsert, TablesUpdate, Enums"
@@ -10296,6 +10524,7 @@
    "erased_customer_identities",
    "notification_deliveries",
    "notification_provider_events",
+   "pii_read_audit_log",
    "proposal_documents",
    "quote_adjustment_requests",
    "quote_items",
@@ -13369,6 +13598,36 @@
    {
     "table": "site_private.cron_heartbeats",
     "column": "updated_at",
+    "rule": "default now()"
+   },
+   {
+    "table": "site_private.pii_read_audit_log",
+    "column": "id",
+    "rule": "PK"
+   },
+   {
+    "table": "site_private.pii_read_audit_log",
+    "column": "table_name",
+    "rule": "obrigatório"
+   },
+   {
+    "table": "site_private.pii_read_audit_log",
+    "column": "operation",
+    "rule": "default 'SELECT'; CHECK operation = 'SELECT'"
+   },
+   {
+    "table": "site_private.pii_read_audit_log",
+    "column": "performed_by",
+    "rule": "obrigatório"
+   },
+   {
+    "table": "site_private.pii_read_audit_log",
+    "column": "actor_kind",
+    "rule": "default 'titular'; CHECK actor_kind in ('titular', 'operador')"
+   },
+   {
+    "table": "site_private.pii_read_audit_log",
+    "column": "occurred_at",
     "rule": "default now()"
    }
   ],
@@ -16906,7 +17165,7 @@
    },
    {
     "file": "site-supabase/supabase/tests/database/lead_storage.test.sql",
-    "name": "schema privado contém as tabelas planejadas, incluindo favoritos de datas sem PII, as duas do back-office (F-03) e o heartbeat dos crons (F-87)"
+    "name": "schema privado contém as tabelas planejadas, incluindo favoritos de datas sem PII, as duas do back-office (F-03), o heartbeat dos crons (F-87) e a trilha de leitura de PII (F-34)"
    },
    {
     "file": "site-supabase/supabase/tests/database/lead_storage.test.sql",
@@ -18035,6 +18294,174 @@
    {
     "file": "site-supabase/supabase/tests/database/notification_suppression.test.sql",
     "name": "lote zerado é rejeitado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "anon não lê a trilha de leitura de PII"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "authenticated não lê a trilha de leitura de PII"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "site_api não lê a trilha de leitura de PII (só grava via RPC)"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "service_role lê a trilha de leitura de PII"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "authenticated executa log_pii_read"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "authenticated executa get_my_quote_request"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "anon não executa get_my_quote_request"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "RPC devolve null para pedido inexistente e não audita"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "RPC não lança para pedido inexistente do titular"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "RPC lê o pedido do próprio titular"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "portal devolve o protocolo persistido, não um trecho do UUID"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "RPC registra as 2 leituras de PII do titular"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "RPC devolve null para pedido de outro titular"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "Leitura do titular registra o subject dele"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "Leitura de outro titular não gera nenhum registro de auditoria"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "o titular recusado nunca vira subject de auditoria"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "nenhuma leitura de operador antes de o operador agir"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "RPCs comerciais que auditam sao VOLATILE, nao STABLE (PostgREST abriria transacao read-only)"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "operador ativo consulta a fila comercial"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "a busca por e-mail do titular casa os 2 pedidos, entregando 1"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "a pagina entregue traz exatamente 1 pedido, nao o total casado"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "a trilha grava o volume entregue (1), nao o total casado (2)"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "a linha de trilha e a pagina devolvida descrevem o mesmo volume (1 pedido)"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "o filtro auditado e exatamente offset=0 search, sem fragmento do e-mail"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "o termo buscado (e-mail ou telefone) nunca e copiado para a trilha"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "a busca por e-mail gerou registro de leitura com o marcador search, sem o valor"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "a busca por telefone do titular encontra os pedidos"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "telefone buscado pelo operador nao e copiado para a trilha"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "as duas buscas por contato geraram registro de leitura com o marcador search"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "a busca por telefone audita o mesmo filtro canonico, sem o numero"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "operacao busca por e-mail inexistente sem falhar"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "busca sem resultado registra a leitura com row_count = 0"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "busca sem resultado audita o mesmo filtro canonico, sem o termo"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "busca sem resultado tambem nao copia o termo para a trilha"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "fila comercial registra 1 leitura de operador com volume e filtro"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "operador ativo abre o detalhe do orçamento"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "detalhe do back-office registra a leitura com o id do orçamento"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "purga recusa janela de retenção fora de 30..3650 dias"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "purga recusa lote fora de 1..5000"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "purga com janela válida preserva trilha recente"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "purga remove toda a trilha mais antiga que a janela"
+   },
+   {
+    "file": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+    "name": "trilha fica vazia depois da purga"
    },
    {
     "file": "site-supabase/supabase/tests/database/query_plans.test.sql",
@@ -23615,7 +24042,7 @@
     "args": "p_request_id uuid",
     "returns": "jsonb",
     "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20260922160000_preserve_kit_composition.sql",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql",
     "security_definer": true,
     "search_path": true,
     "body": "declare v_user_id uuid := auth.uid(); v_request site_private.quote_requests%rowtype; v_items jsonb; v_events jsonb; v_proposals jsonb; begin if v_user_id is null then raise exception using errcode = '42501', message = 'authentication_required'; end if; select * into v_request from site_private.quote_requests request where request.id = p_request_id and request.customer_user_id = v_user_id and request.status <> 'spam'; if not found then return null; end if; select coalesce(jsonb_agg(jsonb_strip_nulls(jsonb_build_object( 'key', item.item_key, 'productId', item.source_product_id, 'slug', item.product_slug, 'name', item.product_name_snapshot, 'sku', item.sku_snapshot, 'imageUrl', item.image_url_s …",
@@ -24757,7 +25184,7 @@
     "args": "p_status text default null, p_search text default null, p_limit integer default 25, p_offset integer default 0",
     "returns": "jsonb",
     "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql",
     "security_definer": true,
     "search_path": true,
     "body": "declare v_operator site_private.commercial_operators := site_private.assert_site_operator(); v_limit integer := least(greatest(coalesce(p_limit, 25), 1), 100); v_offset integer := greatest(coalesce(p_offset, 0), 0); v_search text := nullif(btrim(coalesce(p_search, '')), ''); v_protocol text := nullif(btrim(ltrim(btrim(coalesce(p_search, '')), '#')), ''); v_status text := nullif(btrim(coalesce(p_status, '')), ''); v_rows jsonb; v_total integer; begin if v_status is not null and v_status not in ('new', 'triaged', 'in_progress', 'quoted', 'closed', 'spam') then raise exception using errcode = '22023', message = 'invalid_status_filter'; end if; select count(*) into v_total from site_private.quot …",
@@ -24774,10 +25201,10 @@
     "args": "p_request_id uuid",
     "returns": "jsonb",
     "lang": "plpgsql",
-    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql",
     "security_definer": true,
     "search_path": true,
-    "body": "declare v_operator site_private.commercial_operators := site_private.assert_site_operator(); v_request site_private.quote_requests%rowtype; v_items jsonb; v_events jsonb; v_proposals jsonb; v_adjustments jsonb; v_allowed_statuses text[]; v_audit jsonb; begin if p_request_id is null then raise exception using errcode = '22023', message = 'request_id_required'; end if; select * into v_request from site_private.quote_requests request where request.id = p_request_id; if not found then raise exception using errcode = 'P0002', message = 'quote_request_not_found'; end if; select coalesce(jsonb_agg(jsonb_build_object( 'key', item.item_key, 'productId', item.source_product_id, 'slug', item.product_sl …",
+    "body": "declare v_operator site_private.commercial_operators := site_private.assert_site_operator(); v_request site_private.quote_requests%rowtype; v_items jsonb; v_events jsonb; v_proposals jsonb; v_adjustments jsonb; v_allowed_statuses text[]; v_audit jsonb; begin if p_request_id is null then raise exception using errcode = '22023', message = 'request_id_required'; end if; select * into v_request from site_private.quote_requests request where request.id = p_request_id; if not found then raise exception using errcode = 'P0002', message = 'quote_request_not_found'; end if; perform site_private.log_pii_read('quote_requests', null, 1, v_request.id::text, 'operador'); select coalesce(jsonb_agg(jsonb_bu …",
     "raises": [
      "request_id_required",
      "quote_request_not_found"
@@ -25063,6 +25490,34 @@
     "tables": [
      "site_private"
     ]
+   },
+   "log_pii_read": {
+    "args": "p_table_name text, p_subject uuid default null, p_row_count integer default null, p_filter text default null, p_actor_kind text default 'titular'",
+    "returns": "void",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "begin insert into site_private.pii_read_audit_log (table_name, subject, performed_by, application_name, row_count, filter, actor_kind) values ( p_table_name, p_subject, coalesce(auth.uid()::text, site_private.audit_actor(), 'anonymous'), current_setting('application_name', true), p_row_count, p_filter, p_actor_kind ); end;",
+    "raises": [],
+    "tables": [
+     "site_private"
+    ]
+   },
+   "purge_site_pii_read_audit_log": {
+    "args": "p_retention_days integer default 400, p_batch_size integer default 1000",
+    "returns": "jsonb",
+    "lang": "plpgsql",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql",
+    "security_definer": true,
+    "search_path": true,
+    "body": "declare v_reads integer; begin if p_retention_days not between 30 and 3650 or p_batch_size not between 1 and 5000 then raise exception using errcode = '22023', message = 'invalid_pii_read_retention_input'; end if; with candidates as ( select id from site_private.pii_read_audit_log where occurred_at < now() - make_interval(days => p_retention_days) order by occurred_at, id limit p_batch_size ) delete from site_private.pii_read_audit_log log using candidates where log.id = candidates.id; get diagnostics v_reads = row_count; return jsonb_build_object('readsDeleted', v_reads); end;",
+    "raises": [
+     "invalid_pii_read_retention_input"
+    ],
+    "tables": [
+     "site_private"
+    ]
    }
   },
   "db_enums": {},
@@ -25215,11 +25670,6 @@
    {
     "function": "create_site_quote_request",
     "msg": "invalid_kit_composition",
-    "src": "site-supabase/supabase/migrations/20260922160000_preserve_kit_composition.sql"
-   },
-   {
-    "function": "get_my_quote_request",
-    "msg": "authentication_required",
     "src": "site-supabase/supabase/migrations/20260922160000_preserve_kit_composition.sql"
    },
    {
@@ -25498,21 +25948,6 @@
     "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
    },
    {
-    "function": "list_site_quote_requests",
-    "msg": "invalid_status_filter",
-    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
-   },
-   {
-    "function": "get_site_quote_request",
-    "msg": "request_id_required",
-    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
-   },
-   {
-    "function": "get_site_quote_request",
-    "msg": "quote_request_not_found",
-    "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
-   },
-   {
     "function": "update_site_quote_status",
     "msg": "request_id_required",
     "src": "site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql"
@@ -25661,6 +26096,31 @@
     "function": "erase_customer_data",
     "msg": "invalid_erasure_email",
     "src": "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql"
+   },
+   {
+    "function": "purge_site_pii_read_audit_log",
+    "msg": "invalid_pii_read_retention_input",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "function": "get_my_quote_request",
+    "msg": "authentication_required",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "function": "list_site_quote_requests",
+    "msg": "invalid_status_filter",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "function": "get_site_quote_request",
+    "msg": "request_id_required",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "function": "get_site_quote_request",
+    "msg": "quote_request_not_found",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
    }
   ],
   "db_generated": [],
@@ -26282,6 +26742,13 @@
     "UPDATE": [],
     "DELETE": []
    },
+   "site_private.pii_read_audit_log": {
+    "rls": "forced",
+    "SELECT": [],
+    "INSERT": [],
+    "UPDATE": [],
+    "DELETE": []
+   },
    "site_private.proposal_documents": {
     "rls": "forced",
     "SELECT": [],
@@ -26553,6 +27020,7 @@
    "list_site_quote_requests",
    "log_admin_ddl",
    "log_admin_write",
+   "log_pii_read",
    "matches_my_briefing_asset_upload",
    "notification_delivery_is_claimable",
    "notification_request_erased",
@@ -26562,6 +27030,7 @@
    "purge_archived_customer_selections",
    "purge_site_admin_audit_logs",
    "purge_site_notification_provider_events",
+   "purge_site_pii_read_audit_log",
    "queue_briefing_asset_deletion",
    "reconcile_site_notification_provider_events",
    "record_cron_heartbeat",
@@ -29190,6 +29659,102 @@
     "objkind": "function",
     "roles": "site_api, service_role",
     "src": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.pii_read_audit_log",
+    "objkind": "table",
+    "roles": "public, anon, authenticated, site_api",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "select, insert",
+    "object": "site_private.pii_read_audit_log",
+    "objkind": "table",
+    "roles": "service_role",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "site_private.log_pii_read",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "site_private.log_pii_read",
+    "objkind": "function",
+    "roles": "authenticated",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "purge_site_pii_read_audit_log",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "purge_site_pii_read_audit_log",
+    "objkind": "function",
+    "roles": "service_role",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "get_my_quote_request",
+    "objkind": "function",
+    "roles": "public, anon",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "get_my_quote_request",
+    "objkind": "function",
+    "roles": "authenticated, service_role",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "list_site_quote_requests",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "list_site_quote_requests",
+    "objkind": "function",
+    "roles": "authenticated, service_role",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "kind": "revoke",
+    "privs": "all",
+    "object": "get_site_quote_request",
+    "objkind": "function",
+    "roles": "public, anon, authenticated",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
+   },
+   {
+    "kind": "grant",
+    "privs": "execute",
+    "object": "get_site_quote_request",
+    "objkind": "function",
+    "roles": "authenticated, service_role",
+    "src": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql"
    }
   ],
   "guards": [],
@@ -29277,7 +29842,8 @@
    ],
    "site_private.cron_heartbeats": [
     "updated_at"
-   ]
+   ],
+   "site_private.pii_read_audit_log": []
   },
   "pii": [
    [
@@ -29338,7 +29904,7 @@
    "`site_private.quote_adjustment_requests.status` tem valores ['closed', 'new', 'resolved', 'triaged'] mas nenhum mapa de transições foi encontrado no código nem em tabela de transições do banco — a ordem permitida (ex.: pago → cancelado?) não está declarada.",
    "`site_private.status_transitions.from_status` é uma coluna de status sem enum/CHECK — os valores válidos e as transições permitidas não estão no banco.",
    "`site_private.status_transitions.to_status` é uma coluna de status sem enum/CHECK — os valores válidos e as transições permitidas não estão no banco.",
-   "8/25 tabelas sem `COMMENT ON TABLE` — o significado de negócio não está no schema: `site_private.quote_requests`, `site_private.contact_requests`, `site_private.consent_receipts`, `site_private.customer_profiles`, `site_private.quote_request_events`, `site_private.proposal_documents`, `site_private.quote_adjustment_requests`, `site_private.shared_selections`"
+   "8/26 tabelas sem `COMMENT ON TABLE` — o significado de negócio não está no schema: `site_private.quote_requests`, `site_private.contact_requests`, `site_private.consent_receipts`, `site_private.customer_profiles`, `site_private.quote_request_events`, `site_private.proposal_documents`, `site_private.quote_adjustment_requests`, `site_private.shared_selections`"
   ]
  },
  "manual": [],
@@ -33206,6 +33772,11 @@
    "path": "site-supabase/supabase/migrations/20261122080000_include_message_text_in_export.sql",
    "lines": 142
   },
+  "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql": {
+   "path": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql",
+   "lines": 399,
+   "uses_service_role": true
+  },
   "site-supabase/supabase/tests/database/adjustment_limits.test.sql": {
    "path": "site-supabase/supabase/tests/database/adjustment_limits.test.sql",
    "lines": 87,
@@ -33823,7 +34394,7 @@
     "values (repeat('8', 64), now() - interval '31 days', 1, now() - interval '31 days');"
    ],
    "tests": [
-    "schema privado contém as tabelas planejadas, incluindo favoritos de datas sem PII, as duas do back-office (F-03) e o heartbeat dos crons (F-87)",
+    "schema privado contém as tabelas planejadas, incluindo favoritos de datas sem PII, as duas do back-office (F-03), o heartbeat dos crons (F-87) e a trilha de leitura de PII (F-34)",
     "seleções persistentes ficam no schema privado",
     "criação de links recebe rate limit próprio",
     "máquina de estados administrativa vive em tabela dedicada (Etapa 8)",
@@ -34178,6 +34749,59 @@
     "evento vinculado permanece depois da purga",
     "retenção abaixo do mínimo é rejeitada",
     "lote zerado é rejeitado"
+   ],
+   "uses_service_role": true
+  },
+  "site-supabase/supabase/tests/database/pii_read_audit.test.sql": {
+   "path": "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+   "lines": 325,
+   "is_test": true,
+   "temporal": [
+    "update site_private.pii_read_audit_log set occurred_at = now() - interval '500 days';"
+   ],
+   "tests": [
+    "anon não lê a trilha de leitura de PII",
+    "authenticated não lê a trilha de leitura de PII",
+    "site_api não lê a trilha de leitura de PII (só grava via RPC)",
+    "service_role lê a trilha de leitura de PII",
+    "authenticated executa log_pii_read",
+    "authenticated executa get_my_quote_request",
+    "anon não executa get_my_quote_request",
+    "RPC devolve null para pedido inexistente e não audita",
+    "RPC não lança para pedido inexistente do titular",
+    "RPC lê o pedido do próprio titular",
+    "portal devolve o protocolo persistido, não um trecho do UUID",
+    "RPC registra as 2 leituras de PII do titular",
+    "RPC devolve null para pedido de outro titular",
+    "Leitura do titular registra o subject dele",
+    "Leitura de outro titular não gera nenhum registro de auditoria",
+    "o titular recusado nunca vira subject de auditoria",
+    "nenhuma leitura de operador antes de o operador agir",
+    "RPCs comerciais que auditam sao VOLATILE, nao STABLE (PostgREST abriria transacao read-only)",
+    "operador ativo consulta a fila comercial",
+    "a busca por e-mail do titular casa os 2 pedidos, entregando 1",
+    "a pagina entregue traz exatamente 1 pedido, nao o total casado",
+    "a trilha grava o volume entregue (1), nao o total casado (2)",
+    "a linha de trilha e a pagina devolvida descrevem o mesmo volume (1 pedido)",
+    "o filtro auditado e exatamente offset=0 search, sem fragmento do e-mail",
+    "o termo buscado (e-mail ou telefone) nunca e copiado para a trilha",
+    "a busca por e-mail gerou registro de leitura com o marcador search, sem o valor",
+    "a busca por telefone do titular encontra os pedidos",
+    "telefone buscado pelo operador nao e copiado para a trilha",
+    "as duas buscas por contato geraram registro de leitura com o marcador search",
+    "a busca por telefone audita o mesmo filtro canonico, sem o numero",
+    "operacao busca por e-mail inexistente sem falhar",
+    "busca sem resultado registra a leitura com row_count = 0",
+    "busca sem resultado audita o mesmo filtro canonico, sem o termo",
+    "busca sem resultado tambem nao copia o termo para a trilha",
+    "fila comercial registra 1 leitura de operador com volume e filtro",
+    "operador ativo abre o detalhe do orçamento",
+    "detalhe do back-office registra a leitura com o id do orçamento",
+    "purga recusa janela de retenção fora de 30..3650 dias",
+    "purga recusa lote fora de 1..5000",
+    "purga com janela válida preserva trilha recente",
+    "purga remove toda a trilha mais antiga que a janela",
+    "trilha fica vazia depois da purga"
    ],
    "uses_service_role": true
   },
@@ -37850,7 +38474,7 @@
   },
   "src/types/site-database.types.ts": {
    "path": "src/types/site-database.types.ts",
-   "lines": 1518,
+   "lines": 1571,
    "exports": [
     "type Json",
     "type Database",
@@ -39157,10 +39781,29 @@
   }
  },
  "git": {
-  "sha": "d41c1a27516aba382b95f8bb6c66f10d60907ca7",
+  "sha": "53252edfe537c9798475112a1241b682768b40f4",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "53252ed",
+    "date": "2026-11-23",
+    "author": "adm01-debug",
+    "subject": "feat: auditoria de leitura SELECT em PII (F-34) (#242)",
+    "files": [
+     "analise-prs/funcionalidades.csv",
+     "docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md",
+     "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
+     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
+     "docs/DATABASE_DICTIONARY.md",
+     "docs/DATABASE_FUNCTION_CONTRACTS.md",
+     "docs/DATABASE_SCHEMA.md",
+     "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql",
+     "site-supabase/supabase/tests/database/lead_storage.test.sql",
+     "site-supabase/supabase/tests/database/pii_read_audit.test.sql",
+     "src/types/site-database.types.ts"
+    ]
+   },
    {
     "sha": "d41c1a2",
     "date": "2026-11-23",
@@ -39610,26 +40253,16 @@
      "src/pages/QuotePage.context.test.tsx",
      "src/pages/QuotePage.tsx"
     ]
-   },
-   {
-    "sha": "1bb2a90",
-    "date": "2026-11-20",
-    "author": "adm01-debug",
-    "subject": "fix: limpa contexto da campanha quando o recorte sai do catálogo (#212)",
-    "files": [
-     "src/lib/useCatalogPageState.test.tsx",
-     "src/lib/useCatalogPageState.ts"
-    ]
    }
   ],
   "hot_files": [
    [
     "analise-prs/funcionalidades.csv",
-    18
+    19
    ],
    [
     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
-    11
+    12
    ],
    [
     "scripts/check-performance-budget.mjs",
@@ -39641,26 +40274,30 @@
    ],
    [
     "docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md",
-    5
+    6
    ],
    [
     "docs/DATABASE_DICTIONARY.md",
-    5
+    6
    ],
    [
     "docs/DATABASE_FUNCTION_CONTRACTS.md",
-    4
+    5
    ],
    [
     "src/types/site-database.types.ts",
+    5
+   ],
+   [
+    "docs/DATABASE_SCHEMA.md",
+    4
+   ],
+   [
+    "site-supabase/supabase/tests/database/lead_storage.test.sql",
     4
    ],
    [
     "src/styles.css",
-    4
-   ],
-   [
-    "src/lib/useCatalogPageState.ts",
     4
    ],
    [
@@ -39684,23 +40321,19 @@
     3
    ],
    [
-    "docs/DATABASE_SCHEMA.md",
-    3
-   ],
-   [
-    "site-supabase/supabase/tests/database/lead_storage.test.sql",
-    3
-   ],
-   [
     "src/lib/customerAccount.ts",
     3
    ],
    [
-    "package.json",
+    "src/lib/useCatalogPageState.ts",
+    3
+   ],
+   [
+    "docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md",
     2
    ],
    [
-    "docs/audits/planejado-x-implementado-20261120/02-pf-23-56-portal-lgpd-experiencia.md",
+    "package.json",
     2
    ]
   ]
