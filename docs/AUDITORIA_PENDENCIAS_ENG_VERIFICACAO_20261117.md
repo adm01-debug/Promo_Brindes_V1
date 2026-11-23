@@ -61,7 +61,7 @@ Os quatro vieram do lote sem bloco de evidência próprio, diferente dos 54 aber
 | PF-25 | PARCIAL HOJE | GRANDE | sim |
 | PF-27 | FECHADO HOJE (#183) | PEQUENO | não |
 | PF-29 | PARCIAL HOJE | PEQUENO | sim |
-| PF-34 | AINDA ABERTO | GRANDE | sim |
+| PF-34 | IMPLEMENTADO | MEDIO | não |
 | PF-35 | AINDA ABERTO | GRANDE | não |
 | PF-43 | PARCIAL HOJE | PEQUENO | não |
 | PF-44 | PARCIAL HOJE | MEDIO | não |
@@ -172,11 +172,11 @@ Esforço: PEQUENO · Depende de segredo: sim
 
 Existe: a linha do tempo renderiza os eventos em src/pages/CustomerQuotePage.tsx:236 (com estado vazio). Falta: o fallback de status desconhecido segue intacto em src/lib/customerAccount.ts:36-38 ('Em acompanhamento' para qualquer status fora dos 5 de customerStatusOptions:27-34), e não há próximo passo por status — `grep -rni "próximo passo\|proximo passo\|o que acontece agora\|nextStep\|next_step" src/ shared/ api/` devolve uma única linha, src/pages/QuotePage.tsx:381, que é o bloco pós-envio do formulário público, não o portal.
 
-### PF-34 — AINDA ABERTO
+### PF-34 — IMPLEMENTADO (2026-11-22)
 
-Esforço: GRANDE · Depende de segredo: sim
+Esforço: MEDIO · Depende de segredo: não
 
-Continua existindo só auditoria de escrita e DDL: site_private.admin_audit_log tem `operation text not null check (operation in ('INSERT','UPDATE','DELETE'))` em site-supabase/supabase/migrations/20260916210000_add_admin_write_audit.sql:18, alimentado por log_admin_write (:23+, triggers after insert/update/delete) e pelo event trigger de DDL (20260927161243_harden_briefing_assets_and_audits.sql:212+). Buscas negativas: `grep -rni "read_audit\|select_audit\|log_admin_read\|pii_read\|auditoria de leitura\|log_read" site-supabase/ src/ api/ docs/agentes/` = 0 ocorrências; `grep -rniE "audit.*(select|leitura)|(select|read).*audit" site-supabase/supabase/migrations/` só casa um `select id from site_private.admin_audit_log` (20260923120000:105) e o grant de leitura da própria tabela (20260916210000:31). Nenhuma extensão de auditoria (pgaudit) nas migrations.
+Migration `20261122110000_add_pii_read_audit.sql` cria `site_private.pii_read_audit_log` (apenas `operation = 'SELECT'`, sem armazenar o valor lido) e a RPC `site_private.log_pii_read(text, uuid)`. `public.get_my_quote_request(uuid)` foi reescrita preservando a assinatura real (security definer, `set search_path = ''`, `customer_user_id = auth.uid()`, `status <> 'spam'`, `return null` se not found, montagem de items/events/proposals) e agora executa `perform site_private.log_pii_read('quote_requests', v_user_id)` antes do `return`. RLS da trilha: force + revoke all de public/anon/authenticated/site_api, grant select/insert a service_role; `log_pii_read` security definer, grant execute a authenticated. Validação: pgTAP `pii_read_audit.test.sql` 13/13 (privilegios, null para pedido inexistente, leitura do próprio titular grava 1 registro, leitura de outro titular devolve null sem gravar).
 
 ### PF-35 — AINDA ABERTO
 
