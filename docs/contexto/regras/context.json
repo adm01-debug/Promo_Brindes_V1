@@ -1,9 +1,9 @@
 {
  "meta": {
-  "sha": "53252edfe537c9798475112a1241b682768b40f4",
+  "sha": "f54efb6b1b924c7037590e48ceb9f7651d602d9f",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-23 12:14 UTC",
+  "generated_at": "2026-11-23 14:03 UTC",
   "files_total": 651,
   "code_files": 427,
   "code_lines": 79628,
@@ -39781,10 +39781,19 @@
   }
  },
  "git": {
-  "sha": "53252edfe537c9798475112a1241b682768b40f4",
+  "sha": "f54efb6b1b924c7037590e48ceb9f7651d602d9f",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "f54efb6",
+    "date": "2026-11-23",
+    "author": "dependabot[bot]",
+    "subject": "chore(deps): bump actions/setup-node from 6.5.0 to 7.1.0 (#247)",
+    "files": [
+     ".github/workflows/automation-local.yml"
+    ]
+   },
    {
     "sha": "53252ed",
     "date": "2026-11-23",
@@ -40243,16 +40252,6 @@
      "src/pages/QuotePage.tsx",
      "tests/api/notifications.test.ts"
     ]
-   },
-   {
-    "sha": "5ad589f",
-    "date": "2026-11-20",
-    "author": "adm01-debug",
-    "subject": "feat: permite ajustar o contexto da campanha no orçamento (#213)",
-    "files": [
-     "src/pages/QuotePage.context.test.tsx",
-     "src/pages/QuotePage.tsx"
-    ]
    }
   ],
   "hot_files": [
@@ -40309,10 +40308,6 @@
     3
    ],
    [
-    "src/pages/QuotePage.tsx",
-    3
-   ],
-   [
     "vercel.json",
     3
    ],
@@ -40334,6 +40329,10 @@
    ],
    [
     "package.json",
+    2
+   ],
+   [
+    "docs/audits/planejado-x-implementado-20261120/02-pf-23-56-portal-lgpd-experiencia.md",
     2
    ]
   ]

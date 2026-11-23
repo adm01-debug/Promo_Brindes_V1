@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `53252edfe537c9798475112a1241b682768b40f4` (2026-11-23T12:12:47Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `f54efb6b1b924c7037590e48ceb9f7651d602d9f` (2026-11-23T13:57:21Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -396,6 +396,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-23 `f54efb6` chore(deps): bump actions/setup-node from 6.5.0 to 7.1.0 (#247)
 - 2026-11-23 `53252ed` feat: auditoria de leitura SELECT em PII (F-34) (#242)
 - 2026-11-23 `d41c1a2` chore(deps): bump @testing-library/jest-dom from 7.0.1 to 8.0.0 (#249)
 - 2026-11-23 `a771c02` docs: registro rastreavel de aprovacao visual (PF-56) (#239)
@@ -410,7 +411,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-22 `18eebb5` fix: politica de privacidade declara os estados reais de entrega (F-17) (#243)
 - 2026-11-22 `8543dac` feat: vigia independente dos crons com heartbeat e alerta (F-87) (#232)
 - 2026-11-22 `fc29771` feat: back-office minimo de orcamentos (F-03) e produtor de propostas versionadas (F-23) (#225)
-- 2026-11-22 `180c09a` docs: executa a revisao mensal do banco e corrige a coluna duplicada (F-90) (#229)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

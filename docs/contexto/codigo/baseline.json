@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "53252edfe537c9798475112a1241b682768b40f4",
+  "commit": "f54efb6b1b924c7037590e48ceb9f7651d602d9f",
   "branch": "main",
-  "data_commit": "2026-11-23T12:12:47Z",
+  "data_commit": "2026-11-23T13:57:21Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "f54efb6",
+    "data": "2026-11-23",
+    "assunto": "chore(deps): bump actions/setup-node from 6.5.0 to 7.1.0 (#247)"
+   },
    {
     "sha": "53252ed",
     "data": "2026-11-23",
@@ -126,11 +131,6 @@
     "sha": "a3e9e21",
     "data": "2026-11-21",
     "assunto": "feat: fallback de SKU exato quando a busca nao encontra correspondencia (NOVO-CA-22) (#221)"
-   },
-   {
-    "sha": "66ed450",
-    "data": "2026-11-21",
-    "assunto": "feat(lgpd): direitos do titular — acesso, exportacao, correcao e autoexclusao (F-30) (#220)"
    }
   ],
   "arquivos_mudados_7d": 211,
@@ -305,7 +305,7 @@
    },
    {
     "autor": "dependabot[bot]",
-    "commits": 11
+    "commits": 12
    }
   ]
  },
