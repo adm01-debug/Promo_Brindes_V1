@@ -1,0 +1,207 @@
+{
+  "version": 1,
+  "roots": [
+    "docs/mockups-carnegie-20261005",
+    "docs/mockups-gift-lovers-20261005"
+  ],
+  "approvals": [
+    {
+      "id": "AV-2026-10-06-assinatura-gift-lovers",
+      "pr": 92,
+      "mergeCommit": "77f0ff1bac876db18cbd7ff53776b04bb1d3e202",
+      "approvedBy": "adm01-debug",
+      "approvedAt": "2026-10-06",
+      "screen": "Assinatura Gift Lovers by Promo na home e no rodape",
+      "decision": "aprovado",
+      "evidence": "Corpo da PR #92 registra a assinatura aprovada e a verificacao em 320-1440 px.",
+      "documentedIn": [
+        "docs/aprovacoes-visuais/REGISTRO.md"
+      ]
+    },
+    {
+      "id": "AV-2026-10-06-ficha-produto",
+      "pr": 91,
+      "mergeCommit": "f7022c4f294d139d1da5821280374401e532ed1d",
+      "approvedBy": "adm01-debug",
+      "approvedAt": "2026-10-06",
+      "screen": "Ficha de produto compacta com cards alinhados",
+      "decision": "aprovado",
+      "evidence": "Corpo da PR #91 cita a proposta visual aprovada da ficha; o mockup nunca foi versionado.",
+      "documentedIn": [
+        "docs/aprovacoes-visuais/REGISTRO.md"
+      ]
+    },
+    {
+      "id": "AV-2026-10-27-briefing-confirmacao",
+      "pr": 94,
+      "mergeCommit": "7100e1cd35570b0e2a7f1e28723f23b6426f0d48",
+      "approvedBy": "adm01-debug",
+      "approvedAt": "2026-10-27",
+      "screen": "Resumo editavel e confirmacao do briefing",
+      "decision": "aprovado",
+      "evidence": "Corpo da PR #94 registra os quatro mockups aprovados (briefing e confirmacao, desktop e celular).",
+      "documentedIn": [
+        "docs/aprovacoes-visuais/REGISTRO.md"
+      ]
+    },
+    {
+      "id": "AV-2026-10-20-importacao-ativos",
+      "pr": 103,
+      "mergeCommit": "4c6095903b284e525a17a23683e3735c222176f3",
+      "approvedBy": "adm01-debug",
+      "approvedAt": "2026-10-20",
+      "screen": "Versionamento dos 16 PNGs de mockup ja aprovados",
+      "decision": "aprovado",
+      "evidence": "Commit 4c60959 importa os PNGs que viviam fora do repositorio, byte a byte iguais aos originais.",
+      "documentedIn": [
+        "docs/aprovacoes-visuais/REGISTRO.md"
+      ]
+    }
+  ],
+  "assets": [
+    {
+      "path": "docs/mockups-carnegie-20261005/base-briefing-desktop.png",
+      "kind": "base",
+      "approvalId": null,
+      "sha256": "e67bd6beb57a4313f8808db6a80891bf1af4ac65f381e72413897a9cffebbce3",
+      "width": 1440,
+      "height": 849,
+      "bytes": 215872
+    },
+    {
+      "path": "docs/mockups-carnegie-20261005/base-briefing-mobile.png",
+      "kind": "base",
+      "approvalId": null,
+      "sha256": "15f74a304a4d29ca53ccce3f0735c4a58a2324be4e649492dd304f3599c26662",
+      "width": 390,
+      "height": 1287,
+      "bytes": 130434
+    },
+    {
+      "path": "docs/mockups-carnegie-20261005/base-home-desktop.png",
+      "kind": "base",
+      "approvalId": null,
+      "sha256": "bc7bc67f53c69f2059b64a6f7d244edbe415f03e73370859440d8d14dd7fb3d6",
+      "width": 1440,
+      "height": 10539,
+      "bytes": 4027050
+    },
+    {
+      "path": "docs/mockups-carnegie-20261005/base-home-mobile.png",
+      "kind": "base",
+      "approvalId": null,
+      "sha256": "350ac556281e731cca5480a1b753264f22cc1c1c633488afd6fefbe59be97f7c",
+      "width": 390,
+      "height": 13656,
+      "bytes": 1592156
+    },
+    {
+      "path": "docs/mockups-carnegie-20261005/base-home-top-desktop.png",
+      "kind": "base",
+      "approvalId": null,
+      "sha256": "6109dc82690e6be5484be565eb1e30bfb66dc9373e6eae5e8e60604a5983e812",
+      "width": 1440,
+      "height": 1000,
+      "bytes": 1149717
+    },
+    {
+      "path": "docs/mockups-carnegie-20261005/base-home-top-mobile.png",
+      "kind": "base",
+      "approvalId": null,
+      "sha256": "043d8b6f69e31156c1ae76d399242c21556a3d2f6c8d5cb03a3e697065046a4d",
+      "width": 390,
+      "height": 844,
+      "bytes": 196777
+    },
+    {
+      "path": "docs/mockups-carnegie-20261005/base-orcamento-desktop.png",
+      "kind": "base",
+      "approvalId": null,
+      "sha256": "86fdb1e9afeac3655c6e57066eb96fb9040b46ee931549a7e4b4d5edd751eae2",
+      "width": 1440,
+      "height": 1394,
+      "bytes": 137914
+    },
+    {
+      "path": "docs/mockups-carnegie-20261005/proposta-briefing-desktop.png",
+      "kind": "proposta",
+      "approvalId": "AV-2026-10-27-briefing-confirmacao",
+      "sha256": "9f829ade554d1acc9ab36a41ff886725d4c31379b903d4500f92af8f53b82beb",
+      "width": 1633,
+      "height": 963,
+      "bytes": 1246947
+    },
+    {
+      "path": "docs/mockups-carnegie-20261005/proposta-briefing-mobile.png",
+      "kind": "proposta",
+      "approvalId": "AV-2026-10-27-briefing-confirmacao",
+      "sha256": "1c3710041e2926d2894cc2dd4aeef0126a44782c6fc2b6aa62f603066c032bcb",
+      "width": 853,
+      "height": 1844,
+      "bytes": 1355917
+    },
+    {
+      "path": "docs/mockups-carnegie-20261005/proposta-confirmacao-desktop.png",
+      "kind": "proposta",
+      "approvalId": "AV-2026-10-27-briefing-confirmacao",
+      "sha256": "3883e6713c9e7cbaed31b3944dd98afcf6d9b4ed2b4b7195f544d506f5595a9b",
+      "width": 1505,
+      "height": 1045,
+      "bytes": 1200987
+    },
+    {
+      "path": "docs/mockups-carnegie-20261005/proposta-confirmacao-mobile.png",
+      "kind": "proposta",
+      "approvalId": "AV-2026-10-27-briefing-confirmacao",
+      "sha256": "1f5c12ad8823846579a1f792fd6e15a04eee1519dd3a00856ca90cce0f9deb41",
+      "width": 853,
+      "height": 1844,
+      "bytes": 1433191
+    },
+    {
+      "path": "docs/mockups-gift-lovers-20261005/Gift-Lovers-by-Promo-proposta.png",
+      "kind": "proposta",
+      "approvalId": "AV-2026-10-06-assinatura-gift-lovers",
+      "sha256": "9f20b9d829561627c981f98522e050f0409262a78d8a3ad7260cc90fe0cd7553",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 1424223
+    },
+    {
+      "path": "docs/mockups-gift-lovers-20261005/Gift-Lovers-home-desktop.png",
+      "kind": "proposta",
+      "approvalId": "AV-2026-10-06-assinatura-gift-lovers",
+      "sha256": "f7f26d0756ada0f8366456e8e2ec5941afc7afad78e21eaadbc6a2ca10790c83",
+      "width": 1440,
+      "height": 356,
+      "bytes": 89408
+    },
+    {
+      "path": "docs/mockups-gift-lovers-20261005/Gift-Lovers-home-mobile.png",
+      "kind": "proposta",
+      "approvalId": "AV-2026-10-06-assinatura-gift-lovers",
+      "sha256": "1ff1631610f5cfd0628aeb394263057e4598bf0b819d503f0e609521b49bdeda",
+      "width": 390,
+      "height": 312,
+      "bytes": 31698
+    },
+    {
+      "path": "docs/mockups-gift-lovers-20261005/Gift-Lovers-rodape-desktop.png",
+      "kind": "proposta",
+      "approvalId": "AV-2026-10-06-assinatura-gift-lovers",
+      "sha256": "ceda0ee4d5bffad205b0c633e5ed2e879829152db022803b6285bd468a61ee77",
+      "width": 1440,
+      "height": 577,
+      "bytes": 65485
+    },
+    {
+      "path": "docs/mockups-gift-lovers-20261005/Gift-Lovers-rodape-mobile.png",
+      "kind": "proposta",
+      "approvalId": "AV-2026-10-06-assinatura-gift-lovers",
+      "sha256": "95a272738221ea037e03b82af19b412fa4c35ae3b4722649f32cc727aa8bd667",
+      "width": 390,
+      "height": 1253,
+      "bytes": 69871
+    }
+  ]
+}
