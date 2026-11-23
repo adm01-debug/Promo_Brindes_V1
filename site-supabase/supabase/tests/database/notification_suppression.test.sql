@@ -12,7 +12,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(78);
+select plan(82);
 
 -- === Estrutura ===================================================================
 
@@ -713,6 +713,46 @@ select cmp_ok(
    where item ->> 'channel' = 'email'),
   '>', 0,
   'a esgotada fora da janela passa a ter contador próprio, visível sem disparar alerta'
+);
+
+-- === Guarda por audiência com a supressão do titular ativa =======================
+
+-- O bloco do RUNBOOK limpou o bounce; reaplicar o evento devolve a supressão ao endereço
+-- do titular. A guarda por audiência só fica provada com ela ativa: o aviso ao cliente
+-- (audience = customer) continua suprimido e o alerta comercial do MESMO pedido, no mesmo
+-- canal, continua reabrível. Sem a supressão ativa a asserção passaria com qualquer
+-- implementação, porque nada estaria bloqueando ninguém.
+select is(
+  public.apply_site_notification_provider_event('resend', 'resend-msg-f12-orphan', 'bounced', 'evt-f12-rebounce-1', now(), 'MailboxFull') ->> 'applied',
+  'true',
+  'bounce reaplicado volta a suprimir o endereço do titular'
+);
+select is(
+  (select item ->> 'suppressed'
+   from jsonb_array_elements(public.get_site_notification_delivery_report(50) -> 'exhausted') item
+   where item ->> 'requestId' = (select request.id::text from site_private.quote_requests request
+                                 where request.client_request_id = 'f12-suppression-quote-1')
+     and item ->> 'channel' = 'email' and item ->> 'audience' = 'customer'),
+  'true',
+  'com a supressão ativa, a linha do aviso ao cliente aparece suprimida'
+);
+select is(
+  (select item ->> 'suppressed'
+   from jsonb_array_elements(public.get_site_notification_delivery_report(50) -> 'exhausted') item
+   where item ->> 'requestId' = (select request.id::text from site_private.quote_requests request
+                                 where request.client_request_id = 'f12-suppression-quote-1')
+     and item ->> 'channel' = 'email' and item ->> 'audience' = 'commercial_team'),
+  'false',
+  'a supressão do titular não alcança a linha do alerta comercial'
+);
+select is(
+  (select item ->> 'reopenable'
+   from jsonb_array_elements(public.get_site_notification_delivery_report(50) -> 'exhausted') item
+   where item ->> 'requestId' = (select request.id::text from site_private.quote_requests request
+                                 where request.client_request_id = 'f12-suppression-quote-1')
+     and item ->> 'channel' = 'email' and item ->> 'audience' = 'commercial_team'),
+  'true',
+  'alerta comercial do mesmo pedido segue reabrível com a supressão do titular ativa'
 );
 
 select * from finish();
