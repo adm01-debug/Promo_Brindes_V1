@@ -27,5 +27,6 @@ consentimento disfarcado. Este documento e a versao legivel do que
 
 - Honestidade do conteudo de produto e prazo — materia do inventario de afirmacoes
   (`docs/inventario-afirmacoes/INVENTARIO.md`, PF-55).
-- Comparacao de mockup contra tela renderizada em 5 larguras — PF-56 (rastreabilidade byte a byte
-  esta pronta; a comparacao por largura segue pendente).
+- Comparacao de mockup contra tela renderizada em 5 larguras — PF-56: o registro versionado em
+  `docs/aprovacoes-visuais/` cobre a rastreabilidade byte a byte (sha256, dimensoes e bytes de cada
+  PNG aprovado); a comparacao por largura segue pendente).
