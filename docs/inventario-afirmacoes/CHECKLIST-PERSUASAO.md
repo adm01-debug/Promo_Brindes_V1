@@ -12,7 +12,7 @@ consentimento disfarcado. Este documento e a versao legivel do que
 | 3 | Elogio automatico exagerado | Elogiar a escolha sem conhecer o pedido e adulacao vazia e reduz a confianca no restante da pagina. | "excelente escolha", "otima escolha", "perfeita escolha", "voce tem bom gosto", "escolha inteligente" |
 | 4 | Prova social inventada | Numero de clientes, nota e depoimento so entram se forem reais e rastreaveis; sem fonte, e fabricacao. | "N mil clientes", "mais de N empresas", "nota X de 5", "5 estrelas", "melhor do mercado" |
 | 5 | Dado presumido | Campo de formulario so pode vir do visitante ou da conta dele (`useAuth`), nunca de suposicao sobre o historico. | "supomos que", "provavelmente voce", "sabemos que voce", "como voce sempre" |
-| 6 | Consentimento disfarcado | Aceite de contato ou marketing precisa de acao explicita; caixa pre-marcada nao e consentimento. | "ao continuar voce aceita receber", checkbox com `defaultChecked` sem valor / `={true}` / expressao (o scanner aceita `defaultChecked={false}` e ignora exemplo comentado, e valor de rotulo como `aria-label="defaultChecked"` nao conta), "ja aceitou" |
+| 6 | Consentimento disfarcado | Aceite de contato ou marketing precisa de acao explicita; caixa pre-marcada nao e consentimento. | "ao continuar voce aceita receber", checkbox com `defaultChecked` sem valor / `={true}` / expressao (o scanner aceita `defaultChecked={false}` e ignora exemplo comentado, e valor de rotulo como `aria-label="defaultChecked"` nao conta), spread de literal (`{...{ defaultChecked: true }}`), "ja aceitou" |
 
 ## Como a aprovacao e exigida em cada revisao de interface
 
@@ -24,10 +24,12 @@ consentimento disfarcado. Este documento e a versao legivel do que
      o limite de persuasão é conferido antes do push;
    - a cobertura local só existe com os hooks instalados (`npm run automation:install-hooks`);
      sem eles o repositório roda apenas o CI, e é o `validate` do `quality.yml` que segura a
-     PR. O hook gerado executa o dispatcher e a config versionados no repositório
-     (`scripts/automation.mjs:936-949`) e só cai para a cópia em `~/.git-hooks` quando o
-     arquivo não existe — então mudar `scripts/automation.config.json` já vale no hook
-     seguinte, sem reinstalar nada;
+     PR. Na instalação padrão o hook gerado executa o dispatcher e a config versionados no
+     repositório (`scripts/automation.mjs:936-949`) e só cai para a cópia em `~/.git-hooks`
+     quando o arquivo não existe — mudar `scripts/automation.config.json` já vale no hook
+     seguinte, sem reinstalar nada. Se o hook foi instalado apontando para um perfil fora do
+     repositório, é esse caminho que continua valendo: aí a edição da config versionada não
+     muda nada e reinstalar (ou revisar o perfil apontado) é o que resolve;
    - `pre-commit` só roda as `testSuites` quando o commit toca automação
      (`scripts/**`, `.github/**`, `.husky/**`, `package.json`, lockfiles — `scripts/automation.mjs:1089-1097`).
      Commit que muda só `src/` não roda esse bloco: a varredura acontece no `pre-push` e no CI,
@@ -39,6 +41,11 @@ consentimento disfarcado. Este documento e a versao legivel do que
 
 ## O que este checklist nao cobre
 
+- Spread opaco de props numa caixa de consentimento (`<input {...props} />`): a varredura le
+  texto, nao avalia o objeto, entao `defaultChecked` que chegue por um spread desses nao e
+  visto. Spread de literal (`{...{ defaultChecked: true }}`) e visto e reprovado. Quem
+  espalhar props numa caixa de consentimento precisa garantir que elas nao liguem
+  `defaultChecked`.
 - Honestidade do conteudo de produto e prazo — materia do inventario de afirmacoes
   (`docs/inventario-afirmacoes/INVENTARIO.md`, PF-55).
 - Comparacao de mockup contra tela renderizada em 5 larguras — PF-56: o registro versionado em

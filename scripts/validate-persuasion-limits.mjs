@@ -181,6 +181,10 @@ function findInputTags(source) {
  * A varredura anda por NOMES de atributo e pula o valor de cada um: busca textual levava o
  * resultado de rotulo (`aria-label="defaultChecked"` reprovava, `title="defaultChecked={false}"`
  * aprovava) para o atributo seguinte, que e o que importa.
+ *
+ * O nome e comparado antes do `:` para nao perder spread de literal
+ * (`{...{ defaultChecked: true }}` marca a caixa igual a `defaultChecked`). Spread opaco
+ * (`{...props}`) nao entra: exigiria avaliar o objeto, que uma varredura de texto nao faz.
  */
 function mayStartChecked(tag) {
   let index = 0;
@@ -224,7 +228,8 @@ function mayStartChecked(tag) {
         index += value.length;
       }
     }
-    if (name[1] !== 'defaultChecked') continue;
+    const attribute = name[1].split(':')[0];
+    if (attribute !== 'defaultChecked') continue;
     if (value === null) return true;
     if (!value.startsWith('{')) return true;
     return value.slice(1, -1).trim() !== 'false';

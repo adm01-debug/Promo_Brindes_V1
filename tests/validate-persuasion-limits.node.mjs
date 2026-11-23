@@ -102,6 +102,14 @@ test('valor de outro atributo nao decide a caixa de consentimento', () => {
   assert.match(errors[0], /consentimento disfarcado/);
 });
 
+test('spread de literal com defaultChecked tambem e consentimento pre-marcado', () => {
+  const file = fixture('spread-literal.tsx',
+    'export const A = () => (\n  <label>\n    <input type="checkbox" {...{ defaultChecked: true }} onChange={aoMudar} />\n  </label>\n);\n');
+  const errors = findPersuasionViolations([file]);
+  assert.equal(errors.length, 1, errors.join('; '));
+  assert.match(errors[0], /consentimento disfarcado/);
+});
+
 for (const claim of [
   '9 mil clientes atendidos',
   'mais de 1.000 empresas confiam',
