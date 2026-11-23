@@ -224,6 +224,23 @@ Deduplicação de eventos de webhook de entrega/devolução (Etapa 30). Sem cont
 | `provider_message_id` | `text` | F-12: id da mensagem no provedor, preservado no evento para o re-vínculo de evento que chegou antes do aceite. Eventos anteriores a esta migration não têm o valor e só podem ser expurgados. |
 | `bounce_reason` | `text` | F-12: motivo do bounce tal como o webhook enviou, preservado no evento para o re-vínculo (antes só existia em notification_deliveries, o que exigia a entrega já vinculada). |
 
+### `site_private.pii_read_audit_log`
+
+PF-34: audita leituras (SELECT) de colunas de contato do titular em tabelas de PII. Não armazena o valor lido, só que uma leitura aconteceu, para quem, quando, quantas linhas e com qual filtro.
+
+| Coluna | Tipo | Comentário |
+|---|---|---|
+| `id` | `bigint` | — |
+| `table_name` | `text` | — |
+| `operation` | `text` | — |
+| `subject` | `uuid` | Titular cuja PII foi lida. Fica nulo em leitura de operador: a fila comercial pagina muitos titulares de uma vez e só o row_count descreve o volume. |
+| `performed_by` | `text` | — |
+| `actor_kind` | `text` | titular = o próprio dono leu seus dados; operador = alguém do back-office leu dados de outra pessoa. |
+| `filter` | `text` | — |
+| `row_count` | `integer` | — |
+| `application_name` | `text` | — |
+| `occurred_at` | `timestamp with time zone` | — |
+
 ### `site_private.proposal_documents`
 
 _Sem comment on table — considerar adicionar um na próxima migration que tocar esta tabela._
@@ -444,6 +461,7 @@ Trilha do exercicio dos direitos do titular (LGPD art. 18) na Area do Cliente: a
 | `purge_archived_customer_selections` | `p_batch_size integer` | — |
 | `purge_site_admin_audit_logs` | `p_retention_days integer, p_batch_size integer` | Remove em lotes trilhas administrativas além da janela configurada; padrão 400 dias. |
 | `purge_site_notification_provider_events` | `p_retention_days integer, p_batch_size integer` | F-12: expurga eventos de webhook órfãos (delivery_id NULL) mais antigos que a retenção, em lote. Chamada por api/retention.ts depois da reconciliação — órfão recente ainda pode ser religado. |
+| `purge_site_pii_read_audit_log` | `p_retention_days integer, p_batch_size integer` | PF-34: purga em lote a trilha de leitura de PII. Mesma janela e mesmo teto de lote que purge_site_admin_audit_logs. |
 | `reconcile_site_notification_provider_events` | `p_batch_size integer` | F-12: religa eventos de webhook que chegaram antes do aceite do provedor (delivery_id NULL) e reaplica delivery_state/complained_at com a mesma precedência de apply_site_notification_provider_event. Idempotente: evento já vinculado nunca é reprocessado. |
 | `record_cron_heartbeat` | `p_name text, p_ok boolean, p_detail text` | Grava o desfecho de uma rodada de cron (F-87). Chamada com a credencial de servico no fim de cada execucao. |
 | `record_site_notification_dispatch_started` | `p_delivery_id uuid, p_lease_token uuid` | Persiste intenção WhatsApp antes da chamada externa; sem confirmação do marcador, a Meta não é chamada. Um envio incerto exige reconciliação humana e nunca é reenviado cegamente. |
