@@ -604,7 +604,10 @@ begin
         join site_private.contact_requests request
           on delivery.request_kind = 'contact' and request.id = delivery.request_id
         where delivery.status = 'exhausted'
-        order by 9 desc, 1
+        -- Bloqueio deliberado (supressão/anonimização) não é recuperável pelo painel:
+        -- vai para o fim da lista para não consumir as vagas do limite com entrega que
+        -- o operador não pode reabrir. O mais antigo recuperável aparece primeiro.
+        order by 11, 12, 9 desc, 1
         limit v_limit
       ) item
     ), '[]'::jsonb),

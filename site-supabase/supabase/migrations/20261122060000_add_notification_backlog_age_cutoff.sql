@@ -640,6 +640,7 @@ as $fn$
       then extract(epoch from (now() - stats.oldest_eligible_created_at))::bigint else null end,
     'eligibleCount', coalesce(stats.eligible_count, 0),
     'exhaustedCount', coalesce(stats.exhausted_count, 0),
+    'suppressedCount', coalesce(stats.suppressed_count, 0),
     'uncertainCount', coalesce(stats.uncertain_count, 0),
     'outOfWindowCount', coalesce(stats.out_of_window_count, 0)
   ) order by c.channel), '[]'::jsonb)
@@ -665,7 +666,12 @@ as $fn$
           and site_private.notification_delivery_is_eligible(
             delivery.request_kind, delivery.request_id, delivery.created_at, policy.max_age)
       ) as eligible_count,
-      count(*) filter (where delivery.status = 'exhausted') as exhausted_count,
+      -- Suprimida não é falha: é bloqueio deliberado que o sistema mantém de
+      -- propósito até o operador liberar. Contá-la como esgotada fazia o alerta de
+      -- fila disparar em todo ciclo por um estado correto — alarme que o operador
+      -- não pode silenciar sem burlar a supressão. Ela tem contador próprio.
+      count(*) filter (where delivery.status = 'exhausted' and delivery.last_error_code is distinct from 'recipient_suppressed') as exhausted_count,
+      count(*) filter (where delivery.status = 'exhausted' and delivery.last_error_code = 'recipient_suppressed') as suppressed_count,
       count(*) filter (
         where delivery.last_error_code = 'whatsapp_dispatch_started'
           and delivery.provider_message_id is null
@@ -683,7 +689,7 @@ as $fn$
 $fn$;
 
 comment on function public.site_notification_queue_health() is
-  'F-11: saúde da fila por canal. eligibleCount usa o mesmo critério do claim (status pronto, dentro da janela, pedido não spam e não anonimizado); outOfWindowCount conta o pending/failed que o próximo claim vai cancelar.';
+  'F-11: saúde da fila por canal. eligibleCount usa o mesmo critério do claim (status pronto, dentro da janela, pedido não spam e não anonimizado); outOfWindowCount conta o pending/failed que o próximo claim vai cancelar; suppressedCount separa o bloqueio deliberado (recipient_suppressed) do esgotamento por falha, que é o único que dispara alerta.';
 
 -- === 11. Bloqueio unico de envio (revisao das threads da PR) =====================
 --

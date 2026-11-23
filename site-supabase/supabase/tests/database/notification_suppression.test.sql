@@ -12,7 +12,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(67);
+select plan(69);
 
 -- === Estrutura ===================================================================
 
@@ -488,6 +488,23 @@ select is(
    where request.client_request_id = 'f12-suppression-quote-2' and delivery.channel = 'email' and delivery.audience = 'customer'),
   'recipient_suppressed',
   'motivo do cancelamento fica visível na entrega'
+);
+
+-- Supressão não é falha: contá-la em exhaustedCount fazia o alerta de fila disparar em
+-- todo ciclo por um bloqueio que o sistema mantém de propósito. Contador separado.
+select is(
+  (select (item ->> 'exhaustedCount')::int from jsonb_array_elements(public.site_notification_queue_health()) item where item ->> 'channel' = 'email')
+  + (select (item ->> 'suppressedCount')::int from jsonb_array_elements(public.site_notification_queue_health()) item where item ->> 'channel' = 'email'),
+  (select count(*)::int
+   from site_private.notification_deliveries delivery
+   where delivery.request_kind = 'quote' and delivery.audience = 'customer'
+     and delivery.channel = 'email' and delivery.status = 'exhausted'),
+  'saúde da fila separa bloqueio deliberado do esgotamento por falha (a soma bate com o total de esgotadas)'
+);
+select cmp_ok(
+  (select (item ->> 'suppressedCount')::int from jsonb_array_elements(public.site_notification_queue_health()) item where item ->> 'channel' = 'email'),
+  '>', 0,
+  'saúde da fila expõe a supressão em contador próprio, fora do que dispara alerta'
 );
 
 -- Mesmo critério no envio imediato: o POST do orçamento não pode entregar no ato.
