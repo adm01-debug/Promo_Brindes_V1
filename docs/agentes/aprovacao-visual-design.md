@@ -12,3 +12,7 @@ e às próximas sessões deste projeto. Texto íntegro, movido do `AGENTS.md`.
 - Depois de implementar, comparar capturas reais com a proposta aprovada e validar responsividade, acessibilidade e funcionamento. Não afirmar que um mockup é uma funcionalidade implementada ou publicada.
 - Correções estritamente funcionais, sem mudança visual, não exigem mockup. Esta exceção não autoriza mudanças de design disfarçadas de correção técnica.
 - Não modificar o projeto interno Promo Gifts para produzir ou implementar propostas do site Promo Brindes.
+
+O que já foi aprovado, com dono, data, PR mergeada e hash de cada imagem, fica em
+[`docs/aprovacoes-visuais/REGISTRO.md`](../aprovacoes-visuais/REGISTRO.md). Qualquer imagem nova ou substituída
+precisa entrar lá: `npm run approvals:visual:check` reprova PNG fora do registro e hash divergente.

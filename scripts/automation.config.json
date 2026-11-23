@@ -5,7 +5,8 @@
   "testSuites": [
     "scripts/automation.unit.mjs",
     "scripts/maintenance/maintenance.unit.mjs",
-    "scripts/graphify-local.unit.mjs"
+    "scripts/graphify-local.unit.mjs",
+    "tests/validate-visual-approvals.node.mjs"
   ],
   "motor": ["sh", "scripts/maintenance/run.sh"],
   "motorConfig": "scripts/maintenance/config.json",
@@ -21,7 +22,9 @@
     "automation:graph": "node scripts/automation.mjs graph",
     "automation:status": "node scripts/automation.mjs graph status",
     "automation:install-hooks": "node scripts/automation.mjs install-hooks",
-    "automation:uninstall-hooks": "node scripts/automation.mjs uninstall-hooks"
+    "automation:uninstall-hooks": "node scripts/automation.mjs uninstall-hooks",
+    "approvals:visual:check": "node scripts/validate-visual-approvals.mjs",
+    "test:approvals-visual": "node --test tests/validate-visual-approvals.node.mjs"
   },
   "registrations": [
     {
@@ -335,6 +338,14 @@
       "manual": ["node", "scripts/validate-env-example.mjs"],
       "triggers": ["manual"],
       "reason": "Guarda do .env.example no mesmo padrão de validate-error-catalog.mjs; referências literais: package.json:scripts. O dispatcher não executa esta operação."
+    },
+    {
+      "id": "legacy-validate-visual-approvals",
+      "kind": "legacy",
+      "files": ["scripts/validate-visual-approvals.mjs"],
+      "manual": ["node", "scripts/validate-visual-approvals.mjs"],
+      "triggers": ["manual"],
+      "reason": "PF-56: guard do registro de aprovacao visual. Roda via alias approvals:visual:check no npm run check e via tests/validate-visual-approvals.node.mjs nos hooks; referências literais: package.json:scripts."
     },
     {
       "id": "legacy-2c3ea3d0a0479ea0",
