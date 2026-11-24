@@ -4,6 +4,7 @@ import { catalogPreviews, occasionPreviews } from './_lib/curatedPagePreviews.js
 import { normalizeCampaignYear } from '../shared/campaignYears.js';
 import { resolveCatalogEditorialId } from '../shared/catalogEditorial.js';
 import { ideaLandingIds, ideaLandingMeta } from '../shared/ideaLandingPages.js';
+import { CATALOGS_INDEX_DESCRIPTION, CATALOGS_INDEX_TITLE, catalogCollectionTitle } from '../shared/catalogMeta.js';
 import { catalogSocialImage } from '../shared/socialImages.js';
 import { SITE_NAME } from '../shared/siteName.js';
 
@@ -31,7 +32,7 @@ interface StaticPage {
 
 const pages: Record<string, StaticPage> = {
   catalogo: { path: '/catalogo', title: 'Catálogo de brindes | Promo Brindes', description: 'Encontre brindes corporativos para campanhas, eventos, relacionamento e reconhecimento.' },
-  catalogos: { path: '/catalogos', title: 'Catálogos para planejar campanhas | Promo Brindes', description: 'Coleções de brindes para transformar uma intenção em referências reais para sua campanha.' },
+  catalogos: { path: '/catalogos', title: `${CATALOGS_INDEX_TITLE} | ${SITE_NAME}`, description: CATALOGS_INDEX_DESCRIPTION },
   montarKit: { path: '/montar-kit', title: 'Monte seu kit de brindes | Promo Brindes', description: 'Combine produtos reais do catálogo em um kit corporativo e envie a composição no seu briefing.' },
   datas: { path: '/datas-comemorativas', title: 'Datas comemorativas para campanhas | Promo Brindes', description: 'Planeje brindes corporativos a partir das próximas datas e ocasiões da sua marca.' },
   sobre: { path: '/sobre', title: 'Sobre a Promo Brindes | Promo Brindes', description: 'Entender para atender: conheça a forma da Promo Brindes conectar marcas e pessoas.' },
@@ -73,7 +74,7 @@ function pageFrom(request: VercelRequest): StaticPage | null {
     const collection = collectionId ? catalogPreviews()[collectionId] : undefined;
     if (collectionId && collection) return {
       path: `/catalogos?colecao=${encodeURIComponent(collectionId)}`,
-      title: `${collection.title} | Catálogos Promo Brindes`,
+      title: `${catalogCollectionTitle(collection.title)} | ${SITE_NAME}`,
       description: collection.description,
       image: catalogSocialImage(collectionId),
     };
