@@ -20,10 +20,16 @@ function responseDouble() {
   return { result, response };
 }
 
+// Compara na forma escapada que o shell emite: desescapar aqui reintroduziria
+// o & e o CodeQL (js/double-escaping) recusa a cadeia de replace.
+function escapeHtml(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 function headOf(html: string, attribute: string): string {
   const match = html.match(new RegExp(`<meta (?:property|name)="${attribute}" content="([^"]*)"`));
   if (!match) throw new Error(`sem ${attribute} no shell`);
-  return match[1].replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  return match[1];
 }
 
 function shellTitleOf(html: string): string {
@@ -45,8 +51,8 @@ describe('paridade entre o shell prerenderizado e a hidratacao em /catalogos', (
     render(<Seo title={CATALOGS_INDEX_TITLE} description={CATALOGS_INDEX_DESCRIPTION} path="/catalogos" />);
 
     expect(shellTitleOf(shell.result.body)).toBe(document.title);
-    expect(headOf(shell.result.body, 'og:title')).toBe(document.title);
-    expect(headOf(shell.result.body, 'og:description')).toBe(CATALOGS_INDEX_DESCRIPTION);
+    expect(headOf(shell.result.body, 'og:title')).toBe(escapeHtml(document.title));
+    expect(headOf(shell.result.body, 'og:description')).toBe(escapeHtml(CATALOGS_INDEX_DESCRIPTION));
   });
 
   it('a colecao compartilhada entrega o mesmo titulo, descricao e capa', async () => {
@@ -65,7 +71,7 @@ describe('paridade entre o shell prerenderizado e a hidratacao em /catalogos', (
     );
 
     expect(shellTitleOf(shell.result.body)).toBe(document.title);
-    expect(headOf(shell.result.body, 'og:description')).toBe(collection.description);
+    expect(headOf(shell.result.body, 'og:description')).toBe(escapeHtml(collection.description));
     expect(headOf(shell.result.body, 'og:image')).toBe(`https://promo-brindes-v1.vercel.app${catalogSocialImage(collection.id)}`);
   });
 });
