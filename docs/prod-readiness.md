@@ -81,6 +81,14 @@ Status: **OK**.
 ## Correções nesta rodada
 1. **PR #137** — adicionado `'**/.tools/**'` ao array `ignores` do `eslint.config.js` para `npm run check` local terminar com exit 0 (espelha a CI, que não varre o diretório não-tracked `/.tools/`). Evidência: `npm run lint` e `npm run check` → exit 0; CI verde; merge confirmado por `git ls-remote refs/heads/main` = `8a810bd`.
 
+## Release de 24/11 — deploy travado por migration fora de ordem
+
+O merge da #234 deixou a `main` com a F-11 e o deploy de produção **não subiu**. Causa: `db push` recusa migration anterior à última do ledger remoto (`Found local migration files to be inserted before the last migration on remote database`), o job `Verify DB migration and gates` falhou e `Build and deploy to Vercel production` foi pulado (run `45290616100`). As duas migrations (`20261122050000`, `20261122060000`) foram aplicadas e registradas no ledger pela Management API e o `release.yml` foi reexecutado: 3 jobs verdes, Vercel em `9900f5a`, `site_notification_queue_health()` respondendo com `suppressedCount`/`outOfWindowCount`/`expiredExhaustedCount`.
+
+Blindagem em **PR #251** (`.github/workflows/release.yml`, Regra 8): `--include-all` no `--dry-run` e no push. Reprodução em banco local com o CLI pinado do CI — sem a flag, o erro do incidente; com a flag, `Would push these migrations`.
+
+Pendente: reexecutar o push fora de ordem contra um banco descartável no `database.yml`. Hoje a recaída é travada em duas camadas: o contrato de workflow (`tests/scripts/release-workflow.test.ts`, falha se algum `supabase db push` perder `--include-all`) e a verificação de ledger (`Wait for the isolated Supabase migration ledger`).
+
 ## BLOQUEADO / aguardando dono (item 9)
 | Item | Status | Erro exato / o que falta |
 |---|---|---|

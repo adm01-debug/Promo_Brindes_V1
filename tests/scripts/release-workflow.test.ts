@@ -36,6 +36,21 @@ describe('workflow de release Vercel', () => {
     expect(branchSmoke).toBeGreaterThan(productionSmoke);
   });
 
+  it('aplica migration fora de ordem no banco de produção em vez de derrubar o deploy', () => {
+    const pushes = workflow
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.startsWith('supabase db push'));
+
+    expect(pushes).toHaveLength(2);
+    for (const push of pushes) {
+      expect(push, `${push} precisa de --include-all`).toContain('--include-all');
+      expect(push).toContain('--db-url "$SITE_SUPABASE_DB_URL"');
+    }
+    expect(pushes.filter((push) => push.endsWith('--dry-run'))).toHaveLength(1);
+    expect(pushes.filter((push) => push.endsWith('--yes'))).toHaveLength(1);
+  });
+
   it('restaura também o alias git-main quando a validação pós-promoção falha', () => {
     const rollbackBlock = workflow.slice(
       workflow.indexOf('name: Roll back when post-promotion validation fails'),
