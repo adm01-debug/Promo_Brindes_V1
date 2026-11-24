@@ -1,7 +1,7 @@
 CREATE OR REPLACE FUNCTION public.list_site_quote_requests(p_status text DEFAULT NULL::text, p_search text DEFAULT NULL::text, p_limit integer DEFAULT 25, p_offset integer DEFAULT 0)
  RETURNS jsonb
  LANGUAGE plpgsql
- STABLE SECURITY DEFINER
+ SECURITY DEFINER
  SET search_path TO ''
 AS $function$
 declare
@@ -94,6 +94,7 @@ begin
     order by request.created_at desc
     limit v_limit offset v_offset
   ) page;
+  perform site_private.log_pii_read('quote_requests', null, jsonb_array_length(v_rows), concat_ws(' ', v_status, 'offset=' || v_offset::text, case when v_search is null then null else 'search' end), 'operador');
 
   return jsonb_build_object(
     'operator', v_operator.display_name,

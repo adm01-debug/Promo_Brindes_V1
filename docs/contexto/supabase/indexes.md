@@ -19,6 +19,7 @@ Uso e tamanho em `stats.md`.
 | site_private.consent_receipts | consent_receipts_server_recorded_at_idx | btree | server_recorded_at | não | sim |  |
 | site_private.contact_requests | contact_requests_client_request_id_key | btree | client_request_id | sim | sim |  |
 | site_private.contact_requests | contact_requests_created_at_idx | btree | created_at | não | sim |  |
+| site_private.contact_requests | contact_requests_email_hash_idx | btree |  | não | sim |  |
 | site_private.contact_requests | contact_requests_pkey | btree | id | sim | sim |  |
 | site_private.contact_requests | contact_requests_retention_idx | btree | retention_until | não | sim |  |
 | site_private.contact_requests | contact_requests_status_created_at_idx | btree | status, created_at | não | sim |  |
@@ -44,8 +45,12 @@ Uso e tamanho em `stats.md`.
 | site_private.notification_deliveries | notification_deliveries_request_kind_request_id_channel_aud_key | btree | request_kind, request_id, channel, audience | sim | sim |  |
 | site_private.notification_deliveries | notification_deliveries_retry_idx | btree | next_attempt_at, created_at | não | sim | `(status = ANY (ARRAY['pending'::text, 'failed'::text, 'processing'::text]))` |
 | site_private.notification_provider_events | notification_provider_events_delivery_id_idx | btree | delivery_id | não | sim | `(delivery_id IS NOT NULL)` |
+| site_private.notification_provider_events | notification_provider_events_orphan_idx | btree | provider, provider_message_id | não | sim | `(delivery_id IS NULL)` |
 | site_private.notification_provider_events | notification_provider_events_pkey | btree | id | sim | sim |  |
 | site_private.notification_provider_events | notification_provider_events_provider_provider_event_id_key | btree | provider, provider_event_id | sim | sim |  |
+| site_private.pii_read_audit_log | pii_read_audit_log_occurred_idx | btree | occurred_at, id | não | sim |  |
+| site_private.pii_read_audit_log | pii_read_audit_log_pkey | btree | id | sim | sim |  |
+| site_private.pii_read_audit_log | pii_read_audit_log_subject_occurred_idx | btree | subject, occurred_at, id | não | sim |  |
 | site_private.proposal_documents | proposal_documents_pkey | btree | id | sim | sim |  |
 | site_private.proposal_documents | proposal_documents_published_idx | btree | quote_request_id, published_at | não | sim | `(published_at IS NOT NULL)` |
 | site_private.proposal_documents | proposal_documents_quote_request_id_version_key | btree | quote_request_id, version | sim | sim |  |
@@ -65,6 +70,7 @@ Uso e tamanho em `stats.md`.
 | site_private.quote_requests | quote_requests_created_at_idx | btree | created_at | não | sim |  |
 | site_private.quote_requests | quote_requests_customer_created_idx | btree | customer_user_id, created_at | não | sim | `((customer_user_id IS NOT NULL) AND (status <> 'spam'::text))` |
 | site_private.quote_requests | quote_requests_customer_owner_idx | btree | customer_user_id | não | sim | `(customer_user_id IS NOT NULL)` |
+| site_private.quote_requests | quote_requests_email_hash_idx | btree |  | não | sim |  |
 | site_private.quote_requests | quote_requests_pkey | btree | id | sim | sim |  |
 | site_private.quote_requests | quote_requests_protocol_key | btree | protocol | sim | sim |  |
 | site_private.quote_requests | quote_requests_retention_idx | btree | retention_until | não | sim |  |

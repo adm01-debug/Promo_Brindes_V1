@@ -82,6 +82,7 @@
 | quote_requests_created_at_idx | btree | created_at | não | sim |  | `CREATE INDEX quote_requests_created_at_idx ON site_private.quote_requests USING btree (created_at DESC)` |
 | quote_requests_customer_created_idx | btree | customer_user_id, created_at | não | sim | `((customer_user_id IS NOT NULL) AND (status <> 'spam'::text))` | `CREATE INDEX quote_requests_customer_created_idx ON site_private.quote_requests USING btree (customer_user_id, created_at DESC) WHERE ((customer_user_id IS NOT NULL) AND (status <> 'spam'::text))` |
 | quote_requests_customer_owner_idx | btree | customer_user_id | não | sim | `(customer_user_id IS NOT NULL)` | `CREATE INDEX quote_requests_customer_owner_idx ON site_private.quote_requests USING btree (customer_user_id) WHERE (customer_user_id IS NOT NULL)` |
+| quote_requests_email_hash_idx | btree |  | não | sim |  | `CREATE INDEX quote_requests_email_hash_idx ON site_private.quote_requests USING btree (site_private.email_hash(email))` |
 | quote_requests_pkey | btree | id | sim | sim |  | `CREATE UNIQUE INDEX quote_requests_pkey ON site_private.quote_requests USING btree (id)` |
 | quote_requests_protocol_key | btree | protocol | sim | sim |  | `CREATE UNIQUE INDEX quote_requests_protocol_key ON site_private.quote_requests USING btree (protocol)` |
 | quote_requests_retention_idx | btree | retention_until | não | sim |  | `CREATE INDEX quote_requests_retention_idx ON site_private.quote_requests USING btree (retention_until)` |

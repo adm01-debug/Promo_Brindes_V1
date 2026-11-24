@@ -76,5 +76,8 @@ SQL em `migrations/<versao>_<nome>.sql`. Mudanças feitas pelo Dashboard/SQL Edi
 | 20261121110000 | [add_titular_lgpd_rights_rpcs](migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql) | 34 |
 | 20261122030000 | [add_commercial_backoffice_rpcs](migrations/20261122030000_add_commercial_backoffice_rpcs.sql) | 43 |
 | 20261122040000 | [add_cron_heartbeat_and_watchdog](migrations/20261122040000_add_cron_heartbeat_and_watchdog.sql) | 15 |
+| 20261122050000 | [add_notification_suppression_and_reprocessing](migrations/20261122050000_add_notification_suppression_and_reprocessing.sql) | 0 |
+| 20261122060000 | [add_notification_backlog_age_cutoff](migrations/20261122060000_add_notification_backlog_age_cutoff.sql) | 0 |
 | 20261122070000 | [add_customer_message_events](migrations/20261122070000_add_customer_message_events.sql) | 4 |
 | 20261122080000 | [include_message_text_in_export](migrations/20261122080000_include_message_text_in_export.sql) | 2 |
+| 20261122110000 | [add_pii_read_audit](migrations/20261122110000_add_pii_read_audit.sql) | 27 |

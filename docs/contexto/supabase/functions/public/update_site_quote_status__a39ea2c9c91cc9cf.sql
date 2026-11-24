@@ -57,6 +57,13 @@ begin
       jsonb_build_object('from', v_previous, 'to', v_target));
   end if;
 
+  -- F-11: spam não recebe confirmação nem alerta. O cancelamento é pontual e auditado.
+  if v_target = 'spam' and v_target <> v_previous then
+    perform site_private.cancel_ineligible_notification_backlog(
+      'quote', p_request_id, v_operator.display_name,
+      'pedido marcado como spam', interval '100 years');
+  end if;
+
   return jsonb_build_object('id', p_request_id, 'previousStatus', v_previous, 'status', v_target);
 end;
 $function$

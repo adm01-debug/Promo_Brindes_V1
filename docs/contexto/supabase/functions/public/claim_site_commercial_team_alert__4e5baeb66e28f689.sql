@@ -16,8 +16,30 @@ begin
     and delivery.status in ('pending', 'failed')
     and delivery.next_attempt_at <= now()
     and delivery.attempts < v_policy.max_attempts
+  order by delivery.created_at, delivery.id
+  limit 1;
+
+  if not found then return null; end if;
+  if site_private.suppress_notification_delivery(v_delivery.id) then return null; end if;
+
+  select * into v_delivery
+  from site_private.notification_deliveries delivery
+  where delivery.id = v_delivery.id
   for update skip locked;
   if not found then return null; end if;
+  if v_delivery.status not in ('pending', 'failed')
+    or v_delivery.next_attempt_at > now()
+    or v_delivery.attempts >= v_policy.max_attempts then
+    return null;
+  end if;
+
+  if not site_private.notification_delivery_is_eligible(
+    v_delivery.request_kind, v_delivery.request_id, v_delivery.created_at, v_policy.max_age) then
+    perform site_private.cancel_ineligible_notification_backlog(
+      v_delivery.request_kind, v_delivery.request_id, 'notification worker',
+      'claim pontual de entrega inelegivel', v_policy.max_age);
+    return null;
+  end if;
 
   update site_private.notification_deliveries delivery
   set status = 'processing', attempts = delivery.attempts + 1, updated_at = now(),

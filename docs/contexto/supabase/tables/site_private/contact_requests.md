@@ -66,6 +66,7 @@
 |---|---|---|---|---|---|---|
 | contact_requests_client_request_id_key | btree | client_request_id | sim | sim |  | `CREATE UNIQUE INDEX contact_requests_client_request_id_key ON site_private.contact_requests USING btree (client_request_id)` |
 | contact_requests_created_at_idx | btree | created_at | não | sim |  | `CREATE INDEX contact_requests_created_at_idx ON site_private.contact_requests USING btree (created_at DESC)` |
+| contact_requests_email_hash_idx | btree |  | não | sim |  | `CREATE INDEX contact_requests_email_hash_idx ON site_private.contact_requests USING btree (site_private.email_hash(email))` |
 | contact_requests_pkey | btree | id | sim | sim |  | `CREATE UNIQUE INDEX contact_requests_pkey ON site_private.contact_requests USING btree (id)` |
 | contact_requests_retention_idx | btree | retention_until | não | sim |  | `CREATE INDEX contact_requests_retention_idx ON site_private.contact_requests USING btree (retention_until)` |
 | contact_requests_status_created_at_idx | btree | status, created_at | não | sim |  | `CREATE INDEX contact_requests_status_created_at_idx ON site_private.contact_requests USING btree (status, created_at DESC)` |

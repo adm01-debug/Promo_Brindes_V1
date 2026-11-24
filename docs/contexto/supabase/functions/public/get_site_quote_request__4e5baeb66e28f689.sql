@@ -1,7 +1,7 @@
 CREATE OR REPLACE FUNCTION public.get_site_quote_request(p_request_id uuid)
  RETURNS jsonb
  LANGUAGE plpgsql
- STABLE SECURITY DEFINER
+ SECURITY DEFINER
  SET search_path TO ''
 AS $function$
 declare
@@ -22,6 +22,8 @@ begin
   if not found then
     raise exception using errcode = 'P0002', message = 'quote_request_not_found';
   end if;
+
+  perform site_private.log_pii_read('quote_requests', null, 1, v_request.id::text, 'operador');
 
   select coalesce(jsonb_agg(jsonb_build_object(
     'key', item.item_key, 'productId', item.source_product_id, 'slug', item.product_slug,

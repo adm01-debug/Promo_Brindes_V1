@@ -25,6 +25,7 @@ Roles da API: `anon` (sem login), `authenticated` (logado), `service_role` (bypa
 | site_private.notification_deliveries | site_api | DELETE, INSERT, SELECT, UPDATE |
 | site_private.notification_provider_events | service_role | DELETE, INSERT, SELECT, UPDATE |
 | site_private.notification_provider_events | site_api | INSERT, SELECT |
+| site_private.pii_read_audit_log | service_role | DELETE, INSERT, SELECT, UPDATE |
 | site_private.proposal_documents | service_role | DELETE, INSERT, SELECT, UPDATE |
 | site_private.proposal_documents | site_api | DELETE, SELECT |
 | site_private.quote_adjustment_requests | service_role | DELETE, INSERT, SELECT, UPDATE |

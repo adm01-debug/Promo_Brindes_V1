@@ -175,6 +175,20 @@ erDiagram
         text event_type
         uuid delivery_id FK
         timestamp_with_time_zone received_at
+        text provider_message_id
+        text bounce_reason
+    }
+    site_private_pii_read_audit_log {
+        bigint id PK
+        text table_name
+        text operation
+        uuid subject
+        text performed_by
+        text actor_kind
+        text filter
+        integer row_count
+        text application_name
+        timestamp_with_time_zone occurred_at
     }
     site_private_proposal_documents {
         uuid id PK

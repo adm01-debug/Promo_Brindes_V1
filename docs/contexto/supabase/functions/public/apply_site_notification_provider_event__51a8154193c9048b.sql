@@ -22,8 +22,12 @@ begin
   where delivery.provider = p_provider and delivery.provider_message_id = p_provider_message_id
   limit 1;
 
-  insert into site_private.notification_provider_events (provider, provider_event_id, event_type, delivery_id)
-  values (p_provider, p_provider_event_id, p_event_type, v_delivery_id)
+  -- F-12: provider_message_id e bounce_reason passam a ser gravados no evento. É o que
+  -- permite a reconcile_site_notification_provider_events() religar depois o evento que
+  -- chegou antes do aceite. O comportamento devolvido aqui continua idêntico ao anterior.
+  insert into site_private.notification_provider_events
+    (provider, provider_event_id, event_type, delivery_id, provider_message_id, bounce_reason)
+  values (p_provider, p_provider_event_id, p_event_type, v_delivery_id, p_provider_message_id, p_bounce_reason)
   on conflict (provider, provider_event_id) do nothing
   returning id into v_event_id;
 
@@ -44,8 +48,8 @@ begin
     where delivery.id = v_delivery_id
       and (
         delivery.delivery_state is null
-        -- Etapa 20: bounced sobrescreve um delivered anterior (soft bounce tardio);
-        -- delivered nunca sobrescreve bounced (o inverso não existe nesta condição).
+        -- bounced sobrescreve um delivered anterior (soft bounce tardio); delivered
+        -- nunca sobrescreve bounced (esse sentido não existe nesta condição).
         or (p_event_type = 'bounced' and delivery.delivery_state = 'delivered')
       );
     get diagnostics v_updated = row_count;

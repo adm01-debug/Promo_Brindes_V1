@@ -39,6 +39,8 @@ begin
   ) order by proposal.version desc), '[]'::jsonb) into v_proposals
   from site_private.proposal_documents proposal where proposal.quote_request_id = v_request.id and proposal.published_at is not null;
 
+  perform site_private.log_pii_read('quote_requests', v_user_id);
+
   return jsonb_build_object(
     'id', v_request.id, 'protocol', v_request.protocol, 'status', v_request.status,
     'createdAt', v_request.created_at, 'submittedAt', v_request.client_submitted_at, 'company', v_request.company,

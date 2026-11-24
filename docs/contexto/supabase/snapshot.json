@@ -1566,6 +1566,162 @@
         "type": "timestamp with time zone"
       },
       {
+        "comment": "F-12: id da mensagem no provedor, preservado no evento para o re-vínculo de evento que chegou antes do aceite. Eventos anteriores a esta migration não têm o valor e só podem ser expurgados.",
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "provider_message_id",
+        "nullable": true,
+        "position": 7,
+        "schema": "site_private",
+        "table": "notification_provider_events",
+        "type": "text"
+      },
+      {
+        "comment": "F-12: motivo do bounce tal como o webhook enviou, preservado no evento para o re-vínculo (antes só existia em notification_deliveries, o que exigia a entrega já vinculada).",
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "bounce_reason",
+        "nullable": true,
+        "position": 8,
+        "schema": "site_private",
+        "table": "notification_provider_events",
+        "type": "text"
+      },
+      {
+        "comment": null,
+        "default": null,
+        "generated": null,
+        "identity": "a",
+        "is_enum": false,
+        "name": "id",
+        "nullable": false,
+        "position": 1,
+        "schema": "site_private",
+        "table": "pii_read_audit_log",
+        "type": "bigint"
+      },
+      {
+        "comment": null,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "table_name",
+        "nullable": false,
+        "position": 2,
+        "schema": "site_private",
+        "table": "pii_read_audit_log",
+        "type": "text"
+      },
+      {
+        "comment": null,
+        "default": "'SELECT'::text",
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "operation",
+        "nullable": false,
+        "position": 3,
+        "schema": "site_private",
+        "table": "pii_read_audit_log",
+        "type": "text"
+      },
+      {
+        "comment": "Titular cuja PII foi lida. Fica nulo em leitura de operador: a fila comercial pagina muitos titulares de uma vez e só o row_count descreve o volume.",
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "subject",
+        "nullable": true,
+        "position": 4,
+        "schema": "site_private",
+        "table": "pii_read_audit_log",
+        "type": "uuid"
+      },
+      {
+        "comment": null,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "performed_by",
+        "nullable": false,
+        "position": 5,
+        "schema": "site_private",
+        "table": "pii_read_audit_log",
+        "type": "text"
+      },
+      {
+        "comment": "titular = o próprio dono leu seus dados; operador = alguém do back-office leu dados de outra pessoa.",
+        "default": "'titular'::text",
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "actor_kind",
+        "nullable": false,
+        "position": 6,
+        "schema": "site_private",
+        "table": "pii_read_audit_log",
+        "type": "text"
+      },
+      {
+        "comment": null,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "filter",
+        "nullable": true,
+        "position": 7,
+        "schema": "site_private",
+        "table": "pii_read_audit_log",
+        "type": "text"
+      },
+      {
+        "comment": null,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "row_count",
+        "nullable": true,
+        "position": 8,
+        "schema": "site_private",
+        "table": "pii_read_audit_log",
+        "type": "integer"
+      },
+      {
+        "comment": null,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "application_name",
+        "nullable": true,
+        "position": 9,
+        "schema": "site_private",
+        "table": "pii_read_audit_log",
+        "type": "text"
+      },
+      {
+        "comment": null,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "is_enum": false,
+        "name": "occurred_at",
+        "nullable": false,
+        "position": 10,
+        "schema": "site_private",
+        "table": "pii_read_audit_log",
+        "type": "timestamp with time zone"
+      },
+      {
         "comment": null,
         "default": "gen_random_uuid()",
         "generated": null,
@@ -4083,6 +4239,23 @@
       },
       {
         "columns": [
+          "bounce_reason"
+        ],
+        "deferrable": false,
+        "definition": "CHECK (bounce_reason IS NULL OR length(bounce_reason) <= 200)",
+        "name": "notification_provider_events_bounce_reason_check",
+        "on_delete": null,
+        "on_update": null,
+        "ref_columns": [],
+        "ref_schema": null,
+        "ref_table": null,
+        "schema": "site_private",
+        "table": "notification_provider_events",
+        "type": "CHECK",
+        "validated": true
+      },
+      {
+        "columns": [
           "delivery_id"
         ],
         "deferrable": false,
@@ -4170,6 +4343,23 @@
       },
       {
         "columns": [
+          "provider_message_id"
+        ],
+        "deferrable": false,
+        "definition": "CHECK (provider_message_id IS NULL OR length(provider_message_id) >= 1 AND length(provider_message_id) <= 240)",
+        "name": "notification_provider_events_provider_message_id_check",
+        "on_delete": null,
+        "on_update": null,
+        "ref_columns": [],
+        "ref_schema": null,
+        "ref_table": null,
+        "schema": "site_private",
+        "table": "notification_provider_events",
+        "type": "CHECK",
+        "validated": true
+      },
+      {
+        "columns": [
           "provider",
           "provider_event_id"
         ],
@@ -4184,6 +4374,57 @@
         "schema": "site_private",
         "table": "notification_provider_events",
         "type": "UNIQUE",
+        "validated": true
+      },
+      {
+        "columns": [
+          "actor_kind"
+        ],
+        "deferrable": false,
+        "definition": "CHECK (actor_kind = ANY (ARRAY['titular'::text, 'operador'::text]))",
+        "name": "pii_read_audit_log_actor_kind_check",
+        "on_delete": null,
+        "on_update": null,
+        "ref_columns": [],
+        "ref_schema": null,
+        "ref_table": null,
+        "schema": "site_private",
+        "table": "pii_read_audit_log",
+        "type": "CHECK",
+        "validated": true
+      },
+      {
+        "columns": [
+          "operation"
+        ],
+        "deferrable": false,
+        "definition": "CHECK (operation = 'SELECT'::text)",
+        "name": "pii_read_audit_log_operation_check",
+        "on_delete": null,
+        "on_update": null,
+        "ref_columns": [],
+        "ref_schema": null,
+        "ref_table": null,
+        "schema": "site_private",
+        "table": "pii_read_audit_log",
+        "type": "CHECK",
+        "validated": true
+      },
+      {
+        "columns": [
+          "id"
+        ],
+        "deferrable": false,
+        "definition": "PRIMARY KEY (id)",
+        "name": "pii_read_audit_log_pkey",
+        "on_delete": null,
+        "on_update": null,
+        "ref_columns": [],
+        "ref_schema": null,
+        "ref_table": null,
+        "schema": "site_private",
+        "table": "pii_read_audit_log",
+        "type": "PRIMARY KEY",
         "validated": true
       },
       {
@@ -5647,12 +5888,12 @@
           "triggers": [],
           "views": []
         },
-        "comment": "Aplica evento de webhook de forma idempotente (Etapa 30 do plano anterior). delivered só grava se delivery_state ainda for null; bounced grava se null OU se o estado atual for delivered — um bounce tardio corrige um delivered otimista (Etapa 20 do plano de correções). complained é independente e idempotente via coalesce.",
+        "comment": "Aplica evento de webhook de forma idempotente. delivered só grava se delivery_state ainda for null; bounced grava se null OU se o estado atual for delivered (bounce tardio corrige delivered otimista). complained é independente e idempotente via coalesce. F-12: o evento também guarda provider_message_id e bounce_reason, para o re-vínculo de evento precoce.",
         "config": [
           "search_path=\"\""
         ],
         "definition": null,
-        "definition_sha": "3701d2852dc3fe70",
+        "definition_sha": "662b99ae7cf5452c",
         "execute_api_roles": "service_role",
         "execute_public": false,
         "is_trigger_fn": false,
@@ -5736,6 +5977,45 @@
         "security_definer": true,
         "strict": false,
         "volatility": "stable"
+      },
+      {
+        "args": "p_reason text",
+        "callers": {
+          "code": [
+            {
+              "file": "site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql",
+              "hits": 1
+            },
+            {
+              "file": "src/lib/commercialBackoffice.ts",
+              "hits": 1
+            }
+          ],
+          "code_total_files": 2,
+          "cron": [],
+          "db": [],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "F-11: porta do back-office para cortar o backlog inelegível da fila de notificações. Exige operador ativo (assert_site_operator) e motivo de 3 a 200 caracteres, que vai para admin_audit_log junto com o nome do operador. Devolve cancelled/scanned/cancelledIds.",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "16283cc1b16cbeee",
+        "execute_api_roles": "authenticated, service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "plpgsql",
+        "leakproof": false,
+        "name": "cancel_site_notification_backlog",
+        "owner": "postgres",
+        "returns": "jsonb",
+        "schema": "public",
+        "security_definer": true,
+        "strict": false,
+        "volatility": "volatile"
       },
       {
         "args": "",
@@ -5825,12 +6105,12 @@
           "triggers": [],
           "views": []
         },
-        "comment": "Reivindica o alerta comercial de um lead especifico (orcamento ou contato), sem filtrar por canal.",
+        "comment": "F-11/F-12: claim pontual do alerta ao comercial. Devolve null quando o pedido foi apagado (F-30) — suppression por bounce/complaint NAO se aplica aqui: notification_request_suppressed so considera audience = customer e o alerta vai para commercial_team, entao o caminho e so o pedido apagado. Cancela a entrega sem trilha em admin_audit_log (motivo fica em last_error_code). Quando o job e inelegivel por spam, anonimizacao ou idade acima de max_age, cancela COM trilha em admin_audit_log via cancel_ineligible_notification_backlog. A entrega nunca fica pending para sempre.",
         "config": [
           "search_path=\"\""
         ],
         "definition": null,
-        "definition_sha": "df68c4a91c1bf327",
+        "definition_sha": "606f19650d479848",
         "execute_api_roles": "service_role",
         "execute_public": false,
         "is_trigger_fn": false,
@@ -5855,12 +6135,12 @@
           "triggers": [],
           "views": []
         },
-        "comment": "Reivindica lotes de alertas comerciais pendentes (orcamento e contato) para o cron de entrega.",
+        "comment": "F-11/F-12: claim em lote dos alertas ao comercial. Antes de reivindicar, cancela as entregas de pedido apagado (F-12), as inelegíveis por spam/anonimização/idade acima de max_age (F-11) e aposenta as que estouraram as tentativas.",
         "config": [
           "search_path=\"\""
         ],
         "definition": null,
-        "definition_sha": "511d4c52ad83cffd",
+        "definition_sha": "f5c685291c2b0bf5",
         "execute_api_roles": "service_role",
         "execute_public": false,
         "is_trigger_fn": false,
@@ -5890,12 +6170,12 @@
           "triggers": [],
           "views": []
         },
-        "comment": "Reivindica notificações com lease e devolve o contrato estruturado da confirmação, sem notas livres ou dados privados desnecessários ao e-mail.",
+        "comment": "F-11/F-12: claim em lote das confirmações ao cliente. Antes de reivindicar, cancela as entregas de destinatário suprimido ou pedido apagado (F-12), as inelegíveis por spam/anonimização/idade acima de max_age (F-11) e aposenta as que estouraram as tentativas.",
         "config": [
           "search_path=\"\""
         ],
         "definition": null,
-        "definition_sha": "b2c6cfaac59d25e9",
+        "definition_sha": "8ae376e43278656d",
         "execute_api_roles": "service_role",
         "execute_public": false,
         "is_trigger_fn": false,
@@ -5920,12 +6200,12 @@
           "triggers": [],
           "views": []
         },
-        "comment": "Reivindicação imediata com o mesmo contrato estruturado da fila; não recupera jobs processing presos.",
+        "comment": "F-11/F-12: claim pontual de uma confirmacao ao cliente. Devolve null quando o destinatario esta suprimido (bounce/complaint) ou o pedido foi apagado — cancela a entrega sem trilha em admin_audit_log (motivo fica em last_error_code). Quando o job e inelegivel por spam, anonimizacao ou idade acima de max_age, cancela COM trilha em admin_audit_log via cancel_ineligible_notification_backlog. A entrega nunca fica pending para sempre.",
         "config": [
           "search_path=\"\""
         ],
         "definition": null,
-        "definition_sha": "75fc3050017b8f0a",
+        "definition_sha": "5298dd12ab347330",
         "execute_api_roles": "service_role",
         "execute_public": false,
         "is_trigger_fn": false,
@@ -6607,7 +6887,7 @@
           "search_path=\"\""
         ],
         "definition": null,
-        "definition_sha": "42ef39eeaeb72bd8",
+        "definition_sha": "4c6ed188ea4fd457",
         "execute_api_roles": "authenticated, service_role",
         "execute_public": false,
         "is_trigger_fn": false,
@@ -6692,6 +6972,71 @@
         "volatility": "volatile"
       },
       {
+        "args": "p_limit integer",
+        "callers": {
+          "code": [
+            {
+              "file": "src/lib/commercialBackoffice.ts",
+              "hits": 1
+            }
+          ],
+          "code_total_files": 1,
+          "cron": [],
+          "db": [],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "F-12/F-11: visão operacional da fila para o back-office — entregas esgotadas com pseudônimo do e-mail (12 hex), se o endereço está suprimido/anonimizado e `reopenable`, que é o mesmo critério do reprocessamento, inclusive ao separar por audiência: a supressão do titular não bloqueia o alerta comercial do mesmo pedido. A lista prioriza o que o operador pode reabrir antes de aplicar o limite. Exige operador ativo.",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "2a32d783cd3a02ff",
+        "execute_api_roles": "authenticated, service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "plpgsql",
+        "leakproof": false,
+        "name": "get_site_notification_delivery_report",
+        "owner": "postgres",
+        "returns": "jsonb",
+        "schema": "public",
+        "security_definer": true,
+        "strict": false,
+        "volatility": "stable"
+      },
+      {
+        "args": "p_email_hash text",
+        "callers": {
+          "code": [],
+          "code_total_files": 0,
+          "cron": [],
+          "db": [],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "F-12: lista de supressão consultável por sha256 do e-mail normalizado. Diz se o endereço já deu bounce ou reclamou de spam, quando, em quais canais e o último motivo — sem devolver o e-mail em claro.",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "eabbb7d0df53daaa",
+        "execute_api_roles": "service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "plpgsql",
+        "leakproof": false,
+        "name": "get_site_notification_suppression",
+        "owner": "postgres",
+        "returns": "jsonb",
+        "schema": "public",
+        "security_definer": true,
+        "strict": false,
+        "volatility": "stable"
+      },
+      {
         "args": "p_request_id uuid",
         "callers": {
           "code": [
@@ -6715,7 +7060,7 @@
           "search_path=\"\""
         ],
         "definition": null,
-        "definition_sha": "6a28251e60b9d99c",
+        "definition_sha": "ecbcef2630bdead1",
         "execute_api_roles": "authenticated, service_role",
         "execute_public": false,
         "is_trigger_fn": false,
@@ -6728,7 +7073,7 @@
         "schema": "public",
         "security_definer": true,
         "strict": false,
-        "volatility": "stable"
+        "volatility": "volatile"
       },
       {
         "args": "p_token uuid, p_identifier_hash text",
@@ -6894,7 +7239,7 @@
           "search_path=\"\""
         ],
         "definition": null,
-        "definition_sha": "ec64dc679ecd5fb9",
+        "definition_sha": "888e523eb782cce2",
         "execute_api_roles": "authenticated, service_role",
         "execute_public": false,
         "is_trigger_fn": false,
@@ -6907,7 +7252,7 @@
         "schema": "public",
         "security_definer": true,
         "strict": false,
-        "volatility": "stable"
+        "volatility": "volatile"
       },
       {
         "args": "p_path text, p_metadata jsonb",
@@ -7118,6 +7463,103 @@
         "volatility": "volatile"
       },
       {
+        "args": "p_retention_days integer, p_batch_size integer",
+        "callers": {
+          "code": [],
+          "code_total_files": 0,
+          "cron": [],
+          "db": [],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "F-12: expurga eventos de webhook órfãos (delivery_id NULL) mais antigos que a retenção, em lote. Chamada por api/retention.ts depois da reconciliação — órfão recente ainda pode ser religado.",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "1c09b9e91f39fcf7",
+        "execute_api_roles": "service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "plpgsql",
+        "leakproof": false,
+        "name": "purge_site_notification_provider_events",
+        "owner": "postgres",
+        "returns": "jsonb",
+        "schema": "public",
+        "security_definer": true,
+        "strict": false,
+        "volatility": "volatile"
+      },
+      {
+        "args": "p_retention_days integer, p_batch_size integer",
+        "callers": {
+          "code": [],
+          "code_total_files": 0,
+          "cron": [],
+          "db": [],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "PF-34: purga em lote a trilha de leitura de PII. Mesma janela e mesmo teto de lote que purge_site_admin_audit_logs.",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "e270c3582d8b5538",
+        "execute_api_roles": "service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "plpgsql",
+        "leakproof": false,
+        "name": "purge_site_pii_read_audit_log",
+        "owner": "postgres",
+        "returns": "jsonb",
+        "schema": "public",
+        "security_definer": true,
+        "strict": false,
+        "volatility": "volatile"
+      },
+      {
+        "args": "p_batch_size integer",
+        "callers": {
+          "code": [
+            {
+              "file": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+              "hits": 1
+            }
+          ],
+          "code_total_files": 1,
+          "cron": [],
+          "db": [
+            "public.apply_site_notification_provider_event"
+          ],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "F-12: religa eventos de webhook que chegaram antes do aceite do provedor (delivery_id NULL) e reaplica delivery_state/complained_at com a mesma precedência de apply_site_notification_provider_event. Idempotente: evento já vinculado nunca é reprocessado.",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "0a9b8ff121997113",
+        "execute_api_roles": "service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "plpgsql",
+        "leakproof": false,
+        "name": "reconcile_site_notification_provider_events",
+        "owner": "postgres",
+        "returns": "jsonb",
+        "schema": "public",
+        "security_definer": true,
+        "strict": false,
+        "volatility": "volatile"
+      },
+      {
         "args": "p_name text, p_ok boolean, p_detail text",
         "callers": {
           "code": [
@@ -7278,6 +7720,41 @@
         "language": "plpgsql",
         "leakproof": false,
         "name": "reply_site_quote_adjustment",
+        "owner": "postgres",
+        "returns": "jsonb",
+        "schema": "public",
+        "security_definer": true,
+        "strict": false,
+        "volatility": "volatile"
+      },
+      {
+        "args": "p_delivery_ids uuid[], p_reason text",
+        "callers": {
+          "code": [
+            {
+              "file": "src/lib/commercialBackoffice.ts",
+              "hits": 1
+            }
+          ],
+          "code_total_files": 1,
+          "cron": [],
+          "db": [],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "F-12: porta do back-office para reprocessar entregas esgotadas. Exige operador ativo (assert_site_operator) e motivo de 3 a 200 caracteres; o motivo vai para admin_audit_log junto com o nome do operador. Só aceita entregas de fato esgotadas — as demais voltam em \"skipped\" sem abortar o lote.",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "eb420da068f8c683",
+        "execute_api_roles": "authenticated, service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "plpgsql",
+        "leakproof": false,
+        "name": "reprocess_site_notification_deliveries",
         "owner": "postgres",
         "returns": "jsonb",
         "schema": "public",
@@ -7502,19 +7979,24 @@
       {
         "args": "",
         "callers": {
-          "code": [],
-          "code_total_files": 0,
+          "code": [
+            {
+              "file": "site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql",
+              "hits": 1
+            }
+          ],
+          "code_total_files": 1,
           "cron": [],
           "db": [],
           "triggers": [],
           "views": []
         },
-        "comment": "Idade do job elegível mais antigo e contagem de exhausted por canal (Etapa 29); devolve só contagens e canais, sem conteúdo pessoal.",
+        "comment": "F-11: saúde da fila por canal. eligibleCount usa o mesmo critério do claim (status pronto, dentro da janela, pedido não spam e não anonimizado); outOfWindowCount conta o pending/failed que o próximo claim vai cancelar; suppressedCount é o bloqueio ativo de supressão; exhaustedCount conta só a esgotada que o operador consegue reabrir (é o único que dispara alerta) e expiredExhaustedCount a esgotada que o painel desabilita (fora da janela, spam ou pedido apagado).",
         "config": [
           "search_path=\"\""
         ],
         "definition": null,
-        "definition_sha": "063137de6562e9f7",
+        "definition_sha": "03619be27dd60e01",
         "execute_api_roles": "service_role",
         "execute_public": false,
         "is_trigger_fn": false,
@@ -7538,22 +8020,26 @@
               "hits": 1
             },
             {
+              "file": "site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql",
+              "hits": 1
+            },
+            {
               "file": "src/lib/commercialBackoffice.ts",
               "hits": 1
             }
           ],
-          "code_total_files": 2,
+          "code_total_files": 3,
           "cron": [],
           "db": [],
           "triggers": [],
           "views": []
         },
-        "comment": "Muda o status de um orçamento respeitando site_private.status_transitions e registra a trilha (F-03). O update é condicionado ao status lido, então duas abas abertas não sobrescrevem uma à outra.",
+        "comment": "F-03/F-11: muda o status do orçamento respeitando status_transitions. Ao entrar em spam, cancela as entregas pendentes do pedido (o trigger de enfileiramento é AFTER INSERT, então sem isso o job ficaria órfão na fila).",
         "config": [
           "search_path=\"\""
         ],
         "definition": null,
-        "definition_sha": "39c489756c5dbc46",
+        "definition_sha": "0b02d5f041f6e627",
         "execute_api_roles": "authenticated, service_role",
         "execute_public": false,
         "is_trigger_fn": false,
@@ -7581,6 +8067,10 @@
               "hits": 2
             },
             {
+              "file": "site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql",
+              "hits": 3
+            },
+            {
               "file": "site-supabase/supabase/migrations/20261122070000_add_customer_message_events.sql",
               "hits": 1
             },
@@ -7593,13 +8083,16 @@
               "hits": 1
             }
           ],
-          "code_total_files": 5,
+          "code_total_files": 6,
           "cron": [],
           "db": [
+            "public.cancel_site_notification_backlog",
+            "public.get_site_notification_delivery_report",
             "public.get_site_quote_request",
             "public.list_site_quote_requests",
             "public.publish_site_quote_proposal",
             "public.reply_site_quote_adjustment",
+            "public.reprocess_site_notification_deliveries",
             "public.update_site_quote_status"
           ],
           "triggers": [],
@@ -7679,7 +8172,8 @@
           "cron": [],
           "db": [
             "site_private.log_admin_ddl",
-            "site_private.log_admin_write"
+            "site_private.log_admin_write",
+            "site_private.log_pii_read"
           ],
           "triggers": [],
           "views": []
@@ -7705,6 +8199,46 @@
         "volatility": "stable"
       },
       {
+        "args": "p_request_kind text, p_request_id uuid, p_actor_label text, p_reason text, p_max_age interval",
+        "callers": {
+          "code": [
+            {
+              "file": "site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql",
+              "hits": 4
+            }
+          ],
+          "code_total_files": 1,
+          "cron": [],
+          "db": [
+            "public.cancel_site_notification_backlog",
+            "public.claim_site_commercial_team_alert",
+            "public.claim_site_quote_notification",
+            "public.update_site_quote_status"
+          ],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "F-11: núcleo do corte de backlog. Cancela (pending/failed/processing com lease expirado) as entregas inelegíveis — pedido em spam, e-mail anonimizado ou idade acima de max_age — e grava a trilha em admin_audit_log. Filtros nulos significam \"todas\".",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "1852c909b086860f",
+        "execute_api_roles": "service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "plpgsql",
+        "leakproof": false,
+        "name": "cancel_ineligible_notification_backlog",
+        "owner": "postgres",
+        "returns": "jsonb",
+        "schema": "site_private",
+        "security_definer": true,
+        "strict": false,
+        "volatility": "volatile"
+      },
+      {
         "args": "p_delivery_id uuid",
         "callers": {
           "code": [
@@ -7719,9 +8253,13 @@
             {
               "file": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
               "hits": 2
+            },
+            {
+              "file": "site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql",
+              "hits": 3
             }
           ],
-          "code_total_files": 3,
+          "code_total_files": 4,
           "cron": [],
           "db": [
             "public.claim_site_commercial_team_alert",
@@ -7761,9 +8299,13 @@
             {
               "file": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
               "hits": 2
+            },
+            {
+              "file": "site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql",
+              "hits": 3
             }
           ],
-          "code_total_files": 2,
+          "code_total_files": 3,
           "cron": [],
           "db": [
             "public.claim_site_commercial_team_alert",
@@ -7943,6 +8485,49 @@
         "security_definer": true,
         "strict": false,
         "volatility": "volatile"
+      },
+      {
+        "args": "p_email text",
+        "callers": {
+          "code": [
+            {
+              "file": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+              "hits": 10
+            },
+            {
+              "file": "site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql",
+              "hits": 2
+            }
+          ],
+          "code_total_files": 2,
+          "cron": [],
+          "db": [
+            "public.get_site_notification_delivery_report",
+            "public.get_site_notification_suppression",
+            "site_private.notification_request_suppressed"
+          ],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "F-12: sha256 hex do e-mail normalizado. Identificador pseudônimo da lista de supressão — nunca expõe o e-mail em claro.",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "b165b5f94800c749",
+        "execute_api_roles": "service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "sql",
+        "leakproof": false,
+        "name": "email_hash",
+        "owner": "postgres",
+        "returns": "text",
+        "schema": "site_private",
+        "security_definer": true,
+        "strict": false,
+        "volatility": "immutable"
       },
       {
         "args": "",
@@ -8552,6 +9137,45 @@
         "volatility": "volatile"
       },
       {
+        "args": "p_table_name text, p_subject uuid, p_row_count integer, p_filter text, p_actor_kind text",
+        "callers": {
+          "code": [
+            {
+              "file": "site-supabase/supabase/migrations/20261122110000_add_pii_read_audit.sql",
+              "hits": 3
+            }
+          ],
+          "code_total_files": 1,
+          "cron": [],
+          "db": [
+            "public.get_my_quote_request",
+            "public.get_site_quote_request",
+            "public.list_site_quote_requests"
+          ],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "PF-34: registra uma leitura de PII na trilha de auditoria. Chamada por RPCs que leem colunas de contato.",
+        "config": [
+          "search_path=site_private"
+        ],
+        "definition": null,
+        "definition_sha": "8f38dc218d8da6f1",
+        "execute_api_roles": "authenticated",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "plpgsql",
+        "leakproof": false,
+        "name": "log_pii_read",
+        "owner": "postgres",
+        "returns": "void",
+        "schema": "site_private",
+        "security_definer": true,
+        "strict": false,
+        "volatility": "volatile"
+      },
+      {
         "args": "p_digits text",
         "callers": {
           "code": [
@@ -8665,7 +9289,8 @@
           "code_total_files": 7,
           "cron": [],
           "db": [
-            "public.erase_customer_data"
+            "public.erase_customer_data",
+            "site_private.email_hash"
           ],
           "triggers": [],
           "views": []
@@ -8730,6 +9355,130 @@
         "volatility": "stable"
       },
       {
+        "args": "p_delivery_id uuid",
+        "callers": {
+          "code": [
+            {
+              "file": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+              "hits": 6
+            },
+            {
+              "file": "site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql",
+              "hits": 8
+            }
+          ],
+          "code_total_files": 2,
+          "cron": [],
+          "db": [
+            "public.claim_site_commercial_team_alerts",
+            "public.claim_site_notification_deliveries"
+          ],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "F-12: predicado único consultado pelas quatro claims. Falso para destinatário suprimido (bounce/complaint) e para pedido apagado pela autoexclusão do titular.",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "2e9a7e627ad7b64d",
+        "execute_api_roles": "service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "sql",
+        "leakproof": false,
+        "name": "notification_delivery_is_claimable",
+        "owner": "postgres",
+        "returns": "boolean",
+        "schema": "site_private",
+        "security_definer": true,
+        "strict": false,
+        "volatility": "stable"
+      },
+      {
+        "args": "p_request_kind text, p_request_id uuid, p_created_at timestamp with time zone, p_max_age interval",
+        "callers": {
+          "code": [
+            {
+              "file": "site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql",
+              "hits": 18
+            }
+          ],
+          "code_total_files": 1,
+          "cron": [],
+          "db": [
+            "public.claim_site_commercial_team_alert",
+            "public.claim_site_commercial_team_alerts",
+            "public.claim_site_notification_deliveries",
+            "public.claim_site_quote_notification",
+            "public.site_notification_queue_health",
+            "site_private.cancel_ineligible_notification_backlog",
+            "site_private.notification_delivery_is_reopenable",
+            "site_private.reprocess_notification_deliveries_core"
+          ],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "F-11: criterio unico de elegibilidade de uma entrega — idade dentro de max_age, pedido existente e nao marcado como spam, e e-mail nao anonimizado por direito ao esquecimento (F-30).",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "709055579e8cdb85",
+        "execute_api_roles": "service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "sql",
+        "leakproof": false,
+        "name": "notification_delivery_is_eligible",
+        "owner": "postgres",
+        "returns": "boolean",
+        "schema": "site_private",
+        "security_definer": false,
+        "strict": false,
+        "volatility": "stable"
+      },
+      {
+        "args": "p_delivery_id uuid",
+        "callers": {
+          "code": [
+            {
+              "file": "site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql",
+              "hits": 4
+            }
+          ],
+          "code_total_files": 1,
+          "cron": [],
+          "db": [
+            "public.get_site_notification_delivery_report",
+            "public.site_notification_queue_health"
+          ],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "F-11: criterio unico do que o operador consegue reabrir no painel — dentro da janela, pedido existente/nao spam/nao anonimizado, e supressao de bounce aplicada so a quem recebe (audience = customer). Sem a separacao por audiencia o alerta comercial era bloqueado pelo bounce do e-mail do cliente.",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "1ff95b10e88ecb19",
+        "execute_api_roles": "service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "sql",
+        "leakproof": false,
+        "name": "notification_delivery_is_reopenable",
+        "owner": "postgres",
+        "returns": "boolean",
+        "schema": "site_private",
+        "security_definer": true,
+        "strict": false,
+        "volatility": "stable"
+      },
+      {
         "args": "",
         "callers": {
           "code": [
@@ -8764,26 +9513,34 @@
             {
               "file": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
               "hits": 4
+            },
+            {
+              "file": "site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql",
+              "hits": 12
             }
           ],
-          "code_total_files": 8,
+          "code_total_files": 9,
           "cron": [],
           "db": [
+            "public.cancel_site_notification_backlog",
             "public.claim_site_commercial_team_alert",
             "public.claim_site_commercial_team_alerts",
             "public.claim_site_notification_deliveries",
             "public.claim_site_quote_notification",
-            "site_private.next_retry_at"
+            "public.site_notification_queue_health",
+            "site_private.next_retry_at",
+            "site_private.notification_delivery_is_reopenable",
+            "site_private.reprocess_notification_deliveries_core"
           ],
           "triggers": [],
           "views": []
         },
-        "comment": "Fonte única dos parâmetros da fila de notificações (Etapa 12). Mudar tentativas máximas, timeout de lease, lote máximo ou parâmetros de backoff é editar só esta função, em vez de caçar literais espalhados.",
+        "comment": "F-11: parametros unicos da fila de notificacoes. max_age (30 dias) e o corte de idade a partir do qual a entrega deixa de ser elegivel e passa a ser aposentada.",
         "config": [
           "search_path=\"\""
         ],
         "definition": null,
-        "definition_sha": "03398b642a74b2c3",
+        "definition_sha": "ac80565dd71d4d33",
         "execute_api_roles": "service_role",
         "execute_public": false,
         "is_trigger_fn": false,
@@ -8792,11 +9549,101 @@
         "leakproof": false,
         "name": "notification_policy",
         "owner": "postgres",
-        "returns": "TABLE(max_attempts smallint, lease_timeout interval, batch_max integer, retry_base_seconds integer, retry_cap_seconds integer)",
+        "returns": "TABLE(max_attempts smallint, lease_timeout interval, batch_max integer, retry_base_seconds integer, retry_cap_seconds integer, max_age interval)",
         "schema": "site_private",
         "security_definer": false,
         "strict": false,
         "volatility": "immutable"
+      },
+      {
+        "args": "p_request_kind text, p_request_id uuid",
+        "callers": {
+          "code": [
+            {
+              "file": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+              "hits": 7
+            },
+            {
+              "file": "site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql",
+              "hits": 6
+            }
+          ],
+          "code_total_files": 2,
+          "cron": [],
+          "db": [
+            "public.get_site_notification_delivery_report",
+            "site_private.notification_delivery_is_claimable",
+            "site_private.notification_delivery_is_reopenable",
+            "site_private.reprocess_notification_deliveries_core",
+            "site_private.suppress_notification_delivery"
+          ],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "F-12: pedido apagado pela autoexclusão do titular (F-30). Entrega cujo pedido foi apagado não é elegível para envio nem para reabertura.",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "2e31f98099dc1faa",
+        "execute_api_roles": "service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "sql",
+        "leakproof": false,
+        "name": "notification_request_erased",
+        "owner": "postgres",
+        "returns": "boolean",
+        "schema": "site_private",
+        "security_definer": true,
+        "strict": false,
+        "volatility": "stable"
+      },
+      {
+        "args": "p_request_kind text, p_request_id uuid",
+        "callers": {
+          "code": [
+            {
+              "file": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+              "hits": 4
+            },
+            {
+              "file": "site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql",
+              "hits": 6
+            }
+          ],
+          "code_total_files": 2,
+          "cron": [],
+          "db": [
+            "public.get_site_notification_delivery_report",
+            "public.site_notification_queue_health",
+            "site_private.notification_delivery_is_claimable",
+            "site_private.notification_delivery_is_reopenable",
+            "site_private.suppress_notification_delivery"
+          ],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "F-12: o e-mail do pedido já devolveu (bounce) ou reclamou de spam em alguma entrega ao titular. Usado no claim das quatro filas para não reenviar a endereço suprimido.",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "d7c3d4e93b3c15a1",
+        "execute_api_roles": "service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "sql",
+        "leakproof": false,
+        "name": "notification_request_suppressed",
+        "owner": "postgres",
+        "returns": "boolean",
+        "schema": "site_private",
+        "security_definer": true,
+        "strict": false,
+        "volatility": "stable"
       },
       {
         "args": "",
@@ -8850,9 +9697,13 @@
             {
               "file": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
               "hits": 2
+            },
+            {
+              "file": "site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql",
+              "hits": 3
             }
           ],
-          "code_total_files": 3,
+          "code_total_files": 4,
           "cron": [],
           "db": [
             "public.claim_site_notification_deliveries",
@@ -8919,6 +9770,43 @@
         "returns": "trigger",
         "schema": "site_private",
         "security_definer": false,
+        "strict": false,
+        "volatility": "volatile"
+      },
+      {
+        "args": "p_delivery_ids uuid[], p_reason text, p_actor_label text",
+        "callers": {
+          "code": [
+            {
+              "file": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+              "hits": 1
+            }
+          ],
+          "code_total_files": 1,
+          "cron": [],
+          "db": [
+            "public.reprocess_site_notification_deliveries"
+          ],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "F-11/F-12: nucleo do reprocessamento (exhausted -> pending, attempts = 0, trilha em admin_audit_log). So reabre entrega que o corte de backlog nao cancelaria; as recusas voltam em \"skipped\" com reason not_exhausted, erased, out_of_window ou ineligible (spam).",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "28552420bb60050f",
+        "execute_api_roles": "service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "plpgsql",
+        "leakproof": false,
+        "name": "reprocess_notification_deliveries_core",
+        "owner": "postgres",
+        "returns": "jsonb",
+        "schema": "site_private",
+        "security_definer": true,
         "strict": false,
         "volatility": "volatile"
       },
@@ -9017,6 +9905,50 @@
         "returns": "trigger",
         "schema": "site_private",
         "security_definer": false,
+        "strict": false,
+        "volatility": "volatile"
+      },
+      {
+        "args": "p_delivery_id uuid",
+        "callers": {
+          "code": [
+            {
+              "file": "site-supabase/supabase/migrations/20261122050000_add_notification_suppression_and_reprocessing.sql",
+              "hits": 4
+            },
+            {
+              "file": "site-supabase/supabase/migrations/20261122060000_add_notification_backlog_age_cutoff.sql",
+              "hits": 6
+            }
+          ],
+          "code_total_files": 2,
+          "cron": [],
+          "db": [
+            "public.claim_site_commercial_team_alert",
+            "public.claim_site_commercial_team_alerts",
+            "public.claim_site_notification_deliveries",
+            "public.claim_site_quote_notification"
+          ],
+          "triggers": [],
+          "views": []
+        },
+        "comment": "F-12: cancela entrega cujo destinatario esta suprimido (bounce/complaint) ou cujo pedido foi apagado pela autoexclusao. Idempotente, restrita a estado nao terminal e nunca toca o envio de WhatsApp incerto (whatsapp_dispatch_started sem provider_message_id).",
+        "config": [
+          "search_path=\"\""
+        ],
+        "definition": null,
+        "definition_sha": "0e85317cc199642c",
+        "execute_api_roles": "service_role",
+        "execute_public": false,
+        "is_trigger_fn": false,
+        "kind": "function",
+        "language": "plpgsql",
+        "leakproof": false,
+        "name": "suppress_notification_delivery",
+        "owner": "postgres",
+        "returns": "boolean",
+        "schema": "site_private",
+        "security_definer": true,
         "strict": false,
         "volatility": "volatile"
       }
@@ -9394,6 +10326,12 @@
           "privileges": "INSERT, SELECT",
           "schema": "site_private",
           "table": "notification_provider_events"
+        },
+        {
+          "grantee": "service_role",
+          "privileges": "DELETE, INSERT, SELECT, UPDATE",
+          "schema": "site_private",
+          "table": "pii_read_audit_log"
         },
         {
           "grantee": "service_role",
@@ -9858,6 +10796,18 @@
         "table": "contact_requests"
       },
       {
+        "columns": [],
+        "definition": "CREATE INDEX contact_requests_email_hash_idx ON site_private.contact_requests USING btree (site_private.email_hash(email))",
+        "is_primary": false,
+        "is_unique": false,
+        "is_valid": true,
+        "method": "btree",
+        "name": "contact_requests_email_hash_idx",
+        "predicate": null,
+        "schema": "site_private",
+        "table": "contact_requests"
+      },
+      {
         "columns": [
           "id"
         ],
@@ -10222,6 +11172,21 @@
       },
       {
         "columns": [
+          "provider",
+          "provider_message_id"
+        ],
+        "definition": "CREATE INDEX notification_provider_events_orphan_idx ON site_private.notification_provider_events USING btree (provider, provider_message_id) WHERE (delivery_id IS NULL)",
+        "is_primary": false,
+        "is_unique": false,
+        "is_valid": true,
+        "method": "btree",
+        "name": "notification_provider_events_orphan_idx",
+        "predicate": "(delivery_id IS NULL)",
+        "schema": "site_private",
+        "table": "notification_provider_events"
+      },
+      {
+        "columns": [
           "id"
         ],
         "definition": "CREATE UNIQUE INDEX notification_provider_events_pkey ON site_private.notification_provider_events USING btree (id)",
@@ -10248,6 +11213,51 @@
         "predicate": null,
         "schema": "site_private",
         "table": "notification_provider_events"
+      },
+      {
+        "columns": [
+          "occurred_at",
+          "id"
+        ],
+        "definition": "CREATE INDEX pii_read_audit_log_occurred_idx ON site_private.pii_read_audit_log USING btree (occurred_at, id)",
+        "is_primary": false,
+        "is_unique": false,
+        "is_valid": true,
+        "method": "btree",
+        "name": "pii_read_audit_log_occurred_idx",
+        "predicate": null,
+        "schema": "site_private",
+        "table": "pii_read_audit_log"
+      },
+      {
+        "columns": [
+          "id"
+        ],
+        "definition": "CREATE UNIQUE INDEX pii_read_audit_log_pkey ON site_private.pii_read_audit_log USING btree (id)",
+        "is_primary": true,
+        "is_unique": true,
+        "is_valid": true,
+        "method": "btree",
+        "name": "pii_read_audit_log_pkey",
+        "predicate": null,
+        "schema": "site_private",
+        "table": "pii_read_audit_log"
+      },
+      {
+        "columns": [
+          "subject",
+          "occurred_at",
+          "id"
+        ],
+        "definition": "CREATE INDEX pii_read_audit_log_subject_occurred_idx ON site_private.pii_read_audit_log USING btree (subject, occurred_at DESC, id)",
+        "is_primary": false,
+        "is_unique": false,
+        "is_valid": true,
+        "method": "btree",
+        "name": "pii_read_audit_log_subject_occurred_idx",
+        "predicate": null,
+        "schema": "site_private",
+        "table": "pii_read_audit_log"
       },
       {
         "columns": [
@@ -10523,6 +11533,18 @@
         "method": "btree",
         "name": "quote_requests_customer_owner_idx",
         "predicate": "(customer_user_id IS NOT NULL)",
+        "schema": "site_private",
+        "table": "quote_requests"
+      },
+      {
+        "columns": [],
+        "definition": "CREATE INDEX quote_requests_email_hash_idx ON site_private.quote_requests USING btree (site_private.email_hash(email))",
+        "is_primary": false,
+        "is_unique": false,
+        "is_valid": true,
+        "method": "btree",
+        "name": "quote_requests_email_hash_idx",
+        "predicate": null,
         "schema": "site_private",
         "table": "quote_requests"
       },
@@ -11176,6 +12198,16 @@
         "version": "20261122040000"
       },
       {
+        "name": "add_notification_suppression_and_reprocessing",
+        "statements": null,
+        "version": "20261122050000"
+      },
+      {
+        "name": "add_notification_backlog_age_cutoff",
+        "statements": null,
+        "version": "20261122060000"
+      },
+      {
         "name": "add_customer_message_events",
         "statements": 4,
         "statements_sha": "eb690f09998a7efb",
@@ -11186,6 +12218,12 @@
         "statements": 2,
         "statements_sha": "7781442c1d3a7e93",
         "version": "20261122080000"
+      },
+      {
+        "name": "add_pii_read_audit",
+        "statements": 27,
+        "statements_sha": "daaf87369cc3c21d",
+        "version": "20261122110000"
       }
     ],
     "policies": [
@@ -11554,6 +12592,15 @@
         "cycle": false,
         "data_type": "bigint",
         "increment": 1,
+        "name": "pii_read_audit_log_id_seq",
+        "owned_by": "site_private.pii_read_audit_log.id",
+        "schema": "site_private",
+        "start_value": 1
+      },
+      {
+        "cycle": false,
+        "data_type": "bigint",
+        "increment": 1,
         "name": "quote_protocol_seq",
         "owned_by": null,
         "schema": "site_private",
@@ -11813,6 +12860,21 @@
         "is_partition": false,
         "kind": "table",
         "name": "notification_provider_events",
+        "owner": "postgres",
+        "parent": null,
+        "partition_bound": null,
+        "partition_key": null,
+        "replica_identity": "default",
+        "rls_enabled": true,
+        "rls_forced": true,
+        "schema": "site_private"
+      },
+      {
+        "comment": "PF-34: audita leituras (SELECT) de colunas de contato do titular em tabelas de PII. Não armazena o valor lido, só que uma leitura aconteceu, para quem, quando, quantas linhas e com qual filtro.",
+        "from_extension": false,
+        "is_partition": false,
+        "kind": "table",
+        "name": "pii_read_audit_log",
         "owner": "postgres",
         "parent": null,
         "partition_bound": null,
