@@ -78,8 +78,9 @@ export async function runSmoke(baseUrl, options = {}) {
   // PF-75: sem isto, um deployment apontando para o banco errado só aparece quando
   // o primeiro cliente tenta enviar um orçamento. O endpoint devolve apenas o
   // código do problema, então este smoke pode falhar cedo sem vazar credencial.
-  // Roda antes das páginas: com o banco quebrado todas elas devolvem 503, e a
-  // primeira falha precisa dizer o motivo em vez de repetir seis vezes a raiz.
+  // Roda antes das páginas: é a checagem mais barata do smoke e a única cujo erro
+  // traz o motivo em código, então uma configuração inválida aparece na primeira
+  // linha do log, sem gastar as tentativas das rotas HTML.
   const health = await fetchWithRetry('/api/health', { readBody: true });
   assert(health.status === 200, `/api/health: esperado 200, recebido ${health.status} ${health.body ?? ''}`.trim());
   let healthPayload;

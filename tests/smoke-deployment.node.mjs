@@ -157,9 +157,9 @@ test('o 503 do /api/health continua trazendo o codigo do problema', async () => 
   assert.equal(outcome.message, '/api/health: HTTP 503 {"ok":false,"code":"backend_not_configured"} (após 3 tentativas)');
 });
 
-test('o health roda antes das paginas para nomear a causa de um 503 geral', async () => {
-  // Banco mal apontado derruba todas as paginas. Sem o health na frente, o smoke
-  // gastaria 3 tentativas de cada rota HTML para dizer "/: HTTP 503" e nunca o motivo.
+test('o health roda antes das paginas e nomeia o motivo sem tentar as rotas HTML', async () => {
+  // O health é a primeira checagem: quando a configuração está inválida o smoke
+  // para ali, com o código do problema, em vez de gastar as tentativas das páginas.
   const outcome = await smoke({
     '/': reply(503),
     '/api/health': reply(503, { ...security, 'content-type': 'application/json' }, '{"ok":false,"code":"unsafe_database_target"}'),
