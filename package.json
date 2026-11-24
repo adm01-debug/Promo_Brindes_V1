@@ -18,6 +18,7 @@
     "build": "tsc -b && vite build && node scripts/stage-app-shell.mjs",
     "check:performance-budget": "node scripts/check-performance-budget.mjs",
     "smoke:deployment": "node scripts/smoke-deployment.mjs",
+    "assets:social-cards": "node scripts/generate-social-cards.mjs",
     "preview": "vite preview",
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",

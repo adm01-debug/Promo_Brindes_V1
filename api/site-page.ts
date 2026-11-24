@@ -4,6 +4,7 @@ import { catalogPreviews, occasionPreviews } from './_lib/curatedPagePreviews.js
 import { normalizeCampaignYear } from '../shared/campaignYears.js';
 import { resolveCatalogEditorialId } from '../shared/catalogEditorial.js';
 import { ideaLandingIds, ideaLandingMeta } from '../shared/ideaLandingPages.js';
+import { catalogSocialImage } from '../shared/socialImages.js';
 import { SITE_NAME } from '../shared/siteName.js';
 
 interface VercelRequest {
@@ -24,6 +25,8 @@ interface StaticPage {
   title: string;
   description: string;
   noIndex?: boolean;
+  /** Caminho absoluto na raiz do site (ex.: /images/og/colecao-...png). */
+  image?: string;
 }
 
 const pages: Record<string, StaticPage> = {
@@ -72,6 +75,7 @@ function pageFrom(request: VercelRequest): StaticPage | null {
       path: `/catalogos?colecao=${encodeURIComponent(collectionId)}`,
       title: `${collection.title} | Catálogos Promo Brindes`,
       description: collection.description,
+      image: catalogSocialImage(collectionId),
     };
   }
   if (page === 'datas') {
@@ -92,7 +96,7 @@ function metadata(page: StaticPage): PublicPageMetadata {
     title: page.title,
     description: page.description,
     canonicalUrl: `${configuredSiteOrigin()}${page.path}`,
-    imageUrl: heroImage(),
+    imageUrl: page.image ? `${configuredSiteOrigin()}${page.image}` : heroImage(),
     noIndex: page.noIndex,
   };
 }
