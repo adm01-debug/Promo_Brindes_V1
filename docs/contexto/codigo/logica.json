@@ -41,16 +41,20 @@
    "camada": "api",
    "exports": [
     "COMMERCIAL_ALERT_TIMEOUT_MS",
+    "CommercialAlertChannel",
     "CommercialAlertJob",
     "CommercialAlertOptions",
     "CommercialAlertResult",
+    "DEFAULT_COMMERCIAL_ALERT_EMAIL",
+    "commercialAlertChannel",
+    "commercialAlertEmailDestination",
     "commercialAlertsEnabled",
     "deliverCommercialAlertJob",
     "deliverCommercialTeamAlertNow",
     "parseCommercialAlertJob"
    ],
    "export_default": null,
-   "linhas": 273,
+   "linhas": 376,
    "tabelas": [],
    "rpcs": [
     "claim_site_commercial_team_alert",
@@ -59,8 +63,12 @@
    ],
    "edges": [],
    "env": [
+    "COMMERCIAL_TEAM_ALERT_EMAIL",
     "COMMERCIAL_TEAM_WEBHOOK_TOKEN",
     "COMMERCIAL_TEAM_WEBHOOK_URL",
+    "RESEND_API_KEY",
+    "SITE_EMAIL_FROM",
+    "SITE_PUBLIC_ORIGIN",
     "VERCEL_ENV"
    ],
    "externos": [],

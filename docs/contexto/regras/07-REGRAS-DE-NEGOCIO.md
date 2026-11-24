@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `9ff35a3301` · branch `main` · 2026-11-24 14:15 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `05855d6852` · branch `main` · 2026-11-24 14:32 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -486,6 +486,7 @@ _nenhum mapa explícito encontrado no código — fora da tabela acima (se houve
 
 | Nome | Valores | Onde |
 |---|---|---|
+| CommercialAlertChannel | webhook \| email | `api/_lib/commercialTeamAlerts.ts` |
 | CommercialAlertResult | sent \| pending | `api/_lib/commercialTeamAlerts.ts` |
 | LeadKind | quote \| contact | `api/_lib/contracts.ts` |
 | CronName | retention \| notifications \| commercial-alerts | `api/_lib/cronHeartbeats.ts` |
@@ -727,6 +728,7 @@ _nenhum item encontrado_
 | `REQUEST_TIMEOUT_MS` | `8_000` | `api/sitemap.ts` |
 | `REQUEST_TIMEOUT_MS` | `5_000` | `api/_lib/catalogValidation.ts` |
 | `COMMERCIAL_ALERT_TIMEOUT_MS` | `7_000` | `api/_lib/commercialTeamAlerts.ts` |
+| `DEFAULT_COMMERCIAL_ALERT_EMAIL` | `'adm01@promobrindes.com.br'` | `api/_lib/commercialTeamAlerts.ts` |
 | `CRON_HEARTBEAT_TIMEOUT_MS` | `2_000` | `api/_lib/cronHeartbeats.ts` |
 | `LEAD_TOTAL_TIME_BUDGET_MS` | `24_000` | `api/_lib/leadHandler.ts` |
 | `MIN_CONFIRMATION_WINDOW_MS` | `8_000` | `api/_lib/leadHandler.ts` |
@@ -1151,7 +1153,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (2234 testes em 155 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (2242 testes em 155 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1179,6 +1181,7 @@ _nenhum item encontrado_
 | `tests/catalog-public-contract.node.mjs` | 27 | aceita somente o contrato público exato de 36 colunas · falha se uma coluna esperada sumir ou uma coluna nova aparecer · falha explicitamente se preço, estoque ou fornecedor forem expostos · recusa identificador, arrays e swatches incompatíveis … |
 | `site-supabase/supabase/tests/database/customer_selections.test.sql` | 26 | seleções privadas por titular existem · RLS é forçada na tabela · cliente não acessa o schema privado · cliente não consulta tabela diretamente … |
 | `src/lib/catalog.test.ts` | 26 | catálogo público · normaliza apenas os dados necessários para a experiência do cliente · marca como novidade um produto dentro da janela canônica mesmo sem flag explícita · não confirma personalização quando o dado público ainda é desconhecido … |
+| `tests/api/commercial-team-alerts.test.ts` | 26 | alerta comercial de orçamento (PF-01) · parseCommercialAlertJob · rejeita payload sem a forma mínima do job · normaliza e limita campos do envelope … |
 | `src/lib/useOccasionFavorites.test.tsx` | 25 | useOccasionFavorites · preserva uma adição confirmada quando uma leitura iniciada antes dela retorna vazia · preserva uma remoção enquanto uma leitura antiga ainda contém o favorito · não deixa uma leitura antiga apagar a escrita anterior quando a intenção seguinte falha … |
 | `site-supabase/supabase/tests/database/customer_message_events.test.sql` | 24 | check de event_type aceita message · operador responde o ajuste · a resposta produziu exatamente um evento de mensagem · o titulo da mensagem e fixo, sem copiar o texto do cliente … |
 | `src/components/CampaignFinder.test.tsx` | 24 | resumo editável do briefing · resume as quatro respostas antes de abrir a curadoria · remove só a escolha solicitada e volta à etapa correspondente · permite revisar todas as respostas sem apagar o que já foi escolhido … |
@@ -1192,7 +1195,6 @@ _nenhum item encontrado_
 | `src/context/QuoteCartContext.test.ts` | 19 | seleção para orçamento · adiciona e mantém uma linha por produto e cor · respeita a quantidade mínima do item · limita quantidades acidentalmente excessivas … |
 | `tests/validate-commercial-claims.node.mjs` | 19 | inventario valido passa sem erros · inventario sem afirmacoes reprova · afirmacao sem localizacao reprova · campo obrigatorio ausente reprova … |
 | `tests/validate-migration-names.node.mjs` | 18 | aceita nomes de 14 dígitos em ordem estritamente crescente · rejeita o formato antigo com underscore no timestamp (regressão do incidente de 15/09) · rejeita data de calendário inválida · rejeita versão duplicada dentro do mesmo diretório … |
-| `tests/api/commercial-team-alerts.test.ts` | 18 | alerta comercial de orçamento (PF-01) · parseCommercialAlertJob · rejeita payload sem a forma mínima do job · normaliza e limita campos do envelope … |
 | `tests/api/notification-events-whatsapp.test.ts` | 18 | api/notification-events-whatsapp (Etapa 30) · rejeita método diferente de GET/POST · handshake GET · responde 503 quando o token de verificação não está configurado … |
 | `tests/api/retention.test.ts` | 18 | tarefa de retenção · recusa chamadas sem o segredo da tarefa agendada · lote cheio sinaliza resíduo e alerta o canal operacional · lote cheio de contatos vencidos sinaliza resíduo mesmo sem orçamento vencido … |
 | `site-supabase/supabase/tests/database/quote_protocol.test.sql` | 17 | dígito verificador de 26000001 é determinístico e conhecido (conferido manualmente) · mod11_check_digit é determinística: mesma entrada, mesma saída · entradas diferentes tendem a produzir dígitos diferentes (não uma prova geral, só o par de teste) · soma zero cai no ramo remainder<2 e retorna 0 … |

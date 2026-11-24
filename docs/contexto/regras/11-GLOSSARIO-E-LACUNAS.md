@@ -1,6 +1,6 @@
 # 11 · GLOSSÁRIO, DADOS DE REFERÊNCIA E LACUNAS
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `9ff35a3301` · branch `main` · 2026-11-24 14:15 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `05855d6852` · branch `main` · 2026-11-24 14:32 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## Glossário do domínio (entidades do sistema)
@@ -33,6 +33,7 @@
 | `site_private.status_transitions` | Transições administrativas válidas por entidade (Etapa 8). Fonte única de verdade para os triggers enforce_status_transition; qualquer update de status fora desta tabela é rejeitado com 22023. | 3 colunas | migration |
 | `site_private.storage_deletion_queue` | Fila mínima de objetos privados para remoção pela Storage API; não contém conteúdo do arquivo. | 3 colunas | migration |
 | `site_private.subject_right_requests` | Trilha do exercicio dos direitos do titular (LGPD art. 18) na Area do Cliente: access, export, correct e delete. Vinculada a conta e removida pelo cascade de auth.users; o registo persistente do apagamento e o tombstone irreversivel em erased_customer_identities. | 4 colunas | migration |
+| `CommercialAlertChannel` (TS) | webhook \| email |  | `api/_lib/commercialTeamAlerts.ts` |
 | `CommercialAlertResult` (TS) | sent \| pending |  | `api/_lib/commercialTeamAlerts.ts` |
 | `LeadKind` (TS) | quote \| contact |  | `api/_lib/contracts.ts` |
 | `CronName` (TS) | retention \| notifications \| commercial-alerts |  | `api/_lib/cronHeartbeats.ts` |

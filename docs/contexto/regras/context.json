@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "9ff35a3301411bca555be44390bdff58861e46ab",
+  "sha": "05855d6852d16bf376acf4048595d9c837d05412",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-24 14:15 UTC",
+  "generated_at": "2026-11-24 14:32 UTC",
   "files_total": 664,
   "code_files": 437,
-  "code_lines": 82908,
+  "code_lines": 83139,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "2f9445c8c3f5ae35",
+ "facts_hash": "913b74f0cada2fa5",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -8982,7 +8982,7 @@
   {
    "module": "api",
    "files": 32,
-   "lines": 4621,
+   "lines": 4724,
    "tables": [],
    "exports": [
     "briefing-assets.ts: REQUEST_TIMEOUT_MS, handler, async",
@@ -9002,7 +9002,7 @@
     "site-page.ts: handler, async",
     "sitemap.ts: REQUEST_TIMEOUT_MS, handler, async",
     "catalogValidation.ts: REQUEST_TIMEOUT_MS, reconcileQuoteItems",
-    "commercialTeamAlerts.ts: COMMERCIAL_ALERT_TIMEOUT_MS, commercialAlertsEnabled, CommercialAlertJob, parseCommercialAlertJob, deliverCommercialAlertJob, CommercialAlertResult",
+    "commercialTeamAlerts.ts: COMMERCIAL_ALERT_TIMEOUT_MS, DEFAULT_COMMERCIAL_ALERT_EMAIL, CommercialAlertChannel, commercialAlertChannel, commercialAlertEmailDestination, commercialAlertsEnabled",
     "contracts.ts: LeadKind, NormalizedQuoteItem, NormalizedCampaignBrief, NormalizedQuoteBriefing, NormalizedQuotePayload, NormalizedLeadPayload",
     "cronHeartbeats.ts: CronName, CRON_HEARTBEAT_TIMEOUT_MS, recordCronHeartbeat, CronHeartbeatStatus, readCronHeartbeats",
     "curatedPagePreviews.ts: CuratedPagePreview, catalogPreviews, occasionPreviews",
@@ -9833,7 +9833,7 @@
   {
    "module": "tests",
    "files": 52,
-   "lines": 11318,
+   "lines": 11446,
    "tables": [
     "constructor",
     "quote_requests",
@@ -10100,6 +10100,9 @@
    "CODE_SCAN_DIRS": [
     "scripts/supabase_snapshot/snapshot.py"
    ],
+   "COMMERCIAL_TEAM_ALERT_EMAIL": [
+    "api/_lib/commercialTeamAlerts.ts"
+   ],
    "COMMERCIAL_TEAM_WEBHOOK_TOKEN": [
     "api/_lib/commercialTeamAlerts.ts"
    ],
@@ -10231,6 +10234,7 @@
     "scripts/supabase_snapshot/snapshot.py"
    ],
    "RESEND_API_KEY": [
+    "api/_lib/commercialTeamAlerts.ts",
     "api/notifications.ts",
     "scripts/ai-context/gerar.unit.mjs",
     "tests/validate-env-example.node.mjs"
@@ -10249,6 +10253,7 @@
     "tests/validate-env-example.node.mjs"
    ],
    "SITE_EMAIL_FROM": [
+    "api/_lib/commercialTeamAlerts.ts",
     "api/notifications.ts"
    ],
    "SITE_PREVIEW_SUPABASE_PROJECT_REF": [
@@ -10256,6 +10261,7 @@
     "tests/validate-env-example.node.mjs"
    ],
    "SITE_PUBLIC_ORIGIN": [
+    "api/_lib/commercialTeamAlerts.ts",
     "api/_lib/publicProductPage.ts",
     "api/_lib/siteOrigin.ts",
     "api/notifications.ts"
@@ -10660,6 +10666,7 @@
     "scripts/maintenance/maintenance.unit.mjs"
    ],
    "https://api.resend.com": [
+    "api/_lib/commercialTeamAlerts.ts",
     "api/notifications.ts",
     "scripts/ai-context/gerar.unit.mjs"
    ],
@@ -10850,6 +10857,11 @@
    }
   ],
   "enums": [
+   {
+    "file": "api/_lib/commercialTeamAlerts.ts",
+    "name": "CommercialAlertChannel",
+    "values": "webhook | email"
+   },
    {
     "file": "api/_lib/commercialTeamAlerts.ts",
     "name": "CommercialAlertResult",
@@ -14027,6 +14039,11 @@
     "file": "api/_lib/commercialTeamAlerts.ts",
     "name": "COMMERCIAL_ALERT_TIMEOUT_MS",
     "value": "7_000"
+   },
+   {
+    "file": "api/_lib/commercialTeamAlerts.ts",
+    "name": "DEFAULT_COMMERCIAL_ALERT_EMAIL",
+    "value": "'adm01@promobrindes.com.br'"
    },
    {
     "file": "api/_lib/cronHeartbeats.ts",
@@ -23286,6 +23303,38 @@
    },
    {
     "file": "tests/api/commercial-team-alerts.test.ts",
+    "name": "canal de e-mail (sem webhook do time)"
+   },
+   {
+    "file": "tests/api/commercial-team-alerts.test.ts",
+    "name": "entrega na caixa do time comercial quando o webhook não existe"
+   },
+   {
+    "file": "tests/api/commercial-team-alerts.test.ts",
+    "name": "o alerta de contato não aponta para a fila de orçamentos"
+   },
+   {
+    "file": "tests/api/commercial-team-alerts.test.ts",
+    "name": "respeita COMMERCIAL_TEAM_ALERT_EMAIL como destino"
+   },
+   {
+    "file": "tests/api/commercial-team-alerts.test.ts",
+    "name": "o webhook do time continua tendo prioridade sobre o e-mail"
+   },
+   {
+    "file": "tests/api/commercial-team-alerts.test.ts",
+    "name": "recusa do provedor marca a entrega como falha em vez de dar o lead por avisado"
+   },
+   {
+    "file": "tests/api/commercial-team-alerts.test.ts",
+    "name": "não reenvia o e-mail quando o aceite da tentativa anterior já está gravado"
+   },
+   {
+    "file": "tests/api/commercial-team-alerts.test.ts",
+    "name": "preview não envia e-mail comercial, mesmo com o provedor configurado"
+   },
+   {
+    "file": "tests/api/commercial-team-alerts.test.ts",
     "name": "deliverCommercialTeamAlertNow"
    },
    {
@@ -31340,9 +31389,13 @@
   },
   "api/_lib/commercialTeamAlerts.ts": {
    "path": "api/_lib/commercialTeamAlerts.ts",
-   "lines": 273,
+   "lines": 376,
    "exports": [
     "const COMMERCIAL_ALERT_TIMEOUT_MS",
+    "const DEFAULT_COMMERCIAL_ALERT_EMAIL",
+    "type CommercialAlertChannel",
+    "function commercialAlertChannel",
+    "function commercialAlertEmailDestination",
     "function commercialAlertsEnabled",
     "interface CommercialAlertJob",
     "function parseCommercialAlertJob",
@@ -31351,9 +31404,16 @@
     "interface CommercialAlertOptions",
     "function deliverCommercialTeamAlertNow"
    ],
+   "external_urls": [
+    "https://api.resend.com/emails"
+   ],
    "env": [
+    "COMMERCIAL_TEAM_ALERT_EMAIL",
     "COMMERCIAL_TEAM_WEBHOOK_TOKEN",
     "COMMERCIAL_TEAM_WEBHOOK_URL",
+    "RESEND_API_KEY",
+    "SITE_EMAIL_FROM",
+    "SITE_PUBLIC_ORIGIN",
     "VERCEL_ENV"
    ],
    "errors": [
@@ -31361,6 +31421,10 @@
     "commercial_alert_invalid_${name}_response"
    ],
    "enums": [
+    {
+     "name": "CommercialAlertChannel",
+     "values": "webhook | email"
+    },
     {
      "name": "CommercialAlertResult",
      "values": "sent | pending"
@@ -31370,6 +31434,10 @@
     {
      "name": "COMMERCIAL_ALERT_TIMEOUT_MS",
      "value": "7_000"
+    },
+    {
+     "name": "DEFAULT_COMMERCIAL_ALERT_EMAIL",
+     "value": "'adm01@promobrindes.com.br'"
     }
    ],
    "status_values": [
@@ -40370,7 +40438,7 @@
   },
   "tests/api/commercial-team-alerts.test.ts": {
    "path": "tests/api/commercial-team-alerts.test.ts",
-   "lines": 253,
+   "lines": 381,
    "is_test": true,
    "calc_fns": [
     {
@@ -40398,6 +40466,14 @@
     "envia o envelope do lead ao endpoint HTTPS com token de autorização",
     "envia o envelope do contato, sem campo de orçamento e sem o texto livre do lead",
     "o timeout da entrega é menor que o orçamento da rodada do cron",
+    "canal de e-mail (sem webhook do time)",
+    "entrega na caixa do time comercial quando o webhook não existe",
+    "o alerta de contato não aponta para a fila de orçamentos",
+    "respeita COMMERCIAL_TEAM_ALERT_EMAIL como destino",
+    "o webhook do time continua tendo prioridade sobre o e-mail",
+    "recusa do provedor marca a entrega como falha em vez de dar o lead por avisado",
+    "não reenvia o e-mail quando o aceite da tentativa anterior já está gravado",
+    "preview não envia e-mail comercial, mesmo com o provedor configurado",
     "deliverCommercialTeamAlertNow",
     "reivindica um único job por requestId e entrega",
     "requestId fora do formato UUID não toca conexão alguma",
@@ -40884,10 +40960,22 @@
   }
  },
  "git": {
-  "sha": "9ff35a3301411bca555be44390bdff58861e46ab",
+  "sha": "05855d6852d16bf376acf4048595d9c837d05412",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "05855d6",
+    "date": "2026-11-24",
+    "author": "adm01-debug",
+    "subject": "feat: alerta comercial por e-mail quando nao ha webhook do time (F-01) (#254)",
+    "files": [
+     ".env.example",
+     "api/_lib/commercialTeamAlerts.ts",
+     "api/commercial-alerts.ts",
+     "tests/api/commercial-team-alerts.test.ts"
+    ]
+   },
    {
     "sha": "9ff35a3",
     "date": "2026-11-24",
@@ -41349,22 +41437,6 @@
     "files": [
      "analise-prs/funcionalidades.csv"
     ]
-   },
-   {
-    "sha": "64e1dcc",
-    "date": "2026-11-21",
-    "author": "adm01-debug",
-    "subject": "feat: separa intencao do briefing dos filtros efetivos (F-40/PF-40) (#223)",
-    "files": [
-     "e2e/smoke.spec.ts",
-     "scripts/check-performance-budget.mjs",
-     "src/lib/campaignPresets.test.ts",
-     "src/lib/campaignPresets.ts",
-     "src/lib/useCatalogPageState.ts",
-     "src/pages/CatalogPage.tsx",
-     "src/styles.css",
-     "tests/check-performance-budget.node.mjs"
-    ]
    }
   ],
   "hot_files": [
@@ -41381,15 +41453,15 @@
     8
    ],
    [
+    "docs/DATABASE_DICTIONARY.md",
+    6
+   ],
+   [
     "scripts/check-performance-budget.mjs",
-    7
+    6
    ],
    [
     "tests/check-performance-budget.node.mjs",
-    7
-   ],
-   [
-    "docs/DATABASE_DICTIONARY.md",
     6
    ],
    [
@@ -41445,7 +41517,7 @@
     3
    ],
    [
-    "src/styles.css",
+    "vercel.json",
     3
    ]
   ]

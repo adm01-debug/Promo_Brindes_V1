@@ -1105,6 +1105,7 @@
  "env": {
   "declaradas_no_env_example": [
    "CATALOG_SUPABASE_PUBLISHABLE_KEY",
+   "COMMERCIAL_TEAM_ALERT_EMAIL",
    "COMMERCIAL_TEAM_WEBHOOK_TOKEN",
    "COMMERCIAL_TEAM_WEBHOOK_URL",
    "CRON_SECRET",
@@ -1140,6 +1141,7 @@
   ],
   "usadas_no_front": [
    "CATALOG_SUPABASE_PUBLISHABLE_KEY",
+   "COMMERCIAL_TEAM_ALERT_EMAIL",
    "COMMERCIAL_TEAM_WEBHOOK_TOKEN",
    "COMMERCIAL_TEAM_WEBHOOK_URL",
    "CRON_SECRET",
@@ -1255,16 +1257,16 @@
     "arquivos": 8
    },
    {
+    "host": "api.resend.com",
+    "arquivos": 2
+   },
+   {
     "host": "cliente.sebraees.com.br",
     "arquivos": 2
    },
    {
     "host": "www.un.org",
     "arquivos": 2
-   },
-   {
-    "host": "api.resend.com",
-    "arquivos": 1
    },
    {
     "host": "br.pinterest.com",

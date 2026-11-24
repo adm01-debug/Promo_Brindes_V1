@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "9ff35a3301411bca555be44390bdff58861e46ab",
+  "commit": "05855d6852d16bf376acf4048595d9c837d05412",
   "branch": "main",
-  "data_commit": "2026-11-24T13:35:41Z",
+  "data_commit": "2026-11-24T14:31:43Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "05855d6",
+    "data": "2026-11-24",
+    "assunto": "feat: alerta comercial por e-mail quando nao ha webhook do time (F-01) (#254)"
+   },
    {
     "sha": "9ff35a3",
     "data": "2026-11-24",
@@ -126,11 +131,6 @@
     "sha": "e249b52",
     "data": "2026-11-22",
     "assunto": "fix: mensagem acionavel no limite de 3 ajustes pendentes (F-04) (#230)"
-   },
-   {
-    "sha": "caf7e42",
-    "data": "2026-11-22",
-    "assunto": "docs: reconcilia a matriz de 230 requisitos contra a main (F-97/PF-109) (#231)"
    }
   ],
   "arquivos_mudados_7d": 219,
@@ -270,6 +270,10 @@
     "mudancas": 20
    },
    {
+    "arquivo": ".env.example",
+    "mudancas": 18
+   },
+   {
     "arquivo": "scripts/check-performance-budget.mjs",
     "mudancas": 18
    },
@@ -280,10 +284,6 @@
    {
     "arquivo": "src/lib/analytics.ts",
     "mudancas": 18
-   },
-   {
-    "arquivo": ".env.example",
-    "mudancas": 17
    },
    {
     "arquivo": ".github/workflows/database.yml",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 129
+    "commits": 130
    },
    {
     "autor": "dependabot[bot]",
@@ -312,7 +312,7 @@
  "contagens": {
   "arquivos_total": 780,
   "arquivos_codigo": 313,
-  "linhas_codigo": 62156,
+  "linhas_codigo": 62387,
   "rotas": 35,
   "rotas_http_backend": 16,
   "vistas_por_id": 0,
@@ -332,7 +332,7 @@
  "por_pasta": {
   "api/_lib": {
    "arquivos": 16,
-   "linhas": 2070
+   "linhas": 2173
   },
   "api/briefing-assets.ts": {
    "arquivos": 1,
@@ -636,7 +636,7 @@
   },
   "tests/api": {
    "arquivos": 22,
-   "linhas": 4376
+   "linhas": 4504
   },
   "tests/catalog-public-contract.node.mjs": {
    "arquivos": 1,
@@ -841,6 +841,10 @@
    "linhas": 380
   },
   {
+   "arquivo": "api/_lib/commercialTeamAlerts.ts",
+   "linhas": 376
+  },
+  {
    "arquivo": "src/pages/CommemorativeDatesPage.tsx",
    "linhas": 351
   },
@@ -855,10 +859,6 @@
   {
    "arquivo": "src/lib/sharedSelection.ts",
    "linhas": 327
-  },
-  {
-   "arquivo": "api/retention.ts",
-   "linhas": 325
   }
  ],
  "qualidade": {

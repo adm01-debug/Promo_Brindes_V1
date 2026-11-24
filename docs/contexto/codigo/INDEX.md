@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `9ff35a3301411bca555be44390bdff58861e46ab` (2026-11-24T13:35:41Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `05855d6852d16bf376acf4048595d9c837d05412` (2026-11-24T14:31:43Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -36,7 +36,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 |---|---|
 | arquivos_total | 780 |
 | arquivos_codigo | 313 |
-| linhas_codigo | 62156 |
+| linhas_codigo | 62387 |
 | rotas | 35 |
 | rotas_http_backend | 16 |
 | vistas_por_id | 0 |
@@ -146,7 +146,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 ## Integrações externas
 - SDKs: Supabase, Vercel Analytics
-- hosts mais citados: promo-brindes-v1.vercel.app, cliente.sebraees.com.br, www.un.org, api.resend.com, br.pinterest.com, doufsxqlfjyuvxuezpln.supabase.co, facebook.com, graph.facebook.com, instagram.com, promo-brindes.invalid, vercel.com, wa.me, www.sitemaps.org, youtube.com
+- hosts mais citados: promo-brindes-v1.vercel.app, api.resend.com, cliente.sebraees.com.br, www.un.org, br.pinterest.com, doufsxqlfjyuvxuezpln.supabase.co, facebook.com, graph.facebook.com, instagram.com, promo-brindes.invalid, vercel.com, wa.me, www.sitemaps.org, youtube.com
 - webhooks recebidos: GET,POST /api/notification-events-whatsapp, POST /api/notification-events-resend
 - env de integração (só nomes): COMMERCIAL_TEAM_WEBHOOK_TOKEN, COMMERCIAL_TEAM_WEBHOOK_URL, CRON_SECRET, OPERATIONS_ALERT_WEBHOOK_TOKEN, OPERATIONS_ALERT_WEBHOOK_URL, RESEND_API_KEY, RESEND_WEBHOOK_SECRET, SITE_SUPABASE_SECRET_KEY, VITE_CONTACT_WHATSAPP, WHATSAPP_ACCESS_TOKEN, WHATSAPP_APP_SECRET, WHATSAPP_GRAPH_API_VERSION, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_QUOTE_TEMPLATE, WHATSAPP_WEBHOOK_VERIFY_TOKEN
 
@@ -402,6 +402,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-24 `05855d6` feat: alerta comercial por e-mail quando nao ha webhook do time (F-01) (#254)
 - 2026-11-24 `9ff35a3` docs: reconcilia matriz dos 230 requisitos com o código atual (#253)
 - 2026-11-24 `eca586e` feat: capa social própria para cada coleção de catálogos (UX58) (#252)
 - 2026-11-24 `aff8698` fix(release): aplica migration fora de ordem em vez de derrubar o deploy (#251)
@@ -416,7 +417,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-22 `883ff95` feat: supressao de bounce e reprocessamento auditado da fila (F-12) (#233)
 - 2026-11-22 `71d41c6` chore: CI mais barata e rapida (F-95) (#241)
 - 2026-11-22 `50e5cf4` feat: feedback opcional de clareza e eventos do PF-54 (#238)
-- 2026-11-22 `1435f51` chore: plano de navegação e fluidez em 200 etapas (#245)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`
