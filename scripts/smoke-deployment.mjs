@@ -60,7 +60,7 @@ export async function runSmoke(baseUrl, options = {}) {
         // backend_misconfigured, unsafe_database_target). As demais rotas devolvem
         // HTML de página inteira em 503 — ler isso e cortar em 200 caracteres
         // despejava "<!doctype html>..." no log sem dizer nada. Nelas o código
-        // basta; o /api/health roda em seguida e traz o motivo, se for o caso.
+        // basta; o /api/health roda antes e já traz o motivo, se for o caso.
         const detail = readBody ? await response.text().catch(() => '') : '';
         if (!readBody) await response.body?.cancel().catch(() => {});
         lastError = new Error(`${path}: HTTP ${response.status}${detail ? ` ${detail.slice(0, 200).trim()}` : ''}`);
@@ -74,6 +74,21 @@ export async function runSmoke(baseUrl, options = {}) {
     }
     throw new Error(`${lastError?.message || `${path}: sem resposta`} (após ${attempts} tentativas)`, { cause: lastError?.cause });
   }
+
+  // PF-75: sem isto, um deployment apontando para o banco errado só aparece quando
+  // o primeiro cliente tenta enviar um orçamento. O endpoint devolve apenas o
+  // código do problema, então este smoke pode falhar cedo sem vazar credencial.
+  // Roda antes das páginas: com o banco quebrado todas elas devolvem 503, e a
+  // primeira falha precisa dizer o motivo em vez de repetir seis vezes a raiz.
+  const health = await fetchWithRetry('/api/health', { readBody: true });
+  assert(health.status === 200, `/api/health: esperado 200, recebido ${health.status} ${health.body ?? ''}`.trim());
+  let healthPayload;
+  try {
+    healthPayload = JSON.parse(health.body);
+  } catch {
+    throw new Error(`/api/health: corpo não é JSON: ${String(health.body).slice(0, 120)}`);
+  }
+  assert(healthPayload?.ok === true, `/api/health: esperado {"ok":true}, recebido ${String(health.body).slice(0, 160)}`);
 
   const htmlRoutes = ['/', '/catalogo', '/catalogos', '/datas-comemorativas'];
   for (const path of htmlRoutes) {
@@ -103,19 +118,6 @@ export async function runSmoke(baseUrl, options = {}) {
     const response = await fetchWithRetry(path);
     assert(response.status === 401, `${path}: chamada sem segredo deveria retornar 401, recebeu ${response.status}`);
   }
-
-  // PF-75: sem isto, um deployment apontando para o banco errado só aparece quando
-  // o primeiro cliente tenta enviar um orçamento. O endpoint devolve apenas o
-  // código do problema, então este smoke pode falhar cedo sem vazar credencial.
-  const health = await fetchWithRetry('/api/health', { readBody: true });
-  assert(health.status === 200, `/api/health: esperado 200, recebido ${health.status} ${health.body ?? ''}`.trim());
-  let healthPayload;
-  try {
-    healthPayload = JSON.parse(health.body);
-  } catch {
-    throw new Error(`/api/health: corpo não é JSON: ${String(health.body).slice(0, 120)}`);
-  }
-  assert(healthPayload?.ok === true, `/api/health: esperado {"ok":true}, recebido ${String(health.body).slice(0, 160)}`);
 
   return `Smoke aprovado em ${origin}: páginas HTML (CSP+X-Frame em todas as rotas), sitemap XML, Analytics 200, rota desconhecida 404, crons sem credencial 401, configuração do banco saudável.`;
 }
