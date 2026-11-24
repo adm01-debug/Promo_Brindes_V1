@@ -303,6 +303,22 @@ describe('alerta comercial de orçamento (PF-01)', () => {
         expect(JSON.parse(String(finalizeCall[1].body))).toMatchObject({ p_status: 'failed', p_error_code: 'commercial_email_502' });
       });
 
+      it('não reenvia o e-mail quando o aceite da tentativa anterior já está gravado', async () => {
+        configureEmailChannel();
+        const fetchMock = emailFetchMock(validJob());
+        vi.stubGlobal('fetch', fetchMock);
+        const job = validJob({ existingProvider: 'resend', existingProviderMessageId: 'resend-msg-1' });
+
+        await expect(deliverCommercialAlertJob(job, new AbortController().signal)).resolves.toBe('sent');
+        expect(fetchMock.mock.calls.filter(([url]) => String(url) === RESEND_URL)).toHaveLength(0);
+        const finalizeCall = fetchMock.mock.calls.filter(([url]) => String(url).includes('/finalize_site_notification_delivery')).pop() as [string, RequestInit];
+        expect(JSON.parse(String(finalizeCall[1].body))).toMatchObject({
+          p_status: 'sent',
+          p_provider: 'resend',
+          p_provider_message_id: 'resend-msg-1',
+        });
+      });
+
       it('preview não envia e-mail comercial, mesmo com o provedor configurado', async () => {
         configureEmailChannel();
         vi.stubEnv('VERCEL_ENV', 'preview');
