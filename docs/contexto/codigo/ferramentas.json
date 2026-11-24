@@ -3,10 +3,10 @@
  "format_version": 2,
  "stack": {
   "linguagens": [
-   "TypeScript (231)",
+   "TypeScript (234)",
    "Markdown (139)",
    "SQL (123)",
-   "JavaScript (71)",
+   "JavaScript (72)",
    "JSON (31)",
    "YAML (19)",
    "Python (8)",
@@ -46,6 +46,7 @@
   "scripts": {
    "agents:instructions:check": "node scripts/validate-agent-instructions.mjs",
    "approvals:visual:check": "node scripts/validate-visual-approvals.mjs",
+   "assets:social-cards": "node scripts/generate-social-cards.mjs",
    "automation:check": "node scripts/automation.mjs check --ref HEAD",
    "automation:doctor": "node scripts/automation.mjs doctor",
    "automation:graph": "node scripts/automation.mjs graph",
@@ -721,7 +722,7 @@
   {
    "arquivo": "docs/AUTOMACAO_LOCAL.md",
    "titulo": "Automação local — Promo_Brindes_V1",
-   "linhas": 104
+   "linhas": 105
   },
   {
    "arquivo": "docs/CUSTOMER_PORTAL_IMPLEMENTATION_20260909.md",

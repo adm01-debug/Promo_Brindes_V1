@@ -1,7 +1,7 @@
 {
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
- "total": 40,
+ "total": 41,
  "scripts": [
   {
    "arquivo": "scripts/_lib/supabaseDbQuery.mjs",
@@ -169,6 +169,17 @@
    ],
    "npm_scripts": [
     "db:site:generate-site-api-jwt"
+   ],
+   "workflows": [],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/generate-social-cards.mjs",
+   "descricao": "Gera as capas sociais 1200x630 de cada colecao de /catalogos. A lista abaixo espelha src/lib/catalogLibrary.ts (id, eyebrow, titulo,",
+   "linhas": 104,
+   "env": [],
+   "npm_scripts": [
+    "assets:social-cards"
    ],
    "workflows": [],
    "orfao": false

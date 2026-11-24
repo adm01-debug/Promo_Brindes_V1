@@ -409,7 +409,7 @@
     "CatalogsPage"
    ],
    "export_default": "CatalogsPage",
-   "linhas": 304,
+   "linhas": 307,
    "dominio": "pages",
    "hooks_locais": [
     "useCatalog"

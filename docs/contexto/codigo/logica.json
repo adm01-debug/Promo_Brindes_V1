@@ -892,7 +892,7 @@
     "handler"
    ],
    "export_default": "handler",
-   "linhas": 133,
+   "linhas": 138,
    "tabelas": [],
    "rpcs": [],
    "edges": [],
@@ -903,7 +903,7 @@
    "papeis": [],
    "usado_por": 0,
    "usado_por_modulos": [],
-   "coberto_por_testes": 1,
+   "coberto_por_testes": 2,
    "orfao": false
   },
   {
@@ -1547,7 +1547,7 @@
    "usado_por_modulos": [
     "pages"
    ],
-   "coberto_por_testes": 1,
+   "coberto_por_testes": 2,
    "orfao": false
   },
   {

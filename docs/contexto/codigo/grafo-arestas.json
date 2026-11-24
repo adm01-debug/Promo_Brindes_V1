@@ -122,8 +122,10 @@
    "api/_lib/publicProductPage.ts",
    "shared/campaignYears.ts",
    "shared/catalogEditorial.ts",
+   "shared/catalogMeta.ts",
    "shared/ideaLandingPages.ts",
-   "shared/siteName.ts"
+   "shared/siteName.ts",
+   "shared/socialImages.ts"
   ],
   "api/sitemap.ts": [
    "api/_lib/curatedPagePreviews.ts",
@@ -167,6 +169,9 @@
   ],
   "scripts/maintenance/typecheck.mjs": [
    "scripts/maintenance/lib.mjs"
+  ],
+  "shared/socialImages.ts": [
+   "shared/catalogEditorial.ts"
   ],
   "src/App.tsx": [
    "src/components/AppErrorBoundary.tsx",
@@ -483,6 +488,8 @@
   ],
   "src/pages/CatalogsPage.tsx": [
    "shared/catalogEditorial.ts",
+   "shared/catalogMeta.ts",
+   "shared/socialImages.ts",
    "src/components/Seo.tsx",
    "src/lib/analytics.ts",
    "src/lib/catalogLibrary.ts",

@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "aff8698893594914d99606518fa65693b5e2fd52",
+  "sha": "eca586e2e004bfc07aabea38961aaf1dc7091bce",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-24 10:22 UTC",
-  "files_total": 660,
-  "code_files": 433,
-  "code_lines": 82641,
+  "generated_at": "2026-11-24 13:25 UTC",
+  "files_total": 664,
+  "code_files": 437,
+  "code_lines": 82908,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "e63a316d7329856a",
+ "facts_hash": "2f9445c8c3f5ae35",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -63,6 +63,7 @@
    "build": "tsc -b && vite build && node scripts/stage-app-shell.mjs",
    "check:performance-budget": "node scripts/check-performance-budget.mjs",
    "smoke:deployment": "node scripts/smoke-deployment.mjs",
+   "assets:social-cards": "node scripts/generate-social-cards.mjs",
    "preview": "vite preview",
    "typecheck": "tsc -b --pretty false",
    "test": "vitest run",
@@ -287,10 +288,10 @@
   ],
   "package_manager": "npm",
   "languages": {
-   ".ts": 164,
+   ".ts": 166,
    ".sql": 123,
-   ".mjs": 69,
-   ".tsx": 67,
+   ".mjs": 70,
+   ".tsx": 68,
    ".py": 8,
    ".js": 2
   },
@@ -8370,7 +8371,7 @@
     "tables_transitive": [],
     "invokes_transitive": [],
     "rpc_transitive": [],
-    "deps_count": 12
+    "deps_count": 14
    },
    {
     "path": "/contato",
@@ -8981,7 +8982,7 @@
   {
    "module": "api",
    "files": 32,
-   "lines": 4616,
+   "lines": 4621,
    "tables": [],
    "exports": [
     "briefing-assets.ts: REQUEST_TIMEOUT_MS, handler, async",
@@ -9165,8 +9166,8 @@
   },
   {
    "module": "scripts",
-   "files": 46,
-   "lines": 22318,
+   "files": 47,
+   "lines": 22422,
    "tables": [
     "a",
     "contacts",
@@ -9222,10 +9223,10 @@
    "docs": [
     "automation.mjs: !/usr/bin/env node",
     "check-orphan-refs.mjs: !/usr/bin/env node Trabalho de agente estacionado fora de `refs/heads` e `refs/pull` não aparece em nenhuma PR e não é revisado por ninguém. Foi assim que a correção de repetição de 401 na sonda do contrato ficou quatro dias só em `refs/autosave/claude/fix-contract-401-retry-261114-1605` — ver docs/ …",
+    "generate-social-cards.mjs: Gera as capas sociais 1200x630 de cada colecao de /catalogos. A lista abaixo espelha src/lib/catalogLibrary.ts (id, eyebrow, titulo, descricao e paleta). O mapa de runtime e shared/socialImages.ts; o teste tests/api/site-page.test.ts falha se um id ficar sem arquivo em public/images/og. Uso: npm run …",
     "graphify-local.mjs: !/usr/bin/env node",
     "graphify.mjs: !/usr/bin/env node",
-    "validate-agent-instructions.mjs: !/usr/bin/env node Guarda das instruções para agentes: AGENTS.md (regras) + CLAUDE.md (só `@AGENTS.md`) + docs/agentes/*.md (referência) + os dois skills do repo. Verifica: seções obrigatórias do AGENTS.md; CLAUDE.md sendo exatamente o import; nenhuma referência órfã ou quebrada em docs/agentes/; sk …",
-    "cenarios.mjs: Simulação de cenários do gerador: monta centenas de repositórios sintéticos (variantes de SQL, rotas, menus, edges, workflows, monorepo, Python, arquivos corrompidos, fuzz) e confere: não trava, erros_do_gerador vazio, saída determinística e extração esperada. Rodar: node scripts/ai-context/cenarios …"
+    "validate-agent-instructions.mjs: !/usr/bin/env node Guarda das instruções para agentes: AGENTS.md (regras) + CLAUDE.md (só `@AGENTS.md`) + docs/agentes/*.md (referência) + os dois skills do repo. Verifica: seções obrigatórias do AGENTS.md; CLAUDE.md sendo exatamente o import; nenhuma referência órfã ou quebrada em docs/agentes/; sk …"
    ],
    "deps": [
     "#",
@@ -9251,8 +9252,8 @@
     "node:util",
     "node:zlib",
     "path",
-    "react",
-    "react-router-dom"
+    "playwright",
+    "react"
    ],
    "imports_modules": [
     "api",
@@ -9276,6 +9277,7 @@
     "scripts/generate-database-dictionary.mjs",
     "scripts/generate-database-schema-doc.mjs",
     "scripts/generate-site-api-jwt.mjs",
+    "scripts/generate-social-cards.mjs",
     "scripts/graphify-local.mjs",
     "scripts/graphify-local.unit.mjs",
     "scripts/graphify-quality.mjs",
@@ -9317,16 +9319,19 @@
   },
   {
    "module": "shared",
-   "files": 4,
-   "lines": 159,
+   "files": 6,
+   "lines": 193,
    "tables": [],
    "exports": [
     "campaignYears.ts: currentCampaignYear, supportedCampaignYears, normalizeCampaignYear",
     "catalogEditorial.ts: CatalogEditorialStatus, CatalogEditorialEntry, CatalogEditorialId, catalogEditorialEntries, resolveCatalogEditorialId, isCatalogEditorialEntryPublic",
+    "catalogMeta.ts: CATALOGS_INDEX_TITLE, CATALOGS_INDEX_DESCRIPTION, catalogCollectionTitle",
     "ideaLandingPages.ts: IdeaLandingId, IdeaLandingMeta, ideaLandingMeta, ideaLandingIds",
-    "siteName.ts: SITE_NAME"
+    "siteName.ts: SITE_NAME",
+    "socialImages.ts: catalogSocialImages, catalogSocialImage"
    ],
    "docs": [
+    "catalogMeta.ts: Metadados de /catalogos em uma unica fonte: o shell pre-renderizado (api/site-page.ts) e a hidratacao (src/pages/CatalogsPage.tsx via Seo) precisam entregar o mesmo par titulo/descricao para a mesma URL.",
     "ideaLandingPages.ts: Fonte única do título e da descrição das quatro landings `/ideias/*`. O shell pré-renderizado (`api/site-page.ts`) e a página React (`src/lib/ideaLandings.ts` + `src/components/Seo.tsx`) leem daqui, para o HTML entregue ao crawler não contradizer o que o app escreve depois da hidratação.",
     "siteName.ts: Nome da marca usado no sufixo de todo `<title>`. Vive aqui porque o shell pré-renderizado (`api/site-page.ts`) e a página React (`src/components/Seo.tsx`) precisam compor o mesmo título para a mesma URL. Com o literal duplicado nos dois lados, uma mudança de assinatura da marca passava em um e não n …"
    ],
@@ -9335,8 +9340,10 @@
    "file_list": [
     "shared/campaignYears.ts",
     "shared/catalogEditorial.ts",
+    "shared/catalogMeta.ts",
     "shared/ideaLandingPages.ts",
-    "shared/siteName.ts"
+    "shared/siteName.ts",
+    "shared/socialImages.ts"
    ]
   },
   {
@@ -9725,7 +9732,7 @@
   {
    "module": "src/pages",
    "files": 27,
-   "lines": 4668,
+   "lines": 4671,
    "tables": [],
    "exports": [
     "AboutPage.tsx: AboutPage",
@@ -9825,8 +9832,8 @@
   },
   {
    "module": "tests",
-   "files": 51,
-   "lines": 11197,
+   "files": 52,
+   "lines": 11318,
    "tables": [
     "constructor",
     "quote_requests",
@@ -9840,6 +9847,7 @@
     "verify-vercel-artifact.test.ts: @vitest-environment node"
    ],
    "deps": [
+    "@testing-library/react",
     "node:assert",
     "node:child_process",
     "node:crypto",
@@ -9855,7 +9863,9 @@
    "imports_modules": [
     "api",
     "scripts",
-    "shared"
+    "shared",
+    "src/components",
+    "src/lib"
    ],
    "file_list": [
     "tests/catalog-public-contract.node.mjs",
@@ -9908,7 +9918,8 @@
     "tests/api/sitemap.test.ts",
     "tests/api/webhookSignature.test.ts",
     "tests/scripts/release-workflow.test.ts",
-    "tests/scripts/verify-vercel-artifact.test.ts"
+    "tests/scripts/verify-vercel-artifact.test.ts",
+    "tests/ui/seo-catalog-parity.test.tsx"
    ]
   }
  ],
@@ -11476,6 +11487,10 @@
    {
     "file": "scripts/generate-database-schema-doc.mjs",
     "msg": "nenhuma migration <14 dígitos>_<descrição>.sql em ${MIGRATIONS_DIR}; não há versão de schema para registrar."
+   },
+   {
+    "file": "scripts/generate-social-cards.mjs",
+    "msg": "Textos vazam do card de ${collection.id}: revise o tamanho da fonte."
    },
    {
     "file": "scripts/graphify-quality.mjs",
@@ -14087,6 +14102,11 @@
     "file": "shared/catalogEditorial.ts",
     "name": "EDITORIAL_TIME_ZONE",
     "value": "'America/Sao_Paulo'"
+   },
+   {
+    "file": "shared/catalogMeta.ts",
+    "name": "CATALOGS_INDEX_TITLE",
+    "value": "'Catálogos de brindes'"
    },
    {
     "file": "src/lib/briefingAssets.ts",
@@ -24082,6 +24102,14 @@
    },
    {
     "file": "tests/api/site-page.test.ts",
+    "name": "troca a capa social genérica pelo card da coleção compartilhada"
+   },
+   {
+    "file": "tests/api/site-page.test.ts",
+    "name": "mantém em public/ um card 1200x630 para cada coleção do mapa social"
+   },
+   {
+    "file": "tests/api/site-page.test.ts",
     "name": "normaliza no HTML inicial um ano que a agenda da interface não suporta"
    },
    {
@@ -24251,6 +24279,18 @@
    {
     "file": "tests/scripts/verify-vercel-artifact.test.ts",
     "name": "é idempotente e não altera o artefato verificado"
+   },
+   {
+    "file": "tests/ui/seo-catalog-parity.test.tsx",
+    "name": "paridade entre o shell prerenderizado e a hidratacao em /catalogos"
+   },
+   {
+    "file": "tests/ui/seo-catalog-parity.test.tsx",
+    "name": "o indice entrega o mesmo titulo e descricao nas duas camadas"
+   },
+   {
+    "file": "tests/ui/seo-catalog-parity.test.tsx",
+    "name": "a colecao compartilhada entrega o mesmo titulo, descricao e capa"
    }
   ],
   "webhook_events": [
@@ -31232,7 +31272,7 @@
   },
   "api/site-page.ts": {
    "path": "api/site-page.ts",
-   "lines": 133,
+   "lines": 138,
    "exports": [
     "function handler",
     "default async"
@@ -32257,6 +32297,17 @@
     "exp: now + ttlDays * 24 * 60 * 60,"
    ],
    "uses_service_role": true
+  },
+  "scripts/generate-social-cards.mjs": {
+   "path": "scripts/generate-social-cards.mjs",
+   "lines": 104,
+   "errors": [
+    "Textos vazam do card de ${collection.id}: revise o tamanho da fonte."
+   ],
+   "rule_comments": [
+    "não pode acontecer é o texto encostar no rodapé."
+   ],
+   "doc": "Gera as capas sociais 1200x630 de cada colecao de /catalogos. A lista abaixo espelha src/lib/catalogLibrary.ts (id, eyebrow, titulo, descricao e paleta). O mapa de runtime e shared/socialImages.ts; o teste tests/api/site-page.test.ts falha se um id ficar sem arquivo em public/images/og. Uso: npm run …"
   },
   "scripts/graphify-local.mjs": {
    "path": "scripts/graphify-local.mjs",
@@ -34120,6 +34171,22 @@
     }
    ]
   },
+  "shared/catalogMeta.ts": {
+   "path": "shared/catalogMeta.ts",
+   "lines": 12,
+   "exports": [
+    "const CATALOGS_INDEX_TITLE",
+    "const CATALOGS_INDEX_DESCRIPTION",
+    "function catalogCollectionTitle"
+   ],
+   "params": [
+    {
+     "name": "CATALOGS_INDEX_TITLE",
+     "value": "'Catálogos de brindes'"
+    }
+   ],
+   "doc": "Metadados de /catalogos em uma unica fonte: o shell pre-renderizado (api/site-page.ts) e a hidratacao (src/pages/CatalogsPage.tsx via Seo) precisam entregar o mesmo par titulo/descricao para a mesma URL."
+  },
   "shared/ideaLandingPages.ts": {
    "path": "shared/ideaLandingPages.ts",
    "lines": 35,
@@ -34144,6 +34211,14 @@
     "const SITE_NAME"
    ],
    "doc": "Nome da marca usado no sufixo de todo `<title>`. Vive aqui porque o shell pré-renderizado (`api/site-page.ts`) e a página React (`src/components/Seo.tsx`) precisam compor o mesmo título para a mesma URL. Com o literal duplicado nos dois lados, uma mudança de assinatura da marca passava em um e não n …"
+  },
+  "shared/socialImages.ts": {
+   "path": "shared/socialImages.ts",
+   "lines": 22,
+   "exports": [
+    "const catalogSocialImages",
+    "function catalogSocialImage"
+   ]
   },
   "site-supabase/supabase/migrations/20260908230000_create_site_lead_storage.sql": {
    "path": "site-supabase/supabase/migrations/20260908230000_create_site_lead_storage.sql",
@@ -38985,7 +39060,7 @@
   },
   "src/pages/CatalogsPage.tsx": {
    "path": "src/pages/CatalogsPage.tsx",
-   "lines": 304,
+   "lines": 307,
    "exports": [
     "function CatalogsPage"
    ],
@@ -40702,7 +40777,7 @@
   },
   "tests/api/site-page.test.ts": {
    "path": "tests/api/site-page.test.ts",
-   "lines": 167,
+   "lines": 203,
    "is_test": true,
    "tests": [
     "HTML inicial das páginas estáticas",
@@ -40712,6 +40787,8 @@
     "serve para cada landing o mesmo título que o React grava depois da hidratação",
     "publica o montador de kits com rewrite e metadados indexáveis próprios",
     "gera previews específicos para coleção e data compartilhadas",
+    "troca a capa social genérica pelo card da coleção compartilhada",
+    "mantém em public/ um card 1200x630 para cada coleção do mapa social",
     "normaliza no HTML inicial um ano que a agenda da interface não suporta",
     "não consulta HTML de autenticação de terceiro para compor uma página estática"
    ]
@@ -40786,13 +40863,60 @@
     "nomeia o arquivo quando o artefato está ausente ou tem JSON inválido",
     "é idempotente e não altera o artefato verificado"
    ]
+  },
+  "tests/ui/seo-catalog-parity.test.tsx": {
+   "path": "tests/ui/seo-catalog-parity.test.tsx",
+   "lines": 85,
+   "is_test": true,
+   "errors": [
+    "colecao de teste ausente",
+    "sem ${attribute} no shell",
+    "shell sem <head>"
+   ],
+   "rule_comments": [
+    "entao o teste nao pode aceitar o documento inteiro."
+   ],
+   "tests": [
+    "paridade entre o shell prerenderizado e a hidratacao em /catalogos",
+    "o indice entrega o mesmo titulo e descricao nas duas camadas",
+    "a colecao compartilhada entrega o mesmo titulo, descricao e capa"
+   ]
   }
  },
  "git": {
-  "sha": "aff8698893594914d99606518fa65693b5e2fd52",
+  "sha": "eca586e2e004bfc07aabea38961aaf1dc7091bce",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "eca586e",
+    "date": "2026-11-24",
+    "author": "adm01-debug",
+    "subject": "feat: capa social própria para cada coleção de catálogos (UX58) (#252)",
+    "files": [
+     "api/site-page.ts",
+     "docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md",
+     "docs/AUTOMACAO_LOCAL.md",
+     "package.json",
+     "public/images/og/colecao-celebracoes-com-significado.png",
+     "public/images/og/colecao-escolhas-de-menor-impacto.png",
+     "public/images/og/colecao-eventos-que-continuam.png",
+     "public/images/og/colecao-kits-prontos-para-combinar.png",
+     "public/images/og/colecao-novas-tendencias.png",
+     "public/images/og/colecao-onboarding-com-cultura.png",
+     "public/images/og/colecao-reconhecimento-com-desejo.png",
+     "public/images/og/colecao-relacionamento-que-fica.png",
+     "public/images/og/colecao-sua-marca-em-cena.png",
+     "public/images/og/colecao-tech-que-resolve.png",
+     "scripts/automation.config.json",
+     "scripts/generate-social-cards.mjs",
+     "shared/catalogMeta.ts",
+     "shared/socialImages.ts",
+     "src/pages/CatalogsPage.tsx",
+     "tests/api/site-page.test.ts",
+     "tests/ui/seo-catalog-parity.test.tsx"
+    ]
+   },
    {
     "sha": "aff8698",
     "date": "2026-11-24",
@@ -41247,23 +41371,6 @@
      "src/lib/whatsappContact.ts",
      "src/pages/ContactPage.tsx"
     ]
-   },
-   {
-    "sha": "a3e9e21",
-    "date": "2026-11-21",
-    "author": "adm01-debug",
-    "subject": "feat: fallback de SKU exato quando a busca nao encontra correspondencia (NOVO-CA-22) (#221)",
-    "files": [
-     "scripts/check-performance-budget.mjs",
-     "src/components/CatalogFeedback.tsx",
-     "src/lib/catalog.test.ts",
-     "src/lib/catalog.ts",
-     "src/lib/search.test.ts",
-     "src/lib/search.ts",
-     "src/lib/useCatalogPageState.ts",
-     "src/pages/CatalogPage.tsx",
-     "tests/check-performance-budget.node.mjs"
-    ]
    }
   ],
   "hot_files": [
@@ -41276,20 +41383,24 @@
     13
    ],
    [
-    "scripts/check-performance-budget.mjs",
+    "docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md",
     8
+   ],
+   [
+    "scripts/check-performance-budget.mjs",
+    7
    ],
    [
     "tests/check-performance-budget.node.mjs",
-    8
-   ],
-   [
-    "docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md",
     7
    ],
    [
     "docs/DATABASE_DICTIONARY.md",
     6
+   ],
+   [
+    "package.json",
+    5
    ],
    [
     "docs/DATABASE_FUNCTION_CONTRACTS.md",
@@ -41300,12 +41411,12 @@
     5
    ],
    [
-    "package.json",
+    "src/pages/BackofficePage.tsx",
     4
    ],
    [
-    "src/pages/BackofficePage.tsx",
-    4
+    "scripts/automation.config.json",
+    3
    ],
    [
     "docs/prod-readiness.md",
@@ -41341,10 +41452,6 @@
    ],
    [
     "src/lib/analytics.ts",
-    3
-   ],
-   [
-    "src/styles.css",
     3
    ]
   ]

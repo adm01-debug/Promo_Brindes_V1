@@ -1,8 +1,8 @@
 {
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
- "nos": 184,
- "arestas": 397,
+ "nos": 187,
+ "arestas": 402,
  "hubs": [
   {
    "arquivo": "src/types.ts",
@@ -14,7 +14,7 @@
   },
   {
    "arquivo": "src/components/Seo.tsx",
-   "importado_por": 20
+   "importado_por": 21
   },
   {
    "arquivo": "api/_lib/leadHandler.ts",
@@ -65,6 +65,10 @@
    "importado_por": 8
   },
   {
+   "arquivo": "shared/catalogEditorial.ts",
+   "importado_por": 7
+  },
+  {
    "arquivo": "src/lib/customerAccount.ts",
    "importado_por": 7
   },
@@ -78,10 +82,6 @@
   },
   {
    "arquivo": "api/_lib/operationalAlerts.ts",
-   "importado_por": 6
-  },
-  {
-   "arquivo": "shared/catalogEditorial.ts",
    "importado_por": 6
   },
   {
@@ -129,6 +129,14 @@
    "importado_por": 4
   },
   {
+   "arquivo": "shared/catalogMeta.ts",
+   "importado_por": 4
+  },
+  {
+   "arquivo": "shared/socialImages.ts",
+   "importado_por": 4
+  },
+  {
    "arquivo": "src/components/ContextualFaq.tsx",
    "importado_por": 4
   },
@@ -154,14 +162,6 @@
   },
   {
    "arquivo": "src/lib/quoteRepeat.ts",
-   "importado_por": 4
-  },
-  {
-   "arquivo": "src/lib/sharedSelection.ts",
-   "importado_por": 4
-  },
-  {
-   "arquivo": "src/lib/siteFeatureFlags.ts",
    "importado_por": 4
   }
  ],

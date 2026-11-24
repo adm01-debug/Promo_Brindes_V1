@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "aff8698893594914d99606518fa65693b5e2fd52",
+  "commit": "eca586e2e004bfc07aabea38961aaf1dc7091bce",
   "branch": "main",
-  "data_commit": "2026-11-24T10:21:41Z",
+  "data_commit": "2026-11-24T13:24:43Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "eca586e",
+    "data": "2026-11-24",
+    "assunto": "feat: capa social própria para cada coleção de catálogos (UX58) (#252)"
+   },
    {
     "sha": "aff8698",
     "data": "2026-11-24",
@@ -126,14 +131,9 @@
     "sha": "abcd725",
     "data": "2026-11-22",
     "assunto": "test: exercita policies de Storage como authenticated, DDL real e rate limit (F-82) (#227)"
-   },
-   {
-    "sha": "ec7e478",
-    "data": "2026-11-22",
-    "assunto": "feat: eventos de funil de contato, upload, remoção e link compartilhado (F-100/PF-120) (#228)"
    }
   ],
-  "arquivos_mudados_7d": 206,
+  "arquivos_mudados_7d": 218,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "analise-prs/funcionalidades.csv",
@@ -145,7 +145,7 @@
    },
    {
     "pasta": "package.json",
-    "mudancas": 20
+    "mudancas": 21
    },
    {
     "pasta": "docs/audits/planejado-x-implementado-20261120",
@@ -184,22 +184,22 @@
     "mudancas": 10
    },
    {
+    "pasta": "public/images/og",
+    "mudancas": 10
+   },
+   {
     "pasta": "tests/check-performance-budget.node.mjs",
     "mudancas": 10
    },
    {
-    "pasta": "docs/DATABASE_FUNCTION_CONTRACTS.md",
-    "mudancas": 9
-   },
-   {
-    "pasta": "src/types/site-database.types.ts",
+    "pasta": "docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md",
     "mudancas": 9
    }
   ],
   "arquivos_mais_mudados_90d": [
    {
     "arquivo": "package.json",
-    "mudancas": 69
+    "mudancas": 70
    },
    {
     "arquivo": "e2e/smoke.spec.ts",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 127
+    "commits": 128
    },
    {
     "autor": "dependabot[bot]",
@@ -310,9 +310,9 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 766,
-  "arquivos_codigo": 309,
-  "linhas_codigo": 61889,
+  "arquivos_total": 780,
+  "arquivos_codigo": 313,
+  "linhas_codigo": 62156,
   "rotas": 35,
   "rotas_http_backend": 16,
   "vistas_por_id": 0,
@@ -324,9 +324,9 @@
   "tabelas": 27,
   "migrations": 77,
   "cron_jobs": 0,
-  "testes": 163,
+  "testes": 164,
   "workflows": 15,
-  "scripts": 40,
+  "scripts": 41,
   "docs_md": 139
  },
  "por_pasta": {
@@ -392,7 +392,7 @@
   },
   "api/site-page.ts": {
    "arquivos": 1,
-   "linhas": 133
+   "linhas": 138
   },
   "api/sitemap.ts": {
    "arquivos": 1,
@@ -481,6 +481,10 @@
   "scripts/generate-site-api-jwt.mjs": {
    "arquivos": 1,
    "linhas": 86
+  },
+  "scripts/generate-social-cards.mjs": {
+   "arquivos": 1,
+   "linhas": 104
   },
   "scripts/graphify-local.mjs": {
    "arquivos": 1,
@@ -578,6 +582,10 @@
    "arquivos": 1,
    "linhas": 91
   },
+  "shared/catalogMeta.ts": {
+   "arquivos": 1,
+   "linhas": 12
+  },
   "shared/ideaLandingPages.ts": {
    "arquivos": 1,
    "linhas": 35
@@ -585,6 +593,10 @@
   "shared/siteName.ts": {
    "arquivos": 1,
    "linhas": 10
+  },
+  "shared/socialImages.ts": {
+   "arquivos": 1,
+   "linhas": 22
   },
   "src/App.tsx": {
    "arquivos": 1,
@@ -608,7 +620,7 @@
   },
   "src/pages": {
    "arquivos": 27,
-   "linhas": 4668
+   "linhas": 4671
   },
   "src/test": {
    "arquivos": 1,
@@ -624,7 +636,7 @@
   },
   "tests/api": {
    "arquivos": 22,
-   "linhas": 4340
+   "linhas": 4376
   },
   "tests/catalog-public-contract.node.mjs": {
    "arquivos": 1,
@@ -701,6 +713,10 @@
   "tests/timing-safe-secret-comparisons.node.mjs": {
    "arquivos": 1,
    "linhas": 65
+  },
+  "tests/ui": {
+   "arquivos": 1,
+   "linhas": 85
   },
   "tests/validate-agent-instructions.node.mjs": {
    "arquivos": 1,
@@ -847,7 +863,7 @@
  ],
  "qualidade": {
   "any": 3,
-  "console_log": 96,
+  "console_log": 97,
   "ts_ignore": 0,
   "eslint_disable": 1,
   "todos": 3,

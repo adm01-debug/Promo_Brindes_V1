@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `aff8698893` · branch `main` · 2026-11-24 10:22 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `eca586e2e0` · branch `main` · 2026-11-24 13:25 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -742,6 +742,7 @@ _nenhum item encontrado_
 | `SVIX_TIMESTAMP_TOLERANCE_SECONDS` | `300` | `api/_lib/webhookSignature.ts` |
 | `CAMPAIGN_TIME_ZONE` | `'America/Sao_Paulo'` | `shared/campaignYears.ts` |
 | `EDITORIAL_TIME_ZONE` | `'America/Sao_Paulo'` | `shared/catalogEditorial.ts` |
+| `CATALOGS_INDEX_TITLE` | `'Catálogos de brindes'` | `shared/catalogMeta.ts` |
 | `BRIEFING_ASSET_BUCKET` | `'customer-briefing-assets'` | `src/lib/briefingAssets.ts` |
 | `MAX_BRIEFING_ASSET_BYTES` | `10 * 1024 * 1024` | `src/lib/briefingAssets.ts` |
 | `MAX_BRIEFING_ASSETS` | `10` | `src/lib/briefingAssets.ts` |
@@ -963,6 +964,7 @@ _nenhum item encontrado_
 | Nenhum JSON recebido por stdin: esperado o array de execuções do CI. | `scripts/ci-health-metrics.mjs` |
 | nenhuma migration <14 dígitos>_<descrição>.sql em ${MIGRATIONS_DIR}; não há versão de schema para registrar. | `scripts/generate-database-dictionary.mjs` |
 | nenhuma migration <14 dígitos>_<descrição>.sql em ${MIGRATIONS_DIR}; não há versão de schema para registrar. | `scripts/generate-database-schema-doc.mjs` |
+| Textos vazam do card de ${collection.id}: revise o tamanho da fonte. | `scripts/generate-social-cards.mjs` |
 | Corpus Graphify inválido: caminho fora do diretório de staging (${relative}). | `scripts/graphify-quality.mjs` |
 | Mapa de banco contém ${nonSqlInDatabase.length} nó(s) fora de SQL. | `scripts/graphify-quality.mjs` |
 | Mapa principal contém ${sqlInMain.length} nó(s) SQL. | `scripts/graphify-quality.mjs` |
@@ -1138,8 +1140,7 @@ _nenhum item encontrado_
 | invalid_occasion_id | `src/lib/customerOccasionFavorites.ts` |
 | occasion_favorite_limit_reached | `src/lib/customerOccasionFavorites.ts` |
 | occasion_favorites_unavailable | `src/lib/customerOccasionFavorites.ts` |
-| invalid_customer_quote_response | `src/lib/customerQuoteContract.ts` |
-| … +15 linhas — lista completa em `context.json` | |
+| … +16 linhas — lista completa em `context.json` | |
 
 ## J. Controle de acesso no código (checagens de perfil/permissão)
 
@@ -1150,7 +1151,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (2229 testes em 154 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (2234 testes em 155 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1221,6 +1222,7 @@ _nenhum item encontrado_
 | `tests/ci-health-metrics.node.mjs` | 11 | não contabiliza cancelamento, timeout ou execução pendente como sucesso · separa conclusões neutras e ignoradas do denominador terminal · amostra sem conclusão terminal permanece inconclusiva · taxas arredondadas continuam somando exatamente 100 … |
 | `tests/validate-error-catalog.node.mjs` | 11 | extrai mensagens literais (message = \ · extrai o prefixo de mensagens via format() (message = format(\ · ignora texto solto que não segue nenhum dos dois padrões (acentos/espaços quebram o casamento) · acusa mensagem de migration que não está no catálogo … |
 | `tests/api/health.test.ts` | 11 | PF-75: /api/health confere a configuração do banco sem expor segredo · responde 200 quando o deployment aponta para o projeto isolado do site · responde 503 backend_not_configured quando falta variável obrigatória · rejeita o banco canônico com unsafe_database_target … |
+| `tests/api/site-page.test.ts` | 11 | HTML inicial das páginas estáticas · entrega metadados específicos para catálogo e não indexa o detalhe privado · serve o back-office comercial como rota privada e nao indexavel · preserva 404 real para uma landing editorial desconhecida … |
 | `site-supabase/supabase/tests/database/notification_dispatch_uncertainty.test.sql` | 10 | anon não marca intenção de disparo · worker limitado pode marcar a intenção antes de chamar a Meta · orçamento com opt-in WhatsApp é criado · worker reivindica o WhatsApp … |
 | `src/components/ProductDescription.test.tsx` | 10 | descrição compacta e segura do produto · preserva texto curto sem exigir expansão · usa o resumo editorial no estado compacto e revela a descrição integral · limita um resumo longo antes de revelar a descrição integral … |
 | `src/lib/useCatalogPageState.test.tsx` | 10 | useCatalogPageState · preserva a resposta da API quando a ordem explícita é %s · aplica curadoria somente quando ela é a ordem escolhida · sincroniza o contexto da campanha a partir da URL … |
@@ -1236,7 +1238,6 @@ _nenhum item encontrado_
 | `tests/generate-database-docs.node.mjs` | 9 | ida e volta: com as mesmas linhas do banco, o dicionário gerado é idêntico ao versionado · ida e volta: com as mesmas linhas do banco, o ERD gerado é idêntico ao versionado · gerar duas vezes produz o mesmo arquivo e a data vem da migration mais recente, não do relógio · comentário com quebra de linha ou barra vertical não parte a tabela Markdown … |
 | `tests/normalize-vercel-deployment-url.node.mjs` | 9 | adiciona https somente quando a CLI devolve hostname · preserva URL https já completa sem duplicar o protocolo · recusa protocolo, credencial, porta, caminho e domínio inesperados · CLI imprime exatamente uma origem normalizada … |
 | `tests/stage-app-shell.node.mjs` | 9 | copia o HTML do build byte a byte e não deixa arquivo temporário · aceita as variações de marcação que a função serverless aceita · reprova build sem root ou sem script de /assets e não grava o destino · reprova página de proteção da Vercel, que a função recusaria com 503 … |
-| `tests/api/site-page.test.ts` | 9 | HTML inicial das páginas estáticas · entrega metadados específicos para catálogo e não indexa o detalhe privado · serve o back-office comercial como rota privada e nao indexavel · preserva 404 real para uma landing editorial desconhecida … |
 | `e2e/product-detail.spec.ts` | 8 | ficha compacta reúne seleção e especificações ao lado da galeria no desktop · galeria permite todas as fotos, volta ao início e amplia com foco contido · descrição completa formata marcadores sem perder conteúdo nem esconder especificações · cor e quantidade seguem para o orçamento, sem preço ou bloqueio por estoque … |
 | `tests/inventario-banco-sql.node.mjs` | 8 | banco.sql roda inteiro em transação somente leitura e passa na prova de origem · banco.sql: a transação somente leitura barra escrita, e a consulta não muda nada no banco · banco.sql: fila travada conta só o que ainda vai ser tentado; erro sai como código, nunca como texto · banco.sql: pg_cron sai com nome estável, só o nome das funções chamadas e as contas certas … |
 | `tests/validate-site-supabase-target.node.mjs` | 8 | aprova somente o projeto isolado do site, com código 0 e o ref em stdout · independe do diretório de onde é chamado · bloqueia o catálogo canônico e diz como refazer o vínculo · bloqueia qualquer conteúdo que não seja exatamente o ref do site … |
@@ -1300,6 +1301,7 @@ _nenhum item encontrado_
 | `tests/api/curated-page-previews.test.ts` | 3 | previews das rotas editoriais · mantém todas as coleções públicas sincronizadas com a biblioteca · mantém todas as datas públicas sincronizadas com a agenda |
 | `tests/api/operationalAlerts.test.ts` | 3 | alertas operacionais · não abre conexão sem endpoint HTTPS explicitamente configurado · envia somente o envelope técnico ao endpoint HTTPS configurado |
 | `tests/api/product-page-shell-alert.test.ts` | 3 | origem da falha decide o alerta quando o HTML inicial não carrega · não acusa o catálogo quando só o HTML falhou · ainda alerta a queda do catálogo quando o HTML falha primeiro e a consulta cai depois |
+| `tests/ui/seo-catalog-parity.test.tsx` | 3 | paridade entre o shell prerenderizado e a hidratacao em /catalogos · o indice entrega o mesmo titulo e descricao nas duas camadas · a colecao compartilhada entrega o mesmo titulo, descricao e capa |
 | `e2e/briefing-upload.spec.ts` | 2 | cliente anexa um PNG: reserva, transferência, verificação e arquivo disponível no briefing · verificação recusa o conteúdo: o cliente é avisado e o arquivo não fica para trás |
 | `e2e/concurrency.spec.ts` | 2 | seleção feita num dispositivo aparece no outro, e limpar num deles esvazia o outro · o mesmo produto escolhido nos dois dispositivos ao mesmo tempo não duplica a seleção |
 | `e2e/favorites.spec.ts` | 2 | favorito sobrevive ao recarregar a pagina, sem conta · favorito salvo numa aba aparece na outra sem recarregar |
