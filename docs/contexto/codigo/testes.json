@@ -1036,9 +1036,9 @@
   {
    "arquivo": "tests/scripts/release-workflow.test.ts",
    "tipo": "unit",
-   "linhas": 52,
+   "linhas": 67,
    "testa": [],
-   "casos": 4
+   "casos": 5
   },
   {
    "arquivo": "tests/scripts/verify-vercel-artifact.test.ts",

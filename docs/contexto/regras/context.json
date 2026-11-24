@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "9900f5a4d1d4a4e34002a0d4207f897049545f99",
+  "sha": "aff8698893594914d99606518fa65693b5e2fd52",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-24 00:31 UTC",
+  "generated_at": "2026-11-24 10:22 UTC",
   "files_total": 660,
   "code_files": 433,
-  "code_lines": 82626,
+  "code_lines": 82641,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "9cfc9fba1bdb0a2a",
+ "facts_hash": "e63a316d7329856a",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -9826,7 +9826,7 @@
   {
    "module": "tests",
    "files": 51,
-   "lines": 11182,
+   "lines": 11197,
    "tables": [
     "constructor",
     "quote_requests",
@@ -24187,6 +24187,10 @@
    {
     "file": "tests/scripts/release-workflow.test.ts",
     "name": "sincroniza, verifica e testa o alias git-main depois da promoção"
+   },
+   {
+    "file": "tests/scripts/release-workflow.test.ts",
+    "name": "aplica migration fora de ordem no banco de produção em vez de derrubar o deploy"
    },
    {
     "file": "tests/scripts/release-workflow.test.ts",
@@ -40749,7 +40753,7 @@
   },
   "tests/scripts/release-workflow.test.ts": {
    "path": "tests/scripts/release-workflow.test.ts",
-   "lines": 52,
+   "lines": 67,
    "is_test": true,
    "doc": "@vitest-environment node",
    "tests": [
@@ -40757,6 +40761,7 @@
     "valida Web Analytics no candidato sem chamar endpoint privado de configuração",
     "faz smoke do candidato antes de promover e mantém rollback pós-promoção",
     "sincroniza, verifica e testa o alias git-main depois da promoção",
+    "aplica migration fora de ordem no banco de produção em vez de derrubar o deploy",
     "restaura também o alias git-main quando a validação pós-promoção falha"
    ]
   },
@@ -40784,10 +40789,21 @@
   }
  },
  "git": {
-  "sha": "9900f5a4d1d4a4e34002a0d4207f897049545f99",
+  "sha": "aff8698893594914d99606518fa65693b5e2fd52",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "aff8698",
+    "date": "2026-11-24",
+    "author": "adm01-debug",
+    "subject": "fix(release): aplica migration fora de ordem em vez de derrubar o deploy (#251)",
+    "files": [
+     ".github/workflows/release.yml",
+     "docs/prod-readiness.md",
+     "tests/scripts/release-workflow.test.ts"
+    ]
+   },
    {
     "sha": "9900f5a",
     "date": "2026-11-23",
@@ -41248,29 +41264,6 @@
      "src/pages/CatalogPage.tsx",
      "tests/check-performance-budget.node.mjs"
     ]
-   },
-   {
-    "sha": "66ed450",
-    "date": "2026-11-21",
-    "author": "adm01-debug",
-    "subject": "feat(lgpd): direitos do titular — acesso, exportacao, correcao e autoexclusao (F-30) (#220)",
-    "files": [
-     "docs/DATABASE_DICTIONARY.md",
-     "docs/DATABASE_FUNCTION_CONTRACTS.md",
-     "docs/DATABASE_SCHEMA.md",
-     "docs/pendencias/_linha-de-base.md",
-     "scripts/check-performance-budget.mjs",
-     "site-supabase/supabase/migrations/20261121110000_add_titular_lgpd_rights_rpcs.sql",
-     "site-supabase/supabase/tests/database/customer_data_erasure.test.sql",
-     "site-supabase/supabase/tests/database/lead_storage.test.sql",
-     "site-supabase/supabase/tests/database/titular_lgpd_rights.test.sql",
-     "src/lib/customerAccount.ts",
-     "src/pages/CustomerAccountPage.tsx",
-     "src/pages/PrivacyPage.tsx",
-     "src/styles.css",
-     "src/types/site-database.types.ts",
-     "tests/check-performance-budget.node.mjs"
-    ]
    }
   ],
   "hot_files": [
@@ -41284,11 +41277,11 @@
    ],
    [
     "scripts/check-performance-budget.mjs",
-    9
+    8
    ],
    [
     "tests/check-performance-budget.node.mjs",
-    9
+    8
    ],
    [
     "docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md",
@@ -41296,15 +41289,15 @@
    ],
    [
     "docs/DATABASE_DICTIONARY.md",
-    7
+    6
    ],
    [
     "docs/DATABASE_FUNCTION_CONTRACTS.md",
-    6
+    5
    ],
    [
     "src/types/site-database.types.ts",
-    6
+    5
    ],
    [
     "package.json",
@@ -41315,16 +41308,8 @@
     4
    ],
    [
-    "docs/DATABASE_SCHEMA.md",
-    4
-   ],
-   [
-    "site-supabase/supabase/tests/database/lead_storage.test.sql",
-    4
-   ],
-   [
-    "src/styles.css",
-    4
+    "docs/prod-readiness.md",
+    3
    ],
    [
     "docs/audits/planejado-x-implementado-20261120/02-pf-23-56-portal-lgpd-experiencia.md",
@@ -41347,11 +41332,19 @@
     3
    ],
    [
+    "docs/DATABASE_SCHEMA.md",
+    3
+   ],
+   [
+    "site-supabase/supabase/tests/database/lead_storage.test.sql",
+    3
+   ],
+   [
     "src/lib/analytics.ts",
     3
    ],
    [
-    "vercel.json",
+    "src/styles.css",
     3
    ]
   ]

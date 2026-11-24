@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "fix(release): aplica migration fora de ordem em vez de derrubar o deploy (#251)",
    "feat: inventario de afirmacoes comerciais com dono e prova (PF-55) (#240)",
    "feat: corte de backlog da fila de notificações (F-11) (#234)",
    "chore(deps): bump the npm-minor-and-patch group with 7 updates (#248)",
-   "chore(deps): bump actions/dependency-review-action (#246)",
-   "chore(deps): bump actions/setup-node from 6.5.0 to 7.1.0 (#247)"
+   "chore(deps): bump actions/dependency-review-action (#246)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

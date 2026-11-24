@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `9900f5a4d1d4a4e34002a0d4207f897049545f99` (2026-11-24T00:31:17Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `aff8698893594914d99606518fa65693b5e2fd52` (2026-11-24T10:21:41Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -36,7 +36,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 |---|---|
 | arquivos_total | 766 |
 | arquivos_codigo | 309 |
-| linhas_codigo | 61874 |
+| linhas_codigo | 61889 |
 | rotas | 35 |
 | rotas_http_backend | 16 |
 | vistas_por_id | 0 |
@@ -188,7 +188,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - analise-prs/funcionalidades.csv (25)
 - docs/DATABASE_FUNCTION_CONTRACTS.md (24)
 - src/components/Layout.tsx (24)
-- .github/workflows/release.yml (21)
+- .github/workflows/release.yml (22)
 - api/notifications.ts (21)
 - src/types/site-database.types.ts (21)
 
@@ -395,11 +395,12 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `docs/SITE_SUPABASE_IMPLEMENTATION_REPORT_20260908.md` — Relatório de implementação — Supabase exclusivo do site (67 linhas)
 - `docs/SITE_SUPABASE_SETUP.md` — Supabase exclusivo do Site Promo Brindes (124 linhas)
 - `docs/UX_STRATEGY.md` — Estratégia de experiência — Site Promo Brindes (154 linhas)
-- `docs/prod-readiness.md` — Prod Readiness — Promo_Brindes_V1 (88 linhas)
+- `docs/prod-readiness.md` — Prod Readiness — Promo_Brindes_V1 (96 linhas)
 - subpastas de docs/: docs/audits (22), docs/agentes (9), docs/pendencias (4), docs/contexto (2), docs/inventario-afirmacoes (2), docs/aprovacoes-visuais (1)
 
 
 ## Últimos commits
+- 2026-11-24 `aff8698` fix(release): aplica migration fora de ordem em vez de derrubar o deploy (#251)
 - 2026-11-24 `9900f5a` feat: inventario de afirmacoes comerciais com dono e prova (PF-55) (#240)
 - 2026-11-23 `c93830f` feat: corte de backlog da fila de notificações (F-11) (#234)
 - 2026-11-23 `0d78534` chore(deps): bump the npm-minor-and-patch group with 7 updates (#248)
@@ -414,7 +415,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-22 `1435f51` chore: plano de navegação e fluidez em 200 etapas (#245)
 - 2026-11-22 `9ace0fc` chore: plano de correções e melhorias em 190 etapas (#244)
 - 2026-11-22 `20f6600` feat: endpoint de health confere a configuracao do banco (F-75) (#237)
-- 2026-11-22 `28a86e8` feat: por que este produto e ideias de uso (F-45) (#236)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

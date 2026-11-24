@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `9900f5a4d1` · branch `main` · 2026-11-24 00:31 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `aff8698893` · branch `main` · 2026-11-24 10:22 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -1150,7 +1150,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (2228 testes em 154 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (2229 testes em 154 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1260,6 +1260,7 @@ _nenhum item encontrado_
 | `src/lib/customerOccasionFavorites.test.ts` | 6 | favoritos de datas na conta · lê apenas IDs editoriais e elimina duplicidades · normaliza a escrita e exige confirmação idempotente do servidor · rejeita payloads e identificadores que não podem representar uma data editorial … |
 | `src/lib/customerSelections.test.ts` | 6 | seleções privadas da conta · envia somente referências públicas e preserva o grupo alternativo · preserva o nome da cor quando o catálogo não fornece variantId · lista, cria e atualiza usando a versão recebida do servidor … |
 | `src/lib/quoteBriefing.test.ts` | 6 | contexto opcional do briefing · preserva apenas escolhas reconhecidas e texto limitado · descarta briefing vazio ou valores manipulados · gera um resumo humano para e-mail e área do cliente … |
+| `tests/scripts/release-workflow.test.ts` | 6 | workflow de release Vercel · valida Web Analytics no candidato sem chamar endpoint privado de configuração · faz smoke do candidato antes de promover e mantém rollback pós-promoção · sincroniza, verifica e testa o alias git-main depois da promoção … |
 | `site-supabase/supabase/tests/database/shared_selection_priorities.test.sql` | 5 | criar e ler preserva prioridade alternativa · referência sem prioridade continua compatível como principal · recusa prioridade desconhecida · recusa null explícito … |
 | `src/components/ConversationForm.test.tsx` | 5 | formulário de conversa · congela os dados enquanto o envio está em andamento para não apagar edições tardias · registra contact_submitted no canal do formulário quando a API aceita · registra rascunho de e-mail, e não contato enviado, quando o envio cai no fallback … |
 | `src/components/SavedSelections.test.tsx` | 5 | seleções salvas na Área do Cliente · mostra as seleções sem copiar automaticamente o carrinho para a conta · exige confirmação antes de substituir o carrinho e preserva a seleção ao cancelar · compara conflito entre dispositivos e permite preservar as duas versões … |
@@ -1270,7 +1271,6 @@ _nenhum item encontrado_
 | `src/pages/IdeaLandingPage.test.tsx` | 5 | telemetria da landing de ideias · conta as referências que a própria página mostrou, não o total do catalogQuery · emite uma única visualização por tópico, com a contagem do próprio tópico · não grava o tópico revisitado com a contagem do tópico que o visitante deixou … |
 | `tests/api/catalog-validation.test.ts` | 5 | reconcileQuoteItems · reconcilia a cor legada pelo nome e a converte para o ID canônico publicado · não aceita uma cor legada que não está mais publicada · reconcilia swatch público sem variant_id por nome inequívoco … |
 | `tests/api/product-page-alert.test.ts` | 5 | alerta de queda do catálogo público · avisa o canal operacional quando o catálogo cai, em vez de só mostrar 503 ao visitante · entrega que falha não compra os cinco minutos de silêncio · duas visitas simultâneas na mesma instância geram um único alerta … |
-| `tests/scripts/release-workflow.test.ts` | 5 | workflow de release Vercel · valida Web Analytics no candidato sem chamar endpoint privado de configuração · faz smoke do candidato antes de promover e mantém rollback pós-promoção · sincroniza, verifica e testa o alias git-main depois da promoção … |
 | `e2e/journey.spec.ts` | 4 | jornada completa: home, catálogos, catálogo, produto, briefing enviado · jornada sobrevive a rede lenta: o visitante vê o progresso e a seleção chega ao briefing · jornada sobrevive a armazenamento bloqueado: envia o briefing e não guarda nada · confirmação oferece feedback de clareza opcional sem reenviar o briefing |
 | `src/components/QuoteDrawer.test.tsx` | 4 | QuoteDrawer · registra a remoção de um item com a contagem restante · registra a limpeza da seleção somente depois da confirmação · deixa substituir a quantidade inteira antes de aplicar o mínimo no blur |
 | `src/lib/briefingAssets.test.ts` | 4 | arquivos privados do briefing · aceita somente os formatos publicados dentro de 10 MB · recusa arquivos vazios e nomes maiores que o contrato do banco · revoga o metadado e delega a remoção física à fila protegida |

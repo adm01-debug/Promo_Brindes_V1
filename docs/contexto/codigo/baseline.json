@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "9900f5a4d1d4a4e34002a0d4207f897049545f99",
+  "commit": "aff8698893594914d99606518fa65693b5e2fd52",
   "branch": "main",
-  "data_commit": "2026-11-24T00:31:17Z",
+  "data_commit": "2026-11-24T10:21:41Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "aff8698",
+    "data": "2026-11-24",
+    "assunto": "fix(release): aplica migration fora de ordem em vez de derrubar o deploy (#251)"
+   },
    {
     "sha": "9900f5a",
     "data": "2026-11-24",
@@ -126,14 +131,9 @@
     "sha": "ec7e478",
     "data": "2026-11-22",
     "assunto": "feat: eventos de funil de contato, upload, remoção e link compartilhado (F-100/PF-120) (#228)"
-   },
-   {
-    "sha": "d7f09b6",
-    "data": "2026-11-22",
-    "assunto": "feat: resumo do briefing abre antes das 4 respostas e permite cancelar a edicao (F-37) (#226)"
    }
   ],
-  "arquivos_mudados_7d": 215,
+  "arquivos_mudados_7d": 206,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "analise-prs/funcionalidades.csv",
@@ -247,7 +247,7 @@
    },
    {
     "arquivo": ".github/workflows/release.yml",
-    "mudancas": 21
+    "mudancas": 22
    },
    {
     "arquivo": "api/notifications.ts",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 126
+    "commits": 127
    },
    {
     "autor": "dependabot[bot]",
@@ -312,7 +312,7 @@
  "contagens": {
   "arquivos_total": 766,
   "arquivos_codigo": 309,
-  "linhas_codigo": 61874,
+  "linhas_codigo": 61889,
   "rotas": 35,
   "rotas_http_backend": 16,
   "vistas_por_id": 0,
@@ -676,7 +676,7 @@
   },
   "tests/scripts": {
    "arquivos": 2,
-   "linhas": 236
+   "linhas": 251
   },
   "tests/session-start-hook.node.mjs": {
    "arquivos": 1,
