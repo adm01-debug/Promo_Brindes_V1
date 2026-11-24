@@ -4,7 +4,8 @@ import { join } from 'node:path';
 import handler from '../../api/site-page.js';
 import { CATALOGS_INDEX_DESCRIPTION, CATALOGS_INDEX_TITLE } from '../../shared/catalogMeta.js';
 import { ideaLandingIds, ideaLandingMeta } from '../../shared/ideaLandingPages.js';
-import { catalogSocialImages } from '../../shared/socialImages.js';
+import { catalogSocialImages, occasionSocialImage } from '../../shared/socialImages.js';
+import { occasionPreviews } from '../../api/_lib/curatedPagePreviews.js';
 import { SITE_NAME } from '../../shared/siteName.js';
 
 function escapeHtml(value: string) {
@@ -136,6 +137,8 @@ describe('HTML inicial das páginas estáticas', () => {
     expect(occasion.result.statusCode).toBe(200);
     expect(occasion.result.body).toContain('<title>Dia do Cliente 2027 | Promo Brindes</title>');
     expect(occasion.result.body).toContain('/datas-comemorativas?ano=2027&amp;data=dia-do-cliente');
+    expect(occasion.result.body).toContain('content="https://promo-brindes-v1.vercel.app/images/og/data-dia-do-cliente.png"');
+    expect(occasion.result.body).not.toContain('hero-gen-z-v2.webp');
   });
 
   it('troca a capa social genérica pelo card da coleção compartilhada', async () => {
@@ -161,9 +164,13 @@ describe('HTML inicial das páginas estáticas', () => {
     expect(index.result.body).toContain(CATALOGS_INDEX_DESCRIPTION);
   });
 
-  it('mantém em public/ um card 1200x630 para cada coleção do mapa social', () => {
-    const entries = Object.entries(catalogSocialImages);
-    expect(entries).toHaveLength(10);
+  it('mantém em public/ um card 1200x630 para cada card do mapa social', () => {
+    expect(Object.keys(catalogSocialImages)).toHaveLength(10);
+    expect(Object.keys(occasionPreviews)).toHaveLength(33);
+    const entries = [
+      ...Object.entries(catalogSocialImages),
+      ...Object.keys(occasionPreviews).map((id) => [id, occasionSocialImage(id)!] as const),
+    ];
     for (const [id, path] of entries) {
       const bytes = readFileSync(join(process.cwd(), 'public', path));
       expect(bytes.subarray(1, 4).toString('ascii'), id).toBe('PNG');

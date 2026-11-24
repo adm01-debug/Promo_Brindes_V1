@@ -21,6 +21,7 @@ import {
   type OccasionAudience,
   type OccasionKind,
 } from '../lib/commemorativeDates';
+import { occasionSocialImage } from '../../shared/socialImages.js';
 
 type CalendarView = 'list' | 'calendar';
 type ShareState = 'idle' | 'copied' | 'shared' | 'error';
@@ -280,6 +281,7 @@ export default function CommemorativeDatesPage() {
         title={selected ? `${selected.name} ${year}` : 'Datas comemorativas para campanhas'}
         description={selected?.description || 'Planeje campanhas de brindes por data, público e objetivo. Explore ideias, salve ocasiões e comece seu briefing com antecedência.'}
         path={selected ? `/datas-comemorativas?ano=${year}&data=${encodeURIComponent(selected.id)}` : '/datas-comemorativas'}
+        image={selected ? occasionSocialImage(selected.id) : undefined}
         jsonLd={jsonLd}
       />
 
