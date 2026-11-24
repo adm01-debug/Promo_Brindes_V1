@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "eca586e2e004bfc07aabea38961aaf1dc7091bce",
+  "commit": "9ff35a3301411bca555be44390bdff58861e46ab",
   "branch": "main",
-  "data_commit": "2026-11-24T13:24:43Z",
+  "data_commit": "2026-11-24T13:35:41Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "9ff35a3",
+    "data": "2026-11-24",
+    "assunto": "docs: reconcilia matriz dos 230 requisitos com o código atual (#253)"
+   },
    {
     "sha": "eca586e",
     "data": "2026-11-24",
@@ -126,14 +131,9 @@
     "sha": "caf7e42",
     "data": "2026-11-22",
     "assunto": "docs: reconcilia a matriz de 230 requisitos contra a main (F-97/PF-109) (#231)"
-   },
-   {
-    "sha": "abcd725",
-    "data": "2026-11-22",
-    "assunto": "test: exercita policies de Storage como authenticated, DDL real e rate limit (F-82) (#227)"
    }
   ],
-  "arquivos_mudados_7d": 218,
+  "arquivos_mudados_7d": 219,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "analise-prs/funcionalidades.csv",
@@ -160,16 +160,16 @@
     "mudancas": 13
    },
    {
+    "pasta": "docs/audits/pending-features-20261011",
+    "mudancas": 12
+   },
+   {
     "pasta": "package-lock.json",
     "mudancas": 12
    },
    {
     "pasta": "scripts/check-performance-budget.mjs",
     "mudancas": 12
-   },
-   {
-    "pasta": "docs/audits/pending-features-20261011",
-    "mudancas": 11
    },
    {
     "pasta": ".github/workflows/quality.yml",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 128
+    "commits": 129
    },
    {
     "autor": "dependabot[bot]",

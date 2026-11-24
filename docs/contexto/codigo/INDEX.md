@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `eca586e2e004bfc07aabea38961aaf1dc7091bce` (2026-11-24T13:24:43Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `9ff35a3301411bca555be44390bdff58861e46ab` (2026-11-24T13:35:41Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -402,6 +402,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-24 `9ff35a3` docs: reconcilia matriz dos 230 requisitos com o código atual (#253)
 - 2026-11-24 `eca586e` feat: capa social própria para cada coleção de catálogos (UX58) (#252)
 - 2026-11-24 `aff8698` fix(release): aplica migration fora de ordem em vez de derrubar o deploy (#251)
 - 2026-11-24 `9900f5a` feat: inventario de afirmacoes comerciais com dono e prova (PF-55) (#240)
@@ -416,7 +417,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-22 `71d41c6` chore: CI mais barata e rapida (F-95) (#241)
 - 2026-11-22 `50e5cf4` feat: feedback opcional de clareza e eventos do PF-54 (#238)
 - 2026-11-22 `1435f51` chore: plano de navegação e fluidez em 200 etapas (#245)
-- 2026-11-22 `9ace0fc` chore: plano de correções e melhorias em 190 etapas (#244)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

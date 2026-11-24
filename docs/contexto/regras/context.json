@@ -1,9 +1,9 @@
 {
  "meta": {
-  "sha": "eca586e2e004bfc07aabea38961aaf1dc7091bce",
+  "sha": "9ff35a3301411bca555be44390bdff58861e46ab",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-24 13:25 UTC",
+  "generated_at": "2026-11-24 14:15 UTC",
   "files_total": 664,
   "code_files": 437,
   "code_lines": 82908,
@@ -40884,10 +40884,19 @@
   }
  },
  "git": {
-  "sha": "eca586e2e004bfc07aabea38961aaf1dc7091bce",
+  "sha": "9ff35a3301411bca555be44390bdff58861e46ab",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "9ff35a3",
+    "date": "2026-11-24",
+    "author": "adm01-debug",
+    "subject": "docs: reconcilia matriz dos 230 requisitos com o código atual (#253)",
+    "files": [
+     "docs/audits/pending-features-20261011/01-matriz-230-requisitos.md"
+    ]
+   },
    {
     "sha": "eca586e",
     "date": "2026-11-24",
@@ -41356,21 +41365,6 @@
      "src/styles.css",
      "tests/check-performance-budget.node.mjs"
     ]
-   },
-   {
-    "sha": "957fa44",
-    "date": "2026-11-21",
-    "author": "adm01-debug",
-    "subject": "feat: contato via WhatsApp iniciado pelo visitante (F-47) (#222)",
-    "files": [
-     ".env.example",
-     "e2e/smoke.spec.ts",
-     "src/components/Layout.tsx",
-     "src/lib/analytics.ts",
-     "src/lib/whatsappContact.test.ts",
-     "src/lib/whatsappContact.ts",
-     "src/pages/ContactPage.tsx"
-    ]
    }
   ],
   "hot_files": [
@@ -41451,7 +41445,7 @@
     3
    ],
    [
-    "src/lib/analytics.ts",
+    "src/styles.css",
     3
    ]
   ]
