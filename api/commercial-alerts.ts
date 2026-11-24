@@ -3,7 +3,6 @@ import { getSiteDatabaseConfig } from './_lib/siteDatabase.js';
 import type { ApiRequest, ApiResponse } from './_lib/leadHandler.js';
 import { errorClass, logServerError, logServerWarning } from './_lib/observability.js';
 import {
-  COMMERCIAL_ALERT_TIMEOUT_MS,
   commercialAlertsEnabled,
   deliverCommercialAlertJob,
   parseCommercialAlertJob,
@@ -25,8 +24,8 @@ export const COMMERCIAL_ALERTS_TIMEOUT_MS = 10_000;
 const COMMERCIAL_ALERTS_BATCH_SIZE = 4;
 
 /** Desfecho de um job dentro da rodada. 'invalid' é payload fora da forma
- * mínima; 'untouched' é o job que a guarda de tempo deixou para a próxima
- * rodada (não chegou a abrir conexão). */
+ * mínima; 'untouched' é o caso em que a rodada já estava abortada quando o job
+ * foi iniciado (o claim consumiu a janela inteira) — resíduo, não a regra. */
 type CronJobOutcome = 'sent' | 'pending' | 'invalid' | 'untouched';
 
 function header(request: ApiRequest, name: string): string {
@@ -96,16 +95,17 @@ export default async function handler(request: ApiRequest, response: ApiResponse
   try {
     const controller = new AbortController();
     timeout = setTimeout(() => controller.abort(), COMMERCIAL_ALERTS_TIMEOUT_MS);
-    const deadline = Date.now() + COMMERCIAL_ALERTS_TIMEOUT_MS;
-    // O lote roda em paralelo sobre o mesmo deadline: cada job tem a janela
-    // inteira para responder e nenhum fica reivindicado sem tentativa. A guarda
-    // de tempo é reavaliada por job (o deadline pode ter estourado entre dois
-    // ticks do event loop) e o que sobrar volta como 'pending' — a próxima
-    // rodada o recupera. allSettled, e não all, porque uma entrega que estourar
-    // não pode esconder o desfecho das outras do mesmo lote.
+    // O lote roda em paralelo sobre o mesmo deadline: as entregas compartilham
+    // a janela em vez de dividi-la, então o critério por job é a rodada ainda
+    // estar de pé. Reservar COMMERCIAL_ALERT_TIMEOUT_MS de folga por job é
+    // herança do laço serial e aqui descartaria o lote inteiro sempre que a
+    // reivindicação demorasse — mas a reivindicação já consumiu attempts de
+    // todos eles, então alertas chegariam a exhausted sem uma única conexão
+    // aberta. allSettled, e não all, porque uma entrega que estourar não pode
+    // esconder o desfecho das outras do mesmo lote.
     const claimedJobs = await claimCommercialAlerts(controller.signal, COMMERCIAL_ALERTS_BATCH_SIZE);
     const settled = await Promise.allSettled(claimedJobs.map(async (raw): Promise<CronJobOutcome> => {
-      if (controller.signal.aborted || Date.now() >= deadline - COMMERCIAL_ALERT_TIMEOUT_MS) return 'untouched';
+      if (controller.signal.aborted) return 'untouched';
       const job = parseCommercialAlertJob(raw);
       if (!job) {
         logServerWarning('commercial_alert_invalid_payload_in_batch', {});

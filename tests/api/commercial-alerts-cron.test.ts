@@ -2,6 +2,30 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import handler from '../../api/commercial-alerts.js';
 import type { ApiRequest, ApiResponse } from '../../api/_lib/leadHandler.js';
 
+/**
+ * Gancho para forçar uma entrega que lança. A lib converte erro de rede em
+ * 'pending', então o ramo `rejected` do Promise.allSettled só é alcançável
+ * simulando uma entrega que estoura — é o que justifica allSettled em vez de
+ * all (com all, a rejeição de um job descartaria o resultado dos outros).
+ */
+const deliveryFailure = vi.hoisted(() => ({ protocol: '' }));
+
+vi.mock('../../api/_lib/commercialTeamAlerts.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../api/_lib/commercialTeamAlerts.js')>();
+  return {
+    ...actual,
+    deliverCommercialAlertJob: async (
+      job: Parameters<typeof actual.deliverCommercialAlertJob>[0],
+      signal: Parameters<typeof actual.deliverCommercialAlertJob>[1],
+    ) => {
+      if (deliveryFailure.protocol && job.protocol === deliveryFailure.protocol) {
+        throw new Error('entrega estourou');
+      }
+      return actual.deliverCommercialAlertJob(job, signal);
+    },
+  };
+});
+
 const WEBHOOK_URL = 'https://comercial.promobrindes.com.br/hook';
 const CRON_SECRET = 'cron-secret-de-testes-com-mais-de-32-caracteres';
 
@@ -58,7 +82,7 @@ function job(index: number) {
  * prova observável de que a rodada processa o lote em paralelo, e não em série
  * (o desenho anterior entregava 1 alerta por rodada).
  */
-function cronFetchMock(jobs: unknown[], webhook: (call: number) => Response) {
+function cronFetchMock(jobs: unknown[], webhook: (call: number) => Response, claimDelayMs = 0) {
   const claimBodies: Array<Record<string, unknown>> = [];
   let inFlight = 0;
   let maxInFlight = 0;
@@ -75,6 +99,7 @@ function cronFetchMock(jobs: unknown[], webhook: (call: number) => Response) {
       return webhook(call);
     }
     if (target.includes('/rpc/claim_site_commercial_team_alerts')) {
+      if (claimDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, claimDelayMs));
       claimBodies.push(JSON.parse(String(init?.body ?? '{}')) as Record<string, unknown>);
       return new Response(JSON.stringify(jobs), { status: 200 });
     }
@@ -86,7 +111,11 @@ function cronFetchMock(jobs: unknown[], webhook: (call: number) => Response) {
 }
 
 describe('cron do alerta comercial (PF-01)', () => {
-  afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
+  afterEach(() => {
+    deliveryFailure.protocol = '';
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
 
   it('recusa chamada sem o segredo do agendador', async () => {
     configure();
@@ -127,6 +156,37 @@ describe('cron do alerta comercial (PF-01)', () => {
     // não podem ser abandonados por causa dele.
     expect(result.body).toMatchObject({ claimed: 4, delivered: 3, failed: 0, pending: 1 });
   });
+
+  it('uma entrega que estoura não esconde o desfecho das outras do lote', async () => {
+    configure();
+    deliveryFailure.protocol = 'PB-2026-0002';
+    const jobs = [job(1), job(2), job(3), job(4)];
+    const { fetchMock } = cronFetchMock(jobs, () => new Response('', { status: 202 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+
+    await handler(request(), response);
+
+    // Com Promise.all o lote inteiro viraria uma rejeição só e as 3 entregas
+    // bem-sucedidas sumiriam da contagem.
+    expect(result.body).toMatchObject({ claimed: 4, delivered: 3, failed: 1, pending: 0 });
+  });
+
+  it('reivindicação lenta ainda entrega o lote: attempts não é consumido sem tentativa', async () => {
+    configure();
+    const jobs = [job(1), job(2), job(3), job(4)];
+    // 3,1 s: o claim passa do ponto em que a guarda herdada do laço serial
+    // (deadline - COMMERCIAL_ALERT_TIMEOUT_MS = 3 s) descartava o lote inteiro
+    // como 'untouched'. Como a reivindicação já incrementou attempts dos quatro,
+    // isso esgotaria os alertas sem uma única conexão aberta.
+    const { fetchMock } = cronFetchMock(jobs, () => new Response('', { status: 202 }), 3_100);
+    vi.stubGlobal('fetch', fetchMock);
+    const { result, response } = responseDouble();
+
+    await handler(request(), response);
+
+    expect(result.body).toMatchObject({ claimed: 4, delivered: 4, failed: 0, pending: 0 });
+  }, 15_000);
 
   it('payload fora da forma mínima é contado sem interromper os demais', async () => {
     configure();
