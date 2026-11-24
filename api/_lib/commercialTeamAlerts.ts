@@ -5,8 +5,9 @@ import { errorClass, logServerError, logServerWarning } from './observability.js
  * Alerta comercial (PF-01): quando um lead submete orçamento, o time vende
  * precisa ser notificado. O job comercial enfileirado pelo banco
  * (audience 'commercial_team') é entregue aqui, direto ou pelo cron
- * /api/commercial-alerts, sempre por webhook HTTPS — nunca por e-mail interno
- * (os provedores de transação só enviam para o cliente).
+ * /api/commercial-alerts, por webhook HTTPS do time quando ele existe
+ * (COMMERCIAL_TEAM_WEBHOOK_URL) e por e-mail interno como alternativa: sem
+ * destino nenhum o lead fica anos na fila sem ninguém ser avisado.
  *
  * Orçamento de uma tentativa síncrona, com folga sobre o maxDuration de 30s
  * das rotas de lead (vercel.json). Exportado para o gate de CI
@@ -14,13 +15,34 @@ import { errorClass, logServerError, logServerWarning } from './observability.js
  */
 export const COMMERCIAL_ALERT_TIMEOUT_MS = 7_000;
 
+/** Caixa do time comercial usada pelo canal de e-mail. Mesmo endereço padrão do
+ * "enviar orçamento por e-mail" do site (src/lib/contactRequest.ts,
+ * src/lib/quoteRequest.ts), trocável por env sem deploy. */
+export const DEFAULT_COMMERCIAL_ALERT_EMAIL = 'adm01@promobrindes.com.br';
+
+export type CommercialAlertChannel = 'webhook' | 'email';
+
+/** Canal que vai entregar o alerta. Webhook do time quando configurado; e-mail
+ * interno quando há provedor transacional (RESEND_API_KEY + SITE_EMAIL_FROM);
+ * null quando não há destino — nesse caso a rodada não reivindica job. */
+export function commercialAlertChannel(): CommercialAlertChannel | null {
+  if (process.env.COMMERCIAL_TEAM_WEBHOOK_URL?.trim()) return 'webhook';
+  if (process.env.RESEND_API_KEY?.trim() && process.env.SITE_EMAIL_FROM?.trim()) return 'email';
+  return null;
+}
+
+/** Caixa que recebe o alerta comercial no canal de e-mail. */
+export function commercialAlertEmailDestination(): string {
+  return process.env.COMMERCIAL_TEAM_ALERT_EMAIL?.trim() || DEFAULT_COMMERCIAL_ALERT_EMAIL;
+}
+
 /** Alerta comercial real só em produção; preview/dev não notificam o time.
  * Mesmo critério do guard de preview das confirmações (api/notifications.ts
  * configuredChannels). Sem esta trava, um deploy preview reivindicaria job e
- * dispararia webhook comercial real com payload de teste. Avaliada em runtime
+ * dispararia alerta comercial real com payload de teste. Avaliada em runtime
  * (RPC/entrega) para ler o env do momento. */
 export function commercialAlertsEnabled(): boolean {
-  return process.env.VERCEL_ENV !== 'preview' && Boolean(process.env.COMMERCIAL_TEAM_WEBHOOK_URL?.trim());
+  return process.env.VERCEL_ENV !== 'preview' && commercialAlertChannel() !== null;
 }
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -148,11 +170,80 @@ async function finalize(job: CommercialAlertJob, status: 'sent' | 'failed', sign
   }
 }
 
+/** Corpo do alerta por e-mail: o mesmo envelope do lead em texto puro, com um
+ * ponteiro para a fila no back-office. Nada de credencial nem de texto livre do
+ * titular — a minimização da migration 20261117010000 vale para os dois canais. */
+function commercialAlertEmailBody(job: CommercialAlertJob): string {
+  const lines = job.requestKind === 'contact'
+    ? [
+        'Novo contato pelo site.',
+        '',
+        `Nome: ${job.contactName || '-'}`,
+        `E-mail: ${job.recipientEmail || '-'}`,
+        `Telefone: ${job.recipientPhone || '-'}`,
+        `Canal preferido: ${job.preferredChannel || '-'}`,
+        `Página de origem: ${job.pageUrl || '-'}`,
+        `Recebido em: ${job.submittedAt || '-'}`,
+      ]
+    : [
+        'Novo orçamento pelo site.',
+        '',
+        `Protocolo: ${job.protocol || '-'}`,
+        `Empresa: ${job.company || '-'}`,
+        `Contato: ${job.contactName || '-'}`,
+        `E-mail: ${job.recipientEmail || '-'}`,
+        `Telefone: ${job.recipientPhone || '-'}`,
+        `Recebido em: ${job.submittedAt || '-'}`,
+        '',
+        'Itens:',
+        ...(job.items.length > 0
+          ? job.items.map((item) => `- ${item.quantity}x ${item.name || '-'} (${item.sku || '-'}${item.colorName ? `, ${item.colorName}` : ''})`)
+          : ['- (sem itens)']),
+      ];
+  const origin = process.env.SITE_PUBLIC_ORIGIN?.trim();
+  return [...lines, '', `Fila e status: ${origin ? origin.replace(/\/+$/, '') : ''}/admin/orcamentos`, ''].join('\n');
+}
+
+/** Alerta comercial por e-mail (fallback sem webhook do time): usa o mesmo
+ * provedor transacional das confirmações do cliente e o endereço do time. */
+async function deliverCommercialAlertByEmail(job: CommercialAlertJob, signal: AbortSignal): Promise<'sent' | 'pending'> {
+  const apiKey = process.env.RESEND_API_KEY!.trim();
+  const from = process.env.SITE_EMAIL_FROM!.trim();
+  const subject = job.requestKind === 'contact'
+    ? `Novo contato pelo site — ${job.contactName || 'sem nome'}`
+    : `Novo orçamento ${job.protocol || job.requestId} — ${job.company || job.contactName || 'sem empresa'}`;
+  try {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from,
+        to: [commercialAlertEmailDestination()],
+        subject: subject.slice(0, 180),
+        text: commercialAlertEmailBody(job),
+      }),
+      signal,
+    });
+    if (!response.ok) {
+      await finalize(job, 'failed', signal, undefined, `commercial_email_${response.status}`);
+      return 'pending';
+    }
+    const payload = (await response.json().catch(() => null)) as { id?: unknown } | null;
+    const deliveryId = safeText(payload?.id, 240) || `${job.protocol || job.requestId}`;
+    await recordProviderAcceptance(job, { provider: 'commercial-email', id: deliveryId }, signal);
+    const finalized = await finalize(job, 'sent', signal, { provider: 'commercial-email', id: deliveryId });
+    return finalized ? 'sent' : 'pending';
+  } catch (error) {
+    logServerWarning('commercial_alert_email_failed', { requestId: job.requestId, errorClass: errorClass(error) });
+    return 'pending';
+  }
+}
+
 /** Entrega o payload do lead (envelope comercial) ao webhook do time. Nada de
  * credencial vai no corpo; o webhook confia no token de Authorization. */
 export async function deliverCommercialAlertJob(job: CommercialAlertJob, signal: AbortSignal): Promise<'sent' | 'pending'> {
   if (!commercialAlertsEnabled()) {
-    // Preview/dev ou endpoint não configurado: não entrega — o job fica
+    // Preview/dev ou nenhum destino configurado: não entrega — o job fica
     // disponível para o cron em produção.
     return 'pending';
   }
@@ -162,6 +253,7 @@ export async function deliverCommercialAlertJob(job: CommercialAlertJob, signal:
     const confirmed = await finalize(job, 'sent', signal, { provider: job.existingProvider, id: job.existingProviderMessageId });
     return confirmed ? 'sent' : 'pending';
   }
+  if (commercialAlertChannel() === 'email') return deliverCommercialAlertByEmail(job, signal);
 
   const webhookUrl = process.env.COMMERCIAL_TEAM_WEBHOOK_URL!.trim();
   let url: URL;

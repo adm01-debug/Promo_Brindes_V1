@@ -68,7 +68,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
   }
 
   // Mesma trava do caminho sincrono (commercialTeamAlerts.ts: deliverCommercialTeamAlertNow):
-  // sem endpoint configurado ou em preview, reivindicar o job so consome attempts do lead sem
+  // sem destino configurado (webhook do time ou e-mail interno) ou em preview, reivindicar o job so consome attempts do lead sem
   // chance de entrega, levando a fila a exhausted sem nenhuma tentativa real. O cron roda a
   // cada 5 min (vercel.json), entao a perda era continua.
   if (!commercialAlertsEnabled()) {
