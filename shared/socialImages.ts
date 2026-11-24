@@ -20,3 +20,12 @@ export const catalogSocialImages: Record<CatalogEditorialId, string> = {
 export function catalogSocialImage(id: CatalogEditorialId | null | undefined): string | undefined {
   return id ? catalogSocialImages[id] : undefined;
 }
+// Capa social (1200x630) de cada data da agenda aberta em
+// /datas-comemorativas?data=<id>. O caminho e derivado do id: a fonte dos ids e
+// api/_lib/curatedPagePreviews.ts, que tambem alimenta o HTML inicial de
+// api/site-page.ts. O teste tests/api/site-page.test.ts percorre essa lista e
+// falha se um id publicado ficar sem arquivo. Os arquivos saem de
+// scripts/generate-social-cards.mjs.
+export function occasionSocialImage(id: string | null | undefined): string | undefined {
+  return id ? `/images/og/data-${id}.png` : undefined;
+}

@@ -5,7 +5,7 @@ import { normalizeCampaignYear } from '../shared/campaignYears.js';
 import { resolveCatalogEditorialId } from '../shared/catalogEditorial.js';
 import { ideaLandingIds, ideaLandingMeta } from '../shared/ideaLandingPages.js';
 import { CATALOGS_INDEX_DESCRIPTION, CATALOGS_INDEX_TITLE, catalogCollectionTitle } from '../shared/catalogMeta.js';
-import { catalogSocialImage } from '../shared/socialImages.js';
+import { catalogSocialImage, occasionSocialImage } from '../shared/socialImages.js';
 import { SITE_NAME } from '../shared/siteName.js';
 
 interface VercelRequest {
@@ -87,6 +87,7 @@ function pageFrom(request: VercelRequest): StaticPage | null {
       path: `/datas-comemorativas?ano=${year}&data=${encodeURIComponent(occasionId)}`,
       title: `${occasion.title} ${year} | Promo Brindes`,
       description: occasion.description,
+      image: occasionSocialImage(occasionId),
     };
   }
   return pages[page] || null;
