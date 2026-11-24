@@ -87,7 +87,7 @@ O merge da #234 deixou a `main` com a F-11 e o deploy de produção **não subiu
 
 Blindagem em **PR #251** (`.github/workflows/release.yml`, Regra 8): `--include-all` no `--dry-run` e no push. Reprodução em banco local com o CLI pinado do CI — sem a flag, o erro do incidente; com a flag, `Would push these migrations`.
 
-Pendente: teste de regressão dedicado ao cenário fora de ordem (banco descartável no `database.yml`), hoje coberto apenas pela verificação de ledger que já roda no release.
+Pendente: reexecutar o push fora de ordem contra um banco descartável no `database.yml`. Hoje a recaída é travada em duas camadas: o contrato de workflow (`tests/scripts/release-workflow.test.ts`, falha se algum `supabase db push` perder `--include-all`) e a verificação de ledger (`Wait for the isolated Supabase migration ledger`).
 
 ## BLOQUEADO / aguardando dono (item 9)
 | Item | Status | Erro exato / o que falta |
