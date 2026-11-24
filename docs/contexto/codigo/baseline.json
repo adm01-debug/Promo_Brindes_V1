@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "ca4937e74ac8cc7a6bdca883513bffe9cc8b6b86",
+  "commit": "87bf87635dd8c196edcd82e8e787d248b0504a82",
   "branch": "main",
-  "data_commit": "2026-11-24T17:18:51Z",
+  "data_commit": "2026-11-24T18:04:11Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "87bf876",
+    "data": "2026-11-24",
+    "assunto": "fix(smoke): checa /api/health antes das páginas (#257)"
+   },
    {
     "sha": "ca4937e",
     "data": "2026-11-24",
@@ -126,11 +131,6 @@
     "sha": "8543dac",
     "data": "2026-11-22",
     "assunto": "feat: vigia independente dos crons com heartbeat e alerta (F-87) (#232)"
-   },
-   {
-    "sha": "fc29771",
-    "data": "2026-11-22",
-    "assunto": "feat: back-office minimo de orcamentos (F-03) e produtor de propostas versionadas (F-23) (#225)"
    }
   ],
   "arquivos_mudados_7d": 237,
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 132
+    "commits": 133
    },
    {
     "autor": "dependabot[bot]",
@@ -312,7 +312,7 @@
  "contagens": {
   "arquivos_total": 814,
   "arquivos_codigo": 314,
-  "linhas_codigo": 62677,
+  "linhas_codigo": 62694,
   "rotas": 35,
   "rotas_http_backend": 16,
   "vistas_por_id": 0,
@@ -520,7 +520,7 @@
   },
   "scripts/smoke-deployment.mjs": {
    "arquivos": 1,
-   "linhas": 148
+   "linhas": 151
   },
   "scripts/soak-test-notification-queue.mjs": {
    "arquivos": 1,
@@ -696,7 +696,7 @@
   },
   "tests/smoke-deployment.node.mjs": {
    "arquivos": 1,
-   "linhas": 367
+   "linhas": 381
   },
   "tests/soak-test-notification-queue.node.mjs": {
    "arquivos": 1,

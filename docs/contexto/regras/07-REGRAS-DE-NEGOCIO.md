@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `ca4937e74a` · branch `main` · 2026-11-24 17:19 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `87bf87635d` · branch `main` · 2026-11-24 18:16 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -1153,7 +1153,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (2249 testes em 156 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (2250 testes em 156 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1187,9 +1187,9 @@ _nenhum item encontrado_
 | `src/components/CampaignFinder.test.tsx` | 24 | resumo editável do briefing · resume as quatro respostas antes de abrir a curadoria · remove só a escolha solicitada e volta à etapa correspondente · permite revisar todas as respostas sem apagar o que já foi escolhido … |
 | `site-supabase/supabase/tests/database/customer_occasion_favorites.test.sql` | 22 | favoritos de datas existem no schema privado · RLS é forçada nos favoritos de datas · cliente não recebe uso do schema privado · cliente não lê a tabela diretamente … |
 | `src/lib/commercialBackofficeContract.test.ts` | 21 | contrato do back-office comercial · lê a fila paginada com totais e itens · trata payload que não é objeto como indisponibilidade, não como fila vazia · rejeita item de fila que não é objeto … |
+| `tests/smoke-deployment.node.mjs` | 21 | aprova um deployment saudável consultando cada rota uma única vez · reprova status inesperado sem repetir a rota · o 503 do health entra na mensagem com o código do problema · o 5xx de uma página HTML nao despeja o corpo no log … |
 | `site-supabase/supabase/tests/database/lead_preflight_rate_limit.test.sql` | 20 | preflight distribuído existe · anon não executa preflight · authenticated não executa preflight · service_role executa preflight … |
 | `site-supabase/supabase/tests/database/notification_queue_policy.test.sql` | 20 | política: 5 tentativas máximas · política: lote máximo de 25 · política: lease de 10 minutos · anon não lê a política … |
-| `tests/smoke-deployment.node.mjs` | 20 | aprova um deployment saudável consultando cada rota uma única vez · reprova status inesperado sem repetir a rota · o 503 do health entra na mensagem com o código do problema · o 5xx de uma página HTML nao despeja o corpo no log … |
 | `tests/supabase-db-query.node.mjs` | 20 | extrai de objeto { · extrai de array top-level sem wrapper (formato observado no CI) · ignora banner de conexão (texto solto) antes do JSON · ignora banner de conexão antes de um array top-level … |
 | `site-supabase/supabase/tests/database/status_state_machine.test.sql` | 19 | eventos têm coluna de ordem monotônica · sequence é única (identity) · sequence preserva a ordem de inserção independentemente de created_at · tabela de transições existe … |
 | `src/context/QuoteCartContext.test.ts` | 19 | seleção para orçamento · adiciona e mantém uma linha por produto e cor · respeita a quantidade mínima do item · limita quantidades acidentalmente excessivas … |

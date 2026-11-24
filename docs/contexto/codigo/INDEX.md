@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `ca4937e74ac8cc7a6bdca883513bffe9cc8b6b86` (2026-11-24T17:18:51Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `87bf87635dd8c196edcd82e8e787d248b0504a82` (2026-11-24T18:04:11Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -36,7 +36,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 |---|---|
 | arquivos_total | 814 |
 | arquivos_codigo | 314 |
-| linhas_codigo | 62677 |
+| linhas_codigo | 62694 |
 | rotas | 35 |
 | rotas_http_backend | 16 |
 | vistas_por_id | 0 |
@@ -402,6 +402,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-24 `87bf876` fix(smoke): checa /api/health antes das páginas (#257)
 - 2026-11-24 `ca4937e` feat: capa social própria para cada data da agenda (UX58) (#256)
 - 2026-11-24 `b68f5cc` perf: alerta comercial entrega o lote da rodada em paralelo (12/h -> 48/h) (#255)
 - 2026-11-24 `05855d6` feat: alerta comercial por e-mail quando nao ha webhook do time (F-01) (#254)
@@ -416,7 +417,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-23 `53252ed` feat: auditoria de leitura SELECT em PII (F-34) (#242)
 - 2026-11-23 `d41c1a2` chore(deps): bump @testing-library/jest-dom from 7.0.1 to 8.0.0 (#249)
 - 2026-11-23 `a771c02` docs: registro rastreavel de aprovacao visual (PF-56) (#239)
-- 2026-11-22 `883ff95` feat: supressao de bounce e reprocessamento auditado da fila (F-12) (#233)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

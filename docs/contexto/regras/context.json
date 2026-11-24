@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "ca4937e74ac8cc7a6bdca883513bffe9cc8b6b86",
+  "sha": "87bf87635dd8c196edcd82e8e787d248b0504a82",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-24 17:19 UTC",
+  "generated_at": "2026-11-24 18:16 UTC",
   "files_total": 665,
   "code_files": 438,
-  "code_lines": 83429,
+  "code_lines": 83446,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "84fbf4c55c811bff",
+ "facts_hash": "c6dcec567e1e41f4",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -9167,7 +9167,7 @@
   {
    "module": "scripts",
    "files": 47,
-   "lines": 22467,
+   "lines": 22470,
    "tables": [
     "a",
     "contacts",
@@ -9833,7 +9833,7 @@
   {
    "module": "tests",
    "files": 53,
-   "lines": 11655,
+   "lines": 11669,
    "tables": [
     "constructor",
     "quote_requests",
@@ -22452,6 +22452,10 @@
    },
    {
     "file": "tests/smoke-deployment.node.mjs",
+    "name": "o health roda antes das paginas e nomeia o motivo sem tentar as rotas HTML"
+   },
+   {
+    "file": "tests/smoke-deployment.node.mjs",
     "name": "reprova header de segurança ausente ou divergente em qualquer rota HTML"
    },
    {
@@ -32609,7 +32613,7 @@
   },
   "scripts/smoke-deployment.mjs": {
    "path": "scripts/smoke-deployment.mjs",
-   "lines": 148,
+   "lines": 151,
    "exports": [
     "function runSmoke"
    ],
@@ -40095,7 +40099,7 @@
   },
   "tests/smoke-deployment.node.mjs": {
    "path": "tests/smoke-deployment.node.mjs",
-   "lines": 367,
+   "lines": 381,
    "is_test": true,
    "env": [
     "PATH"
@@ -40109,6 +40113,7 @@
     "o 503 do health entra na mensagem com o código do problema",
     "o 5xx de uma página HTML nao despeja o corpo no log",
     "o 503 do /api/health continua trazendo o codigo do problema",
+    "o health roda antes das paginas e nomeia o motivo sem tentar as rotas HTML",
     "reprova header de segurança ausente ou divergente em qualquer rota HTML",
     "reprova corpo errado no sitemap e content-type errado no Analytics",
     "repete 5xx e aprova quando o deployment se recupera",
@@ -41025,10 +41030,20 @@
   }
  },
  "git": {
-  "sha": "ca4937e74ac8cc7a6bdca883513bffe9cc8b6b86",
+  "sha": "87bf87635dd8c196edcd82e8e787d248b0504a82",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "87bf876",
+    "date": "2026-11-24",
+    "author": "adm01-debug",
+    "subject": "fix(smoke): checa /api/health antes das páginas (#257)",
+    "files": [
+     "scripts/smoke-deployment.mjs",
+     "tests/smoke-deployment.node.mjs"
+    ]
+   },
    {
     "sha": "ca4937e",
     "date": "2026-11-24",
@@ -41513,40 +41528,16 @@
      "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
      "site-supabase/supabase/tests/database/storage_authenticated_rls.test.sql"
     ]
-   },
-   {
-    "sha": "ec7e478",
-    "date": "2026-11-22",
-    "author": "adm01-debug",
-    "subject": "feat: eventos de funil de contato, upload, remoção e link compartilhado (F-100/PF-120) (#228)",
-    "files": [
-     "analise-prs/funcionalidades.csv",
-     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
-     "scripts/check-performance-budget.mjs",
-     "src/components/BriefingAssetUploader.test.tsx",
-     "src/components/BriefingAssetUploader.tsx",
-     "src/components/ConversationForm.test.tsx",
-     "src/components/ConversationForm.tsx",
-     "src/components/QuoteDrawer.test.tsx",
-     "src/context/QuoteCartContext.tsx",
-     "src/lib/analytics.test.ts",
-     "src/lib/analytics.ts",
-     "src/lib/useCatalogPageState.test.tsx",
-     "src/lib/useCatalogPageState.ts",
-     "src/pages/SharedSelectionPage.test.tsx",
-     "src/pages/SharedSelectionPage.tsx",
-     "tests/check-performance-budget.node.mjs"
-    ]
    }
   ],
   "hot_files": [
    [
     "analise-prs/funcionalidades.csv",
-    17
+    16
    ],
    [
     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
-    12
+    11
    ],
    [
     "docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md",
@@ -41554,14 +41545,6 @@
    ],
    [
     "docs/DATABASE_DICTIONARY.md",
-    6
-   ],
-   [
-    "scripts/check-performance-budget.mjs",
-    6
-   ],
-   [
-    "tests/check-performance-budget.node.mjs",
     6
    ],
    [
@@ -41573,7 +41556,15 @@
     5
    ],
    [
+    "scripts/check-performance-budget.mjs",
+    5
+   ],
+   [
     "src/types/site-database.types.ts",
+    5
+   ],
+   [
+    "tests/check-performance-budget.node.mjs",
     5
    ],
    [

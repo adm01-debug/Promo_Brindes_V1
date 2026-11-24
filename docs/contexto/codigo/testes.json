@@ -1071,11 +1071,11 @@
   {
    "arquivo": "tests/smoke-deployment.node.mjs",
    "tipo": "unit",
-   "linhas": 367,
+   "linhas": 381,
    "testa": [
     "scripts/smoke-deployment.mjs"
    ],
-   "casos": 20
+   "casos": 21
   },
   {
    "arquivo": "tests/soak-test-notification-queue.node.mjs",
