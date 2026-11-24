@@ -20,20 +20,21 @@ function responseDouble() {
   return { result, response };
 }
 
-// Compara na forma escapada que o shell emite: desescapar aqui reintroduziria
-// o & e o CodeQL (js/double-escaping) recusa a cadeia de replace.
-function escapeHtml(value: string): string {
-  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+// Le o <head> do shell pelo DOM, nao por regex: entidades equivalentes
+// (&amp; e &#38;) valem o mesmo no navegador e uma comparacao textual as trataria
+// como diferentes.
+function headOf(html: string): Document {
+  return new DOMParser().parseFromString(html, 'text/html');
 }
 
-function headOf(html: string, attribute: string): string {
-  const match = html.match(new RegExp(`<meta (?:property|name)="${attribute}" content="([^"]*)"`));
-  if (!match) throw new Error(`sem ${attribute} no shell`);
-  return match[1];
+function metaContent(doc: Document, attribute: string): string {
+  const element = doc.querySelector<HTMLMetaElement>(`meta[property="${attribute}"], meta[name="${attribute}"]`);
+  if (!element) throw new Error(`sem ${attribute} no shell`);
+  return element.content;
 }
 
-function shellTitleOf(html: string): string {
-  return html.match(/<title>([^<]*)<\/title>/)?.[1] ?? '';
+function shellTitleOf(doc: Document): string {
+  return doc.querySelector('title')?.textContent ?? '';
 }
 
 describe('paridade entre o shell prerenderizado e a hidratacao em /catalogos', () => {
@@ -50,9 +51,10 @@ describe('paridade entre o shell prerenderizado e a hidratacao em /catalogos', (
 
     render(<Seo title={CATALOGS_INDEX_TITLE} description={CATALOGS_INDEX_DESCRIPTION} path="/catalogos" />);
 
-    expect(shellTitleOf(shell.result.body)).toBe(document.title);
-    expect(headOf(shell.result.body, 'og:title')).toBe(escapeHtml(document.title));
-    expect(headOf(shell.result.body, 'og:description')).toBe(escapeHtml(CATALOGS_INDEX_DESCRIPTION));
+    const head = headOf(shell.result.body);
+    expect(shellTitleOf(head)).toBe(document.title);
+    expect(metaContent(head, 'og:title')).toBe(document.title);
+    expect(metaContent(head, 'og:description')).toBe(CATALOGS_INDEX_DESCRIPTION);
   });
 
   it('a colecao compartilhada entrega o mesmo titulo, descricao e capa', async () => {
@@ -70,8 +72,9 @@ describe('paridade entre o shell prerenderizado e a hidratacao em /catalogos', (
       />,
     );
 
-    expect(shellTitleOf(shell.result.body)).toBe(document.title);
-    expect(headOf(shell.result.body, 'og:description')).toBe(escapeHtml(collection.description));
-    expect(headOf(shell.result.body, 'og:image')).toBe(`https://promo-brindes-v1.vercel.app${catalogSocialImage(collection.id)}`);
+    const head = headOf(shell.result.body);
+    expect(shellTitleOf(head)).toBe(document.title);
+    expect(metaContent(head, 'og:description')).toBe(collection.description);
+    expect(metaContent(head, 'og:image')).toBe(`https://promo-brindes-v1.vercel.app${catalogSocialImage(collection.id)}`);
   });
 });
