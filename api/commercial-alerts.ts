@@ -15,7 +15,19 @@ import { sendOperationalAlert } from './_lib/operationalAlerts.js';
  * o gate de CI tests/api/maxDuration.test.ts. O sinal de deadline da rodada
  * é compartilhado pela reivindicação e pelas entregas do lote. */
 export const COMMERCIAL_ALERTS_TIMEOUT_MS = 10_000;
-const COMMERCIAL_ALERTS_BATCH_SIZE = 10;
+/** Alertas entregues por rodada. O lote inteiro roda EM PARALELO sobre a mesma
+ * janela de COMMERCIAL_ALERTS_TIMEOUT_MS, então nenhum job reivindicado fica
+ * sem tentativa (attempts consumido sem entrega real, R03). O valor é o que
+ * cabe em uma única janela: com o laço serial o lote efetivo era sempre 1
+ * (floor(10s / COMMERCIAL_ALERT_TIMEOUT_MS) = 1), ou seja 12 alertas por hora
+ * no cron de 5 min — num pico de orçamentos o time comercial era avisado com
+ * horas de atraso. */
+const COMMERCIAL_ALERTS_BATCH_SIZE = 4;
+
+/** Desfecho de um job dentro da rodada. 'invalid' é payload fora da forma
+ * mínima; 'untouched' é o job que a guarda de tempo deixou para a próxima
+ * rodada (não chegou a abrir conexão). */
+type CronJobOutcome = 'sent' | 'pending' | 'invalid' | 'untouched';
 
 function header(request: ApiRequest, name: string): string {
   const value = request.headers[name] ?? request.headers[name.toLowerCase()];
@@ -85,29 +97,40 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     const controller = new AbortController();
     timeout = setTimeout(() => controller.abort(), COMMERCIAL_ALERTS_TIMEOUT_MS);
     const deadline = Date.now() + COMMERCIAL_ALERTS_TIMEOUT_MS;
-    let delivered = 0;
-    let failed = 0;
-    let pending = 0;
-    // Só reivindica o quanto cabe no tempo restante (padrão das confirmações):
-    // reivindicar muitos e abortar no meio consumiria attempts de jobs que
-    // nem tiveram tentativa, chegando a exhausted sem entrega real.
-    const batchSize = Math.max(1, Math.min(COMMERCIAL_ALERTS_BATCH_SIZE, Math.floor((deadline - Date.now()) / COMMERCIAL_ALERT_TIMEOUT_MS)));
-    const claimedJobs = await claimCommercialAlerts(controller.signal, batchSize);
-    for (const raw of claimedJobs) {
-      if (Date.now() >= deadline - COMMERCIAL_ALERT_TIMEOUT_MS || controller.signal.aborted) break;
+    // O lote roda em paralelo sobre o mesmo deadline: cada job tem a janela
+    // inteira para responder e nenhum fica reivindicado sem tentativa. A guarda
+    // de tempo é reavaliada por job (o deadline pode ter estourado entre dois
+    // ticks do event loop) e o que sobrar volta como 'pending' — a próxima
+    // rodada o recupera. allSettled, e não all, porque uma entrega que estourar
+    // não pode esconder o desfecho das outras do mesmo lote.
+    const claimedJobs = await claimCommercialAlerts(controller.signal, COMMERCIAL_ALERTS_BATCH_SIZE);
+    const settled = await Promise.allSettled(claimedJobs.map(async (raw): Promise<CronJobOutcome> => {
+      if (controller.signal.aborted || Date.now() >= deadline - COMMERCIAL_ALERT_TIMEOUT_MS) return 'untouched';
       const job = parseCommercialAlertJob(raw);
       if (!job) {
         logServerWarning('commercial_alert_invalid_payload_in_batch', {});
+        return 'invalid';
+      }
+      return deliverCommercialAlertJob(job, controller.signal);
+    }));
+    let delivered = 0;
+    let failed = 0;
+    let pending = 0;
+    let untouched = 0;
+    for (const result of settled) {
+      if (result.status === 'rejected') {
         failed += 1;
+        logServerWarning('commercial_alert_delivery_threw', { errorClass: errorClass(result.reason) });
         continue;
       }
-      const outcome = await deliverCommercialAlertJob(job, controller.signal);
-      if (outcome === 'sent') delivered += 1;
+      if (result.value === 'sent') delivered += 1;
+      else if (result.value === 'invalid') failed += 1;
+      else if (result.value === 'untouched') untouched += 1;
       else pending += 1;
     }
-    // Jobs reivindicados que não couberam na janela (break por tempo) voltam a
-    // ser atribuídos a 'pending' na resposta — a próxima rodada os recupera.
-    const pendingTotal = pending + Math.max(0, claimedJobs.length - delivered - failed - pending);
+    // Jobs que a guarda de tempo não chegou a tentar voltam como 'pending' na
+    // resposta — a próxima rodada os recupera.
+    const pendingTotal = pending + untouched;
     console.info('commercial_alerts_cron_completed', {
       claimed: claimedJobs.length,
       delivered,
