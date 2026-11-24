@@ -25,7 +25,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test --project=desktop-chromium --project=mobile-chromium",
     "test:e2e:cross-browser": "playwright test --project=desktop-firefox --project=desktop-webkit --workers=1",
-    "check": "npm run lint && npm run typecheck && npm run test && npm run agents:instructions:check && npm run test:agent-instructions && npm run test:migration-names && npm run test:error-catalog && npm run test:env-example && npm run test:site-api-jwt && npm run test:timing-safe-secrets && npm run test:supabase-db-query && npm run test:ci-health && npm run test:release-url && npm run test:smoke-deployment && npm run test:stage-app-shell && npm run test:performance-budget && npm run test:site-guard && npm run test:database-docs && npm run test:soak-queue && npm run test:shared-selection-sql && npm run test:catalog-contract && npm run test:approvals-visual && npm run approvals:visual:check && npm run test:inventario && npm run contexto:test && npm run build && npm run check:performance-budget && npm run test:e2e",
+    "check": "npm run lint && npm run typecheck && npm run test && npm run agents:instructions:check && npm run test:agent-instructions && npm run test:migration-names && npm run test:error-catalog && npm run test:env-example && npm run test:site-api-jwt && npm run test:timing-safe-secrets && npm run test:supabase-db-query && npm run test:ci-health && npm run test:release-url && npm run test:smoke-deployment && npm run test:stage-app-shell && npm run test:performance-budget && npm run test:site-guard && npm run test:database-docs && npm run test:soak-queue && npm run test:shared-selection-sql && npm run test:catalog-contract && npm run test:approvals-visual && npm run approvals:visual:check && npm run test:claims && npm run test:persuasion && npm run persuasion:check && npm run test:inventario && npm run contexto:test && npm run build && npm run check:performance-budget && npm run test:e2e",
     "db:migration-names:check": "node scripts/validate-migration-names.mjs",
     "test:migration-names": "node --test tests/validate-migration-names.node.mjs",
     "db:site:error-catalog:check": "node scripts/validate-error-catalog.mjs",
@@ -101,7 +101,11 @@
     "automation:uninstall-hooks": "node scripts/automation.mjs uninstall-hooks",
     "test:inventario:banco-sql": "node --test tests/inventario-banco-sql.node.mjs",
     "approvals:visual:check": "node scripts/validate-visual-approvals.mjs",
-    "test:approvals-visual": "node --test tests/validate-visual-approvals.node.mjs"
+    "test:approvals-visual": "node --test tests/validate-visual-approvals.node.mjs",
+    "claims:check": "node scripts/validate-commercial-claims.mjs",
+    "test:claims": "node --test tests/validate-commercial-claims.node.mjs",
+    "persuasion:check": "node scripts/validate-persuasion-limits.mjs",
+    "test:persuasion": "node --test tests/validate-persuasion-limits.node.mjs"
   },
   "dependencies": {
     "@fontsource/inter": "^5.3.0",
