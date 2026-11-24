@@ -157,6 +157,19 @@ test('o 503 do /api/health continua trazendo o codigo do problema', async () => 
   assert.equal(outcome.message, '/api/health: HTTP 503 {"ok":false,"code":"backend_not_configured"} (após 3 tentativas)');
 });
 
+test('o health roda antes das paginas e nomeia o motivo sem tentar as rotas HTML', async () => {
+  // O health é a primeira checagem: quando a configuração está inválida o smoke
+  // para ali, com o código do problema, em vez de gastar as tentativas das páginas.
+  const outcome = await smoke({
+    '/': reply(503),
+    '/api/health': reply(503, { ...security, 'content-type': 'application/json' }, '{"ok":false,"code":"unsafe_database_target"}'),
+  });
+  assert.equal(outcome.ok, false);
+  assert.equal(outcome.message, '/api/health: HTTP 503 {"ok":false,"code":"unsafe_database_target"} (após 3 tentativas)');
+  assert.equal(outcome.hits['/api/health'], 3);
+  assert.equal(outcome.hits['/'], undefined, 'nenhuma pagina deveria ter sido buscada');
+});
+
 test('reprova header de segurança ausente ou divergente em qualquer rota HTML', async () => {
   const without = (name) => Object.fromEntries(Object.entries(security).filter(([key]) => key !== name));
   for (const [overrides, expected] of [
@@ -240,7 +253,8 @@ test('conexão derrubada e porta fechada reprovam com o caminho e a causa de red
 
   const closed = await deployment();
   await closed.close();
-  await assert.rejects(runSmoke(closed.origin, fast), /^Error: \/: fetch failed.* \(após 3 tentativas\)$/);
+  // O health é a primeira rota do smoke: numa porta fechada é ele que nomeia a falha.
+  await assert.rejects(runSmoke(closed.origin, fast), /^Error: \/api\/health: fetch failed.* \(após 3 tentativas\)$/);
 });
 
 test('segue redirecionamento e registra aviso quando outra origem responde', async () => {
