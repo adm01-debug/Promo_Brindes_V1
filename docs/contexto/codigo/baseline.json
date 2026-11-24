@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "b68f5ccb2945edc214c7615dfec21f455a8ba282",
+  "commit": "ca4937e74ac8cc7a6bdca883513bffe9cc8b6b86",
   "branch": "main",
-  "data_commit": "2026-11-24T16:16:40Z",
+  "data_commit": "2026-11-24T17:18:51Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "ca4937e",
+    "data": "2026-11-24",
+    "assunto": "feat: capa social própria para cada data da agenda (UX58) (#256)"
+   },
    {
     "sha": "b68f5cc",
     "data": "2026-11-24",
@@ -126,15 +131,14 @@
     "sha": "fc29771",
     "data": "2026-11-22",
     "assunto": "feat: back-office minimo de orcamentos (F-03) e produtor de propostas versionadas (F-23) (#225)"
-   },
-   {
-    "sha": "180c09a",
-    "data": "2026-11-22",
-    "assunto": "docs: executa a revisao mensal do banco e corrige a coluna duplicada (F-90) (#229)"
    }
   ],
-  "arquivos_mudados_7d": 213,
+  "arquivos_mudados_7d": 237,
   "pastas_mais_mudadas_30d": [
+   {
+    "pasta": "public/images/og",
+    "mudancas": 43
+   },
    {
     "pasta": "analise-prs/funcionalidades.csv",
     "mudancas": 25
@@ -181,10 +185,6 @@
    },
    {
     "pasta": "e2e/smoke.spec.ts",
-    "mudancas": 10
-   },
-   {
-    "pasta": "public/images/og",
     "mudancas": 10
    },
    {
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 131
+    "commits": 132
    },
    {
     "autor": "dependabot[bot]",
@@ -310,9 +310,9 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 781,
+  "arquivos_total": 814,
   "arquivos_codigo": 314,
-  "linhas_codigo": 62612,
+  "linhas_codigo": 62677,
   "rotas": 35,
   "rotas_http_backend": 16,
   "vistas_por_id": 0,
@@ -392,7 +392,7 @@
   },
   "api/site-page.ts": {
    "arquivos": 1,
-   "linhas": 138
+   "linhas": 139
   },
   "api/sitemap.ts": {
    "arquivos": 1,
@@ -484,7 +484,7 @@
   },
   "scripts/generate-social-cards.mjs": {
    "arquivos": 1,
-   "linhas": 104
+   "linhas": 149
   },
   "scripts/graphify-local.mjs": {
    "arquivos": 1,
@@ -596,7 +596,7 @@
   },
   "shared/socialImages.ts": {
    "arquivos": 1,
-   "linhas": 22
+   "linhas": 32
   },
   "src/App.tsx": {
    "arquivos": 1,
@@ -620,7 +620,7 @@
   },
   "src/pages": {
    "arquivos": 27,
-   "linhas": 4671
+   "linhas": 4673
   },
   "src/test": {
    "arquivos": 1,
@@ -636,7 +636,7 @@
   },
   "tests/api": {
    "arquivos": 23,
-   "linhas": 4706
+   "linhas": 4713
   },
   "tests/catalog-public-contract.node.mjs": {
    "arquivos": 1,
@@ -846,7 +846,7 @@
   },
   {
    "arquivo": "src/pages/CommemorativeDatesPage.tsx",
-   "linhas": 351
+   "linhas": 353
   },
   {
    "arquivo": "src/lib/commemorativeDates.ts",

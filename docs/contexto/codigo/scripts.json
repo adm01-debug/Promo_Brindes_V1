@@ -175,8 +175,8 @@
   },
   {
    "arquivo": "scripts/generate-social-cards.mjs",
-   "descricao": "Gera as capas sociais 1200x630 de cada colecao de /catalogos. A lista abaixo espelha src/lib/catalogLibrary.ts (id, eyebrow, titulo,",
-   "linhas": 104,
+   "descricao": "Gera as capas sociais 1200x630 das colecoes de /catalogos e das datas da agenda. A lista abaixo espelha src/lib/catalogLibrary.ts (id, eyebrow, titulo,",
+   "linhas": 149,
    "env": [],
    "npm_scripts": [
     "assets:social-cards"

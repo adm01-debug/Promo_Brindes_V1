@@ -2,7 +2,7 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "nos": 187,
- "arestas": 402,
+ "arestas": 403,
  "hubs": [
   {
    "arquivo": "src/types.ts",
@@ -109,6 +109,10 @@
    "importado_por": 5
   },
   {
+   "arquivo": "shared/socialImages.ts",
+   "importado_por": 5
+  },
+  {
    "arquivo": "src/components/CatalogFeedback.tsx",
    "importado_por": 5
   },
@@ -121,6 +125,10 @@
    "importado_por": 4
   },
   {
+   "arquivo": "api/_lib/curatedPagePreviews.ts",
+   "importado_por": 4
+  },
+  {
    "arquivo": "api/_lib/pageShell.ts",
    "importado_por": 4
   },
@@ -130,10 +138,6 @@
   },
   {
    "arquivo": "shared/catalogMeta.ts",
-   "importado_por": 4
-  },
-  {
-   "arquivo": "shared/socialImages.ts",
    "importado_por": 4
   },
   {
@@ -158,10 +162,6 @@
   },
   {
    "arquivo": "src/lib/quoteConfirmation.ts",
-   "importado_por": 4
-  },
-  {
-   "arquivo": "src/lib/quoteRepeat.ts",
    "importado_por": 4
   }
  ],

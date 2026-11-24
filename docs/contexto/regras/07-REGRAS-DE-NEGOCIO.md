@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `b68f5ccb29` · branch `main` · 2026-11-24 16:17 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `ca4937e74a` · branch `main` · 2026-11-24 17:19 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -966,7 +966,7 @@ _nenhum item encontrado_
 | Nenhum JSON recebido por stdin: esperado o array de execuções do CI. | `scripts/ci-health-metrics.mjs` |
 | nenhuma migration <14 dígitos>_<descrição>.sql em ${MIGRATIONS_DIR}; não há versão de schema para registrar. | `scripts/generate-database-dictionary.mjs` |
 | nenhuma migration <14 dígitos>_<descrição>.sql em ${MIGRATIONS_DIR}; não há versão de schema para registrar. | `scripts/generate-database-schema-doc.mjs` |
-| Textos vazam do card de ${collection.id}: revise o tamanho da fonte. | `scripts/generate-social-cards.mjs` |
+| Textos vazam do card de ${card.id}: revise o tamanho da fonte. | `scripts/generate-social-cards.mjs` |
 | Corpus Graphify inválido: caminho fora do diretório de staging (${relative}). | `scripts/graphify-quality.mjs` |
 | Mapa de banco contém ${nonSqlInDatabase.length} nó(s) fora de SQL. | `scripts/graphify-quality.mjs` |
 | Mapa principal contém ${sqlInMain.length} nó(s) SQL. | `scripts/graphify-quality.mjs` |

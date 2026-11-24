@@ -425,7 +425,7 @@
     "CommemorativeDatesPage"
    ],
    "export_default": "CommemorativeDatesPage",
-   "linhas": 351,
+   "linhas": 353,
    "dominio": "pages",
    "hooks_locais": [
     "useCustomerAuth",

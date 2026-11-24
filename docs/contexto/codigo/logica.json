@@ -165,7 +165,7 @@
    "usado_por_modulos": [
     "api"
    ],
-   "coberto_por_testes": 1,
+   "coberto_por_testes": 2,
    "orfao": false
   },
   {
@@ -900,7 +900,7 @@
     "handler"
    ],
    "export_default": "handler",
-   "linhas": 138,
+   "linhas": 139,
    "tabelas": [],
    "rpcs": [],
    "edges": [],

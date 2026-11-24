@@ -7,7 +7,7 @@
    "modulo": "api",
    "arquivos": 16,
    "testes": 0,
-   "linhas": 2574,
+   "linhas": 2575,
    "itens_menu": [],
    "telas": [],
    "rotas_http": [
@@ -508,7 +508,7 @@
    "modulo": "pages",
    "arquivos": 19,
    "testes": 8,
-   "linhas": 4075,
+   "linhas": 4077,
    "itens_menu": [
     "Catálogos",
     "Como funciona",
@@ -632,7 +632,7 @@
    "modulo": "shared",
    "arquivos": 6,
    "testes": 0,
-   "linhas": 193,
+   "linhas": 203,
    "itens_menu": [],
    "telas": [],
    "rotas_http": [],

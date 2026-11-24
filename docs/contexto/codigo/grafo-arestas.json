@@ -498,6 +498,7 @@
   ],
   "src/pages/CommemorativeDatesPage.tsx": [
    "shared/campaignYears.ts",
+   "shared/socialImages.ts",
    "src/components/Seo.tsx",
    "src/context/customerAuth.ts",
    "src/lib/analytics.ts",

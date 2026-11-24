@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "b68f5ccb2945edc214c7615dfec21f455a8ba282",
+  "sha": "ca4937e74ac8cc7a6bdca883513bffe9cc8b6b86",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-24 16:17 UTC",
+  "generated_at": "2026-11-24 17:19 UTC",
   "files_total": 665,
   "code_files": 438,
-  "code_lines": 83364,
+  "code_lines": 83429,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "7b53210e762d4162",
+ "facts_hash": "84fbf4c55c811bff",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -8249,7 +8249,7 @@
      "list_my_occasion_favorites",
      "set_my_occasion_favorite"
     ],
-    "deps_count": 14
+    "deps_count": 16
    },
    {
     "path": "",
@@ -8392,7 +8392,7 @@
      "list_my_occasion_favorites",
      "set_my_occasion_favorite"
     ],
-    "deps_count": 15
+    "deps_count": 17
    },
    {
     "path": "/definir-senha",
@@ -8982,7 +8982,7 @@
   {
    "module": "api",
    "files": 32,
-   "lines": 4747,
+   "lines": 4748,
    "tables": [],
    "exports": [
     "briefing-assets.ts: REQUEST_TIMEOUT_MS, handler, async",
@@ -9167,7 +9167,7 @@
   {
    "module": "scripts",
    "files": 47,
-   "lines": 22422,
+   "lines": 22467,
    "tables": [
     "a",
     "contacts",
@@ -9223,7 +9223,7 @@
    "docs": [
     "automation.mjs: !/usr/bin/env node",
     "check-orphan-refs.mjs: !/usr/bin/env node Trabalho de agente estacionado fora de `refs/heads` e `refs/pull` não aparece em nenhuma PR e não é revisado por ninguém. Foi assim que a correção de repetição de 401 na sonda do contrato ficou quatro dias só em `refs/autosave/claude/fix-contract-401-retry-261114-1605` — ver docs/ …",
-    "generate-social-cards.mjs: Gera as capas sociais 1200x630 de cada colecao de /catalogos. A lista abaixo espelha src/lib/catalogLibrary.ts (id, eyebrow, titulo, descricao e paleta). O mapa de runtime e shared/socialImages.ts; o teste tests/api/site-page.test.ts falha se um id ficar sem arquivo em public/images/og. Uso: npm run …",
+    "generate-social-cards.mjs: Gera as capas sociais 1200x630 das colecoes de /catalogos e das datas da agenda. A lista abaixo espelha src/lib/catalogLibrary.ts (id, eyebrow, titulo, descricao e paleta). O mapa de runtime e shared/socialImages.ts; o teste tests/api/site-page.test.ts falha se um id ficar sem arquivo em public/imag …",
     "graphify-local.mjs: !/usr/bin/env node",
     "graphify.mjs: !/usr/bin/env node",
     "validate-agent-instructions.mjs: !/usr/bin/env node Guarda das instruções para agentes: AGENTS.md (regras) + CLAUDE.md (só `@AGENTS.md`) + docs/agentes/*.md (referência) + os dois skills do repo. Verifica: seções obrigatórias do AGENTS.md; CLAUDE.md sendo exatamente o import; nenhuma referência órfã ou quebrada em docs/agentes/; sk …"
@@ -9320,7 +9320,7 @@
   {
    "module": "shared",
    "files": 6,
-   "lines": 193,
+   "lines": 203,
    "tables": [],
    "exports": [
     "campaignYears.ts: currentCampaignYear, supportedCampaignYears, normalizeCampaignYear",
@@ -9328,7 +9328,7 @@
     "catalogMeta.ts: CATALOGS_INDEX_TITLE, CATALOGS_INDEX_DESCRIPTION, catalogCollectionTitle",
     "ideaLandingPages.ts: IdeaLandingId, IdeaLandingMeta, ideaLandingMeta, ideaLandingIds",
     "siteName.ts: SITE_NAME",
-    "socialImages.ts: catalogSocialImages, catalogSocialImage"
+    "socialImages.ts: catalogSocialImages, catalogSocialImage, occasionSocialImage"
    ],
    "docs": [
     "catalogMeta.ts: Metadados de /catalogos em uma unica fonte: o shell pre-renderizado (api/site-page.ts) e a hidratacao (src/pages/CatalogsPage.tsx via Seo) precisam entregar o mesmo par titulo/descricao para a mesma URL.",
@@ -9732,7 +9732,7 @@
   {
    "module": "src/pages",
    "files": 27,
-   "lines": 4671,
+   "lines": 4673,
    "tables": [],
    "exports": [
     "AboutPage.tsx: AboutPage",
@@ -9833,7 +9833,7 @@
   {
    "module": "tests",
    "files": 53,
-   "lines": 11648,
+   "lines": 11655,
    "tables": [
     "constructor",
     "quote_requests",
@@ -11503,7 +11503,7 @@
    },
    {
     "file": "scripts/generate-social-cards.mjs",
-    "msg": "Textos vazam do card de ${collection.id}: revise o tamanho da fonte."
+    "msg": "Textos vazam do card de ${card.id}: revise o tamanho da fonte."
    },
    {
     "file": "scripts/graphify-quality.mjs",
@@ -24196,7 +24196,7 @@
    },
    {
     "file": "tests/api/site-page.test.ts",
-    "name": "mantém em public/ um card 1200x630 para cada coleção do mapa social"
+    "name": "mantém em public/ um card 1200x630 para cada card do mapa social"
    },
    {
     "file": "tests/api/site-page.test.ts",
@@ -31365,7 +31365,7 @@
   },
   "api/site-page.ts": {
    "path": "api/site-page.ts",
-   "lines": 138,
+   "lines": 139,
    "exports": [
     "function handler",
     "default async"
@@ -32412,14 +32412,14 @@
   },
   "scripts/generate-social-cards.mjs": {
    "path": "scripts/generate-social-cards.mjs",
-   "lines": 104,
+   "lines": 149,
    "errors": [
-    "Textos vazam do card de ${collection.id}: revise o tamanho da fonte."
+    "Textos vazam do card de ${card.id}: revise o tamanho da fonte."
    ],
    "rule_comments": [
     "não pode acontecer é o texto encostar no rodapé."
    ],
-   "doc": "Gera as capas sociais 1200x630 de cada colecao de /catalogos. A lista abaixo espelha src/lib/catalogLibrary.ts (id, eyebrow, titulo, descricao e paleta). O mapa de runtime e shared/socialImages.ts; o teste tests/api/site-page.test.ts falha se um id ficar sem arquivo em public/images/og. Uso: npm run …"
+   "doc": "Gera as capas sociais 1200x630 das colecoes de /catalogos e das datas da agenda. A lista abaixo espelha src/lib/catalogLibrary.ts (id, eyebrow, titulo, descricao e paleta). O mapa de runtime e shared/socialImages.ts; o teste tests/api/site-page.test.ts falha se um id ficar sem arquivo em public/imag …"
   },
   "scripts/graphify-local.mjs": {
    "path": "scripts/graphify-local.mjs",
@@ -34326,10 +34326,11 @@
   },
   "shared/socialImages.ts": {
    "path": "shared/socialImages.ts",
-   "lines": 22,
+   "lines": 32,
    "exports": [
     "const catalogSocialImages",
-    "function catalogSocialImage"
+    "function catalogSocialImage",
+    "function occasionSocialImage"
    ]
   },
   "site-supabase/supabase/migrations/20260908230000_create_site_lead_storage.sql": {
@@ -39201,7 +39202,7 @@
   },
   "src/pages/CommemorativeDatesPage.tsx": {
    "path": "src/pages/CommemorativeDatesPage.tsx",
-   "lines": 351,
+   "lines": 353,
    "exports": [
     "function CommemorativeDatesPage"
    ],
@@ -40917,7 +40918,7 @@
   },
   "tests/api/site-page.test.ts": {
    "path": "tests/api/site-page.test.ts",
-   "lines": 203,
+   "lines": 210,
    "is_test": true,
    "tests": [
     "HTML inicial das páginas estáticas",
@@ -40928,7 +40929,7 @@
     "publica o montador de kits com rewrite e metadados indexáveis próprios",
     "gera previews específicos para coleção e data compartilhadas",
     "troca a capa social genérica pelo card da coleção compartilhada",
-    "mantém em public/ um card 1200x630 para cada coleção do mapa social",
+    "mantém em public/ um card 1200x630 para cada card do mapa social",
     "normaliza no HTML inicial um ano que a agenda da interface não suporta",
     "não consulta HTML de autenticação de terceiro para compor uma página estática"
    ]
@@ -41024,10 +41025,56 @@
   }
  },
  "git": {
-  "sha": "b68f5ccb2945edc214c7615dfec21f455a8ba282",
+  "sha": "ca4937e74ac8cc7a6bdca883513bffe9cc8b6b86",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "ca4937e",
+    "date": "2026-11-24",
+    "author": "adm01-debug",
+    "subject": "feat: capa social própria para cada data da agenda (UX58) (#256)",
+    "files": [
+     "api/site-page.ts",
+     "public/images/og/data-ano-novo.png",
+     "public/images/og/data-black-friday.png",
+     "public/images/og/data-carnaval.png",
+     "public/images/og/data-confraternizacao.png",
+     "public/images/og/data-consciencia-negra.png",
+     "public/images/og/data-dia-da-amizade.png",
+     "public/images/og/data-dia-da-arvore.png",
+     "public/images/og/data-dia-da-felicidade.png",
+     "public/images/og/data-dia-da-industria.png",
+     "public/images/og/data-dia-da-mulher.png",
+     "public/images/og/data-dia-da-pessoa-com-deficiencia.png",
+     "public/images/og/data-dia-da-secretaria.png",
+     "public/images/og/data-dia-da-terra.png",
+     "public/images/og/data-dia-das-criancas.png",
+     "public/images/og/data-dia-das-maes.png",
+     "public/images/og/data-dia-do-amigo.png",
+     "public/images/og/data-dia-do-cliente.png",
+     "public/images/og/data-dia-do-consumidor.png",
+     "public/images/og/data-dia-do-estagiario.png",
+     "public/images/og/data-dia-do-estudante.png",
+     "public/images/og/data-dia-do-marketing.png",
+     "public/images/og/data-dia-do-meio-ambiente.png",
+     "public/images/og/data-dia-do-professor.png",
+     "public/images/og/data-dia-do-trabalho.png",
+     "public/images/og/data-dia-do-vendedor.png",
+     "public/images/og/data-dia-dos-namorados.png",
+     "public/images/og/data-dia-dos-pais.png",
+     "public/images/og/data-empreendedorismo-feminino.png",
+     "public/images/og/data-festas-juninas.png",
+     "public/images/og/data-halloween.png",
+     "public/images/og/data-natal.png",
+     "public/images/og/data-pascoa.png",
+     "public/images/og/data-volta-ao-trabalho.png",
+     "scripts/generate-social-cards.mjs",
+     "shared/socialImages.ts",
+     "src/pages/CommemorativeDatesPage.tsx",
+     "tests/api/site-page.test.ts"
+    ]
+   },
    {
     "sha": "b68f5cc",
     "date": "2026-11-24",
@@ -41490,28 +41537,16 @@
      "src/pages/SharedSelectionPage.tsx",
      "tests/check-performance-budget.node.mjs"
     ]
-   },
-   {
-    "sha": "d7f09b6",
-    "date": "2026-11-22",
-    "author": "adm01-debug",
-    "subject": "feat: resumo do briefing abre antes das 4 respostas e permite cancelar a edicao (F-37) (#226)",
-    "files": [
-     "analise-prs/funcionalidades.csv",
-     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
-     "src/components/CampaignFinder.test.tsx",
-     "src/components/CampaignFinder.tsx"
-    ]
    }
   ],
   "hot_files": [
    [
     "analise-prs/funcionalidades.csv",
-    18
+    17
    ],
    [
     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
-    13
+    12
    ],
    [
     "docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md",
@@ -41546,6 +41581,14 @@
     4
    ],
    [
+    "api/site-page.ts",
+    3
+   ],
+   [
+    "tests/api/site-page.test.ts",
+    3
+   ],
+   [
     "api/commercial-alerts.ts",
     3
    ],
@@ -41575,14 +41618,6 @@
    ],
    [
     "src/lib/commercialBackofficeContract.ts",
-    3
-   ],
-   [
-    "docs/DATABASE_SCHEMA.md",
-    3
-   ],
-   [
-    "site-supabase/supabase/tests/database/lead_storage.test.sql",
     3
    ]
   ]

@@ -916,8 +916,9 @@
   {
    "arquivo": "tests/api/site-page.test.ts",
    "tipo": "unit",
-   "linhas": 203,
+   "linhas": 210,
    "testa": [
+    "api/_lib/curatedPagePreviews.ts",
     "api/site-page.ts",
     "shared/catalogMeta.ts",
     "shared/ideaLandingPages.ts",
@@ -1244,7 +1245,7 @@
   "api/_lib/commercialTeamAlerts.ts": 3,
   "api/_lib/contracts.ts": 1,
   "api/_lib/cronHeartbeats.ts": 1,
-  "api/_lib/curatedPagePreviews.ts": 1,
+  "api/_lib/curatedPagePreviews.ts": 2,
   "api/_lib/fileSignatures.ts": 1,
   "api/_lib/leadHandler.ts": 9,
   "api/_lib/operationalAlerts.ts": 1,
