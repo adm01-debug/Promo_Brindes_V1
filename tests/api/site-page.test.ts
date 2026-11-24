@@ -2,7 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import handler from '../../api/site-page.js';
+import { CATALOGS_INDEX_DESCRIPTION, CATALOGS_INDEX_TITLE } from '../../shared/catalogMeta.js';
 import { ideaLandingIds, ideaLandingMeta } from '../../shared/ideaLandingPages.js';
+import { catalogSocialImages } from '../../shared/socialImages.js';
 import { SITE_NAME } from '../../shared/siteName.js';
 
 function escapeHtml(value: string) {
@@ -120,13 +122,13 @@ describe('HTML inicial das páginas estáticas', () => {
     const collection = responseDouble();
     await handler({ method: 'GET', query: { page: 'catalogos', colecao: 'onboarding-com-cultura' } }, collection.response);
     expect(collection.result.statusCode).toBe(200);
-    expect(collection.result.body).toContain('<title>Onboarding com cultura | Catálogos Promo Brindes</title>');
+    expect(collection.result.body).toContain('<title>Onboarding com cultura | Catálogos | Promo Brindes</title>');
     expect(collection.result.body).toContain('/catalogos?colecao=onboarding-com-cultura');
 
     const renamedCollection = responseDouble();
     await handler({ method: 'GET', query: { page: 'catalogos', colecao: 'novos-drops' } }, renamedCollection.response);
     expect(renamedCollection.result.statusCode).toBe(200);
-    expect(renamedCollection.result.body).toContain('<title>Tendências | Catálogos Promo Brindes</title>');
+    expect(renamedCollection.result.body).toContain('<title>Tendências | Catálogos | Promo Brindes</title>');
     expect(renamedCollection.result.body).toContain('/catalogos?colecao=novas-tendencias');
 
     const occasion = responseDouble();
@@ -134,6 +136,40 @@ describe('HTML inicial das páginas estáticas', () => {
     expect(occasion.result.statusCode).toBe(200);
     expect(occasion.result.body).toContain('<title>Dia do Cliente 2027 | Promo Brindes</title>');
     expect(occasion.result.body).toContain('/datas-comemorativas?ano=2027&amp;data=dia-do-cliente');
+  });
+
+  it('troca a capa social genérica pelo card da coleção compartilhada', async () => {
+    vi.stubEnv('VITE_PUBLIC_URL', 'https://promo-brindes-v1.vercel.app');
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(appShell, { status: 200 })));
+
+    const collection = responseDouble();
+    await handler({ method: 'GET', query: { page: 'catalogos', colecao: 'relacionamento-que-fica' } }, collection.response);
+    expect(collection.result.body).toContain('content="https://promo-brindes-v1.vercel.app/images/og/colecao-relacionamento-que-fica.png"');
+    expect(collection.result.body).not.toContain('hero-gen-z-v2.webp');
+
+    // O link antigo continua abrindo a coleção canônica e precisa do card dela.
+    const renamed = responseDouble();
+    await handler({ method: 'GET', query: { page: 'catalogos', colecao: 'novos-drops' } }, renamed.response);
+    expect(renamed.result.body).toContain('content="https://promo-brindes-v1.vercel.app/images/og/colecao-novas-tendencias.png"');
+
+    const index = responseDouble();
+    await handler({ method: 'GET', query: { page: 'catalogos' } }, index.response);
+    expect(index.result.body).toContain('content="https://promo-brindes-v1.vercel.app/images/hero-gen-z-v2.webp"');
+    // Sem colecao o indice cai na capa generica, mas titulo e descricao tem de
+    // bater com o que o Seo grava: shared/catalogMeta.ts e a fonte unica.
+    expect(index.result.body).toContain(`<title>${CATALOGS_INDEX_TITLE} | Promo Brindes</title>`);
+    expect(index.result.body).toContain(CATALOGS_INDEX_DESCRIPTION);
+  });
+
+  it('mantém em public/ um card 1200x630 para cada coleção do mapa social', () => {
+    const entries = Object.entries(catalogSocialImages);
+    expect(entries).toHaveLength(10);
+    for (const [id, path] of entries) {
+      const bytes = readFileSync(join(process.cwd(), 'public', path));
+      expect(bytes.subarray(1, 4).toString('ascii'), id).toBe('PNG');
+      expect(bytes.readUInt32BE(16), `${id}: largura`).toBe(1200);
+      expect(bytes.readUInt32BE(20), `${id}: altura`).toBe(630);
+    }
   });
 
   it('normaliza no HTML inicial um ano que a agenda da interface não suporta', async () => {

@@ -12,6 +12,8 @@ import {
   type CatalogCollectionTheme,
 } from '../lib/catalogLibrary';
 import { useCatalog } from '../lib/hooks';
+import { CATALOGS_INDEX_DESCRIPTION, CATALOGS_INDEX_TITLE, catalogCollectionTitle } from '../../shared/catalogMeta';
+import { catalogSocialImage } from '../../shared/socialImages';
 import { replaceBrokenProductImage } from '../lib/images';
 import { resolveCatalogEditorialId } from '../../shared/catalogEditorial';
 
@@ -190,9 +192,10 @@ export default function CatalogsPage() {
   return (
     <>
       <Seo
-        title={sharedCollection ? `${sharedCollection.title} | Catálogos` : 'Catálogos de brindes'}
-        description={sharedCollection?.description || 'Explore catálogos e coleções de brindes corporativos por campanha, público e objetivo. Encontre referências e monte seu briefing.'}
+        title={sharedCollection ? catalogCollectionTitle(sharedCollection.title) : CATALOGS_INDEX_TITLE}
+        description={sharedCollection?.description || CATALOGS_INDEX_DESCRIPTION}
         path={sharedCollection ? `/catalogos?colecao=${encodeURIComponent(sharedCollection.id)}` : '/catalogos'}
+        image={sharedCollection ? catalogSocialImage(sharedCollection.id) : undefined}
       />
 
       <header className="catalogs-hero" aria-labelledby="catalogs-title">

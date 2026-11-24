@@ -54,6 +54,7 @@ Os registros `legacy` abaixo preservam ferramentas anteriores e seus chamadores;
 | `scripts/generate-database-dictionary.mjs`    | `node scripts/generate-database-dictionary.mjs`      | package.json:scripts                                                                 |
 | `scripts/generate-database-schema-doc.mjs`    | `node scripts/generate-database-schema-doc.mjs`      | package.json:scripts                                                                 |
 | `scripts/generate-site-api-jwt.mjs`           | `node scripts/generate-site-api-jwt.mjs`             | package.json:scripts                                                                 |
+| `scripts/generate-social-cards.mjs`           | `node scripts/generate-social-cards.mjs`             | package.json:scripts (`npm run assets:social-cards`)                                 |
 | `scripts/graphify-quality.mjs`                | `node scripts/graphify-quality.mjs`                  | scripts/graphify.mjs                                                                 |
 | `scripts/graphify.mjs`                        | `node scripts/graphify.mjs`                          | package.json:scripts                                                                 |
 | `scripts/inventario/gerar-banco.mjs`          | `node scripts/inventario/gerar-banco.mjs`            | package.json:scripts, .github/workflows/inventario-estado-semanal.yml                |
