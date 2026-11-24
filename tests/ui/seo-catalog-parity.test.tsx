@@ -23,18 +23,22 @@ function responseDouble() {
 // Le o <head> do shell pelo DOM, nao por regex: entidades equivalentes
 // (&amp; e &#38;) valem o mesmo no navegador e uma comparacao textual as trataria
 // como diferentes.
-function headOf(html: string): Document {
-  return new DOMParser().parseFromString(html, 'text/html');
+// Devolve so o <head>: uma tag Open Graph no <body> nao e lida pelo crawler,
+// entao o teste nao pode aceitar o documento inteiro.
+function headOf(html: string): HTMLElement {
+  const head = new DOMParser().parseFromString(html, 'text/html').head;
+  if (!head) throw new Error('shell sem <head>');
+  return head;
 }
 
-function metaContent(doc: Document, attribute: string): string {
-  const element = doc.querySelector<HTMLMetaElement>(`meta[property="${attribute}"], meta[name="${attribute}"]`);
+function metaContent(head: HTMLElement, attribute: string): string {
+  const element = head.querySelector<HTMLMetaElement>(`meta[property="${attribute}"], meta[name="${attribute}"]`);
   if (!element) throw new Error(`sem ${attribute} no shell`);
   return element.content;
 }
 
-function shellTitleOf(doc: Document): string {
-  return doc.querySelector('title')?.textContent ?? '';
+function shellTitleOf(head: HTMLElement): string {
+  return head.querySelector('title')?.textContent ?? '';
 }
 
 describe('paridade entre o shell prerenderizado e a hidratacao em /catalogos', () => {
