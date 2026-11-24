@@ -245,14 +245,30 @@ describe('alerta comercial de orçamento (PF-01)', () => {
         expect(payload.text).toContain('ana@empresa.com.br');
         expect(payload.text).toContain('- 100x Mochila (MO-42, Verde)');
         expect(payload.text).toContain('Novo orçamento pelo site.');
+        expect(payload.text).toContain('https://www.promobrindes.com.br/admin/orcamentos');
+        // Chave estável: reenvio depois de aceite perdido não duplica o alerta.
+        expect(emailCall[1].headers).toMatchObject({ 'Idempotency-Key': `commercial-${REQUEST_ID}-team-email` });
 
         const acceptance = fetchMock.mock.calls.find(([url]) => String(url).includes('/record_site_notification_provider_acceptance'));
         expect(JSON.parse(String((acceptance as [string, RequestInit])[1].body))).toMatchObject({
-          p_provider: 'commercial-email',
+          p_provider: 'resend',
           p_provider_message_id: 'resend-msg-1',
         });
         const finalizeCall = fetchMock.mock.calls.filter(([url]) => String(url).includes('/finalize_site_notification_delivery')).pop() as [string, RequestInit];
-        expect(JSON.parse(String(finalizeCall[1].body))).toMatchObject({ p_status: 'sent', p_provider: 'commercial-email' });
+        expect(JSON.parse(String(finalizeCall[1].body))).toMatchObject({ p_status: 'sent', p_provider: 'resend' });
+      });
+
+      it('o alerta de contato não aponta para a fila de orçamentos', async () => {
+        configureEmailChannel();
+        const fetchMock = emailFetchMock(validContactJob());
+        vi.stubGlobal('fetch', fetchMock);
+
+        await expect(deliverCommercialAlertJob(validContactJob(), new AbortController().signal)).resolves.toBe('sent');
+        const emailCall = fetchMock.mock.calls.find(([url]) => String(url) === RESEND_URL) as [string, RequestInit];
+        const payload = JSON.parse(String(emailCall[1].body)) as { subject: string; text: string };
+        expect(payload.subject).toContain('Novo contato pelo site');
+        expect(payload.text).toContain('Canal preferido: whatsapp');
+        expect(payload.text).not.toContain('/admin/orcamentos');
       });
 
       it('respeita COMMERCIAL_TEAM_ALERT_EMAIL como destino', async () => {

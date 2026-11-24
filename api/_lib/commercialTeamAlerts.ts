@@ -201,11 +201,16 @@ function commercialAlertEmailBody(job: CommercialAlertJob): string {
           : ['- (sem itens)']),
       ];
   const origin = process.env.SITE_PUBLIC_ORIGIN?.trim();
-  return [...lines, '', `Fila e status: ${origin ? origin.replace(/\/+$/, '') : ''}/admin/orcamentos`, ''].join('\n');
+  const queue = origin ? `${origin.replace(/\/+$/, '')}/admin/orcamentos` : '';
+  // Contato não aparece no painel de orçamentos (src/pages/BackofficePage.tsx):
+  // link para uma lista onde o lead não está só atrasaria o comercial.
+  return [...lines, ...(job.requestKind === 'quote' && queue ? ['', `Fila e status: ${queue}`] : []), ''].join('\n');
 }
 
 /** Alerta comercial por e-mail (fallback sem webhook do time): usa o mesmo
- * provedor transacional das confirmações do cliente e o endereço do time. */
+ * provedor transacional das confirmações do cliente e o endereço do time. O
+ * provider registrado é 'resend' — é ele que o receptor de eventos
+ * (api/notification-events-resend.ts) usa para vincular devoluções à entrega. */
 async function deliverCommercialAlertByEmail(job: CommercialAlertJob, signal: AbortSignal): Promise<'sent' | 'pending'> {
   const apiKey = process.env.RESEND_API_KEY!.trim();
   const from = process.env.SITE_EMAIL_FROM!.trim();
@@ -215,7 +220,13 @@ async function deliverCommercialAlertByEmail(job: CommercialAlertJob, signal: Ab
   try {
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        // Chave estável por lead: se a resposta do provedor se perder depois do
+        // aceite, a próxima rodada reenviaria o mesmo alerta.
+        'Idempotency-Key': `commercial-${job.requestId}-team-email`,
+      },
       body: JSON.stringify({
         from,
         to: [commercialAlertEmailDestination()],
@@ -230,8 +241,8 @@ async function deliverCommercialAlertByEmail(job: CommercialAlertJob, signal: Ab
     }
     const payload = (await response.json().catch(() => null)) as { id?: unknown } | null;
     const deliveryId = safeText(payload?.id, 240) || `${job.protocol || job.requestId}`;
-    await recordProviderAcceptance(job, { provider: 'commercial-email', id: deliveryId }, signal);
-    const finalized = await finalize(job, 'sent', signal, { provider: 'commercial-email', id: deliveryId });
+    await recordProviderAcceptance(job, { provider: 'resend', id: deliveryId }, signal);
+    const finalized = await finalize(job, 'sent', signal, { provider: 'resend', id: deliveryId });
     return finalized ? 'sent' : 'pending';
   } catch (error) {
     logServerWarning('commercial_alert_email_failed', { requestId: job.requestId, errorClass: errorClass(error) });
