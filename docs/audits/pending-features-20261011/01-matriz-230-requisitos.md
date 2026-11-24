@@ -2,6 +2,8 @@
 
 Data da auditoria: 11/10/2026. Repositório: `/home/user/Promo_Brindes_V1`, HEAD `3f82233` (06/10/2026). Trabalho somente leitura: nenhum arquivo do repositório foi alterado e nenhum commit foi feito.
 
+> **Revisão de 24/11/2026 (HEAD `aff8698`).** As linhas UX58, UX70, UX77 e LK44 foram reconferidas contra o código e contra a produção, porque o repositório andou desde 11/10; a classificação dessas linhas e as contagens do §2 foram atualizadas. O restante da auditoria segue como estava, sem reexecução.
+
 ## 1. Escopo e método
 
 - **Ledger auditado:** `docs/MATRIZ_FECHAMENTO_PLANOS_20260912.csv`, lido com o próprio `parseCsv` de `scripts/validate-closure-ledger.mjs`. Também foram lidos `docs/MATRIZ_INDEX.md`, `docs/GOVERNANCA_FECHAMENTO.md` e o validador, além dos relatórios posteriores (`EXECUCAO_LOTE_FAVORITOS_20260924.md`, `REVISAO_PLANOS_20260928.md`, `REVISAO_PRODUTO_230_20260928.md`, `EXECUCAO_PLANO_FECHAMENTO_20261001.md`, `GRAPHIFY_0968_EVALUATION_20261005.md` e `UX_AUDIT_REPORT.md`). Esses relatórios serviram só como pistas: toda conclusão abaixo foi conferida no código.
@@ -24,29 +26,29 @@ Data da auditoria: 11/10/2026. Repositório: `/home/user/Promo_Brindes_V1`, HEAD
 
 | Frente | Não-I na matriz | JÁ RESOLVIDO | NÃO INICIADO | PARCIAL-CÓDIGO | PARCIAL-VALIDAÇÃO | BLOQUEADO-EXTERNO |
 |---|---|---|---|---|---|---|
-| UX | 50 | 3 | 0 | 4 | 31 | 12 |
-| LK | 31 | 1 | 1 | 2 | 15 | 12 |
+| UX | 50 | 3 | 0 | 2 | 32 | 13 |
+| LK | 31 | 2 | 0 | 2 | 15 | 12 |
 | GR | 24 | 0 | 2 | 9 | 11 | 2 |
 | AC | 7 | 0 | 0 | 0 | 6 | 1 |
-| **Total** | **112** | **4** | **3** | **15** | **63** | **27** |
+| **Total** | **112** | **5** | **2** | **13** | **64** | **28** |
 
 
 Leitura das contagens:
 
-- Das 27 linhas BLOQUEADO-EXTERNO, **11 são E na matriz e 16 estão marcadas P**: UX06, UX67, UX68, UX69, UX75, UX76, UX84, UX98, LK06, LK22, LK27, LK35, LK45, GR04, GR42 e AC24. Nessas 16 linhas a engenharia não consegue avançar sem insumo externo.
-- **Só 18 linhas (15 PARCIAL-CÓDIGO e 3 NÃO INICIADO) dependem de código** que pode ser escrito agora. Algumas também dependem de dados ou de decisão.
-- As **63 linhas PARCIAL-VALIDAÇÃO** já têm código. O que falta é teste, homologação ou aceite humano.
-- As **4 linhas JÁ RESOLVIDO** (LK10, UX35, UX49 e UX88) deveriam ser reescritas no ledger.
+- Das 28 linhas BLOQUEADO-EXTERNO, **11 são E na matriz e 17 estão marcadas P**: UX06, UX67, UX68, UX69, UX70, UX75, UX76, UX84, UX98, LK06, LK22, LK27, LK35, LK45, GR04, GR42 e AC24. Nessas 17 linhas a engenharia não consegue avançar sem insumo externo.
+- **Só 15 linhas (13 PARCIAL-CÓDIGO e 2 NÃO INICIADO) dependem de código** que pode ser escrito agora. Algumas também dependem de dados ou de decisão.
+- As **64 linhas PARCIAL-VALIDAÇÃO** já têm código. O que falta é teste, homologação ou aceite humano.
+- As **5 linhas JÁ RESOLVIDO** (LK10, UX35, UX49, UX88 e LK44) deveriam ser reescritas no ledger.
 
 ### Distribuição de estados se o ledger fosse reconciliado (sugestão, não aplicada)
 
 | Mudança sugerida | Efeito |
 |---|---|
 | LK10 de N para P: código entregue; faltam curadoria das fotos e homologação | −1 N, +1 P |
-| LK44 de P para N: não há link de WhatsApp iniciado pelo visitante | −1 P, +1 N |
+| LK44 continua P: o link wa.me existe e tem teste; falta validar o número comercial | sem efeito na contagem |
 | UX83 e LK15 de I para P: metadados editoriais genéricos, aceite editorial pendente | −2 I, +2 P |
 | UX35, UX49 e UX88 continuam P, com nova natureza `validacao_*` e novo texto | sem efeito na contagem |
-| **Resultado** | **116 I, 102 P, 1 N, 11 E** (230) |
+| **Resultado** | **116 I, 103 P, 0 N, 11 E** (230) |
 
 ### Por natureza declarada na matriz × classificação verificada
 
@@ -80,7 +82,7 @@ Leitura das contagens:
 Achados por natureza:
 
 - A natureza `codigo_validacao` (14 linhas) é a mais desatualizada: UX35 e UX49 já foram resolvidas, e várias linhas da frente GR continuam com falta real de código.
-- Na natureza `validacao_operacao` (56 linhas), 4 linhas na verdade exigem código: UX58 (imagem social por página), GR18 (nomes de comunidades) e GR48 (cronometria), classificadas como PARCIAL-CÓDIGO, e LK44 (link de WhatsApp), classificada como NÃO INICIADO. Já LK12 (menu visual) e GR43 (gatilhos e cache) estão declaradas como `codigo_validacao`.
+- Na natureza `validacao_operacao` (56 linhas), três linhas na verdade exigem código — UX58 (imagem social por página), GR18 (nomes de comunidades) e GR48 (cronometria), classificadas como PARCIAL-CÓDIGO — e uma estava errada por outro motivo: LK44 (link de WhatsApp), que já está resolvida. Já LK12 (menu visual) e GR43 (gatilhos e cache) estão declaradas como `codigo_validacao`.
 
 ## 3. Linhas não-I por frente (todas as 112)
 
@@ -112,17 +114,17 @@ Achados por natureza:
 | UX49 | Relacionados relevantes | P (codigo_validacao) | **JÁ RESOLVIDO** — _matriz desatualizada_ | O que a matriz diz faltar (ranking/diversidade dos relacionados) foi entregue em 23/09. Resta julgamento comercial por campanha. | src/lib/catalogRanking.ts:123-137 (rankRelatedProducts); src/pages/ProductPage.tsx:25,32 |
 | UX54 | Alternativas de decisão | P (pesquisa_compradores) | **PARCIAL-VALIDAÇÃO** | Teste de compreensão das alternativas com compradores. | api/_lib/sharedSelections.ts:70 (d: alternative); site-supabase/supabase/tests/database/shared_selection_priorities.test.sql |
 | UX57 | Link de leitura | P (validacao_operacao) | **PARCIAL-VALIDAÇÃO** | Ciclo real criar→abrir→revogar no deployment. | api/_lib/sharedSelections.ts:8 (MAX 50), :117-127 (token + managementToken + expiresAt); api/shared-selections.ts:73-75 (revoke) |
-| UX58 | Prévia de links por conteúdo | P (validacao_operacao) | **PARCIAL-CÓDIGO** | Imagem social específica por coleção/data (hoje única para todas); validar renderização nos canais reais (o og:image é WebP). | api/site-page.ts:18,86,96 (heroImage único); api/_lib/curatedPagePreviews.ts (sem campo de imagem) |
+| UX58 | Prévia de links por conteúdo | P (validacao_operacao) | **PARCIAL-VALIDAÇÃO** | Coleções de /catalogos passaram a ter card social próprio (1200x630, paleta da coleção e fontes do site), servido tanto pelo shell quanto pelo Seo hidratado — implementado na PR #252, ainda fora de main no commit auditado; as páginas de data continuam na capa genérica. Falta conferir o preview nos canais reais (o og:image de coleção agora é PNG). | api/site-page.ts:21,78,99; shared/socialImages.ts; src/pages/CatalogsPage.tsx:196; tests/api/site-page.test.ts; scripts/generate-social-cards.mjs |
 | UX59 | Sincronização após login | P (validacao_operacao) | **PARCIAL-VALIDAÇÃO** | Homologar retomada autenticada em dispositivos físicos. Sync automático do carrinho não existe (decisão de produto pendente). | src/lib/customerSelections.ts:98-145 (versão otimista); src/components/SavedSelections.tsx; QuoteCartContext sem sync remoto |
 | UX64 | Formulário com menos esforço | P (pesquisa_compradores) | **PARCIAL-VALIDAÇÃO** | Medir esforço/compreensão do formulário com compradores. | src/pages/QuotePage.tsx; e2e/smoke.spec.ts (regressões R08) |
 | UX67 | Confirmação e próximo passo | P (aceite_operacao) | **BLOQUEADO-EXTERNO** | Prazo de resposta, responsável e recebimento pelo atendimento dependem de decisão operacional. A tela de sucesso não informa prazo. Comentário em QuotePage diverge do conteúdo real do e-mail. | src/pages/QuotePage.tsx:355 (texto genérico, sem prazo), :357-364 (comentário diz "sem ação/prazo/verba") vs api/notifications.ts:262-280 (e-mail inclui ação, verba, prazo) |
 | UX68 | Cópia por e-mail | P (adiado_usuario) | **BLOQUEADO-EXTERNO** | Credenciais Resend, domínio autenticado e ensaio de recebimento (adiados pelo usuário); aceite editorial do conteúdo. | api/notifications.ts:292-300 (sendEmail exige RESEND_API_KEY/SITE_EMAIL_FROM); api/notification-events-resend.ts |
 | UX69 | WhatsApp opcional automático | P (adiado_usuario) | **BLOQUEADO-EXTERNO** | Configuração Meta (token, phone id, template aprovado) e homologação real (adiados). | api/notifications.ts:336-341; api/notification-events-whatsapp.ts |
-| UX70 | Passagem ao atendimento | P (codigo_operacao) | **PARCIAL-CÓDIGO** | Não existe produtor de notificação ao comercial: a audiência commercial_team só aparece no CHECK da tabela; o outbox gera apenas audience=customer. Também faltam destino/CRM, responsável e SLA (decisão do dono). | site-supabase/supabase/migrations/20260908230000_create_site_lead_storage.sql:89 (CHECK com commercial_team, única ocorrência no repo); 20260912170000_add_quote_notification_outbox.sql:22,29 (só customer) |
+| UX70 | Passagem ao atendimento | P (codigo_operacao) | **BLOQUEADO-EXTERNO** — _matriz parcialmente incorreta: o produtor existe_ | A fila commercial_team tem produtor e entregador: migrations 20261106150448 (quote) e 20261117010000 (contact), entrega por webhook em api/_lib/commercialTeamAlerts.ts e cron de 5 minutos em vercel.json. Em produção há 4 entregas em `exhausted` (11/11 e 14/11). A causa exata não ficou registrada no runbook: o que o código permite afirmar é que sem COMMERCIAL_TEAM_WEBHOOK_URL não há destino, e o guard de `commercialAlertsEnabled()` no cron (api/commercial-alerts.ts:74-79) existe justamente porque reivindicar job sem destino consome `attempts` até `exhausted`. Tratar as 4 como efeito dessa ausência é inferência, não fato registrado. Falta canal e credencial (decisão do dono), não código. | api/_lib/commercialTeamAlerts.ts:30,36; api/commercial-alerts.ts; api/siteDatabase.ts:186; vercel.json:9; site-supabase/supabase/migrations/20261106150448_add_commercial_team_quote_alert.sql, 20261117010000_add_commercial_team_contact_alert.sql |
 | UX73 | Recuperação e expiração | P (validacao_operacao) | **PARCIAL-VALIDAÇÃO** | Reexecutar recebimento real de e-mail, expiração, reenvio e redefinição. | src/pages/CustomerLoginPage.tsx:52-89 (verifyOtp, signInWithOtp, signUp, resetPasswordForEmail); src/pages/SetPasswordPage.tsx:28 |
 | UX75 | Timeline acionável | P (operacao) | **BLOQUEADO-EXTERNO** | Definir responsável e SLA por etapa (decisão operacional); a timeline não tem campos de responsável/prazo; status só muda por escrita administrativa direta (não há back-office). | src/pages/CustomerQuotePage.tsx:228 (status + protocolo, sem responsável/SLA); migrations: record_quote_status_event/enforce_status_transition acionados por UPDATE direto |
 | UX76 | Versões de proposta | P (operacao_validacao) | **BLOQUEADO-EXTERNO** | Não há ferramenta de publicação de proposta no repositório: inserts em site_private.proposal_documents só existem em pgTAP. Publicação real de PDF, titular, expiração e recuperação dependem de operação externa. | grep "insert into site_private.proposal_documents": só site-supabase/supabase/tests/database/{lead_storage,customer_portal,customer_data_erasure}.test.sql; api/customer-proposals.ts:125 (URL assinada 60s) |
-| UX77 | Pedidos de ajuste | P (operacao_validacao) | **PARCIAL-CÓDIGO** | O pedido de ajuste é persistido como evento, mas não é roteado a um responsável (mesma ausência de commercial_team de UX70); falta operação real. | site-supabase/supabase/migrations/20260910130000_customer_adjustments_and_preferences.sql:86; nenhum produtor de notificação interna |
+| UX77 | Pedidos de ajuste | P (operacao_validacao) | **PARCIAL-CÓDIGO** | O pedido é persistido como evento e o canal interno do comercial existe, mas só aceita requestKind quote e contact: o pedido de ajuste não entra na fila, nem tem responsável ou SLA. | site-supabase/supabase/migrations/20260910130000_customer_adjustments_and_preferences.sql:86; api/_lib/commercialTeamAlerts.ts:36 |
 | UX79 | Isolamento e compartilhamento | P (validacao_operacao) | **PARCIAL-VALIDAÇÃO** | Os bloqueios F28-01/F28-02 citados em 28/09 foram corrigidos com regressões permanentes. Resta homologação de sessão em produção e ensaio assistivo. | src/lib/useOccasionFavorites.test.tsx:255 (F28-01), :407 (F28-02), 24 testes; src/components/BriefingAssetUploader.test.tsx |
 | UX80 | Dados e preferências | P (aceite_privacidade) | **PARCIAL-VALIDAÇÃO** | Homologação operacional de acesso/apagamento/preferências do titular. | docs/RUNBOOK_PEDIDO_TITULAR.md; site-supabase/supabase/tests/database/customer_data_erasure.test.sql; src/pages/PrivacyPage.tsx:12 |
 | UX84 | Governar publicações/downloads | P (material_editorial) | **BLOQUEADO-EXTERNO** | Localizar PDFs/revistas aprovados, direitos e controle de arquivo; as 10 coleções são online. | src/lib/catalogLibrary.ts:42,54,65,76,87,101,113,124,135,146 (todas format online) |
@@ -167,7 +169,7 @@ Achados por natureza:
 | LK39 | Guias úteis | P (validacao_operacao) | **PARCIAL-VALIDAÇÃO** | Autoria, revisão e profundidade prática dos guias. | src/lib/ideaLandings.ts; src/pages/IdeaLandingPage.tsx |
 | LK40 | Projeto especial | E (material_pesquisa_operacao) | **BLOQUEADO-EXTERNO** | Confirmação comercial do serviço de projeto especial. | Nenhuma rota/página de projeto especial em src/App.tsx:110-127 |
 | LK42 | Formulário enxuto | P (pesquisa_compradores) | **PARCIAL-VALIDAÇÃO** | Medir esforço e linguagem do formulário com compradores. | src/pages/QuotePage.tsx; docs/GUIA_DE_VOZ.md |
-| LK44 | WhatsApp iniciado pelo visitante | P (validacao_operacao) | **NÃO INICIADO** — _matriz incorreta: afirma que existe_ | Não existe link de WhatsApp iniciado pelo visitante (wa.me/api.whatsapp) em nenhuma parte do código; existe apenas a preferência de canal no formulário. Falta também número comercial validado. | grep "wa\.me\|api\.whatsapp\.com\|whatsapp://" em src/ api/ e2e/: 0 ocorrências; src/components/ConversationForm.tsx:13 (opção de canal); src/components/Layout.tsx:146,230 (só tel:/mailto:) |
+| LK44 | WhatsApp iniciado pelo visitante | P (validacao_operacao) | **JÁ RESOLVIDO** — _a divergência D1 desta auditoria afirma que não existe; o ledger já registrava que existe_ | O visitante abre a conversa com mensagem pronta: buildDefaultWhatsAppHref() monta https://wa.me/551146375517?text=… e o cabeçalho dispara o link com trackFunnelEvent('whatsapp_opened', { placement: 'utility' }). Falta apenas o número comercial validado. | src/lib/whatsappContact.ts:19,22; src/lib/whatsappContact.test.ts:6,17; src/components/Layout.tsx:147 |
 | LK45 | E-mail auditável | P (adiado_usuario) | **BLOQUEADO-EXTERNO** | Configuração Resend e recebimento real (adiados); revisão comercial do conteúdo. | api/notifications.ts:292-300; api/notification-events-resend.ts |
 | LK46 | Acessibilidade contínua | P (validacao_operacao) | **PARCIAL-VALIDAÇÃO** | Revisão assistiva e física. | e2e/smoke.spec.ts; .github/workflows/quality.yml |
 | LK47 | Desempenho real | P (validacao_operacao) | **PARCIAL-VALIDAÇÃO** | CWV de campo e comparação de uso real (coleta Speed Insights já instrumentada). | src/App.tsx:104 |
@@ -233,7 +235,7 @@ Achados por natureza:
 | UX25, LK08 | Quatro frases da marca | `src/pages/HomePage.tsx:267,275,281,288`; `e2e/smoke.spec.ts:239-242` | Confirmado |
 | UX05 | Autocomplete | `src/components/SearchAutocomplete.tsx:109` (`aria-activedescendant`) | Confirmado |
 | AC11, AC12 | Secret fora do bundle e Auth isolado | `src/lib/siteSupabaseConfig.ts:1-2,26` (recusa `sb_secret_`, projeto `xlzmclcjdncjfdrjxclt`) | Confirmado |
-| AC25, AC26 | Bucket PDF de 20 MB e URL de 60 s | `20260909180000_create_customer_quote_portal.sql:41-47`; `api/customer-proposals.ts:125` | Confirmado. Ressalva: o bucket existe, mas nada no repositório publica PDFs nele (ver divergência D2) |
+| AC25, AC26 | Bucket PDF de 20 MB e URL de 60 s | `20260909180000_create_customer_quote_portal.sql:41-47`; `api/customer-proposals.ts:125` | Confirmado. Ressalva: o bucket existe, mas nada no repositório **envia** PDFs para ele — a publicação só registra o caminho de um PDF já posto à mão (ver divergência D2, item f) |
 | AC14 | Associação a e-mail confirmado | `20260923120000_audit_security_reliability_hardening.sql:344` (`email_confirmed_at is not null`) | Confirmado |
 | UX78, AC23 | Repetir sem perda | `src/pages/CustomerQuotePage.tsx:133` (`fetchProductsByIds` antes de substituir) | Confirmado |
 | UX46 | Mínimo conferido no servidor | `api/_lib/catalogValidation.ts:81,106` | Confirmado |
@@ -251,8 +253,8 @@ Achados por natureza:
 
 | # | Gravidade | Divergência | Evidência |
 |---|---|---|---|
-| D1 | **Alta** | **LK44 afirma que "WhatsApp iniciado pelo visitante existe", mas não existe.** Não há `wa.me`, `api.whatsapp.com` nem `whatsapp://` em `src/`, `api/` ou `e2e/`. O que existe é só a opção "Por WhatsApp" como canal preferido no formulário, e o cabeçalho e o rodapé oferecem apenas `tel:` e `mailto:`. | `src/components/ConversationForm.tsx:13`; `src/components/Layout.tsx:146,230-231`; grep com 0 ocorrências |
-| D2 | **Alta** | **Falta a passagem ao comercial e a ferramenta de operação.** O portal do cliente exibe dados que nada no repositório produz, exceto SQL direto: (a) a audiência `commercial_team` só aparece no CHECK da tabela de entregas e não há produtor; (b) o outbox gera apenas `audience='customer'`; (c) `site_private.proposal_documents` só recebe inserts em pgTAP; (d) os status mudam por UPDATE administrativo. UX70, UX75, UX76, UX77 e AC24 estão classificadas como "operação/validação", mas falta código ou um sistema externo identificado. Hoje um briefing chega ao banco e ninguém é notificado. | `20260908230000_create_site_lead_storage.sql:89`; `20260912170000_add_quote_notification_outbox.sql:22,29`; inserts em `proposal_documents` apenas em `tests/database/*.test.sql` |
+| D1 | ~~**Alta**~~ **Resolvido** | **LK44 existe e o achado caducou.** `buildDefaultWhatsAppHref()` monta `https://wa.me/551146375517?text=…` e o cabeçalho dispara o link com `trackFunnelEvent('whatsapp_opened', { placement: 'utility' })`. O que resta é o número comercial validado, que é decisão do dono, não código. | `src/lib/whatsappContact.ts:19,22`; `src/lib/whatsappContact.test.ts:6,17`; `src/components/Layout.tsx:147` |
+| D2 | **Alta** | **Falta a entrega ao comercial, não a ferramenta de operação.** O que **já existe em código e está coberto por pgTAP**: (a) dois produtores gravam `audience='commercial_team'` — orçamento (`20261106150448:34-38`) e contato (`20261117010000:42-46`); (b) o back-office `/admin/orcamentos` (`src/App.tsx:128`) opera a fila com `list_site_quote_requests`, `get_site_quote_request`, `update_site_quote_status`, `reply_site_quote_adjustment` e `publish_site_quote_proposal` (`20261122030000:124,242,345,416,506`, chamadas em `src/pages/BackofficePage.tsx:743,762,779`) — a publicação insere em `site_private.proposal_documents` e muda o estágio do pedido, com testes em `commercial_backoffice.test.sql` e `commercial_backoffice_flow.test.sql`. O que **falta**: (c) `audience='customer'` sai só do produtor de confirmação, não do alerta comercial (`20260912170000:22,29`); (d) o pedido de ajuste (UX77) não tem produtor `commercial_team` — existe só como evento, então nunca entra na fila; (e) a entrega ao time depende da credencial `COMMERCIAL_TEAM_WEBHOOK_URL` (UX70), sem a qual a reivindicação é pulada em `api/commercial-alerts.ts:74-79`; (f) o PDF da proposta precisa já estar no bucket `customer-proposals` posto à mão (`src/pages/BackofficePage.tsx:522`) — não há gerador nem envio. UX77 depende de código; UX70 só de credencial; UX75, UX76 e AC24 dependem de ferramenta de operação externa. | `20261106150448:34-38`; `20261117010000:42-46`; `20261122030000:124,242,345,416,506`; `src/pages/BackofficePage.tsx:522,743,762,779`; `site-supabase/supabase/tests/database/commercial_backoffice.test.sql` |
 | D3 | Média | **LK10 (o único N) já foi entregue** em 23/09 (`abd74e6`) com `CategoryPhotoCard`. | `src/pages/HomePage.tsx:60-93,313` |
 | D4 | Média | **UX35 e UX49** ainda dizem que o ranking por intenção e diversidade "não está comprovado". `catalogRanking.ts` existe e é usado no catálogo e nos relacionados. | `src/lib/catalogRanking.ts:37-137`; `src/lib/useCatalogPageState.ts:112-115`; `src/pages/ProductPage.tsx:32` |
 | D5 | Média | **UX88** ainda diz "sincronização por conta ausente". RPCs, migrations e 24 testes do hook já existem. | `src/lib/customerOccasionFavorites.ts:31-39`; `src/lib/useOccasionFavorites.test.tsx` |
@@ -267,7 +269,7 @@ Achados por natureza:
 |---|---|---|---|
 | G1 | **Alta** | **O ledger está congelado desde 22/09** (último commit `dafd3d9`), embora tenham entrado 104 commits depois: favoritos por conta, ranking e diversidade, categorias fotográficas, preflight anti-abuso, monitor do contrato do catálogo, release candidato→smoke→promote→rollback, dois corpora Graphify, nova ficha de produto e assinatura de marca. O `MATRIZ_INDEX.md` ainda chama 118/100/1/11 de "Distribuição vigente", enquanto o próprio relatório de 28/09 admite notas vencidas. | `git log -- docs/MATRIZ_FECHAMENTO_PLANOS_20260912.csv` |
 | G2 | Média | **229 das 230 linhas apontam `commit_auditado` anterior a 22/09.** São 171 linhas em `f20df44…` e 58 em outros 6 SHAs, nenhum disponível neste clone raso. Só UX77, com `05f0a06` (22/09), está presente. Por isso `npm run ledger:check` falha em clones rasos ("fonte … não existe no commit auditado de UX01"). No CI o checkout usa `fetch-depth: 0` e não falha. É uma questão de ambiente, mas mostra que o validador garante só estrutura e histórico, não atualidade. | `node scripts/validate-closure-ledger.mjs` neste clone; `.github/workflows/quality.yml:24-26` |
-| G3 | Média | **16 linhas P são, de fato, bloqueios externos** (lista na seção 2). Marcá-las como P mistura "falta trabalho de engenharia" com "falta decisão ou insumo" e infla a percepção de backlog técnico. | Seção 2 |
+| G3 | Média | **17 linhas P são, de fato, bloqueios externos** (lista na seção 2). Marcá-las como P mistura "falta trabalho de engenharia" com "falta decisão ou insumo" e infla a percepção de backlog técnico. | Seção 2 |
 
 ### Lacunas transversais observadas no código
 
@@ -281,7 +283,7 @@ Achados por natureza:
 ## 6. Próximos passos sugeridos para reconciliar o ledger
 
 1. Atualizar LK10, UX35, UX49 e UX88 (texto, natureza e `commit_auditado` no HEAD atual) e as seis linhas parcialmente desatualizadas da D7.
-2. Corrigir LK44 para N, ou implementar o link contextual com número validado, e rebaixar UX83 e LK15 para P até haver revisão editorial real.
-3. Registrar como lacuna de código (ou dependência de um sistema externo nomeado) a ausência de roteamento ao comercial e de publicação de propostas (D2).
-4. Mudar a natureza das 16 linhas P bloqueadas para uma categoria externa, mantendo-as visíveis como dependência, para que o backlog técnico real (18 linhas) fique claro.
+2. Marcar LK44 como resolvida no ledger (o link `wa.me` existe e tem teste; falta só o número comercial validado) e rebaixar UX83 e LK15 para P até haver revisão editorial real.
+3. Separar em D2 o que já tem produtor (orçamento e contato → fila `commercial_team`) do que não tem (pedido de ajuste → só evento), e registrar que a publicação de propostas registra o caminho de um PDF enviado fora do repositório.
+4. Mudar a natureza das 17 linhas P bloqueadas para uma categoria externa, mantendo-as visíveis como dependência, para que o backlog técnico real (15 linhas) fique claro.
 5. Atualizar `MATRIZ_INDEX.md` para não chamar de "vigente" uma contagem que não reflete o HEAD.
