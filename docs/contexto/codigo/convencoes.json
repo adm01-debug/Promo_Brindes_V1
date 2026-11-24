@@ -21,7 +21,7 @@
   ],
   "testes": [
    "co-localizado (*.test) (59)",
-   "tests/ (49)",
+   "tests/ (51)",
    "outro (9)"
   ],
   "edge_functions": null,
@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "feat: inventario de afirmacoes comerciais com dono e prova (PF-55) (#240)",
    "feat: corte de backlog da fila de notificações (F-11) (#234)",
    "chore(deps): bump the npm-minor-and-patch group with 7 updates (#248)",
    "chore(deps): bump actions/dependency-review-action (#246)",
-   "chore(deps): bump actions/setup-node from 6.5.0 to 7.1.0 (#247)",
-   "feat: auditoria de leitura SELECT em PII (F-34) (#242)"
+   "chore(deps): bump actions/setup-node from 6.5.0 to 7.1.0 (#247)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

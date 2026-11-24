@@ -1,7 +1,7 @@
 {
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
- "total": 38,
+ "total": 40,
  "scripts": [
   {
    "arquivo": "scripts/_lib/supabaseDbQuery.mjs",
@@ -433,6 +433,19 @@
    "orfao": false
   },
   {
+   "arquivo": "scripts/validate-commercial-claims.mjs",
+   "descricao": "PF-55: o site afirma coisas comerciais (\"proposta real\", \"curadoria humana\", \"voce nao paga nada pelo site\", \"sem checkout\"). Cada afirmacao precisa de dono e",
+   "linhas": 172,
+   "env": [
+    "CLAIMS_INVENTORY"
+   ],
+   "npm_scripts": [
+    "claims:check"
+   ],
+   "workflows": [],
+   "orfao": false
+  },
+  {
    "arquivo": "scripts/validate-env-example.mjs",
    "descricao": "PF-112 da auditoria de 11/10/2026: `CATALOG_SUPABASE_PUBLISHABLE_KEY` é lida por api/_lib/catalogValidation.ts e nunca foi citada em .env.example. Como ela tem",
    "linhas": 106,
@@ -467,6 +480,17 @@
    "workflows": [
     "database.yml"
    ],
+   "orfao": false
+  },
+  {
+   "arquivo": "scripts/validate-persuasion-limits.mjs",
+   "descricao": "Etapa 009 do plano Carnegie (limites de persuasao). O site nao pode usar urgencia ficticia, culpa ao recusar, elogio automatico, dado presumido, prova social",
+   "linhas": 314,
+   "env": [],
+   "npm_scripts": [
+    "persuasion:check"
+   ],
+   "workflows": [],
    "orfao": false
   },
   {

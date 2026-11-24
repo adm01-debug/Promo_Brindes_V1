@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `c93830fe68` · branch `main` · 2026-11-23 23:41 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `9900f5a4d1` · branch `main` · 2026-11-24 00:31 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -1041,6 +1041,7 @@ _nenhum item encontrado_
 | Ledger inválido: id duplicado ${row.id}. | `scripts/validate-closure-ledger.mjs` |
 | Ledger inválido: id fora dos planos ${row.id}. | `scripts/validate-closure-ledger.mjs` |
 | Ledger não verificável: git não encontrado no PATH; o validador confere cada fonte no commit auditado. | `scripts/validate-closure-ledger.mjs` |
+| inventario de afirmacoes nao encontrado: ${INVENTORY_PATH} | `scripts/validate-commercial-claims.mjs` |
 | Nenhum arquivo .ts encontrado em ${apiDir} — nada foi verificado. | `scripts/validate-env-example.mjs` |
 | Nenhuma migration .sql encontrada em ${migrationsDir} — nada foi verificado. | `scripts/validate-error-catalog.mjs` |
 | ${relativePath} não é um JSON válido: ${error.message} | `scripts/verify-vercel-artifact.mjs` |
@@ -1138,8 +1139,7 @@ _nenhum item encontrado_
 | occasion_favorite_limit_reached | `src/lib/customerOccasionFavorites.ts` |
 | occasion_favorites_unavailable | `src/lib/customerOccasionFavorites.ts` |
 | invalid_customer_quote_response | `src/lib/customerQuoteContract.ts` |
-| customer_area_not_configured | `src/lib/customerSelections.ts` |
-| … +14 linhas — lista completa em `context.json` | |
+| … +15 linhas — lista completa em `context.json` | |
 
 ## J. Controle de acesso no código (checagens de perfil/permissão)
 
@@ -1150,7 +1150,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (2195 testes em 152 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (2228 testes em 154 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1189,6 +1189,7 @@ _nenhum item encontrado_
 | `tests/supabase-db-query.node.mjs` | 20 | extrai de objeto { · extrai de array top-level sem wrapper (formato observado no CI) · ignora banner de conexão (texto solto) antes do JSON · ignora banner de conexão antes de um array top-level … |
 | `site-supabase/supabase/tests/database/status_state_machine.test.sql` | 19 | eventos têm coluna de ordem monotônica · sequence é única (identity) · sequence preserva a ordem de inserção independentemente de created_at · tabela de transições existe … |
 | `src/context/QuoteCartContext.test.ts` | 19 | seleção para orçamento · adiciona e mantém uma linha por produto e cor · respeita a quantidade mínima do item · limita quantidades acidentalmente excessivas … |
+| `tests/validate-commercial-claims.node.mjs` | 19 | inventario valido passa sem erros · inventario sem afirmacoes reprova · afirmacao sem localizacao reprova · campo obrigatorio ausente reprova … |
 | `tests/validate-migration-names.node.mjs` | 18 | aceita nomes de 14 dígitos em ordem estritamente crescente · rejeita o formato antigo com underscore no timestamp (regressão do incidente de 15/09) · rejeita data de calendário inválida · rejeita versão duplicada dentro do mesmo diretório … |
 | `tests/api/commercial-team-alerts.test.ts` | 18 | alerta comercial de orçamento (PF-01) · parseCommercialAlertJob · rejeita payload sem a forma mínima do job · normaliza e limita campos do envelope … |
 | `tests/api/notification-events-whatsapp.test.ts` | 18 | api/notification-events-whatsapp (Etapa 30) · rejeita método diferente de GET/POST · handshake GET · responde 503 quando o token de verificação não está configurado … |
@@ -1202,6 +1203,7 @@ _nenhum item encontrado_
 | `src/lib/productApplications.test.ts` | 14 | product applications · omite razão de material quando a ficha não declara material · declara apenas os materiais presentes no cadastro, normalizados · descreve material durável sem prometer desempenho da campanha … |
 | `src/lib/sharedSelection.test.ts` | 14 | sharedSelection · preserva prioridade alternativa no link e na seleção reconstruída · preserva cor sem variantId e bloqueia fallback ambíguo ou removido · aceita nomes Unicode e mantém links Latin-1 antigos legíveis … |
 | `src/pages/QuotePage.context.test.tsx` | 14 | data mínima do briefing · usa o calendário comercial brasileiro em vez de converter o instante para UTC · permanece no dia de São Paulo durante a virada UTC · editor do contexto da campanha no orçamento (PF-41) … |
+| `tests/validate-persuasion-limits.node.mjs` | 14 | os seis limites da etapa 009 estao declarados · interface sem nenhum dos seis padroes passa limpa · reprova ${limit[0]}: ${limit[1]} · reprova consentimento disfarcado em checkbox multilinha: ${body.replace(/\s+/g,  … |
 | `tests/api/briefing-assets.test.ts` | 14 | inspeção server-side de anexos privados · estouro do limite devolve 429, não  · sessão que expira entre o upload e a verificação devolve 401, não  · confirma um PNG somente depois de ler a assinatura no Storage privado … |
 | `tests/api/notification-events-resend.test.ts` | 14 | api/notification-events-resend (Etapa 30) · rejeita método diferente de POST · responde 503 quando o segredo do webhook não está configurado · rejeita assinatura ausente ou inválida sem chamar o banco … |
 | `tests/scripts/verify-vercel-artifact.test.ts` | 14 | verificador do artefato Vercel · exige o app shell somente das funções de página declaradas em vercel.json · aceita includeFiles como lista sem perder o contrato do app shell · falha quando uma função de página declarada não existe no artefato … |

@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "c93830fe6812dda2b68a6f00c4ee165ea7eb3445",
+  "commit": "9900f5a4d1d4a4e34002a0d4207f897049545f99",
   "branch": "main",
-  "data_commit": "2026-11-23T23:38:45Z",
+  "data_commit": "2026-11-24T00:31:17Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "9900f5a",
+    "data": "2026-11-24",
+    "assunto": "feat: inventario de afirmacoes comerciais com dono e prova (PF-55) (#240)"
+   },
    {
     "sha": "c93830f",
     "data": "2026-11-23",
@@ -126,18 +131,13 @@
     "sha": "d7f09b6",
     "data": "2026-11-22",
     "assunto": "feat: resumo do briefing abre antes das 4 respostas e permite cancelar a edicao (F-37) (#226)"
-   },
-   {
-    "sha": "5b24b40",
-    "data": "2026-11-21",
-    "assunto": "chore: atualiza o inventario de funcionalidades (F-40 e F-47 COMPLETA) (#224)"
    }
   ],
-  "arquivos_mudados_7d": 209,
+  "arquivos_mudados_7d": 215,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "analise-prs/funcionalidades.csv",
-    "mudancas": 24
+    "mudancas": 25
    },
    {
     "pasta": "site-supabase/supabase/tests",
@@ -145,15 +145,15 @@
    },
    {
     "pasta": "package.json",
-    "mudancas": 19
+    "mudancas": 20
    },
    {
     "pasta": "docs/audits/planejado-x-implementado-20261120",
-    "mudancas": 14
+    "mudancas": 16
    },
    {
     "pasta": "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
-    "mudancas": 13
+    "mudancas": 14
    },
    {
     "pasta": "site-supabase/supabase/migrations",
@@ -199,7 +199,7 @@
   "arquivos_mais_mudados_90d": [
    {
     "arquivo": "package.json",
-    "mudancas": 68
+    "mudancas": 69
    },
    {
     "arquivo": "e2e/smoke.spec.ts",
@@ -235,7 +235,7 @@
    },
    {
     "arquivo": "analise-prs/funcionalidades.csv",
-    "mudancas": 24
+    "mudancas": 25
    },
    {
     "arquivo": "docs/DATABASE_FUNCTION_CONTRACTS.md",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 125
+    "commits": 126
    },
    {
     "autor": "dependabot[bot]",
@@ -310,9 +310,9 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 759,
-  "arquivos_codigo": 305,
-  "linhas_codigo": 61047,
+  "arquivos_total": 766,
+  "arquivos_codigo": 309,
+  "linhas_codigo": 61874,
   "rotas": 35,
   "rotas_http_backend": 16,
   "vistas_por_id": 0,
@@ -324,10 +324,10 @@
   "tabelas": 27,
   "migrations": 77,
   "cron_jobs": 0,
-  "testes": 161,
+  "testes": 163,
   "workflows": 15,
-  "scripts": 38,
-  "docs_md": 137
+  "scripts": 40,
+  "docs_md": 139
  },
  "por_pasta": {
   "api/_lib": {
@@ -538,6 +538,10 @@
    "arquivos": 1,
    "linhas": 128
   },
+  "scripts/validate-commercial-claims.mjs": {
+   "arquivos": 1,
+   "linhas": 172
+  },
   "scripts/validate-env-example.mjs": {
    "arquivos": 1,
    "linhas": 106
@@ -549,6 +553,10 @@
   "scripts/validate-migration-names.mjs": {
    "arquivos": 1,
    "linhas": 153
+  },
+  "scripts/validate-persuasion-limits.mjs": {
+   "arquivos": 1,
+   "linhas": 314
   },
   "scripts/validate-site-supabase-target.mjs": {
    "arquivos": 1,
@@ -698,6 +706,10 @@
    "arquivos": 1,
    "linhas": 370
   },
+  "tests/validate-commercial-claims.node.mjs": {
+   "arquivos": 1,
+   "linhas": 181
+  },
   "tests/validate-env-example.node.mjs": {
    "arquivos": 1,
    "linhas": 133
@@ -709,6 +721,10 @@
   "tests/validate-migration-names.node.mjs": {
    "arquivos": 1,
    "linhas": 193
+  },
+  "tests/validate-persuasion-limits.node.mjs": {
+   "arquivos": 1,
+   "linhas": 160
   },
   "tests/validate-site-supabase-target.node.mjs": {
    "arquivos": 1,
@@ -831,7 +847,7 @@
  ],
  "qualidade": {
   "any": 3,
-  "console_log": 94,
+  "console_log": 96,
   "ts_ignore": 0,
   "eslint_disable": 1,
   "todos": 3,

@@ -1,16 +1,16 @@
 {
  "meta": {
-  "sha": "c93830fe6812dda2b68a6f00c4ee165ea7eb3445",
+  "sha": "9900f5a4d1d4a4e34002a0d4207f897049545f99",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-23 23:41 UTC",
-  "files_total": 653,
-  "code_files": 429,
-  "code_lines": 81799,
+  "generated_at": "2026-11-24 00:31 UTC",
+  "files_total": 660,
+  "code_files": 433,
+  "code_lines": 82626,
   "schema_ref": "`docs/contexto/supabase/` (snapshot do banco; se a pasta não existir, só há as migrations do repo)"
  },
  "version": "1.3.2",
- "facts_hash": "4e8ef625e9b2f5df",
+ "facts_hash": "9cfc9fba1bdb0a2a",
  "stack": {
   "frameworks": [
    "React + Vite",
@@ -70,7 +70,7 @@
    "test:watch": "vitest",
    "test:e2e": "playwright test --project=desktop-chromium --project=mobile-chromium",
    "test:e2e:cross-browser": "playwright test --project=desktop-firefox --project=desktop-webkit --workers=1",
-   "check": "npm run lint && npm run typecheck && npm run test && npm run agents:instructions:check && npm run test:agent-instructions && npm run test:migration-names && npm run test:error-catalog && npm run test:env-example && npm run test:site-api-jwt && npm run test:timing-safe-secrets && npm run test:supabase-db-query && npm run test:ci-health && npm run test:release-url && npm run test:smoke-deployment && npm run test:stage-app-shell && npm run test:performance-budget && npm run test:site-guard && npm run test:database-docs && npm run test:soak-queue && npm run test:shared-selection-sql && npm run test:catalog-contract && npm run test:approvals-visual && npm run approvals:visual:check && npm run test:inventario && npm run contexto:test && npm run build && npm run check:performance-budget && npm run test:e2e",
+   "check": "npm run lint && npm run typecheck && npm run test && npm run agents:instructions:check && npm run test:agent-instructions && npm run test:migration-names && npm run test:error-catalog && npm run test:env-example && npm run test:site-api-jwt && npm run test:timing-safe-secrets && npm run test:supabase-db-query && npm run test:ci-health && npm run test:release-url && npm run test:smoke-deployment && npm run test:stage-app-shell && npm run test:performance-budget && npm run test:site-guard && npm run test:database-docs && npm run test:soak-queue && npm run test:shared-selection-sql && npm run test:catalog-contract && npm run test:approvals-visual && npm run approvals:visual:check && npm run test:claims && npm run test:persuasion && npm run persuasion:check && npm run test:inventario && npm run contexto:test && npm run build && npm run check:performance-budget && npm run test:e2e",
    "db:migration-names:check": "node scripts/validate-migration-names.mjs",
    "test:migration-names": "node --test tests/validate-migration-names.node.mjs",
    "db:site:error-catalog:check": "node scripts/validate-error-catalog.mjs",
@@ -146,7 +146,11 @@
    "automation:uninstall-hooks": "node scripts/automation.mjs uninstall-hooks",
    "test:inventario:banco-sql": "node --test tests/inventario-banco-sql.node.mjs",
    "approvals:visual:check": "node scripts/validate-visual-approvals.mjs",
-   "test:approvals-visual": "node --test tests/validate-visual-approvals.node.mjs"
+   "test:approvals-visual": "node --test tests/validate-visual-approvals.node.mjs",
+   "claims:check": "node scripts/validate-commercial-claims.mjs",
+   "test:claims": "node --test tests/validate-commercial-claims.node.mjs",
+   "persuasion:check": "node scripts/validate-persuasion-limits.mjs",
+   "test:persuasion": "node --test tests/validate-persuasion-limits.node.mjs"
   },
   "infra": [
    {
@@ -285,8 +289,8 @@
   "languages": {
    ".ts": 164,
    ".sql": 123,
+   ".mjs": 69,
    ".tsx": 67,
-   ".mjs": 65,
    ".py": 8,
    ".js": 2
   },
@@ -9161,8 +9165,8 @@
   },
   {
    "module": "scripts",
-   "files": 44,
-   "lines": 21832,
+   "files": 46,
+   "lines": 22318,
    "tables": [
     "a",
     "contacts",
@@ -9195,9 +9199,11 @@
     "soak-test-notification-queue.mjs: parseSoakConfig, percentile, isTerminalDelivery",
     "validate-agent-instructions.mjs: AGENTS_FILE, CLAUDE_FILE, DOCS_DIR, SKILL_NAME, SKILL_FILES, REQUIRED_SECTIONS",
     "validate-closure-ledger.mjs: parseCsv, validateLedger",
+    "validate-commercial-claims.mjs: INVENTORY_PATH, listCodeFiles, validateClaims, readInventoryFromDisk",
     "validate-env-example.mjs: extractEnvNames, findUndocumentedEnvVars",
     "validate-error-catalog.mjs: extractErrorMessagesFromSql, findUndocumentedErrorMessages",
     "validate-migration-names.mjs: MIGRATION_DIRS, isValidCalendarTimestamp, validateMigrationFileNames, validateMigrationDirsOnDisk, validateMigrationDirsNotEmpty, validateNoTopLevelSupabaseMigrationsDir",
+    "validate-persuasion-limits.mjs: LIMITS, foldText, listInterfaceFiles, stripJsComments, findDefaultCheckedConsentInputs, findPersuasionViolations",
     "validate-visual-approvals.mjs: REGISTRY_PATH, sha256OfBuffer, pngDimensions, validateRegistry, readRegistryFromDisk, trackedPaths",
     "supabaseDbQuery.mjs: findBalancedJsonValues, extractRows, runSupabaseDbQuery",
     "gerar.unit.mjs: AppRoutes, useContacts",
@@ -9280,9 +9286,11 @@
     "scripts/stage-app-shell.mjs",
     "scripts/validate-agent-instructions.mjs",
     "scripts/validate-closure-ledger.mjs",
+    "scripts/validate-commercial-claims.mjs",
     "scripts/validate-env-example.mjs",
     "scripts/validate-error-catalog.mjs",
     "scripts/validate-migration-names.mjs",
+    "scripts/validate-persuasion-limits.mjs",
     "scripts/validate-site-supabase-target.mjs",
     "scripts/validate-visual-approvals.mjs",
     "scripts/verify-vercel-artifact.mjs",
@@ -9817,8 +9825,8 @@
   },
   {
    "module": "tests",
-   "files": 49,
-   "lines": 10841,
+   "files": 51,
+   "lines": 11182,
    "tables": [
     "constructor",
     "quote_requests",
@@ -9869,9 +9877,11 @@
     "tests/supabase-db-query.node.mjs",
     "tests/timing-safe-secret-comparisons.node.mjs",
     "tests/validate-agent-instructions.node.mjs",
+    "tests/validate-commercial-claims.node.mjs",
     "tests/validate-env-example.node.mjs",
     "tests/validate-error-catalog.node.mjs",
     "tests/validate-migration-names.node.mjs",
+    "tests/validate-persuasion-limits.node.mjs",
     "tests/validate-site-supabase-target.node.mjs",
     "tests/validate-visual-approvals.node.mjs",
     "tests/verify-shared-selection-contract.node.mjs",
@@ -10072,6 +10082,9 @@
     "playwright.config.ts",
     "scripts/ai-context/cenarios.mjs",
     "tests/validate-env-example.node.mjs"
+   ],
+   "CLAIMS_INVENTORY": [
+    "scripts/validate-commercial-claims.mjs"
    ],
    "CODE_SCAN_DIRS": [
     "scripts/supabase_snapshot/snapshot.py"
@@ -11775,6 +11788,10 @@
    {
     "file": "scripts/validate-closure-ledger.mjs",
     "msg": "Ledger não verificável: git não encontrado no PATH; o validador confere cada fonte no commit auditado."
+   },
+   {
+    "file": "scripts/validate-commercial-claims.mjs",
+    "msg": "inventario de afirmacoes nao encontrado: ${INVENTORY_PATH}"
    },
    {
     "file": "scripts/validate-env-example.mjs",
@@ -22708,6 +22725,82 @@
     "name": "main(): --help descreve as variáveis de ambiente e sai com 0"
    },
    {
+    "file": "tests/validate-commercial-claims.node.mjs",
+    "name": "inventario valido passa sem erros"
+   },
+   {
+    "file": "tests/validate-commercial-claims.node.mjs",
+    "name": "inventario sem afirmacoes reprova"
+   },
+   {
+    "file": "tests/validate-commercial-claims.node.mjs",
+    "name": "afirmacao sem localizacao reprova"
+   },
+   {
+    "file": "tests/validate-commercial-claims.node.mjs",
+    "name": "campo obrigatorio ausente reprova"
+   },
+   {
+    "file": "tests/validate-commercial-claims.node.mjs",
+    "name": "id duplicado reprova"
+   },
+   {
+    "file": "tests/validate-commercial-claims.node.mjs",
+    "name": "status fora da lista reprova"
+   },
+   {
+    "file": "tests/validate-commercial-claims.node.mjs",
+    "name": "data fora de AAAA-MM-DD reprova"
+   },
+   {
+    "file": "tests/validate-commercial-claims.node.mjs",
+    "name": "arquivo inexistente no where reprova"
+   },
+   {
+    "file": "tests/validate-commercial-claims.node.mjs",
+    "name": "linha fora do arquivo reprova"
+   },
+   {
+    "file": "tests/validate-commercial-claims.node.mjs",
+    "name": "snippet que nao esta naquela linha reprova (afirmacao mudou de lugar)"
+   },
+   {
+    "file": "tests/validate-commercial-claims.node.mjs",
+    "name": "where sem snippet reprova"
+   },
+   {
+    "file": "tests/validate-commercial-claims.node.mjs",
+    "name": "prova ausente ou inexistente reprova"
+   },
+   {
+    "file": "tests/validate-commercial-claims.node.mjs",
+    "name": "evidence sem pattern aceita (prova e a existencia do arquivo)"
+   },
+   {
+    "file": "tests/validate-commercial-claims.node.mjs",
+    "name": "afirmacao de ausencia passa quando o provedor nao existe no codigo"
+   },
+   {
+    "file": "tests/validate-commercial-claims.node.mjs",
+    "name": "afirmacao de ausencia reprova quando aparece provedor de pagamento"
+   },
+   {
+    "file": "tests/validate-commercial-claims.node.mjs",
+    "name": "afirmacao de ausencia sem roots ou com pattern invalido reprova"
+   },
+   {
+    "file": "tests/validate-commercial-claims.node.mjs",
+    "name": "afirmacao de ausencia reprova quando a raiz declarada nao existe"
+   },
+   {
+    "file": "tests/validate-commercial-claims.node.mjs",
+    "name": "CLI reprova quando o inventario do repositorio quebra"
+   },
+   {
+    "file": "tests/validate-commercial-claims.node.mjs",
+    "name": "inventario real do repositorio esta integro"
+   },
+   {
     "file": "tests/validate-env-example.node.mjs",
     "name": "extrai só nomes em maiúsculas de process.env"
    },
@@ -22862,6 +22955,62 @@
    {
     "file": "tests/validate-migration-names.node.mjs",
     "name": "rejeita maiúsculas, hífen, espaço, extensão dupla e prefixo com 13 ou 15 dígitos"
+   },
+   {
+    "file": "tests/validate-persuasion-limits.node.mjs",
+    "name": "os seis limites da etapa 009 estao declarados"
+   },
+   {
+    "file": "tests/validate-persuasion-limits.node.mjs",
+    "name": "interface sem nenhum dos seis padroes passa limpa"
+   },
+   {
+    "file": "tests/validate-persuasion-limits.node.mjs",
+    "name": "reprova ${limit[0]}: ${limit[1]}"
+   },
+   {
+    "file": "tests/validate-persuasion-limits.node.mjs",
+    "name": "reprova consentimento disfarcado em checkbox multilinha: ${body.replace(/\\s+/g, "
+   },
+   {
+    "file": "tests/validate-persuasion-limits.node.mjs",
+    "name": "checkbox vazia em multilinha continua aprovada"
+   },
+   {
+    "file": "tests/validate-persuasion-limits.node.mjs",
+    "name": "checkbox desmarcada por defaultChecked={false} continua aprovada: ${body.replace(/\\s+/g, "
+   },
+   {
+    "file": "tests/validate-persuasion-limits.node.mjs",
+    "name": "exemplo comentado de defaultChecked nao e consentimento pre-marcado"
+   },
+   {
+    "file": "tests/validate-persuasion-limits.node.mjs",
+    "name": "defaultChecked sem valor explicito e flagrado pelo scanner JSX"
+   },
+   {
+    "file": "tests/validate-persuasion-limits.node.mjs",
+    "name": "valor de outro atributo nao decide a caixa de consentimento"
+   },
+   {
+    "file": "tests/validate-persuasion-limits.node.mjs",
+    "name": "spread de literal com defaultChecked tambem e consentimento pre-marcado"
+   },
+   {
+    "file": "tests/validate-persuasion-limits.node.mjs",
+    "name": "reprova prova social escrita por extenso: ${claim}"
+   },
+   {
+    "file": "tests/validate-persuasion-limits.node.mjs",
+    "name": "comentario que cita o padrao nao conta como promessa na tela"
+   },
+   {
+    "file": "tests/validate-persuasion-limits.node.mjs",
+    "name": "arquivo de teste nao entra na varredura da interface"
+   },
+   {
+    "file": "tests/validate-persuasion-limits.node.mjs",
+    "name": "interface real do repositorio respeita os seis limites"
    },
    {
     "file": "tests/validate-site-supabase-target.node.mjs",
@@ -32501,6 +32650,32 @@
     }
    ]
   },
+  "scripts/validate-commercial-claims.mjs": {
+   "path": "scripts/validate-commercial-claims.mjs",
+   "lines": 172,
+   "exports": [
+    "const INVENTORY_PATH",
+    "function listCodeFiles",
+    "function validateClaims",
+    "function readInventoryFromDisk"
+   ],
+   "env": [
+    "CLAIMS_INVENTORY"
+   ],
+   "errors": [
+    "inventario de afirmacoes nao encontrado: ${INVENTORY_PATH}"
+   ],
+   "rule_comments": [
+    "continuaria aprovado. Um rename de `src/` nao pode virar ausencia de provedor."
+   ],
+   "calc_fns": [
+    {
+     "name": "validateClaims",
+     "params": "inventory, readFile = readLines, listFiles = listCodeFiles, pathExists = (relative",
+     "body": "existsSync(path.resolve(ROOT, relative))) {"
+    }
+   ]
+  },
   "scripts/validate-env-example.mjs": {
    "path": "scripts/validate-env-example.mjs",
    "lines": 106,
@@ -32566,6 +32741,23 @@
      "params": "exists = existsFromRoot",
      "body": "if (exists(FORBIDDEN_TOP_LEVEL_MIGRATIONS_DIR)) { return [ `${FORBIDDEN_TOP_LEVEL_MIGRATIONS_DIR} não deveria existir neste repositório — reintroduz o link incoerente do incidente pré-16/09 (ver Etapa 45 do plano de correções); o contrato do catálogo canônico vive em docs/sql/canonical/`, ]; } return [];"
     }
+   ]
+  },
+  "scripts/validate-persuasion-limits.mjs": {
+   "path": "scripts/validate-persuasion-limits.mjs",
+   "lines": 314,
+   "exports": [
+    "const LIMITS",
+    "function foldText",
+    "function listInterfaceFiles",
+    "function stripJsComments",
+    "function findDefaultCheckedConsentInputs",
+    "function findPersuasionViolations",
+    "function persuasionSummary"
+   ],
+   "rule_comments": [
+    "Etapa 009 do plano Carnegie (limites de persuasao). O site nao pode usar urgencia",
+    "Comentario que cita o padrao (para documentar a regra) nao e promessa na tela."
    ]
   },
   "scripts/validate-site-supabase-target.mjs": {
@@ -39855,6 +40047,32 @@
     "main(): --help descreve as variáveis de ambiente e sai com 0"
    ]
   },
+  "tests/validate-commercial-claims.node.mjs": {
+   "path": "tests/validate-commercial-claims.node.mjs",
+   "lines": 181,
+   "is_test": true,
+   "tests": [
+    "inventario valido passa sem erros",
+    "inventario sem afirmacoes reprova",
+    "afirmacao sem localizacao reprova",
+    "campo obrigatorio ausente reprova",
+    "id duplicado reprova",
+    "status fora da lista reprova",
+    "data fora de AAAA-MM-DD reprova",
+    "arquivo inexistente no where reprova",
+    "linha fora do arquivo reprova",
+    "snippet que nao esta naquela linha reprova (afirmacao mudou de lugar)",
+    "where sem snippet reprova",
+    "prova ausente ou inexistente reprova",
+    "evidence sem pattern aceita (prova e a existencia do arquivo)",
+    "afirmacao de ausencia passa quando o provedor nao existe no codigo",
+    "afirmacao de ausencia reprova quando aparece provedor de pagamento",
+    "afirmacao de ausencia sem roots ou com pattern invalido reprova",
+    "afirmacao de ausencia reprova quando a raiz declarada nao existe",
+    "CLI reprova quando o inventario do repositorio quebra",
+    "inventario real do repositorio esta integro"
+   ]
+  },
   "tests/validate-env-example.node.mjs": {
    "path": "tests/validate-env-example.node.mjs",
    "lines": 133,
@@ -39930,6 +40148,27 @@
     "CLI reprova supabase/migrations no topo mesmo chamada de outro diretório",
     "validateMigrationDirsNotEmpty acusa diretório ausente ou sem .sql e propaga erro inesperado",
     "rejeita maiúsculas, hífen, espaço, extensão dupla e prefixo com 13 ou 15 dígitos"
+   ]
+  },
+  "tests/validate-persuasion-limits.node.mjs": {
+   "path": "tests/validate-persuasion-limits.node.mjs",
+   "lines": 160,
+   "is_test": true,
+   "tests": [
+    "os seis limites da etapa 009 estao declarados",
+    "interface sem nenhum dos seis padroes passa limpa",
+    "reprova ${limit[0]}: ${limit[1]}",
+    "reprova consentimento disfarcado em checkbox multilinha: ${body.replace(/\\s+/g, ",
+    "checkbox vazia em multilinha continua aprovada",
+    "checkbox desmarcada por defaultChecked={false} continua aprovada: ${body.replace(/\\s+/g, ",
+    "exemplo comentado de defaultChecked nao e consentimento pre-marcado",
+    "defaultChecked sem valor explicito e flagrado pelo scanner JSX",
+    "valor de outro atributo nao decide a caixa de consentimento",
+    "spread de literal com defaultChecked tambem e consentimento pre-marcado",
+    "reprova prova social escrita por extenso: ${claim}",
+    "comentario que cita o padrao nao conta como promessa na tela",
+    "arquivo de teste nao entra na varredura da interface",
+    "interface real do repositorio respeita os seis limites"
    ]
   },
   "tests/validate-site-supabase-target.node.mjs": {
@@ -40545,10 +40784,32 @@
   }
  },
  "git": {
-  "sha": "c93830fe6812dda2b68a6f00c4ee165ea7eb3445",
+  "sha": "9900f5a4d1d4a4e34002a0d4207f897049545f99",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "9900f5a",
+    "date": "2026-11-23",
+    "author": "adm01-debug",
+    "subject": "feat: inventario de afirmacoes comerciais com dono e prova (PF-55) (#240)",
+    "files": [
+     "analise-prs/funcionalidades.csv",
+     "docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md",
+     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
+     "docs/audits/planejado-x-implementado-20261120/02-pf-23-56-portal-lgpd-experiencia.md",
+     "docs/audits/planejado-x-implementado-20261120/06-plano-fechamento-100-e-carnegie-100.md",
+     "docs/inventario-afirmacoes/CHECKLIST-PERSUASAO.md",
+     "docs/inventario-afirmacoes/INVENTARIO.md",
+     "docs/inventario-afirmacoes/afirmacoes.json",
+     "package.json",
+     "scripts/automation.config.json",
+     "scripts/validate-commercial-claims.mjs",
+     "scripts/validate-persuasion-limits.mjs",
+     "tests/validate-commercial-claims.node.mjs",
+     "tests/validate-persuasion-limits.node.mjs"
+    ]
+   },
    {
     "sha": "c93830f",
     "date": "2026-11-23",
@@ -41010,15 +41271,6 @@
      "src/types/site-database.types.ts",
      "tests/check-performance-budget.node.mjs"
     ]
-   },
-   {
-    "sha": "e40d98f",
-    "date": "2026-11-21",
-    "author": "adm01-debug",
-    "subject": "chore(docs): reconcilia ground-truth de F-01/F-31/F-110 (#219)",
-    "files": [
-     "analise-prs/funcionalidades.csv"
-    ]
    }
   ],
   "hot_files": [
@@ -41028,7 +41280,7 @@
    ],
    [
     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
-    12
+    13
    ],
    [
     "scripts/check-performance-budget.mjs",
@@ -41037,6 +41289,10 @@
    [
     "tests/check-performance-budget.node.mjs",
     9
+   ],
+   [
+    "docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md",
+    7
    ],
    [
     "docs/DATABASE_DICTIONARY.md",
@@ -41051,8 +41307,8 @@
     6
    ],
    [
-    "docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md",
-    6
+    "package.json",
+    4
    ],
    [
     "src/pages/BackofficePage.tsx",
@@ -41071,6 +41327,14 @@
     4
    ],
    [
+    "docs/audits/planejado-x-implementado-20261120/02-pf-23-56-portal-lgpd-experiencia.md",
+    3
+   ],
+   [
+    "docs/audits/planejado-x-implementado-20261120/06-plano-fechamento-100-e-carnegie-100.md",
+    3
+   ],
+   [
     "src/lib/commercialBackoffice.ts",
     3
    ],
@@ -41083,23 +41347,11 @@
     3
    ],
    [
-    "package.json",
-    3
-   ],
-   [
     "src/lib/analytics.ts",
     3
    ],
    [
     "vercel.json",
-    3
-   ],
-   [
-    "e2e/smoke.spec.ts",
-    3
-   ],
-   [
-    "src/lib/customerAccount.ts",
     3
    ]
   ]

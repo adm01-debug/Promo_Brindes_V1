@@ -4,10 +4,10 @@
  "stack": {
   "linguagens": [
    "TypeScript (231)",
-   "Markdown (137)",
+   "Markdown (139)",
    "SQL (123)",
-   "JavaScript (67)",
-   "JSON (30)",
+   "JavaScript (71)",
+   "JSON (31)",
    "YAML (19)",
    "Python (8)",
    "CSS (4)"
@@ -56,9 +56,10 @@
    "automation:test": "node scripts/automation.mjs test",
    "automation:uninstall-hooks": "node scripts/automation.mjs uninstall-hooks",
    "build": "tsc -b && vite build && node scripts/stage-app-shell.mjs",
-   "check": "npm run lint && npm run typecheck && npm run test && npm run agents:instructions:check && npm run test:agent-instructions && npm run test:migration-names && npm run test:error-catalog && npm run test:env-example && npm run test:site-api-jwt && npm run test:timing-safe-secrets && npm run test:supabase-db-query && npm run test:ci-health && npm run test:release-url && npm run test:smoke-deployment && npm run test:stage-app-shell && npm run test:performance-budget && npm run test:site-guard && npm run test:database-docs && npm run test:soak-queue && npm run test:shared-selection-sql && npm run test:catalog-contract && npm run test:approvals-visual && npm run approvals:visual:check && npm run test:inventario && npm run contexto:test && npm run build && npm run check:performance-budget && npm run test:e2e",
+   "check": "npm run lint && npm run typecheck && npm run test && npm run agents:instructions:check && npm run test:agent-instructions && npm run test:migration-names && npm run test:error-catalog && npm run test:env-example && npm run test:site-api-jwt && npm run test:timing-safe-secrets && npm run test:supabase-db-query && npm run test:ci-health && npm run test:release-url && npm run test:smoke-deployment && npm run test:stage-app-shell && npm run test:performance-budget && npm run test:site-guard && npm run test:database-docs && npm run test:soak-queue && npm run test:shared-selection-sql && npm run test:catalog-contract && npm run test:approvals-visual && npm run approvals:visual:check && npm run test:claims && npm run test:persuasion && npm run persuasion:check && npm run test:inventario && npm run contexto:test && npm run build && npm run check:performance-budget && npm run test:e2e",
    "check:catalog-contract": "node scripts/check-catalog-public-contract.mjs",
    "check:performance-budget": "node scripts/check-performance-budget.mjs",
+   "claims:check": "node scripts/validate-commercial-claims.mjs",
    "contexto:banco:test": "python3 scripts/supabase_snapshot/test_snapshot.py",
    "contexto:ia": "node scripts/ai-context/gerar.mjs --out docs/contexto/codigo",
    "contexto:ia:cenarios": "node scripts/ai-context/cenarios.mjs",
@@ -104,6 +105,7 @@
    "maintenance:check": "sh scripts/maintenance/run.sh check --root . --ref origin/main",
    "maintenance:doctor": "sh scripts/maintenance/run.sh doctor --root .",
    "maintenance:heal": "sh scripts/maintenance/run.sh heal --root . --ref origin/main",
+   "persuasion:check": "node scripts/validate-persuasion-limits.mjs",
    "preview": "vite preview",
    "refs:orfaos": "node scripts/check-orphan-refs.mjs",
    "smoke:deployment": "node scripts/smoke-deployment.mjs",
@@ -112,6 +114,7 @@
    "test:approvals-visual": "node --test tests/validate-visual-approvals.node.mjs",
    "test:catalog-contract": "node --test tests/catalog-public-contract.node.mjs",
    "test:ci-health": "node --test tests/ci-health-metrics.node.mjs",
+   "test:claims": "node --test tests/validate-commercial-claims.node.mjs",
    "test:coverage": "vitest run --coverage",
    "test:database-docs": "node --test tests/generate-database-docs.node.mjs",
    "test:e2e": "playwright test --project=desktop-chromium --project=mobile-chromium",
@@ -125,6 +128,7 @@
    "test:migration-names": "node --test tests/validate-migration-names.node.mjs",
    "test:orphan-refs": "node --test tests/orphan-refs.node.mjs",
    "test:performance-budget": "node --test tests/check-performance-budget.node.mjs",
+   "test:persuasion": "node --test tests/validate-persuasion-limits.node.mjs",
    "test:queue-concurrency": "node --test tests/queue-concurrency.node.mjs",
    "test:release-url": "node --test tests/normalize-vercel-deployment-url.node.mjs",
    "test:shared-selection-sql": "node --test tests/verify-shared-selection-contract.node.mjs",
@@ -1085,6 +1089,10 @@
   },
   {
    "pasta": "docs/contexto",
+   "arquivos_md": 2
+  },
+  {
+   "pasta": "docs/inventario-afirmacoes",
    "arquivos_md": 2
   },
   {

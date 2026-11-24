@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `c93830fe6812dda2b68a6f00c4ee165ea7eb3445` (2026-11-23T23:38:45Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `9900f5a4d1d4a4e34002a0d4207f897049545f99` (2026-11-24T00:31:17Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -14,7 +14,7 @@ Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR
 Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua tarefa; não carregue tudo.
 
 ## Stack
-- linguagens: TypeScript (231), Markdown (137), SQL (123), JavaScript (67), JSON (30), YAML (19), Python (8), CSS (4)
+- linguagens: TypeScript (231), Markdown (139), SQL (123), JavaScript (71), JSON (31), YAML (19), Python (8), CSS (4)
 - linguagem_principal: TypeScript
 - framework: React
 - backend_http: vercel-functions
@@ -34,9 +34,9 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 ## Números
 | item | qtd |
 |---|---|
-| arquivos_total | 759 |
-| arquivos_codigo | 305 |
-| linhas_codigo | 61047 |
+| arquivos_total | 766 |
+| arquivos_codigo | 309 |
+| linhas_codigo | 61874 |
 | rotas | 35 |
 | rotas_http_backend | 16 |
 | vistas_por_id | 0 |
@@ -48,17 +48,17 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 | tabelas | 27 |
 | migrations | 77 |
 | cron_jobs | 0 |
-| testes | 161 |
+| testes | 163 |
 | workflows | 15 |
-| scripts | 38 |
-| docs_md | 137 |
+| scripts | 40 |
+| docs_md | 139 |
 
 ## Onde ficam as coisas
 - telas: src/pages (19)
 - componentes: src/components (20), src/pages (19), src/context (2)
 - hooks: src/lib (4), src/context (2)
 - servicos_logica: src/lib (47), api/_lib (16), src/context (3)
-- testes: co-localizado (*.test) (59), tests/ (49), outro (9)
+- testes: co-localizado (*.test) (59), tests/ (51), outro (9)
 - edge_functions: n/d
 - migrations: site-supabase/supabase/migrations
 - scripts: scripts/maintenance (4), scripts/inventario (3), scripts/regras_negocio (3)
@@ -176,7 +176,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - não gerado neste run. npm run graph:update (wrapper do repositório; não rode o CLI do graphify direto); saída em graphify-out/, não versionada
 
 ## Hotspots (arquivos mais alterados, 90 dias)
-- package.json (68)
+- package.json (69)
 - e2e/smoke.spec.ts (61)
 - src/styles.css (39)
 - package-lock.json (38)
@@ -185,7 +185,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - vercel.json (29)
 - src/pages/QuotePage.tsx (28)
 - site-supabase/supabase/tests/database/lead_storage.test.sql (27)
-- analise-prs/funcionalidades.csv (24)
+- analise-prs/funcionalidades.csv (25)
 - docs/DATABASE_FUNCTION_CONTRACTS.md (24)
 - src/components/Layout.tsx (24)
 - .github/workflows/release.yml (21)
@@ -226,7 +226,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `test:watch`: `vitest`
 - `test:e2e`: `playwright test --project=desktop-chromium --project=mobile-chromium`
 - `test:e2e:cross-browser`: `playwright test --project=desktop-firefox --project=desktop-webkit --workers=1`
-- `check`: `npm run lint && npm run typecheck && npm run test && npm run agents:instructions:check && npm run test:agent-instructions && npm run test:migration-names && npm run test:error-catalog && npm run test:env-example && npm run test:site-api-jwt && npm run test:timing-safe-secrets && npm run test:supabase-db-query && npm run test:ci-health && npm run test:release-url && npm run test:smoke-deployment && npm run test:stage-app-shell && npm run test:performance-budget && npm run test:site-guard && npm run test:database-docs && npm run test:soak-queue && npm run test:shared-selection-sql && npm run test:catalog-contract && npm run test:approvals-visual && npm run approvals:visual:check && npm run test:inventario && npm run contexto:test && npm run build && npm run check:performance-budget && npm run test:e2e`
+- `check`: `npm run lint && npm run typecheck && npm run test && npm run agents:instructions:check && npm run test:agent-instructions && npm run test:migration-names && npm run test:error-catalog && npm run test:env-example && npm run test:site-api-jwt && npm run test:timing-safe-secrets && npm run test:supabase-db-query && npm run test:ci-health && npm run test:release-url && npm run test:smoke-deployment && npm run test:stage-app-shell && npm run test:performance-budget && npm run test:site-guard && npm run test:database-docs && npm run test:soak-queue && npm run test:shared-selection-sql && npm run test:catalog-contract && npm run test:approvals-visual && npm run approvals:visual:check && npm run test:claims && npm run test:persuasion && npm run persuasion:check && npm run test:inventario && npm run contexto:test && npm run build && npm run check:performance-budget && npm run test:e2e`
 - `db:migration-names:check`: `node scripts/validate-migration-names.mjs`
 - `test:migration-names`: `node --test tests/validate-migration-names.node.mjs`
 - `db:site:error-catalog:check`: `node scripts/validate-error-catalog.mjs`
@@ -303,6 +303,10 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `test:inventario:banco-sql`: `node --test tests/inventario-banco-sql.node.mjs`
 - `approvals:visual:check`: `node scripts/validate-visual-approvals.mjs`
 - `test:approvals-visual`: `node --test tests/validate-visual-approvals.node.mjs`
+- `claims:check`: `node scripts/validate-commercial-claims.mjs`
+- `test:claims`: `node --test tests/validate-commercial-claims.node.mjs`
+- `persuasion:check`: `node scripts/validate-persuasion-limits.mjs`
+- `test:persuasion`: `node --test tests/validate-persuasion-limits.node.mjs`
 
 ## Documentos (raiz e docs/)
 - `.github/pull_request_template.md` (20 linhas)
@@ -392,10 +396,11 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `docs/SITE_SUPABASE_SETUP.md` — Supabase exclusivo do Site Promo Brindes (124 linhas)
 - `docs/UX_STRATEGY.md` — Estratégia de experiência — Site Promo Brindes (154 linhas)
 - `docs/prod-readiness.md` — Prod Readiness — Promo_Brindes_V1 (88 linhas)
-- subpastas de docs/: docs/audits (22), docs/agentes (9), docs/pendencias (4), docs/contexto (2), docs/aprovacoes-visuais (1)
+- subpastas de docs/: docs/audits (22), docs/agentes (9), docs/pendencias (4), docs/contexto (2), docs/inventario-afirmacoes (2), docs/aprovacoes-visuais (1)
 
 
 ## Últimos commits
+- 2026-11-24 `9900f5a` feat: inventario de afirmacoes comerciais com dono e prova (PF-55) (#240)
 - 2026-11-23 `c93830f` feat: corte de backlog da fila de notificações (F-11) (#234)
 - 2026-11-23 `0d78534` chore(deps): bump the npm-minor-and-patch group with 7 updates (#248)
 - 2026-11-23 `81ab3f8` chore(deps): bump actions/dependency-review-action (#246)
@@ -410,7 +415,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-22 `9ace0fc` chore: plano de correções e melhorias em 190 etapas (#244)
 - 2026-11-22 `20f6600` feat: endpoint de health confere a configuracao do banco (F-75) (#237)
 - 2026-11-22 `28a86e8` feat: por que este produto e ideias de uso (F-45) (#236)
-- 2026-11-22 `a6cd533` feat: mensagens da equipe ao cliente na linha do tempo (F-05) (#235)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

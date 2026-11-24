@@ -5,12 +5,12 @@
   "vitest",
   "playwright"
  ],
- "total": 161,
+ "total": 163,
  "por_tipo": {
   "contrato": 2,
   "e2e": 6,
   "pytest": 4,
-  "unit": 111
+  "unit": 113
  },
  "onde_ficam": [
   {
@@ -19,7 +19,7 @@
   },
   {
    "padrao": "tests/",
-   "arquivos": 49
+   "arquivos": 51
   },
   {
    "padrao": "outro",
@@ -1105,6 +1105,15 @@
    "casos": 28
   },
   {
+   "arquivo": "tests/validate-commercial-claims.node.mjs",
+   "tipo": "unit",
+   "linhas": 181,
+   "testa": [
+    "scripts/validate-commercial-claims.mjs"
+   ],
+   "casos": 24
+  },
+  {
    "arquivo": "tests/validate-env-example.node.mjs",
    "tipo": "unit",
    "linhas": 133,
@@ -1130,6 +1139,15 @@
     "scripts/validate-migration-names.mjs"
    ],
    "casos": 19
+  },
+  {
+   "arquivo": "tests/validate-persuasion-limits.node.mjs",
+   "tipo": "unit",
+   "linhas": 160,
+   "testa": [
+    "scripts/validate-persuasion-limits.mjs"
+   ],
+   "casos": 14
   },
   {
    "arquivo": "tests/validate-site-supabase-target.node.mjs",
@@ -1241,9 +1259,11 @@
   "scripts/soak-test-notification-queue.mjs": 1,
   "scripts/validate-agent-instructions.mjs": 1,
   "scripts/validate-closure-ledger.mjs": 1,
+  "scripts/validate-commercial-claims.mjs": 1,
   "scripts/validate-env-example.mjs": 1,
   "scripts/validate-error-catalog.mjs": 1,
   "scripts/validate-migration-names.mjs": 1,
+  "scripts/validate-persuasion-limits.mjs": 1,
   "scripts/validate-visual-approvals.mjs": 1,
   "shared/campaignYears.ts": 2,
   "shared/catalogEditorial.ts": 2,
