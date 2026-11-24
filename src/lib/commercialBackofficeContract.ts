@@ -133,6 +133,12 @@ export interface SiteQuoteStatusChange {
   status: SiteQuoteStatus;
 }
 
+export interface SiteNotificationBacklogCut {
+  cancelled: number;
+  scanned: number;
+  reason: string;
+}
+
 export interface SiteQuoteProposalPublication {
   proposalId: string;
   version: number;
@@ -157,6 +163,12 @@ function readCount(value: unknown): number {
 
 function readNullableCount(value: unknown): number | null {
   return Number.isInteger(value) && Number(value) >= 0 ? Number(value) : null;
+}
+
+/** Destinatário da entrega: a confirmação do cliente ou o alerta do time comercial.
+ * Valor desconhecido cai em `customer`, que é a audiência com mais restrição. */
+function readAudience(value: unknown): 'customer' | 'commercial_team' {
+  return value === 'commercial_team' ? 'commercial_team' : 'customer';
 }
 
 function readStatus(value: unknown): SiteQuoteStatus {
@@ -190,8 +202,12 @@ export interface SiteNotificationExhaustedDelivery {
   lastErrorAt: string | null;
   updatedAt: string | null;
   emailHashPrefix: string;
+  /** Destinatário da entrega: a confirmação do cliente ou o alerta do time comercial. */
+  audience: 'customer' | 'commercial_team';
   suppressed: boolean;
   erased: boolean;
+  /** Mesmo critério do reprocessamento (janela, spam, anonimização, bloqueio ativo). */
+  reopenable: boolean;
 }
 
 export interface SiteNotificationDeliveryReport {
@@ -201,10 +217,20 @@ export interface SiteNotificationDeliveryReport {
   orphanEventOldestAt: string | null;
 }
 
+export const SITE_NOTIFICATION_SKIP_REASONS = [
+  'locked',
+  'not_exhausted',
+  'erased',
+  'out_of_window',
+  'ineligible',
+] as const;
+
+export type SiteNotificationSkipReason = (typeof SITE_NOTIFICATION_SKIP_REASONS)[number];
+
 export interface SiteNotificationReprocessingSkipped {
   deliveryId: string;
   status: string;
-  reason: 'locked' | 'not_exhausted';
+  reason: SiteNotificationSkipReason;
 }
 
 export interface SiteNotificationReprocessingResult {
@@ -347,6 +373,15 @@ export function parseSiteQuoteStatusChange(data: unknown): SiteQuoteStatusChange
   };
 }
 
+export function parseSiteNotificationBacklogCut(data: unknown): SiteNotificationBacklogCut {
+  if (!isRecord(data)) throw new Error('commercial_backoffice_invalid_backlog_cut');
+  return {
+    cancelled: readCount(data.cancelled),
+    scanned: readCount(data.scanned),
+    reason: readString(data.reason),
+  };
+}
+
 export function parseSiteQuoteProposalPublication(data: unknown): SiteQuoteProposalPublication {
   if (!isRecord(data)) throw new Error('commercial_backoffice_invalid_proposal_publication');
   return {
@@ -376,8 +411,10 @@ export function parseSiteNotificationDeliveryReport(data: unknown): SiteNotifica
       lastErrorAt: readNullableString(item.lastErrorAt),
       updatedAt: readNullableString(item.updatedAt),
       emailHashPrefix: readString(item.emailHashPrefix),
+      audience: readAudience(item.audience),
       suppressed: item.suppressed === true,
       erased: item.erased === true,
+      reopenable: item.reopenable !== false,
     }];
   });
   return {
@@ -386,6 +423,30 @@ export function parseSiteNotificationDeliveryReport(data: unknown): SiteNotifica
     reconcilableOrphanCount: readCount(data.reconcilableOrphanCount),
     orphanEventOldestAt: readNullableString(data.orphanEventOldestAt),
   };
+}
+
+export function parseSiteNotificationSkipReason(value: unknown): SiteNotificationSkipReason {
+  const reason = readString(value);
+  // Motivo novo do banco não pode virar "not_exhausted": os dois têm efeitos
+  // diferentes na mensagem ao operador.
+  return (SITE_NOTIFICATION_SKIP_REASONS as readonly string[]).includes(reason)
+    ? (reason as SiteNotificationSkipReason)
+    : 'not_exhausted';
+}
+
+const SITE_NOTIFICATION_SKIP_LABELS: Record<SiteNotificationSkipReason, string> = {
+  locked: 'estavam em uso por outro envio',
+  not_exhausted: 'já não estavam esgotadas',
+  erased: 'são de pedidos apagados pelo titular',
+  out_of_window: 'passaram da janela de 30 dias',
+  ineligible: 'são de pedidos marcados como spam',
+};
+
+/** Resume os motivos de recusa do reprocessamento na ordem em que o banco devolve. */
+export function describeSiteNotificationSkipReasons(skipped: SiteNotificationReprocessingSkipped[]): string {
+  const labels = new Set<string>();
+  for (const item of skipped) labels.add(SITE_NOTIFICATION_SKIP_LABELS[item.reason]);
+  return [...labels].join('; ');
 }
 
 export function parseSiteNotificationReprocessingResult(data: unknown): SiteNotificationReprocessingResult {
@@ -398,7 +459,7 @@ export function parseSiteNotificationReprocessingResult(data: unknown): SiteNoti
       return [{
         deliveryId,
         status: readString(item.status),
-        reason: readString(item.reason) === 'locked' ? 'locked' : 'not_exhausted',
+        reason: parseSiteNotificationSkipReason(item.reason),
       }];
     }),
   };

@@ -38,6 +38,7 @@ Todas usam `errcode = '22023'` (invalid_text_representation, reaproveitado como
 | `invalid_mod11_input` | `site_private.mod11_check_digit` (via trigger `site_private.assign_quote_protocol` em `quote_requests`) | Interno — a base do protocolo é montada só com dígitos pela própria trigger; nunca deveria propagar a um chamador HTTP | n/a |
 | `invalid_notification_channel` | `claim_site_quote_notification` | Só chamada pelo backend (`api/notifications.ts`), tratada como falha de infraestrutura | 500 (log + retry pelo cron) |
 | `invalid_notification_claim_input` | `claim_site_notification_deliveries` | Idem | 500 |
+| `invalid_notification_backlog_input` | `cancel_site_notification_backlog` (F-11) | Motivo do corte fora de 3..200 caracteres; a UI do back-office envia texto do operador e mostra o erro no painel | 400 no painel; não alcançável por visitante |
 | `invalid_notification_finalize_input` | `finalize_site_notification_delivery` | Idem | 500 |
 | `invalid_notification_acceptance_input` | `record_site_notification_provider_acceptance` | Idem | 500 |
 | `invalid_notification_provider_event_input` | `apply_site_notification_provider_event` | `api/notification-events-resend.ts`/`-whatsapp.ts`; o erro vem da RPC, depois da assinatura já validada | 500 (`apply_failed`, para o provedor reentregar: `notification-events-resend.ts:116`, `notification-events-whatsapp.ts:158`). O 400 é outra coisa: payload malformado detectado antes da RPC (`invalid_json`, `invalid_payload`, `invalid_event_timestamp`) |

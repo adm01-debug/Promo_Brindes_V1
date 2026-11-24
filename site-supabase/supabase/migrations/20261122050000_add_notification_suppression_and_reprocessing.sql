@@ -604,7 +604,10 @@ begin
         join site_private.contact_requests request
           on delivery.request_kind = 'contact' and request.id = delivery.request_id
         where delivery.status = 'exhausted'
-        order by 9 desc, 1
+        -- Bloqueio deliberado (supressão/anonimização) não é recuperável pelo painel:
+        -- vai para o fim da lista para não consumir as vagas do limite com entrega que
+        -- o operador não pode reabrir. O mais antigo recuperável aparece primeiro.
+        order by 11, 12, 9 desc, 1
         limit v_limit
       ) item
     ), '[]'::jsonb),
@@ -698,8 +701,12 @@ begin
 
   if v_delivery.audience = 'customer'
     and site_private.notification_request_suppressed(v_delivery.request_kind, v_delivery.request_id) then
+    -- 'exhausted', nao 'cancelled': suppressed e um estado que o OPERADOR reabre
+    -- depois de resolver o bounce (RUNBOOK_INCIDENTES.md). 'cancelled' e terminal
+    -- por omissao na matriz de transicoes, e reprocess_site_notification_deliveries
+    -- so reabre 'exhausted' — cancelar aqui deixaria a confirmacao morta para sempre.
     update site_private.notification_deliveries delivery
-    set status = 'cancelled', last_error_code = 'recipient_suppressed',
+    set status = 'exhausted', last_error_code = 'recipient_suppressed',
         lease_token = null, lease_expires_at = null, claimed_at = null, updated_at = now()
     where delivery.id = v_delivery.id;
     return true;
@@ -710,7 +717,7 @@ end;
 $$;
 
 comment on function site_private.suppress_notification_delivery(uuid) is
-  'F-12: cancela entrega cujo destinatário está suprimido (bounce/complaint) ou cujo pedido foi apagado pela autoexclusão. Idempotente e restrita a estado não terminal.';
+  'F-12: encerra entrega cujo destinatário está suprimido (bounce/complaint) com status exhausted, para o operador reabrir via painel depois de resolver o bounce; e cancela entrega cujo pedido foi apagado pela autoexclusão (F-30), que é irreversível. Idempotente e restrita a estado não terminal.';
 
 revoke all on function site_private.suppress_notification_delivery(uuid) from public, anon, authenticated;
 grant execute on function site_private.suppress_notification_delivery(uuid) to site_api, service_role;

@@ -10,12 +10,14 @@
 import { siteSupabase } from './siteSupabase';
 import { runSiteRpc } from './siteRpc';
 import {
+  parseSiteNotificationBacklogCut,
   parseSiteNotificationDeliveryReport,
   parseSiteNotificationReprocessingResult,
   parseSiteQuoteDetail,
   parseSiteQuoteListPage,
   parseSiteQuoteProposalPublication,
   parseSiteQuoteStatusChange,
+  type SiteNotificationBacklogCut,
   type SiteNotificationDeliveryReport,
   type SiteNotificationReprocessingResult,
   type SiteQuoteDetail,
@@ -65,6 +67,14 @@ export async function updateSiteQuoteStatus(
   );
   if (error) throw error;
   return parseSiteQuoteStatusChange(data);
+}
+
+export async function cancelNotificationBacklog(reason: string): Promise<SiteNotificationBacklogCut> {
+  const { data, error } = await runSiteRpc(
+    siteClient().rpc('cancel_site_notification_backlog', { p_reason: reason.trim() }),
+  );
+  if (error) throw error;
+  return parseSiteNotificationBacklogCut(data);
 }
 
 export async function replySiteQuoteAdjustment(
