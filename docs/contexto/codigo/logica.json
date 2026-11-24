@@ -80,7 +80,7 @@
     "api",
     "api/_lib"
    ],
-   "coberto_por_testes": 2,
+   "coberto_por_testes": 3,
    "orfao": false
   },
   {
@@ -216,7 +216,7 @@
    "usado_por_modulos": [
     "api"
    ],
-   "coberto_por_testes": 8,
+   "coberto_por_testes": 9,
    "orfao": false
   },
   {
@@ -544,7 +544,7 @@
     "handler"
    ],
    "export_default": "handler",
-   "linhas": 131,
+   "linhas": 154,
    "tabelas": [],
    "rpcs": [
     "claim_site_commercial_team_alerts"
@@ -562,7 +562,7 @@
    "papeis": [],
    "usado_por": 0,
    "usado_por_modulos": [],
-   "coberto_por_testes": 1,
+   "coberto_por_testes": 2,
    "orfao": false
   },
   {

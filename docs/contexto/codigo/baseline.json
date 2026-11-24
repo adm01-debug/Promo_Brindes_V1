@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "05855d6852d16bf376acf4048595d9c837d05412",
+  "commit": "b68f5ccb2945edc214c7615dfec21f455a8ba282",
   "branch": "main",
-  "data_commit": "2026-11-24T14:31:43Z",
+  "data_commit": "2026-11-24T16:16:40Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "b68f5cc",
+    "data": "2026-11-24",
+    "assunto": "perf: alerta comercial entrega o lote da rodada em paralelo (12/h -> 48/h) (#255)"
+   },
    {
     "sha": "05855d6",
     "data": "2026-11-24",
@@ -126,14 +131,9 @@
     "sha": "180c09a",
     "data": "2026-11-22",
     "assunto": "docs: executa a revisao mensal do banco e corrige a coluna duplicada (F-90) (#229)"
-   },
-   {
-    "sha": "e249b52",
-    "data": "2026-11-22",
-    "assunto": "fix: mensagem acionavel no limite de 3 ajustes pendentes (F-04) (#230)"
    }
   ],
-  "arquivos_mudados_7d": 219,
+  "arquivos_mudados_7d": 213,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "analise-prs/funcionalidades.csv",
@@ -301,7 +301,7 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 130
+    "commits": 131
    },
    {
     "autor": "dependabot[bot]",
@@ -310,9 +310,9 @@
   ]
  },
  "contagens": {
-  "arquivos_total": 780,
-  "arquivos_codigo": 313,
-  "linhas_codigo": 62387,
+  "arquivos_total": 781,
+  "arquivos_codigo": 314,
+  "linhas_codigo": 62612,
   "rotas": 35,
   "rotas_http_backend": 16,
   "vistas_por_id": 0,
@@ -324,7 +324,7 @@
   "tabelas": 27,
   "migrations": 77,
   "cron_jobs": 0,
-  "testes": 164,
+  "testes": 165,
   "workflows": 15,
   "scripts": 41,
   "docs_md": 139
@@ -340,7 +340,7 @@
   },
   "api/commercial-alerts.ts": {
    "arquivos": 1,
-   "linhas": 131
+   "linhas": 154
   },
   "api/contact-requests.ts": {
    "arquivos": 1,
@@ -635,8 +635,8 @@
    "linhas": 168
   },
   "tests/api": {
-   "arquivos": 22,
-   "linhas": 4504
+   "arquivos": 23,
+   "linhas": 4706
   },
   "tests/catalog-public-contract.node.mjs": {
    "arquivos": 1,

@@ -1,6 +1,6 @@
 # 07 · REGRAS DE NEGÓCIO
 
-> Gerado automaticamente por AI Context Sync v1.3.2 · commit `05855d6852` · branch `main` · 2026-11-24 14:32 UTC
+> Gerado automaticamente por AI Context Sync v1.3.2 · commit `b68f5ccb29` · branch `main` · 2026-11-24 16:17 UTC
 > Não edite à mão — regras humanas vão em `manual/`.
 
 ## A. Regras escritas por humanos (`manual/` — prioridade máxima, nunca sobrescrito)
@@ -697,7 +697,7 @@ _nenhum item encontrado_
 | `MAX_ASSET_BYTES` | `10 * 1024 * 1024` | `api/briefing-assets.ts` |
 | `BUCKET` | `'customer-briefing-assets'` | `api/briefing-assets.ts` |
 | `COMMERCIAL_ALERTS_TIMEOUT_MS` | `10_000` | `api/commercial-alerts.ts` |
-| `COMMERCIAL_ALERTS_BATCH_SIZE` | `10` | `api/commercial-alerts.ts` |
+| `COMMERCIAL_ALERTS_BATCH_SIZE` | `4` | `api/commercial-alerts.ts` |
 | `CRON_WATCHDOG_TIMEOUT_MS` | `8_000` | `api/cron-watchdog.ts` |
 | `PROPOSAL_BUCKET` | `'customer-proposals'` | `api/customer-proposals.ts` |
 | `REQUEST_TIMEOUT_MS` | `10_000` | `api/customer-proposals.ts` |
@@ -1153,7 +1153,7 @@ _nenhum item encontrado_
 | `anon` | `src/lib/catalog.ts` |
 | `anon` | `src/lib/siteSupabaseConfig.ts` |
 
-## K. Testes como especificação (2242 testes em 155 arquivos — nomes completos em `context.json`)
+## K. Testes como especificação (2249 testes em 156 arquivos — nomes completos em `context.json`)
 
 | Arquivo | Testes | Exemplos do que o sistema DEVE fazer |
 |---|---|---|
@@ -1254,6 +1254,7 @@ _nenhum item encontrado_
 | `src/lib/quoteItems.test.ts` | 7 | revalidação de itens históricos · preserva referência removida como bloqueio visível · marca produto removido sem apagá-lo silenciosamente · mantém os marcadores ao normalizar armazenamento local … |
 | `src/lib/quoteSubmission.test.ts` | 7 | reconciliação da seleção após o envio · considera inalterada uma seleção recriada por render sem edição · distingue edição de produto ou contexto da seleção enviada · remove somente os snapshots efetivamente enviados … |
 | `tests/soak-test-notification-queue.node.mjs` | 7 | percentile usa o método nearest-rank e devolve null para lista vazia · parseSoakConfig aplica os padrões e recusa valores fora do contrato · isTerminalDelivery reconhece sent, exhausted e failed com tentativas esgotadas · drena a fila sem falhas, só fala com o banco local e escreve o relatório com os padrões reais … |
+| `tests/api/commercial-alerts-cron.test.ts` | 7 | cron do alerta comercial (PF-01) · recusa chamada sem o segredo do agendador · entrega o lote da rodada em paralelo, não um alerta por rodada · um webhook que falha não impede os outros alertas do mesmo lote … |
 | `tests/api/cron-watchdog.test.ts` | 7 | vigia dos crons (F-87) · recusa chamadas sem o segredo da tarefa agendada · recusa métodos que não são GET · responde 200 quando todos os crons estão saudáveis … |
 | `tests/api/product-page.test.ts` | 7 | HTML inicial de fichas de produto · escapa conteúdo de catálogo no head e no JSON-LD · entrega produto com metadados específicos e schema sem virar checkout · responde 404 e noindex para um identificador inválido sem consultar o catálogo … |
 | `src/context/CustomerAuthContext.test.tsx` | 6 | inicialização da autenticação do cliente · sai do carregamento infinito, informa a falha e permite tentar novamente · trata o erro retornado pelo SDK mesmo quando a Promise é resolvida · não apaga a falha quando INITIAL_SESSION chega vazio após getSession falhar … |
@@ -1338,6 +1339,9 @@ _nenhum item encontrado_
 | A validação abaixo continua recusando PDF antes de qualquer leitura. | `api/briefing-assets.ts` |
 | Mesmo motivo do download de proposta: o limite de 20 verificacoes por 15 | `api/briefing-assets.ts` |
 | o gate de CI tests/api/maxDuration.test.ts. O sinal de deadline da rodada | `api/commercial-alerts.ts` |
+| foi iniciado (o claim consumiu a janela inteira) — resíduo, não a regra. */ | `api/commercial-alerts.ts` |
+| O lote roda em paralelo sobre o mesmo deadline: as entregas compartilham | `api/commercial-alerts.ts` |
+| aberta. allSettled, e não all, porque uma entrega que estourar não pode | `api/commercial-alerts.ts` |
 | O limite de 30 downloads por 15 minutos (site_private.consume_rate_limit, | `api/customer-proposals.ts` |
 | documento havia sumido e repetia a tentativa que o fez bater no limite. | `api/customer-proposals.ts` |
 | a leitura de propostas após o corte do privilégio mínimo. | `api/customer-proposals.ts` |

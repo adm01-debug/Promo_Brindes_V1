@@ -21,7 +21,7 @@
   ],
   "testes": [
    "co-localizado (*.test) (59)",
-   "tests/ (52)",
+   "tests/ (53)",
    "outro (9)"
   ],
   "edge_functions": null,
@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "perf: alerta comercial entrega o lote da rodada em paralelo (12/h -> 48/h) (#255)",
    "feat: alerta comercial por e-mail quando nao ha webhook do time (F-01) (#254)",
    "docs: reconcilia matriz dos 230 requisitos com o código atual (#253)",
    "feat: capa social própria para cada coleção de catálogos (UX58) (#252)",
-   "fix(release): aplica migration fora de ordem em vez de derrubar o deploy (#251)",
-   "feat: inventario de afirmacoes comerciais com dono e prova (PF-55) (#240)"
+   "fix(release): aplica migration fora de ordem em vez de derrubar o deploy (#251)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

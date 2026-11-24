@@ -5,12 +5,12 @@
   "vitest",
   "playwright"
  ],
- "total": 164,
+ "total": 165,
  "por_tipo": {
   "contrato": 2,
   "e2e": 6,
   "pytest": 4,
-  "unit": 114
+  "unit": 115
  },
  "onde_ficam": [
   {
@@ -19,7 +19,7 @@
   },
   {
    "padrao": "tests/",
-   "arquivos": 52
+   "arquivos": 53
   },
   {
    "padrao": "outro",
@@ -736,6 +736,17 @@
    "casos": 4
   },
   {
+   "arquivo": "tests/api/commercial-alerts-cron.test.ts",
+   "tipo": "unit",
+   "linhas": 202,
+   "testa": [
+    "api/_lib/commercialTeamAlerts.ts",
+    "api/_lib/leadHandler.ts",
+    "api/commercial-alerts.ts"
+   ],
+   "casos": 6
+  },
+  {
    "arquivo": "tests/api/commercial-team-alerts.test.ts",
    "tipo": "unit",
    "linhas": 381,
@@ -1230,12 +1241,12 @@
  ],
  "cobertura_por_arquivo": {
   "api/_lib/catalogValidation.ts": 2,
-  "api/_lib/commercialTeamAlerts.ts": 2,
+  "api/_lib/commercialTeamAlerts.ts": 3,
   "api/_lib/contracts.ts": 1,
   "api/_lib/cronHeartbeats.ts": 1,
   "api/_lib/curatedPagePreviews.ts": 1,
   "api/_lib/fileSignatures.ts": 1,
-  "api/_lib/leadHandler.ts": 8,
+  "api/_lib/leadHandler.ts": 9,
   "api/_lib/operationalAlerts.ts": 1,
   "api/_lib/pageShell.ts": 1,
   "api/_lib/publicProductPage.ts": 1,
@@ -1243,7 +1254,7 @@
   "api/_lib/siteDatabase.ts": 1,
   "api/_lib/webhookSignature.ts": 1,
   "api/briefing-assets.ts": 2,
-  "api/commercial-alerts.ts": 1,
+  "api/commercial-alerts.ts": 2,
   "api/contact-requests.ts": 1,
   "api/cron-watchdog.ts": 2,
   "api/customer-proposals.ts": 2,
