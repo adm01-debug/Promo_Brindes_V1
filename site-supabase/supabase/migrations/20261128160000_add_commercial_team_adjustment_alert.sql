@@ -34,6 +34,90 @@ alter table site_private.notification_deliveries
   add constraint notification_deliveries_request_kind_check
   check (request_kind in ('quote', 'contact', 'adjustment'));
 
+-- 2) Duas funcoes de privacidade so conheciam 'quote' e 'contact', e sao
+--    exatamente elas que o claim pontual consulta antes de reivindicar: sem o
+--    ramo do ajuste, um ajuste de pedido apagado por direito ao esquecimento
+--    (F-30) continuaria seguindo para o webhook comercial, e o backlog do
+--    ajuste nunca seria cortado como inelegivel. A elegibilidade por idade e
+--    por spam ja cobre o ajuste em (3); aqui entra o e-mail anonimizado.
+create or replace function site_private.notification_request_erased(
+  p_request_kind text,
+  p_request_id uuid
+)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $fn$
+  select case p_request_kind
+    when 'quote' then exists (
+      select 1 from site_private.quote_requests request
+      where request.id = p_request_id and request.email like '%@erased.invalid'
+    )
+    when 'contact' then exists (
+      select 1 from site_private.contact_requests request
+      where request.id = p_request_id and request.email like '%@erased.invalid'
+    )
+    when 'adjustment' then exists (
+      select 1
+      from site_private.quote_adjustment_requests adjustment
+      join site_private.quote_requests request on request.id = adjustment.quote_request_id
+      where adjustment.id = p_request_id and request.email like '%@erased.invalid'
+    )
+    else false
+  end;
+$fn$;
+
+-- Mesma lacuna na supressao por bounce/complaint: o e-mail considerado e o do
+-- pedido dono do ajuste, nao o do ajuste (o ajuste nao guarda e-mail).
+create or replace function site_private.notification_request_suppressed(
+  p_request_kind text,
+  p_request_id uuid
+)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $fn$
+  select exists (
+    select 1
+    from site_private.notification_deliveries delivery
+    where delivery.audience = 'customer'
+      and (delivery.delivery_state = 'bounced' or delivery.complained_at is not null)
+      and site_private.email_hash(
+        case p_request_kind
+          when 'quote' then (
+            select request.email from site_private.quote_requests request where request.id = p_request_id
+          )
+          when 'contact' then (
+            select request.email from site_private.contact_requests request where request.id = p_request_id
+          )
+          when 'adjustment' then (
+            select request.email
+            from site_private.quote_adjustment_requests adjustment
+            join site_private.quote_requests request on request.id = adjustment.quote_request_id
+            where adjustment.id = p_request_id
+          )
+        end
+      ) = case delivery.request_kind
+        when 'quote' then site_private.email_hash((
+          select request.email from site_private.quote_requests request where request.id = delivery.request_id
+        ))
+        when 'adjustment' then site_private.email_hash((
+          select request.email
+          from site_private.quote_adjustment_requests adjustment
+          join site_private.quote_requests request on request.id = adjustment.quote_request_id
+          where adjustment.id = delivery.request_id
+        ))
+        else site_private.email_hash((
+          select request.email from site_private.contact_requests request where request.id = delivery.request_id
+        ))
+      end
+  );
+$fn$;
+
 -- 2) Enfileiramento: todo ajuste novo gera um alerta comercial pendente na
 --    mesma transação do pedido (igual a quote_requests_enqueue_confirmations
 --    e a contact_requests_enqueue_commercial_alert).
@@ -110,6 +194,13 @@ $fn$;
 revoke all on function site_private.notification_delivery_is_eligible(text, uuid, timestamptz, interval) from public, anon, authenticated;
 grant execute on function site_private.notification_delivery_is_eligible(text, uuid, timestamptz, interval) to site_api, service_role;
 
+-- O helper acima e security invoker de proposito (20261122060000:66-67): quem
+-- chama ja enxerga as tabelas do lead. `quote_adjustment_requests` nasceu sem
+-- grant para site_api (20260910130000 so deu service_role), entao o ramo novo
+-- estouraria 42501 dentro do claim do worker. So leitura: o worker nunca grava
+-- ajuste, quem grava e a RPC do titular (security definer).
+grant select on site_private.quote_adjustment_requests to site_api;
+
 -- 3) Envelope do ajuste. `volatile` é deliberado: é o que faz a função pegar
 --    um snapshot novo e enxergar o lease gravado pela CTE data-modifying do
 --    claim em lote (mesmo contrato de quote_notification_payload,
@@ -176,8 +267,30 @@ begin
     and delivery.status in ('pending', 'failed')
     and delivery.next_attempt_at <= now()
     and delivery.attempts < v_policy.max_attempts
+  order by delivery.created_at, delivery.id
+  limit 1;
+
+  if not found then return null; end if;
+  if site_private.suppress_notification_delivery(v_delivery.id) then return null; end if;
+
+  select * into v_delivery
+  from site_private.notification_deliveries delivery
+  where delivery.id = v_delivery.id
   for update skip locked;
   if not found then return null; end if;
+  if v_delivery.status not in ('pending', 'failed')
+    or v_delivery.next_attempt_at > now()
+    or v_delivery.attempts >= v_policy.max_attempts then
+    return null;
+  end if;
+
+  if not site_private.notification_delivery_is_eligible(
+    v_delivery.request_kind, v_delivery.request_id, v_delivery.created_at, v_policy.max_age) then
+    perform site_private.cancel_ineligible_notification_backlog(
+      v_delivery.request_kind, v_delivery.request_id, 'notification worker',
+      'claim pontual de entrega inelegivel', v_policy.max_age);
+    return null;
+  end if;
 
   update site_private.notification_deliveries delivery
   set status = 'processing', attempts = delivery.attempts + 1, updated_at = now(),
