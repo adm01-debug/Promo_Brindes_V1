@@ -45,7 +45,7 @@ Quem destrava: **ENG** = engenharia pode fazer agora · **DONO** = decisão/cred
 | IMPLEMENTADO | 16 | PF-04 (mensagem acionável; liberar o limite segue dependendo da triagem), PF-10, 27, 31 (código; aplicação remota a confirmar), 49, 66, 67 (com divergência: `allowed_actions: selected`), 77, 80, 85, 102, 103, 109, 112, 117, 128 |
 | PARCIAL | 48 | PF-01, 11, 14, 15, 16, 17, 18, 23, 24, 25, 28, 29, 32, 35, 37, 40, 42, 43, 44, 48, 50, 53, 56, 60, 62, 63, 70, 71, 72, 73, 74, 78, 79, 88, 94, 96, 97, 100, 101, 106, 108, 111, 114, 116, 118, 119, 122, 123 |
 | PARCIAL-VALIDAÇÃO | 5 | PF-06, 26, 51, 65, 92 |
-| NÃO INICIADO | 28 | PF-03, 05, 12, 30, 34, 38 (PR #211), 39 (PR #212), 41 (PR #213), 45, 47, 54, 55, 68, 82, 84, 87, 90, 93, 95, 98, 99, 107, 110, 113, 120, 121, 124, 125 |
+| NÃO INICIADO | 28 | PF-03, 05, 12, 30, 34, 38 (PR #211), 39 (PR #212), 41 (PR #213), 45, 47, 54, 55, 68, 82, 84, 87, 90, 93, 95, 98, 99, 107, 110, 113, 120, 121, 124, 125 — **sete destes (03, 05, 12, 30, 47, 87, 125) já estão IMPLEMENTADOS; ver a reverificação de 28/11 no fim do documento** |
 | BLOQUEADO (externo) | 23 | PF-02, 07, 08, 09, 13, 22, 33, 36, 46, 52, 57, 58, 59, 64, 69, 76, 83, 86, 89, 104, 105, 126, 127 |
 | DIVERGÊNCIA | 8 | PF-19, 20, 21, 61, 75, 81, 91, 115 |
 
@@ -67,12 +67,12 @@ Quem destrava: **ENG** = engenharia pode fazer agora · **DONO** = decisão/cred
 | # | Lacuna | Estado | Mudou desde 11/10? | Quem destrava |
 | --- | --- | --- | --- | --- |
 | 1 | Aviso ao comercial quando chega orçamento/contato/ajuste (PF-01) | PARCIAL: orçamento e contato enfileiram e o cron `/api/commercial-alerts` entrega por webhook; **ajuste não**; destino depende de env remota | sim (#116, #158) | DONO (URL/token) + ENG (ajuste) |
-| 2 | Ferramenta interna para publicar proposta, mudar status e responder ajuste (PF-03/04/05/23) | NÃO INICIADO; cliente ainda trava após 3 ajustes pendentes | não | ENG após decisão D1 |
+| 2 | Ferramenta interna para publicar proposta, mudar status e responder ajuste (PF-03/04/05/23) | **IMPLEMENTADO** em 28/11: RPCs em `20261122030000`, cliente `src/lib/commercialBackoffice.ts`, tela `/admin/orcamentos` | sim | — |
 | 3 | Confirmação ao cliente por e-mail/WhatsApp (PF-07/08/09) e texto "registrado para envio" (PF-14) | BLOQUEADO (ativação em produção NÃO VERIFICADA: depende de `RESEND_API_KEY`/`SITE_EMAIL_FROM`/`WHATSAPP_*` na Vercel, lidas por `api/notifications.ts:385-393`); WhatsApp já mostra "Indisponível" quando falta canal (#181), e-mail não | parcial (#181) | DONO (credenciais) + ENG |
 | 4 | Checkbox de WhatsApp sempre visível sem canal ligado (PF-15) | PARCIAL: texto corrigido (#160), exibição incondicional | parcial | ENG + DONO |
 | 5 | Secret scanning e push protection (PF-66) | IMPLEMENTADO (API 20/11) | sim | — |
 | 6 | Restore nunca ensaiado, sem RPO/RTO, Storage sem backup (PF-86) | BLOQUEADO | não | DONO |
-| 7 | Crons sem vigia independente (PF-87); fila agora medida mesmo sem provedor (PF-10) | PF-10 IMPLEMENTADO (#190); PF-87 NÃO INICIADO | parcial | ENG |
+| 7 | Crons sem vigia independente (PF-87); fila agora medida mesmo sem provedor (PF-10) | **PF-10 e PF-87 IMPLEMENTADOS** — `api/cron-watchdog.ts` + `20261122040000_add_cron_heartbeat_and_watchdog.sql` | sim | — |
 | 8 | LGPD: apagamento, autoexclusão, exportação e correção entregues (#161, #220) e Política alinhada ao comportamento real (PF-17) | IMPLEMENTADO | sim | ENG |
 | 9 | Briefing "escuta" fraco (PF-37 a PF-41) | PF-37 COMPLETA (#94 e #226); 38/39/41 com PRs abertas hoje | sim | ENG + mockup |
 | 10 | Domínio oficial (PF-59): canonical, sitemap, robots e CSP em `promo-brindes-v1.vercel.app`; `prod-readiness.md` diz que `www.promobrindes.com.br` já responde | BLOQUEADO | não | DONO |
@@ -432,3 +432,40 @@ PF-10 (#190) · PF-27 (#183) · PF-31 código (#161) · PF-49 (#166/#170/#177/#1
 1. **Ligar o aviso ao comercial de ponta a ponta** — o código de orçamento e contato está pronto e silencioso sem a URL; falta configurar `COMMERCIAL_TEAM_WEBHOOK_URL`/`_TOKEN` na Vercel (decisão D1: N8N→Bitrix), estender o alerta ao pedido de ajuste (NOVO-DB-01: CHECK `request_kind` + trigger em `quote_adjustment_requests`) e medir a ausência da URL (NOVO-PC-03) · `site-supabase/supabase/migrations`, `api/_lib/commercialTeamAlerts.ts`, Vercel env.
 2. **Parar de prometer o que não acontece** — e-mail "Registrado para envio" vira "Indisponível" quando não há Resend (PF-14), checkbox de WhatsApp só aparece com canal ligado (PF-15), textos "Personalize este produto…" (PF-19), "51–200 un." (PF-20), "ficam salvos" (PF-21) e `PrivacyPage.tsx:16-17` corrigidos (PF-17) · `api/notifications.ts`, `src/pages/QuotePage.tsx`, `src/components/ProductCard.tsx`, `src/lib/campaignPresets.ts`, `src/lib/quoteDraft.ts`, `src/pages/PrivacyPage.tsx`.
 3. **Realinhar documentação e configuração que mentem hoje** — `allowed_actions` de volta a `all` (D13), 6 runbooks (RELEASE, INCIDENTES, RESTORE, VERIFICACAO_DB, PEDIDO_TITULAR, ROTACAO: inclui `SITE_SUPABASE_DB_URL`), `AGENTS.md`/`contexto-agentes.md` (cron horário), `vercel-deploy.md` (3 crons), `MATRIZ_RISCO_CAMADA_TESTE.md`, `analise-prs/funcionalidades.csv` e `regras-de-negocio.md`, `.github/CODEOWNERS` · `docs/`, `.github/`, Settings do GitHub.
+
+## Reverificação de 28/11/2026 — itens que o documento dava como pendentes e já estão entregues
+
+Reverificação item a item no `main` = `87bf876`. Cada linha traz o comando reproduzível e a evidência. Os itens abaixo **saem da lista de pendência de engenharia**; o documento de 20/11 estava defasado porque a maior parte foi entregue entre 21 e 27/11 (PRs #211–#257).
+
+| ID | Veredito em 20/11 | Estado medido em 28/11 | Evidência |
+| --- | --- | --- | --- |
+| PF-03 | NÃO INICIADO | **IMPLEMENTADO** | RPCs `list_site_quote_requests`, `get_site_quote_request`, `update_site_quote_status`, `reply_site_quote_adjustment`, `publish_site_quote_proposal` (`site-supabase/supabase/migrations/20261122030000_add_commercial_backoffice_rpcs.sql:124,242,345,416,506`); cliente `src/lib/commercialBackoffice.ts:42,55,61,80,95`; tela `src/pages/BackofficePage.tsx` na rota `/admin/orcamentos` (`src/App.tsx:128`) |
+| PF-05 | NÃO INICIADO | **IMPLEMENTADO** | `proposal_published` é gravado pelo produtor em `20261122030000_add_commercial_backoffice_rpcs.sql:575`; contrato coberto em `src/lib/commercialBackofficeContract.test.ts:78,117` |
+| PF-12 | NÃO INICIADO | **IMPLEMENTADO (os 4)** | `20261122050000_add_notification_suppression_and_reprocessing.sql`: supressão (`:674`), reprocessamento (`:433,:518`), re-vínculo (`reconcile_site_notification_provider_events`, `:327`) e purga de órfãos (`purge_site_notification_provider_events`, `:1004`) |
+| PF-30 | NÃO INICIADO | **IMPLEMENTADO** | `export_my_data()` e `delete_my_data()` em `20261121110000_add_titular_lgpd_rights_rpcs.sql:136,301`; UI em `src/pages/CustomerAccountPage.tsx` (`CustomerDataSection`, exclusão com confirmação por e-mail) |
+| PF-47 | NÃO INICIADO (`grep wa.me` = 0) | **IMPLEMENTADO** | `src/lib/whatsappContact.ts` + `buildDefaultWhatsAppHref` usado em `src/components/Layout.tsx:11` e `src/pages/ContactPage.tsx:6` |
+| PF-87 | NÃO INICIADO (`grep watchdog` = 0) | **IMPLEMENTADO** | `api/cron-watchdog.ts` (85 linhas), `api/_lib/cronHeartbeats.ts`, migration `20261122040000_add_cron_heartbeat_and_watchdog.sql`, cron `*/30` em `vercel.json:10`, testes `tests/api/cron-watchdog.test.ts` e `site-supabase/supabase/tests/database/cron_heartbeat.test.sql` |
+| PF-125 | NÃO INICIADO | **IMPLEMENTADO** | `CustomerDataSection` em `src/pages/CustomerAccountPage.tsx:103-145` (perfil editável, exportação, exclusão) |
+
+### Como o erro foi possível
+
+O método de 20/11 aceitava busca negativa (`grep ... = 0`) como prova de ausência. As linhas PF-03, PF-05, PF-12, PF-47 e PF-87 foram reprovadas por nomes de símbolo que simplesmente não são os usados no código real (`publish_proposal` em vez de `publish_site_quote_proposal`, `heartbeat|lastRunAt|watchdog` procurando no diretório errado, `wa.me` presente só no teste). **Regra para as próximas auditorias**: busca negativa não fecha item; só fecha com o caminho de código da ponta (rota → componente → função → RPC/migration) ou com a medição no banco.
+
+### O que continua realmente pendente de engenharia
+
+| ID | Pendência | Por que não fecha agora |
+| --- | --- | --- |
+| PF-38, PF-39, PF-41 | PRs #211, #212, #213 abertas | Aguardam decisão visual do DONO (mockup), não código |
+| PF-68 | `environment:` nos jobs | Toca `.github/workflows/` — regra 8 |
+| PF-93 | Ensaio do rollback automático | Toca `release.yml` — regra 8 |
+| PF-95 | Pipeline sem duplicação | Toca `quality.yml` — regra 8 |
+| PF-99 | Tags de release | Decisão de versionamento do DONO |
+| PF-113 | Decompor `styles.css` (6.874 linhas) e `QuotePage` (619) | Refatoração ampla com risco de regressão visual; exige aval |
+| PF-121 | Comparação salva e compartilhável | Backlog de produto; a comparação local já persiste (`useCatalogPageState.ts:172`) |
+| PF-124 | Anexos no detalhe do orçamento (portal) | Exige DDL — regra 8 |
+| PF-90 | Lembrete recorrente da revisão mensal do banco | Falta o agendamento; não bloqueia negócio |
+| PF-107 | Conhecimento técnico no grafo | Depende de decisão de escopo do DONO |
+
+### O que está pronto e só depende de credencial ou conteúdío
+
+PF-01/07/08/09/14 (entrega de e-mail e WhatsApp), UX68, UX69 e LK45 — código, outbox, callbacks e recuperação prontos; falta `RESEND_API_KEY`, `SITE_EMAIL_FROM`, `WHATSAPP_*` e `COMMERCIAL_TEAM_WEBHOOK_URL`/`_TOKEN` nos ambientes da Vercel.
