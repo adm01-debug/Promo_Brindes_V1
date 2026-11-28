@@ -17,6 +17,8 @@ function validJob(overrides: Partial<CommercialAlertJob> = {}): CommercialAlertJ
     existingProvider: null,
     existingProviderMessageId: null,
     requestId: REQUEST_ID,
+    quoteRequestId: '',
+    pendingAdjustments: 0,
     attempt: 1,
     protocol: 'PB-2026-0001',
     recipientEmail: 'ana@empresa.com.br',
@@ -42,6 +44,20 @@ function validContactJob(overrides: Partial<CommercialAlertJob> = {}): Commercia
     items: [],
     preferredChannel: 'whatsapp',
     pageUrl: 'https://www.promobrindes.com.br/contato',
+    ...overrides,
+  });
+}
+
+/** Ajuste pedido pelo titular: aponta para o orcamento dono e informa quantos
+ * ajustes seguem em aberto. O texto livre do ajuste nunca entra no envelope. */
+function validAdjustmentJob(overrides: Partial<CommercialAlertJob> = {}): CommercialAlertJob {
+  return validJob({
+    requestKind: 'adjustment',
+    items: [],
+    preferredChannel: '',
+    pageUrl: '',
+    quoteRequestId: REQUEST_ID,
+    pendingAdjustments: 2,
     ...overrides,
   });
 }
@@ -170,6 +186,27 @@ describe('alerta comercial de orçamento (PF-01)', () => {
       expect(envelope.protocol).toBe('PB-2026-0001');
       expect(envelope.contact).toMatchObject({ name: 'Ana Silva', email: 'ana@empresa.com.br', company: 'Empresa Exemplo' });
       expect(envelope.items).toEqual([{ name: 'Mochila', sku: 'MO-42', quantity: 100, colorName: 'Verde' }]);
+    });
+
+    it('envia o envelope do ajuste apontando para o orcamento dono', async () => {
+      configureSiteDatabase();
+      vi.stubEnv('COMMERCIAL_TEAM_WEBHOOK_URL', WEBHOOK_URL);
+      const job = validAdjustmentJob();
+      const fetchMock = commercialFetchMock(job);
+      vi.stubGlobal('fetch', fetchMock);
+
+      const controller = new AbortController();
+      await expect(deliverCommercialAlertJob(job, controller.signal)).resolves.toBe('sent');
+
+      const webhookCall = fetchMock.mock.calls.find(([url]) => String(url) === WEBHOOK_URL);
+      expect(webhookCall).toBeDefined();
+      const [, init] = webhookCall as [unknown, RequestInit];
+      const envelope = JSON.parse(String(init.body)) as Record<string, unknown>;
+      expect(envelope.event).toBe('adjustment_requested');
+      expect(envelope.requestId).toBe(REQUEST_ID);
+      expect(envelope.quoteRequestId).toBe(REQUEST_ID);
+      expect(envelope.pendingAdjustments).toBe(2);
+      expect(envelope).not.toHaveProperty('message');
     });
 
     it('envia o envelope do contato, sem campo de orçamento e sem o texto livre do lead', async () => {

@@ -6,7 +6,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(68);
+select plan(72);
 
 -- === Estrutura da trilha =========================================================
 select has_table('site_private', 'subject_right_requests', 'trilha de exercicio de direito existe');
@@ -148,6 +148,45 @@ select is(jsonb_array_length(public.export_my_data() -> 'favorites'), 1, 'export
 select is((public.export_my_data() -> 'favorites' -> 0)::text, '"natal-2026"', 'favorito exportado e o id estavel');
 select is(jsonb_array_length(public.export_my_data() -> 'contacts'), 1, 'export inclui o contato pelo e-mail');
 select is((public.export_my_data() #>> '{contacts,0,message}'), 'Quero conhecer o catalogo', 'export inclui o texto do contato');
+-- PF-34: exportar tambem e ler PII, entao cada tabela exportada entra na trilha.
+-- Medido por delta: o bloco acima ja chamou o export varias vezes, entao o que
+-- importa e que UMA chamada acrescente exatamente 1 registro por tabela.
+create temporary table audit_before as
+select
+  (select count(*) from site_private.pii_read_audit_log
+   where subject = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'::uuid and table_name = 'quote_requests') as orcamentos,
+  (select count(*) from site_private.pii_read_audit_log
+   where subject = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'::uuid and table_name = 'contact_requests') as contatos;
+
+select public.export_my_data();
+
+select is(
+  (select count(*) from site_private.pii_read_audit_log
+   where subject = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'::uuid and table_name = 'quote_requests')
+    - (select orcamentos from audit_before),
+  1::bigint,
+  'export registra a leitura dos orcamentos do titular'
+);
+select is(
+  (select count(*) from site_private.pii_read_audit_log
+   where subject = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'::uuid and table_name = 'contact_requests')
+    - (select contatos from audit_before),
+  1::bigint,
+  'export registra a leitura dos contatos do titular'
+);
+select is(
+  (select count(*) from site_private.pii_read_audit_log
+   where table_name in ('quote_requests', 'contact_requests', 'subject_right_requests')
+     and subject is distinct from 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'::uuid),
+  0::bigint,
+  'nenhum export audita PII de outro titular'
+);
+select ok(
+  (select bool_and(row_count is not null) from site_private.pii_read_audit_log
+   where subject = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'::uuid
+     and table_name in ('quote_requests', 'contact_requests')),
+  'export registra quanto foi exportado'
+);
 select is(jsonb_array_length(public.export_my_data() -> 'adjustments'), 1, 'export inclui o pedido de ajuste');
 select ok(not (public.export_my_data() ? 'requestMetadata'), 'export nao expoe request_metadata bruto');
 select ok(

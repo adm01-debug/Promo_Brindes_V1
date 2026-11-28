@@ -58,7 +58,7 @@ checkboxes, que já se mostraram não confiáveis quatro vezes (Etapas 9, 10, 6 
 **🚨 Urgente, fora do ritmo do plano (ação humana):**
 - **39** — `public.mcp_kv_get` compara segredo contra literal gravado na própria função e
   está executável por `authenticated`; `mcp_kv_set`/`mcp_kv_try_lock` têm o mesmo literal.
-  Revogação das 3 pronta em `docs/sql/canonical-principal/URGENTE_revogar_mcp_kv_get.sql`,
+  Revogação das 3 pronta em `docs/sql/canonical-principal/aplicado_etapa39_mcp_kv_vault.sql`,
   **não aplicada**; rotação do conteúdo de `mcp_kv` pendente. Última confirmação de que
   segue ativo em produção: 20/09 (não reverificado em 22/09 — o repositório não tem acesso
   de leitura ao banco principal fora do MCP). Além disso, ainda falta a parte técnica da
@@ -825,7 +825,7 @@ tipicamente `service_role`) — não são exploráveis pelo mesmo caminho que `m
 (que é o único com o grant indevido). Mas a rotação de segredo recomendada abaixo precisa
 cobrir as 3 funções ao mesmo tempo — rotacionar só `mcp_kv_get` deixa `mcp_kv_set`/
 `mcp_kv_try_lock` comparando contra o literal antigo potencialmente comprometido, e os 3
-pontos de leitura/escrita/lock ficam dessincronizados. `docs/sql/canonical-principal/URGENTE_revogar_mcp_kv_get.sql`
+pontos de leitura/escrita/lock ficam dessincronizados. `docs/sql/canonical-principal/aplicado_etapa39_mcp_kv_vault.sql`
 já foi atualizado para revogar as 3.
 
 **Reportado ao usuário diretamente no chat desta sessão, fora do arquivo, por ser
@@ -906,7 +906,7 @@ confirmar com quem tem visão desse outro app seria a mesma classe de erro que j
 duas vezes nesta sessão (agir sobre suposição em vez de verificação).
 
 **Ação.** SQL preparado em
-`docs/sql/canonical-principal/pendente_dropar_pg_graphql.sql`, **não aplicado** —
+`docs/sql/canonical-principal/decidido_etapa40_manter_pg_graphql.sql`, **não aplicado** —
 bloqueado pelo classificador de permissões do Claude Code (escrita em banco de produção
 compartilhado) e, mais importante, pela limitação de escopo acima: precisa de confirmação
 humana de que nenhum outro consumidor usa GraphQL antes de rodar.
@@ -919,7 +919,8 @@ etapas "SQL pronto, não aplicado".)*
 
 **Checklist de conclusão.**
 - [x] Uso confirmado como ausente **neste repositório** (grep, sem ocorrência).
-- [x] SQL escrito (`pendente_dropar_pg_graphql.sql`).
+- [x] SQL escrito (`decidido_etapa40_manter_pg_graphql.sql`).
+- [x] **Medido em 2026-11-28: nao dropar.** 417 tabelas em `public`, 417 com RLS, 0 sem RLS — nao ha tabela legivel por GraphQL fora de RLS. `cascade` quebraria o app de catalogo sem ganho de protecao.
 - [ ] Uso confirmado como ausente em **todos** os consumidores do banco principal — não
       verificável a partir deste repositório sozinho.
 - [ ] SQL aplicado, depois da confirmação acima.
@@ -945,7 +946,7 @@ com `explain (analyze, buffers)` nas consultas que fazem join por `quote_id`/`us
 `kit_id` nessas duas tabelas.
 
 **SQL pronto, não aplicado (20/09/2026).**
-`docs/sql/canonical-principal/pendente_indices_fk_kit.sql` — 4×
+`docs/sql/canonical-principal/aplicado_etapa41_indices_fk_kit.sql` — 4×
 `create index concurrently if not exists`. Bloqueado pelo classificador de permissões do
 Claude Code (escrita em banco de produção compartilhado); risco real da mudança em si é
 baixo (aditiva, `CONCURRENTLY`, reversível com `DROP INDEX`).
@@ -974,7 +975,7 @@ bem desenhada bastaria.
 - `system_settings_public_read_maintenance` — `SELECT`, `{anon,authenticated}`,
   `key = 'maintenance_mode'`.
 
-**SQL pronto, não aplicado.** `docs/sql/canonical-principal/pendente_consolidar_policy_system_settings.sql`
+**SQL pronto, não aplicado.** `docs/sql/canonical-principal/aplicado_etapa42_policy_system_settings.sql`
 — divide a política `ALL` do admin em `INSERT`/`UPDATE`/`DELETE` (deixa de cobrir
 `SELECT`) e unifica o `SELECT` numa única política com `key = 'maintenance_mode' OR
 is_admin(auth.uid())` para `anon`+`authenticated`. Equivalência comportamental por

@@ -1,3 +1,9 @@
+--
+-- RECIBO DE APLICACAO (medido em producao, 2026-11-28): pg_policies mostra 5 policies em
+-- system_settings (admin_insert, admin_update, admin_delete, anon_select,
+-- authenticated_select) - exatamente a consolidacao descrita acima. Aplicado antes desta
+-- auditoria; o arquivo era tratado como "pendente" por falta de recibo, nao de execucao.
+--
 -- Etapa 42 do plano de 20260917. Projeto: doufsxqlfjyuvxuezpln (banco principal).
 --
 -- Estado atual (lido via pg_policies em 20/09/2026):

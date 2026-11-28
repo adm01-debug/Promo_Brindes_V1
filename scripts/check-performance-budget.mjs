@@ -156,7 +156,15 @@ try {
   // sobre a medicao local (1003,3 KiB com a F-11 ja rebaseada) — o mesmo criterio de folga de maquina que os
   // tetos de Brotli abaixo ja documentam. O teto Brotli continua sendo quem
   // barra regressao real de transferencia, e ele segue apertado.
-  assertBudget('JavaScript total', javascript, rawBytes(1008));
+  // Recalibrado em 28/11/2026 de 1008 para 1010 KiB quando o NOVO-FE-13
+  // (aviso explicito de conexao) entrou no chunk de entrada. A medicao local no
+  // perfil de pior caso ficou em 1007,8 KiB, ou seja o teto anterior ja nascia
+  // com 0,2 KiB de folga e qualquer feature seguinte reprovava por bytes. A
+  // tentativa de deixar o banner lazy foi descartada: o Rollup re-hoista o
+  // jsx-runtime para o chunk lazy e o index-*.js salta de 296 para 334 KiB,
+  // piorando o total (1008,6 KiB). A folga nova e de ~2,2 KiB, o mesmo criterio
+  // das recalibracoes anteriores, e ainda reprova regressoes acima disso.
+  assertBudget('JavaScript total', javascript, rawBytes(1010));
   assertBudget('Bundle de entrada', entry, rawBytes(300));
   assertBudget('CSS total (Brotli)', cssBrotli, rawBytes(32));
   // O total é um teto de manutenção para todo o corpus lazy. O download real
@@ -195,10 +203,18 @@ try {
   // A F-11 mediu 281,3 KiB de producao e 282,8 KiB de pior caso depois de
   // rebasear sobre a F-12, entao os tetos viram 283/285 para manter ~1,7 e
   // ~2,2 KiB de folga sobre a medicao local.
+  // Pior caso recalibrado em 28/11/2026 de 285 para 287 KiB junto com o teto raw
+  // acima (NOVO-FE-13). O pior caso medido aqui ficou em 284,1 KiB, entao a folga
+  // anterior era de 0,9 KiB — abaixo da variacao de runner (~1,3 KiB) que ja fez
+  // a CI reprovar sem nenhuma linha nova no mesmo SHA. A folga nova e de ~2,9 KiB.
+  // Producao recalibrada em 28/11/2026 de 283 para 286 KiB pelo mesmo motivo:
+  // medido 284,1 KiB com o NOVO-FE-13 e 284,0 KiB sem ele no commit 581cc14, ou
+  // seja o teto de 283 ja nascia estourado e reprovava qualquer branch, inclusive
+  // uma sem nenhuma linha nova. Folga nova de ~1,9 KiB.
   assertBudget(
     WORST_CASE ? 'JavaScript total (Brotli, pior caso com as flags ligadas)' : 'JavaScript total (Brotli)',
     javascriptBrotli,
-    rawBytes(WORST_CASE ? 285 : 283),
+    rawBytes(WORST_CASE ? 287 : 286),
   );
   assertBudget('Bundle de entrada (Brotli)', entryBrotli, rawBytes(90));
   assertBudget('JavaScript inicial (Brotli)', initialJavascriptBrotli, rawBytes(150));

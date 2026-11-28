@@ -1,0 +1,47 @@
+-- Etapa 40 do plano de 20260917. Projeto: doufsxqlfjyuvxuezpln (banco principal).
+--
+-- pg_graphql 1.5.11 está instalada (schema graphql) e expõe automaticamente qualquer
+-- tabela do schema public via /graphql/v1, independentemente de RLS estar correto (RLS
+-- ainda protege os dados, mas a superfície de descoberta do schema fica exposta).
+-- pg_graphql_anon_table_exposed (59) + pg_graphql_authenticated_table_exposed (457) = 516
+-- dos 623 WARN de segurança do projeto — maior fonte isolada de ruído do advisor.
+--
+-- NÃO RODAR SEM CONFIRMAR ANTES: `grep -r graphql src api` neste repositório (Promo_Brindes_V1)
+-- não encontra nenhum uso, mas este repositório é só UM consumidor do banco principal — o
+-- sistema de gestão de produtos/catálogo (magazine_*, fn_get_reposicao_*, etc.) tem uma
+-- aplicação própria fora deste repositório, e ela pode usar a API GraphQL sem que isso
+-- apareça em nenhum grep daqui. Confirme com quem mantém esse outro app antes de rodar.
+--
+-- Bloqueada pelo classificador de permissões do Claude Code (escrita em banco de produção
+-- compartilhado) e, mais importante, pela limitação de escopo acima. Rode manualmente,
+-- só depois da confirmação:
+--   psql "$MAIN_DB_CONNECTION_STRING" -f docs/sql/canonical-principal/pendente_dropar_pg_graphql.sql
+
+drop extension if exists pg_graphql cascade;
+
+-- Verificação pós-execução: get_advisors(type="security") deve cair de 623 para ~107
+--
+-- =====================================================================================
+-- MEDICAO 2026-11-28 - NAO DROPAR. A premissa de risco do texto acima nao se confirmou.
+--
+-- Medido no projeto (pg_catalog, nao por inferencia):
+--   417 tabelas em public, 417 com RLS habilitado, 0 sem RLS.
+-- Ou seja: nao existe uma tabela sequer legivel pela API GraphQL que nao passe por RLS.
+-- A superficie de "descoberta de schema" (o advisor contar 516 tabelas expostas) e
+-- ruido de advisor, nao vazamento de dado - RLS continua sendo a barreira real, e ela
+-- esta integra.
+--
+-- Custo de dropar: `cascade` remove a extensao do schema compartilhado doufsxqlfjyuvxuezpln,
+-- usado por uma aplicacao de catalogo que NAO vive neste repositorio (grep aqui e vazio,
+-- o que nao prova ausencia de uso la). Se esse app usar GraphQL, derrubar a extensao o
+-- quebra em producao.
+--
+-- Relacao risco/ganho: risco real de indisponibilidade, ganho zero para protecao de dado.
+-- Decisao: manter a extensao. Se o objetivo for reduzir ruido do advisor, a alternativa
+-- segura e desabilitar a exposicao por tabela (`comment on table ... is` nao resolve;
+-- a configuracao fica em `graphql_public`/`pg_graphql.comment`), trabalho que exige o
+-- dono do app de catalogo para validar - nao e cortavel daqui.
+-- =====================================================================================
+
+-- Mantido como referencia historica. NAO EXECUTAR.
+-- drop extension if exists pg_graphql cascade;
