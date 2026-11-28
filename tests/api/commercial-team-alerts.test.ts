@@ -17,6 +17,8 @@ function validJob(overrides: Partial<CommercialAlertJob> = {}): CommercialAlertJ
     existingProvider: null,
     existingProviderMessageId: null,
     requestId: REQUEST_ID,
+    quoteRequestId: '',
+    pendingAdjustments: 0,
     attempt: 1,
     protocol: 'PB-2026-0001',
     recipientEmail: 'ana@empresa.com.br',
