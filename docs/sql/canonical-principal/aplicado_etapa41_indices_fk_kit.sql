@@ -1,3 +1,9 @@
+--
+-- RECIBO DE APLICACAO (medido em producao, 2026-11-28): os 4 indices existem em
+-- pg_indexes -> idx_kit_quote_requests_user_id, idx_kit_quote_requests_quote_id,
+-- idx_kit_save_requests_user_id, idx_kit_save_requests_kit_id. Aplicado antes desta
+-- auditoria; o arquivo era tratado como "pendente" por falta de recibo, nao de execucao.
+--
 -- Etapa 41 do plano de 20260917. Projeto: doufsxqlfjyuvxuezpln (banco principal).
 -- Achado do performance advisor (get_advisors, 17/09/2026): 4 foreign keys sem índice
 -- de cobertura em kit_quote_requests e kit_save_requests — penaliza DELETE/UPDATE na
