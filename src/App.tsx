@@ -4,6 +4,7 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
+import { OfflineBanner } from './components/OfflineBanner';
 import { QuoteCartProvider } from './context/QuoteCartContext';
 import { CustomerAuthProvider } from './context/CustomerAuthContext';
 import { redactAnalyticsUrl, redactTelemetryUrl } from './lib/analytics';
@@ -104,6 +105,7 @@ export default function App() {
             <Analytics beforeSend={redactAnalyticsUrl} debug={false} />
             <SpeedInsights beforeSend={redactTelemetryUrl} />
             <ScrollManager />
+            <OfflineBanner />
             <RouteBoundary>
               <Layout>
                 <Suspense fallback={<RouteFallback />}>

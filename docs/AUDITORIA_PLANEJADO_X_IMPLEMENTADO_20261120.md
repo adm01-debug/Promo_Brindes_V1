@@ -265,7 +265,7 @@ Encontrados na releitura etapa a etapa dos planos (anexos 06 e 07), dos runbooks
 | NOVO-FE-05 | Compartilhamento/PDF sem cortar itens (50 itens/kits) + e2e após revogação (FE 018) | PARCIAL | Teste com 50 itens; e2e de acesso após revogação | `e2e/smoke.spec.ts:1545` | ENG |
 | NOVO-FE-10 | Integridade do kit na jornada: e2e em conta/histórico/confirmação (FE 049) | PARCIAL | E2E ponta a ponta do kit | `kit_composition.test.sql`; `smoke.spec.ts` | ENG |
 | NOVO-FE-12 | Datas/ICS sem deslocamento: teste bissexto/escape; importação em 2 clientes (FE 060) | PARCIAL | Importação do ICS em 2 clientes externos (fora do alcance de teste automatizado) | Bissexto/virada de ano e escape RFC 5545 cobertos em `commemorativeDates.test.ts` | ENG |
-| NOVO-FE-13 | Estado offline explícito (FE 065) | PARCIAL | `navigator.onLine` = 0 em `src/` | `e2e/journey.spec.ts:144` cobre só storage bloqueado | ENG |
+| NOVO-FE-13 | Estado offline explícito (FE 065) | RESOLVIDO | — | `src/lib/connection.ts` + `useConnectionStatus` + `OfflineBanner` no `App.tsx`: avisa antes do envio, anuncia a volta por 4s, `aria-live=polite`; 4 asserções em `OfflineBanner.test.tsx` | ENG |
 | NOVO-FE-14 | Contrato Vercel testado: rewrites, headers, `crons`, auth de cron (FE 089) | PARCIAL | `crons` e `headers` sem teste de contrato | `tests/api/maxDuration.test.ts:48-90` | ENG |
 | NOVO-FE-15 | Bateria final de regressão sobre o **candidato final** (FE 093) | PARCIAL | `prod-readiness.md` avaliou `8a810bd`, não `40f6420` | `docs/prod-readiness.md:3-5,63` | ENG |
 | NOVO-CA-22 | Buscas sem correspondência: SKU exato × nome; sugerir revisar briefing (CA 043) | PARCIAL | `grep sku src/lib/search.ts` = 0 | `CatalogFeedback.tsx:32-41` | ENG |
