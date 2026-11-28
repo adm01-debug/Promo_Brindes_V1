@@ -43,4 +43,45 @@ describe('commemorativeDates', () => {
     expect(ics).toContain('DTEND;VALUE=DATE:20260916');
     expect(ics).not.toContain('DTSTART:');
   });
+  it('nao desloca datas na virada de mes, de ano e em ano bissexto', () => {
+    // 31 de dezembro + 1 dia tem de cair em 1 de janeiro do ano seguinte, sem
+    // escorregar para 31/12 de novo nem para 2027-13-01.
+    const reveillon = { id: 'x', date: new Date(Date.UTC(2026, 11, 31)) } as never;
+    const ics = occasionCalendarFile(reveillon, 'https://example.com/datas');
+    expect(ics).toContain('DTSTART;VALUE=DATE:20261231');
+    expect(ics).toContain('DTEND;VALUE=DATE:20270101');
+
+    // 28 de fevereiro de ano bissexto + 1 dia = 29/02, nao 01/03.
+    const bissexto = { id: 'y', date: new Date(Date.UTC(2028, 1, 28)) } as never;
+    const icsBissexto = occasionCalendarFile(bissexto, 'https://example.com/datas');
+    expect(icsBissexto).toContain('DTSTART;VALUE=DATE:20280228');
+    expect(icsBissexto).toContain('DTEND;VALUE=DATE:20280229');
+
+    // 29 de fevereiro de ano bissexto + 1 dia = 01/03.
+    const ultimoDia = { id: 'z', date: new Date(Date.UTC(2028, 1, 29)) } as never;
+    expect(occasionCalendarFile(ultimoDia, 'https://example.com/datas')).toContain('DTEND;VALUE=DATE:20280301');
+  });
+
+  it('escapa os caracteres reservados do RFC 5545 no ICS', () => {
+    const ocasiao = {
+      id: 'escapetest',
+      date: new Date(Date.UTC(2026, 8, 15)),
+      name: 'Dia; do, Cliente',
+      concept: 'Linha 1\nLinha 2, com virgula, ponto e virgula; e barra \\ invertida',
+      leadWeeks: [2, 4],
+    } as never;
+    const ics = occasionCalendarFile(ocasiao, 'https://example.com/datas');
+    const summary = ics.split('\r\n').find((line: string) => line.startsWith('SUMMARY:')) as string;
+    const description = ics.split('\r\n').find((line: string) => line.startsWith('DESCRIPTION:')) as string;
+    // Nenhum ; , ou \ solto pode sobrar no valor: senao o parser do calendario
+    // corta o titulo no meio.
+    expect(summary).not.toMatch(/(?<!\\);|(?<!\\),/);
+    expect(summary).toContain('\\;');
+    expect(summary).toContain('\\,');
+    expect(description).toContain('\\n');
+    expect(description).toContain('\\\\');
+    // O texto nao pode quebrar o envelope do arquivo.
+    expect(ics.split('\r\n').filter((line: string) => line === 'BEGIN:VEVENT')).toHaveLength(1);
+    expect(ics.split('\r\n').filter((line: string) => line === 'END:VEVENT')).toHaveLength(1);
+  });
 });
