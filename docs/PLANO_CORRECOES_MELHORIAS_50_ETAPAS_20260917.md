@@ -58,7 +58,7 @@ checkboxes, que já se mostraram não confiáveis quatro vezes (Etapas 9, 10, 6 
 **🚨 Urgente, fora do ritmo do plano (ação humana):**
 - **39** — `public.mcp_kv_get` compara segredo contra literal gravado na própria função e
   está executável por `authenticated`; `mcp_kv_set`/`mcp_kv_try_lock` têm o mesmo literal.
-  Revogação das 3 pronta em `docs/sql/canonical-principal/URGENTE_revogar_mcp_kv_get.sql`,
+  Revogação das 3 pronta em `docs/sql/canonical-principal/aplicado_etapa39_mcp_kv_vault.sql`,
   **não aplicada**; rotação do conteúdo de `mcp_kv` pendente. Última confirmação de que
   segue ativo em produção: 20/09 (não reverificado em 22/09 — o repositório não tem acesso
   de leitura ao banco principal fora do MCP). Além disso, ainda falta a parte técnica da
@@ -825,7 +825,7 @@ tipicamente `service_role`) — não são exploráveis pelo mesmo caminho que `m
 (que é o único com o grant indevido). Mas a rotação de segredo recomendada abaixo precisa
 cobrir as 3 funções ao mesmo tempo — rotacionar só `mcp_kv_get` deixa `mcp_kv_set`/
 `mcp_kv_try_lock` comparando contra o literal antigo potencialmente comprometido, e os 3
-pontos de leitura/escrita/lock ficam dessincronizados. `docs/sql/canonical-principal/URGENTE_revogar_mcp_kv_get.sql`
+pontos de leitura/escrita/lock ficam dessincronizados. `docs/sql/canonical-principal/aplicado_etapa39_mcp_kv_vault.sql`
 já foi atualizado para revogar as 3.
 
 **Reportado ao usuário diretamente no chat desta sessão, fora do arquivo, por ser

@@ -190,7 +190,7 @@ Cada item junta todas as origens que pedem a mesma coisa. "Origens" usa: **MZ** 
 | PF-73 | Privilégio mínimo: cutover `SITE_SUPABASE_SERVICE_JWT` + credencial mínima de Storage + renovação do JWT | BLOQUEADO (adiado) + PARCIAL | Storage ainda exige `service_role`; JWT expira em 30 dias sem renovação nem alerta | `api/_lib/siteDatabase.ts:56-88`; `RUNBOOK_SITE_API_CUTOVER.md` | FE 024; P16:25; P23:39 | DONO + ENG |
 | PF-74 | Endurecimento de workflows: `harden-runner`, `zizmor`, `persist-credentials:false` em todos, `permissions` por job, SBOM, `npm audit signatures` bloqueante | NÃO INICIADO / PARCIAL | Detalhe no anexo 04 | `workflows-lint.yml:21-37`; `stale-branches.yml:22-25`; `quality.yml:40-41` | WF 35, 36, 43, 44, 48, 49; FE 080–081, 086 | ENG |
 | PF-75 | Verificação de configuração do banco no boot | IMPLEMENTADO | `api/health.ts` valida o destino do banco e o smoke de release exige `{"ok":true}` | `tests/api/health.test.ts`; `scripts/smoke-deployment.mjs:104` | anexo 08 §1.3 | ENG |
-| PF-76 | Banco principal: revogar `mcp_kv_get` (SECURITY DEFINER executável por `authenticated`, com literal de segredo) | BLOQUEADO (Promo Gifts, fora do escopo) | Item de **maior severidade** sem recibo de aplicação | `docs/sql/canonical-principal/URGENTE_revogar_mcp_kv_get.sql` | P17:39; AUD A01 | DONO (repo interno) |
+| PF-76 | Banco principal: revogar `mcp_kv_get` (SECURITY DEFINER executável por `authenticated`, com literal de segredo) | RESOLVIDO (2026-11-28) | Segredo removido de `pg_proc` e rotacionado no Vault; grants só `postgres`/`service_role`; verificado por medição | `docs/sql/canonical-principal/aplicado_etapa39_mcp_kv_vault.sql` | P17:39; AUD A01 | — |
 
 ### 2.9 Banco de dados e contratos
 

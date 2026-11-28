@@ -62,7 +62,7 @@ Só itens não concluídos. A coluna "Origens" junta todas as etapas equivalente
 | 38 | Pesquisa com compradores e dispositivos físicos | P23:32, P24:42 | BLOQUEADA-EXTERNA | Rodada formativa de 5 a 8 participantes, iOS/Android físicos. | Nenhum registro de sessões. |
 | 39 | Homologação real de Auth/sessão, propostas privadas e links (criar→abrir→revogar) | P23:24, P24:13, P24:14 | BLOQUEADA-EXTERNA (ambiente/contas controladas) | E-mail Auth real, expiração/refresh, PDF privado publicado em ensaio. | Código e testes existem; não há ensaio real registrado. |
 | 40 | Graphify: corpus documental e vínculo requisito→fonte→teste; ensaios adversariais; precisão semântica | P23:41, P23:42, P23:43, P23:44, P24:44, P24:45 | PARCIAL (41 e P24:44 NÃO INICIADAS) | Corpus documental allowlist e vínculos com procedência. Testes de timeout, interrupção, lock órfão, disco cheio, symlink externo e HTML hostil. Amostra julgada. | `tests/graphify-tools.node.mjs` (17 testes; homônimos, fingerprint, promoção atômica e tokens cobertos; nenhum de timeout/interrupção/symlink/HTML). Nenhuma extração documental em `scripts/graphify.mjs`. |
-| 41 | Itens do Promo Gifts: SSOT do contrato, Fase B (`anon` na view legada), SECURITY DEFINER (`mcp_kv_get`), `pg_graphql`, FKs de kits, policy `system_settings`, inventário, advisor do banco principal | P16:03, P16:43, P16:45 (SSOT), P17:05, P17:36, P17:39, P17:40, P17:41, P17:42, P17:43, P17:44 | BLOQUEADA-EXTERNA (fora do escopo; o AGENTS.md proíbe alterar o Promo Gifts) | Autorização e execução pelo dono do repositório/banco interno. O achado crítico `mcp_kv_get` não tem evidência de correção. | `docs/sql/canonical-principal/URGENTE_revogar_mcp_kv_get.sql` e 3 arquivos `pendente_*.sql` sem recibo de aplicação. `docs/DATABASE_PUBLIC_CONTRACT.md:27` ("decisão pendente do PO"). |
+| 41 | Itens do Promo Gifts: SSOT do contrato, Fase B (`anon` na view legada), SECURITY DEFINER (`mcp_kv_get`), `pg_graphql`, FKs de kits, policy `system_settings`, inventário, advisor do banco principal | P16:03, P16:43, P16:45 (SSOT), P17:05, P17:36, P17:39, P17:40, P17:41, P17:42, P17:43, P17:44 | BLOQUEADA-EXTERNA (fora do escopo; o AGENTS.md proíbe alterar o Promo Gifts) | Autorização e execução pelo dono do repositório/banco interno. O achado crítico `mcp_kv_get` não tem evidência de correção. | `docs/sql/canonical-principal/aplicado_etapa39_mcp_kv_vault.sql` e 3 arquivos `pendente_*.sql` sem recibo de aplicação. `docs/DATABASE_PUBLIC_CONTRACT.md:27` ("decisão pendente do PO"). |
 
 ### 1b. Decisões de alternativa/adiamento registradas
 
@@ -320,7 +320,7 @@ O ANEXO_PRODUTO propôs 114I/105P/11E/0N e retirou o N de LK10. O CSV continua e
 
 Origens: REVISAO_INDEPENDENTE A01; P17:39 "🚨 urgente".
 
-Não há evidência de correção. O SQL de revogação continua só como proposta em `docs/sql/canonical-principal/URGENTE_revogar_mcp_kv_get.sql`. É BLOQUEADA-EXTERNA: exige o dono do Promo Gifts, e o AGENTS.md proíbe a ação a partir do site. É o item de maior severidade sem rastreio de fechamento.
+Não há evidência de correção. O SQL de revogação continua só como proposta em `docs/sql/canonical-principal/aplicado_etapa39_mcp_kv_vault.sql`. É BLOQUEADA-EXTERNA: exige o dono do Promo Gifts, e o AGENTS.md proíbe a ação a partir do site. É o item de maior severidade sem rastreio de fechamento.
 
 **3. Preview não isolado ponta a ponta**
 

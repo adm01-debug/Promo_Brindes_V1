@@ -159,7 +159,7 @@ Base: `main` = `40f6420` (2026-11-19). Somente leitura. Desde a auditoria de 11/
 | PC-38 | Pesquisa com compradores | BLOQUEADO (pessoas) | — | — | não | PESSOAS |
 | PC-39 | Homologação real Auth/propostas/links | BLOQUEADO (ambiente) | #200/#201/#206/#199 ampliaram E2E sintético; ensaio real não registrado | `e2e/` (PRs citadas) | sim (E2E, não homologação) | DONO |
 | PC-40 (= PF-107/108) | Graphify: corpus documental, vínculo requisito→teste, ensaios adversariais | PARCIAL | Adversarial avançou (36 testes: timeout de subprocesso, trava órfã, falha de tmpdir, EPIPE, `.graphifyignore`); documental e requisito→teste continuam sem código | `tests/graphify-tools.node.mjs` (36 `test(`); `.graphify.project.json` sem `.md` em `sourceRoots` | sim (#194, #196, #198) | ENG |
-| PC-41 (= PF-76, PF-83) | Itens do Promo Gifts (`mcp_kv_get`, Fase B, pg_graphql, FKs, policy) | BLOQUEADO (repo/banco interno) | 4 SQLs continuam só como proposta | `ls docs/sql/canonical-principal/` → `URGENTE_revogar_mcp_kv_get.sql` + 3 `pendente_*.sql` | não | DONO (Promo Gifts) |
+| PC-41 (= PF-76, PF-83) | Itens do Promo Gifts (`mcp_kv_get`, Fase B, pg_graphql, FKs, policy) | 3 APLICADOS, 1 bloqueado | `mcp_kv` (segredo rotacionado p/ Vault), FKs de kit e policy `system_settings` aplicados e medidos em 2026-11-28; `pg_graphql` segue pendente de confirmação do app de catálogo | `ls docs/sql/canonical-principal/` → `aplicado_etapa39_mcp_kv_vault.sql` + `pendente_*.sql` | sim | — |
 
 ### 2.2 Os 8 adiamentos formais (anexo 06 §1b)
 
@@ -179,7 +179,7 @@ Base: `main` = `40f6420` (2026-11-19). Somente leitura. Desde a auditoria de 11/
 | # | Achado | Estado HOJE | Evidência |
 |---|---|---|---|
 | R1 | Matriz/ledger desatualizada | PARCIAL (só cabeçalho datado, #208) | ver PC-01 |
-| R2 | `mcp_kv_get` SECURITY DEFINER | BLOQUEADO (sem recibo) | `docs/sql/canonical-principal/URGENTE_revogar_mcp_kv_get.sql` |
+| R2 | `mcp_kv_get` SECURITY DEFINER | BLOQUEADO (sem recibo) | `docs/sql/canonical-principal/aplicado_etapa39_mcp_kv_vault.sql` |
 | R3 | Preview não isolado | BLOQUEADO | PC-23 |
 | R4 | Privilégio mínimo / Storage | BLOQUEADO + PARCIAL | `siteDatabase.ts:59-60` |
 | R5 | Backup ≠ recuperação | BLOQUEADO | PC-24 |

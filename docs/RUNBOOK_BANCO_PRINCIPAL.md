@@ -73,6 +73,17 @@ executada por alguém com acesso direto ao projeto `doufsxqlfjyuvxuezpln`. Este 
 não substitui isso — documenta o que verificar e para quem escalar, não como corrigir
 sem supervisão.
 
-**Achado ativo, tratado fora deste runbook**: `public.mcp_kv_get` — ver Etapa 39 do plano
-de 20260917 e o alerta direto desta sessão. Rotação de segredo e correção de grants são
-ação humana urgente, não algo que este runbook cobre.
+**Achado da Etapa 39 — CORRIGIDO em 2026-11-28 (exceção autorizada, registrada aqui)**:
+`public.mcp_kv_get/set/try_lock` comparavam contra um literal de 64 caracteres gravado na
+própria definição da função (legível por `pg_get_functiondef`). O dono do negócio autorizou
+explicitamente a escrita neste projeto para corrigir um segredo vazado — foi a exceção
+deliberada à regra "sem migrations daqui" do `AGENTS.md:53`, não um descuido. O que rodou
+está versionado em `docs/sql/canonical-principal/aplicado_etapa39_mcp_kv_vault.sql`:
+segredo rotacionado para o Supabase Vault (`mcp_kv_shared_secret_v2`), comparação por
+SHA-256 em `mcp_kv_check_secret`, grants restritos a `postgres`/`service_role`.
+
+Verificado no projeto após aplicar: zero funções `mcp_kv%` com literal hexadecimal em
+`pg_proc`; `mcp_kv_check_secret` retorna `t` para o segredo do Vault e `f` para valor
+errado e para o literal antigo. **Pendente de ação humana**: rotacionar cada valor dentro
+da tabela `public.mcp_kv` — o segredo antigo pode ter sido lido desde a criação, e trocar
+o mecanismo não invalida o conteúdo já gravado.
