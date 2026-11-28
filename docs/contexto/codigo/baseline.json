@@ -2,11 +2,16 @@
  "aviso": "GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.",
  "format_version": 2,
  "git": {
-  "commit": "87bf87635dd8c196edcd82e8e787d248b0504a82",
+  "commit": "3a436b1b2f159300d6d07242b1627e42dec16ef1",
   "branch": "main",
-  "data_commit": "2026-11-24T18:04:11Z",
+  "data_commit": "2026-11-28T16:58:36Z",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "ultimos_commits": [
+   {
+    "sha": "3a436b1",
+    "data": "2026-11-28",
+    "assunto": "docs: reverifica os pontos que a auditoria de 20/11 dava como pendentes (#258)"
+   },
    {
     "sha": "87bf876",
     "data": "2026-11-24",
@@ -126,14 +131,9 @@
     "sha": "18eebb5",
     "data": "2026-11-22",
     "assunto": "fix: politica de privacidade declara os estados reais de entrega (F-17) (#243)"
-   },
-   {
-    "sha": "8543dac",
-    "data": "2026-11-22",
-    "assunto": "feat: vigia independente dos crons com heartbeat e alerta (F-87) (#232)"
    }
   ],
-  "arquivos_mudados_7d": 237,
+  "arquivos_mudados_7d": 185,
   "pastas_mais_mudadas_30d": [
    {
     "pasta": "public/images/og",
@@ -149,7 +149,7 @@
    },
    {
     "pasta": "package.json",
-    "mudancas": 21
+    "mudancas": 18
    },
    {
     "pasta": "docs/audits/planejado-x-implementado-20261120",
@@ -157,34 +157,18 @@
    },
    {
     "pasta": "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
-    "mudancas": 14
+    "mudancas": 15
    },
    {
     "pasta": "site-supabase/supabase/migrations",
     "mudancas": 13
    },
    {
-    "pasta": "docs/audits/pending-features-20261011",
-    "mudancas": 12
-   },
-   {
-    "pasta": "package-lock.json",
-    "mudancas": 12
-   },
-   {
     "pasta": "scripts/check-performance-budget.mjs",
-    "mudancas": 12
-   },
-   {
-    "pasta": ".github/workflows/quality.yml",
-    "mudancas": 10
+    "mudancas": 11
    },
    {
     "pasta": "docs/DATABASE_DICTIONARY.md",
-    "mudancas": 10
-   },
-   {
-    "pasta": "e2e/smoke.spec.ts",
     "mudancas": 10
    },
    {
@@ -192,8 +176,24 @@
     "mudancas": 10
    },
    {
-    "pasta": "docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md",
+    "pasta": ".github/workflows/quality.yml",
     "mudancas": 9
+   },
+   {
+    "pasta": "docs/DATABASE_FUNCTION_CONTRACTS.md",
+    "mudancas": 9
+   },
+   {
+    "pasta": "package-lock.json",
+    "mudancas": 9
+   },
+   {
+    "pasta": "src/types/site-database.types.ts",
+    "mudancas": 9
+   },
+   {
+    "pasta": "AGENTS.md",
+    "mudancas": 8
    }
   ],
   "arquivos_mais_mudados_90d": [
@@ -301,11 +301,11 @@
   "autores_30d": [
    {
     "autor": "adm01-debug",
-    "commits": 133
+    "commits": 128
    },
    {
     "autor": "dependabot[bot]",
-    "commits": 14
+    "commits": 10
    }
   ]
  },

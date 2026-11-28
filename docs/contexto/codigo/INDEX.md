@@ -1,7 +1,7 @@
 # Contexto do projeto para agentes de IA
 
 GERADO AUTOMATICAMENTE por scripts/ai-context/gerar.mjs — não editar à mão; será sobrescrito.
-Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `87bf87635dd8c196edcd82e8e787d248b0504a82` (2026-11-24T18:04:11Z).
+Publicado em `docs/contexto/codigo/` na branch `contexto` (gerada, nunca abra PR dela) a cada push em `main` e a cada 10 minutos pelo workflow `contexto.yml`; índice único das três fontes em `docs/contexto/00-INDEX.md`. Gere local com `node scripts/ai-context/gerar.mjs`. Commit-base: `3a436b1b2f159300d6d07242b1627e42dec16ef1` (2026-11-28T16:58:36Z).
 
 ## Como usar (leia antes de planejar ou executar qualquer tarefa)
 1. **Tela/rota/menu** → `rotas.json` (url/vista/menu → arquivo → hooks → tabelas → edges; `rotas_http_backend` para APIs) e `modulos.json` (módulo inteiro + dependências entre módulos).
@@ -324,7 +324,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - `docs/AUDITORIA_5_ESPECIALISTAS_20260922.md` — Auditoria técnica dos cinco especialistas — 22/09/2026 (65 linhas)
 - `docs/AUDITORIA_FUNCIONALIDADES_PENDENTES_20261011.md` — Auditoria de funcionalidades planejadas e não executadas — 11/10/2026 (364 linhas)
 - `docs/AUDITORIA_PENDENCIAS_ENG_VERIFICACAO_20261117.md` — Verificação das pendências de engenharia — 17/11/2026 (473 linhas)
-- `docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md` — Auditoria planejado × implementado — 20/11/2026 (435 linhas)
+- `docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md` — Auditoria planejado × implementado — 20/11/2026 (472 linhas)
 - `docs/AUDITORIA_REFS_AUTOSAVE_20261118.md` — Auditoria do namespace `refs/autosave/*` — 18/11/2026 (77 linhas)
 - `docs/AUDIT_REPORT_20260908.md` — Auditoria técnica consolidada — 08–09/09/2026 (75 linhas)
 - `docs/AUTOMACAO_LOCAL.md` — Automação local — Promo_Brindes_V1 (105 linhas)
@@ -402,6 +402,7 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 
 
 ## Últimos commits
+- 2026-11-28 `3a436b1` docs: reverifica os pontos que a auditoria de 20/11 dava como pendentes (#258)
 - 2026-11-24 `87bf876` fix(smoke): checa /api/health antes das páginas (#257)
 - 2026-11-24 `ca4937e` feat: capa social própria para cada data da agenda (UX58) (#256)
 - 2026-11-24 `b68f5cc` perf: alerta comercial entrega o lote da rodada em paralelo (12/h -> 48/h) (#255)
@@ -416,7 +417,6 @@ Os JSONs são grandes: filtre com `grep`/`jq` pelo caminho/arquivo/tabela da sua
 - 2026-11-23 `f54efb6` chore(deps): bump actions/setup-node from 6.5.0 to 7.1.0 (#247)
 - 2026-11-23 `53252ed` feat: auditoria de leitura SELECT em PII (F-34) (#242)
 - 2026-11-23 `d41c1a2` chore(deps): bump @testing-library/jest-dom from 7.0.1 to 8.0.0 (#249)
-- 2026-11-23 `a771c02` docs: registro rastreavel de aprovacao visual (PF-56) (#239)
 
 ## Arquivos deste diretório
 - `docs/contexto/codigo/rotas.json`

@@ -52,11 +52,11 @@
  "commits": {
   "convencao": "conventional commits (observado)",
   "exemplos": [
+   "docs: reverifica os pontos que a auditoria de 20/11 dava como pendentes (#258)",
    "fix(smoke): checa /api/health antes das páginas (#257)",
    "feat: capa social própria para cada data da agenda (UX58) (#256)",
    "perf: alerta comercial entrega o lote da rodada em paralelo (12/h -> 48/h) (#255)",
-   "feat: alerta comercial por e-mail quando nao ha webhook do time (F-01) (#254)",
-   "docs: reconcilia matriz dos 230 requisitos com o código atual (#253)"
+   "feat: alerta comercial por e-mail quando nao ha webhook do time (F-01) (#254)"
   ]
  },
  "pr_template": ".github/pull_request_template.md",

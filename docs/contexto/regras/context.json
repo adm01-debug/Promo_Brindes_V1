@@ -1,9 +1,9 @@
 {
  "meta": {
-  "sha": "87bf87635dd8c196edcd82e8e787d248b0504a82",
+  "sha": "3a436b1b2f159300d6d07242b1627e42dec16ef1",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
-  "generated_at": "2026-11-24 18:16 UTC",
+  "generated_at": "2026-11-28 17:13 UTC",
   "files_total": 665,
   "code_files": 438,
   "code_lines": 83446,
@@ -41030,10 +41030,19 @@
   }
  },
  "git": {
-  "sha": "87bf87635dd8c196edcd82e8e787d248b0504a82",
+  "sha": "3a436b1b2f159300d6d07242b1627e42dec16ef1",
   "branch": "main",
   "remote": "https://github.com/adm01-debug/Promo_Brindes_V1",
   "commits": [
+   {
+    "sha": "3a436b1",
+    "date": "2026-11-28",
+    "author": "adm01-debug",
+    "subject": "docs: reverifica os pontos que a auditoria de 20/11 dava como pendentes (#258)",
+    "files": [
+     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md"
+    ]
+   },
    {
     "sha": "87bf876",
     "date": "2026-11-24",
@@ -41516,24 +41525,12 @@
      "docs/MATRIZ_FECHAMENTO_PLANOS_20260912.csv",
      "docs/MATRIZ_INDEX.md"
     ]
-   },
-   {
-    "sha": "abcd725",
-    "date": "2026-11-22",
-    "author": "adm01-debug",
-    "subject": "test: exercita policies de Storage como authenticated, DDL real e rate limit (F-82) (#227)",
-    "files": [
-     ".gitignore",
-     "analise-prs/funcionalidades.csv",
-     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
-     "site-supabase/supabase/tests/database/storage_authenticated_rls.test.sql"
-    ]
    }
   ],
   "hot_files": [
    [
     "analise-prs/funcionalidades.csv",
-    16
+    15
    ],
    [
     "docs/AUDITORIA_PLANEJADO_X_IMPLEMENTADO_20261120.md",
