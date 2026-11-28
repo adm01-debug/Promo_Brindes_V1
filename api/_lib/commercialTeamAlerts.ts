@@ -55,7 +55,10 @@ export interface CommercialAlertJob {
   requestId: string;
   /** 'quote' | 'contact'. Jobs de orçamento já reivindicados antes deste
    * deploy não trazem o campo e o parse os normaliza como 'quote'. */
-  requestKind: 'quote' | 'contact';
+  requestKind: 'quote' | 'contact' | 'adjustment';
+  /** Só no ajuste: orçamento dono e quantos ajustes seguem em aberto nele. */
+  quoteRequestId: string;
+  pendingAdjustments: number;
   attempt: number;
   protocol: string;
   recipientEmail: string;
@@ -106,8 +109,12 @@ export function parseCommercialAlertJob(value: unknown): CommercialAlertJob | nu
     existingProvider: safeText(job.existingProvider, 80) || null,
     existingProviderMessageId: safeText(job.existingProviderMessageId, 240) || null,
     requestId: String(job.requestId),
-    requestKind: job.requestKind === 'contact' ? 'contact' : 'quote',
+    requestKind: job.requestKind === 'contact' ? 'contact'
+      : job.requestKind === 'adjustment' ? 'adjustment' : 'quote',
     attempt: Number(job.attempt),
+    quoteRequestId: safeText(job.quoteRequestId, 40),
+    pendingAdjustments: Number.isInteger(job.pendingAdjustments) && Number(job.pendingAdjustments) >= 0
+      ? Number(job.pendingAdjustments) : 0,
     protocol: safeText(job.protocol, 40),
     recipientEmail: safeText(job.recipientEmail, 160).toLowerCase(),
     recipientPhone: safeText(job.recipientPhone, 24),
@@ -185,7 +192,21 @@ function commercialAlertEmailBody(job: CommercialAlertJob): string {
         `Página de origem: ${job.pageUrl || '-'}`,
         `Recebido em: ${job.submittedAt || '-'}`,
       ]
-    : [
+    : job.requestKind === 'adjustment'
+      ? [
+          'Novo pedido de ajuste em um orçamento.',
+          '',
+          `Protocolo: ${job.protocol || '-'}`,
+          `Empresa: ${job.company || '-'}`,
+          `Contato: ${job.contactName || '-'}`,
+          `E-mail: ${job.recipientEmail || '-'}`,
+          `Telefone: ${job.recipientPhone || '-'}`,
+          `Recebido em: ${job.submittedAt || '-'}`,
+          `Ajustes em aberto no mesmo orçamento: ${job.pendingAdjustments}`,
+          '',
+          'O texto do ajuste fica na tela do back-office, junto do orçamento.',
+        ]
+      : [
         'Novo orçamento pelo site.',
         '',
         `Protocolo: ${job.protocol || '-'}`,
@@ -204,7 +225,8 @@ function commercialAlertEmailBody(job: CommercialAlertJob): string {
   const queue = origin ? `${origin.replace(/\/+$/, '')}/admin/orcamentos` : '';
   // Contato não aparece no painel de orçamentos (src/pages/BackofficePage.tsx):
   // link para uma lista onde o lead não está só atrasaria o comercial.
-  return [...lines, ...(job.requestKind === 'quote' && queue ? ['', `Fila e status: ${queue}`] : []), ''].join('\n');
+  // nem o ajuste têm painel próprio: ambos vivem dentro do orçamento.
+  return [...lines, ...(job.requestKind === 'contact' || !queue ? [] : ['', `Fila e status: ${queue}`]), ''].join('\n');
 }
 
 /** Alerta comercial por e-mail (fallback sem webhook do time): usa o mesmo
@@ -216,7 +238,9 @@ async function deliverCommercialAlertByEmail(job: CommercialAlertJob, signal: Ab
   const from = process.env.SITE_EMAIL_FROM!.trim();
   const subject = job.requestKind === 'contact'
     ? `Novo contato pelo site — ${job.contactName || 'sem nome'}`
-    : `Novo orçamento ${job.protocol || job.requestId} — ${job.company || job.contactName || 'sem empresa'}`;
+    : job.requestKind === 'adjustment'
+      ? `Ajuste pedido no orçamento ${job.protocol || job.requestId} — ${job.company || job.contactName || 'sem empresa'}`
+      : `Novo orçamento ${job.protocol || job.requestId} — ${job.company || job.contactName || 'sem empresa'}`;
   try {
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -290,7 +314,17 @@ export async function deliverCommercialAlertJob(job: CommercialAlertJob, signal:
         preferredChannel: job.preferredChannel,
         pageUrl: job.pageUrl,
       }
-    : {
+    : job.requestKind === 'adjustment'
+      ? {
+          event: 'adjustment_requested',
+          occurredAt: job.submittedAt || new Date().toISOString(),
+          protocol: job.protocol,
+          requestId: job.requestId,
+          quoteRequestId: job.quoteRequestId || job.requestId,
+          contact: { name: job.contactName, email: job.recipientEmail, phone: job.recipientPhone, company: job.company },
+          pendingAdjustments: job.pendingAdjustments,
+        }
+      : {
         event: 'quote_request_submitted',
         occurredAt: job.submittedAt || new Date().toISOString(),
         protocol: job.protocol,
