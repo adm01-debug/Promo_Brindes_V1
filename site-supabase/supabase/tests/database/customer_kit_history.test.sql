@@ -109,8 +109,8 @@ select is(
   (select count(*) from site_private.pii_read_audit_log log
    where log.subject = 'c1c1c1c1-1111-4111-8111-111111111111'
      and log.table_name = 'quote_requests'),
-  1::bigint,
-  'a leitura do detalhe continua registrada na auditoria de PII'
+  2::bigint,
+  'as 2 leituras (detalhe e historico) seguem na auditoria de PII'
 );
 
 select * from finish();

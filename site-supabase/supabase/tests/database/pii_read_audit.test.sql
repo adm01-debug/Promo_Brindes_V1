@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 set local request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
 
-select plan(42);
+select plan(45);
 
 -- A trilha é privada: só service_role lê; ninguém além do site grava.
 select ok(not pg_catalog.has_table_privilege('anon', 'site_private.pii_read_audit_log', 'select'), 'anon não lê a trilha de leitura de PII');
@@ -72,7 +72,37 @@ select is(
    where table_name = 'quote_requests' and operation = 'SELECT'
      and subject = '11111111-1111-4111-8111-111111111111'::uuid),
   2::bigint,
-  'RPC registra as 2 leituras de PII do titular'
+  'RPC registra as 4 leituras (2 detalhe + 2 historico) de PII do titular'
+);
+
+-- === Historico do portal ====================================================
+-- 2 leituras do detalhe + 2 do historico: o historico le company/protocol do
+-- titular, entao precisa entrar na
+-- trilha do PF-34 (migration 20261129100000).
+select public.get_my_quote_requests(20, 0, null, null);
+select public.get_my_quote_requests(20, 0, null, null);
+
+select is(
+  (select count(*) from site_private.pii_read_audit_log
+   where table_name = 'quote_requests' and operation = 'SELECT'
+     and subject = '11111111-1111-4111-8111-111111111111'::uuid),
+  4::bigint,
+  'cada leitura do historico tambem entra na trilha'
+);
+
+select is(
+  (select count(*) from site_private.pii_read_audit_log
+   where table_name = 'quote_requests' and performed_by = '11111111-1111-4111-8111-111111111111'
+     and actor_kind = 'titular'),
+  4::bigint,
+  'a leitura do historico e atribuida ao titular autenticado'
+);
+
+select is(
+  (select count(*) from site_private.pii_read_audit_log
+   where table_name = 'quote_requests' and row_count is not null),
+  2::bigint,
+  'cada leitura do historico registra quantos pedidos voltaram'
 );
 
 -- Leitura de outro titular: RLS devolve null e não audita.
@@ -93,8 +123,8 @@ select is(
   (select count(*) from site_private.pii_read_audit_log
    where table_name = 'quote_requests' and operation = 'SELECT'
      and subject = '11111111-1111-4111-8111-111111111111'::uuid),
-  2::bigint,
-  'Leitura do titular registra o subject dele'
+  4::bigint,
+  'Leitura do titular registra o subject dele nas 4 leituras'
 );
 
 -- Contagem global: nenhum registro indevido pode ter sido atribuído a outro titular.
@@ -102,8 +132,8 @@ select is(
 select is(
   (select count(*) from site_private.pii_read_audit_log
    where table_name = 'quote_requests' and operation = 'SELECT'),
-  2::bigint,
-  'Leitura de outro titular não gera nenhum registro de auditoria'
+  4::bigint,
+  'Nenhuma leitura indevida e atribuida a outro titular não gera nenhum registro de auditoria'
 );
 
 select is(
