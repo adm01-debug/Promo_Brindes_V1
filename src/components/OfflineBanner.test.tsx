@@ -1,8 +1,8 @@
 import { act, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { OfflineBanner } from './OfflineBanner';
-import { OFFLINE_NOTICE, ONLINE_NOTICE, readConnectionStatus } from '../lib/connection';
+import { OFFLINE_NOTICE, readConnectionStatus } from '../lib/connection';
 
 /** FE 065 (NOVO-FE-13): o aviso de conexao precisa aparecer e desaparecer sozinho. */
 function setOnline(value: boolean) {
@@ -11,16 +11,15 @@ function setOnline(value: boolean) {
 
 describe('readConnectionStatus', () => {
   it('so declara offline quando o navegador tem certeza', () => {
-    expect(readConnectionStatus({ onLine: false })).toBe('offline');
-    expect(readConnectionStatus({ onLine: true })).toBe('online');
-    expect(readConnectionStatus(undefined)).toBe('online');
+    expect(readConnectionStatus({ onLine: false })).toBe(true);
+    expect(readConnectionStatus({ onLine: true })).toBe(false);
+    expect(readConnectionStatus(undefined)).toBe(false);
   });
 });
 
 describe('OfflineBanner', () => {
   afterEach(() => {
     setOnline(true);
-    vi.useRealTimers();
   });
 
   it('nao mostra nada quando o cliente ja abre online', () => {
@@ -29,7 +28,7 @@ describe('OfflineBanner', () => {
     expect(screen.queryByRole('status')).toBeNull();
   });
 
-  it('avisa antes do envio quando a conexao cai, e anuncia a volta', () => {
+  it('avisa antes do envio quando a conexao cai, e some quando ela volta', () => {
     setOnline(true);
     render(<OfflineBanner />);
 
@@ -43,7 +42,7 @@ describe('OfflineBanner', () => {
       setOnline(true);
       window.dispatchEvent(new Event('online'));
     });
-    expect(screen.getByRole('status')).toHaveTextContent(ONLINE_NOTICE);
+    expect(screen.queryByRole('status')).toBeNull();
   });
 
   it('mostra o estado da conexao no primeiro render sem esperar um evento', () => {
