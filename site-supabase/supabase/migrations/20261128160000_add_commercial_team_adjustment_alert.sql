@@ -423,6 +423,6 @@ revoke all on function public.claim_site_commercial_team_alerts(integer) from pu
 grant execute on function public.claim_site_commercial_team_alerts(integer) to site_api, service_role;
 
 comment on function public.claim_site_commercial_team_alert(uuid) is
-  'Reivindica o alerta comercial de um lead específico (orçamento, contato ou ajuste), sem filtrar por canal.';
+  'F-11/F-12: claim pontual do alerta ao comercial (orçamento, contato ou ajuste). Devolve null para pedido apagado (F-30) e para job inelegível por spam, anonimização ou idade acima de max_age. Supressão por bounce/complaint não se aplica: notification_request_suppressed só considera audience = customer.';
 comment on function public.claim_site_commercial_team_alerts(integer) is
-  'Reivindica lotes de alertas comerciais pendentes (orçamento, contato e ajuste) para o cron de entrega.';
+  'F-11/F-12: claim em lote dos alertas ao comercial (orçamento, contato e ajuste). Antes de reivindicar, cancela as entregas de pedido apagado (F-12), as inelegíveis por spam/anonimização/idade acima de max_age (F-11) e aposenta as que estouraram as tentativas.';
