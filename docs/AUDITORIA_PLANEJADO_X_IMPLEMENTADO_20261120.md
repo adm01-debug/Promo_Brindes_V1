@@ -258,9 +258,9 @@ Encontrados na releitura etapa a etapa dos planos (anexos 06 e 07), dos runbooks
 | ID | Funcionalidade planejada (origem) | Estado | O que falta | Evidência-chave | Quem |
 | --- | --- | --- | --- | --- | --- |
 | NOVO-DB-01 | Alerta comercial para **pedido de ajuste** (anexo 08) | NÃO INICIADO | Ampliar CHECK `request_kind`; trigger em `quote_adjustment_requests`; claim filtra só quote/contact | `20260908230000:86`; `20261117010000:116,161` | ENG |
-| NOVO-DB-02 | Apagamento LGPD cancela alertas comerciais pendentes de **contato** | PARCIAL | `erase_customer_data` cancela só `request_kind='quote'`; `20261117030100` afirma "nada enfileira contact", mas `20261117010000` enfileira | `20261117030000:127-136,205-209` | ENG |
-| NOVO-DB-03 | pgTAP de `finalize_site_storage_retention` (função usada em produção) | NÃO INICIADO | Só Vitest com `fetch` mockado | `grep tests/` = 0 | ENG |
-| NOVO-DB-04 | `allowedSiteOrigins` multi-domínio sem teste direto | PARCIAL | Teste importando `siteOrigin.ts` | `api/_lib/siteOrigin.ts:1-20` | ENG |
+| NOVO-DB-02 | Apagamento LGPD cancela alertas comerciais pendentes de **contato** | RESOLVIDO | — | Medido: `notification_delivery_is_eligible('contact', <anonimizado>) = false` e `notification_request_erased('contact', ...) = true`, com controle positivo `= true`; `20261128160000:43-68` cobre quote/contact/adjustment | ENG |
+| NOVO-DB-03 | pgTAP de `finalize_site_storage_retention` (função usada em produção) | RESOLVIDO | — | `tests/database/storage_retention_finalize.test.sql` (17 asserções verdes) | ENG |
+| NOVO-DB-04 | `allowedSiteOrigins` multi-domínio sem teste direto | RESOLVIDO | — | `tests/api/site-origin.test.ts` (9 asserções): produção, preview isolado, falha fechada, rejeição de http/path/domínio vizinho | ENG |
 | NOVO-FE-03 | Limite de corpo e timeout em **todas** as rotas (FE 012) | PARCIAL | 413 só em 6/14 rotas; abort/timeout em 8/14 arquivos `api/*.ts` | `leadHandler.ts:107`; `briefing-assets.ts:8,35` | ENG |
 | NOVO-FE-05 | Compartilhamento/PDF sem cortar itens (50 itens/kits) + e2e após revogação (FE 018) | PARCIAL | Teste com 50 itens; e2e de acesso após revogação | `e2e/smoke.spec.ts:1545` | ENG |
 | NOVO-FE-10 | Integridade do kit na jornada: e2e em conta/histórico/confirmação (FE 049) | PARCIAL | E2E ponta a ponta do kit | `kit_composition.test.sql`; `smoke.spec.ts` | ENG |
