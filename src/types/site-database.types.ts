@@ -1344,6 +1344,10 @@ export type Database = {
         }
         Returns: Json
       }
+      commercial_team_adjustment_alert_payload: {
+        Args: { p_delivery_id: string }
+        Returns: Json
+      }
       commercial_team_alert_payload: {
         Args: { p_delivery_id: string }
         Returns: Json
